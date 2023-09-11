@@ -151,7 +151,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    assertThat(repository.retrieve(PIPELINE, pipeline.id).status)
+    assertThat(repository.retrieve(PIPELINE, pipeline.id, true).status)
       .isEqualTo(SUCCEEDED)
   }
 
@@ -170,7 +170,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    assertThat(repository.retrieve(PIPELINE, pipeline.id).status)
+    assertThat(repository.retrieve(PIPELINE, pipeline.id, true).status)
       .isEqualTo(SUCCEEDED)
   }
 
@@ -204,7 +204,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2a").status).isEqualTo(SUCCEEDED)
@@ -243,7 +243,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2a").status).isEqualTo(SUCCEEDED)
@@ -269,7 +269,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    assertThat(repository.retrieve(PIPELINE, pipeline.id).status)
+    assertThat(repository.retrieve(PIPELINE, pipeline.id, true).status)
       .isEqualTo(SUCCEEDED)
 
     verify(dummyTask, never()).execute(any())
@@ -290,7 +290,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    assertThat(repository.retrieve(PIPELINE, pipeline.id).status)
+    assertThat(repository.retrieve(PIPELINE, pipeline.id, true).status)
       .isEqualTo(TERMINAL)
   }
 
@@ -336,7 +336,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(TERMINAL)
       assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2a1").status).isEqualTo(TERMINAL)
@@ -383,7 +383,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2a1").status).isEqualTo(FAILED_CONTINUE)
@@ -437,7 +437,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(TERMINAL)
       assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2a1").status).isEqualTo(STOPPED)
@@ -480,16 +480,16 @@ abstract class QueueIntegrationTest {
 
     context.runParentToCompletion(parentPipeline, childPipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, parentPipeline.id).apply {
+    repository.retrieve(PIPELINE, parentPipeline.id, true).apply {
       assertThat(status == CANCELED)
     }
-    repository.retrieve(PIPELINE, childPipeline.id).apply {
+    repository.retrieve(PIPELINE, childPipeline.id, true).apply {
       assertThat(stageByRef("wait").status == RUNNING)
     }
 
     context.runToCompletion(childPipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, childPipeline.id).apply {
+    repository.retrieve(PIPELINE, childPipeline.id, true).apply {
       assertThat(isCanceled).isTrue()
       assertThat(stageByRef("wait").wasShorterThan(10000L)).isTrue()
       assertThat(stageByRef("wait").status == CANCELED)
@@ -523,7 +523,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(TERMINAL)
       assertThat(stageByRef("2b").status).isEqualTo(TERMINAL)
       assertThat(stageByRef("2a").status).isEqualTo(SUCCEEDED)
@@ -574,7 +574,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(SUCCEEDED)
       assertThat(stages.size).isEqualTo(2)
       assertThat(stages.map { it.type }).contains(RestrictExecutionDuringTimeWindow.TYPE)
@@ -612,7 +612,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertSoftly {
         assertThat(status).isEqualTo(SUCCEEDED)
         assertThat(stages.size).isEqualTo(5)
@@ -658,7 +658,7 @@ abstract class QueueIntegrationTest {
       }
     )
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(SUCCEEDED)
       // resolved expressions should be persisted
       assertThat(stages.first().context["expr"]).isEqualTo(true)
@@ -700,7 +700,7 @@ abstract class QueueIntegrationTest {
 
     context.restartAndRunToCompletion(pipeline.stageByRef("1"), runner::restart, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(CANCELED)
       assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2").status).isEqualTo(CANCELED)
@@ -747,7 +747,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2a").status).isEqualTo(SKIPPED)
@@ -803,7 +803,7 @@ abstract class QueueIntegrationTest {
 
     context.restartAndRunToCompletion(pipeline.stageByRef("1"), runner::restart, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2a").status).isEqualTo(SKIPPED)
       assertThat(stageByRef("2b").status).isEqualTo(SUCCEEDED)
@@ -839,7 +839,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertSoftly {
         assertThat(status).isEqualTo(TERMINAL)
         assertThat(stageByRef("1").status).isEqualTo(TERMINAL)
@@ -875,7 +875,7 @@ abstract class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, { runner.cancel(it, "anonymous", null) }, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).apply {
+    repository.retrieve(PIPELINE, pipeline.id, true).apply {
       assertThat(status).isEqualTo(CANCELED)
       assertThat(stageByRef("1").status).isEqualTo(CANCELED)
       assertThat(stageByRef("1").tasks.all { it.status == CANCELED })

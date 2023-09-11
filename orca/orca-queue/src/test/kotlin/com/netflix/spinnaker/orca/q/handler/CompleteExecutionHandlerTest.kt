@@ -83,7 +83,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       val message = CompleteExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -125,7 +125,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       val message = CompleteExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -159,7 +159,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       val message = CompleteExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -203,7 +203,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       val message = CompleteExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -255,7 +255,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     val message = CompleteExecution(pipeline)
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -304,7 +304,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     val message = CompleteExecution(pipeline)
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -359,7 +359,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     val message = CompleteExecution(pipeline)
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -415,8 +415,8 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     val message2 = CompleteExecution(waitingPipeline)
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message1.executionId)) doReturn runningPipeline
-      whenever(repository.retrieve(PIPELINE, message2.executionId)) doReturn waitingPipeline
+      whenever(repository.retrieve(PIPELINE, message1.executionId, true)) doReturn runningPipeline
+      whenever(repository.retrieve(PIPELINE, message2.executionId, true)) doReturn waitingPipeline
     }
 
     afterGroup(::resetMocks)
@@ -466,8 +466,8 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     val message2 = CompleteExecution(runningPipeline2)
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message1.executionId)) doReturn runningPipeline1
-      whenever(repository.retrieve(PIPELINE, message2.executionId)) doReturn runningPipeline2
+      whenever(repository.retrieve(PIPELINE, message1.executionId, true)) doReturn runningPipeline1
+      whenever(repository.retrieve(PIPELINE, message2.executionId, true)) doReturn runningPipeline2
     }
 
     afterGroup(::resetMocks)

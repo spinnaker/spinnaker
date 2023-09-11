@@ -123,7 +123,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
         beforeGroup {
-          whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -174,7 +174,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       beforeGroup {
         stageWithSyntheticBefore.plan(pipeline.stageByRef("2>1"))
 
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -303,7 +303,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
     val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
     beforeGroup {
-      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -376,7 +376,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
     val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
     beforeGroup {
-      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -426,7 +426,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
     val message = RestartStage(pipeline.type, pipeline.id, "foo", syntheticStage.id, "fzlem@netflix.com")
 
     beforeGroup {
-      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -477,7 +477,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         application = "foo"
         status = RUNNING
       }
-      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       whenever(repository.retrievePipelinesForPipelineConfigId(
         pipeline.pipelineConfigId,
         ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.from(listOf(runningPipeline))
@@ -524,7 +524,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         application = "foo"
         status = RUNNING
       }
-      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       whenever(repository.retrievePipelinesForPipelineConfigId(
         pipeline.pipelineConfigId,
         ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.from(listOf(runningPipeline))

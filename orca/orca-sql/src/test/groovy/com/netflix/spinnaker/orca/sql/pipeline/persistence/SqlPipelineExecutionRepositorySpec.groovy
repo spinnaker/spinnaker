@@ -329,7 +329,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     repo.store(orig)
 
     when:
-    PipelineExecution e = repo.retrieve(PIPELINE, id)
+    PipelineExecution e = repo.retrieve(PIPELINE, id, true)
 
     then:
     e.id == id
@@ -346,7 +346,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     repo.store(orig)
 
     when:
-    PipelineExecution e = repo.retrieve(PIPELINE, id)
+    PipelineExecution e = repo.retrieve(PIPELINE, id, true)
 
     then:
     e.id == id

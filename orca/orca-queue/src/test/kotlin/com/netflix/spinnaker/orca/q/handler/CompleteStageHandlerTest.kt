@@ -203,7 +203,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           val message = CompleteStage(pipeline.stageByRef("1"))
 
           beforeGroup {
-            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -232,7 +232,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           val message = CompleteStage(pipeline.stageByRef("1"))
 
           beforeGroup {
-            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -288,7 +288,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           val message = CompleteStage(pipeline.stageByRef("1"))
 
           beforeGroup {
-            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -345,7 +345,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           val message = CompleteStage(pipeline.stageByRef("1"))
 
           beforeGroup {
-            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -380,7 +380,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           val message = CompleteStage(pipeline.stageByRef("1"))
 
           beforeGroup {
-            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -413,7 +413,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             val message = CompleteStage(pipeline.stageByRef("1"))
 
             beforeGroup {
-              whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+              whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
             }
 
             afterGroup(::resetMocks)
@@ -443,7 +443,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           val message = CompleteStage(pipeline.stageByRef("1"))
 
           beforeGroup {
-            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -484,7 +484,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           val message = CompleteStage(pipeline.stageByRef("1"))
 
           beforeGroup {
-            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
             assertThat(pipeline.stages.map { it.type }).isEqualTo(listOf(stageThatBlowsUpPlanningAfterStages.type))
           }
 
@@ -529,7 +529,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
 
           beforeGroup {
-            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -613,7 +613,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       )
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -663,7 +663,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       val message = CompleteStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -707,7 +707,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         val message = CompleteStage(pipeline.stageByRef("1"))
 
         beforeGroup {
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -776,7 +776,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       val message = CompleteStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -840,7 +840,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         val message = CompleteStage(pipeline.stageByRef("1"))
 
         beforeGroup {
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -877,7 +877,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             .filter { it.syntheticStageOwner == STAGE_BEFORE }
             .forEach { it.status = SKIPPED }
           pipeline.stageById(message.stageId).tasks.forEach { it.status = SUCCEEDED }
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -909,7 +909,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         val message = CompleteStage(pipeline.stageByRef("1"))
 
         beforeGroup {
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -967,7 +967,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
               .stages
               .first { it.syntheticStageOwner == syntheticType }
               .status = failureStatus
-            whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -1009,7 +1009,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             .first { it.syntheticStageOwner == syntheticType }
             .status = FAILED_CONTINUE
           pipeline.stageById(message.stageId).tasks.forEach { it.status = SUCCEEDED }
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -1051,7 +1051,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           .filter { it.syntheticStageOwner == STAGE_AFTER }
           .forEach { it.status = SUCCEEDED }
         pipeline.stageById(message.stageId).tasks.forEach { it.status = SUCCEEDED }
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -1107,7 +1107,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       val message = CompleteStage(pipeline.stageByRef("2=1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -1144,7 +1144,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
               tasks.first().status = SUCCEEDED
             }
 
-            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -1172,7 +1172,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
               tasks.first().status = SUCCEEDED
             }
 
-            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -1214,7 +1214,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
               tasks.first().status = SUCCEEDED
             }
 
-            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -1245,7 +1245,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
               tasks.first().status = SUCCEEDED
             }
 
-            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -1285,7 +1285,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             tasks.first().status = FAILED_CONTINUE
           }
 
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         on("receiving the message") {
@@ -1320,7 +1320,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             tasks.first().status = FAILED_CONTINUE
           }
 
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         on("receiving the message") {
@@ -1354,7 +1354,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             tasks.first().status = taskStatus
           }
 
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         on("receiving the message") {
@@ -1392,7 +1392,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           tasks.first().status = TERMINAL
         }
 
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       on("receiving the message") {
@@ -1432,7 +1432,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
         beforeGroup {
           pipeline.stageById(message.stageId).status = RUNNING
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -1469,7 +1469,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           pipeline.stageByRef("1<2").status = SUCCEEDED
           pipeline.stageByRef("1<3").status = SUCCEEDED
 
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -1513,7 +1513,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       val message = CompleteStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -1549,7 +1549,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       val message = CompleteStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -1586,7 +1586,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       val message = CompleteStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -1619,7 +1619,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           tasks.first().status = TERMINAL
         }
 
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -1660,7 +1660,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           it.status = SUCCEEDED
         }
 
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -1699,7 +1699,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             status = RUNNING
           }
 
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -1727,7 +1727,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             it.status = SUCCEEDED
           }
 
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -1749,5 +1749,3 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
     }
   }
 })
-
-

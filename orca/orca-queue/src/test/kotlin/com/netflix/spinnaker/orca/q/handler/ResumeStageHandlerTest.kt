@@ -76,7 +76,7 @@ object ResumeStageHandlerTest : SubjectSpek<ResumeStageHandler>({
     val message = ResumeStage(pipeline.type, pipeline.id, pipeline.application, pipeline.stages.first().id)
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)

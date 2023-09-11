@@ -61,7 +61,7 @@ object PauseTaskHandlerTest : SubjectSpek<PauseTaskHandler>({
     val message = PauseTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1")
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)

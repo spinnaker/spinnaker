@@ -89,7 +89,7 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
     val message = StartTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1")
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       whenever(environment.getProperty("tasks.dummyTask.enabled", Boolean::class.java, true)) doReturn true
     }
 
@@ -146,7 +146,7 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
     val message = StartTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1")
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       whenever(environment.getProperty("tasks.dummyTask.enabled", Boolean::class.java, true)) doReturn false
     }
 
@@ -199,7 +199,7 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
     val message = StartTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1")
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId)) doThrow NullPointerException()
+      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doThrow NullPointerException()
     }
 
     afterGroup(::resetMocks)

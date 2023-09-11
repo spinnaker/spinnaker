@@ -221,7 +221,7 @@ class CompleteStageHandler(
     }
 
     if (hasPlannedStages) {
-      this.setExecution(repository.retrieve(this.execution.type, this.execution.id))
+      this.setExecution(repository.retrieve(this.execution.type, this.execution.id, true))
     }
   }
 

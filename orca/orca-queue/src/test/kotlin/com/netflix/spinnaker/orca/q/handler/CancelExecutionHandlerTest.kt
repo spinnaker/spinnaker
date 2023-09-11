@@ -69,7 +69,7 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
       val message = CancelExecution(pipeline, "fzlem@netflix.com", "because")
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -113,7 +113,7 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
       val message = CancelExecution(pipeline, "fzlem@netflix.com", "because")
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)

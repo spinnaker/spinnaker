@@ -101,7 +101,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         )
 
         beforeGroup {
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -165,7 +165,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         )
 
         beforeGroup {
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -225,7 +225,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
               tasks[2].status = SUCCEEDED
             }
 
-            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -277,7 +277,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       )
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -366,7 +366,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       )
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -406,7 +406,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       )
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)

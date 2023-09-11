@@ -83,7 +83,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -123,7 +123,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -158,7 +158,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -195,7 +195,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -221,7 +221,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -254,7 +254,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -289,7 +289,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -339,7 +339,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId)
+            repository.retrieve(message.executionType, message.executionId, true)
           ) doReturn pipeline
         }
 
@@ -374,7 +374,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId)
+            repository.retrieve(message.executionType, message.executionId, true)
           ) doReturn pipeline
         }
 
@@ -402,7 +402,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(pipeline)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId)
+            repository.retrieve(message.executionType, message.executionId, true)
           ) doReturn pipeline
         }
 
@@ -473,7 +473,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(pipeline)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId)
+            repository.retrieve(message.executionType, message.executionId, true)
           ) doReturn pipeline
         }
 
@@ -499,7 +499,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline1)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId)
+            repository.retrieve(message.executionType, message.executionId, true)
           ) doReturn pipeline
         }
 
@@ -525,7 +525,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline1,runningPipeline2)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId)
+            repository.retrieve(message.executionType, message.executionId, true)
           ) doReturn pipeline
         }
 
@@ -551,7 +551,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline1,runningPipeline2,runningPipeline3)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId)
+            repository.retrieve(message.executionType, message.executionId, true)
           ) doReturn pipeline
         }
 

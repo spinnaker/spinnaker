@@ -117,7 +117,7 @@ object CancelStageHandlerTest : SubjectSpek<CancelStageHandler>({
 
         beforeGroup {
           whenever(cancellableStage.type) doReturn "cancellable"
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -146,7 +146,7 @@ object CancelStageHandlerTest : SubjectSpek<CancelStageHandler>({
 
         beforeGroup {
           whenever(cancellableStage.type) doReturn "cancellable"
-          whenever(repository.retrieve(pipeline.type, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(pipeline.type, pipeline.id, true)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)

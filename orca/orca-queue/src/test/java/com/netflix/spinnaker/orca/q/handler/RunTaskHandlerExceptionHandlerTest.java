@@ -193,7 +193,7 @@ class RunTaskHandlerExceptionHandlerTest {
             taskId,
             DummyTask.class);
 
-    when(executionRepository.retrieve(PIPELINE, runTaskMessage.getExecutionId()))
+    when(executionRepository.retrieve(PIPELINE, runTaskMessage.getExecutionId(), true))
         .thenReturn(pipeline);
   }
 

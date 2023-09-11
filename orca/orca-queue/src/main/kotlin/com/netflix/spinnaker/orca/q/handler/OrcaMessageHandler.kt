@@ -92,7 +92,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
 
   fun ExecutionLevel.withExecution(block: (PipelineExecution) -> Unit) =
     try {
-      val execution = repository.retrieve(executionType, executionId)
+      val execution = repository.retrieve(executionType, executionId, true)
       block.invoke(execution)
     } catch (e: ExecutionNotFoundException) {
       queue.push(InvalidExecutionId(this))

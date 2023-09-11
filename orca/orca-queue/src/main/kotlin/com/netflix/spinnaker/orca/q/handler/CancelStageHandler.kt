@@ -97,7 +97,7 @@ class CancelStageHandler(
               if (stage.type.equals("pipeline", true) && stage.context.containsKey("executionId")) {
                 val childId = stage.context["executionId"] as? String
                 if (childId != null) {
-                  val child = repository.retrieve(PIPELINE, childId)
+                  val child = repository.retrieve(PIPELINE, childId, true)
                   queue.push(RescheduleExecution(child))
                 }
               }
