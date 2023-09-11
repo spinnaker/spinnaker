@@ -118,7 +118,9 @@ spring.session.store-type: redis
 ---
 
 spring:
-  profiles: googleOAuth
+  config:
+    activate:
+      on-profile: googleOAuth
 
 security:
   oauth2:
@@ -139,7 +141,9 @@ security:
 ---
 
 spring:
-  profiles: azureOAuth
+  config:
+    activate:
+      on-profile: azureOAuth
 
 security:
   oauth2:
@@ -162,7 +166,9 @@ security:
 ---
 
 spring:
-  profiles: githubOAuth
+  config:
+    activate:
+      on-profile: githubOAuth
 
 security:
   oauth2:

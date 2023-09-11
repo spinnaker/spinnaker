@@ -30,7 +30,9 @@ services:
 ---
 
 spring:
-  profiles: test
+  config:
+    activate:
+      on-profile: test
 
 spinnaker:
   extensions:

@@ -37,7 +37,9 @@ slack:
 ---
 
 spring:
-  profiles: alloworigincors
+  config:
+    activate:
+      on-profile: alloworigincors
 
 cors:
   allow-mode: "list"
@@ -48,7 +50,9 @@ cors:
 ---
 
 spring:
-  profiles: regexcors
+  config:
+    activate:
+      on-profile: regexcors
 
 cors:
   allowedOriginsPattern: '^https?://(?:localhost|[^/]+\.somewhere\.net)(?::[1-9]\d*)?/?$'
@@ -57,7 +61,9 @@ cors:
 ---
 
 spring:
-  profiles: test
+  config:
+    activate:
+      on-profile: test
 
 spinnaker:
   extensions:
