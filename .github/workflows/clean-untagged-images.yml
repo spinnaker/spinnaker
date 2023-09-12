@@ -25,4 +25,4 @@ jobs:
           args: >-
             -repo=us-docker.pkg.dev/spinnaker-community/docker
             -grace=48h
-            -dry_run=true
+            -dry-run=true
