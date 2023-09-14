@@ -28,9 +28,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.services.ApplicationService;
+import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
+import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
+import com.netflix.spinnaker.gate.services.internal.Front50Service;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
@@ -61,6 +67,18 @@ public class ArtifactControllerTest {
   @MockBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
 
   @MockBean private ClouddriverService mockClouddriverService;
+
+  @MockBean private Front50Service mockFront50Service;
+
+  @MockBean private FiatService mocFiatService;
+
+  @MockBean private ExtendedFiatService mockExtendedFiatService;
+
+  @MockBean private PermissionService mockPermissionService;
+
+  @MockBean private ApplicationService mockApplicationService;
+
+  @MockBean private ServiceClientProvider mockServiceClientProvider;
 
   @MockBean private InputStream mockInputStream;
 

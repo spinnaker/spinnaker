@@ -24,7 +24,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
+import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.services.ApplicationService;
+import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
+import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
+import com.netflix.spinnaker.gate.services.internal.Front50Service;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.EnumSet;
@@ -34,6 +41,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -51,6 +59,20 @@ public class ResponseHeaderInterceptorTest {
   private static final String TEST_EXECUTION_ID = "Test-Execution-ID";
   private static final String TEST_EXECUTION_TYPE = "Test-Execution-Type";
   private static final String TEST_APPLICATION = "Test-Application";
+
+  @MockBean private ClouddriverService mockClouddriverService;
+
+  @MockBean private ServiceClientProvider mockServiceClientProvider;
+
+  @MockBean private ApplicationService mockApplicationService;
+
+  @MockBean private PermissionService mockPermissionService;
+
+  @MockBean private FiatService mockFiatService;
+
+  @MockBean private ExtendedFiatService mockExtendedFiatService;
+
+  @MockBean private Front50Service mockFront50Service;
 
   @RestController
   @RequestMapping(value = API_BASE)
