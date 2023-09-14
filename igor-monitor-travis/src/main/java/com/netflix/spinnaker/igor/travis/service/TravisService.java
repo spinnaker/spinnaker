@@ -50,6 +50,8 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.core.SupplierUtils;
@@ -59,7 +61,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -73,7 +74,6 @@ import net.logstash.logback.argument.StructuredArguments;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.RetrofitError;
 
 public class TravisService implements BuildOperations, BuildProperties {
 
@@ -444,27 +444,21 @@ public class TravisService implements BuildOperations, BuildProperties {
         travisCache.setJobLog(groupKey, jobId, v3Log.getContent());
         return Optional.of(v3Log.getContent());
       }
-    } catch (RetrofitError e) {
-      if (e.getBody() != null) {
-        try {
-          Map body = (Map) e.getBodyAs(HashMap.class);
-          if ("log_expired".equals(body.get("error_type"))) {
-            log.info(
-                "{}: The log for job id {} has expired and the corresponding build was ignored",
-                groupKey,
-                jobId);
-          } else {
-            log.warn(
-                "{}: Could not get log for job id {}. Error from Travis:\n{}",
-                groupKey,
-                jobId,
-                body);
-          }
-        } catch (RuntimeException ex) {
-          log.warn("{}: Could not parse original error message from Travis", groupKey, ex);
+    } catch (SpinnakerServerException e) {
+      if (e instanceof SpinnakerHttpException) { // only SpinnakerHttpException has a response body
+        Map<String, Object> body = ((SpinnakerHttpException) e).getResponseBody();
+        if (body != null && "log_expired".equals(body.get("error_type"))) {
+          log.info(
+              "{}: The log for job id {} has expired and the corresponding build was ignored",
+              groupKey,
+              jobId);
+        } else {
+          log.warn(
+              "{}: Could not get log for job id {}. Error from Travis:\n{}", groupKey, jobId, body);
         }
       }
     }
+
     return Optional.empty();
   }
 
@@ -553,7 +547,7 @@ public class TravisService implements BuildOperations, BuildProperties {
   public void syncRepos() {
     try {
       travisClient.usersSync(getAccessToken(), new EmptyObject());
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       log.error(
           "synchronizing travis repositories for {} failed with error: {}",
           groupKey,

@@ -37,6 +37,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Jobs
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import org.assertj.core.util.Lists
 import retrofit.RetrofitError
@@ -391,7 +392,7 @@ class TravisServiceSpec extends Specification {
         2 * travisCache.getJobLog("travis-ci", _) >> null
         1 * client.jobLog(_, 1) >> v3log
         1 * client.jobLog(_, 2) >> {
-            throw RetrofitError.httpError(
+            throw new SpinnakerHttpException(RetrofitError.httpError(
                 "https://travis-ci.com/api/job/2/log",
                 new Response("https://travis-ci.com/api/job/2/log", 403, "Forbidden", [], new TypedString(
                     """{
@@ -401,7 +402,7 @@ class TravisServiceSpec extends Specification {
                         }
                     """)),
                 new JacksonConverter(),
-                Map)
+                Map))
         }
         !ready
     }

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.igor.travis.TravisCache;
 import com.netflix.spinnaker.igor.travis.client.TravisClient;
 import com.netflix.spinnaker.igor.travis.client.model.v3.Root;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -132,6 +133,7 @@ public class TravisConfig {
         .setClient(new OkClient(client))
         .setConverter(new JacksonConverter(objectMapper))
         .setLog(new Slf4jRetrofitLogger(TravisClient.class))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .build()
         .create(TravisClient.class);
   }
