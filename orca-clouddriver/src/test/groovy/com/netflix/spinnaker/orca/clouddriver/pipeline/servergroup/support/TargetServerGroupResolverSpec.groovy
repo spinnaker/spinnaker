@@ -19,8 +19,11 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit.RestAdapter
 import retrofit.RetrofitError
+import retrofit.client.Client
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -44,6 +47,92 @@ class TargetServerGroupResolverSpec extends Specification {
     retrySupport: retrySupport
   )
 
+  @Unroll
+  def "resolveByParams(target) throws a ConversionError with an invalid response (#description)"() {
+    given:
+    Client client = Mock(Client)
+
+    OortService oortService =
+        new RestAdapter.Builder()
+            .setEndpoint("clouddriver")
+            .setClient(client)
+            .build()
+            .create(OortService.class);
+
+    TargetServerGroupResolver targetServerGroupResolver = new TargetServerGroupResolver(
+      oortService: oortService,
+      mapper: mapper,
+      retrySupport: retrySupport
+    )
+
+    when:
+    def tsgs = targetServerGroupResolver.resolveByParams(new TargetServerGroup.Params(
+      cloudProvider: "abc",
+      cluster: "test-app",
+      credentials: "testCreds",
+      locations: [new Location(type: Location.Type.REGION, value: "north-pole")],
+      target: TargetServerGroup.Params.Target.current_asg,
+    ))
+
+    then:
+    // Expect multiple invocations due to retries.
+    15 * client.execute(_) >> new Response("clouddriver", 200, 'ok', [], new TypedString(responseBody))
+
+    RetrofitError retrofitError = thrown(RetrofitError)
+    retrofitError.kind == RetrofitError.Kind.CONVERSION
+
+    where:
+    // Another kind of invalid is something that deserializes into a map, but
+    // from which it's not possible to construct a TargetServerGroup.  That's a
+    // different test though, as it doesn't generate a conversion error.
+    description         | responseBody
+    "non-json response" | "non-json response"
+    "not a map"         | "[ \"list-element\": 5 ]"
+  }
+
+  @Unroll
+  def "resolveByParams(serverGroupName) throws a ConversionError with an invalid response (#description)"() {
+    given:
+    Client client = Mock(Client)
+
+    OortService oortService =
+        new RestAdapter.Builder()
+            .setEndpoint("clouddriver")
+            .setClient(client)
+            .build()
+            .create(OortService.class);
+
+    TargetServerGroupResolver targetServerGroupResolver = new TargetServerGroupResolver(
+      oortService: oortService,
+      mapper: mapper,
+      retrySupport: retrySupport
+    )
+
+    when:
+    def tsgs = targetServerGroupResolver.resolveByParams(new TargetServerGroup.Params(
+      cloudProvider: "gce",
+      serverGroupName: "test-app-v010",
+      credentials: "testCreds",
+      locations: [new Location(type: Location.Type.REGION, value: "north-pole")]
+    ))
+
+    then:
+    // Expect multiple invocations due to retries.
+    15 * client.execute(_) >> new Response("clouddriver", 200, 'ok', [], new TypedString(responseBody))
+
+    RetrofitError retrofitError = thrown(RetrofitError)
+    retrofitError.kind == RetrofitError.Kind.CONVERSION
+
+    where:
+    // Another kind of invalid is something that deserializes into a list, but
+    // from which it's not possible to construct a TargetServerGroup from the
+    // appropriate element.  That's a different test though, as it doesn't
+    // generate a conversion error.
+    description         | responseBody
+    "non-json response" | "non-json response"
+    "not a list"        | "{ \"some-property\": 5 }"
+  }
+
   def "should resolve to target server groups"() {
     when:
     def tsgs = subject.resolveByParams(new TargetServerGroup.Params(
@@ -56,13 +145,11 @@ class TargetServerGroupResolverSpec extends Specification {
 
     then:
     1 * oort.getTargetServerGroup("test", "testCreds", "test-app", "abc", "north-pole", "current_asg") >>
-      new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([
+      new ServerGroup([
         name  : "test-app-v010",
-        region: "north-pole",
-        data  : 123,
-      ])))
+        region: "north-pole"
+      ])
     tsgs.size() == 1
-    // TODO: is data a real property? tsgs[0].data == 123
     tsgs[0].getLocation()
     tsgs[0].getLocation().type == Location.Type.REGION
     tsgs[0].getLocation().value == "north-pole"
@@ -76,15 +163,12 @@ class TargetServerGroupResolverSpec extends Specification {
     ))
 
     then:
-    1 * oort.getServerGroupFromCluster("test", "testCreds", "test-app", "test-app-v010", null, "gce") >>
-      new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([[
-                                                                                              name  : "test-app-v010",
-                                                                                              region: "north-pole",
-                                                                                              data  : 123,
-                                                                                              type  : "gce",
-                                                                                            ]])))
+    1 * oort.getServerGroupsFromClusterTyped("test", "testCreds", "test-app", "test-app-v010", "gce") >>
+      [new ServerGroup([name  : "test-app-v010",
+                       region: "north-pole",
+                       type  : "gce",
+                       ])]
     tsgs.size() == 1
-    // TODO: is data a real property? tsgs[0].data == 123
     tsgs[0].getLocation()
     tsgs[0].getLocation().type == Location.Type.REGION
     tsgs[0].getLocation().value == "north-pole"
@@ -192,7 +276,7 @@ class TargetServerGroupResolverSpec extends Specification {
 
     when:
     try {
-      capturedResult = subject.fetchWithRetries(Map, 10, 1) {
+      capturedResult = subject.fetchWithRetries {
         invocationCount++
         throw exception
       }
@@ -206,12 +290,12 @@ class TargetServerGroupResolverSpec extends Specification {
 
     where:
     exception                                         || expectNull || expectedInvocationCount
-    new IllegalStateException("should retry")         || false      || 10
-    retrofitError(RetrofitError.Kind.UNEXPECTED, 400) || false      || 10
-    retrofitError(RetrofitError.Kind.HTTP, 500)       || false      || 10
+    new IllegalStateException("should retry")         || false      || TargetServerGroupResolver.NUM_RETRIES
+    retrofitError(RetrofitError.Kind.UNEXPECTED, 400) || false      || TargetServerGroupResolver.NUM_RETRIES
+    retrofitError(RetrofitError.Kind.HTTP, 500)       || false      || TargetServerGroupResolver.NUM_RETRIES
     retrofitError(RetrofitError.Kind.HTTP, 404)       || true       || 1      // a 404 should short-circuit and return null
-    retrofitError(RetrofitError.Kind.NETWORK, 0)      || false      || 10
-    retrofitError(RetrofitError.Kind.HTTP, 429)       || false      || 10
+    retrofitError(RetrofitError.Kind.NETWORK, 0)      || false      || TargetServerGroupResolver.NUM_RETRIES
+    retrofitError(RetrofitError.Kind.HTTP, 429)       || false      || TargetServerGroupResolver.NUM_RETRIES
   }
 
   RetrofitError retrofitError(RetrofitError.Kind kind, int status) {

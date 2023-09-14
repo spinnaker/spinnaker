@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.clouddriver.model.Ami;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import java.util.List;
 import java.util.Map;
 import retrofit.client.Response;
@@ -49,6 +50,15 @@ public interface OortService {
       @Path("cluster") String cluster,
       @Path("serverGroup") String serverGroup,
       @Query("region") String region,
+      @Path("cloudProvider") String cloudProvider);
+
+  @GET(
+      "/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
+  List<ServerGroup> getServerGroupsFromClusterTyped(
+      @Path("app") String app,
+      @Path("account") String account,
+      @Path("cluster") String cluster,
+      @Path("serverGroup") String serverGroup,
       @Path("cloudProvider") String cloudProvider);
 
   @GET("/manifests/{account}/_/{manifest}")
@@ -97,7 +107,7 @@ public interface OortService {
 
   @GET(
       "/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}")
-  Response getTargetServerGroup(
+  ServerGroup getTargetServerGroup(
       @Path("app") String app,
       @Path("account") String account,
       @Path("cluster") String cluster,

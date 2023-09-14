@@ -17,20 +17,23 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.ConversionException
-import retrofit.converter.JacksonConverter
+
+import java.time.Duration
 
 @Component
 @Slf4j
 class TargetServerGroupResolver {
+
+  public static final int NUM_RETRIES = 15;
 
   @Autowired
   OortService oortService
@@ -63,7 +66,7 @@ class TargetServerGroupResolver {
 
   private TargetServerGroup resolveByTarget(TargetServerGroup.Params params, Location location) {
     try {
-      Map tsgMap = fetchWithRetries(Map) {
+      ServerGroup tsg = fetchWithRetries {
         oortService.getTargetServerGroup(params.app,
           params.credentials,
           params.cluster,
@@ -71,10 +74,10 @@ class TargetServerGroupResolver {
           location.value,
           params.target.name())
       }
-      if (!tsgMap) {
+      if (!tsg) {
         throw new TargetServerGroup.NotFoundException("Unable to locate ${params.target.name()} in $params.credentials/$location.value/$params.cluster")
       }
-      return new TargetServerGroup(tsgMap)
+      return new TargetServerGroup(tsg)
     } catch (Exception e) {
       log.error("Unable to locate ${params.target.name()} in $params.credentials/$location.value/$params.cluster", e)
       throw e
@@ -82,18 +85,18 @@ class TargetServerGroupResolver {
   }
 
   private TargetServerGroup resolveByServerGroupName(TargetServerGroup.Params params, Location location) {
-    List<Map> tsgList = fetchWithRetries(List) {
-      oortService.getServerGroupFromCluster(
+    // TODO(ttomsu): Add zonal support to this op. (e.g. the region param).  Note that adding a region changes the response type from a List to a singleServerGroup
+    List<ServerGroup> tsgList = fetchWithRetries {
+      oortService.getServerGroupsFromClusterTyped(
         params.app,
         params.credentials,
         params.cluster,
         params.serverGroupName,
-        null /* region */, // TODO(ttomsu): Add zonal support to this op.
         params.cloudProvider
       )
     }
     // Without zonal support in the getServerGroup call above, we have to do the filtering here.
-    def tsg = tsgList?.find { Map tsg -> tsg.region == location.value || tsg.zones?.contains(location.value) || tsg.namespace == location.value }
+    def tsg = tsgList?.find { ServerGroup tsg -> tsg.region == location.value || tsg.zones?.contains(location.value) || tsg.namespace == location.value }
     if (!tsg) {
       throw new TargetServerGroup.NotFoundException("Unable to locate $params.serverGroupName in $params.credentials/$location.value/$params.cluster")
     }
@@ -145,28 +148,17 @@ class TargetServerGroupResolver {
     return stage.type == DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
   }
 
-  private <T> T fetchWithRetries(Class<T> responseType, Closure<Response> fetchClosure) {
-    return fetchWithRetries(responseType, 15, 1000, fetchClosure)
-  }
-
-  private <T> T fetchWithRetries(Class<T> responseType, int maxRetries, long retryBackoff, Closure<Response> fetchClosure) {
+  @VisibleForTesting
+  <T> T fetchWithRetries(Closure<T> fetchClosure) {
     return retrySupport.retry({
-      def converter = new JacksonConverter(mapper)
-
-      Response response
       try {
-        response = fetchClosure.call()
+        return fetchClosure.call()
       } catch (RetrofitError re) {
         if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
           return null
         }
         throw re
       }
-      try {
-        return (T) converter.fromBody(response.body, responseType)
-      } catch (ConversionException ce) {
-        throw RetrofitError.conversionError(response.url, response, converter, responseType, ce)
-      }
-    }, maxRetries, retryBackoff, false)
+    }, NUM_RETRIES, Duration.ofMillis(1000), false)
   }
 }
