@@ -34,16 +34,20 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Log4j2
 public class InvokeLambdaAtomicOperation
     extends AbstractLambdaAtomicOperation<
         InvokeLambdaFunctionDescription, InvokeLambdaFunctionOutputDescription>
     implements AtomicOperation<InvokeLambdaFunctionOutputDescription> {
 
   @Autowired private ArtifactDownloader artifactDownloader;
+
+  @Autowired LambdaOperationsConfig operationsConfig;
 
   public InvokeLambdaAtomicOperation(InvokeLambdaFunctionDescription description) {
     super(description, "INVOKE_LAMBDA_FUNCTION");
@@ -71,12 +75,14 @@ public class InvokeLambdaAtomicOperation
         new InvokeRequest()
             .withFunctionName(functionName)
             .withLogType(LogType.Tail)
-            .withPayload(payload);
+            .withPayload(payload)
+            .withSdkRequestTimeout(operationsConfig.getInvokeTimeoutMs());
 
     String qualifierRegex = "|[a-zA-Z0-9$_-]+";
     if (description.getQualifier().matches(qualifierRegex)) {
       req.setQualifier(description.getQualifier());
     }
+    log.info("Invoking Lmabda function " + functionName + " and waiting for it to complete");
 
     InvokeResult result = client.invoke(req);
     String ans = byteBuffer2String(result.getPayload(), Charset.forName("UTF-8"));
