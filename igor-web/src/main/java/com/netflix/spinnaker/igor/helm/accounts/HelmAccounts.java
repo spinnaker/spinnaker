@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.helm.accounts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.igor.helm.model.HelmIndex;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import retrofit.RetrofitError;
 
 @Slf4j
 public class HelmAccounts {
@@ -62,7 +62,7 @@ public class HelmAccounts {
               .filter(it -> it.types.contains("helm/chart"))
               .map(it -> new HelmAccount(it.name))
               .collect(Collectors.toList());
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       log.error("Failed to get list of Helm accounts", e);
     }
   }

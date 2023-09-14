@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.igor.concourse.client.model.ClusterInfo;
 import com.netflix.spinnaker.igor.concourse.client.model.Token;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import com.vdurmont.semver4j.Semver;
@@ -92,6 +93,7 @@ public class ConcourseClient {
             .setEndpoint(host)
             .setClient(new OkClient(okHttpClient))
             .setConverter(jacksonConverter)
+            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .setRequestInterceptor(
                 request -> {
                   request.addHeader("Authorization", "Basic Zmx5OlpteDU=");
@@ -103,6 +105,7 @@ public class ConcourseClient {
             .setClient(new OkClient(okHttpClient))
             .setConverter(jacksonConverter)
             .setLog(new Slf4jRetrofitLogger(ClusterInfoService.class))
+            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .build()
             .create(ClusterInfoService.class);
 
@@ -114,6 +117,7 @@ public class ConcourseClient {
       this.tokenServiceV1 =
           tokenRestBuilder
               .setLog(new Slf4jRetrofitLogger(TokenService.class))
+              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
               .build()
               .create(TokenService.class);
       this.tokenServiceV2 = null;
@@ -127,6 +131,7 @@ public class ConcourseClient {
       this.tokenServiceV2 =
           tokenRestBuilder
               .setLog(new Slf4jRetrofitLogger(TokenServiceV2.class))
+              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
               .build()
               .create(TokenServiceV2.class);
       this.tokenServiceV3 = null;
@@ -140,6 +145,7 @@ public class ConcourseClient {
       this.tokenServiceV3 =
           tokenRestBuilder
               .setLog(new Slf4jRetrofitLogger(TokenServiceV3.class))
+              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
               .build()
               .create(TokenServiceV3.class);
 
@@ -193,6 +199,7 @@ public class ConcourseClient {
         .setConverter(jacksonConverter)
         .setRequestInterceptor(oauthInterceptor)
         .setLog(new Slf4jRetrofitLogger(serviceClass))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .build()
         .create(serviceClass);
   }

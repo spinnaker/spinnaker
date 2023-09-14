@@ -22,6 +22,7 @@ import com.netflix.spinnaker.config.OkHttpClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccounts;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccountsService;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -90,6 +91,7 @@ public class HelmConfig {
         .setConverter(new StringConverter())
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(HelmAccountsService.class))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .build()
         .create(HelmAccountsService.class);
   }

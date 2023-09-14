@@ -19,6 +19,7 @@ import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.igor.keel.KeelService;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -52,6 +53,7 @@ public class KeelConfig {
                     new DefaultServiceEndpoint("keel", keelEndpoint.getUrl()))))
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(KeelService.class))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .build()
         .create(KeelService.class);
   }
