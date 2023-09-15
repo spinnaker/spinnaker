@@ -26,17 +26,24 @@ class OracleCluster {
 
   @JsonIgnore
   View getView() {
-    new View()
+    new View(this)
   }
 
   @Canonical
   class View implements Cluster {
 
     final String type = OracleCloudProvider.ID
+    final String name
+    final String accountName
+    final Set<OracleServerGroup.View> serverGroups
+    final Set<LoadBalancer> loadBalancers
 
-    String name = OracleCluster.this.name
-    String accountName = OracleCluster.this.accountName
-    Set<OracleServerGroup.View> serverGroups = OracleCluster.this.serverGroups.collect { it.getView() } as Set
-    Set<LoadBalancer> loadBalancers = [] as Set
+    View(OracleCluster oracleCluster){
+      name = oracleCluster.name
+      accountName = oracleCluster.accountName
+      serverGroups = oracleCluster.serverGroups.collect { OracleServerGroup it -> it.getView() } as Set
+      loadBalancers = [] as Set
+    }
+
   }
 }
