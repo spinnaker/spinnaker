@@ -34,7 +34,9 @@ dependencies {
   implementation("com.github.ben-manes.caffeine:guava")
 
   testImplementation("io.spinnaker.kork:kork-jedis-test")
+  testImplementation("io.spinnaker.kork:kork-retrofit")
   testImplementation(project(":orca-api-tck"))
+  testImplementation(project(":orca-retrofit"))
   testImplementation(project(":orca-test-kotlin"))
   testImplementation(project(":orca-queue-tck"))
   testImplementation(project(":orca-queue-redis"))

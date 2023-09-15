@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
+import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler
 import groovy.transform.CompileStatic
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -98,9 +99,27 @@ class RetrofitConfiguration {
     return LogLevel.valueOf(retrofitLogLevel)
   }
 
+  /**
+   * Set the order such that this has higher precedence than the
+   * DefaultExceptionHandler bean.  The order relative to the
+   * SpinnakerServerExceptionHandler bean isn't important since they
+   * handle different types.
+   */
   @Bean
   @Order(Ordered.HIGHEST_PRECEDENCE)
   RetrofitExceptionHandler retrofitExceptionHandler() {
     new RetrofitExceptionHandler()
+  }
+
+  /**
+   * Set the order such that this has higher precedence than the
+   * DefaultExceptionHandler bean.  The order relative to the
+   * RetrofitExceptionHandler bean isn't important since they handle different
+   * types.
+   */
+  @Bean
+  @Order(Ordered.HIGHEST_PRECEDENCE)
+  SpinnakerServerExceptionHandler spinnakerServerExceptionHandler() {
+    new SpinnakerServerExceptionHandler()
   }
 }
