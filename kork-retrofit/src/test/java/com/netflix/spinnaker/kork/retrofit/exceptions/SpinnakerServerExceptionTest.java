@@ -19,10 +19,16 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.Gson;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import java.io.IOException;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import retrofit.RetrofitError;
+import retrofit.client.Response;
+import retrofit.converter.ConversionException;
+import retrofit.converter.GsonConverter;
+import retrofit.mime.TypedByteArray;
 
 public class SpinnakerServerExceptionTest {
   private static final String CUSTOM_MESSAGE = "custom message";
@@ -52,6 +58,35 @@ public class SpinnakerServerExceptionTest {
       SpinnakerException newException = e.newInstance(CUSTOM_MESSAGE);
 
       assertTrue(newException instanceof SpinnakerServerException);
+      assertEquals(CUSTOM_MESSAGE, newException.getMessage());
+      assertEquals(e, newException.getCause());
+    }
+  }
+
+  @Test
+  public void testSpinnakerConversionException_NewInstance() {
+    String url = "http://localhost";
+    String reason = "reason";
+
+    try {
+      Response response =
+          new Response(
+              url,
+              200,
+              reason,
+              List.of(),
+              new TypedByteArray("application/json", "message".getBytes()));
+      ConversionException conversionException =
+          new ConversionException("message", new Throwable(reason));
+
+      RetrofitError retrofitError =
+          RetrofitError.conversionError(
+              url, response, new GsonConverter(new Gson()), null, conversionException);
+      throw new SpinnakerConversionException(retrofitError.getMessage(), retrofitError.getCause());
+    } catch (SpinnakerException e) {
+      SpinnakerException newException = e.newInstance(CUSTOM_MESSAGE);
+
+      assertTrue(newException instanceof SpinnakerConversionException);
       assertEquals(CUSTOM_MESSAGE, newException.getMessage());
       assertEquals(e, newException.getCause());
     }

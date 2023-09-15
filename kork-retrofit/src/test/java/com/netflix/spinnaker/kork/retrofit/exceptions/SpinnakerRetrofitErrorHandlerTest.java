@@ -51,6 +51,7 @@ public class SpinnakerRetrofitErrorHandlerTest {
   @BeforeAll
   public static void setupOnce() throws Exception {
     mockWebServer.start();
+
     retrofitService =
         new RestAdapter.Builder()
             .setEndpoint(mockWebServer.url("/").toString())
@@ -176,6 +177,19 @@ public class SpinnakerRetrofitErrorHandlerTest {
   }
 
   @Test
+  public void testSpinnakerConversionException() {
+    mockWebServer.enqueue(
+        new MockResponse().setBody("Invalid JSON response").setResponseCode(HttpStatus.OK.value()));
+
+    SpinnakerConversionException spinnakerConversionException =
+        assertThrows(SpinnakerConversionException.class, () -> retrofitService.getData());
+    assertTrue(
+        spinnakerConversionException
+            .getMessage()
+            .contains("Expected BEGIN_OBJECT but was STRING at line 1 column 1 path $"));
+  }
+
+  @Test
   public void testChainSpinnakerException_SpinnakerNetworkException() {
     SpinnakerRetrofitErrorHandler handler = SpinnakerRetrofitErrorHandler.getInstance();
 
@@ -198,5 +212,8 @@ public class SpinnakerRetrofitErrorHandlerTest {
   interface RetrofitService {
     @GET("/foo")
     Response getFoo();
+
+    @GET("/data")
+    Map<String, String> getData();
   }
 }
