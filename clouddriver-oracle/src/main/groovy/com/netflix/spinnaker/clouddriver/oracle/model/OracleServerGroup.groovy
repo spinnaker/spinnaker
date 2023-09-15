@@ -38,7 +38,7 @@ class OracleServerGroup {
 
   @JsonIgnore
   View getView() {
-    new View()
+    new View(this)
   }
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -48,17 +48,30 @@ class OracleServerGroup {
     final String type = OracleCloudProvider.ID
     final String cloudProvider = OracleCloudProvider.ID
 
-    String name = OracleServerGroup.this.name
-    String region = OracleServerGroup.this.region
-    String zone = OracleServerGroup.this.zone
-    Set<String> zones = OracleServerGroup.this.zones
-    Set<OracleInstance> instances = OracleServerGroup.this.instances
-    Map<String, Object> launchConfig = OracleServerGroup.this.launchConfig
-    Set<String> securityGroups = OracleServerGroup.this.securityGroups
-    Map buildInfo = OracleServerGroup.this.buildInfo
-    Boolean disabled = OracleServerGroup.this.disabled
-    ServerGroup.Capacity capacity = new ServerGroup.Capacity(desired: OracleServerGroup.this.targetSize,
-      min: OracleServerGroup.this.targetSize, max: OracleServerGroup.this.targetSize)
+    String name
+    String region
+    String zone
+    Set<String> zones
+    Set<OracleInstance> instances
+    Map<String, Object> launchConfig
+    Set<String> securityGroups
+    Map buildInfo
+    Boolean disabled
+    ServerGroup.Capacity capacity
+
+    View(OracleServerGroup oracleServerGroup){
+      name = oracleServerGroup.name
+      region = oracleServerGroup.region
+      zone = oracleServerGroup.zone
+      zones = oracleServerGroup.zones
+      instances = oracleServerGroup.instances
+      launchConfig = oracleServerGroup.launchConfig
+      securityGroups = oracleServerGroup.securityGroups
+      buildInfo = oracleServerGroup.buildInfo
+      disabled = oracleServerGroup.disabled
+      capacity = new ServerGroup.Capacity(desired: oracleServerGroup.targetSize,
+        min: oracleServerGroup.targetSize, max: oracleServerGroup.targetSize)
+    }
 
     @Override
     Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(
