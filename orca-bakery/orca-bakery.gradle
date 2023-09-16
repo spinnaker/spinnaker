@@ -33,7 +33,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
 
   testImplementation(project(":orca-test-groovy"))
-  testImplementation("com.github.tomakehurst:wiremock:2.15.0")
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-core")

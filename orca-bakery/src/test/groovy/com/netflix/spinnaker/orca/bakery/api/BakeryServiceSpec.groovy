@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.bakery.api
 
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -29,12 +27,11 @@ import spock.lang.Subject
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static com.google.common.net.HttpHeaders.LOCATION
 import static java.net.HttpURLConnection.*
-import static retrofit.Endpoints.newFixedEndpoint
 import static retrofit.RestAdapter.LogLevel.FULL
 
 class BakeryServiceSpec extends Specification {
 
-  public WireMockServer wireMockServer = new WireMockServer()
+  static WireMockServer wireMockServer = new WireMockServer()
 
   @Subject BakeryService bakery
 
@@ -45,17 +42,18 @@ class BakeryServiceSpec extends Specification {
   private static final bakeId = "b-123456789"
   private static final statusId = "s-123456789"
 
-  String bakeURI
-  String statusURI
+  static String bakeURI
+  static String statusURI
 
   def mapper = OrcaObjectMapper.newInstance()
 
-  @BeforeAll
-  def setup() {
+  def setupSpec() {
     wireMockServer.start()
     bakeURI = wireMockServer.url(bakePath)
     statusURI = wireMockServer.url(statusPath)
+  }
 
+  def setup() {
     bakery = new BakeryConfiguration(
       retrofitClient: new OkClient(),
       retrofitLogLevel: FULL,
@@ -64,8 +62,7 @@ class BakeryServiceSpec extends Specification {
       .buildService(wireMockServer.url("/"))
   }
 
-  @AfterAll
-  def cleanup() {
+  def cleanupSpec() {
     wireMockServer.stop()
   }
 
