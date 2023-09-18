@@ -23,7 +23,6 @@ import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAuto
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
-import sun.net.InetAddressCachePolicy
 
 import java.security.Security
 
@@ -47,7 +46,6 @@ class Main extends SpringBootServletInitializer {
      * We often operate in an environment where we expect resolution of DNS names for remote dependencies to change
      * frequently, so it's best to tell the JVM to avoid caching DNS results internally.
      */
-    InetAddressCachePolicy.cachePolicy = InetAddressCachePolicy.NEVER
     Security.setProperty('networkaddress.cache.ttl', '0')
   }
 
