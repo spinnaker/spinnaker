@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -27,7 +28,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.Instance;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
+import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 @Component
@@ -90,25 +90,23 @@ public class BulkWaitForDestroyedServerGroupTask implements CloudProviderAware, 
       LOGGER.info("{} not destroyed, found instances {}", serverGroupNames, instances);
       output.put("remainingInstances", instances);
       return TaskResult.builder(ExecutionStatus.RUNNING).context(output).build();
-    } catch (RetrofitError e) {
-      return handleRetrofitError(stage, e);
+    } catch (SpinnakerHttpException e) {
+      return handleSpinnakerHttpException(stage, e);
     } catch (IOException e) {
       throw new IllegalArgumentException("Failed to fetch cluster details", e);
     }
   }
 
-  private TaskResult handleRetrofitError(StageExecution stage, RetrofitError e) {
-    if (e.getResponse() == null) {
-      throw e;
-    }
-    switch (e.getResponse().getStatus()) {
+  private TaskResult handleSpinnakerHttpException(StageExecution stage, SpinnakerHttpException e) {
+    switch (e.getResponseCode()) {
       case 404:
         return TaskResult.SUCCEEDED;
       case 500:
         Map<String, Object> error = new HashMap<>();
         error.put(
-            "lastRetrofitException", new RetrofitExceptionHandler().handle(stage.getName(), e));
-        LOGGER.error("Unexpected retrofit error {}", error.get("lastRetrofitException"), e);
+            "lastSpinnakerException",
+            new SpinnakerServerExceptionHandler().handle(stage.getName(), e));
+        LOGGER.error("Unexpected http error {}", error.get("lastSpinnakerException"), e);
         return TaskResult.builder(ExecutionStatus.RUNNING).context(error).build();
       default:
         throw e;

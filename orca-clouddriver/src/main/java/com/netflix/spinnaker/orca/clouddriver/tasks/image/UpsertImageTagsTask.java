@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -33,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class UpsertImageTagsTask implements CloudProviderAware, RetryableTask {
@@ -85,7 +85,7 @@ public class UpsertImageTagsTask implements CloudProviderAware, RetryableTask {
       }
 
       throw e;
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       log.error(
           "Failed creating clouddriver upsertimagetags task, cloudprovider: {}, operations: {}",
           cloudProvider,

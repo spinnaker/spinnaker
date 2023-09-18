@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -96,11 +97,11 @@ class ClusterSizePreconditionTask implements CloudProviderAware, RetryableTask, 
     def response
     try {
       response = oortService.getCluster(config.application, credentials, config.cluster, cloudProvider)
-    } catch (RetrofitError re) {
-      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+    } catch (SpinnakerHttpException spinnakerHttpException) {
+      if (spinnakerHttpException.getResponseCode() == 404) {
         return [:]
       }
-      throw re
+      throw spinnakerHttpException
     }
 
     JacksonConverter converter = new JacksonConverter(objectMapper)

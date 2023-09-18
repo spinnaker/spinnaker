@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.instance
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.model.SearchResultSet
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Slf4j
 @Component
@@ -116,7 +116,7 @@ class TerminatingInstanceSupport implements CloudProviderAware {
       List<SearchResultSet> searchResult
       try {
         searchResult = cloudDriverService.getSearchResults(terminatingInstance.id, "instances", cloudProvider)
-      } catch (RetrofitError e) {
+      } catch (SpinnakerServerException e) {
         log.warn e.message
       }
       return !(searchResult?.getAt(0)?.totalMatches == 0)

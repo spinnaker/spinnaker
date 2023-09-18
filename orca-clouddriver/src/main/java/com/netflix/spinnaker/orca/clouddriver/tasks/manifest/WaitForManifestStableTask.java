@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -34,7 +35,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 @RequiredArgsConstructor
@@ -89,7 +89,7 @@ public class WaitForManifestStableTask
         Manifest manifest;
         try {
           manifest = oortService.getManifest(account, location, name, includeEvents);
-        } catch (RetrofitError e) {
+        } catch (SpinnakerServerException e) {
           log.warn("Unable to read manifest {}", identifier, e);
           return TaskResult.builder(ExecutionStatus.RUNNING)
               .context(new HashMap<>())

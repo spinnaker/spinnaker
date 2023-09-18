@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -26,10 +27,9 @@ import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
+import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import retrofit.RetrofitError
 
 @Slf4j
 abstract class AbstractWaitForAppEngineServerGroupStopStartTask implements CloudProviderAware, RetryableTask {
@@ -65,14 +65,13 @@ abstract class AbstractWaitForAppEngineServerGroupStopStartTask implements Cloud
         log.info("${serverGroupName}: not yet ${start ? "started" : "stopped"}.")
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
-
-    } catch (RetrofitError e) {
-      def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      def spinnakerHttpExceptionResponse = new SpinnakerServerExceptionHandler().handle(stage.name, e)
+      if (e.getResponseCode() == 404) {
         return TaskResult.ofStatus(ExecutionStatus.TERMINAL)
-      } else if (e.response?.status >= 500) {
-        log.error("Unexpected retrofit error (${retrofitErrorResponse})")
-        return TaskResult.builder(ExecutionStatus.RUNNING).context([lastRetrofitException: retrofitErrorResponse]).build()
+      } else if (e.getResponseCode() >= 500) {
+        log.error("Unexpected http error (${spinnakerHttpExceptionResponse})")
+        return TaskResult.builder(ExecutionStatus.RUNNING).context([lastSpinnakerException: spinnakerHttpExceptionResponse]).build()
       }
 
       throw e

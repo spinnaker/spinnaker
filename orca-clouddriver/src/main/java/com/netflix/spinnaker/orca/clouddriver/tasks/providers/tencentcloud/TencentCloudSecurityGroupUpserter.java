@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.tencentcloud;
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.MortService;
 import com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup;
@@ -29,8 +30,6 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 @Slf4j
 @Component
@@ -78,9 +77,8 @@ public class TencentCloudSecurityGroupUpserter
               upsertedSecurityGroup.getVpcId());
 
       return upsertedSecurityGroup.getName().equals(securityGroup.getName());
-    } catch (RetrofitError e) {
-      final Response response = e.getResponse();
-      if ((response == null ? null : response.getStatus()) != 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() != 404) {
         throw e;
       }
     }

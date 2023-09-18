@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.SkippableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -7,14 +8,13 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
+import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
 import java.util.Collections;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 @Slf4j
@@ -58,11 +58,11 @@ public class WaitForDisabledServerGroupTask
     try {
       var serverGroup = cloudDriverService.getServerGroup(serverGroupDescriptor);
       return serverGroup.getDisabled() ? TaskResult.SUCCEEDED : TaskResult.RUNNING;
-    } catch (RetrofitError e) {
-      var retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.getName(), e);
-      log.error("Unexpected retrofit error {}", retrofitErrorResponse, e);
+    } catch (SpinnakerServerException e) {
+      var errorResponse = new SpinnakerServerExceptionHandler().handle(stage.getName(), e);
+      log.error("Unexpected http error {}", errorResponse, e);
       return TaskResult.builder(ExecutionStatus.RUNNING)
-          .context(Collections.singletonMap("lastRetrofitException", retrofitErrorResponse))
+          .context(Collections.singletonMap("lastSpinnakerException", errorResponse))
           .build();
     } catch (Exception e) {
       log.error("Unexpected exception", e);

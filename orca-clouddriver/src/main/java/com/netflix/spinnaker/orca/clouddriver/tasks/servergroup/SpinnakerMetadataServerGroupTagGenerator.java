@@ -21,6 +21,7 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPEL
 
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
@@ -31,7 +32,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEntityTagGenerator {
@@ -177,8 +177,8 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
       }
 
       return previousServerGroup;
-    } catch (RetrofitError e) {
-      if (e.getKind() == RetrofitError.Kind.HTTP && e.getResponse().getStatus() == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() == 404) {
         // it's ok if the previous server group does not exist
         return null;
       }

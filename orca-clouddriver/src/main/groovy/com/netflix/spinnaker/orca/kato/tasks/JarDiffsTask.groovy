@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
@@ -59,9 +58,6 @@ class JarDiffsTask implements DiffTask {
 
   @Autowired
   ObjectMapper objectMapper
-
-  @Autowired
-  OortService oortService
 
   @Autowired
   OortHelper oortHelper

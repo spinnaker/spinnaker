@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup.SecurityGroupUpserter
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.filterForSecurityGroupIngress
 
@@ -102,8 +102,8 @@ class AmazonSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
         return mortSecurityGroupIngress.containsAll(targetSecurityGroupIngress)
       }
       return mortSecurityGroupIngress == targetSecurityGroupIngress
-    } catch (RetrofitError e) {
-      if (e.response?.status != 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() != 404) {
         throw e
       }
     }

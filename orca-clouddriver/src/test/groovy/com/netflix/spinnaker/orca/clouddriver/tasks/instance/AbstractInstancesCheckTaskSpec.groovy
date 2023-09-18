@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
@@ -227,12 +228,12 @@ ModelUtils.serverGroup([
         return new ServerGroup("name": serverGroupName)
       }
 
-      throw RetrofitError.httpError(
+      throw new SpinnakerHttpException(RetrofitError.httpError(
         null,
         new Response("http://clouddriver", statusCode, "", [], null),
         null,
         null
-      )
+      ))
     }
 
     serverGroups.size() == expectedServerGroupCount

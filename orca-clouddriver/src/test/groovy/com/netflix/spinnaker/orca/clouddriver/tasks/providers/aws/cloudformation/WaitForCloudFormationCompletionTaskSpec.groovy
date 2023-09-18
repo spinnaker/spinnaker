@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
@@ -114,7 +115,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
     def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
-    def error404 = RetrofitError.httpError("url", new Response("url", 404, "reason", [], null), null, null)
+    def error404 = new SpinnakerHttpException(RetrofitError.httpError("url", new Response("url", 404, "reason", [], null), null, null))
 
     when:
     def result = waitForCloudFormationCompletionTask.execute(stage)

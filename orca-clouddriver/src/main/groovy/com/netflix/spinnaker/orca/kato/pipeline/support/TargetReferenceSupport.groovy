@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Deprecated
 @Component
@@ -188,8 +188,8 @@ class TargetReferenceSupport {
     try {
       def map = cloudDriverService.getCluster(app, account, cluster, cloudProvider)
       map.serverGroups
-    } catch (RetrofitError e) {
-      if (e.response.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() == 404) {
         return null
       }
       throw e

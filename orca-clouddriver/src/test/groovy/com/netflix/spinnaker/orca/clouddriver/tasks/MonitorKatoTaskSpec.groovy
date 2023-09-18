@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.google.gson.Gson
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.Task
@@ -27,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
+import retrofit.converter.GsonConverter
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
@@ -45,6 +49,8 @@ class MonitorKatoTaskSpec extends Specification {
   }
   KatoService kato = Mock(KatoService)
   DynamicConfigService dynamicConfigService = Mock()
+
+  GsonConverter gsonConverter = new GsonConverter(new Gson())
 
   @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")), dynamicConfigService, retrySupport)
 
@@ -132,20 +138,20 @@ class MonitorKatoTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then: 'should set the retry count'
-    MonitorKatoTask.MAX_HTTP_INTERNAL_RETRIES * kato.lookupTask(taskId, false) >> { retrofit404() }
+    MonitorKatoTask.MAX_HTTP_INTERNAL_RETRIES * kato.lookupTask(taskId, false) >> { notFoundException() }
     result.context['kato.task.notFoundRetryCount'] == 1
     result.status == ExecutionStatus.RUNNING
-    notThrown(RetrofitError)
+    notThrown(SpinnakerHttpException)
 
     when: 'task is not found'
     stage.context.put('kato.task.notFoundRetryCount', 1)
     result = task.execute(stage)
 
     then: 'should increment task count'
-    MonitorKatoTask.MAX_HTTP_INTERNAL_RETRIES * kato.lookupTask(taskId, false) >> { retrofit404() }
+    MonitorKatoTask.MAX_HTTP_INTERNAL_RETRIES * kato.lookupTask(taskId, false) >> { notFoundException() }
     result.context['kato.task.notFoundRetryCount'] == 2
     result.status == ExecutionStatus.RUNNING
-    notThrown(RetrofitError)
+    notThrown(SpinnakerHttpException)
 
     when: 'task is found, but not completed'
     1 * kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: false, failed: false), [], [], [])
@@ -172,7 +178,7 @@ class MonitorKatoTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    notThrown(RetrofitError)
+    notThrown(SpinnakerServerException)
     dynamicConfigService.isEnabled("tasks.monitor-kato-task.terminal-retries", _) >> true
     with(kato) {
       1 * lookupTask(katoTask.id, false) >> { katoTask }
@@ -195,18 +201,18 @@ class MonitorKatoTaskSpec extends Specification {
       ]
     }
 
-    kato.lookupTask(taskId, false) >> { retrofit404() }
+    kato.lookupTask(taskId, false) >> { notFoundException() }
 
     when:
     task.execute(stage)
 
     then:
-    thrown(RetrofitError)
+    thrown(SpinnakerHttpException)
   }
 
-  def retrofit404() {
-    throw RetrofitError.httpError("http://localhost", new Response("http://localhost", 404, "Not Found", [], new TypedByteArray("application/json", new byte[0])), null, Task)
-  }
+  def notFoundException() {
+    throw new SpinnakerHttpException(RetrofitError.httpError("http://localhost", new Response("http://localhost", 404, "Not Found", [], new TypedByteArray("application/json", new byte[0])), gsonConverter, Task))
+ }
 
   @Unroll
   def "verify task outputs"() {

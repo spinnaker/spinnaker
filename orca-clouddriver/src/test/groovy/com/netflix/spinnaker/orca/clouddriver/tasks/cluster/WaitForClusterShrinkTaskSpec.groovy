@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -135,7 +136,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
     ])
 
     and:
-    oortService.getCluster(*_) >> { throw httpError("http://cloudriver", emptyClusterResponse(), null, null) }
+    oortService.getCluster(*_) >> { throw new SpinnakerHttpException(httpError("http://cloudriver", emptyClusterResponse(), null, null)) }
 
     when:
     def result = task.execute(stage)

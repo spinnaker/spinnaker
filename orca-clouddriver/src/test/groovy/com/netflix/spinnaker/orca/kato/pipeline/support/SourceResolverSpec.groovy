@@ -105,7 +105,6 @@ class SourceResolverSpec extends Specification {
     }
 
     SourceResolver resolver = new SourceResolver(
-      oortService: oort,
       mapper: mapper,
       resolver: new TargetServerGroupResolver(oortService: oort, mapper: mapper, retrySupport: retrySupport)
     )
@@ -153,7 +152,6 @@ class SourceResolverSpec extends Specification {
     }
 
     SourceResolver resolver = new SourceResolver(
-      oortService: oort,
       mapper: mapper,
       resolver: new TargetServerGroupResolver(oortService: oort, mapper: mapper, retrySupport: retrySupport)
     )

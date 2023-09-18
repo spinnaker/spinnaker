@@ -17,12 +17,15 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.Gson
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDestroyedServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Response
+import retrofit.converter.GsonConverter
 import retrofit.mime.TypedString
 import spock.lang.Shared
 import spock.lang.Specification
@@ -32,6 +35,9 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUN
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 
 class WaitForDestroyedAsgTaskSpec extends Specification {
+
+  private static final GsonConverter gsonConverter = new GsonConverter(new Gson())
+
   @Subject
   def task = new WaitForDestroyedServerGroupTask()
 
@@ -44,12 +50,12 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     task.oortService = Mock(OortService) {
       1 * getCluster(*_) >> {
         if (status >= 400) {
-          throw RetrofitError.httpError(
+          throw new SpinnakerHttpException(RetrofitError.httpError(
             null,
             new Response("http://...", status, "...", [], null),
-            null,
+            gsonConverter,
             null
-          )
+          ))
         }
         new Response('..', status, 'ok', [], new TypedString(
           objectMapper.writeValueAsString(body)

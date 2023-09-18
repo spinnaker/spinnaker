@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.clouddriver.pollers;
 import static java.lang.String.format;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import java.util.Optional;
-import retrofit.RetrofitError;
 
 public class PollerSupport {
   private final RetrySupport retrySupport;
@@ -40,9 +40,9 @@ public class PollerSupport {
             ServerGroup response = cloudDriverService.getServerGroup(account, region, name);
             return Optional.of(response);
           } catch (Exception e) {
-            if (e instanceof RetrofitError) {
-              RetrofitError re = (RetrofitError) e;
-              if (re.getResponse() != null && re.getResponse().getStatus() == 404) {
+            if (e instanceof SpinnakerHttpException) {
+              SpinnakerHttpException spinnakerHttpException = (SpinnakerHttpException) e;
+              if (spinnakerHttpException.getResponseCode() == 404) {
                 return Optional.empty();
               }
             }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -43,12 +44,12 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
   }
 
   @Shared
-  def notFoundError = RetrofitError.httpError(
+  def notFoundError = new SpinnakerHttpException(RetrofitError.httpError(
     null,
     new Response("http://google.com", HTTP_NOT_FOUND, "Not Found", [], null),
     null,
     null
-  )
+  ))
 
 //  @Unroll
 //  def "should build spinnaker:metadata tag for pipeline"() {

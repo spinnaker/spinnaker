@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
@@ -160,15 +161,10 @@ class FindImageFromClusterTask implements CloudProviderAware, RetryableTask {
           }
         }
         return [(location): summaries]
-      } catch (RetrofitError e) {
-        if (e.response?.status == 404) {
-          Map reason
-          try {
-            reason = objectMapper.readValue(e.response.body.in(), new TypeReference<Map<String, Object>>() {})
-          } catch (Exception ignored) {
-            throw new IllegalStateException("Unexpected response from API")
-          }
-          if (reason.error?.contains("target.fail.strategy")){
+      } catch (SpinnakerHttpException spinnakerHttpException) {
+        if (spinnakerHttpException.getResponseCode() == 404) {
+          Map<String, Object> responseBody = spinnakerHttpException.getResponseBody()
+          if (responseBody.error?.contains("target.fail.strategy")){
             throw new IllegalStateException("Multiple possible server groups present in ${location.value}")
           }
           if (config.resolveMissingLocations) {

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -27,10 +28,10 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.clouddriver.utils.ClusterDescriptor
 import com.netflix.spinnaker.orca.clouddriver.utils.ServerGroupDescriptor
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
+import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Slf4j
 @Component
@@ -75,16 +76,16 @@ class WaitForDestroyedServerGroupTask implements CloudProviderAware, RetryableTa
       def instances = serverGroup.instances ?: []
       log.info("${serverGroupDescriptor.name}: not yet destroyed, found instances: ${instances?.join(', ') ?: 'none'}")
       return TaskResult.builder(ExecutionStatus.RUNNING).context([remainingInstances: instances.findResults { it.name }]).build()
-    } catch (RetrofitError e) {
-      def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException spinnakerHttpException) {
+      def errorResponse = new SpinnakerServerExceptionHandler().handle(stage.name, spinnakerHttpException)
+      if (spinnakerHttpException.getResponseCode() == 404) {
         return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
-      } else if (e.response?.status >= 500) {
-        log.error("Unexpected retrofit error (${retrofitErrorResponse})")
-        return TaskResult.builder(ExecutionStatus.RUNNING).context([lastRetrofitException: retrofitErrorResponse]).build()
+      } else if (spinnakerHttpException.getResponseCode() >= 500) {
+        log.error("Unexpected http error (${errorResponse})")
+        return TaskResult.builder(ExecutionStatus.RUNNING).context([lastSpinnakerException: errorResponse]).build()
       }
 
-      throw e
+      throw spinnakerHttpException
     }
   }
 

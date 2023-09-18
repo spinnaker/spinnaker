@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance;
 
 import com.netflix.frigga.Names;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -32,15 +33,13 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCache
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler;
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
+import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 @Slf4j
 public abstract class AbstractInstancesCheckTask
@@ -55,8 +54,8 @@ public abstract class AbstractInstancesCheckTask
   private static final long THIRTY_MINUTES = TimeUnit.MINUTES.toMillis(30);
   private static final long SIXTY_MINUTES = TimeUnit.MINUTES.toMillis(60);
 
-  private static final RetrofitExceptionHandler retrofitExceptionHandler =
-      new RetrofitExceptionHandler();
+  private static final SpinnakerServerExceptionHandler spinnakerServerExceptionHandler =
+      new SpinnakerServerExceptionHandler();
 
   @Override
   public long getBackoffPeriod() {
@@ -238,19 +237,16 @@ public abstract class AbstractInstancesCheckTask
       } else {
         return TaskResult.SUCCEEDED;
       }
-    } catch (RetrofitError e) {
-      Response response = e.getResponse();
-      if (response != null) {
-        if (response.getStatus() == 404) {
-          return TaskResult.RUNNING;
-        } else if (response.getStatus() >= 500) {
-          ExceptionHandler.Response retrofitErrorResponse =
-              retrofitExceptionHandler.handle(stage.getName(), e);
-          log.error("Unexpected retrofit error ({})", retrofitErrorResponse);
-          return TaskResult.builder(ExecutionStatus.RUNNING)
-              .context(Map.of("lastRetrofitException", retrofitErrorResponse))
-              .build();
-        }
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() == 404) {
+        return TaskResult.RUNNING;
+      } else if (e.getResponseCode() >= 500) {
+        ExceptionHandler.Response errorResponse =
+            spinnakerServerExceptionHandler.handle(stage.getName(), e);
+        log.error("Unexpected http error ({})", errorResponse);
+        return TaskResult.builder(ExecutionStatus.RUNNING)
+            .context(Map.of("lastSpinnakerException", errorResponse))
+            .build();
       }
       throw e;
     }
@@ -312,13 +308,12 @@ public abstract class AbstractInstancesCheckTask
       try {
         ServerGroup response = cloudDriverService.getServerGroup(account, region, serverGroupName);
         return List.of(response);
-      } catch (RetrofitError e) {
-        Response response = e.getResponse();
-        if (response != null && response.getStatus() != 404 || waitForUpServerGroup) {
-          throw e;
+      } catch (SpinnakerHttpException e) {
+        if ((e.getResponseCode() == 404) && !waitForUpServerGroup) {
+          throw new MissingServerGroupException(
+              String.format("Server group '%s:%s' does not exist", region, serverGroupName));
         }
-        throw new MissingServerGroupException(
-            String.format("Server group '%s:%s' does not exist", region, serverGroupName));
+        throw e;
       }
     }
   }

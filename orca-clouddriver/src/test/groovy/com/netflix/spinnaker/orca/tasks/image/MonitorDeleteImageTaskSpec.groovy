@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.tasks.image
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -69,11 +70,11 @@ class MonitorDeleteImageTaskSpec extends Specification {
   }
 
   private void error(int status) {
-    throw RetrofitError.httpError(
+    throw new SpinnakerHttpException(RetrofitError.httpError(
       null,
       new Response("http://...", status, "...", [], null),
       null,
       null
-    )
+    ))
   }
 }

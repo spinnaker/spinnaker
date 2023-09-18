@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import retrofit.RetrofitError
 import retrofit.client.Client
@@ -34,7 +33,6 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 class VerifyQuipTaskSpec extends Specification {
 
   @Subject task = Spy(VerifyQuipTask)
-  OortService oortService = Mock(OortService)
   InstanceService instanceService = Mock(InstanceService)
 
   String oort = '''\
@@ -72,7 +70,6 @@ class VerifyQuipTaskSpec extends Specification {
     '''.stripIndent()
 
   def setup() {
-    task.oortService = oortService
     task.objectMapper = new ObjectMapper()
     task.retrofitClient = Stub(Client)
   }
@@ -116,14 +113,12 @@ class VerifyQuipTaskSpec extends Specification {
       "application"    : app,
       "healthProviders": ['Discovery']
     ])
-    Response oortResponse = new Response('http://oort', 500, 'WTF', [], new TypedString(oort))
 
     when:
     def result = task.execute(stage)
 
     then:
     0 * task.createInstanceService(_) >> instanceService
-    //1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     thrown(RuntimeException)
 
     where:
@@ -149,7 +144,6 @@ class VerifyQuipTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    //1 * oortService.getCluster(app, account, cluster, 'aws') >> { throw new RetrofitError(null, null, null, null, null, null, null)}
     0 * task.createInstanceService(_) >> instanceService
     thrown(RuntimeException)
 
@@ -173,14 +167,11 @@ class VerifyQuipTaskSpec extends Specification {
       "healthProviders": ['Discovery']
     ])
 
-    Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString("{}"))
-
     when:
     task.execute(stage)
 
     then:
     0 * task.createInstanceService(_) >> instanceService
-    //1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     !stage.context?.instances
     thrown(RuntimeException)
 
@@ -204,14 +195,11 @@ class VerifyQuipTaskSpec extends Specification {
       "healthProviders": ['Discovery']
     ])
 
-    Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
-
     when:
     task.execute(stage)
 
     then:
     0 * task.createInstanceService(_) >> instanceService
-    //1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     !stage.context?.instances
     thrown(RuntimeException)
 
@@ -236,7 +224,6 @@ class VerifyQuipTaskSpec extends Specification {
       "instances"      : ["i-123": ["hostName": "http://foo.com"], "i-234": ["hostName": "http://foo2.com"]]
     ])
 
-    Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
     Response instanceResponse = new Response('http://oort', 200, 'OK', [], new TypedString(instance))
 
     when:
@@ -244,7 +231,6 @@ class VerifyQuipTaskSpec extends Specification {
 
     then:
     2 * task.createInstanceService(_) >> instanceService
-    //1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     1 * instanceService.listTasks() >> instanceResponse
     1 * instanceService.listTasks() >> {
       throw new RetrofitError(null, null, null, null, null, null, null)
@@ -275,7 +261,6 @@ class VerifyQuipTaskSpec extends Specification {
       "instances"      : ["i-123": ["hostName": "http://foo.com"], "i-234": ["hostName": "http://foo2.com"]]
     ])
 
-    //Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
     Response instanceResponse = new Response('http://instance.com', 200, 'OK', [], new TypedString(instance))
 
     when:
@@ -283,7 +268,6 @@ class VerifyQuipTaskSpec extends Specification {
 
     then:
     2 * task.createInstanceService(_) >> instanceService
-    //1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     2 * instanceService.listTasks() >> instanceResponse
     //result.context?.instances?.size() == 2
     result.status == ExecutionStatus.SUCCEEDED

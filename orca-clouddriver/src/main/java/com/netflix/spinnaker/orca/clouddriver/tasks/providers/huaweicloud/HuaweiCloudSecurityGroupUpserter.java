@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.huaweicloud;
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.MortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup.SecurityGroupUpserter;
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class HuaweiCloudSecurityGroupUpserter implements SecurityGroupUpserter, CloudProviderAware {
@@ -94,8 +94,8 @@ public class HuaweiCloudSecurityGroupUpserter implements SecurityGroupUpserter, 
               upsertedSecurityGroup.getRegion());
 
       return securityGroup != null;
-    } catch (RetrofitError e) {
-      if (404 != e.getResponse().getStatus()) {
+    } catch (SpinnakerHttpException e) {
+      if (404 != e.getResponseCode()) {
         throw e;
       }
     }

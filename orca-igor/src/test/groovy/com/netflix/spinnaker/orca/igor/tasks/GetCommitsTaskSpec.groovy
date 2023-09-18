@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
@@ -402,15 +403,15 @@ class GetCommitsTaskSpec extends Specification {
     1 * cloudDriverService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
 
     1 * cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> {
-      if (sourceThrowRetrofitError) {
-        throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
+      if (sourceThrowException) {
+        throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null))
       }
       return sourceResponse
     }
 
-    (sourceThrowRetrofitError ? 0 : 1) * cloudDriverService.getByAmiId("aws", account, region, targetImage) >> {
-      if (targetThrowRetrofitError) {
-        throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
+    (sourceThrowException ? 0 : 1) * cloudDriverService.getByAmiId("aws", account, region, targetImage) >> {
+      if (targetThrowException) {
+        throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null))
       }
       return targetResponse
     }
@@ -432,9 +433,9 @@ class GetCommitsTaskSpec extends Specification {
     jobState = 'SUCCESS'
     taskStatus = SUCCEEDED
 
-    cluster | serverGroup | targetServerGroup | sourceThrowRetrofitError | targetThrowRetrofitError
-    "myapp" | "myapp" | "myapp-v000" | true | false
-    "myapp" | "myapp" | "myapp-v000" | false | true
+    cluster | serverGroup | targetServerGroup | sourceThrowException | targetThrowException
+    "myapp" | "myapp"     | "myapp-v000"      | true                 | false
+    "myapp" | "myapp"     | "myapp-v000"      | false                | true
   }
 
   def "igor service 404 results in success"() {

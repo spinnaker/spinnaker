@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.model.Ami
@@ -123,23 +125,50 @@ class GetCommitsTask implements DiffTask {
     } catch (RetrofitError e) {
       if (e.kind == RetrofitError.Kind.UNEXPECTED) {
         // give up on internal errors
-        log.warn("internal error while talking to igor : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:$sourceInfo targetCommit: $targetInfo]", e)
-        return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: []]).build()
+        return giveUpOnException(repoInfo, sourceInfo, targetInfo, e)
       } else if (e.response?.status == 404) {
         // just give up on 404
-        log.warn("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}]", e)
-        return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: []]).build()
+        return handle404(repoInfo, sourceInfo, targetInfo, e)
       } else { // retry on other status codes
-        log.warn("retrofit error (${e.message}) for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", e)
-        return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
+        return retryOnException("retrofit error (${e.message})", repoInfo, sourceInfo, targetInfo, retriesRemaining, e)
       }
+    } catch (SpinnakerHttpException e) {
+      // Some retrofit objects (e.g. cloudDriverService) use
+      // SpinnakerRetrofitErrorHandler and so throw Spinnaker*Exception
+      // exceptions, while other retrofit objects throw RetrofitErrors.  One day
+      // perhaps everything will use SpinnakerRetrofitErrorHandler.  Until then,
+      // duplicate the logic for handling RetrofitError also for
+      // Spinnaker*Exception.
+      if (e.getResponseCode() == 404) {
+        // just give up on 404
+        return handle404(repoInfo, sourceInfo, targetInfo, e)
+      } else { // retry on other status codes
+        return retryOnException("SpinnakerHttpException (${e.message})", repoInfo, sourceInfo, targetInfo, retriesRemaining, e)
+      }
+    } catch (SpinnakerServerException e) {
+      // give up on internal errors.  Note that this includes network errors
+      // which the above RetrofitError handling swallows.
+      return giveUpOnException(repoInfo, sourceInfo, targetInfo, e)
     } catch (Exception f) { // retry on everything else
-      log.warn("unexpected exception for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", f)
-      return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
+      return retryOnException("unexpected exception", repoInfo, sourceInfo, targetInfo, retriesRemaining, f)
     } catch (Throwable g) {
-      log.warn("unexpected throwable for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", g)
-      return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
+      return retryOnException("unexpected throwable", repoInfo, sourceInfo, targetInfo, retriesRemaining, g)
     }
+  }
+
+  TaskResult giveUpOnException(Map repoInfo, Map sourceInfo, Map targetInfo, Exception e) {
+    log.warn("internal error while talking to igor : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:$sourceInfo targetCommit: $targetInfo]", e)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: []]).build()
+  }
+
+  TaskResult handle404(Map repoInfo, Map sourceInfo, Map targetInfo, Exception e) {
+    log.warn("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}]", e)
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: []]).build()
+  }
+
+  TaskResult retryOnException(String description, Map repoInfo, Map sourceInfo, Map targetInfo, int retriesRemaining, Throwable t) {
+      log.warn("$description for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", t)
+      return TaskResult.builder(ExecutionStatus.RUNNING).context([getCommitsRetriesRemaining: retriesRemaining - 1]).build()
   }
 
   List getCommitsList(String repoType, String projectKey, String repositorySlug, String sourceCommit, String targetCommit) {

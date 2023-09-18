@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -23,7 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.image.DeleteImageStage;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
+import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -31,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class MonitorDeleteImageTask implements CloudProviderAware, OverridableTimeoutRetryableTask {
@@ -64,15 +64,14 @@ public class MonitorDeleteImageTask implements CloudProviderAware, OverridableTi
                     deleteImageRequest.getCredentials(),
                     deleteImageRequest.getRegion(),
                     imageId);
-              } catch (RetrofitError e) {
-                if (e.getResponse().getStatus() == 404) {
+              } catch (SpinnakerHttpException e) {
+                if (e.getResponseCode() == 404) {
                   deleteResult.add(imageId);
                 } else {
                   outputs.put(
-                      "lastRetrofitException",
-                      new RetrofitExceptionHandler().handle(stage.getName(), e));
-                  log.error(
-                      "Unexpected retrofit error {}", outputs.get("lastRetrofitException"), e);
+                      "lastSpinnakerException",
+                      new SpinnakerServerExceptionHandler().handle(stage.getName(), e));
+                  log.error("Unexpected http error {}", outputs.get("lastSpinnakerException"), e);
                 }
               }
             });

@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -27,7 +29,6 @@ import com.netflix.spinnaker.orca.front50.model.Application
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import javax.annotation.Nonnull
 
@@ -61,22 +62,16 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
       }) {
         existingDependencyTypes << "security groups"
       }
-    } catch (RetrofitError e) {
-      if (!e.response) {
-        def exception = [operation: stage.tasks[-1].name, reason: e.message]
-        return TaskResult.builder(ExecutionStatus.TERMINAL).context([exception: exception]).build()
-      } else if (e.response && e.response.status && e.response.status != 404) {
-        def resp = e.response
-        def exception = [statusCode: resp.status, operation: stage.tasks[-1].name, url: resp.url, reason: resp.reason]
-        try {
-          exception.details = e.getBodyAs(Map) as Map
-        } catch (ignored) {
-        }
-
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() != 404) {
+        def exception = [statusCode: e.getResponseCode(), operation: stage.tasks[-1].name, url: e.getUrl(), reason: e.getReason()]
+        exception.details = e.getResponseBody()
         return TaskResult.builder(ExecutionStatus.TERMINAL).context([exception: exception]).build()
       }
+    } catch (SpinnakerServerException e) {
+      def exception = [operation: stage.tasks[-1].name, reason: e.message]
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context([exception: exception]).build()
     }
-
     if (!existingDependencyTypes) {
       return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
     }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -103,7 +104,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
 
     then:
       1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> {
-        throw RetrofitError.httpError("/", new Response("", 404, "", [], null), null, null)
+        throw new SpinnakerHttpException(RetrofitError.httpError("/", new Response("", 404, "", [], null), null, null))
       }
     !result
 
@@ -112,9 +113,9 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
 
     then:
       1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> {
-        throw RetrofitError.httpError("/", new Response("", 400, "", [], null), null, null)
+        throw new SpinnakerHttpException(RetrofitError.httpError("/", new Response("", 400, "", [], null), null, null))
       }
-      thrown(RetrofitError)
+      thrown(SpinnakerHttpException)
   }
 
   @Unroll

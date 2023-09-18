@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.Gson
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
@@ -24,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
 import retrofit.RetrofitError
 import retrofit.client.Response
+import retrofit.converter.GsonConverter
 import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,6 +34,8 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class FindImageFromClusterTaskSpec extends Specification {
+
+  private static final GsonConverter gsonConverter = new GsonConverter(new Gson())
 
   @Subject
   task = new FindImageFromClusterTask()
@@ -210,7 +215,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
     findCalls * oortService.getServerGroupSummary("foo", "test", "foo-test", cloudProvider, location2.value,
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
-      throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
+      throw new SpinnakerHttpException(RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), gsonConverter, Map))
     }
     findCalls * oortService.findImage(cloudProvider, "ami-012-name-ebs*", "test", null, null) >> imageSearchResult
     findCalls * regionCollector.getRegionsFromChildStages(stage) >> regionCollectorResponse
@@ -289,7 +294,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
     1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location2.value,
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
-      throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
+      throw new SpinnakerHttpException(RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), gsonConverter, Map))
     }
     1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null, null) >> imageSearchResult
     assertNorth(result.outputs?.deploymentDetails?.find {
@@ -352,7 +357,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
     1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "aws", location2.value,
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
-      throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
+      throw new SpinnakerHttpException(RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), gsonConverter, Map))
     }
     1 * oortService.findImage("aws", "ami-012-name-ebs*", "test", null, null) >> null
     1 * oortService.findImage("aws", "ami-012-name-ebs*", "bakery", null, null) >> imageSearchResult
@@ -416,7 +421,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     then:
     1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location.value,
       "FAIL", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
-      throw new RetrofitError(null, null, response, null, null, null, null)
+      throw new SpinnakerHttpException(RetrofitError.httpError("http://oort", response, gsonConverter, String.class))
     }
     IllegalStateException ise = thrown()
     ise.message == "Multiple possible server groups present in ${location.value}".toString()

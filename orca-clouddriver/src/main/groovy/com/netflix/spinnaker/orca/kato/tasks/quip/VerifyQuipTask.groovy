@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -32,9 +31,6 @@ import javax.annotation.Nonnull
 @Deprecated
 @Component
 class VerifyQuipTask extends AbstractQuipTask implements Task {
-
-  @Autowired
-  OortService oortService
 
   @Autowired
   ObjectMapper objectMapper

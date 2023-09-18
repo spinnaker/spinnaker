@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -39,6 +40,9 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
 
   @Shared
   def error404 = RetrofitError.httpError(null, new Response("", HTTP_NOT_FOUND, "Not Found", [], null), null, null)
+
+  @Shared
+  def notFoundException = new SpinnakerHttpException(error404)
 
   def "should throw exception on missing region"() {
     given:
@@ -116,7 +120,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
     where:
       expectedSecurityGroup                 | currentSecurityGroupProvider              || isUpdated
       null                                  | { bSG(bIR("S1", 7000)) }                  || false
-      bSG(bIR("S2", 7000))                  | { throw error404 }                        || false
+      bSG(bIR("S2", 7000))                  | { throw notFoundException }               || false
       bSG(bIR("S2", 7000))                  | { bSG(bIR("S1", 7000)) }                  || false
       bSG(bIR("S1", 7000, 7001))            | { bSG(bIR("S1", 7000)) }                  || false
       bSG(bIR("S1", 7000), bIR("S2", 7001)) | { bSG(bIR("S1", 7000)) }                  || false

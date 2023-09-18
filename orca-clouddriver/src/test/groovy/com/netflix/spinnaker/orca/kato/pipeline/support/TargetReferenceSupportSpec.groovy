@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.model.Cluster
@@ -270,12 +271,12 @@ class TargetReferenceSupportSpec extends Specification {
 
     then:
     1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> {
-      throw new RetrofitError(null, null, new Response("http://clouddriver", 404, "null", [], null), null, null, null, null)
+      throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://clouddriver", 404, "null", [], null), null, null, null, null))
     }
     thrown TargetReferenceNotFoundException
   }
 
-  void "should throw RetrofitError when status is not 404"() {
+  void "should throw SpinnakerHttpException when status is not 404"() {
     setup:
     def config = [
       regions    : ["us-west-1", "us-east-1"],
@@ -289,8 +290,8 @@ class TargetReferenceSupportSpec extends Specification {
 
     then:
     1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> {
-      throw new RetrofitError(null, null, new Response("http://clouddriver", 429, "null", [], null), null, null, null, null)
+      throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://clouddriver", 429, "null", [], null), null, null, null, null))
     }
-    thrown RetrofitError
+    thrown SpinnakerHttpException
   }
 }

@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.clouddriver.model.*;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.utils.ServerGroupDescriptor;
@@ -12,7 +13,6 @@ import java.util.function.Supplier;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 @Component
@@ -109,11 +109,11 @@ public class CloudDriverService {
     try {
       T result = supplier.get();
       return Optional.ofNullable(result);
-    } catch (RetrofitError re) {
-      if (re.getKind() == RetrofitError.Kind.HTTP && re.getResponse().getStatus() == 404) {
+    } catch (SpinnakerHttpException spinnakerHttpException) {
+      if (spinnakerHttpException.getResponseCode() == 404) {
         return Optional.empty();
       }
-      throw re;
+      throw spinnakerHttpException;
     }
   }
 

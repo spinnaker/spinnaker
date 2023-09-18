@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -35,7 +36,6 @@ import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import javax.annotation.Nonnull
 import java.time.Clock
@@ -108,8 +108,8 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
         katoTask = kato.lookupTask(taskId.id, false)
       }, MAX_HTTP_INTERNAL_RETRIES, Duration.ofMillis(100), false)
       outputs['kato.task.notFoundRetryCount'] = 0
-    } catch (RetrofitError re) {
-      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == HttpURLConnection.HTTP_NOT_FOUND) {
+    } catch (SpinnakerHttpException re) {
+      if (re.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
         def notFoundRetryCount = ((stage.context."kato.task.notFoundRetryCount" as Long) ?: 0) + 1
 
         def ctx = ['kato.task.notFoundRetryCount': notFoundRetryCount]
@@ -187,9 +187,9 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
       try {
         kato.resumeTask(katoTask.id)
       } catch (Exception e) {
-        if (e instanceof RetrofitError) {
-          RetrofitError retrofitError = (RetrofitError) e
-          if (retrofitError?.response?.status == 404) {
+        if (e instanceof SpinnakerHttpException) {
+          SpinnakerHttpException spinnakerHttpException = (SpinnakerHttpException) e
+          if (spinnakerHttpException.getResponseCode() == 404) {
             monitorFinalTerminalRetry(stage, "404")
             // unexpected -- no sense attempting to resume a saga that `clouddriver` has no knowledge about
             throw e

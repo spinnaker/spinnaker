@@ -22,6 +22,7 @@ dependencies {
   implementation(project(":orca-clouddriver"))
   implementation(project(":orca-front50"))
   implementation("io.spinnaker.kork:kork-core")
+  implementation("io.spinnaker.kork:kork-retrofit")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.yaml:snakeyaml")
 

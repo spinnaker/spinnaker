@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.clouddriver
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -32,12 +33,12 @@ class CloudDriverServiceSpec extends Specification {
         return new Response("http://clouddriver", statusCode, "OK", [], new TypedString("""{"name": "${serverGroupName}"}"""))
       }
 
-      throw RetrofitError.httpError(
+      throw new SpinnakerHttpException(RetrofitError.httpError(
           null,
           new Response("http://clouddriver", statusCode, "", [], null),
           null,
           null
-      )
+      ))
     }
 
     optionalTargetServerGroup.isPresent() == shouldExist

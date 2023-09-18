@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
@@ -153,11 +154,11 @@ class TargetServerGroupResolver {
     return retrySupport.retry({
       try {
         return fetchClosure.call()
-      } catch (RetrofitError re) {
-        if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+      } catch (SpinnakerHttpException spinnakerHttpException) {
+        if (spinnakerHttpException.getResponseCode() == 404) {
           return null
         }
-        throw re
+        throw spinnakerHttpException
       }
     }, NUM_RETRIES, Duration.ofMillis(1000), false)
   }

@@ -30,6 +30,7 @@ dependencies {
   implementation(project(":orca-bakery"))
   implementation(project(":orca-deploymentmonitor"))
   implementation("io.spinnaker.kork:kork-moniker")
+  implementation("io.spinnaker.kork:kork-retrofit")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("io.kubernetes:client-java")
   implementation("com.amazonaws:aws-java-sdk-lambda")
