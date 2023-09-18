@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.orca.config.RedisExecutionUpdateTimeRepositoryProperties;
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration;
 import de.huxhorn.sulky.ulid.ULID;
 import java.time.Instant;
@@ -38,7 +39,8 @@ public class RedisExecutionUpdateTimeRepositoryTest {
   @BeforeEach
   void setup() {
     redisExecutionUpdateTimeRepository =
-        new RedisExecutionUpdateTimeRepository(redisClientDelegate, "spinnaker:orca");
+        new RedisExecutionUpdateTimeRepository(
+            redisClientDelegate, new RedisExecutionUpdateTimeRepositoryProperties());
   }
 
   @Test

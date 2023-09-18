@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence;
 
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.orca.config.RedisExecutionUpdateTimeRepositoryProperties;
 import java.time.Instant;
 import javax.annotation.Nullable;
 
@@ -33,7 +34,7 @@ import javax.annotation.Nullable;
  * <p>E.g. for a pipeline execution:
  *
  * <p><code>
- * "prefix:pipelineExecutionUpdate:AB1AB1AB1AB1AB1AB1AB1AB1AB": {
+ * "spinnaker:orca:pipelineExecutionUpdate:AB1AB1AB1AB1AB1AB1AB1AB1AB": {
  * "latestUpdate": 123450
  * }
  * </code>
@@ -42,24 +43,21 @@ import javax.annotation.Nullable;
  */
 public class RedisExecutionUpdateTimeRepository implements ExecutionUpdateTimeRepository {
   private final RedisClientDelegate redisClientDelegate;
+  private static final String KEY_PREFIX = "spinnaker:orca";
   private static final String KEY_PIPELINE_EXECUTION = "pipelineExecutionUpdate";
   private static final String KEY_STAGE_EXECUTION = "stageExecutionUpdate";
   private static final String KEY_LATEST_UPDATE = "latestUpdate";
-  /**
-   * Use a default TTL of 86400 seconds = 1 day. This is sufficient because the TTL gets refreshed
-   * after each update to an execution and there won't be an execution that runs for longer than a
-   * day without an update.
-   */
-  private final Integer TTL = 86400;
-
+  private final Integer TTL;
   private final String pipelineExecutionKeyPrefix;
   private final String stageExecutionKeyPrefix;
 
   public RedisExecutionUpdateTimeRepository(
-      RedisClientDelegate redisClientDelegate, String prefix) {
+      RedisClientDelegate redisClientDelegate,
+      RedisExecutionUpdateTimeRepositoryProperties properties) {
     this.redisClientDelegate = redisClientDelegate;
-    pipelineExecutionKeyPrefix = String.format("%s:%s", prefix, KEY_PIPELINE_EXECUTION);
-    stageExecutionKeyPrefix = String.format("%s:%s", prefix, KEY_STAGE_EXECUTION);
+    TTL = properties.getTTL();
+    pipelineExecutionKeyPrefix = String.format("%s:%s", KEY_PREFIX, KEY_PIPELINE_EXECUTION);
+    stageExecutionKeyPrefix = String.format("%s:%s", KEY_PREFIX, KEY_STAGE_EXECUTION);
   }
 
   /**

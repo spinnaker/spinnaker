@@ -19,12 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.orca.api.pipeline.persistence.ExecutionRepositoryListener
+import com.netflix.spinnaker.orca.config.RedisExecutionUpdateTimeRepositoryProperties
 import com.netflix.spinnaker.orca.interlink.Interlink
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.lock.RunOnLockAcquired
@@ -66,7 +66,12 @@ import org.springframework.context.annotation.Primary
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
-@EnableConfigurationProperties(OrcaSqlProperties::class, ExecutionCompressionProperties::class, PipelineRefProperties::class)
+@EnableConfigurationProperties(
+  OrcaSqlProperties::class,
+  ExecutionCompressionProperties::class,
+  PipelineRefProperties::class,
+  RedisExecutionUpdateTimeRepositoryProperties::class
+)
 @Import(DefaultSqlConfiguration::class, JedisClientConfiguration::class)
 @ComponentScan("com.netflix.spinnaker.orca.sql")
 
@@ -203,7 +208,7 @@ class SqlConfiguration {
   fun redisExecutionUpdateTimeRepository(redisClientSelector: RedisClientSelector) =
     RedisExecutionUpdateTimeRepository(
       redisClientSelector.primary("default"),
-      "spinnaker:orca"
+      RedisExecutionUpdateTimeRepositoryProperties()
     )
 
   @ConditionalOnProperty("execution-repository.sql.enabled")

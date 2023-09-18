@@ -36,6 +36,7 @@ import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.config.JedisConfiguration
 import com.netflix.spinnaker.orca.config.RedisConfiguration
+import com.netflix.spinnaker.orca.config.RedisExecutionUpdateTimeRepositoryProperties
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
@@ -179,7 +180,7 @@ class SqlTestConfig {
   fun executionUpdateTimeRepository(redisClientSelector: RedisClientSelector) =
     RedisExecutionUpdateTimeRepository(
       redisClientSelector.primary("default"),
-      "spinnaker:orca"
+      RedisExecutionUpdateTimeRepositoryProperties()
     )
 }
 
