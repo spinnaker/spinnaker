@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.api
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import retrofit.RequestInterceptor
@@ -105,6 +106,7 @@ class BakeryServiceSpec extends Specification {
         .willReturn(
         aResponse()
           .withStatus(HTTP_NOT_FOUND)
+          .withBody("{\"message\": \"error\"}")
       )
     )
 
@@ -112,7 +114,7 @@ class BakeryServiceSpec extends Specification {
     bakery.lookupStatus(region, statusId)
 
     then:
-    def ex = thrown(RetrofitError)
+    def ex = thrown(SpinnakerHttpException)
     ex.response.status == HTTP_NOT_FOUND
   }
 

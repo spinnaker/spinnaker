@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.bakery.tasks.manifests;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.orca.bakery.api.manifests.helmfile.HelmfileBakeMani
 import com.netflix.spinnaker.orca.bakery.api.manifests.kustomize.KustomizeBakeManifestRequest;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +63,8 @@ public class CreateBakeManifestTask implements RetryableTask {
   private final ArtifactUtils artifactUtils;
 
   private final ContextParameterProcessor contextParameterProcessor;
+
+  private final RetrySupport retrySupport = new RetrySupport();
 
   @Autowired
   public CreateBakeManifestTask(
@@ -146,7 +150,12 @@ public class CreateBakeManifestTask implements RetryableTask {
             "Invalid template renderer " + context.getTemplateRenderer());
     }
 
-    Artifact result = bakery.bakeManifest(request.getTemplateRenderer(), request);
+    Artifact result =
+        retrySupport.retry(
+            () -> bakery.bakeManifest(request.getTemplateRenderer(), request),
+            5,
+            Duration.ofMillis(2000),
+            false);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("artifacts", Collections.singleton(result));

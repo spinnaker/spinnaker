@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.bakery.BakerySelector
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -80,6 +81,7 @@ class BakeryConfiguration {
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setLog(new RetrofitSlf4jLog(BakeryService))
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()
       .create(BakeryService)
   }

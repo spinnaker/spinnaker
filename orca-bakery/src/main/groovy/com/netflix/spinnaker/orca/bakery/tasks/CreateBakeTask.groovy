@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -35,11 +36,13 @@ import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import com.netflix.spinnaker.orca.pipeline.util.PackageType
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import java.time.Duration
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+
 
 import static com.netflix.spinnaker.kork.web.selector.v2.SelectableService.*
 
@@ -61,7 +64,7 @@ class CreateBakeTask implements RetryableTask {
   @Autowired(required = false)
   Front50Service front50Service
 
-  RetrySupport retrySupport = new RetrySupport()
+  private final RetrySupport retrySupport = new RetrySupport()
 
   private final Logger log = LoggerFactory.getLogger(getClass())
 
@@ -76,7 +79,8 @@ class CreateBakeTask implements RetryableTask {
     try {
       if (front50Service != null) {
         String appName = stage.execution.application
-        Application application = retrySupport.retry({return front50Service.get(appName)}, 5, 2000, false)
+        Application application =
+            retrySupport.retry({ return front50Service.get(appName) }, 5, Duration.ofMillis(2000), false)
         String user = application.email
         if (user != null && user != "") {
           stage.context.user = user
@@ -100,12 +104,16 @@ class CreateBakeTask implements RetryableTask {
         bake.amiSuffix = stage.context.amiSuffix
       }
 
-      def bakeStatus = bakery.service.createBake(stage.context.region as String, bake, rebake)
+      def bakeStatus = retrySupport.retry(
+          { return bakery.service.createBake(stage.context.region as String, bake, rebake) },
+          5,
+          Duration.ofMillis(2000),
+          false)
 
       def stageOutputs = [
-        status         : bakeStatus,
-        bakePackageName: bake.packageName ?: "",
-        previouslyBaked: bakeStatus.state == BakeStatus.State.COMPLETED
+          status         : bakeStatus,
+          bakePackageName: bake.packageName ?: "",
+          previouslyBaked: bakeStatus.state == BakeStatus.State.COMPLETED
       ] as Map<String, ? extends Object>
 
       if (bake.buildInfoUrl) {
@@ -114,9 +122,9 @@ class CreateBakeTask implements RetryableTask {
 
       if (bake.buildHost) {
         stageOutputs << [
-          buildHost  : bake.buildHost,
-          job        : bake.job,
-          buildNumber: bake.buildNumber
+            buildHost  : bake.buildHost,
+            job        : bake.job,
+            buildNumber: bake.buildNumber
         ]
 
         if (bake.commitHash) {
@@ -125,19 +133,13 @@ class CreateBakeTask implements RetryableTask {
       }
 
       TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs).build()
-    } catch (RetrofitError e) {
-      if (e.response?.status && e.response.status == 404) {
-        try {
-          def exceptionResult = mapper.readValue(e.response.body.in().text, Map)
-          def exceptionMessages = (exceptionResult.messages ?: []) as List<String>
-          if (exceptionMessages) {
-            throw new IllegalStateException(exceptionMessages[0])
-          }
-        } catch (IOException ignored) {
-          // do nothing
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
+        def exceptionMessages =
+            (e.responseBody?.messages ?: e.responseBody?.message ? [e.responseBody.message] : []) as List<String>
+        if (exceptionMessages) {
+          throw new IllegalStateException(exceptionMessages[0])
         }
-
-        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
       throw e
     }

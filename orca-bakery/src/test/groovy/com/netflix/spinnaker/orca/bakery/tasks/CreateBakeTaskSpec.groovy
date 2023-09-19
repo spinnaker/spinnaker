@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.selector.v2.SelectableService
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.bakery.BakerySelector
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.PackageType
 import retrofit.RetrofitError
 import retrofit.client.Response
+import retrofit.converter.JacksonConverter
 import retrofit.mime.TypedString
 import spock.lang.Shared
 import spock.lang.Specification
@@ -245,9 +247,10 @@ class CreateBakeTaskSpec extends Specification {
   def error404 = RetrofitError.httpError(
     null,
     new Response("", HTTP_NOT_FOUND, "Not Found", [], new TypedString("{ \"messages\": [\"Error Message\"]}")),
-    null,
+    new JacksonConverter(),
     null
   )
+  def httpError404 = new SpinnakerHttpException(error404)
 
   def setup() {
     task.mapper = mapper
@@ -332,8 +335,8 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(bakeStage)
 
     then:
-    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> {
-      throw error404
+    5 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> {
+      throw httpError404
     }
     IllegalStateException e = thrown()
     e.message == "Error Message"

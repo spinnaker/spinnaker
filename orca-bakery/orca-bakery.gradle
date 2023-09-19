@@ -26,6 +26,7 @@ dependencies {
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
   implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
   implementation("org.codehaus.groovy:groovy-datetime")
+  implementation("io.spinnaker.kork:kork-retrofit")
 
   api("io.spinnaker.kork:kork-web")
 
