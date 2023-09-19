@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.util
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -513,6 +514,83 @@ class ArtifactUtilsSpec extends Specification {
 
     then:
     initialArtifacts == finalArtifacts
+  }
+
+  def "should find artifact if triggers is present in pipeline"() {
+    given:
+    def defaultArtifact = Artifact.builder()
+        .customKind(true)
+        .build()
+
+    def matchArtifact = Artifact.builder()
+        .name("my-pipeline-artifact")
+        .type("embedded/base64")
+        .reference("aGVsbG8gd29ybGQK")
+        .build()
+
+    def expectedArtifact = ExpectedArtifact.builder()
+        .usePriorArtifact(false)
+        .useDefaultArtifact(false)
+        .id("my-id")
+        .defaultArtifact(defaultArtifact)
+        .matchArtifact(matchArtifact)
+        .build()
+
+    def expectedArtifact2 = ExpectedArtifact.builder()
+        .usePriorArtifact(false)
+        .useDefaultArtifact(false)
+        .id("my-id-2")
+        .defaultArtifact(defaultArtifact)
+        .matchArtifact(matchArtifact)
+        .build()
+
+    def pipeline = [
+        "id": "abc",
+        "stages": [
+            stage {
+              expectedArtifacts: [expectedArtifact]
+              inputArtifacts: [
+                  "id": "my-id"
+              ]
+            }
+        ],
+        expectedArtifacts: [
+          expectedArtifact
+        ],
+        trigger: [
+            artifacts: [
+               Artifact.builder()
+                .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
+                .name(matchArtifact.getName())
+                .reference(matchArtifact.getReference())
+                .build()
+            ],
+            type: "some-type"
+        ],
+        triggers: [
+            [
+                enabled: true,
+                expectedArtifactIds: [
+                    expectedArtifact.getId()
+                ],
+                type: "some-type"
+            ],
+            [
+                enabled: true,
+                expectedArtifactIds: [
+                    expectedArtifact2.getId()
+                ],
+                type: "some-other-type"
+            ]
+        ]
+    ]
+
+    def pipelineMap = getObjectMapper().convertValue(pipeline, Map.class)
+    when:
+     makeArtifactUtils().resolveArtifacts(pipelineMap)
+
+    then:
+    pipelineMap.trigger.resolvedExpectedArtifacts.size() == 1
   }
 
   private List<Artifact> extractTriggerArtifacts(Map<String, Object> trigger) {

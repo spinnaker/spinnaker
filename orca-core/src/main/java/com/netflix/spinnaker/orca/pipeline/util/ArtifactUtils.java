@@ -36,13 +36,16 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -227,10 +230,38 @@ public class ArtifactUtils {
         .orElse(Collections.emptyList());
   }
 
+  private List<String> getExpectedArtifactIdsFromMap(Map<String, Object> trigger) {
+    List<String> expectedArtifactIds = (List<String>) trigger.get("expectedArtifactIds");
+    return (expectedArtifactIds != null) ? expectedArtifactIds : emptyList();
+  }
+
   public void resolveArtifacts(Map pipeline) {
     Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
-    List<?> expectedArtifactIds =
-        (List<?>) trigger.getOrDefault("expectedArtifactIds", emptyList());
+    List<?> triggers = Optional.ofNullable((List<?>) pipeline.get("triggers")).orElse(emptyList());
+    Set<String> expectedArtifactIdsListConcat =
+        new HashSet<>(getExpectedArtifactIdsFromMap(trigger));
+
+    // Due to 8df68b79cf1 getBoundArtifactForStage now does resolution which
+    // can potentially return null artifact back, which will throw an exception
+    // for stages that expect a non-null value. Before this commit, when
+    // getBoundArtifactForStage was called, the method would just retrieve the
+    // bound artifact from the stage context, and return the appropriate
+    // artifact back. This change prevents tasks like CreateBakeManifestTask
+    // from working properly, if null is returned.
+    //
+    // reference: https://github.com/spinnaker/orca/pull/4397
+    triggers.stream()
+        .map(it -> (Map<String, Object>) it)
+        // This filter prevents multiple triggers from adding its
+        // expectedArtifactIds unless it is the expected trigger type that was
+        // triggered
+        //
+        // reference: https://github.com/spinnaker/orca/pull/4322
+        .filter(it -> trigger.getOrDefault("type", "").equals(it.get("type")))
+        .map(this::getExpectedArtifactIdsFromMap)
+        .forEach(expectedArtifactIdsListConcat::addAll);
+
+    final List<String> expectedArtifactIds = new ArrayList<>(expectedArtifactIdsListConcat);
     ImmutableList<ExpectedArtifact> expectedArtifacts =
         Optional.ofNullable((List<?>) pipeline.get("expectedArtifacts"))
             .map(Collection::stream)
