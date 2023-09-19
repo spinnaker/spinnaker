@@ -20,6 +20,9 @@ import com.netflix.spinnaker.igor.config.GitHubProperties
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import retrofit.RetrofitError
 
 @Slf4j
 @RestController(value = "GitHubCommitController")
@@ -50,14 +52,14 @@ class CommitController extends AbstractCommitController {
 
         try {
             commitsResponse = master.gitHubClient.getCompareCommits(projectKey, repositorySlug, requestParams.to, requestParams.from)
-        } catch (RetrofitError e) {
-            if(e.getKind() == RetrofitError.Kind.NETWORK) {
-                throw new NotFoundException("Could not find the server ${master.baseUrl}")
-            } else if(e.response.status == 404) {
-                return getNotFoundCommitsResponse(projectKey, repositorySlug, requestParams.to, requestParams.from, master.baseUrl)
-            }
-            log.error("Unhandled error response, acting like commit response was not found", e)
+        } catch (SpinnakerNetworkException e) {
+            throw new NotFoundException("Could not find the server ${master.baseUrl}")
+        } catch (SpinnakerServerException e) {
+          if (e instanceof SpinnakerHttpException && ((SpinnakerHttpException)e).getResponseCode() == 404) {
             return getNotFoundCommitsResponse(projectKey, repositorySlug, requestParams.to, requestParams.from, master.baseUrl)
+          }
+          log.error("Unhandled error response, acting like commit response was not found", e)
+          return getNotFoundCommitsResponse(projectKey, repositorySlug, requestParams.to, requestParams.from, master.baseUrl)
         }
 
         commitsResponse.commits.each {

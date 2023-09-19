@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.scm.github.client.GitHubClient
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -57,6 +58,7 @@ class GitHubConfig {
             .setClient(new OkClient())
             .setConverter(new JacksonConverter(mapper))
             .setLog(new Slf4jRetrofitLogger(GitHubClient))
+            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .build()
             .create(GitHubClient)
 

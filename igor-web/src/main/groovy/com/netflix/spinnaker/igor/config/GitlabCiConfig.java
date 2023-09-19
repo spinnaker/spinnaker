@@ -21,6 +21,7 @@ import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.gitlabci.client.GitlabCiClient;
 import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService;
 import com.netflix.spinnaker.igor.service.BuildServices;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import java.util.Map;
@@ -95,6 +96,7 @@ public class GitlabCiConfig {
         .setLog(new Slf4jRetrofitLogger(GitlabCiClient.class))
         .setLogLevel(RestAdapter.LogLevel.FULL)
         .setConverter(new JacksonConverter(objectMapper))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .build()
         .create(GitlabCiClient.class);
   }

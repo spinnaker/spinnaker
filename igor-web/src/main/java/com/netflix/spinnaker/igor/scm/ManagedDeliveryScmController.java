@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.igor.scm;
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import retrofit.RetrofitError;
 
 /** Exposes APIs to retrieve Managed Delivery declarative manifests from source control repos. */
 @RestController
@@ -85,15 +86,14 @@ public class ManagedDeliveryScmController {
       Object errorDetails = e.getMessage();
       if (e instanceof IllegalArgumentException) {
         status = HttpStatus.BAD_REQUEST;
-      } else if (e instanceof RetrofitError) {
-        RetrofitError re = (RetrofitError) e;
-        if (re.getKind() == RetrofitError.Kind.HTTP) {
-          status = HttpStatus.valueOf(re.getResponse().getStatus());
-          errorDetails = re.getBodyAs(Map.class);
-        } else {
-          errorDetails = "Error calling downstream system: " + re.getMessage();
-        }
+      } else if (e instanceof SpinnakerHttpException) {
+        SpinnakerHttpException spinnakerHttpException = (SpinnakerHttpException) e;
+        status = HttpStatus.valueOf(spinnakerHttpException.getResponseCode());
+        errorDetails = spinnakerHttpException.getResponseBody();
+      } else if (e instanceof SpinnakerServerException) {
+        errorDetails = "Error calling downstream system: " + e.getMessage();
       }
+
       return buildErrorResponse(status, errorDetails);
     }
   }

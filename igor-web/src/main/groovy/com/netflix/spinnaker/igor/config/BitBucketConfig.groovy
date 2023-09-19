@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketClient
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import com.squareup.okhttp.Credentials
 import groovy.transform.CompileStatic
@@ -58,6 +59,7 @@ class BitBucketConfig {
       .setClient(new OkClient())
       .setConverter(new JacksonConverter())
       .setLog(new Slf4jRetrofitLogger(BitBucketClient))
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()
       .create(BitBucketClient)
   }

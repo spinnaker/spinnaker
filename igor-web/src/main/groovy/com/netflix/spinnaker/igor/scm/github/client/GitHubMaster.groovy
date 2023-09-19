@@ -20,9 +20,10 @@ package com.netflix.spinnaker.igor.scm.github.client
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
 import com.netflix.spinnaker.igor.scm.github.client.model.Commit
 import com.netflix.spinnaker.igor.scm.github.client.model.GetRepositoryContentResponse
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
-import retrofit.RetrofitError
 
 import java.util.stream.Collectors
 
@@ -44,10 +45,10 @@ class GitHubMaster extends AbstractScmMaster {
       return response.stream()
         .map({ r -> r.path })
         .collect(Collectors.toList())
-    } catch (RetrofitError e) {
-      if (e.getKind() == RetrofitError.Kind.NETWORK) {
-        throw new NotFoundException("Could not find the server ${baseUrl}")
-      }
+    } catch (SpinnakerNetworkException e) {
+      throw new NotFoundException("Could not find the server ${baseUrl}")
+    }
+    catch (SpinnakerServerException e) {
       log.error(
         "Failed to fetch file from {}/{}/{}, reason: {}",
         projectKey, repositorySlug, path, e.message
@@ -64,10 +65,9 @@ class GitHubMaster extends AbstractScmMaster {
         throw new NotFoundException("Unexpected content type: ${response.type}");
       }
       return new String(Base64.mimeDecoder.decode(response.content));
-    } catch (RetrofitError e) {
-      if (e.getKind() == RetrofitError.Kind.NETWORK) {
-        throw new NotFoundException("Could not find the server ${baseUrl}")
-      }
+    } catch (SpinnakerNetworkException e) {
+      throw new NotFoundException("Could not find the server ${baseUrl}")
+    }catch (SpinnakerServerException e) {
       log.error(
         "Failed to fetch file from {}/{}/{}, reason: {}",
         projectKey, repositorySlug, path, e.message

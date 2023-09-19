@@ -24,6 +24,7 @@ import com.netflix.spinnaker.igor.scm.bitbucket.client.model.Author
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.Commit
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.CompareCommitsResponse
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.User
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
@@ -64,7 +65,7 @@ class CommitControllerSpec extends Specification {
 
   void 'get 404 from bitBucketClient and return one commit'() {
     when:
-    1 * client.getCompareCommits(projectKey, repositorySlug, clientParams) >> {throw new RetrofitError(null, null, new Response("http://foo.com", 404, "test reason", [], null), null, null, null, null)}
+    1 * client.getCompareCommits(projectKey, repositorySlug, clientParams) >> {throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://foo.com", 404, "test reason", [], null), null, null, null, null))}
     def result = controller.compareCommits(projectKey, repositorySlug, controllerParams)
 
     then:

@@ -31,7 +31,9 @@ import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
 import com.netflix.spinnaker.igor.travis.client.logparser.PropertyParser;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -40,7 +42,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import retrofit.RetrofitError;
 
 @Slf4j
 public class GitlabCiService implements BuildOperations, BuildProperties {
@@ -175,17 +176,20 @@ public class GitlabCiService implements BuildOperations, BuildProperties {
 
             return properties;
 
-          } catch (RetrofitError e) {
-            // retry on network issue, 404 and 5XX
-            if (e.getKind() == RetrofitError.Kind.NETWORK
-                || (e.getKind() == RetrofitError.Kind.HTTP
-                    && (e.getResponse().getStatus() == 404
-                        || e.getResponse().getStatus() >= 500))) {
+          } catch (SpinnakerNetworkException e) {
+            // retry on network issue
+            throw e;
+          } catch (SpinnakerHttpException e) {
+            // retry on 404 and 5XX
+            if (e.getResponseCode() == 404 || e.getResponseCode() >= 500) {
               throw e;
             }
-            SpinnakerException ex = new SpinnakerException(e);
-            ex.setRetryable(false);
-            throw ex;
+            e.setRetryable(false);
+            throw e;
+          } catch (SpinnakerServerException e) {
+            // do not retry
+            e.setRetryable(false);
+            throw e;
           } catch (IOException e) {
             log.error("Error while parsing GitLab CI log to build properties", e);
             return properties;
