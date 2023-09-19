@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.26.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.25.0...@spinnaker/core@0.26.0) (2023-09-06)
+
+
+### Features
+
+* **core:** Add ability to set Default Tag filters for an application in application config ([#10020](https://github.com/spinnaker/deck/issues/10020)) ([c768e88](https://github.com/spinnaker/deck/commit/c768e88fbc893d0bd5dc86959320a7b7d67443e5))
+
+
+### Reverts
+
+* Revert "fix(core): conditionally hide expression evaluation warning messages (#9771)" (#10021) ([62033d0](https://github.com/spinnaker/deck/commit/62033d0fc6f0a953bd3f01e4452664b92fd02dfb)), closes [#9771](https://github.com/spinnaker/deck/issues/9771) [#10021](https://github.com/spinnaker/deck/issues/10021)
+
+
+
+# 3.15.0 (2023-07-27)
+
+
+### Features
+
+* **core:** set Cancellation Reason to be expanded by default ([#10018](https://github.com/spinnaker/deck/issues/10018)) ([db06e88](https://github.com/spinnaker/deck/commit/db06e88bada70fa4065f56fc33af7207943415c5))
+
+
+
+
+
 # [0.25.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.24.1...@spinnaker/core@0.25.0) (2023-07-20)
 
 

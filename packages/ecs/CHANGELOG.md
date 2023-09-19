@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.362](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.361...@spinnaker/ecs@0.0.362) (2023-09-06)
+
+
+### Bug Fixes
+
+* Scaling bounds should parse float not int ([#10026](https://github.com/spinnaker/deck/issues/10026)) ([b763cae](https://github.com/spinnaker/deck/commit/b763cae826039df46b8dbe019689316ff5034e33))
+
+
+
+
+
 ## [0.0.361](https://github.com/spinnaker/deck/compare/@spinnaker/ecs@0.0.360...@spinnaker/ecs@0.0.361) (2023-07-20)
 
 **Note:** Version bump only for package @spinnaker/ecs

@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.1](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.14.0...@spinnaker/amazon@0.14.1) (2023-09-06)
+
+
+### Bug Fixes
+
+* Scaling bounds should parse float not int ([#10026](https://github.com/spinnaker/deck/issues/10026)) ([b763cae](https://github.com/spinnaker/deck/commit/b763cae826039df46b8dbe019689316ff5034e33))
+
+
+
+
+
 # [0.14.0](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.13.9...@spinnaker/amazon@0.14.0) (2023-07-20)
 
 
