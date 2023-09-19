@@ -95,7 +95,9 @@ public class DeploymentEnvironment extends Node {
     SLIM("Based on an Alpine image"),
     UBUNTU("Based on Canonical's ubuntu:bionic image"),
     JAVA8("A variant of SLIM that uses the Java 8 runtime"),
-    UBUNTU_JAVA8("A variant of UBUNTU that uses the Java 8 runtime");
+    UBUNTU_JAVA8("A variant of UBUNTU that uses the Java 8 runtime"),
+    JAVA11("A variant of SLIM that uses the Java 11 runtime"),
+    UBUNTU_JAVA11("A variant of UBUNTU that uses the Java 11 runtime");
 
     @Getter final String description;
 
