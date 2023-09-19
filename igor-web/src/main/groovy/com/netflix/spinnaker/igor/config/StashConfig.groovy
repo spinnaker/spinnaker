@@ -31,6 +31,7 @@ import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 
 import javax.validation.Valid
 
@@ -61,7 +62,8 @@ class StashConfig {
             .setConverter(new JacksonConverter())
             .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(StashClient))
-            .build()
+                .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+                .build()
             .create(StashClient)
     }
 

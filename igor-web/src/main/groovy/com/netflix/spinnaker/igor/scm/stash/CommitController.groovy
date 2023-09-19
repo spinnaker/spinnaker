@@ -19,6 +19,9 @@ package com.netflix.spinnaker.igor.scm.stash
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
 import com.netflix.spinnaker.igor.scm.stash.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import retrofit.RetrofitError
 
 @Slf4j
 @RestController(value = "StashCommitController")
@@ -44,16 +46,21 @@ class CommitController extends AbstractCommitController {
         CompareCommitsResponse commitsResponse
         try {
             commitsResponse = stashMaster.stashClient.getCompareCommits(projectKey, repositorySlug, requestParams)
-        } catch (RetrofitError e) {
-            if (e.getKind() == RetrofitError.Kind.NETWORK) {
-                throw new NotFoundException("Could not find the server ${stashMaster.baseUrl}")
-            } else if (e.response.status == 404) {
+        }   catch (SpinnakerNetworkException e) {
+          throw new NotFoundException("Could not find the server ${stashMaster.baseUrl}")
+        } catch  (SpinnakerHttpException e) {
+          if(e.getResponseCode() == 404) {
                 return getNotFoundCommitsResponse(projectKey, repositorySlug, requestParams.to, requestParams.from, stashMaster.baseUrl)
-            }
-            log.error(
+          }
+          log.error(
                 "Failed to fetch commits for {}/{}, reason: {}",
                 projectKey, repositorySlug, e.message
             )
+        }catch  (SpinnakerServerException e) {
+          log.error(
+            "Failed to fetch commits for {}/{}, reason: {}",
+            projectKey, repositorySlug, e.message
+          )
         }
 
         List result = []

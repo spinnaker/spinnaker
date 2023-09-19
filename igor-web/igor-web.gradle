@@ -12,6 +12,7 @@ dependencies {
     implementation project(":igor-monitor-artifactory")
     implementation project(":igor-monitor-plugins")
     implementation project(":igor-monitor-travis")
+    implementation "io.spinnaker.kork:kork-retrofit"
 
     implementation platform("io.spinnaker.kork:kork-bom:$korkVersion")
     compileOnly "org.projectlombok:lombok"

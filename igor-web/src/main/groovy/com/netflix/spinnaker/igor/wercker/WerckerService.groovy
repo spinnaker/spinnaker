@@ -24,9 +24,10 @@ import com.netflix.spinnaker.igor.wercker.model.Pipeline
 import com.netflix.spinnaker.igor.wercker.model.QualifiedPipelineName
 import com.netflix.spinnaker.igor.wercker.model.Run
 import com.netflix.spinnaker.igor.wercker.model.RunPayload
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.util.logging.Slf4j
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.Response
 import retrofit.mime.TypedByteArray
 
 import static com.netflix.spinnaker.igor.model.BuildServiceProvider.WERCKER
@@ -171,17 +172,10 @@ class WerckerService implements BuildOperations {
 
                 //return the integer build number for this run id
                 return runIdBuildNumbers.get(run.id)
-            } catch (RetrofitError e) {
-                def body = e.getResponse().getBody()
-                String wkrMsg
-                if (body instanceof TypedByteArray) {
-                    wkrMsg = new String(((retrofit.mime.TypedByteArray) body).getBytes())
-                } else {
-                    wkrMsg = body.in().text
-                }
-                log.error("Failed to trigger build for pipeline {}. {}", kv("pipelineName", pipelineName), kv("errMsg", wkrMsg))
-                throw new BuildJobError(
-                "Failed to trigger build for pipeline ${pipelineName}! Error from Wercker is: ${wkrMsg}")
+            }  catch (SpinnakerServerException e) {
+              log.error("Failed to trigger build for pipeline {}. {}", kv("pipelineName", pipelineName), kv("errMsg", e.getMessage()))
+              throw new BuildJobError(
+                "Failed to trigger build for pipeline ${pipelineName}! Error from Wercker is: ${e.getMessage()}")
             }
         } else {
             throw new BuildController.InvalidJobParameterException(
@@ -203,7 +197,7 @@ class WerckerService implements BuildOperations {
                     it.type + QualifiedPipelineName.SPLITOR +
                         new QualifiedPipelineName(app.owner.name, app.name, it.name).toString()
                 } )
-            } catch(retrofit.RetrofitError err) {
+            }  catch(SpinnakerServerException err) {
                 log.error "Error getting pipelines for ${app.owner.name } ${app.name} ${err}"
             }
         }
@@ -279,7 +273,7 @@ class WerckerService implements BuildOperations {
                     pipelineId = matchingPipeline.id
                     cache.setPipelineID(groupKey, appAndPipelineName, pipelineId)
                 }
-            } catch(retrofit.RetrofitError err) {
+            }catch(SpinnakerServerException err) {
                 log.info "Error getting pipelines for ${qPipeline.ownerName} ${qPipeline.appName} ${err} ${err.getClass()}"
             }
         }
@@ -299,7 +293,7 @@ class WerckerService implements BuildOperations {
                         .toString()
                     cache.setPipelineID(groupKey, name, pipelineId)
                 }
-            } catch(retrofit.RetrofitError err) {
+            } catch(SpinnakerServerException err) {
                 log.info "Error getting pipelines for ${owner} ${appName} ${err} ${err.getClass()}"
             }
         }
