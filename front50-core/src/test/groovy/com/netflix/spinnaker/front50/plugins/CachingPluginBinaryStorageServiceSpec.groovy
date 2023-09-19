@@ -20,6 +20,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import java.nio.file.Path
+import java.nio.file.Files
 
 class CachingPluginBinaryStorageServiceSpec extends Specification {
 
@@ -58,6 +59,6 @@ class CachingPluginBinaryStorageServiceSpec extends Specification {
   }
 
   private String getCacheFile(String key) {
-    return new String(getCachePath(key).readBytes())
+    return new String(Files.readAllBytes(getCachePath(key)))
   }
 }
