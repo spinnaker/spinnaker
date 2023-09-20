@@ -24,7 +24,7 @@
     "formik": "1.5.1",
     "js-yaml": "3.13.1",
     "lodash": "4.17.21",
-    "luxon": "1.23.0",
+    "luxon": "1.28.1",
     "ngimport": "0.6.1",
     "react": "16.14.0",
     "react-ace": "6.4.0",
