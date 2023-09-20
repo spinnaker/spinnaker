@@ -116,7 +116,7 @@ class VersionsSpec extends Specification {
 
     def "orderBySemVer throws an exception for invalid versions"() {
         when:
-        dev versions = ["1.0.0", badVersion]
+        def versions = ["1.0.0", badVersion]
         Collections.sort(versions, Versions.orderBySemVer())
 
         then:
