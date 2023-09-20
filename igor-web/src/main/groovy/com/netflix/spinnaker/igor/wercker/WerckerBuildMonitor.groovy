@@ -147,14 +147,14 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
 
             Long cursor = cache.getLastPollCycleTimestamp(master, pipeline)
             //The last build/run
-            Long lastBuildStamp = lastStartedAt.startedAt.fastTime
+            Long lastBuildStamp = lastStartedAt.startedAt.getTime()
             Date upperBound     = lastStartedAt.startedAt
             if (cursor == lastBuildStamp) {
                 log.debug("[${master}:${pipeline}] is up to date. skipping")
                 return
             }
             cache.updateBuildNumbers(master, pipeline, allRuns)
-            List<Run> allBuilds = allRuns.findAll { it?.startedAt?.fastTime > cursor }
+            List<Run> allBuilds = allRuns.findAll { it?.startedAt?.getTime() > cursor }
             if (!cursor && !igorProperties.spinnaker.build.handleFirstBuilds) {
                 cache.setLastPollCycleTimestamp(master, pipeline, lastBuildStamp)
                 return
@@ -203,7 +203,7 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
                 building: (run.finishedAt == null),
                 result: res,
                 number: cache.getBuildNumber(master, pipeline, run.id),
-                timestamp: run.startedAt.fastTime as String,
+                timestamp: run.startedAt.getTime() as String,
                 id: run.id,
                 url: run.url
                 )

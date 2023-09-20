@@ -98,7 +98,7 @@ class CommitControllerSpec extends Specification {
     List commitsResponse = controller.compareCommits(projectKey, repositorySlug, controllerParams)
 
     then:
-    commitsResponse.size == 2
+    commitsResponse.size() == 2
 
     with(commitsResponse[0]) {
       displayId == "1234512"

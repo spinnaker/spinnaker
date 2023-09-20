@@ -45,7 +45,7 @@ class WerckerServiceSpec extends Specification {
         ]
 
         expect:
-        service.jobs.size == 3
+        service.jobs.size() == 3
         service.jobs.contains('x/foo/myApp2/myPipeX')
     }
 

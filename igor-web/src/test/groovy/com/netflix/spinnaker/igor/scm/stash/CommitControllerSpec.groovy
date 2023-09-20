@@ -87,7 +87,7 @@ class CommitControllerSpec extends Specification {
         List commitsResponse = controller.compareCommits(projectKey, repositorySlug, ['to': toCommit, 'from': fromCommit])
 
         then:
-        commitsResponse.size == 2
+        commitsResponse.size() == 2
         commitsResponse[0].displayId == "12345"
         commitsResponse[0].id == "1234512345123451234512345"
         commitsResponse[0].authorDisplayName == "Joe Coder"

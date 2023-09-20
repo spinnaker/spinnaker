@@ -44,7 +44,7 @@ class ArtifactParserTest extends Specification {
         then:
         artifacts.first().fileName == "some-package-1.2.3-4.noarch.rpm"
         artifacts.last().fileName == "another-package-4.3.2.deb"
-        artifacts.size == 2
+        artifacts.size() == 2
     }
 
     def "make sure we only have one unique entry for each artifact"() {
@@ -59,7 +59,7 @@ class ArtifactParserTest extends Specification {
 
         then:
         artifacts.first().fileName == "some-package-1.2.3-4.noarch.rpm"
-        artifacts.size == 1
+        artifacts.size() == 1
     }
 
     def "get multiple artifactory deb from log using default regexes"() {

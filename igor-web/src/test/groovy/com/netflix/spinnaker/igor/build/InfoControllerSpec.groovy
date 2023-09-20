@@ -126,7 +126,7 @@ class InfoControllerSpec extends Specification {
 
       then:
       def actualAccounts = new JsonSlurper().parseText(response.contentAsString);
-      actualAccounts.size == 1
+      actualAccounts.size() == 1
       actualAccounts[0].permissions == [:]
 
     }
@@ -142,7 +142,7 @@ class InfoControllerSpec extends Specification {
 
       then:
       def actualAccounts = new JsonSlurper().parseText(response.contentAsString);
-      actualAccounts.size == 1
+      actualAccounts.size() == 1
       actualAccounts[0].name == 'master2'
 
     }

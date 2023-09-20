@@ -130,7 +130,7 @@ class ConcourseServiceSpec extends Specification {
         List<Build> builds = service.getBuilds('myteam/mypipeline/myjob', 1421717251402)
 
         then:
-        builds.size == 3
+        builds.size() == 3
         builds[0].id == '49-id'
         builds[1].id == '48.1-id'
         builds[2].id == '47-id'
