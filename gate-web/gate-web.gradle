@@ -73,6 +73,7 @@ dependencies {
   testImplementation "com.unboundid:unboundid-ldapsdk"
   testImplementation "io.spinnaker.kork:kork-jedis-test"
   testImplementation "io.spinnaker.kork:kork-test"
+  testImplementation "org.codehaus.groovy:groovy-json"
   testRuntimeOnly "io.spinnaker.kork:kork-retrofit"
 
   // Add each included authz provider as a runtime dependency
