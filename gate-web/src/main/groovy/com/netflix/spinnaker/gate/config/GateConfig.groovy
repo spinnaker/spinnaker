@@ -36,7 +36,6 @@ import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
 import com.netflix.spinnaker.gate.filters.ResetAuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
-import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -137,9 +136,6 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
   @Autowired
   Registry registry
-
-  @Autowired
-  EurekaLookupService eurekaLookupService
 
   @Autowired
   ServiceConfiguration serviceConfiguration

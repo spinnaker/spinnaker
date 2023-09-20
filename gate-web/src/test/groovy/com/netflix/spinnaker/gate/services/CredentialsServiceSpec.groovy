@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
@@ -41,10 +40,7 @@ class CredentialsServiceSpec extends Specification {
     }
 
     @Subject
-    CredentialsService credentialsService = new CredentialsService(
-      accountLookupService: accountLookupService,
-      fiatStatus: fiatStatus
-    )
+    CredentialsService credentialsService = new CredentialsService(accountLookupService, fiatStatus)
 
     expect:
     credentialsService.getAccountNames(roles) == expectedAccounts

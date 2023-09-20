@@ -49,10 +49,7 @@ class CredentialsControllerSpec extends Specification {
     }
 
     @Subject
-    CredentialsService credentialsService = new CredentialsService(
-      accountLookupService: accountLookupService,
-      fiatStatus: fiatStatus
-    )
+    CredentialsService credentialsService = new CredentialsService(accountLookupService, fiatStatus)
 
     FiatPermissionEvaluator fpe = Stub(FiatPermissionEvaluator)
     AllowedAccountsSupport allowedAccountsSupport = new AllowedAccountsSupport(fiatStatus, fpe, credentialsService)

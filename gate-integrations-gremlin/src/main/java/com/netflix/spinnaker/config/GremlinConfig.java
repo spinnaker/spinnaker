@@ -21,11 +21,9 @@ import static retrofit.Endpoints.newFixedEndpoint;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jakewharton.retrofit.Ok3Client;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.gate.config.Service;
 import com.netflix.spinnaker.gate.config.ServiceConfiguration;
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger;
-import com.netflix.spinnaker.gate.services.EurekaLookupService;
 import com.netflix.spinnaker.gate.services.gremlin.GremlinService;
 import groovy.transform.CompileStatic;
 import groovy.util.logging.Slf4j;
@@ -48,8 +46,6 @@ class GremlinConfig {
   GremlinService gremlinService(
       OkHttpClient okHttpClient,
       ServiceConfiguration serviceConfiguration,
-      Registry registry,
-      EurekaLookupService eurekaLookupService,
       RequestInterceptor spinnakerRequestInterceptor,
       @Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
     return createClient(
@@ -57,8 +53,6 @@ class GremlinConfig {
         GremlinService.class,
         okHttpClient,
         serviceConfiguration,
-        registry,
-        eurekaLookupService,
         spinnakerRequestInterceptor,
         retrofitLogLevel);
   }
@@ -68,8 +62,6 @@ class GremlinConfig {
       Class<T> type,
       OkHttpClient okHttpClient,
       ServiceConfiguration serviceConfiguration,
-      Registry registry,
-      EurekaLookupService eurekaLookupService,
       RequestInterceptor spinnakerRequestInterceptor,
       String retrofitLogLevel) {
     Service service = serviceConfiguration.getService(serviceName);
