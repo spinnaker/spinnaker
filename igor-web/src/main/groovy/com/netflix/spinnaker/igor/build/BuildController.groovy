@@ -31,6 +31,7 @@ import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildProperties
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -45,7 +46,6 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
-import retrofit.RetrofitError
 import retrofit.http.Query
 
 import javax.annotation.Nullable
@@ -178,8 +178,8 @@ class BuildController {
           if (buildService.metaClass.respondsTo(buildService, 'stopQueuedBuild')) {
             buildService.stopQueuedBuild(queuedBuild)
           }
-        } catch (RetrofitError e) {
-          if (e.response?.status != NOT_FOUND.value()) {
+        } catch (SpinnakerHttpException e) {
+          if (e.getResponseCode() != NOT_FOUND.value()) {
             throw e
           }
         }

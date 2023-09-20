@@ -31,6 +31,7 @@ import com.netflix.spinnaker.igor.config.client.JenkinsRetrofitRequestIntercepto
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -194,6 +195,7 @@ class JenkinsConfig {
             .setClient(new Ok3Client(clientBuilder.build()))
             .setConverter(new JacksonConverter(getObjectMapper()))
             .setLog(new Slf4jRetrofitLogger(JenkinsClient))
+            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .build()
             .create(JenkinsClient)
     }

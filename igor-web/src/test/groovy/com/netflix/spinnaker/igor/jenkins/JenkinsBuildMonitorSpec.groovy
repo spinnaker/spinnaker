@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import org.slf4j.Logger
 import org.springframework.scheduling.TaskScheduler
 import retrofit.RetrofitError
@@ -256,8 +257,9 @@ class   JenkinsBuildMonitorSpec extends Specification {
             new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min)
         ]
 
-        def retrofitEx = RetrofitError.unexpectedError("http://retro.fit/mock/error", new Exception('mock root cause'));
-        jenkinsService.getBuilds('job2') >> { throw new RuntimeException ("Mocked failure while fetching 'job2'", retrofitEx) }
+        def retrofitEx = new SpinnakerServerException(RetrofitError.unexpectedError("http://retro.fit/mock/error", new Exception('mock root cause')));
+        def runtimeException = new RuntimeException ("Mocked failure while fetching 'job2'", retrofitEx)
+        jenkinsService.getBuilds('job2') >> { throw runtimeException.getCause() }
 
         jenkinsService.getBuilds('job3') >> [
             new Build(number: 3, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min)

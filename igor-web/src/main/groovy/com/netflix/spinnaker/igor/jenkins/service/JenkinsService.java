@@ -43,7 +43,10 @@ import com.netflix.spinnaker.igor.model.Crumb;
 import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -62,7 +65,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.util.UriUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
-import retrofit.RetrofitError;
 import retrofit.client.Header;
 import retrofit.client.Response;
 
@@ -92,12 +94,8 @@ public class JenkinsService implements BuildOperations, BuildProperties {
             CircuitBreakerConfig.custom()
                 .ignoreException(
                     (e) -> {
-                      if (e instanceof RetrofitError) {
-                        RetrofitError re = (RetrofitError) e;
-                        return re.getKind() == RetrofitError.Kind.HTTP
-                            && re.getResponse().getStatus() == 404;
-                      }
-                      return false;
+                      return e instanceof SpinnakerHttpException
+                          && ((SpinnakerHttpException) e).getResponseCode() == 404;
                     })
                 .build());
   }
@@ -215,16 +213,11 @@ public class JenkinsService implements BuildOperations, BuildProperties {
         () -> {
           try {
             return jenkinsClient.getGitDetails(encode(jobName), buildNumber);
-          } catch (RetrofitError e) {
+          } catch (SpinnakerConversionException e) {
             // assuming that a conversion error is unlikely to succeed on retry
-            if (e.getKind() == RetrofitError.Kind.CONVERSION) {
-              log.warn(
-                  "Unable to deserialize git details for build " + buildNumber + " of " + jobName,
-                  e);
-              return null;
-            } else {
-              throw e;
-            }
+            log.warn(
+                "Unable to deserialize git details for build " + buildNumber + " of " + jobName, e);
+            return null;
           }
         },
         10,
@@ -240,8 +233,8 @@ public class JenkinsService implements BuildOperations, BuildProperties {
   public QueuedJob queuedBuild(String master, int item) {
     try {
       return circuitBreaker.executeSupplier(() -> jenkinsClient.getQueuedItem(item));
-    } catch (RetrofitError e) {
-      if (e.getResponse() != null && e.getResponse().getStatus() == NOT_FOUND.value()) {
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() == NOT_FOUND.value()) {
         throw new NotFoundException(
             String.format("Queued job '%s' not found for master '%s'.", item, master));
       }
@@ -331,17 +324,17 @@ public class JenkinsService implements BuildOperations, BuildProperties {
         () -> {
           try {
             return jenkinsClient.getPropertyFile(encode(jobName), buildNumber, fileName);
-          } catch (RetrofitError e) {
-            // retry on network issue, 404 and 5XX
-            if (e.getKind() == RetrofitError.Kind.NETWORK
-                || (e.getKind() == RetrofitError.Kind.HTTP
-                    && (e.getResponse().getStatus() == 404
-                        || e.getResponse().getStatus() >= 500))) {
-              throw e;
+          } catch (SpinnakerHttpException e) {
+            if (e.getResponseCode() == 404 || e.getResponseCode() >= 500) {
+              throw e; // retry on 404 and 5XX
             }
-            SpinnakerException ex = new SpinnakerException(e);
-            ex.setRetryable(false);
-            throw ex;
+            e.setRetryable(false); // disable retry
+            throw e;
+          } catch (SpinnakerNetworkException e) {
+            throw e; // retry on network issue
+          } catch (SpinnakerServerException e) {
+            e.setRetryable(false); // disable retry
+            throw e;
           }
         },
         5,
