@@ -8,6 +8,7 @@
  */
 package com.netflix.spinnaker.igor.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
@@ -27,6 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import retrofit.converter.JacksonConverter
 
 import java.util.concurrent.TimeUnit
 
@@ -43,28 +45,37 @@ import retrofit.RestAdapter
 class WerckerConfig {
     @Bean
     Map<String, WerckerService> werckerMasters(
-        BuildServices buildServices,
-        WerckerCache cache,
-        IgorConfigurationProperties igorConfigurationProperties,
-        OkHttpClientProvider clientProvider,
-        @Valid WerckerProperties werckerProperties,
-        RestAdapter.LogLevel retrofitLogLevel) {
+      BuildServices buildServices,
+      WerckerCache cache,
+      IgorConfigurationProperties igorConfigurationProperties,
+      OkHttpClientProvider clientProvider,
+      @Valid WerckerProperties werckerProperties,
+      RestAdapter.LogLevel retrofitLogLevel,
+      ObjectMapper objectMapper
+    ) {
         log.debug "creating werckerMasters"
         Map<String, WerckerService> werckerMasters = werckerProperties?.masters?.collectEntries { WerckerHost host ->
             log.debug "bootstrapping Wercker ${host.address} as ${host.name}"
-            [(host.name): new WerckerService(host, cache, werckerClient(host, igorConfigurationProperties.getClient().timeout, clientProvider, retrofitLogLevel), host.permissions.build())]
+            [(host.name): new WerckerService(host, cache, werckerClient(host, igorConfigurationProperties.getClient().timeout, clientProvider, retrofitLogLevel, objectMapper), host.permissions.build())]
         }
 
         buildServices.addServices(werckerMasters)
         werckerMasters
     }
 
-    static WerckerClient werckerClient(WerckerHost host, int timeout = 30000, OkHttpClientProvider clientProvider, RestAdapter.LogLevel retrofitLogLevel) {
+    static WerckerClient werckerClient(
+      WerckerHost host,
+      int timeout = 30000,
+      OkHttpClientProvider clientProvider,
+      RestAdapter.LogLevel retrofitLogLevel,
+      ObjectMapper objectMapper
+    ) {
         OkHttpClient client = clientProvider.getClient(new DefaultServiceEndpoint(host.name, host.address, false))
         client = client.newBuilder().readTimeout(timeout, TimeUnit.MILLISECONDS).build()
         return new RestAdapter.Builder()
                 .setLog(new Slf4jRetrofitLogger(WerckerService))
                 .setLogLevel(retrofitLogLevel)
+                .setConverter(new JacksonConverter(objectMapper))
                 .setEndpoint(Endpoints.newFixedEndpoint(host.address))
                 .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
                 .setClient(new Ok3Client(client))

@@ -16,6 +16,7 @@
  */
 package com.netflix.spinnaker.igor.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
@@ -40,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
+import retrofit.converter.JacksonConverter;
 
 @Configuration
 @ConditionalOnProperty("services.front50.base-url")
@@ -55,7 +57,8 @@ public class PluginMonitorConfig {
   public PluginReleaseService pluginReleaseService(
       OkHttpClientProvider clientProvider,
       IgorConfigurationProperties properties,
-      RestAdapter.LogLevel retrofitLogLevel) {
+      RestAdapter.LogLevel retrofitLogLevel,
+      ObjectMapper objectMapper) {
     String address = properties.getServices().getFront50().getBaseUrl();
 
     Front50Service front50Service =
@@ -66,6 +69,7 @@ public class PluginMonitorConfig {
                     clientProvider.getClient(new DefaultServiceEndpoint("front50", address))))
             .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(Front50Service.class))
+            .setConverter(new JacksonConverter(objectMapper))
             .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .build()
             .create(Front50Service.class);

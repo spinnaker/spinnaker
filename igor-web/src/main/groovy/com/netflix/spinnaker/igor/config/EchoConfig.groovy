@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
 import retrofit.RestAdapter
+import retrofit.converter.JacksonConverter
 
 /**
  * history service configuration
@@ -36,9 +38,12 @@ import retrofit.RestAdapter
 @Configuration
 class EchoConfig {
     @Bean
-    EchoService echoService(OkHttpClientProvider okHttpClientProvider,
-                            IgorConfigurationProperties igorConfigurationProperties,
-                            RestAdapter.LogLevel retrofitLogLevel) {
+    EchoService echoService(
+      OkHttpClientProvider okHttpClientProvider,
+      IgorConfigurationProperties igorConfigurationProperties,
+      RestAdapter.LogLevel retrofitLogLevel,
+      ObjectMapper objectMapper
+    ) {
         String address = igorConfigurationProperties.services.echo.baseUrl ?: 'none'
 
         if (address == 'none') {
@@ -48,6 +53,7 @@ class EchoConfig {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setClient(new Ok3Client(okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", address))))
+            .setConverter(new JacksonConverter(objectMapper))
             .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(EchoService))
             .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())

@@ -9,6 +9,8 @@
  */
 package com.netflix.spinnaker.igor.wercker
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.igor.config.*
@@ -29,8 +31,13 @@ class WerckerClientSpec extends Specification {
     @Shared
     MockWebServer server
 
+    @Shared
+    ObjectMapper objectMapper
+
     void setup() {
         server = new MockWebServer()
+        objectMapper = new ObjectMapper()
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     }
 
     void cleanup() {
@@ -101,7 +108,7 @@ class WerckerClientSpec extends Specification {
                 )
         server.start()
         def host = new WerckerHost(name: 'werckerMaster', address: server.url('/').toString())
-        client = new WerckerConfig().werckerClient(host, 30000, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]), RestAdapter.LogLevel.BASIC)
+        client = new WerckerConfig().werckerClient(host, 30000, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]), RestAdapter.LogLevel.BASIC, objectMapper)
     }
 
     String read(String fileName) {
