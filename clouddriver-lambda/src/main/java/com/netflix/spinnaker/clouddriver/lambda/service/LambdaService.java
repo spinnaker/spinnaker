@@ -21,11 +21,9 @@ import com.amazonaws.auth.policy.Statement;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.service.config.LambdaServiceConfig;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import groovy.util.logging.Slf4j;
@@ -47,47 +45,37 @@ public class LambdaService {
   private final int RETRIES;
   private final Clock clock = Clock.systemDefaultZone();
   private final ObjectMapper mapper;
-  private final ExecutorService executorService;
 
   public LambdaService(
       AmazonClientProvider amazonClientProvider,
       NetflixAmazonCredentials account,
       String region,
       ObjectMapper mapper,
-      LambdaServiceConfig lambdaServiceConfig,
-      ServiceLimitConfiguration serviceLimitConfiguration) {
+      LambdaServiceConfig lambdaServiceConfig) {
+
     this.amazonClientProvider = amazonClientProvider;
     this.account = account;
     this.region = region;
     this.mapper = mapper;
     this.TIMEOUT_MINUTES = lambdaServiceConfig.getRetry().getTimeout();
     this.RETRIES = lambdaServiceConfig.getRetry().getRetries();
-    this.executorService =
-        Executors.newFixedThreadPool(
-            computeThreads(serviceLimitConfiguration, lambdaServiceConfig));
   }
 
-  public List<Map<String, Object>> getAllFunctions() throws InterruptedException {
+  public List<Map<String, Object>> getAllFunctions() {
     List<FunctionConfiguration> functions = listAllFunctionConfigurations();
-    List<Callable<Void>> functionTasks = Collections.synchronizedList(new ArrayList<>());
     List<Map<String, Object>> hydratedFunctionList =
         Collections.synchronizedList(new ArrayList<>());
     functions.stream()
         .forEach(
             f -> {
               Map<String, Object> functionAttributes = new ConcurrentHashMap<>();
-              functionTasks.add(() -> addBaseAttributes(functionAttributes, f.getFunctionName()));
-              functionTasks.add(
-                  () -> addRevisionsAttributes(functionAttributes, f.getFunctionName()));
-              functionTasks.add(
-                  () ->
-                      addAliasAndEventSourceMappingConfigurationAttributes(
-                          functionAttributes, f.getFunctionName()));
-              functionTasks.add(
-                  () -> addTargetGroupAttributes(functionAttributes, f.getFunctionName()));
+              addBaseAttributes(functionAttributes, f.getFunctionName());
+              addRevisionsAttributes(functionAttributes, f.getFunctionName());
+              addAliasAndEventSourceMappingConfigurationAttributes(
+                  functionAttributes, f.getFunctionName());
+              addTargetGroupAttributes(functionAttributes, f.getFunctionName());
               hydratedFunctionList.add(functionAttributes);
             });
-    executorService.invokeAll(functionTasks);
 
     // if addBaseAttributes returned null, the name won't be included. There is a chance other
     // resources still have
@@ -105,12 +93,9 @@ public class LambdaService {
       // return quick so we don't make extra api calls for a delete lambda
       return null;
     }
-    functionTasks.add(() -> addRevisionsAttributes(functionAttributes, functionName));
-    functionTasks.add(
-        () ->
-            addAliasAndEventSourceMappingConfigurationAttributes(functionAttributes, functionName));
-    functionTasks.add(() -> addTargetGroupAttributes(functionAttributes, functionName));
-    executorService.invokeAll(functionTasks);
+    addRevisionsAttributes(functionAttributes, functionName);
+    addAliasAndEventSourceMappingConfigurationAttributes(functionAttributes, functionName);
+    addTargetGroupAttributes(functionAttributes, functionName);
     return functionAttributes;
   }
 
@@ -360,20 +345,5 @@ public class LambdaService {
         throw e;
       }
     }
-  }
-
-  private int computeThreads(
-      ServiceLimitConfiguration serviceLimitConfiguration,
-      LambdaServiceConfig lambdaServiceConfig) {
-    int serviceLimit =
-        serviceLimitConfiguration
-            .getLimit(
-                ServiceLimitConfiguration.API_RATE_LIMIT,
-                AWSLambda.class.getSimpleName(),
-                account.getName(),
-                AmazonCloudProvider.ID,
-                5.0d)
-            .intValue();
-    return Math.min(serviceLimit * 2, lambdaServiceConfig.getConcurrency().getThreads());
   }
 }

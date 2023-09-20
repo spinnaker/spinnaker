@@ -91,13 +91,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
             this,
             AmazonCloudProvider.ID + ":" + AmazonCloudProvider.ID + ":" + OnDemandType.Function);
     this.lambdaService =
-        new LambdaService(
-            amazonClientProvider,
-            account,
-            region,
-            objectMapper,
-            lambdaServiceConfig,
-            serviceLimitConfiguration);
+        new LambdaService(amazonClientProvider, account, region, objectMapper, lambdaServiceConfig);
   }
 
   @Override

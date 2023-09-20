@@ -26,16 +26,10 @@ import org.springframework.stereotype.Component;
 public class LambdaServiceConfig {
 
   private Retry retry = new Retry();
-  private Concurrency concurrency = new Concurrency();
 
   @Data
   public static class Retry {
     private int timeout = 15;
     private int retries = 5;
-  }
-
-  @Data
-  public static class Concurrency {
-    private int threads = 10;
   }
 }
