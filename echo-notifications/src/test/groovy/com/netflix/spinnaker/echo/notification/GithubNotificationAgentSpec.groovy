@@ -47,8 +47,8 @@ class GithubNotificationAgentSpec extends Specification {
   def "sets correct status check for #status status in pipeline events"() {
     given:
     def actualMessage = new BlockingVariable<GithubStatus>()
-    github.updateCheck(*_) >> { token, repo, sha, status ->
-      actualMessage.set(status)
+    github.updateCheck(*_) >> { token, repo, sha, status_local ->
+      actualMessage.set(status_local)
     }
     github.getCommit(*_) >> { token, repo, sha ->
       new Response("url", 200, "nothing", [], new TypedByteArray("application/json", "message".bytes))
@@ -96,8 +96,8 @@ class GithubNotificationAgentSpec extends Specification {
   def "sets correct status check for #status status in stage events"() {
     given:
     def actualMessage = new BlockingVariable<GithubStatus>()
-    github.updateCheck(*_) >> { token, repo, sha, status ->
-      actualMessage.set(status)
+    github.updateCheck(*_) >> { token, repo, sha, status_local ->
+      actualMessage.set(status_local)
     }
     github.getCommit(*_) >> { token, repo, sha ->
       new Response("url", 200, "nothing", [], new TypedByteArray("application/json", "message".bytes))

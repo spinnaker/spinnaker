@@ -60,8 +60,8 @@ public class GoogleChatNotificationAgentSpec extends Specification {
   def "appends custom message to #status message if present"() {
     given:
     def actualMessage = new BlockingVariable<GoogleChatMessage>()
-    googleChat.sendMessage(*_) >> { webhookURL, message ->
-      actualMessage.set(message)
+    googleChat.sendMessage(*_) >> { webhookURL_local, message_local ->
+      actualMessage.set(message_local)
     }
 
     when:
@@ -89,8 +89,8 @@ public class GoogleChatNotificationAgentSpec extends Specification {
   def "sends entirely custom message if customMessage field is present, performing text replacement if needed"() {
     given:
     def actualMessage = new BlockingVariable<GoogleChatMessage>()
-    googleChat.sendMessage(*_) >> { webhookURL, message ->
-      actualMessage.set(message)
+    googleChat.sendMessage(*_) >> { webhookURL_local, message_local ->
+      actualMessage.set(message_local)
     }
 
     when:
