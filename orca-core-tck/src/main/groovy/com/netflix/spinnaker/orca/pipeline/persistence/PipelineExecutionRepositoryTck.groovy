@@ -550,6 +550,28 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
     status << ExecutionStatus.values()
   }
 
+  def "should return task ref for currently running pipeline by correlation id"() {
+    given:
+    def execution = pipeline {
+      trigger = new DefaultTrigger("manual", "covfefe")
+    }
+    repository().store(execution)
+    repository().updateStatus(execution.type, execution.id, RUNNING)
+
+    when:
+    def result = repository().retrievePipelineForCorrelationId('covfefe')
+
+    then:
+    result.id == execution.id
+
+    when:
+    repository().updateStatus(execution.type, execution.id, SUCCEEDED)
+    repository().retrievePipelineForCorrelationId('covfefe')
+
+    then:
+    thrown(ExecutionNotFoundException)
+  }
+
   def "should return task ref for currently running orchestration by correlation id"() {
     given:
     def execution = orchestration {

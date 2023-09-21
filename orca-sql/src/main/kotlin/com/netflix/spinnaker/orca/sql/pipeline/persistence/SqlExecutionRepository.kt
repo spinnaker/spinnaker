@@ -893,18 +893,12 @@ class SqlExecutionRepository(
       }
 
       withPool(poolName) {
-        val exists = ctx.fetchExists(
-          ctx.select()
-            .from("correlation_ids")
-            .where(field("id").eq(execution.trigger.correlationId))
-            .and(executionIdField.eq(execution.id))
-        )
-        if (!exists) {
-          ctx.insertInto(table("correlation_ids"))
-            .columns(field("id"), executionIdField)
-            .values(execution.trigger.correlationId, execution.id)
-            .execute()
-        }
+        ctx.insertInto(table("correlation_ids"))
+          .columns(field("id"), executionIdField)
+          .values(execution.trigger.correlationId, execution.id)
+          .onConflict()
+          .doNothing()
+          .execute()
       }
     }
   }

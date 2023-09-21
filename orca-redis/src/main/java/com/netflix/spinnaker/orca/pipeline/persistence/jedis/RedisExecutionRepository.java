@@ -695,7 +695,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   @Override
   public PipelineExecution retrievePipelineForCorrelationId(@Nonnull String correlationId)
       throws ExecutionNotFoundException {
-    String key = format("pipelineCorrelation:%s", correlationId);
+    String key = format("correlation:%s", correlationId);
     return getRedisDelegate(key)
         .withCommandsClient(
             correlationRedis -> {
