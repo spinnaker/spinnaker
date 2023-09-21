@@ -45,6 +45,7 @@ class VerificationRunner(
 
   override suspend fun start(context: ArtifactInEnvironmentContext, action: Verification) {
     enforcer.withVerificationLease(context) {
+      log.debug("Starting verification for ${context.shortName()}")
       val images = imageFinder.getImages(context.deliveryConfig, context.environmentName)
       val metadata = evaluators.start(context, action) + mapOf("images" to images)
       actionRepository.updateState(context, action, PENDING, metadata)

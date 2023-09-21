@@ -2,24 +2,20 @@ package com.netflix.spinnaker.keel.orca
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.TaskStatus
+import com.netflix.spinnaker.keel.actuation.ExecutionSummary
+import com.netflix.spinnaker.keel.actuation.ExecutionSummaryService
+import com.netflix.spinnaker.keel.actuation.RolloutLocation
+import com.netflix.spinnaker.keel.actuation.RolloutStatus
+import com.netflix.spinnaker.keel.actuation.RolloutStep
+import com.netflix.spinnaker.keel.actuation.RolloutTarget
+import com.netflix.spinnaker.keel.actuation.RolloutTargetWithStatus
+import com.netflix.spinnaker.keel.actuation.Stage
 import com.netflix.spinnaker.keel.api.TaskStatus.CANCELED
 import com.netflix.spinnaker.keel.api.TaskStatus.FAILED_CONTINUE
-import com.netflix.spinnaker.keel.api.TaskStatus.NOT_STARTED
 import com.netflix.spinnaker.keel.api.TaskStatus.RUNNING
 import com.netflix.spinnaker.keel.api.TaskStatus.SKIPPED
 import com.netflix.spinnaker.keel.api.TaskStatus.STOPPED
-import com.netflix.spinnaker.keel.api.TaskStatus.SUCCEEDED
 import com.netflix.spinnaker.keel.api.TaskStatus.TERMINAL
-import com.netflix.spinnaker.keel.api.actuation.ExecutionSummary
-import com.netflix.spinnaker.keel.api.actuation.ExecutionSummaryService
-import com.netflix.spinnaker.keel.api.actuation.RolloutLocation
-import com.netflix.spinnaker.keel.api.actuation.RolloutStatus
-import com.netflix.spinnaker.keel.api.actuation.RolloutStep
-import com.netflix.spinnaker.keel.api.actuation.RolloutTarget
-import com.netflix.spinnaker.keel.api.actuation.RolloutTargetWithStatus
-import com.netflix.spinnaker.keel.api.actuation.Stage
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -36,6 +32,8 @@ class OrcaExecutionSummaryService(
 
   companion object {
     val COMPLETED_TARGETS_STAGE = "initManagedRolloutStep"
+    val KICKOFF_STAGE = "startManagedRollout"
+    val DEPLOY_STAGE = "deploy"
   }
 
   override fun getSummary(executionId: String): ExecutionSummary {
@@ -44,7 +42,9 @@ class OrcaExecutionSummaryService(
     }
 
     val typedStages: List<OrcaStage> = taskDetails.execution?.stages?.map { mapper.convertValue(it) } ?: emptyList()
-    val currentStage = typedStages.firstOrNull { it.status == RUNNING }
+    val currentStage = typedStages
+      .filter { it.status == RUNNING }
+      .maxByOrNull { it.refId.length } //grab the longest ref id, which will be the most nested running stage
     val targets = getTargets(taskDetails, typedStages)
 
     return ExecutionSummary(
@@ -64,12 +64,12 @@ class OrcaExecutionSummaryService(
   fun getTargets(execution: ExecutionDetailResponse, typedStages: List<OrcaStage>): List<RolloutTargetWithStatus> {
     val targetsWithStatus: MutableList<RolloutTargetWithStatus> = mutableListOf()
     val statusTargetMap = if (execution.isManagedRollout()) {
-      getTargetStatusManagedRollout(execution, typedStages)
+      getTargetStatusManagedRollout(typedStages)
     } else {
       getTargetStatusDeployStage(execution, typedStages)
     }
 
-     statusTargetMap.forEach { (status, targets) ->
+    statusTargetMap.forEach { (status, targets) ->
       targetsWithStatus.addAll(
         targets.map {
           RolloutTargetWithStatus(
@@ -87,50 +87,72 @@ class OrcaExecutionSummaryService(
     variables?.find { it.key == "selectionStrategy" } != null
 
   fun getTargetStatusManagedRollout(
-    execution: ExecutionDetailResponse,
     typedStages: List<OrcaStage>
   ): Map<RolloutStatus, List<RolloutTarget>> {
     val targets: MutableMap<RolloutStatus, List<RolloutTarget>> = mutableMapOf()
+
+    // completed targets will be listed in the outputs of this type of stage
     targets[RolloutStatus.SUCCEEDED] = typedStages
-      .filter { it.type == COMPLETED_TARGETS_STAGE}
+      .filter { it.type == COMPLETED_TARGETS_STAGE }
       .mapNotNull { it.outputs["completedRolloutStep"] }
       .map<Any, RolloutStep> { mapper.convertValue(it) }
       .flatMap { it.targets }
 
+    // deploying targets will be listed in the context of the deploy stage,
+    // so we filter for running deploy stages
     targets[RolloutStatus.RUNNING] = typedStages
-      .filter { it.type == COMPLETED_TARGETS_STAGE &&
-        !it.outputs.containsKey("completedRolloutStep") &&
-        it.status == RUNNING
-      }
-      .map { stage ->
-        val input = stage.context["input"] as Map<*, *>
-        val runningTargets = input["targets"] as? Map<*, *> ?: emptyList<RolloutTarget>()
-        mapper.convertValue(runningTargets)
-      }
-
-    targets[RolloutStatus.NOT_STARTED] = typedStages
       .filter {
-        it.type == COMPLETED_TARGETS_STAGE &&
-          it.status == NOT_STARTED
+        it.type == DEPLOY_STAGE &&
+          it.status == RUNNING
       }
       .map { stage ->
-        val input = stage.context["input"] as Map<*, *>
-        val runningTargets = input["targets"] as? Map<*, *> ?: emptyList<RolloutTarget>()
-        mapper.convertValue(runningTargets)
+        val runningTargets = stage.context["targets"] as? List<Map<*, *>> ?: emptyList()
+        mapper.convertValue<List<RolloutTarget>>(runningTargets)
       }
+      .flatten()
 
     targets[RolloutStatus.FAILED] = typedStages
       .filter {
-        it.type == COMPLETED_TARGETS_STAGE &&
+        it.type == DEPLOY_STAGE &&
           listOf(FAILED_CONTINUE, TERMINAL, CANCELED, SKIPPED, STOPPED).contains(it.status)
       }
       .map { stage ->
-        val input = stage.context["input"] as Map<*, *>
-        val runningTargets = input["targets"] as? Map<*, *> ?: emptyList<RolloutTarget>()
+        val runningTargets = stage.context["targets"] as? List<Map<*, *>> ?: emptyList()
         mapper.convertValue(runningTargets)
       }
 
+    targets[RolloutStatus.NOT_STARTED] = (typedStages
+      .firstOrNull {
+        it.type == KICKOFF_STAGE
+      }
+      ?.let { stage ->
+        val allTargets = stage.context["targets"] as? List<Map<*, *>> ?: emptyList()
+        mapper.convertValue<List<RolloutTarget>>(allTargets)
+      } ?: emptyList())
+      .filter { target ->
+        target.notIn(targets[RolloutStatus.SUCCEEDED] as List<RolloutTarget>) &&
+          target.notIn(targets[RolloutStatus.FAILED] as List<RolloutTarget>) &&
+          target.notIn(targets[RolloutStatus.RUNNING] as List<RolloutTarget>)
+      }
+
     return targets
+  }
+
+  /**
+   * Normal equals/comparison doesn't work when we use the java objects, so I must
+   * write my own.
+   */
+  fun RolloutTarget.notIn(targets: List<RolloutTarget>): Boolean {
+    targets.forEach { target ->
+      if (target.cloudProvider == cloudProvider &&
+        target.location.region == location.region &&
+        target.location.account == location.account &&
+        target.location.sublocations == location.sublocations
+      ) {
+        return false
+      }
+    }
+    return true
   }
 
   fun getTargetStatusDeployStage(
@@ -171,8 +193,8 @@ class OrcaExecutionSummaryService(
 
     return regions.map { region ->
       RolloutTarget(
-        cloudProvider = cloudProvider,
-        location = RolloutLocation(account = account, region = region),
+        cloudProvider,
+        RolloutLocation(account, region, emptyList()),
       )
     }
   }

@@ -13,7 +13,8 @@ internal class ExportControllerTests : JUnit5Minutests {
   class Fixture {
     val subject = ExportController(
       handlers = listOf(DummyResourceHandlerV1, DummyResourceHandlerV2),
-      cloudDriverCache = mockk(relaxed = true)
+      cloudDriverCache = mockk(relaxed = true),
+      exportService = mockk(relaxed = true)
     )
   }
 

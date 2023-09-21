@@ -12,13 +12,11 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Component
 import org.springframework.core.env.Environment
+import org.springframework.stereotype.Component
 
 @Component
-@Configuration
 @EnableConfigurationProperties(KeelNotificationConfig::class, BaseUrlConfig::class)
 /**
  * Listens for [ConstraintStateChanged] events where the constraint is a [ManualJudgementConstraint] and sends

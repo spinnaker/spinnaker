@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
@@ -61,8 +62,20 @@ import java.time.Clock
 import java.util.UUID
 
 internal class TitusClusterExportTests : JUnit5Minutests {
+  val titusAccount = "titustest"
+  val awsAccount = "test"
+
+  val titusAccountCredential = Credential(
+    name = titusAccount,
+    type = "titus",
+    environment = "testenv",
+    attributes = mutableMapOf("awsAccount" to awsAccount, "registry" to "testregistry")
+  )
+
   val cloudDriverService = mockk<CloudDriverService>()
-  val cloudDriverCache = mockk<CloudDriverCache>()
+  val cloudDriverCache = mockk<CloudDriverCache>() {
+    every { credentialBy(titusAccount) } returns titusAccountCredential
+  }
   val orcaService = mockk<OrcaService>()
   val resolvers = emptyList<Resolver<TitusClusterSpec>>()
   val repository = mockk<KeelRepository>()
@@ -82,9 +95,6 @@ internal class TitusClusterExportTests : JUnit5Minutests {
   val sg2West = SecurityGroupSummary("keel-elb", "sg-235425234", "vpc-1")
   val sg1East = SecurityGroupSummary("keel", "sg-279585936", "vpc-1")
   val sg2East = SecurityGroupSummary("keel-elb", "sg-610264122", "vpc-1")
-
-  val titusAccount = "titustest"
-  val awsAccount = "test"
 
   val container = DigestProvider(
     organization = "spinnaker",
@@ -183,10 +193,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
         every { securityGroupByName(awsAccount, "us-east-1", sg1East.name) } returns sg1East
         every { securityGroupByName(awsAccount, "us-east-1", sg2East.name) } returns sg2East
 
-        coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf(
-          "awsAccount" to awsAccount,
-          "registry" to awsAccount + "registry"
-        )
+        every { cloudDriverCache.credentialBy(titusAccount) } returns titusAccountCredential
       }
       coEvery { orcaService.orchestrate(resource.serviceAccount, any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
       every { repository.environmentFor(any()) } returns Environment("test")
@@ -209,7 +216,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
         coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
         coEvery { cloudDriverService.findDockerImages("testregistry", (spec.container as DigestProvider).repository()) } returns images
-        coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
+        every { cloudDriverCache.credentialBy(titusAccount) } returns titusAccountCredential
       }
 
       context("exported titus cluster spec") {
@@ -323,7 +330,7 @@ internal class TitusClusterExportTests : JUnit5Minutests {
             .withDoubleCapacity()
 
         coEvery { cloudDriverService.findDockerImages("testregistry", container.repository()) } returns images
-        coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
+        every { cloudDriverCache.credentialBy(titusAccount) } returns titusAccountCredential
       }
 
       context("exported titus cluster spec") {

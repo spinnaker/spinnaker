@@ -8,6 +8,8 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.core.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
 import com.netflix.spinnaker.keel.telemetry.EnvironmentCheckComplete
@@ -31,7 +33,7 @@ class EnvironmentPromotionChecker(
   private val publisher: ApplicationEventPublisher,
   private val artifactConfig: ArtifactConfig,
   private val springEnv: SpringEnvironment,
-  private val clock: Clock = Clock.systemDefaultZone()
+  private val clock: Clock
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -82,6 +84,7 @@ class EnvironmentPromotionChecker(
                   val pinnedVersion = pinnedEnvs.versionFor(environment.name, artifact)
                   // approve version first to fast track deployment
                   approveVersion(deliveryConfig, artifact, pinnedVersion!!, environment)
+                  triggerResourceRecheckForPinnedVersion(deliveryConfig, artifact, pinnedVersion!!, environment)
                   // then evaluate constraints
                   constraintRunner.checkEnvironment(envContext)
                 } else {
@@ -121,6 +124,12 @@ class EnvironmentPromotionChecker(
                   if (versionSelected == null) {
                     log.warn("No version of {} passes constraints for environment {}", artifact, environment.name)
                   }
+                  triggerResourceRecheckForVetoedVersion(
+                    deliveryConfig,
+                    artifact,
+                    environment,
+                    vetoedArtifacts[envPinKey(environment.name, artifact)]
+                  )
                 }
               } else {
                 log.debug("Skipping checks for {} as it is not used in environment {}", artifact, environment.name)
@@ -139,13 +148,42 @@ class EnvironmentPromotionChecker(
     }
   }
 
+  private fun triggerResourceRecheckForVetoedVersion(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    targetEnvironment: Environment,
+    vetoedArtifacts: EnvironmentArtifactVetoes?
+  ) {
+    if (vetoedArtifacts == null) return
+    val currentVersion = repository.getCurrentlyDeployedArtifactVersion(deliveryConfig, artifact, targetEnvironment.name)?.version
+    if (vetoedArtifacts.versions.map { it.version }.contains(currentVersion)) {
+      log.info("Triggering recheck for environment ${targetEnvironment.name} of application ${deliveryConfig.application} that is currently on a vetoed version of ${artifact.reference}")
+      // trigger a recheck of the resources if the current version is vetoed
+      repository.triggerResourceRecheck(targetEnvironment.name, deliveryConfig.application)
+    }
+  }
+
+  private fun triggerResourceRecheckForPinnedVersion(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: Environment
+  ) {
+    val status = repository.getArtifactPromotionStatus(deliveryConfig, artifact, version, targetEnvironment.name)
+    if (status !in listOf(CURRENT, DEPLOYING)) {
+      log.info("Triggering recheck for pinned environment ${targetEnvironment.name} of application ${deliveryConfig.application} that are on the wrong version. Pinned version $version of ${artifact.reference}")
+      // trigger a recheck of the resources if the version isn't already on its way to the environment
+      repository.triggerResourceRecheck(targetEnvironment.name, deliveryConfig.application)
+    }
+  }
+
   private fun approveVersion(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
     version: String,
     targetEnvironment: Environment
   ) {
-    log.debug("Approving version $version of ${artifact.type} artifact ${artifact.name} in environment ${targetEnvironment.name}")
+    log.debug("Approving application ${deliveryConfig.application} version $version of ${artifact.reference} in environment ${targetEnvironment.name}")
     val isNewVersion = repository
       .approveVersionFor(deliveryConfig, artifact, version, targetEnvironment.name)
     if (isNewVersion) {

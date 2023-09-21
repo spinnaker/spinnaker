@@ -49,6 +49,21 @@ data class Resource<out T : ResourceSpec>(
       else -> null
     }
 
+  /**
+   * Adds the specified [suffix] to the resource [id] and all properties of the [spec] derived from it.
+   */
+  fun deepRename(suffix: String): Resource<T> {
+    val updatedSpec = spec.deepRename(suffix)
+    return copy(
+      spec = updatedSpec as T,
+      metadata = metadata + mapOf(
+        // this is so the resource ID is updated with the new name (which is in the spec)
+        "id" to updatedSpec.id,
+        "application" to application
+      )
+    )
+  }
+
   // TODO: this is kinda dirty, but because we add uid to the metadata when persisting we don't really want to consider it in equality checks
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

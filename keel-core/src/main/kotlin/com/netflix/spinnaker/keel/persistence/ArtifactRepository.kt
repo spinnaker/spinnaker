@@ -398,6 +398,16 @@ interface ArtifactRepository : PeriodicallyCheckedRepository<DeliveryArtifact> {
     startTime: Instant,
     endTime: Instant
   ): Int
+
+  /**
+   * @return the latest artifact version of [artifact] approved for use in [environmentName]
+   *
+   */
+  fun getLatestApprovedInEnvArtifactVersion(
+    config: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    environmentName: String
+  ): PublishedArtifact?
 }
 
 class NoSuchArtifactException(name: String, type: ArtifactType) :

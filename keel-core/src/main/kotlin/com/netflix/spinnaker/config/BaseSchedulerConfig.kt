@@ -7,6 +7,6 @@ import java.time.Duration
  */
 open class BaseSchedulerConfig {
   var minAgeDuration: Duration = Duration.ofMinutes(1)
-  var batchSize: Int = 1
+  var batchSize: Int = 5
   var timeoutDuration: Duration = Duration.ofMinutes(2)
 }

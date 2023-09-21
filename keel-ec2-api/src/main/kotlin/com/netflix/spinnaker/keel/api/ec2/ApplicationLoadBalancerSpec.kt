@@ -12,6 +12,8 @@ import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
 import com.netflix.spinnaker.keel.api.schema.Discriminator
 import com.netflix.spinnaker.keel.api.schema.Optional
 import java.time.Duration
+import java.util.Collections.emptySortedSet
+import java.util.SortedSet
 
 data class ApplicationLoadBalancerSpec(
   override val moniker: Moniker,
@@ -42,12 +44,21 @@ data class ApplicationLoadBalancerSpec(
         override.dependencies?.securityGroupNames?.map { Dependency(SECURITY_GROUP, region, it) } ?: emptySet()
       }
 
+  override fun deepRename(suffix: String): ApplicationLoadBalancerSpec {
+    return copy(
+      moniker = moniker.withSuffix(suffix),
+      targetGroups = targetGroups.map { targetGroup ->
+        targetGroup.copy(name = "${targetGroup.name}-$suffix")
+      }.toSet()
+    )
+  }
+
   data class Listener(
     val port: Int,
     val protocol: String,
     val certificate: String? = null,
     val rules: Set<Rule> = emptySet(),
-    val defaultActions: Set<Action> = emptySet()
+    val defaultActions: SortedSet<Action> = emptySortedSet()
   ) {
     init {
       if (protocol == "HTTPS") {
@@ -100,10 +111,12 @@ data class ApplicationLoadBalancerSpec(
     val targetGroups: Set<TargetGroup>? = null
   )
 
-  abstract class Action {
+  abstract class Action : Comparable<Action> {
     @Discriminator
     abstract val type: String
     abstract val order: Int
+
+    override fun compareTo(other: Action) = order.compareTo(other.order)
 
     data class ForwardAction(
       override val order: Int,
@@ -130,7 +143,7 @@ data class ApplicationLoadBalancerSpec(
   data class Rule(
     val priority: String,
     val conditions: List<Condition> = emptyList(),
-    val actions: List<Action>,
+    val actions: SortedSet<Action>,
     val default: Boolean
   )
 

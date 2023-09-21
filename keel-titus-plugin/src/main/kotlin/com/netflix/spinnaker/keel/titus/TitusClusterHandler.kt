@@ -18,6 +18,9 @@
 package com.netflix.spinnaker.keel.titus
 
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.keel.actuation.RolloutLocation
+import com.netflix.spinnaker.keel.actuation.RolloutTarget
+import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.NoStrategy
@@ -27,7 +30,6 @@ import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.actuation.Job
-import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
@@ -45,6 +47,7 @@ import com.netflix.spinnaker.keel.api.ec2.ServerGroup.InstanceCounts
 import com.netflix.spinnaker.keel.api.ec2.StepAdjustment
 import com.netflix.spinnaker.keel.api.ec2.StepScalingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
+import com.netflix.spinnaker.keel.api.ec2.hasScalingPolicies
 import com.netflix.spinnaker.keel.api.plugins.BaseClusterHandler
 import com.netflix.spinnaker.keel.api.plugins.CurrentImages
 import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
@@ -73,10 +76,11 @@ import com.netflix.spinnaker.keel.clouddriver.model.StepAdjustmentModel
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.TitusScaling.Policy.StepPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.TitusScaling.Policy.TargetPolicy
+import com.netflix.spinnaker.keel.clouddriver.model.toActive
 import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.core.serverGroup
-import com.netflix.spinnaker.keel.diff.toIndividualDiffs
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.events.ResourceHealthEvent
@@ -134,16 +138,11 @@ class TitusClusterHandler(
       .byRegion()
 
   override suspend fun actuationInProgress(resource: Resource<TitusClusterSpec>): Boolean =
-    resource
-      .spec
-      .locations
-      .regions
-      .map { it.name }
-      .any { region ->
-        orcaService
-          .getCorrelatedExecutions("${resource.id}:$region", resource.serviceAccount)
-          .isNotEmpty()
-      }
+    generateCorrelationIds(resource).any { correlationId ->
+      orcaService
+        .getCorrelatedExecutions(correlationId)
+        .isNotEmpty()
+    }
 
   override fun getDesiredRegion(diff: ResourceDiff<TitusServerGroup>): String =
     diff.desired.location.region
@@ -179,67 +178,77 @@ class TitusClusterHandler(
         CurrentImages(supportedKind.kind, images, resource.id)
       }
 
-  override suspend fun upsert(
-    resource: Resource<TitusClusterSpec>,
-    resourceDiff: ResourceDiff<Map<String, TitusServerGroup>>
-  ): List<Task> =
-    coroutineScope {
-      resourceDiff
-        .toIndividualDiffs()
-        .filter { diff -> diff.hasChanges() }
-        .map { diff ->
-          val desired = diff.desired
-          var tags: Set<String> = emptySet()
 
-          var tagToUse: String? = null
-          val version = when {
-            diff.isCapacityOnly() -> null
-            else -> {
-              // calculate the version for the digest
-              tags = getTagsForDigest(desired.container, desired.location.account)
-              if (tags.size == 1) {
-                tagToUse = tags.first() // only one tag, so use it to deploy
-                tags.first()
-              } else {
-                log.debug("Container digest ${desired.container} has multiple tags: $tags")
-                // unclear which "version" to print if there is more than one, so use a shortened version of the digest
-                desired.container.digest.subSequence(0, 7)
-              }
-            }
-          }
+  override fun getDesiredAccount(diff: ResourceDiff<TitusServerGroup>): String =
+    diff.desired.location.account
 
-          val (description, stages) = when {
-            diff.isCapacityOnly() -> "Resize server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}" to diff.resizeServerGroupJob()
-            diff.isAutoScalingOnly() -> "Modify auto-scaling of server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}" to diff.modifyScalingPolicyJob()
-            diff.isEnabledOnly() -> diff.disableOtherServerGroupJob(resource, version.toString()).let { stages ->
-              "Disable extra active server group ${stages.first()["asgName"]} in ${desired.location.account}/${desired.location.region}" to stages
-            }
-            else -> "Deploy $version to server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}" to diff.upsertServerGroupJob(
-              resource,
-              tagToUse
-            )
-          }
+  override fun ResourceDiff<TitusServerGroup>.moniker(): Moniker =
+    desired.moniker
 
-          log.info("Upserting server group using task: {}", stages)
+  override fun TitusServerGroup.moniker(): Moniker =
+    moniker
 
-          val result = async {
-            taskLauncher.submitJob(
-              resource = resource,
-              description = description,
-              correlationId = "${resource.id}:${desired.location.region}",
-              stages = stages
-            )
-          }
-
-          if (diff.willDeployNewVersion()) {
-            tags.forEach { tag ->
-              notifyArtifactDeploying(resource, tag)
-            }
-          }
-          return@map result
-        }
-        .map { it.await() }
+  override fun ResourceDiff<TitusServerGroup>.version(resource: Resource<TitusClusterSpec>): String {
+    val tags = runBlocking {
+      getTagsForDigest(desired.container, desired.location.account)
     }
+    return if (tags.size == 1) {
+      tags.first() // only one tag, so use it to deploy
+    } else {
+      log.debug("Container digest ${desired.container} has multiple tags: $tags")
+      // unclear which "version" to print if there is more than one, so use a shortened version of the digest
+      desired.container.digest.subSequence(0, 7).toString()
+    }
+  }
+
+  override fun ResourceDiff<TitusServerGroup>.getDeployingVersions(resource: Resource<TitusClusterSpec>): Set<String> =
+    runBlocking {
+      getTagsForDigest(desired.container, desired.location.account)
+    }
+
+  override fun correlationId(resource: Resource<TitusClusterSpec>, diff: ResourceDiff<TitusServerGroup>): String =
+    "${resource.id}:${diff.desired.location.region}"
+
+  override fun Resource<TitusClusterSpec>.isStaggeredDeploy(): Boolean =
+    spec.deployWith.isStaggered
+
+  override fun Resource<TitusClusterSpec>.isManagedRollout(): Boolean =
+    spec.managedRollout.enabled
+
+  override fun Resource<TitusClusterSpec>.regions(): List<String> =
+    spec.locations.regions.map { it.name }
+
+  override fun Resource<TitusClusterSpec>.account(): String =
+    spec.locations.account
+
+  override fun Resource<TitusClusterSpec>.moniker() =
+    spec.moniker
+
+  override fun ResourceDiff<TitusServerGroup>.hasScalingPolicies(): Boolean =
+    desired.scaling.hasScalingPolicies()
+
+  override fun ResourceDiff<TitusServerGroup>.isCapacityOrAutoScalingOnly(): Boolean =
+    current != null &&
+      affectedRootPropertyTypes.all { it == Capacity::class.java || it == Scaling::class.java } &&
+      current!!.scaling.suspendedProcesses == desired.scaling.suspendedProcesses
+
+  override fun ResourceDiff<TitusServerGroup>.hasScalingPolicyDiff(): Boolean =
+    current != null && affectedRootPropertyTypes.contains(Scaling::class.java) &&
+      (
+        current!!.scaling.targetTrackingPolicies != desired.scaling.targetTrackingPolicies ||
+          current!!.scaling.stepScalingPolicies != desired.scaling.stepScalingPolicies
+        )
+
+  override suspend fun getServerGroupsByRegion(resource: Resource<TitusClusterSpec>): Map<String, List<TitusServerGroup>> =
+    getExistingServerGroupsByRegion(resource)
+      .mapValues { regionalList ->
+        regionalList.value.map { serverGroup: ClouddriverTitusServerGroup ->
+          serverGroup.toActive().toTitusServerGroup()
+        }
+      }
+
+  override fun Resource<TitusClusterSpec>.getDeployWith(): ClusterDeployStrategy =
+    spec.deployWith
 
   override suspend fun export(exportable: Exportable): TitusClusterSpec {
     val serverGroups = cloudDriverService.getActiveServerGroups(
@@ -359,14 +368,16 @@ class TitusClusterHandler(
       false
     }
 
-  private suspend fun ResourceDiff<TitusServerGroup>.disableOtherServerGroupJob(
+  override fun ResourceDiff<TitusServerGroup>.disableOtherServerGroupJob(
     resource: Resource<TitusClusterSpec>,
     desiredVersion: String
-  ): List<Job> {
+  ): Job {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a disable job"
     }
-    val existingServerGroups: Map<String, List<ClouddriverTitusServerGroup>> = getExistingServerGroupsByRegion(resource)
+    val existingServerGroups: Map<String, List<ClouddriverTitusServerGroup>> = runBlocking {
+      getExistingServerGroupsByRegion(resource)
+    }
     val sgInRegion = existingServerGroups.getOrDefault(current.location.region, emptyList()).filterNot { it.disabled }
 
     if (sgInRegion.size < 2) {
@@ -408,14 +419,39 @@ class TitusClusterHandler(
       "region" to sgToDisable.region,
       "serverGroupName" to sgToDisable.name,
       "asgName" to sgToDisable.name
-    ).let(::listOf)
+    )
   }
 
-  private fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): List<Job> {
+  override fun ResourceDiff<TitusServerGroup>.rollbackServerGroupJob(
+    resource: Resource<TitusClusterSpec>,
+    rollbackServerGroup: TitusServerGroup
+  ): Job =
+    mutableMapOf(
+      "rollbackType" to "EXPLICIT",
+      "rollbackContext" to  mapOf(
+        "rollbackServerGroupName" to current?.moniker?.serverGroup,
+        "restoreServerGroupName" to rollbackServerGroup.moniker.serverGroup,
+        "targetHealthyRollbackPercentage" to 100,
+        "delayBeforeDisableSeconds" to 0
+      ),
+      "targetGroups" to desired.dependencies.targetGroups,
+      "securityGroups" to desired.dependencies.securityGroupNames,
+      "platformHealthOnlyShowOverride" to false,
+      "reason" to "rollin' back",
+      "type" to "rollbackServerGroup",
+      "moniker" to current?.moniker?.orcaClusterMoniker,
+      "region" to desired.location.region,
+      "credentials" to desired.location.account,
+      "cloudProvider" to TITUS_CLOUD_PROVIDER,
+      "user" to DEFAULT_SERVICE_ACCOUNT
+    )
+
+  override fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): Job {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a resize job"
     }
     return mapOf(
+      "refId" to "1",
       "type" to "resizeServerGroup",
       "capacity" to mapOf(
         "min" to desired.capacity.min,
@@ -427,7 +463,7 @@ class TitusClusterHandler(
       "moniker" to current.moniker.orcaClusterMoniker,
       "region" to current.location.region,
       "serverGroupName" to current.name
-    ).let(::listOf)
+    )
   }
 
   /**
@@ -437,7 +473,7 @@ class TitusClusterHandler(
    * Scaling policies are treated as immutable by keel once applied. If an existing
    * policy is modified, it will be deleted and reapplied via a single task.
    */
-  private fun ResourceDiff<TitusServerGroup>.modifyScalingPolicyJob(startingRefId: Int = 0): List<Job> {
+  override fun ResourceDiff<TitusServerGroup>.modifyScalingPolicyJob(startingRefId: Int): List<Job> {
     var (refId, stages) = toDeletePolicyJob(startingRefId)
 
     val newTargetPolicies = current?.run {
@@ -606,16 +642,11 @@ class TitusClusterHandler(
     }
   }
 
-  /**
-   * If a tag is provided, deploys by tag.
-   * Otherwise, deploys by digest.
-   */
-  private fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(
-    resource: Resource<TitusClusterSpec>,
+  private fun ResourceDiff<TitusServerGroup>.generateImageJson(
     tag: String?
-  ): List<Job> =
+  ) =
     with(desired) {
-      val image = if (tag == null) {
+      if (tag == null || desired.container.digest.startsWith(tag)) {
         mapOf(
           "digest" to container.digest,
           "imageId" to "${container.organization}/${container.image}:${container.digest}"
@@ -626,9 +657,26 @@ class TitusClusterHandler(
           "imageId" to "${container.organization}/${container.image}:$tag"
         )
       }
+    }
+
+  /**
+   * If a tag is provided, deploys by tag.
+   * Otherwise, deploys by digest.
+   */
+  override fun ResourceDiff<TitusServerGroup>.upsertServerGroupJob(
+    resource: Resource<TitusClusterSpec>,
+    startingRefId: Int,
+    version: String?
+  ): Job =
+    with(desired) {
+      val image = generateImageJson(version)
 
       mapOf(
-        "refId" to "1",
+        "refId" to (startingRefId + 1).toString(),
+        "requisiteStageRefIds" to when (startingRefId) {
+          0 -> emptyList()
+          else -> listOf(startingRefId.toString())
+        },
         "application" to moniker.app,
         "credentials" to location.account,
         "region" to location.region,
@@ -679,28 +727,80 @@ class TitusClusterHandler(
         job + resource.spec.deployWith.toOrcaJobProperties("Titus") +
           mapOf("metadata" to mapOf("resource" to resource.id))
       }
-      .let(::listOf)
-      .let { job ->
-        if (affectedRootPropertyTypes.any { it == Scaling::class.java }) {
-          job + modifyScalingPolicyJob(startingRefId = 2)
-        } else {
-          job
-        }
-      }
 
-  private fun ResourceDiff<TitusServerGroup>.willDeployNewVersion(): Boolean =
-    !isCapacityOnly() && !isEnabledOnly() && !isAutoScalingOnly()
+  override fun Resource<TitusClusterSpec>.upsertServerGroupManagedRolloutJob(
+    diffs: List<ResourceDiff<TitusServerGroup>>,
+    version: String?
+  ): Job {
+    val image = diffs.first().generateImageJson(version) // image json should be the same for all regions.
+
+    return mapOf(
+      "refId" to "1",
+      "type" to "managedRollout",
+      "input" to mapOf(
+        "selectionStrategy" to spec.managedRollout?.selectionStrategy,
+        "targets" to spec.generateRolloutTargets(diffs),
+        "clusterDefinitions" to listOf(toManagedRolloutClusterDefinition(image))
+      ),
+      "reason" to "Diff detected at ${clock.instant().iso()}",
+    )
+  }
+
+  // todo eb: scaling policies?
+  private fun Resource<TitusClusterSpec>.toManagedRolloutClusterDefinition(image: Map<String, Any>) =
+    with(spec) {
+      val dependencies = resolveDependencies()
+      mapOf(
+        "application" to moniker.app,
+        "stack" to moniker.stack,
+        "freeFormDetails" to moniker.detail,
+        "inService" to true,
+        "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
+        "cloudProvider" to TITUS_CLOUD_PROVIDER,
+        "network" to "default",
+        "registry" to runBlocking { getRegistryForTitusAccount(locations.account) },
+        "capacity" to resolveCapacity(),
+        "capacityGroup" to resolveCapacityGroup(),
+        "securityGroups" to dependencies.securityGroupNames,
+        "loadBalancers" to dependencies.loadBalancerNames,
+        "targetGroups" to dependencies.targetGroups,
+        "entryPoint" to resolveEntryPoint(),
+        "env" to resolveEnv(),
+        "containerAttributes" to resolveContainerAttributes(),
+        "tags" to resolveTags(),
+        "resources" to resolveResources(),
+        "constraints" to resolveConstraints(),
+        "migrationPolicy" to resolveMigrationPolicy(),
+        "scaling" to resolveScaling(), //todo eb: is this even right?
+        "overrides" to spec.overrides
+      ) + image + spec.deployWith.toOrcaJobProperties("Titus")
+    }
+
+  private fun TitusClusterSpec.generateRolloutTargets(diffs: List<ResourceDiff<TitusServerGroup>>): List<Map<String, Any>> =
+    diffs
+      .map {
+        mapper.convertValue(
+          RolloutTarget(
+            TITUS_CLOUD_PROVIDER,
+            RolloutLocation(
+              locations.account,
+              getDesiredRegion(it),
+              emptyList()
+            )
+          )
+        )
+      }
 
   /**
    * @return `true` if the only changes in the diff are to capacity.
    */
-  private fun ResourceDiff<TitusServerGroup>.isCapacityOnly(): Boolean =
+  override fun ResourceDiff<TitusServerGroup>.isCapacityOnly(): Boolean =
     current != null && affectedRootPropertyTypes.all { Capacity::class.java.isAssignableFrom(it) }
 
   /**
    * @return `true` if the only changes in the diff are to scaling.
    */
-  private fun ResourceDiff<TitusServerGroup>.isAutoScalingOnly(): Boolean =
+  override fun ResourceDiff<TitusServerGroup>.isAutoScalingOnly(): Boolean =
     current != null &&
       affectedRootPropertyTypes.any { it == Scaling::class.java } &&
       affectedRootPropertyTypes.all { Capacity::class.java.isAssignableFrom(it) || it == Scaling::class.java } &&
@@ -948,12 +1048,12 @@ class TitusClusterHandler(
       )
     )
 
-  private suspend fun getAwsAccountNameForTitusAccount(titusAccount: String): String =
-    cloudDriverService.getAccountInformation(titusAccount, DEFAULT_SERVICE_ACCOUNT)["awsAccount"]?.toString()
+  fun getAwsAccountNameForTitusAccount(titusAccount: String): String =
+    cloudDriverCache.credentialBy(titusAccount).attributes["awsAccount"] as? String
       ?: throw TitusAccountConfigurationException(titusAccount, "awsAccount")
 
-  private suspend fun getRegistryForTitusAccount(titusAccount: String): String =
-    cloudDriverService.getAccountInformation(titusAccount, DEFAULT_SERVICE_ACCOUNT)["registry"]?.toString()
+  fun getRegistryForTitusAccount(titusAccount: String): String =
+    cloudDriverCache.credentialBy(titusAccount).attributes["registry"] as? String
       ?: throw RegistryNotFoundException(titusAccount)
 
   fun TitusServerGroup.securityGroupIds(): Collection<String> =

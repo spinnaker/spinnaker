@@ -16,9 +16,11 @@ import com.netflix.spinnaker.keel.api.titus.TITUS_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusScalingSpec
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Capacity
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
+import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceCounts
@@ -164,11 +166,6 @@ class TitusClusterScalingPolicyTests {
   )
 
   val cloudDriverService = mockk<CloudDriverService>() {
-    every { getAccountInformation(account, any()) } returns mapOf(
-      "awsAccount" to "test",
-      "registry" to "testregistry"
-    )
-
     every { findDockerImages("testregistry", "fnord/fnord", any(), any(), any(), any()) } returns listOf(
       DockerImage(
         account = "testregistry",
@@ -176,6 +173,15 @@ class TitusClusterScalingPolicyTests {
         tag = actualServerGroup.image.dockerImageVersion,
         digest = actualServerGroup.image.dockerImageDigest
       )
+    )
+  }
+
+  val cloudDriverCache: CloudDriverCache = mockk {
+    every { credentialBy(account) } returns Credential(
+      name = account,
+      type = "titus",
+      environment = "testenv",
+      attributes = mutableMapOf("awsAccount" to "test", "registry" to "testregistry")
     )
   }
 
@@ -208,7 +214,7 @@ class TitusClusterScalingPolicyTests {
   val stages = slot<List<Job>>()
   val taskLauncher = mockk<TaskLauncher>() {
     every {
-      submitJob(any(), any(), any(), capture(stages))
+      submitJob(any(), any(), any(), capture(stages), any())
     } answers {
       Task(randomUID().toString(), arg(1))
     }
@@ -216,7 +222,7 @@ class TitusClusterScalingPolicyTests {
 
   val handler = TitusClusterHandler(
     cloudDriverService = cloudDriverService,
-    cloudDriverCache = mockk(),
+    cloudDriverCache = cloudDriverCache,
     orcaService = mockk(),
     clock = Clock.systemDefaultZone(),
     taskLauncher = taskLauncher,

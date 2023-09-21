@@ -105,7 +105,8 @@ abstract class ApproveOldVersionTests<T : KeelRepository> : JUnit5Minutests {
       environmentConstraintRunner,
       publisher,
       ArtifactConfig(),
-      springEnv
+      springEnv,
+      MutableClock()
     )
 
     val artifact = DebianArtifact(

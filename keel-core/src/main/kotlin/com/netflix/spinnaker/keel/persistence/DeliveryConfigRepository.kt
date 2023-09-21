@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.constraints.ConstraintState
 import com.netflix.spinnaker.keel.core.api.ApplicationSummary
 import com.netflix.spinnaker.keel.core.api.UID
+import com.netflix.spinnaker.keel.events.ResourceState
 import com.netflix.spinnaker.keel.persistence.DependentAttachFilter.ATTACH_ALL
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -50,6 +51,11 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
    * Retrieve the [NotificationConfig] for an environment by environment name and delivery config name.
    */
   fun environmentNotifications(deliveryConfigName: String, environmentName: String): Set<NotificationConfig>
+
+  /**
+   * Retrieve the current status of all resources in [environmentName].
+   */
+  fun resourceStatusesInEnvironment(deliveryConfigName: String, environmentName: String) : Map<String, ResourceState>
 
   /**
    * Retrieve the [DeliveryConfig] a resource belongs to (the parent of its environment).
@@ -143,8 +149,10 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun deleteConstraintState(
     deliveryConfigName: String,
     environmentName: String,
+    reference: String,
+    version: String,
     type: String
-  )
+  ): Int
 
   /**
    * Rolls up the most recent constraint states (maximum of one per (Environment, ConstraintType))

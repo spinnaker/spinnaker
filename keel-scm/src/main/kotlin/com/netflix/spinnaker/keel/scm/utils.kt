@@ -37,6 +37,7 @@ fun Pair<String, String>.toTags() = BasicTag(first, second)
 fun ApplicationEventPublisher.publishDeliveryConfigImportFailed(
   application: String,
   event: CodeEvent,
+  branch: String,
   timestamp: Instant,
   reason: String,
   link: String?
@@ -46,7 +47,7 @@ fun ApplicationEventPublisher.publishDeliveryConfigImportFailed(
       DeliveryConfigImportFailed(
         triggeredAt = timestamp,
         application = application,
-        branch = targetBranch,
+        branch = branch,
         repoType = repoType,
         projectKey = projectKey,
         repoSlug = repoSlug,

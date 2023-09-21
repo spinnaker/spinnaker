@@ -75,31 +75,36 @@ abstract class BaseActionRunner<T: Action> {
   suspend fun runFor(context: ArtifactInEnvironmentContext) {
     with(context) {
       val statuses = getActions()
+        .also { log.debug("Checking status for ${context.shortName()}: $it") }
         .map { action ->
           action to latestStatus(context, action)
         }
 
+      log.debug("Status for ${context.shortName()}: $statuses")
+
       if (actionBlocked(context)) {
-        log.debug("${logSubject()} is blocked, skipping.")
+        log.debug("${logSubject()} is blocked for ${shortName()}, skipping.")
         incrementBlockedCounter(context)
         return
       }
 
       if (runInSeries() && statuses.anyStillRunning) {
-        log.debug("${logSubject()} already running for environment {} of application {}", environment.name, deliveryConfig.application)
+        log.debug("${logSubject()} already running for ${context.shortName()}")
         return
       }
 
       statuses.firstOutstanding?.let { action ->
+        log.debug("Starting action ${action.type} ${action.id} for $context")
         start(context, action)
         publishStartEvent(context, action)
-      } ?: log.debug("${logSubject()} complete for environment {} of application {}", environment.name, deliveryConfig.application)
+      } ?: log.debug("${logSubject()} complete for ${context.shortName()}")
     }
   }
 
 
   private suspend fun latestStatus(context: ArtifactInEnvironmentContext, action: T): ConstraintStatus? {
     val oldState = getPreviousState(context, action)
+    log.debug("Old state for ${context.shortName()}: $oldState")
     val newState = if (oldState?.status == PENDING) {
       evaluate(context, action, oldState)
         .also { newState ->

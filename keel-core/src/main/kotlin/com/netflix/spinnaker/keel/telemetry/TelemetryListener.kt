@@ -13,6 +13,8 @@ import com.netflix.spinnaker.keel.actuation.ScheduledPostDeployActionRunStarting
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import com.netflix.spinnaker.keel.events.VerificationBlockedActuation
+import com.netflix.spinnaker.keel.rollout.FeatureRolloutAttempted
+import com.netflix.spinnaker.keel.rollout.FeatureRolloutFailed
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
@@ -277,16 +279,39 @@ class TelemetryListener(
 
   @EventListener(VerificationBlockedActuation::class)
   fun onBlockedActuation(event: VerificationBlockedActuation) {
-    spectator.counter(BLOCKED_ACTUATION_ID,
+    spectator.counter(
+      BLOCKED_ACTUATION_ID,
       listOf(
         BasicTag("resourceId", event.id),
         BasicTag("resourceKind", event.kind.toString()),
         BasicTag("resourceApplication", event.application)
       )
-    )
+    ).safeIncrement()
   }
 
-  private fun secondsSince(start: AtomicReference<Instant>) : Double  =
+  @EventListener(FeatureRolloutAttempted::class)
+  fun onFeatureRolloutAttempted(event: FeatureRolloutAttempted) {
+    spectator.counter(
+      FEATURE_ROLLOUT_ATTEMPTED_ID,
+      listOf(
+        BasicTag("feature", event.feature),
+        BasicTag("resourceId", event.resourceId)
+      )
+    ).safeIncrement()
+  }
+
+  @EventListener(FeatureRolloutFailed::class)
+  fun onFeatureRolloutFailed(event: FeatureRolloutFailed) {
+    spectator.counter(
+      FEATURE_ROLLOUT_FAILED_ID,
+      listOf(
+        BasicTag("feature", event.feature),
+        BasicTag("resourceId", event.resourceId)
+      )
+    ).safeIncrement()
+  }
+
+  private fun secondsSince(start: AtomicReference<Instant>): Double =
     Duration
       .between(start.get(), clock.instant())
       .toMillis()
@@ -331,5 +356,7 @@ class TelemetryListener(
     private const val AGENT_DURATION_ID = "keel.agent.duration"
     private const val POST_DEPLOY_CHECK_DRIFT_GAUGE = "keel.post-deploy.check.drift"
     private const val POST_DEPLOY_CHECK_DURATION_ID = "keel.post-deploy.check.duration"
+    private const val FEATURE_ROLLOUT_ATTEMPTED_ID = "keel.feature-rollout.attempted"
+    private const val FEATURE_ROLLOUT_FAILED_ID = "keel.feature-rollout.failed"
   }
 }

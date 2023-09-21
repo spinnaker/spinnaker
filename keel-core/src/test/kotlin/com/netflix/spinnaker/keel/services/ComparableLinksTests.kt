@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.services
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ArtifactConfig
+import com.netflix.spinnaker.keel.actuation.EnvironmentTaskCanceler
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ScmInfo
@@ -131,6 +132,8 @@ class ComparableLinksTests : JUnit5Minutests {
     }
     val registry = NoopRegistry()
 
+    val environmentTaskCanceler: EnvironmentTaskCanceler = mockk(relaxUnitFun = true)
+
     // subject
     val applicationService = ApplicationService(
       repository,
@@ -143,7 +146,8 @@ class ComparableLinksTests : JUnit5Minutests {
       clock,
       registry,
       ArtifactConfig(),
-      artifactVersionLinks
+      artifactVersionLinks,
+      environmentTaskCanceler
     )
 
     val buildMetadata = BuildMetadata(

@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: task-tracking-indices
+      author: emjburns
+      changes:
+        - createIndex:
+            tableName: task_tracking
+            columns:
+              - column:
+                  name: resource_id
+            indexName: task_tracking_resource_id_idx

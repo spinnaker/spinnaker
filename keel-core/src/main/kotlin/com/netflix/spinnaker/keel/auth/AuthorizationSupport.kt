@@ -108,18 +108,7 @@ class AuthorizationSupport(
         DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).application
         else -> throw InvalidRequestException("Invalid target type ${target.name} for application permission check")
       }
-      AuthenticatedRequest.allowAnonymous {
-        permissionEvaluator.hasPermission(auth, application, "APPLICATION", action.name)
-      }.also { allowed ->
-        log.debug(
-          "[ACCESS {}] User {}: {} access to application {}.",
-          allowed.toAuthorization(), auth.principal, action.name, application
-        )
-
-        if (!allowed) {
-          throw AccessDeniedException("User ${auth.principal} does not have access to application $application")
-        }
-      }
+      checkPermission(auth, application, "APPLICATION", action.name)
     }
   }
 
@@ -138,18 +127,7 @@ class AuthorizationSupport(
         APPLICATION -> repository.getDeliveryConfigForApplication(identifier).serviceAccount
         DELIVERY_CONFIG -> repository.getDeliveryConfig(identifier).serviceAccount
       }
-      AuthenticatedRequest.allowAnonymous {
-        permissionEvaluator.hasPermission(auth, serviceAccount, "SERVICE_ACCOUNT", "ignored")
-      }.also { allowed ->
-        log.debug(
-          "[ACCESS {}] User {}: access to service account {}.",
-          allowed.toAuthorization(), auth.principal, serviceAccount
-        )
-
-        if (!allowed) {
-          throw AccessDeniedException("User ${auth.principal} does not have access to service account $serviceAccount")
-        }
-      }
+      checkPermission(auth, serviceAccount, "SERVICE_ACCOUNT", "ACCESS")
     }
   }
 
@@ -176,18 +154,7 @@ class AuthorizationSupport(
       locatableResources.forEach {
         val locations = (it.spec as Locatable<*>).locations
         val account = (locations as AccountAwareLocations<*>).account
-        AuthenticatedRequest.allowAnonymous {
-          permissionEvaluator.hasPermission(auth, account, "ACCOUNT", action.name)
-        }.also { allowed ->
-          log.debug(
-            "[ACCESS {}] User {}: {} access to cloud account {}.",
-            allowed.toAuthorization(), auth.principal, action.name, account
-          )
-
-          if (!allowed) {
-            throw AccessDeniedException("User ${auth.principal} does not have access to cloud account $account")
-          }
-        }
+        checkPermission(auth, account, "ACCOUNT", action.name)
       }
     }
   }
@@ -202,6 +169,23 @@ class AuthorizationSupport(
     }
   }
 
+  /**
+   * Ensures the user (as determined by the passed in [Authentication]) has the specified permission to the
+   * specified resource.
+   */
+  private fun checkPermission(authentication: Authentication, resourceName: String, resourceType: String, permission: String) {
+    val user = AuthenticatedRequest.getSpinnakerUser().orElse("unknown")
+    val allowed = AuthenticatedRequest.allowAnonymous {
+      permissionEvaluator.hasPermission(authentication, resourceName, resourceType, permission)
+    }
+
+    log.debug("[ACCESS ${allowed.toAuthorization()}] User $user: $permission permission to $resourceType $resourceName.")
+    if (!allowed) {
+      throw AccessDeniedException(
+        "User $user does not have ${permission.humanFriendly()} permission to ${resourceType.humanFriendly()} $resourceName")
+    }
+  }
+
   private fun passes(authorizationCheck: () -> Unit) =
     try {
       authorizationCheck()
@@ -211,4 +195,6 @@ class AuthorizationSupport(
     }
 
   private fun Boolean.toAuthorization() = if (this) "ALLOWED" else "DENIED"
+
+  private fun String.humanFriendly() = this.toLowerCase().replace('_', ' ')
 }

@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.ArtifactCheckConfig
+import com.netflix.spinnaker.config.EnvironmentCheckConfig
 import com.netflix.spinnaker.config.EnvironmentDeletionConfig
 import com.netflix.spinnaker.config.EnvironmentVerificationConfig
 import com.netflix.spinnaker.config.PostDeployActionsConfig
@@ -33,7 +35,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.env.Environment as SpringEnvironment
 import java.time.Duration
 
-internal object CheckSchedulerTests : JUnit5Minutests {
+internal class CheckSchedulerTests : JUnit5Minutests {
 
   private val repository: KeelRepository = mockk()
   private val postDeployActionRunner: PostDeployActionRunner = mockk()
@@ -44,6 +46,14 @@ internal object CheckSchedulerTests : JUnit5Minutests {
   private val registry = NoopRegistry()
   private val checkMinAge = Duration.ofMinutes(5)
   private val resourceCheckConfig = ResourceCheckConfig().also {
+    it.minAgeDuration = checkMinAge
+    it.batchSize = 2
+  }
+  private val artifactCheckConfig = ArtifactCheckConfig().also {
+    it.minAgeDuration = checkMinAge
+    it.batchSize = 2
+  }
+  private val environmentCheckConfig = EnvironmentCheckConfig().also {
     it.minAgeDuration = checkMinAge
     it.batchSize = 2
   }
@@ -61,6 +71,10 @@ internal object CheckSchedulerTests : JUnit5Minutests {
     every {
       getProperty("keel.check.min-age-duration", Duration::class.java, any())
     } returns checkMinAge
+
+    every { getProperty("keel.resource-check.batch-size", Int::class.java, any()) } returns resourceCheckConfig.batchSize
+    every { getProperty("keel.environment-check.batch-size", Int::class.java, any()) } returns environmentCheckConfig.batchSize
+    every { getProperty("keel.artifact-check.batch-size", Int::class.java, any()) } returns artifactCheckConfig.batchSize
   }
 
 
@@ -127,6 +141,8 @@ internal object CheckSchedulerTests : JUnit5Minutests {
         postDeployActionRunner = postDeployActionRunner,
         artifactHandlers = listOf(artifactHandler),
         resourceCheckConfig = resourceCheckConfig,
+        environmentCheckConfig = environmentCheckConfig,
+        artifactCheckConfig = artifactCheckConfig,
         verificationConfig = verificationConfig,
         postDeployConfig = postDeployConfig,
         environmentDeletionConfig = EnvironmentDeletionConfig(),

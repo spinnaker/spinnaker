@@ -30,8 +30,10 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLASSIC_LOAD_BALANCER_V1
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
+import com.netflix.spinnaker.keel.api.ec2.EC2_SECURITY_GROUP_V1
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.generateId
 import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
@@ -40,6 +42,7 @@ import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.api.titus.TITUS_CLUSTER_V1
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
+import com.netflix.spinnaker.keel.api.toSimpleLocations
 import com.netflix.spinnaker.keel.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
@@ -464,4 +467,18 @@ private val clbSpec = ClassicLoadBalancerSpec(
 fun classicLoadBalancer() = resource(
   kind = EC2_CLASSIC_LOAD_BALANCER_V1.kind,
   spec = clbSpec
+)
+
+private val securityGroupSpec = SecurityGroupSpec(
+  moniker = Moniker(
+    app = "fnord",
+    stack = "test"
+  ),
+  locations = locations.toSimpleLocations(),
+  description = "fnord-test"
+)
+
+fun securityGroup() = resource(
+  kind = EC2_SECURITY_GROUP_V1.kind,
+  spec = securityGroupSpec
 )

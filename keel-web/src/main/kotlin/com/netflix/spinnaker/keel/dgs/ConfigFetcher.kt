@@ -18,18 +18,33 @@ class ConfigFetcher(
   private val deliveryConfigImporter: DeliveryConfigImporter
 ) {
 
-  @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.Config)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.Config),
+    DgsData(parentType = DgsConstants.MD_APPLICATION.TYPE_NAME, field = DgsConstants.MD_APPLICATION.Config),
+  )
   fun config(dfe: DgsDataFetchingEnvironment): MdConfig {
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     return MdConfig(
       id = "${config.application}-${config.name}",
       updatedAt = config.updatedAt,
       rawConfig = config.rawConfig,
-      processedConfig = yamlMapper.writeValueAsString(config.copy(rawConfig = null))
+      previewEnvironmentsConfigured = config.previewEnvironments.isNotEmpty()
     )
   }
 
-  @DgsData(parentType = DgsConstants.MDCONFIG.TYPE_NAME, field = DgsConstants.MDCONFIG.RawConfig)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDCONFIG.TYPE_NAME, field = DgsConstants.MDCONFIG.ProcessedConfig),
+    DgsData(parentType = DgsConstants.MD_CONFIG.TYPE_NAME, field = DgsConstants.MD_CONFIG.ProcessedConfig),
+  )
+  fun processedConfig(dfe: DgsDataFetchingEnvironment): String? {
+    val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
+    return yamlMapper.writeValueAsString(config.copy(rawConfig = null))
+  }
+
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDCONFIG.TYPE_NAME, field = DgsConstants.MDCONFIG.RawConfig),
+    DgsData(parentType = DgsConstants.MD_CONFIG.TYPE_NAME, field = DgsConstants.MD_CONFIG.RawConfig),
+  )
   fun rawConfig(dfe: DgsDataFetchingEnvironment): String? {
     val rawConfig = dfe.getSource<MdConfig>().rawConfig
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)

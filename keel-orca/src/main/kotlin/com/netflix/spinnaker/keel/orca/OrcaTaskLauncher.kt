@@ -61,7 +61,8 @@ class OrcaTaskLauncher(
     resource: Resource<*>,
     description: String,
     correlationId: String,
-    stages: List<Job>
+    stages: List<Job>,
+    artifactVersion: String?
   ) =
     submitJob(
       user = resource.serviceAccount,
@@ -72,16 +73,18 @@ class OrcaTaskLauncher(
       description = description,
       correlationId = correlationId,
       stages = stages,
-      type = SubjectType.RESOURCE
+      type = SubjectType.RESOURCE,
+      artifactVersion = artifactVersion
     )
 
   override fun submitJobAsync(
     resource: Resource<*>,
     description: String,
     correlationId: String,
-    stages: List<Job>
+    stages: List<Job>,
+    artifactVersion: String?
   ): CompletableFuture<Task> = GlobalScope.future {
-    submitJob(resource, description, correlationId, stages)
+    submitJob(resource, description, correlationId, stages, artifactVersion)
   }
 
   override suspend fun submitJob(
@@ -95,7 +98,8 @@ class OrcaTaskLauncher(
     stages: List<Job>,
     type: SubjectType,
     artifacts: List<Map<String, Any?>>,
-    parameters: Map<String, Any>
+    parameters: Map<String, Any>,
+    artifactVersion: String?
   ) =
     orcaService
       .orchestrate(
@@ -125,7 +129,8 @@ class OrcaTaskLauncher(
               subjectType = type,
               application = application,
               environmentName = environmentName,
-              resourceId = resourceId
+              resourceId = resourceId,
+              artifactVersion = artifactVersion
             )
           )
         )
@@ -149,6 +154,9 @@ class OrcaTaskLauncher(
 
   override suspend fun getTaskExecution(taskId: String): TaskExecution =
     orcaService.getOrchestrationExecution(taskId)
+
+  override suspend fun cancelTasks(taskIds: List<String>, user: String) =
+    orcaService.cancelOrchestrations(taskIds, user)
 
   private val Resource<*>.notifications: Set<NotificationConfig>
     get() = repository

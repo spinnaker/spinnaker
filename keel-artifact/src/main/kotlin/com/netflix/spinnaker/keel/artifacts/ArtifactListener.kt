@@ -90,7 +90,7 @@ class ArtifactListener(
           launch {
             val lastStoredVersions = repository.artifactVersions(artifact, artifactRefreshConfig.limit)
             val currentVersions = lastStoredVersions.map { it.version }
-              log.debug("Last recorded versions of $artifact: $currentVersions")
+            log.debug("Last recorded versions of $artifact: $currentVersions")
 
             val artifactSupplier = artifactSuppliers.supporting(artifact.type)
             val latestAvailableVersions = artifactSupplier.getLatestArtifacts(artifact.deliveryConfig, artifact, artifactRefreshConfig.limit)

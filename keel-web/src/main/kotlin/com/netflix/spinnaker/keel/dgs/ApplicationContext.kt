@@ -23,7 +23,9 @@ class ApplicationContext() {
   var allVersions: Map<ArtifactAndEnvironment, List<PublishedArtifactInEnvironment>> = emptyMap()
 
   fun getArtifactVersions(deliveryArtifact: DeliveryArtifact, environmentName: String): List<PublishedArtifactInEnvironment>? {
-    return allVersions[ArtifactAndEnvironment(artifact = deliveryArtifact, environmentName = environmentName)]
+    return if (allVersions.isNotEmpty()) {
+      allVersions[ArtifactAndEnvironment(artifact = deliveryArtifact, environmentName = environmentName)]
+    } else null
   }
 
   fun getConfig(): DeliveryConfig {

@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.core.api.UID
 import com.netflix.spinnaker.keel.core.api.parseUID
 import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.core.api.timestampAsInstant
+import com.netflix.spinnaker.keel.events.ResourceState
 import com.netflix.spinnaker.keel.pause.PauseScope
 import com.netflix.spinnaker.keel.pause.PauseScope.APPLICATION
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -45,6 +46,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PAUSED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.PREVIEW_ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_VERSION
 import com.netflix.spinnaker.keel.resources.ResourceFactory
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -532,6 +534,26 @@ class SqlDeliveryConfigRepository(
         } ?: emptySet()
     }
 
+  override fun resourceStatusesInEnvironment(
+    deliveryConfigName: String,
+    environmentName: String
+  ): Map<String, ResourceState> =
+    jooq
+      .select(RESOURCE.ID, RESOURCE_LAST_CHECKED.STATUS)
+      .from(RESOURCE)
+      .join(RESOURCE_LAST_CHECKED)
+      .on(RESOURCE_LAST_CHECKED.RESOURCE_UID.eq(RESOURCE.UID))
+      .join(ENVIRONMENT_RESOURCE)
+      .on(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
+      .join(ACTIVE_ENVIRONMENT)
+      .on(ACTIVE_ENVIRONMENT.UID.eq(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID))
+      .and(ACTIVE_ENVIRONMENT.VERSION.eq(ENVIRONMENT_RESOURCE.ENVIRONMENT_VERSION))
+      .and(ACTIVE_ENVIRONMENT.NAME.eq(environmentName))
+      .join(DELIVERY_CONFIG)
+      .on(DELIVERY_CONFIG.UID.eq(ACTIVE_ENVIRONMENT.DELIVERY_CONFIG_UID))
+      .and(DELIVERY_CONFIG.NAME.eq(deliveryConfigName))
+      .fetchMap(RESOURCE.ID, RESOURCE_LAST_CHECKED.STATUS)
+
   override fun deliveryConfigFor(resourceId: String): DeliveryConfig =
     // TODO: this implementation could be more efficient by sharing code with get(name)
     sqlRetry.withRetry(READ) {
@@ -780,40 +802,20 @@ class SqlDeliveryConfigRepository(
   override fun deleteConstraintState(
     deliveryConfigName: String,
     environmentName: String,
+    reference: String,
+    version: String,
     type: String
-  ) {
+  ): Int {
     val envUidSelect = envUid(deliveryConfigName, environmentName)
-    sqlRetry.withRetry(WRITE) {
-      jooq.select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.ENVIRONMENT_UID)
-        .from(CURRENT_CONSTRAINT)
-        .where(
-          CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUidSelect),
-          CURRENT_CONSTRAINT.TYPE.eq(type)
-        )
-        .fetch { (application, envUid) ->
-          jooq.deleteFrom(CURRENT_CONSTRAINT)
-            .where(
-              CURRENT_CONSTRAINT.APPLICATION.eq(application),
-              CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid),
-              CURRENT_CONSTRAINT.TYPE.eq(type)
-            )
-            .execute()
-        }
-
-      val ids: List<String> = jooq.select(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
-        .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+    return sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
         .where(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUidSelect),
-          ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(type)
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(type),
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(version),
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE.eq(reference),
         )
-        .fetch(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
-        .sorted()
-
-      ids.chunked(DELETE_CHUNK_SIZE).forEach {
-        jooq.deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
-          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID.`in`(*it.toTypedArray()))
-          .execute()
-      }
+        .execute()
     }
   }
 
@@ -1156,6 +1158,7 @@ class SqlDeliveryConfigRepository(
   }
 
   override fun triggerRecheck(application: String) {
+    log.info("Triggering delivery config recheck for application $application")
     val uid = sqlRetry.withRetry(READ) {
       jooq.select(DELIVERY_CONFIG.UID)
         .from(DELIVERY_CONFIG)

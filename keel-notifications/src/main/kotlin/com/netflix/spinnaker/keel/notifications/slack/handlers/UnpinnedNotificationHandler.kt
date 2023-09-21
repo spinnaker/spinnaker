@@ -6,7 +6,6 @@ import com.netflix.spinnaker.keel.notifications.slack.SlackService
 import com.netflix.spinnaker.keel.notifications.slack.SlackUnpinnedNotification
 import com.slack.api.model.block.LayoutBlock
 import com.slack.api.model.kotlin_extension.block.withBlocks
-import org.apache.logging.log4j.util.Strings
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -37,17 +36,24 @@ class UnpinnedNotificationHandler(
       val header = ":wastebasket: :pin: *${gitDataGenerator.linkedApp(application)} pin of build $previouslyPinned removed from ${gitDataGenerator.toCode(targetEnvironment)}*"
 
       val unpinner = slackService.getUsernameByEmail(user)
+      val isPinnedVersionAlreadyDeployed = latestApprovedArtifactVersion?.version == originalPin.version
       var text = "$unpinner unpinned ${gitDataGenerator.toCode(targetEnvironment)}"
+
       if (latestApprovedArtifactVersion != null) {
         val link = gitDataGenerator.generateArtifactUrl(application, originalPin.artifact.reference, latestApprovedArtifactVersion.version)
-        text += ", <$link|#${latestApprovedArtifactVersion.buildNumber ?: latestApprovedArtifactVersion.version}> will start deploying shortly"
+        //if latest version == pinned version, show a different message
+        if (isPinnedVersionAlreadyDeployed) {
+          text += " The latest version is already deployed, and new versions can be deployed now."
+        } else {
+          text += ", <$link|#${latestApprovedArtifactVersion.buildNumber ?: latestApprovedArtifactVersion.version}> will start deploying shortly"
+        }
       }
 
       section {
         markdownText(header + "\n\n" + text)
       }
 
-      if (latestApprovedArtifactVersion != null) {
+      if (latestApprovedArtifactVersion != null && !isPinnedVersionAlreadyDeployed) {
         gitDataGenerator.buildCommitSectionWithButton(this, latestApprovedArtifactVersion.gitMetadata)
       }
 

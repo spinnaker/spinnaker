@@ -11,6 +11,8 @@ import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
 import com.netflix.spinnaker.keel.api.schema.Optional
 import java.time.Duration
+import java.util.Collections.emptySortedSet
+import java.util.SortedSet
 
 data class ApplicationLoadBalancerV1_1Spec(
   override val moniker: Moniker,
@@ -38,7 +40,7 @@ data class ApplicationLoadBalancerV1_1Spec(
     val protocol: String,
     val certificateArn: String?,
     val rules: Set<Rule> = emptySet(),
-    val defaultActions: Set<Action> = emptySet()
+    val defaultActions: SortedSet<Action> = emptySortedSet()
   )
 
   data class ApplicationLoadBalancerOverrideV1_1(

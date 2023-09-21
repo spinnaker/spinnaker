@@ -1,0 +1,1803 @@
+{
+  "id": "01FH8ZD7107CZN3V5YKE15RRVA",
+  "name": "Deploy master-h97.cd22e76 to cluster emburnstest-eggo in titustestvpc/us-east-1,us-west-2 using a managed rollout",
+  "application": "emburnstest",
+  "status": "RUNNING",
+  "variables": [
+    {
+      "key": "input",
+      "value": {
+        "selectionStrategy": "ALPHABETICAL",
+        "clusterDefinitions": [
+          {
+            "registry": "testregistry",
+            "stack": "eggo",
+            "scaling": {
+
+            },
+            "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+            "targetHealthyDeployPercentage": 100,
+            "loadBalancers": [
+
+            ],
+            "resources": {
+              "disk": 10000,
+              "memory": 5000,
+              "networkMbps": 128,
+              "cpu": 1,
+              "gpu": 0
+            },
+            "overrides": {
+
+            },
+            "env": {
+
+            },
+            "constraints": {
+              "hard": {
+
+              },
+              "soft": {
+                "ZoneBalance": "true"
+              }
+            },
+            "network": "default",
+            "capacity": {
+              "min": 1,
+              "desired": 1,
+              "max": 1
+            },
+            "tags": {
+
+            },
+            "application": "emburnstest",
+            "targetGroups": [
+
+            ],
+            "cloudProvider": "titus",
+            "containerAttributes": {
+
+            },
+            "securityGroups": [
+              "nf-datacenter",
+              "nf-infrastructure",
+              "emburnstest"
+            ],
+            "migrationPolicy": {
+              "type": "systemDefault"
+            },
+            "entryPoint": "",
+            "tag": "master-h97.cd22e76",
+            "inService": true,
+            "capacityGroup": "emburnstest"
+          }
+        ],
+        "targets": [
+          {
+            "cloudProvider": "titus",
+            "location": {
+              "subLocations": [
+
+              ],
+              "region": "us-east-1",
+              "account": "titustestvpc"
+            }
+          },
+          {
+            "cloudProvider": "titus",
+            "location": {
+              "subLocations": [
+
+              ],
+              "region": "us-west-2",
+              "account": "titustestvpc"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "reason",
+      "value": "Diff detected at 2021-10-05T19:38:08.75631Z[UTC]"
+    },
+    {
+      "key": "selectionStrategy",
+      "value": "ALPHABETICAL"
+    },
+    {
+      "key": "rolloutWorkflowId",
+      "value": "rollout:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD710VC49HBF8G9VF7V28"
+    },
+    {
+      "key": "targets",
+      "value": [
+        {
+          "cloudProvider": "titus",
+          "location": {
+            "region": "us-east-1",
+            "account": "titustestvpc"
+          }
+        }
+      ]
+    },
+    {
+      "key": "rolloutStep",
+      "value": {
+        "id": "1deda3cf-3926-323c-97bd-2d86ab2676e6",
+        "targets": [
+          {
+            "cloudProvider": "titus",
+            "location": {
+              "region": "us-east-1",
+              "account": "titustestvpc"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": "clusters",
+      "value": [
+        {
+          "stack": "eggo",
+          "credentials": "titustestvpc",
+          "targetHealthyDeployPercentage": 100,
+          "constraints": {
+            "hard": {
+
+            },
+            "soft": {
+              "ZoneBalance": "true"
+            }
+          },
+          "network": "default",
+          "capacity": {
+            "min": 1,
+            "desired": 1,
+            "max": 1
+          },
+          "cloudProvider": "titus",
+          "tag": "master-h97.cd22e76",
+          "inService": true,
+          "registry": "testregistry",
+          "scaling": {
+
+          },
+          "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+          "loadBalancers": [
+
+          ],
+          "resources": {
+            "disk": 10000,
+            "memory": 5000,
+            "networkMbps": 128,
+            "cpu": 1,
+            "gpu": 0
+          },
+          "overrides": {
+
+          },
+          "env": {
+            "EC2_REGION": "us-east-1",
+            "NETFLIX_HOME_REGION": "us-east-1",
+            "NETFLIX_REGION": "us-east-1",
+            "SPINNAKER_ACCOUNT": "titustestvpc"
+          },
+          "tags": {
+
+          },
+          "application": "emburnstest",
+          "targetGroups": [
+
+          ],
+          "containerAttributes": {
+
+          },
+          "securityGroups": [
+            "nf-datacenter",
+            "nf-infrastructure",
+            "emburnstest"
+          ],
+          "migrationPolicy": {
+            "type": "systemDefault"
+          },
+          "entryPoint": "",
+          "region": "us-east-1",
+          "account": "titustestvpc",
+          "capacityGroup": "emburnstest"
+        }
+      ]
+    },
+    {
+      "key": "outputs",
+      "value": {
+
+      }
+    },
+    {
+      "key": "notification.type",
+      "value": "upsertentitytags"
+    },
+    {
+      "key": "deploy.account.name",
+      "value": "titustestvpc"
+    },
+    {
+      "key": "zeroDesiredCapacityCount",
+      "value": 0
+    },
+    {
+      "key": "stack",
+      "value": "eggo"
+    },
+    {
+      "key": "jarDiffs",
+      "value": {
+        "totalLibraries": 360,
+        "duplicates": [
+          {
+            "displayDiff": "jetty-util: 6.1.26, 9.2.29.v20191105"
+          },
+          {
+            "displayDiff": "annotations: 3.0.1, 4.1.1.4"
+          },
+          {
+            "displayDiff": "ksclient-core-kafka: 2.1.10-javadoc, 2.1.10-shadow, 2.1.10-sources"
+          }
+        ],
+        "upgraded": [
+
+        ],
+        "downgraded": [
+
+        ],
+        "removed": [
+
+        ],
+        "added": [
+
+        ],
+        "unchanged": [
+
+        ],
+        "hasDiff": false,
+        "unknown": [
+
+        ]
+      }
+    },
+    {
+      "key": "lastCapacityCheck",
+      "value": {
+        "outOfService": 0,
+        "up": 0,
+        "failed": 0,
+        "starting": 0,
+        "down": 0,
+        "succeeded": 0,
+        "unknown": 1
+      }
+    },
+    {
+      "key": "credentials",
+      "value": "titustestvpc"
+    },
+    {
+      "key": "targetHealthyDeployPercentage",
+      "value": 100
+    },
+    {
+      "key": "source",
+      "value": {
+        "serverGroupName": "emburnstest-eggo-v006",
+        "asgName": "emburnstest-eggo-v006",
+        "region": "us-east-1",
+        "account": "titustestvpc"
+      }
+    },
+    {
+      "key": "type",
+      "value": "createServerGroup"
+    },
+    {
+      "key": "constraints",
+      "value": {
+        "hard": {
+
+        },
+        "soft": {
+          "ZoneBalance": "true"
+        }
+      }
+    },
+    {
+      "key": "currentInstanceCount",
+      "value": 1
+    },
+    {
+      "key": "network",
+      "value": "default"
+    },
+    {
+      "key": "capacity",
+      "value": {
+        "min": 1,
+        "desired": 1,
+        "max": 1
+      }
+    },
+    {
+      "key": "targetDesiredSize",
+      "value": 1
+    },
+    {
+      "key": "cloudProvider",
+      "value": "titus"
+    },
+    {
+      "key": "kato.result.expected",
+      "value": true
+    },
+    {
+      "key": "deploy.server.groups",
+      "value": {
+        "us-east-1": [
+          "emburnstest-eggo-v007"
+        ]
+      }
+    },
+    {
+      "key": "tag",
+      "value": "master-h97.cd22e76"
+    },
+    {
+      "key": "kato.last.task.id",
+      "value": {
+        "id": "01FH8ZDMNGW6R952HHSTBYQ32W"
+      }
+    },
+    {
+      "key": "inService",
+      "value": true
+    },
+    {
+      "key": "registry",
+      "value": "testregistry"
+    },
+    {
+      "key": "scaling",
+      "value": {
+
+      }
+    },
+    {
+      "key": "imageId",
+      "value": "emburns/spin-titus-demo:master-h97.cd22e76"
+    },
+    {
+      "key": "workflowExecution",
+      "value": {
+        "namespace": "spinnaker",
+        "workflowType": "WorkflowDispatcher",
+        "runId": "f40a8c6e-5872-439e-b01e-f1095307c656",
+        "permalink": "https://temporal/namespaces/spinnaker/workflows/stage:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD8KZGXXM45M7N160NR1R/f40a8c6e-5872-439e-b01e-f1095307c656/summary",
+        "workflowId": "stage:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD8KZGXXM45M7N160NR1R",
+        "uiTarget": "https://temporal"
+      }
+    },
+    {
+      "key": "loadBalancers",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "resources",
+      "value": {
+        "disk": 10000,
+        "memory": 5000,
+        "networkMbps": 128,
+        "cpu": 1,
+        "gpu": 0
+      }
+    },
+    {
+      "key": "overrides",
+      "value": {
+
+      }
+    },
+    {
+      "key": "workflowResult",
+      "value": {
+        "childWorkflowExecutionInfos": {
+          "ecf66d3a950c66a202ec1f737e8d2793a11f301bcc2ab1d6d1470a38b53af981": {
+            "namespace": "spinnaker",
+            "workflowType": "StageContextCloudOperationRunner",
+            "runId": "d8f03b5f-94c6-4d46-8ed0-50a644a942b2",
+            "permalink": "https://temporal/namespaces/spinnaker/workflows/ecf66d3a950c66a202ec1f737e8d2793a11f301bcc2ab1d6d1470a38b53af981/d8f03b5f-94c6-4d46-8ed0-50a644a942b2/summary",
+            "workflowId": "ecf66d3a950c66a202ec1f737e8d2793a11f301bcc2ab1d6d1470a38b53af981",
+            "uiTarget": "https://temporal"
+          }
+        },
+        "childWorkflowExecutionResults": {
+          "ecf66d3a950c66a202ec1f737e8d2793a11f301bcc2ab1d6d1470a38b53af981": {
+            "output": {
+              "jobUri": "019285cd-a78e-4052-954a-317c8c74ecc0",
+              "serverGroupNames": [
+                "us-east-1:emburnstest-eggo-v007"
+              ],
+              "outputType": "titusServerGroupDeployOperation",
+              "ancestorServerGroupNameByRegion": {
+                "us-east-1": "emburnstest-eggo-v006"
+              },
+              "serverGroupNameByRegion": {
+                "us-east-1": "emburnstest-eggo-v007"
+              }
+            },
+            "childWorkflowExecutionInfos": {
+
+            },
+            "childWorkflowExecutionResults": {
+
+            },
+            "logs": [
+
+            ],
+            "status": "WORKFLOW_EXECUTION_STATUS_UNSPECIFIED",
+            "isCompleted": true
+          }
+        },
+        "logs": [
+          "Retrieved application data from front50 for application: emburnstest",
+          "Referring to source server group for details: emburnstest-eggo-v006",
+          "Resolved disruption budget.",
+          "Resolved security groups: sg-f0f19494,sg-f2f19496,sg-bbff21c9",
+          "Prepared job request for: emburnstest-eggo-v007 with imageId emburns/spin-titus-demo:master-h97.cd22e76",
+          "Submitting job with name: emburnstest-eggo-v007, attempt: 1",
+          "Successfully created job with name: emburnstest-eggo-v007, jobUri: 019285cd-a78e-4052-954a-317c8c74ecc0",
+          "Entity tags with titus:servergroup:emburnstest-eggo-v007:titustestvpc:us-east-1 not found in front50",
+          "Deleting tags with titus:servergroup:emburnstest-eggo-v007:titustestvpc:us-east-1 from ElasticSearch"
+        ],
+        "status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
+        "isCompleted": true
+      }
+    },
+    {
+      "key": "env",
+      "value": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titustestvpc"
+      }
+    },
+    {
+      "key": "tags",
+      "value": {
+
+      }
+    },
+    {
+      "key": "capacitySnapshot",
+      "value": {
+        "minSize": 1,
+        "maxSize": 1,
+        "desiredCapacity": 1
+      }
+    },
+    {
+      "key": "application",
+      "value": "emburnstest"
+    },
+    {
+      "key": "targetGroups",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "containerAttributes",
+      "value": {
+
+      }
+    },
+    {
+      "key": "name",
+      "value": "Deploy in us-east-1"
+    },
+    {
+      "key": "commits",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "securityGroups",
+      "value": [
+        "nf-datacenter",
+        "nf-infrastructure",
+        "emburnstest",
+        "nf-infrastructure",
+        "nf-datacenter"
+      ]
+    },
+    {
+      "key": "migrationPolicy",
+      "value": {
+        "type": "systemDefault"
+      }
+    },
+    {
+      "key": "kato.tasks",
+      "value": [
+        {
+          "resultObjects": [
+            {
+              "jobUri": "019285cd-a78e-4052-954a-317c8c74ecc0",
+              "serverGroupNames": [
+                "us-east-1:emburnstest-eggo-v007"
+              ],
+              "outputType": "titusServerGroupDeployOperation",
+              "ancestorServerGroupNameByRegion": {
+                "us-east-1": "emburnstest-eggo-v006"
+              },
+              "serverGroupNameByRegion": {
+                "us-east-1": "emburnstest-eggo-v007"
+              }
+            }
+          ],
+          "history": [
+
+          ],
+          "id": "n/a",
+          "status": {
+
+          }
+        }
+      ]
+    },
+    {
+      "key": "entryPoint",
+      "value": ""
+    },
+    {
+      "key": "region",
+      "value": "us-east-1"
+    },
+    {
+      "key": "account",
+      "value": "titustestvpc"
+    },
+    {
+      "key": "capacityGroup",
+      "value": "emburnstest"
+    },
+    {
+      "key": "force.cache.refresh.errors",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "processed.server.groups",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "refreshed.server.groups",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "zones",
+      "value": [
+
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.CompleteManagedRolloutTask",
+      "name": "completeManagedRollout",
+      "status": "NOT_STARTED",
+      "stageStart": true,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.StartManagedRolloutTask",
+      "name": "startManagedRollout",
+      "startTime": 1633462689275,
+      "endTime": 1633462689491,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.CompleteManagedRolloutStepTask",
+      "name": "completeRolloutStep",
+      "startTime": 1633462818083,
+      "endTime": 1633462818291,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.AwaitReadyRolloutStepTask",
+      "name": "awaitReadyRolloutStep",
+      "startTime": 1633462689981,
+      "endTime": 1633462690183,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage.CompleteParallelDeployTask",
+      "name": "completeParallelDeploy",
+      "startTime": 1633462817635,
+      "endTime": 1633462817760,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask",
+      "name": "determineSourceServerGroup",
+      "startTime": 1633462691062,
+      "endTime": 1633462691248,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "2",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+      "name": "determineHealthProviders",
+      "startTime": 1633462691295,
+      "endTime": 1633462691436,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "3",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask",
+      "name": "snapshotSourceServerGroup",
+      "startTime": 1633462691489,
+      "endTime": 1633462691585,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "4",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask",
+      "name": "createServerGroup",
+      "startTime": 1633462691634,
+      "endTime": 1633462691840,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "5",
+      "implementingClass": "com.netflix.spinnaker.orca.temporal.stage.MonitorTemporalWorkflowTask",
+      "name": "monitorDeploy",
+      "startTime": 1633462691895,
+      "endTime": 1633462702409,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "6",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask",
+      "name": "tagServerGroup",
+      "startTime": 1633462702460,
+      "endTime": 1633462702872,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "7",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask",
+      "name": "waitForUpInstances",
+      "startTime": 1633462702962,
+      "endTime": 1633462814267,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "8",
+      "implementingClass": "com.netflix.spinnaker.orca.kato.tasks.JarDiffsTask",
+      "name": "jarDiffs",
+      "startTime": 1633462814315,
+      "endTime": 1633462815619,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "9",
+      "implementingClass": "com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask",
+      "name": "getCommits",
+      "startTime": 1633462815713,
+      "endTime": 1633462815925,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityTask",
+      "name": "restoreMinCapacity",
+      "startTime": 1633462816376,
+      "endTime": 1633462816545,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "2",
+      "implementingClass": "com.netflix.spinnaker.orca.temporal.stage.MonitorTemporalWorkflowTask",
+      "name": "waitForCapacityMatch",
+      "startTime": 1633462816674,
+      "endTime": 1633462816869,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "3",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+      "name": "forceCacheRefresh",
+      "startTime": 1633462816925,
+      "endTime": 1633462817147,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.CompleteManagedRolloutStepTask",
+      "name": "completeRolloutStep",
+      "status": "NOT_STARTED",
+      "stageStart": true,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.AwaitReadyRolloutStepTask",
+      "name": "awaitReadyRolloutStep",
+      "startTime": 1633462818683,
+      "status": "RUNNING",
+      "stageStart": true,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    }
+  ],
+  "buildTime": 1633462688801,
+  "startTime": 1633462688877,
+  "execution": {
+    "type": "ORCHESTRATION",
+    "id": "01FH8ZD7107CZN3V5YKE15RRVA",
+    "application": "emburnstest",
+    "buildTime": 1633462688801,
+    "canceled": false,
+    "limitConcurrent": false,
+    "keepWaitingPipelines": false,
+    "stages": [
+      {
+        "id": "01FH8ZD710VC49HBF8G9VF7V28",
+        "refId": "1",
+        "type": "managedRollout",
+        "name": "managedRollout",
+        "startTime": 1633462688938,
+        "status": "RUNNING",
+        "context": {
+          "input": {
+            "selectionStrategy": "ALPHABETICAL",
+            "clusterDefinitions": [
+              {
+                "registry": "testregistry",
+                "stack": "eggo",
+                "scaling": {
+
+                },
+                "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+                "targetHealthyDeployPercentage": 100,
+                "loadBalancers": [
+
+                ],
+                "resources": {
+                  "disk": 10000,
+                  "memory": 5000,
+                  "networkMbps": 128,
+                  "cpu": 1,
+                  "gpu": 0
+                },
+                "overrides": {
+
+                },
+                "env": {
+
+                },
+                "constraints": {
+                  "hard": {
+
+                  },
+                  "soft": {
+                    "ZoneBalance": "true"
+                  }
+                },
+                "network": "default",
+                "capacity": {
+                  "min": 1,
+                  "desired": 1,
+                  "max": 1
+                },
+                "tags": {
+
+                },
+                "application": "emburnstest",
+                "targetGroups": [
+
+                ],
+                "cloudProvider": "titus",
+                "containerAttributes": {
+
+                },
+                "securityGroups": [
+                  "nf-datacenter",
+                  "nf-infrastructure",
+                  "emburnstest"
+                ],
+                "migrationPolicy": {
+                  "type": "systemDefault"
+                },
+                "entryPoint": "",
+                "tag": "master-h97.cd22e76",
+                "inService": true,
+                "capacityGroup": "emburnstest"
+              }
+            ],
+            "targets": [
+              {
+                "cloudProvider": "titus",
+                "location": {
+                  "subLocations": [
+
+                  ],
+                  "region": "us-east-1",
+                  "account": "titustestvpc"
+                }
+              },
+              {
+                "cloudProvider": "titus",
+                "location": {
+                  "subLocations": [
+
+                  ],
+                  "region": "us-west-2",
+                  "account": "titustestvpc"
+                }
+              }
+            ]
+          },
+          "reason": "Diff detected at 2021-10-05T19:38:08.75631Z[UTC]"
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.CompleteManagedRolloutTask",
+            "name": "completeManagedRollout",
+            "status": "NOT_STARTED",
+            "stageStart": true,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "requisiteStageRefIds": [
+
+        ]
+      },
+      {
+        "id": "01FH8ZD77B1WAQCG5X2TE76HSR",
+        "refId": "1<1",
+        "type": "startManagedRollout",
+        "name": "Start Managed Rollout",
+        "startTime": 1633462689109,
+        "endTime": 1633462689596,
+        "status": "SUCCEEDED",
+        "context": {
+          "selectionStrategy": "ALPHABETICAL",
+          "rolloutWorkflowId": "rollout:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD710VC49HBF8G9VF7V28",
+          "targets": [
+            {
+              "cloudProvider": "titus",
+              "location": {
+                "region": "us-east-1",
+                "account": "titustestvpc"
+              }
+            },
+            {
+              "cloudProvider": "titus",
+              "location": {
+                "region": "us-west-2",
+                "account": "titustestvpc"
+              }
+            }
+          ]
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.StartManagedRolloutTask",
+            "name": "startManagedRollout",
+            "startTime": 1633462689275,
+            "endTime": 1633462689491,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01FH8ZD710VC49HBF8G9VF7V28",
+        "requisiteStageRefIds": [
+
+        ]
+      },
+      {
+        "id": "01FH8ZD77BPX0JZ6ZFN04T8CK7",
+        "refId": "1<2",
+        "type": "initManagedRolloutStep",
+        "name": "Run next Rollout Step",
+        "startTime": 1633462689684,
+        "endTime": 1633462818342,
+        "status": "SUCCEEDED",
+        "context": {
+          "rolloutWorkflowId": "rollout:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD710VC49HBF8G9VF7V28"
+        },
+        "outputs": {
+          "completedRolloutStep": {
+            "id": "1deda3cf-3926-323c-97bd-2d86ab2676e6",
+            "targets": [
+              {
+                "cloudProvider": "titus",
+                "location": {
+                  "account": "titustestvpc",
+                  "region": "us-east-1"
+                }
+              }
+            ]
+          }
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.CompleteManagedRolloutStepTask",
+            "name": "completeRolloutStep",
+            "startTime": 1633462818083,
+            "endTime": 1633462818291,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01FH8ZD710VC49HBF8G9VF7V28",
+        "requisiteStageRefIds": [
+          "1<1"
+        ]
+      },
+      {
+        "id": "01FH8ZD7YJS31TYH3CEDZR7XHB",
+        "refId": "1<2<1",
+        "type": "waitForNextRolloutStep",
+        "name": "Wait For Next Rollout Step",
+        "startTime": 1633462689844,
+        "endTime": 1633462690241,
+        "status": "SUCCEEDED",
+        "context": {
+          "rolloutWorkflowId": "rollout:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD710VC49HBF8G9VF7V28",
+          "rolloutStep": {
+            "id": "1deda3cf-3926-323c-97bd-2d86ab2676e6",
+            "targets": [
+              {
+                "cloudProvider": "titus",
+                "location": {
+                  "region": "us-east-1",
+                  "account": "titustestvpc"
+                }
+              }
+            ]
+          }
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.AwaitReadyRolloutStepTask",
+            "name": "awaitReadyRolloutStep",
+            "startTime": 1633462689981,
+            "endTime": 1633462690183,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01FH8ZD77BPX0JZ6ZFN04T8CK7",
+        "requisiteStageRefIds": [
+
+        ]
+      },
+      {
+        "id": "01FH8ZD7YJPTY9897P6JFR9ZCT",
+        "refId": "1<2<2",
+        "type": "doManagedRollout",
+        "name": "Deploy Rollout Step",
+        "startTime": 1633462690289,
+        "endTime": 1633462817908,
+        "status": "SUCCEEDED",
+        "context": {
+
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+
+        ],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01FH8ZD77BPX0JZ6ZFN04T8CK7",
+        "requisiteStageRefIds": [
+          "1<2<1"
+        ]
+      },
+      {
+        "id": "01FH8ZD8FTVRR9JGC1J4PFM54W",
+        "refId": "1<2<2<1",
+        "type": "deploy",
+        "name": "Deploy us-east-1",
+        "startTime": 1633462690371,
+        "endTime": 1633462817809,
+        "status": "SUCCEEDED",
+        "context": {
+          "targets": [
+            {
+              "cloudProvider": "titus",
+              "location": {
+                "region": "us-east-1",
+                "account": "titustestvpc"
+              }
+            }
+          ],
+          "clusters": [
+            {
+              "stack": "eggo",
+              "credentials": "titustestvpc",
+              "targetHealthyDeployPercentage": 100,
+              "constraints": {
+                "hard": {
+
+                },
+                "soft": {
+                  "ZoneBalance": "true"
+                }
+              },
+              "network": "default",
+              "capacity": {
+                "min": 1,
+                "desired": 1,
+                "max": 1
+              },
+              "cloudProvider": "titus",
+              "tag": "master-h97.cd22e76",
+              "inService": true,
+              "registry": "testregistry",
+              "scaling": {
+
+              },
+              "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+              "loadBalancers": [
+
+              ],
+              "resources": {
+                "disk": 10000,
+                "memory": 5000,
+                "networkMbps": 128,
+                "cpu": 1,
+                "gpu": 0
+              },
+              "overrides": {
+
+              },
+              "env": {
+                "EC2_REGION": "us-east-1",
+                "NETFLIX_HOME_REGION": "us-east-1",
+                "NETFLIX_REGION": "us-east-1",
+                "SPINNAKER_ACCOUNT": "titustestvpc"
+              },
+              "tags": {
+
+              },
+              "application": "emburnstest",
+              "targetGroups": [
+
+              ],
+              "containerAttributes": {
+
+              },
+              "securityGroups": [
+                "nf-datacenter",
+                "nf-infrastructure",
+                "emburnstest"
+              ],
+              "migrationPolicy": {
+                "type": "systemDefault"
+              },
+              "entryPoint": "",
+              "region": "us-east-1",
+              "account": "titustestvpc",
+              "capacityGroup": "emburnstest"
+            }
+          ]
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage.CompleteParallelDeployTask",
+            "name": "completeParallelDeploy",
+            "startTime": 1633462817635,
+            "endTime": 1633462817760,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01FH8ZD7YJPTY9897P6JFR9ZCT",
+        "requisiteStageRefIds": [
+
+        ]
+      },
+      {
+        "id": "01FH8ZD8KZGXXM45M7N160NR1R",
+        "refId": "1<2<2<1<1",
+        "type": "createServerGroup",
+        "name": "Deploy in us-east-1",
+        "startTime": 1633462690490,
+        "endTime": 1633462817441,
+        "status": "SUCCEEDED",
+        "context": {
+          "outputs": {
+
+          },
+          "notification.type": "upsertentitytags",
+          "deploy.account.name": "titustestvpc",
+          "zeroDesiredCapacityCount": 0,
+          "stack": "eggo",
+          "jarDiffs": {
+            "totalLibraries": 360,
+            "duplicates": [
+              {
+                "displayDiff": "jetty-util: 6.1.26, 9.2.29.v20191105"
+              },
+              {
+                "displayDiff": "annotations: 3.0.1, 4.1.1.4"
+              },
+              {
+                "displayDiff": "ksclient-core-kafka: 2.1.10-javadoc, 2.1.10-shadow, 2.1.10-sources"
+              }
+            ],
+            "upgraded": [
+
+            ],
+            "downgraded": [
+
+            ],
+            "removed": [
+
+            ],
+            "added": [
+
+            ],
+            "unchanged": [
+
+            ],
+            "hasDiff": false,
+            "unknown": [
+
+            ]
+          },
+          "lastCapacityCheck": {
+            "outOfService": 0,
+            "up": 0,
+            "failed": 0,
+            "starting": 0,
+            "down": 0,
+            "succeeded": 0,
+            "unknown": 1
+          },
+          "credentials": "titustestvpc",
+          "targetHealthyDeployPercentage": 100,
+          "source": {
+            "serverGroupName": "emburnstest-eggo-v006",
+            "asgName": "emburnstest-eggo-v006",
+            "region": "us-east-1",
+            "account": "titustestvpc"
+          },
+          "type": "createServerGroup",
+          "targets": [
+            {
+              "cloudProvider": "titus",
+              "location": {
+                "region": "us-east-1",
+                "account": "titustestvpc"
+              }
+            }
+          ],
+          "constraints": {
+            "hard": {
+
+            },
+            "soft": {
+              "ZoneBalance": "true"
+            }
+          },
+          "currentInstanceCount": 1,
+          "network": "default",
+          "capacity": {
+            "min": 1,
+            "desired": 1,
+            "max": 1
+          },
+          "targetDesiredSize": 1,
+          "cloudProvider": "titus",
+          "kato.result.expected": true,
+          "deploy.server.groups": {
+            "us-east-1": [
+              "emburnstest-eggo-v007"
+            ]
+          },
+          "tag": "master-h97.cd22e76",
+          "kato.last.task.id": {
+            "id": "01FH8ZDMNGW6R952HHSTBYQ32W"
+          },
+          "inService": true,
+          "registry": "testregistry",
+          "scaling": {
+
+          },
+          "imageId": "emburns/spin-titus-demo:master-h97.cd22e76",
+          "workflowExecution": {
+            "namespace": "spinnaker",
+            "workflowType": "WorkflowDispatcher",
+            "runId": "f40a8c6e-5872-439e-b01e-f1095307c656",
+            "permalink": "https://temporal/namespaces/spinnaker/workflows/stage:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD8KZGXXM45M7N160NR1R/f40a8c6e-5872-439e-b01e-f1095307c656/summary",
+            "workflowId": "stage:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD8KZGXXM45M7N160NR1R",
+            "uiTarget": "https://temporal"
+          },
+          "loadBalancers": [
+
+          ],
+          "resources": {
+            "disk": 10000,
+            "memory": 5000,
+            "networkMbps": 128,
+            "cpu": 1,
+            "gpu": 0
+          },
+          "overrides": {
+
+          },
+          "workflowResult": {
+            "childWorkflowExecutionInfos": {
+              "ecf66d3a950c66a202ec1f737e8d2793a11f301bcc2ab1d6d1470a38b53af981": {
+                "namespace": "spinnaker",
+                "workflowType": "StageContextCloudOperationRunner",
+                "runId": "d8f03b5f-94c6-4d46-8ed0-50a644a942b2",
+                "permalink": "https://temporal/namespaces/spinnaker/workflows/ecf66d3a950c66a202ec1f737e8d2793a11f301bcc2ab1d6d1470a38b53af981/d8f03b5f-94c6-4d46-8ed0-50a644a942b2/summary",
+                "workflowId": "ecf66d3a950c66a202ec1f737e8d2793a11f301bcc2ab1d6d1470a38b53af981",
+                "uiTarget": "https://temporal"
+              }
+            },
+            "childWorkflowExecutionResults": {
+              "ecf66d3a950c66a202ec1f737e8d2793a11f301bcc2ab1d6d1470a38b53af981": {
+                "output": {
+                  "jobUri": "019285cd-a78e-4052-954a-317c8c74ecc0",
+                  "serverGroupNames": [
+                    "us-east-1:emburnstest-eggo-v007"
+                  ],
+                  "outputType": "titusServerGroupDeployOperation",
+                  "ancestorServerGroupNameByRegion": {
+                    "us-east-1": "emburnstest-eggo-v006"
+                  },
+                  "serverGroupNameByRegion": {
+                    "us-east-1": "emburnstest-eggo-v007"
+                  }
+                },
+                "childWorkflowExecutionInfos": {
+
+                },
+                "childWorkflowExecutionResults": {
+
+                },
+                "logs": [
+
+                ],
+                "status": "WORKFLOW_EXECUTION_STATUS_UNSPECIFIED",
+                "isCompleted": true
+              }
+            },
+            "logs": [
+              "Retrieved application data from front50 for application: emburnstest",
+              "Referring to source server group for details: emburnstest-eggo-v006",
+              "Resolved disruption budget.",
+              "Resolved security groups: sg-f0f19494,sg-f2f19496,sg-bbff21c9",
+              "Prepared job request for: emburnstest-eggo-v007 with imageId emburns/spin-titus-demo:master-h97.cd22e76",
+              "Submitting job with name: emburnstest-eggo-v007, attempt: 1",
+              "Successfully created job with name: emburnstest-eggo-v007, jobUri: 019285cd-a78e-4052-954a-317c8c74ecc0",
+              "Entity tags with titus:servergroup:emburnstest-eggo-v007:titustestvpc:us-east-1 not found in front50",
+              "Deleting tags with titus:servergroup:emburnstest-eggo-v007:titustestvpc:us-east-1 from ElasticSearch"
+            ],
+            "status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
+            "isCompleted": true
+          },
+          "env": {
+            "EC2_REGION": "us-east-1",
+            "NETFLIX_HOME_REGION": "us-east-1",
+            "NETFLIX_REGION": "us-east-1",
+            "SPINNAKER_ACCOUNT": "titustestvpc"
+          },
+          "tags": {
+
+          },
+          "capacitySnapshot": {
+            "minSize": 1,
+            "maxSize": 1,
+            "desiredCapacity": 1
+          },
+          "application": "emburnstest",
+          "targetGroups": [
+
+          ],
+          "containerAttributes": {
+
+          },
+          "name": "Deploy in us-east-1",
+          "commits": [
+
+          ],
+          "securityGroups": [
+            "nf-datacenter",
+            "nf-infrastructure",
+            "emburnstest",
+            "nf-infrastructure",
+            "nf-datacenter"
+          ],
+          "migrationPolicy": {
+            "type": "systemDefault"
+          },
+          "kato.tasks": [
+            {
+              "resultObjects": [
+                {
+                  "jobUri": "019285cd-a78e-4052-954a-317c8c74ecc0",
+                  "serverGroupNames": [
+                    "us-east-1:emburnstest-eggo-v007"
+                  ],
+                  "outputType": "titusServerGroupDeployOperation",
+                  "ancestorServerGroupNameByRegion": {
+                    "us-east-1": "emburnstest-eggo-v006"
+                  },
+                  "serverGroupNameByRegion": {
+                    "us-east-1": "emburnstest-eggo-v007"
+                  }
+                }
+              ],
+              "history": [
+
+              ],
+              "id": "n/a",
+              "status": {
+
+              }
+            }
+          ],
+          "entryPoint": "",
+          "region": "us-east-1",
+          "account": "titustestvpc",
+          "capacityGroup": "emburnstest"
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask",
+            "name": "determineSourceServerGroup",
+            "startTime": 1633462691062,
+            "endTime": 1633462691248,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "2",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+            "name": "determineHealthProviders",
+            "startTime": 1633462691295,
+            "endTime": 1633462691436,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "3",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask",
+            "name": "snapshotSourceServerGroup",
+            "startTime": 1633462691489,
+            "endTime": 1633462691585,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "4",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask",
+            "name": "createServerGroup",
+            "startTime": 1633462691634,
+            "endTime": 1633462691840,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "5",
+            "implementingClass": "com.netflix.spinnaker.orca.temporal.stage.MonitorTemporalWorkflowTask",
+            "name": "monitorDeploy",
+            "startTime": 1633462691895,
+            "endTime": 1633462702409,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "6",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask",
+            "name": "tagServerGroup",
+            "startTime": 1633462702460,
+            "endTime": 1633462702872,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "7",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask",
+            "name": "waitForUpInstances",
+            "startTime": 1633462702962,
+            "endTime": 1633462814267,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "8",
+            "implementingClass": "com.netflix.spinnaker.orca.kato.tasks.JarDiffsTask",
+            "name": "jarDiffs",
+            "startTime": 1633462814315,
+            "endTime": 1633462815619,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "9",
+            "implementingClass": "com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask",
+            "name": "getCommits",
+            "startTime": 1633462815713,
+            "endTime": 1633462815925,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01FH8ZD8FTVRR9JGC1J4PFM54W",
+        "requisiteStageRefIds": [
+
+        ]
+      },
+      {
+        "id": "01FH8ZH37H9YMENN05MCTRCS2Q",
+        "refId": "1<2<2<1<1>1",
+        "type": "applySourceServerGroupCapacity",
+        "name": "restoreMinCapacityFromSnapshot",
+        "startTime": 1633462816093,
+        "endTime": 1633462817296,
+        "status": "SUCCEEDED",
+        "context": {
+          "force.cache.refresh.errors": [
+
+          ],
+          "credentials": "titustestvpc",
+          "processed.server.groups": [
+
+          ],
+          "cloudProvider": "titus",
+          "deploy.server.groups": {
+
+          },
+          "refreshed.server.groups": [
+
+          ],
+          "zones": [
+
+          ]
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityTask",
+            "name": "restoreMinCapacity",
+            "startTime": 1633462816376,
+            "endTime": 1633462816545,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "2",
+            "implementingClass": "com.netflix.spinnaker.orca.temporal.stage.MonitorTemporalWorkflowTask",
+            "name": "waitForCapacityMatch",
+            "startTime": 1633462816674,
+            "endTime": 1633462816869,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "3",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask",
+            "name": "forceCacheRefresh",
+            "startTime": 1633462816925,
+            "endTime": 1633462817147,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_AFTER",
+        "parentStageId": "01FH8ZD8KZGXXM45M7N160NR1R",
+        "requisiteStageRefIds": [
+
+        ]
+      },
+      {
+        "id": "01FH8ZD77BQC9QC909T50AB5EJ",
+        "refId": "1<3",
+        "type": "initManagedRolloutStep",
+        "name": "Run next Rollout Step",
+        "startTime": 1633462818391,
+        "status": "RUNNING",
+        "context": {
+          "rolloutWorkflowId": "rollout:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD710VC49HBF8G9VF7V28"
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.CompleteManagedRolloutStepTask",
+            "name": "completeRolloutStep",
+            "status": "NOT_STARTED",
+            "stageStart": true,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01FH8ZD710VC49HBF8G9VF7V28",
+        "requisiteStageRefIds": [
+          "1<2"
+        ]
+      },
+      {
+        "id": "01FH8ZH5MPNABYRKAAMW8E3DF5",
+        "refId": "1<3<1",
+        "type": "waitForNextRolloutStep",
+        "name": "Wait For Next Rollout Step",
+        "startTime": 1633462818551,
+        "status": "RUNNING",
+        "context": {
+          "rolloutWorkflowId": "rollout:01FH8ZD7107CZN3V5YKE15RRVA:01FH8ZD710VC49HBF8G9VF7V28"
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.managedrollout.tasks.AwaitReadyRolloutStepTask",
+            "name": "awaitReadyRolloutStep",
+            "startTime": 1633462818683,
+            "status": "RUNNING",
+            "stageStart": true,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01FH8ZD77BQC9QC909T50AB5EJ",
+        "requisiteStageRefIds": [
+
+        ]
+      },
+      {
+        "id": "01FH8ZH5MPDSPC6XXQ4JN14SYC",
+        "refId": "1<3<2",
+        "type": "doManagedRollout",
+        "name": "Deploy Rollout Step",
+        "status": "NOT_STARTED",
+        "context": {
+
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+
+        ],
+        "syntheticStageOwner": "STAGE_BEFORE",
+        "parentStageId": "01FH8ZD77BQC9QC909T50AB5EJ",
+        "requisiteStageRefIds": [
+          "1<3<1"
+        ]
+      }
+    ],
+    "startTime": 1633462688877,
+    "status": "RUNNING",
+    "authentication": {
+      "user": "emburns@netflix.com",
+      "allowedAccounts": [
+
+      ]
+    },
+    "origin": "keel",
+    "trigger": {
+      "type": "keel",
+      "correlationId": "titus:cluster:titustestvpc:emburnstest-eggo:managed-rollout",
+      "user": "keel",
+      "parameters": {
+
+      },
+      "artifacts": [
+
+      ],
+      "notifications": [
+
+      ],
+      "rebake": false,
+      "dryRun": false,
+      "strategy": false,
+      "resolvedExpectedArtifacts": [
+
+      ],
+      "expectedArtifacts": [
+
+      ]
+    },
+    "description": "Deploy master-h97.cd22e76 to cluster emburnstest-eggo in titustestvpc/us-east-1,us-west-2 using a managed rollout",
+    "notifications": [
+
+    ],
+    "initialConfig": {
+
+    },
+    "systemNotifications": [
+
+    ],
+    "partition": "us-west-2"
+  }
+}

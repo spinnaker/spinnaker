@@ -29,6 +29,19 @@ data class SecurityGroupSpec(
   val overrides: Map<String, SecurityGroupOverride> = emptyMap()
 ) : Monikered, Locatable<SimpleLocations> {
   override val id = "${locations.account}:$moniker"
+
+  override fun deepRename(suffix: String): SecurityGroupSpec {
+    return copy(
+      moniker = moniker.withSuffix(suffix),
+      inboundRules = inboundRules.map { rule ->
+        if (rule is ReferenceRule && rule.name == moniker.toName()) {
+          rule.copy(name = "${rule.name}-$suffix")
+        } else {
+          rule
+        }
+      }.toSet()
+    )
+  }
 }
 
 data class SecurityGroupOverride(

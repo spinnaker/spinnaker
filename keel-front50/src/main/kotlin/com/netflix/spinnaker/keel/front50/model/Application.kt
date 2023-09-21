@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 @JsonInclude(NON_NULL)
 data class Application(
   val name: String,
-  val email: String,
+  val email: String? = null,
   val dataSources: DataSources? = null,
   val repoProjectKey: String? = null,
   val repoSlug: String? = null,

@@ -8,7 +8,7 @@ import com.netflix.graphql.dgs.context.DgsContext
 import com.netflix.graphql.dgs.exceptions.DgsEntityNotFoundException
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.action.ActionType
-import com.netflix.spinnaker.keel.api.actuation.ExecutionSummaryService
+import com.netflix.spinnaker.keel.actuation.ExecutionSummaryService
 import com.netflix.spinnaker.keel.artifacts.ArtifactVersionLinks
 import com.netflix.spinnaker.keel.auth.AuthorizationSupport
 import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
@@ -24,7 +24,6 @@ import com.netflix.spinnaker.keel.graphql.types.MdComparisonLinks
 import com.netflix.spinnaker.keel.graphql.types.MdConstraint
 import com.netflix.spinnaker.keel.graphql.types.MdEnvironment
 import com.netflix.spinnaker.keel.graphql.types.MdEnvironmentState
-import com.netflix.spinnaker.keel.graphql.types.MdExecutionSummary
 import com.netflix.spinnaker.keel.graphql.types.MdGitMetadata
 import com.netflix.spinnaker.keel.graphql.types.MdLifecycleStep
 import com.netflix.spinnaker.keel.graphql.types.MdNotification
@@ -32,15 +31,12 @@ import com.netflix.spinnaker.keel.graphql.types.MdPackageDiff
 import com.netflix.spinnaker.keel.graphql.types.MdPausedInfo
 import com.netflix.spinnaker.keel.graphql.types.MdPinnedVersion
 import com.netflix.spinnaker.keel.graphql.types.MdPullRequest
-import com.netflix.spinnaker.keel.graphql.types.MdResource
-import com.netflix.spinnaker.keel.graphql.types.MdResourceActuationState
-import com.netflix.spinnaker.keel.graphql.types.MdResourceActuationStatus
-import com.netflix.spinnaker.keel.graphql.types.MdResourceTask
 import com.netflix.spinnaker.keel.graphql.types.MdVersionVeto
 import com.netflix.spinnaker.keel.pause.ActuationPauser
 import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
+import com.netflix.spinnaker.keel.persistence.TaskTrackingRepository
 import com.netflix.spinnaker.keel.scm.ScmUtils
 import com.netflix.spinnaker.keel.services.ResourceStatusService
 import graphql.execution.DataFetcherResult
@@ -59,16 +55,17 @@ import java.util.concurrent.CompletableFuture
 class ApplicationFetcher(
   private val authorizationSupport: AuthorizationSupport,
   private val keelRepository: KeelRepository,
-  private val resourceStatusService: ResourceStatusService,
   private val actuationPauser: ActuationPauser,
   private val artifactVersionLinks: ArtifactVersionLinks,
   private val applicationFetcherSupport: ApplicationFetcherSupport,
   private val notificationRepository: DismissibleNotificationRepository,
   private val scmUtils: ScmUtils,
-  private val executionSummaryService: ExecutionSummaryService
 ) {
 
-  @DgsData(parentType = DgsConstants.QUERY.TYPE_NAME, field = DgsConstants.QUERY.Application)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.QUERY.TYPE_NAME, field = DgsConstants.QUERY.Application),
+    DgsData(parentType = DgsConstants.QUERY.TYPE_NAME, field = DgsConstants.QUERY.Md_application)
+  )
   @PreAuthorize("""@authorizationSupport.hasApplicationPermission('READ', 'APPLICATION', #appName)""")
   fun application(dfe: DataFetchingEnvironment, @InputArgument("appName") appName: String): MdApplication {
     val config = try {
@@ -86,7 +83,10 @@ class ApplicationFetcher(
     )
   }
 
-  @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.Environments)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.Environments),
+    DgsData(parentType = DgsConstants.MD_APPLICATION.TYPE_NAME, field = DgsConstants.MD_APPLICATION.Environments)
+  )
   fun environments(dfe: DgsDataFetchingEnvironment): List<DataFetcherResult<MdEnvironment>> {
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     return config.environments.sortedWith { env1, env2 ->
@@ -123,7 +123,10 @@ class ApplicationFetcher(
     }
   }
 
-  @DgsData(parentType = DgsConstants.MDENVIRONMENT.TYPE_NAME, field = DgsConstants.MDENVIRONMENT.GitMetadata)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDENVIRONMENT.TYPE_NAME, field = DgsConstants.MDENVIRONMENT.GitMetadata),
+    DgsData(parentType = DgsConstants.MD_ENVIRONMENT.TYPE_NAME, field = DgsConstants.MD_ENVIRONMENT.GitMetadata)
+  )
   fun environmentGitMetadata(dfe: DgsDataFetchingEnvironment): MdGitMetadata? {
     val env: Environment = dfe.getLocalContext()
     return if (env.isPreview) {
@@ -145,40 +148,28 @@ class ApplicationFetcher(
     }
   }
 
-  @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.IsPaused)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.IsPaused),
+    DgsData(parentType = DgsConstants.MD_APPLICATION.TYPE_NAME, field = DgsConstants.MD_APPLICATION.IsPaused),
+  )
   fun isPaused(dfe: DgsDataFetchingEnvironment): Boolean {
     val app: MdApplication = dfe.getSource()
     return actuationPauser.applicationIsPaused(app.name)
   }
 
-  @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.PausedInfo)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.PausedInfo),
+    DgsData(parentType = DgsConstants.MD_APPLICATION.TYPE_NAME, field = DgsConstants.MD_APPLICATION.PausedInfo),
+  )
   fun pausedInfo(dfe: DgsDataFetchingEnvironment): MdPausedInfo? {
     val app: MdApplication = dfe.getSource()
     return actuationPauser.getApplicationPauseInfo(app.name)?.toDgsPaused()
   }
 
-  @DgsData(parentType = DgsConstants.MDRESOURCE.TYPE_NAME, field = DgsConstants.MDRESOURCE.State)
-  fun resourceStatus(dfe: DgsDataFetchingEnvironment): MdResourceActuationState {
-    val resource: MdResource = dfe.getSource()
-    val state = resourceStatusService.getActuationState(resource.id)
-    return MdResourceActuationState(
-      status = MdResourceActuationStatus.valueOf(state.status.name),
-      reason = state.reason,
-      event = state.eventMessage,
-      tasks = state.tasks?.map {
-        MdResourceTask(id = it.id, name = it.name)
-      }
-    )
-  }
-
-  @DgsData(parentType = DgsConstants.MDRESOURCETASK.TYPE_NAME, field = DgsConstants.MDRESOURCETASK.Summary)
-  fun taskSummary(dfe: DgsDataFetchingEnvironment): MdExecutionSummary {
-    val task: MdResourceTask = dfe.getSource()
-    val summary = executionSummaryService.getSummary(task.id)
-    return summary.toDgs()
-  }
-
-  @DgsData(parentType = DgsConstants.MDARTIFACT.TYPE_NAME, field = DgsConstants.MDARTIFACT.Versions)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDARTIFACT.TYPE_NAME, field = DgsConstants.MDARTIFACT.Versions),
+    DgsData(parentType = DgsConstants.MD_ARTIFACT.TYPE_NAME, field = DgsConstants.MD_ARTIFACT.Versions),
+  )
   fun versions(
     dfe: DataFetchingEnvironment,
     @InputArgument("statuses", collectionType = MdArtifactStatusInEnvironment::class) statuses: List<MdArtifactStatusInEnvironment>?,
@@ -213,7 +204,10 @@ class ApplicationFetcher(
     }
   }
 
-  @DgsData(parentType = DgsConstants.MDGITMETADATA.TYPE_NAME, field = DgsConstants.MDGITMETADATA.ComparisonLinks)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDGITMETADATA.TYPE_NAME, field = DgsConstants.MDGITMETADATA.ComparisonLinks),
+    DgsData(parentType = DgsConstants.MD_GITMETADATA.TYPE_NAME, field = DgsConstants.MD_GITMETADATA.ComparisonLinks),
+  )
   fun comparisonLinks(dfe: DataFetchingEnvironment): MdComparisonLinks? {
     val diffContext = applicationFetcherSupport.getDiffContext(dfe)
 
@@ -233,15 +227,24 @@ class ApplicationFetcher(
     }
   }
 
-  @DgsData(
-    parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME,
-    field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.PackageDiff
+  @DgsData.List(
+    DgsData(
+      parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME,
+      field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.PackageDiff
+    ),
+    DgsData(
+      parentType = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.TYPE_NAME,
+      field = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.PackageDiff
+    ),
   )
   fun packageDiff(dfe: DataFetchingEnvironment): MdPackageDiff? {
     return applicationFetcherSupport.getDebianPackageDiff(dfe)
   }
 
-  @DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.LifecycleSteps)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.LifecycleSteps),
+    DgsData(parentType = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.LifecycleSteps),
+  )
   fun lifecycleSteps(dfe: DataFetchingEnvironment): CompletableFuture<List<MdLifecycleStep>>? {
     val dataLoader: DataLoader<ArtifactAndVersion, List<MdLifecycleStep>> = dfe.getDataLoader(LifecycleEventsByVersionDataLoader.Descriptor.name)
     val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
@@ -255,7 +258,10 @@ class ApplicationFetcher(
     )
   }
 
-  @DgsData(parentType = DgsConstants.MDARTIFACT.TYPE_NAME, field = DgsConstants.MDARTIFACT.PinnedVersion)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDARTIFACT.TYPE_NAME, field = DgsConstants.MDARTIFACT.PinnedVersion),
+    DgsData(parentType = DgsConstants.MD_ARTIFACT.TYPE_NAME, field = DgsConstants.MD_ARTIFACT.PinnedVersion),
+  )
   fun pinnedVersion(dfe: DataFetchingEnvironment): CompletableFuture<MdPinnedVersion>? {
     val dataLoader: DataLoader<PinnedArtifactAndEnvironment, MdPinnedVersion> = dfe.getDataLoader(PinnedVersionInEnvironmentDataLoader.Descriptor.name)
     val artifact: MdArtifact = dfe.getSource()
@@ -267,7 +273,29 @@ class ApplicationFetcher(
     ))
   }
 
-  @DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.Constraints)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDARTIFACT.TYPE_NAME, field = DgsConstants.MDARTIFACT.LatestApprovedVersion),
+    DgsData(parentType = DgsConstants.MD_ARTIFACT.TYPE_NAME, field = DgsConstants.MD_ARTIFACT.LatestApprovedVersion),
+  )
+  fun latestApprovedVersion(dfe: DataFetchingEnvironment): MdArtifactVersionInEnvironment? {
+    val artifact: MdArtifact = dfe.getSource()
+    val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
+    val deliveryArtifact = config.matchingArtifactByReference(artifact.reference) ?: return null
+
+    //[gyardeni + rhorev] please note - some values (like MdComparisonLinks) will not be retrieved for MdArtifactVersionInEnvironment
+    //due to our current dgs model.
+    keelRepository.getLatestApprovedInEnvArtifactVersion(config, deliveryArtifact, artifact.environment)
+      ?.let {
+        return it.toDgs(artifact.environment)
+      }
+
+    return null
+  }
+
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.Constraints),
+    DgsData(parentType = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.Constraints),
+  )
   fun artifactConstraints(dfe: DataFetchingEnvironment): CompletableFuture<List<MdConstraint>>? {
     val dataLoader: DataLoader<EnvironmentArtifactAndVersion, List<MdConstraint>> = dfe.getDataLoader(ConstraintsDataLoader.Descriptor.name)
     val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
@@ -282,7 +310,10 @@ class ApplicationFetcher(
     }
   }
 
-  @DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.Verifications)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.Verifications),
+    DgsData(parentType = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.Verifications),
+  )
   fun artifactVerifications(dfe: DataFetchingEnvironment): CompletableFuture<List<MdAction>>? {
     val dataLoader: DataLoader<EnvironmentArtifactAndVersion, List<MdAction>> = dfe.getDataLoader(ActionsDataLoader.Descriptor.name)
     val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
@@ -298,7 +329,10 @@ class ApplicationFetcher(
     }
   }
 
-  @DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.PostDeploy)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.PostDeploy),
+    DgsData(parentType = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.PostDeploy),
+  )
   fun artifactPostDeploy(dfe: DataFetchingEnvironment): CompletableFuture<List<MdAction>>? {
     val dataLoader: DataLoader<EnvironmentArtifactAndVersion, List<MdAction>> = dfe.getDataLoader(ActionsDataLoader.Descriptor.name)
     val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
@@ -314,16 +348,10 @@ class ApplicationFetcher(
     }
   }
 
-  @DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.Resources)
-  fun artifactResources(dfe: DataFetchingEnvironment): List<MdResource>? {
-    val artifact: MdArtifactVersionInEnvironment = dfe.getSource()
-    val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
-    return artifact.environment?.let {
-      config.resourcesUsing(artifact.reference, artifact.environment).map { it.toDgs(config, artifact.environment) }
-    }
-  }
-
-  @DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.Veto)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MDARTIFACTVERSIONINENVIRONMENT.Veto),
+    DgsData(parentType = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.TYPE_NAME, field = DgsConstants.MD_ARTIFACTVERSIONINENVIRONMENT.Veto),
+  )
   fun versionVetoed(dfe: DataFetchingEnvironment): CompletableFuture<MdVersionVeto?>? {
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     val dataLoader: DataLoader<EnvironmentArtifactAndVersion, MdVersionVeto?> = dfe.getDataLoader(VetoedDataLoader.Descriptor.name)
@@ -342,14 +370,20 @@ class ApplicationFetcher(
   /**
    * Fetches the list of dismissible notifications for the application in context.
    */
-  @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.Notifications)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.Notifications),
+    DgsData(parentType = DgsConstants.MD_APPLICATION.TYPE_NAME, field = DgsConstants.MD_APPLICATION.Notifications),
+  )
   fun applicationNotifications(dfe: DataFetchingEnvironment): List<MdNotification>? {
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     return notificationRepository.notificationHistory(config.application, true, setOf(WARNING, ERROR))
       .map { it.toDgs() }
   }
 
-  @DgsData(parentType = DgsConstants.MDENVIRONMENT.TYPE_NAME, field = DgsConstants.MDENVIRONMENT.IsDeleting)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDENVIRONMENT.TYPE_NAME, field = DgsConstants.MDENVIRONMENT.IsDeleting),
+    DgsData(parentType = DgsConstants.MD_ENVIRONMENT.TYPE_NAME, field = DgsConstants.MD_ENVIRONMENT.IsDeleting),
+  )
   fun environmentIsDeleting(dfe: DataFetchingEnvironment): CompletableFuture<Boolean>? {
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
     val dataLoader: DataLoader<Environment, Boolean> = dfe.getDataLoader(EnvironmentDeletionStatusLoader.NAME)
@@ -358,8 +392,6 @@ class ApplicationFetcher(
     }
     return environment?.let { dataLoader.load(environment) }
   }
-
-//  add function for putting the resources on the artifactVersion
 }
 
 fun Environment.dependsOn(another: Environment) =

@@ -1,9 +1,9 @@
-package com.netflix.spinnaker.keel.services
+package com.netflix.spinnaker.keel.admin
 
 import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
 import com.netflix.spinnaker.keel.api.StatefulConstraint
-import com.netflix.spinnaker.keel.api.actuation.ExecutionSummary
-import com.netflix.spinnaker.keel.api.actuation.ExecutionSummaryService
+import com.netflix.spinnaker.keel.actuation.ExecutionSummary
+import com.netflix.spinnaker.keel.actuation.ExecutionSummaryService
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.OVERRIDE_FAIL
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
 import com.netflix.spinnaker.keel.api.plugins.supporting
@@ -67,7 +67,7 @@ class AdminService(
    * Removes the stored state we have for any stateful constraints for an environment
    * so they will evaluate again
    */
-  fun forceConstraintReevaluation(application: String, environment: String, type: String? = null) {
+  fun forceConstraintReevaluation(application: String, environment: String, reference: String, version: String, type: String? = null) {
     log.info("[app=$application, env=$environment] Forcing reevaluation of stateful constraints.")
     if (type != null) {
       log.info("[app=$application, env=$environment] Forcing only type $type")
@@ -80,7 +80,7 @@ class AdminService(
       if (constraint is StatefulConstraint) {
         if (type == null || type == constraint.type) {
           log.info("[app=$application, env=$environment] Deleting constraint state for ${constraint.type}.")
-          repository.deleteConstraintState(deliveryConfig.name, environment, constraint.type)
+          repository.deleteConstraintState(deliveryConfig.name, environment, reference, version, constraint.type)
         }
       }
     }

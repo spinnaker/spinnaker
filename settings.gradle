@@ -42,6 +42,7 @@ include(
   "keel-lemur",
   "keel-network",
   "keel-notifications",
+  "keel-optics",
   "keel-orca",
   "keel-retrofit",
   "keel-retrofit-test-support",

@@ -35,6 +35,7 @@ data class PublishedArtifact(
     name: String,
     type: String,
     version: String,
+    reference: String? = null,
     status: ArtifactStatus? = null,
     createdAt: Instant? = null,
     gitMetadata: GitMetadata? = null,
@@ -43,7 +44,7 @@ data class PublishedArtifact(
   ) : this(
     name = name,
     type = type.toLowerCase(),
-    reference = name,
+    reference = reference?: name,
     version = version,
     metadata = (metadata ?: emptyMap()) + mapOf(
       "releaseStatus" to status?.name,

@@ -63,8 +63,14 @@ class GitDataGenerator(
 
   fun toCode(env: String) = "`${env.toLowerCase()}`"
 
-  fun linkedTitleSnippet(artifact: PublishedArtifact, application: String): String {
+  fun linkedTitleSnippet(artifact: PublishedArtifact,
+                         application: String,
+                         moreThanOneArtifact: Boolean? = false): String {
     var text = "${linkedApp(application)} build <${generateArtifactUrl(application, artifact.reference, artifact.version)}|#${artifact.buildNumber ?: artifact.version}>"
+
+    if (moreThanOneArtifact == true) {
+        text+= " [${artifact.reference} _(${artifact.type})_]"
+    }
     artifact.gitMetadata?.let { text += " " + getAuthor(it) }
     return text
   }
@@ -75,9 +81,15 @@ class GitDataGenerator(
     return text
   }
 
-  fun notificationBodyWithEnv(layoutBlockDsl: LayoutBlockDsl, emoji: String, application: String, artifact: PublishedArtifact, descriptiveText: String, env: String, preposition: String = "to") {
+  fun notificationBodyWithEnv(layoutBlockDsl: LayoutBlockDsl,
+                              emoji: String, application: String,
+                              artifact: PublishedArtifact,
+                              descriptiveText: String,
+                              env: String,
+                              preposition: String = "to",
+                              moreThanOneArtifact: Boolean? = false) {
     layoutBlockDsl.section {
-        markdownText("$emoji *${linkedTitleSnippet(artifact, application)} $descriptiveText $preposition ${toCode(env)}*")
+        markdownText("$emoji *${linkedTitleSnippet(artifact, application, moreThanOneArtifact)} $descriptiveText $preposition ${toCode(env)}*")
       }
     buildCommitSectionWithButton(layoutBlockDsl, artifact.gitMetadata)
   }

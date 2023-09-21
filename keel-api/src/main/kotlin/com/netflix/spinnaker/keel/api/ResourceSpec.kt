@@ -10,8 +10,7 @@ interface ResourceSpec {
    * form the fully-qualified resource id.
    *
    * This can be a property that is part of the spec, or derived from other properties. If the
-   * latter remember to annotate the overridden property with
-   * [com.fasterxml.jackson.annotation.JsonIgnore].
+   * latter, remember to annotate the overridden property with [com.fasterxml.jackson.annotation.JsonIgnore].
    */
   val id: String
 
@@ -30,4 +29,14 @@ interface ResourceSpec {
    * other fields.
    */
   val displayName: String
+
+  /**
+   * Applies the given [suffix] to the resource [id], and to all aggregate properties of the spec
+   * whose names are derived from the [id].
+   *
+   * @return a copy of the original [ResourceSpec] with the modified identifiers.
+   */
+  @JvmDefault
+  fun deepRename(suffix: String): ResourceSpec =
+    throw TODO("Not implemented")
 }

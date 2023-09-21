@@ -104,6 +104,9 @@ abstract class DeliveryArtifact {
   /** Filters for the artifact origin in source control. */
   open val from: ArtifactOriginFilter? = null
 
+  /** Whether this artifact was created for a preview environment. */
+  open val isPreview: Boolean = false
+
   @get:ExcludedFromDiff
   val filteredByBranch: Boolean
     get() = from?.branch != null
@@ -154,6 +157,15 @@ abstract class DeliveryArtifact {
       .resources
       .map { (it.spec as? ArtifactReferenceProvider)?.artifactReference }
       .contains(reference)
+
+  /**
+   * returns the resource ids using the artifact in the environment
+   */
+  fun resourcesUsing(environment: Environment) =
+    environment
+      .resources
+      .filter { reference == (it.spec as? ArtifactReferenceProvider)?.artifactReference }
+      .map { it.id }
 
   override fun toString() = "${type.toUpperCase()} artifact $name (ref: $reference)"
 }

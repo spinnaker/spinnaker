@@ -114,15 +114,17 @@ class DeliveryConfigImportListener(
             commitInfo = Commit(sha = event.commitHash, link = scmUtils.getCommitLink(event), message = event.message)
           )
         }
-        log.info("Creating/updating delivery config for application ${app.name} from branch ${event.targetBranch}")
+        log.debug("Creating/updating delivery config for application ${app.name} from branch ${event.targetBranch}")
         deliveryConfigUpserter.upsertConfig(deliveryConfig, gitMetadata)
+        log.debug("Delivery config for application ${app.name} updated successfully from branch ${event.targetBranch}")
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_SUCCESS, app.name)
       } catch (e: Exception) {
-        log.error("Error retrieving delivery config: $e", e)
+        log.error("Error retrieving/updating delivery config: $e", e)
         event.emitCounterMetric(CODE_EVENT_COUNTER, DELIVERY_CONFIG_RETRIEVAL_ERROR, app.name)
         eventPublisher.publishDeliveryConfigImportFailed(
           app.name,
           event,
+          event.targetBranch,
           clock.instant(),
           e.message ?: "Unknown reason",
           scmUtils.getCommitLink(event)

@@ -6,12 +6,15 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.CapacitySpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_CLUSTER_V1_1
+import com.netflix.spinnaker.keel.api.ec2.InstanceMetadataServiceVersion
+import com.netflix.spinnaker.keel.api.ec2.InstanceMetadataServiceVersion.V1
+import com.netflix.spinnaker.keel.api.ec2.InstanceMetadataServiceVersion.V2
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
@@ -25,17 +28,21 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.ec2.resource.LaunchInfo.LAUNCH_TEMPLATE
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.test.resource
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import strikt.api.expectThat
 import strikt.assertions.hasSize
+import strikt.assertions.isFalse
 import strikt.assertions.isNull
+import strikt.assertions.isTrue
 import java.time.Clock
 import io.mockk.coEvery as every
 
@@ -45,7 +52,7 @@ internal class LaunchConfigTests {
   @ParameterizedTest
   @EnumSource(LaunchInfo::class)
   fun `empty ramdisk id string is converted to null`(launchInfo: LaunchInfo) {
-    setup(ramdiskId = "", launchInfo=launchInfo)
+    setup(ramdiskId = "", launchInfo = launchInfo)
 
     // code under test
     val currentState = runBlocking { clusterHandler.current(resource) }
@@ -53,22 +60,50 @@ internal class LaunchConfigTests {
     expectThat(serverGroup(currentState).launchConfiguration.ramdiskId).isNull()
   }
 
+  @Test
+  fun `null instance metadata service translates to IMDSv2 not required`() {
+    setup(instanceMetadataServiceVersion = null)
+
+    val currentState = runBlocking { clusterHandler.desired(resource) }
+    expectThat(serverGroup(currentState).launchConfiguration.requireIMDSv2).isFalse()
+  }
+
+  @Test
+  fun `instance metadata service V1 translates to IMDSv2 not required`() {
+    setup(instanceMetadataServiceVersion = V1)
+
+    val currentState = runBlocking { clusterHandler.desired(resource) }
+    expectThat(serverGroup(currentState).launchConfiguration.requireIMDSv2).isFalse()
+  }
+
+  @Test
+  fun `instance metadata service V2 translates to IMDSv2 required`() {
+    setup(instanceMetadataServiceVersion = V2)
+
+    val currentState = runBlocking { clusterHandler.desired(resource) }
+    expectThat(serverGroup(currentState).launchConfiguration.requireIMDSv2).isTrue()
+  }
+
   //
   // Everything below is just fixture and mocking setup
   //
-
 
   /**
    * Given the output of ClusterHandler.current, return the ServerGroup object
    *
    * Assumes there is only one server group, will error otherwise
    */
-  fun serverGroup(currentState : Map<String, ServerGroup>) : ServerGroup {
+  fun serverGroup(currentState: Map<String, ServerGroup>): ServerGroup {
     expectThat(currentState).hasSize(1)
     return currentState.values.iterator().next()
   }
 
-  fun clusterSpec(vpc: Network, subnet: Subnet, ramdiskId: String?) =
+  fun clusterSpec(
+    vpc: Network,
+    subnet: Subnet,
+    ramdiskId: String?,
+    instanceMetadataServiceVersion: InstanceMetadataServiceVersion?
+  ) =
     ClusterSpec(
       moniker = Moniker(app = "keel", stack = "test"),
       locations = SubnetAwareLocations(
@@ -87,12 +122,15 @@ internal class LaunchConfigTests {
           StaggeredRegion(region = vpc.region, hours = "16-02")
         )
       ),
-      _defaults = serverGroupSpec(ramdiskId)
+      _defaults = serverGroupSpec(ramdiskId, instanceMetadataServiceVersion)
     )
 
-  fun serverGroupSpec(ramdiskId: String?) =
+  fun serverGroupSpec(ramdiskId: String?, instanceMetadataServiceVersion: InstanceMetadataServiceVersion?) =
     ClusterSpec.ServerGroupSpec(
-      launchConfiguration = launchConfigurationSpec(ramdiskId=ramdiskId),
+      launchConfiguration = launchConfigurationSpec(
+        ramdiskId = ramdiskId,
+        instanceMetadataServiceVersion = instanceMetadataServiceVersion
+      ),
       capacity = CapacitySpec(1, 6),
       scaling = Scaling(
         targetTrackingPolicies = setOf(
@@ -114,7 +152,7 @@ internal class LaunchConfigTests {
       )
     )
 
-  fun launchConfigurationSpec(ramdiskId : String?) =
+  fun launchConfigurationSpec(ramdiskId: String?, instanceMetadataServiceVersion: InstanceMetadataServiceVersion?) =
     LaunchConfigurationSpec(
       image = VirtualMachineImage(
         id = "ami-123543254134",
@@ -126,7 +164,8 @@ internal class LaunchConfigTests {
       iamRole = ServerGroup.LaunchConfiguration.defaultIamRoleFor("keel"),
       keyPair = "nf-keypair-test-fake",
       instanceMonitoring = false,
-      ramdiskId = ramdiskId
+      ramdiskId = ramdiskId,
+      instanceMetadataServiceVersion = instanceMetadataServiceVersion
     )
 
   val sg1 = SecurityGroupSummary("keel", "sg-325234532", "vpc-1")
@@ -157,8 +196,12 @@ internal class LaunchConfigTests {
     artifactService
   )
 
-  fun setup(ramdiskId : String?, launchInfo: LaunchInfo) {
-    spec = clusterSpec(vpc, subnet, ramdiskId)
+  fun setup(
+    ramdiskId: String? = null,
+    launchInfo: LaunchInfo = LAUNCH_TEMPLATE,
+    instanceMetadataServiceVersion: InstanceMetadataServiceVersion? = null
+  ) {
+    spec = clusterSpec(vpc, subnet, ramdiskId, instanceMetadataServiceVersion)
     resource = resource(
       kind = EC2_CLUSTER_V1_1.kind,
       spec = spec
@@ -166,10 +209,11 @@ internal class LaunchConfigTests {
 
     val serverGroup = spec.resolve().first()
     val activeServerGroupResponse = serverGroup.toCloudDriverResponse(
-      vpc=vpc,
-      subnets=listOf(subnet),
-      securityGroups=listOf(sg1, sg2),
-      launchInfo=launchInfo)
+      vpc = vpc,
+      subnets = listOf(subnet),
+      securityGroups = listOf(sg1, sg2),
+      launchInfo = launchInfo
+    )
 
     with(cloudDriverCache) {
       every { networkBy(vpc.id) } returns vpc

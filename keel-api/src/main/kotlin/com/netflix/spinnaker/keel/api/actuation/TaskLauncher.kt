@@ -16,21 +16,24 @@ interface TaskLauncher {
       resource = resource,
       description = description,
       correlationId = correlationId,
-      stages = listOf(job)
+      stages = listOf(job),
+      artifactVersion = null
     )
 
   suspend fun submitJob(
     resource: Resource<*>,
     description: String,
     correlationId: String,
-    stages: List<Job>
+    stages: List<Job>,
+    artifactVersion: String? = null
   ): Task
 
   fun submitJobAsync(
     resource: Resource<*>,
     description: String,
     correlationId: String,
-    stages: List<Map<String, Any?>>
+    stages: List<Map<String, Any?>>,
+    artifactVersion: String? = null
   ): CompletableFuture<Task>
 
   suspend fun submitJob(
@@ -43,7 +46,8 @@ interface TaskLauncher {
     correlationId: String? = null,
     stages: List<Job>,
     artifacts: List<Map<String, Any?>> = emptyList(),
-    parameters: Map<String, Any> = emptyMap()
+    parameters: Map<String, Any> = emptyMap(),
+    artifactVersion: String? = null
   ): Task =
     submitJob(
       user = user,
@@ -56,7 +60,8 @@ interface TaskLauncher {
       stages = stages,
       type = SubjectType.CONSTRAINT,
       artifacts = artifacts,
-      parameters = parameters
+      parameters = parameters,
+      artifactVersion = artifactVersion
     )
 
   /**
@@ -76,7 +81,8 @@ interface TaskLauncher {
     stages: List<Job>,
     type: SubjectType,
     artifacts: List<Map<String, Any?>> = emptyList(),
-    parameters: Map<String, Any> = emptyMap()
+    parameters: Map<String, Any> = emptyMap(),
+    artifactVersion: String? = null
   ): Task
 
   suspend fun correlatedTasksRunning(correlationId: String): Boolean
@@ -85,4 +91,9 @@ interface TaskLauncher {
    * @return The [TaskExecution] matching the [taskId].
    */
   suspend fun getTaskExecution(taskId: String): TaskExecution
+
+  /**
+   * Cancels the given tasks as the provided user identity
+   */
+  suspend fun cancelTasks(taskIds: List<String>, user: String)
 }

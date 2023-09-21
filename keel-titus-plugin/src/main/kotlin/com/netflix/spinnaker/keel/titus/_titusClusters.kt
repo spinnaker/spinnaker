@@ -23,9 +23,10 @@ internal fun Iterable<TitusServerGroup>.byRegion(): Map<String, TitusServerGroup
 internal val TitusServerGroup.moniker: Moniker
   get() = parseMoniker(name)
 
-internal fun TitusClusterSpec.resolveCapacity(region: String): Capacity {
-  val scaling = overrides[region]?.scaling ?: defaults.scaling
-  val capacity = overrides[region]?.capacity ?: defaults.capacity
+internal fun TitusClusterSpec.resolveCapacity(region: String? = null): Capacity {
+  val scaling = region?.let { overrides[it] }?.scaling ?: defaults.scaling
+  val capacity = region?.let { overrides[it] }?.capacity ?: defaults.capacity
+
   return when {
     capacity == null && scaling != null -> AutoScalingCapacity(1, 1, 1)
     capacity == null -> DefaultCapacity(1, 1, 1)
@@ -36,37 +37,55 @@ internal fun TitusClusterSpec.resolveCapacity(region: String): Capacity {
 
 internal val NETFLIX_CONTAINER_ENV_VARS = arrayOf("EC2_REGION", "NETFLIX_REGION", "NETFLIX_HOME_REGION")
 
-internal fun TitusClusterSpec.resolveEnv(region: String) =
-  emptyMap<String, String>() + defaults.env + overrides[region]?.env +
-    // These are Netflix-specific but wouldn't hurt elsewhere
-    NETFLIX_CONTAINER_ENV_VARS.associateWith { region }
+internal fun TitusClusterSpec.resolveEnv(region: String? = null): Map<String, String> {
+  val regionalVars: Map<String, String> = region?.let { NETFLIX_CONTAINER_ENV_VARS.associateWith { region }} ?: emptyMap()
+  return defaults.env + regionalVars + (region?.let { overrides[it] }?.env ?: emptyMap())
+}
 
-internal fun TitusClusterSpec.resolveContainerAttributes(region: String) =
-  emptyMap<String, String>() + defaults.containerAttributes + overrides[region]?.containerAttributes
+internal fun TitusClusterSpec.resolveContainerAttributes(region: String? = null): Map<String, String> =
+  emptyMap<String, String>() +
+    defaults.containerAttributes +
+    (region?.let { overrides[it] }?.containerAttributes ?: emptyMap())
 
-internal fun TitusClusterSpec.resolveResources(region: String): TitusServerGroup.Resources {
+internal fun TitusClusterSpec.resolveResources(region: String? = null): TitusServerGroup.Resources {
   val default by lazy { Resources() }
+
   return TitusServerGroup.Resources(
-    cpu = overrides[region]?.resources?.cpu ?: defaults.resources?.cpu ?: default.cpu,
-    disk = overrides[region]?.resources?.disk ?: defaults.resources?.disk ?: default.disk,
-    gpu = overrides[region]?.resources?.gpu ?: defaults.resources?.gpu ?: default.gpu,
-    memory = overrides[region]?.resources?.memory ?: defaults.resources?.memory ?: default.memory,
-    networkMbps = overrides[region]?.resources?.networkMbps ?: defaults.resources?.networkMbps
-    ?: default.networkMbps
+    cpu = region?.let { overrides[it] }?.resources?.cpu
+      ?: defaults.resources?.cpu
+      ?: default.cpu,
+    disk = region?.let { overrides[it] }?.resources?.disk
+      ?: defaults.resources?.disk
+      ?: default.disk,
+    gpu = region?.let { overrides[it] }?.resources?.gpu
+      ?: defaults.resources?.gpu
+      ?: default.gpu,
+    memory = region?.let { overrides[it] }?.resources?.memory
+      ?: defaults.resources?.memory
+      ?: default.memory,
+    networkMbps = region?.let { overrides[it] }?.resources?.networkMbps
+      ?: defaults.resources?.networkMbps
+      ?: default.networkMbps
   )
 }
 
 internal fun TitusClusterSpec.resolveIamProfile(region: String) =
   overrides[region]?.iamProfile ?: defaults.iamProfile ?: moniker.app + "InstanceProfile"
 
-internal fun TitusClusterSpec.resolveEntryPoint(region: String) =
-  overrides[region]?.entryPoint ?: defaults.entryPoint ?: ""
+internal fun TitusClusterSpec.resolveEntryPoint(region: String? = null) =
+  when (region) {
+    null -> defaults.entryPoint ?: ""
+    else -> overrides[region]?.entryPoint ?: defaults.entryPoint ?: ""
+  }
 
-internal fun TitusClusterSpec.resolveCapacityGroup(region: String) =
-  overrides[region]?.capacityGroup ?: defaults.capacityGroup ?: moniker.app
+internal fun TitusClusterSpec.resolveCapacityGroup(region: String? = null) =
+  when (region) {
+    null -> defaults.capacityGroup ?: moniker.app
+    else -> overrides[region]?.capacityGroup ?: defaults.capacityGroup ?: moniker.app
+  }
 
-internal fun TitusClusterSpec.resolveConstraints(region: String) =
-  overrides[region]?.constraints ?: defaults.constraints ?: TitusServerGroup.Constraints()
+internal fun TitusClusterSpec.resolveConstraints(region: String? = null) =
+  region?.let { overrides[it] }?.constraints ?: defaults.constraints ?: TitusServerGroup.Constraints()
 
 internal fun resolveContainerProvider(container: ContainerProvider): DigestProvider {
   if (container is DigestProvider) {
@@ -78,26 +97,30 @@ internal fun resolveContainerProvider(container: ContainerProvider): DigestProvi
   }
 }
 
-internal fun TitusClusterSpec.resolveMigrationPolicy(region: String) =
-  overrides[region]?.migrationPolicy ?: defaults.migrationPolicy
-  ?: TitusServerGroup.MigrationPolicy()
+internal fun TitusClusterSpec.resolveMigrationPolicy(region: String? = null) =
+  region?.let { overrides[it] }?.migrationPolicy ?: defaults.migrationPolicy ?: TitusServerGroup.MigrationPolicy()
 
-internal fun TitusClusterSpec.resolveDependencies(region: String): ClusterDependencies =
+internal fun TitusClusterSpec.resolveDependencies(region: String? = null): ClusterDependencies =
   ClusterDependencies(
-    loadBalancerNames = defaults.dependencies?.loadBalancerNames + overrides[region]?.dependencies?.loadBalancerNames,
-    securityGroupNames = defaults.dependencies?.securityGroupNames + overrides[region]?.dependencies?.securityGroupNames,
-    targetGroups = defaults.dependencies?.targetGroups + overrides[region]?.dependencies?.targetGroups
+    loadBalancerNames = defaults.dependencies?.loadBalancerNames + (region?.let { overrides[it] }?.dependencies?.loadBalancerNames ?: emptySet()),
+    securityGroupNames = defaults.dependencies?.securityGroupNames + (region?.let { overrides[it] }?.dependencies?.securityGroupNames ?: emptySet()),
+    targetGroups = defaults.dependencies?.targetGroups + (region?.let { overrides[it] }?.dependencies?.targetGroups ?: emptySet())
   )
 
-private fun TitusClusterSpec.resolveScaling(region: String) =
+fun TitusClusterSpec.resolveScaling(region: String? = null) =
   // TODO: could be smarter here and merge policies from defaults and override
-  (overrides[region]?.scaling ?: defaults.scaling)?.run {
+  (region?.let { overrides[it] }?.scaling ?: defaults.scaling)
+  ?.run {
     // we set the warmup to ZERO as Titus doesn't use the warmup setting
     Scaling(
       targetTrackingPolicies = targetTrackingPolicies.map { it.copy(warmup = null, scaleOutCooldown = it.scaleOutCooldown ?: DEFAULT_AUTOSCALE_SCALE_OUT_COOLDOWN, scaleInCooldown = it.scaleInCooldown ?: DEFAULT_AUTOSCALE_SCALE_IN_COOLDOWN) }.toSet(),
       stepScalingPolicies = stepScalingPolicies.map { it.copy(warmup = null) }.toSet()
     )
   } ?: Scaling()
+
+
+fun TitusClusterSpec.resolveTags(region: String? = null) =
+  defaults.tags + (region?.let { overrides[it] }?.tags ?: emptyMap())
 
 internal fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
   locations.regions.map {
@@ -118,7 +141,7 @@ internal fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       containerAttributes = resolveContainerAttributes(it.name),
       migrationPolicy = resolveMigrationPolicy(it.name),
       resources = resolveResources(it.name),
-      tags = defaults.tags + overrides[it.name]?.tags,
+      tags = resolveTags(it.name),
       artifactName = artifactName,
       artifactVersion = artifactVersion,
       scaling = resolveScaling(it.name)

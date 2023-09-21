@@ -16,7 +16,7 @@ internal object SqlTaskTrackingRepositoryTests : TaskTrackingRepositoryTests<Sql
   override fun factory(clock: Clock): SqlTaskTrackingRepository {
     return SqlTaskTrackingRepository(
       jooq,
-      Clock.systemUTC(),
+      clock,
       sqlRetry,
       RetentionProperties()
     )

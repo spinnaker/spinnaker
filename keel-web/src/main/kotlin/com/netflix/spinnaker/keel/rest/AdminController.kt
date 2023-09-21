@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.services.AdminService
+import com.netflix.spinnaker.keel.admin.AdminService
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -62,9 +62,11 @@ class AdminController(
   fun forceConstraintReevaluation(
     @PathVariable("application") application: String,
     @PathVariable("environment") environment: String,
+    @PathVariable("reference") reference: String,
+    @PathVariable("version") version: String,
     @RequestParam("type", required = false) type: String? = null
   ) {
-    adminService.forceConstraintReevaluation(application, environment, type)
+    adminService.forceConstraintReevaluation(application, environment, reference, version, type)
   }
 
   data class ReferencePayload(

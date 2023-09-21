@@ -58,9 +58,15 @@ class Front50Cache(
   /**
    * @return the [Application] with the given name from the cache. This cache is primed during app startup using
    * the bulk API in Front50, and later updated/refreshed on an app-by-app basis.
+   * if [invalidateCache] is true it will first invalidate the cache for the app name.
+   * This is useful when users update their git repo details.
    */
-  suspend fun applicationByName(name: String): Application =
-    applicationsByNameCache.get(name.toLowerCase()).await() ?: throw ApplicationNotFound(name)
+  suspend fun applicationByName(name: String, invalidateCache: Boolean = false): Application {
+    if (invalidateCache) {
+      invalidateApplicationByNameCache(name)
+    }
+    return applicationsByNameCache.get(name.toLowerCase()).await() ?: throw ApplicationNotFound(name)
+  }
 
   /**
    * @return the [Application]s matching the given search parameters from the cache.
@@ -93,6 +99,10 @@ class Front50Cache(
 
   private fun updateApplicationByName(app: Application) {
     applicationsByNameCache.put(app.name.toLowerCase(), CompletableFuture.supplyAsync { app })
+  }
+
+  private fun invalidateApplicationByNameCache(app: String) {
+    applicationsByNameCache.synchronous().invalidate(app.toLowerCase())
   }
 
   private fun invalidateSearchParamsCache(app: Application) {

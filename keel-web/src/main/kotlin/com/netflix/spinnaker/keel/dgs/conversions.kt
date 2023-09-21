@@ -8,21 +8,21 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.TaskStatus
-import com.netflix.spinnaker.keel.api.actuation.ExecutionSummary
-import com.netflix.spinnaker.keel.api.actuation.RolloutStatus
-import com.netflix.spinnaker.keel.api.actuation.RolloutTarget
-import com.netflix.spinnaker.keel.api.actuation.RolloutTargetWithStatus
-import com.netflix.spinnaker.keel.api.actuation.Stage
+import com.netflix.spinnaker.keel.actuation.ExecutionSummary
+import com.netflix.spinnaker.keel.actuation.RolloutStatus
+import com.netflix.spinnaker.keel.actuation.RolloutTargetWithStatus
+import com.netflix.spinnaker.keel.actuation.Stage
 import com.netflix.spinnaker.keel.api.artifacts.GitMetadata
+import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.bakery.diff.PackageDiff
 import com.netflix.spinnaker.keel.graphql.types.MdArtifact
+import com.netflix.spinnaker.keel.graphql.types.MdArtifactVersionInEnvironment
 import com.netflix.spinnaker.keel.graphql.types.MdCommitInfo
 import com.netflix.spinnaker.keel.graphql.types.MdDeployLocation
 import com.netflix.spinnaker.keel.graphql.types.MdDeployTarget
 import com.netflix.spinnaker.keel.graphql.types.MdEventLevel
 import com.netflix.spinnaker.keel.graphql.types.MdExecutionSummary
 import com.netflix.spinnaker.keel.graphql.types.MdGitMetadata
-import com.netflix.spinnaker.keel.graphql.types.MdLifecycleEventStatus
 import com.netflix.spinnaker.keel.graphql.types.MdLocation
 import com.netflix.spinnaker.keel.graphql.types.MdMoniker
 import com.netflix.spinnaker.keel.graphql.types.MdNotification
@@ -32,11 +32,13 @@ import com.netflix.spinnaker.keel.graphql.types.MdPackageDiff
 import com.netflix.spinnaker.keel.graphql.types.MdPausedInfo
 import com.netflix.spinnaker.keel.graphql.types.MdPullRequest
 import com.netflix.spinnaker.keel.graphql.types.MdResource
+import com.netflix.spinnaker.keel.graphql.types.MdResourceTask
 import com.netflix.spinnaker.keel.graphql.types.MdRolloutTargetStatus
 import com.netflix.spinnaker.keel.graphql.types.MdStageDetail
 import com.netflix.spinnaker.keel.graphql.types.MdTaskStatus
 import com.netflix.spinnaker.keel.notifications.DismissibleNotification
 import com.netflix.spinnaker.keel.pause.Pause
+import com.netflix.spinnaker.keel.persistence.TaskForResource
 
 
 fun GitMetadata.toDgs(): MdGitMetadata =
@@ -131,13 +133,22 @@ fun DismissibleNotification.toDgs() =
     dismissedBy = dismissedBy
   )
 
-fun ExecutionSummary.toDgs() = MdExecutionSummary(
-  status = status.toDgs(),
-  currentStage = currentStage?.toDgs(),
-  stages = stages.map { it.toDgs() },
-  deployTargets = deployTargets.map { it.toDgs() },
-  error = error
-)
+fun ExecutionSummary.toDgs() =
+  MdExecutionSummary(
+    id = "$id:summary",
+    status = status.toDgs(),
+    currentStage = currentStage?.toDgs(),
+    stages = stages.map { it.toDgs() },
+    deployTargets = deployTargets.map { it.toDgs() },
+    error = error
+  )
+
+fun TaskForResource.toDgs() =
+  MdResourceTask(
+    id = id,
+    name = name,
+    running = endedAt == null
+  )
 
 fun RolloutTargetWithStatus.toDgs() =
   MdDeployTarget(
@@ -181,3 +192,18 @@ fun TaskStatus.toDgs(): MdTaskStatus =
     TaskStatus.BUFFERED -> MdTaskStatus.BUFFERED
     TaskStatus.SKIPPED -> MdTaskStatus.SKIPPED
 }
+
+fun PublishedArtifact.toDgs(environmentName: String) =
+  MdArtifactVersionInEnvironment(
+    id = "latest-approved-${environmentName}-${reference}-${version}",
+    version = version,
+    buildNumber = buildNumber,
+    createdAt = createdAt,
+    gitMetadata = if (gitMetadata == null) {
+      null
+    } else {
+      gitMetadata?.toDgs()
+    },
+    environment = environmentName,
+    reference = reference,
+  )

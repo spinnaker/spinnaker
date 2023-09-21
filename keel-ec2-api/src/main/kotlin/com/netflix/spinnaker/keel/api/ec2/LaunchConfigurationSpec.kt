@@ -9,5 +9,6 @@ data class LaunchConfigurationSpec(
   val iamRole: String? = null,
   val keyPair: String? = null,
   val instanceMonitoring: Boolean? = null,
-  val ramdiskId: String? = null
+  val ramdiskId: String? = null,
+  val instanceMetadataServiceVersion: InstanceMetadataServiceVersion? = null
 )

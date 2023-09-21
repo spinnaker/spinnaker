@@ -21,19 +21,21 @@ import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.support.EventPublisher
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.ImageService
-import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
+import com.netflix.spinnaker.keel.ec2.resolvers.InstanceMetadataServiceResolver
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.BlockDeviceConfig
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
+import com.netflix.spinnaker.keel.environments.DependentEnvironmentFinder
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.orca.ClusterExportHelper
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.persistence.FeatureRolloutRepository
+import org.springframework.beans.factory.getBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Clock
@@ -51,7 +53,7 @@ class EC2Config {
     normalizers: List<Resolver<*>>,
     eventPublisher: EventPublisher,
     clusterExportHelper: ClusterExportHelper,
-    blockDeviceConfig : BlockDeviceConfig,
+    blockDeviceConfig: BlockDeviceConfig,
     artifactService: ArtifactService
   ): ClusterHandler =
     ClusterHandler(
@@ -115,4 +117,25 @@ class EC2Config {
       taskLauncher,
       normalizers
     )
+
+  @Bean
+  fun ec2InstanceMetadataServiceResolver(
+    dependentEnvironmentFinder: DependentEnvironmentFinder,
+    applicationContext: ApplicationContext,
+    featureRolloutRepository: FeatureRolloutRepository,
+    eventPublisher: EventPublisher
+  ): InstanceMetadataServiceResolver {
+    // This is necessary to avoid a circular bean dependency as Resolver instances (like we're creating here)
+    // get wired into ResourceHandlers, but here the Resolver needs a capability provided by the ResourceHandler.
+    val clusterHandler by lazy { applicationContext.getBean<ClusterHandler>() }
+
+    return InstanceMetadataServiceResolver(
+      dependentEnvironmentFinder,
+      // although it looks like this could be optimized to clusterHandler::current that will cause the bean to get
+      // created right away, which will blow up with a circular dependency
+      { clusterHandler.current(it) },
+      featureRolloutRepository,
+      eventPublisher
+    )
+  }
 }

@@ -84,7 +84,8 @@ data class SlackManualJudgmentNotification(
   val targetEnvironment: String,
   val deliveryArtifact: DeliveryArtifact,
   val stateUid: UID?,
-  override val application: String
+  override val application: String,
+  val config: DeliveryConfig
 ) : SlackNotificationEvent(time, application)
 
 data class SlackManualJudgmentUpdateNotification(
@@ -99,9 +100,10 @@ data class SlackManualJudgmentUpdateNotification(
   val deliveryArtifact: DeliveryArtifact,
   val author: String? = null,
   val display: NotificationDisplay = NORMAL,
+  val config: DeliveryConfig,
   override val application: String,
-  override val time: Instant,
-) : SlackNotificationEvent(time, application)
+  override val time: Instant
+  ) : SlackNotificationEvent(time, application)
 
 data class SlackVerificationCompletedNotification(
   val artifact: PublishedArtifact,

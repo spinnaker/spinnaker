@@ -66,14 +66,17 @@ fun ServerGroup.toCloudDriverResponse(
           ramdiskId=launchConfiguration.ramdiskId)
       }
       LaunchInfo.LAUNCH_TEMPLATE -> {
-        launchTemplate = LaunchTemplate(LaunchTemplateData(
-          ebsOptimized=launchConfiguration.ebsOptimized,
-          iamInstanceProfile= IamInstanceProfile(launchConfiguration.iamRole),
-          imageId=launchConfiguration.imageId,
-          instanceType=launchConfiguration.instanceType,
-          keyName=launchConfiguration.keyPair,
-          monitoring=InstanceMonitoring(launchConfiguration.instanceMonitoring),
-          ramDiskId=launchConfiguration.ramdiskId))
+        launchTemplate = LaunchTemplate(
+          LaunchTemplateData(
+            ebsOptimized = launchConfiguration.ebsOptimized,
+            iamInstanceProfile = IamInstanceProfile(launchConfiguration.iamRole),
+            imageId = launchConfiguration.imageId,
+            instanceType = launchConfiguration.instanceType,
+            keyName = launchConfiguration.keyPair,
+            monitoring = InstanceMonitoring(launchConfiguration.instanceMonitoring),
+            ramDiskId = launchConfiguration.ramdiskId
+          )
+        )
       }
     }
     ActiveServerGroup(

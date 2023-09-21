@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.api.actuation
+package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.TaskStatus
 import java.time.Instant

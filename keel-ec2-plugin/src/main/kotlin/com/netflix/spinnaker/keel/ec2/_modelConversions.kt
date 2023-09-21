@@ -20,7 +20,7 @@ internal fun ApplicationLoadBalancerModel.Rule.toEc2Api(): Rule =
   Rule(
     priority = priority,
     conditions = conditions?.map { it.toEc2Api() } ?: emptyList(),
-    actions = actions.map { it.toEc2Api() },
+    actions = actions.map { it.toEc2Api() }.toSortedSet(),
     default = default
   )
 

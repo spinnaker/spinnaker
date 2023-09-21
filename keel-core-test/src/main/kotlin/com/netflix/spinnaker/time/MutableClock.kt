@@ -77,6 +77,8 @@ class MutableClock(
 
   fun tickMinutes(minutes: Long) = incrementBy(Duration.ofMinutes(minutes)).let { instant }
 
+  fun tickDays(days: Long) = incrementBy(Duration.ofDays(days)).let { instant }
+
   fun tickHours(hours: Long) = incrementBy(Duration.ofHours(hours)).let { instant }
 
   fun instant(newInstant: Instant) {

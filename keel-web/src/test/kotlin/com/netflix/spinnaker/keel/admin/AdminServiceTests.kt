@@ -1,8 +1,8 @@
-package com.netflix.spinnaker.keel.services
+package com.netflix.spinnaker.keel.admin
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.actuation.ExecutionSummaryService
+import com.netflix.spinnaker.keel.actuation.ExecutionSummaryService
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.artifacts.PublishedArtifact
 import com.netflix.spinnaker.keel.api.plugins.ArtifactSupplier
@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.front50.Front50Cache
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
+import com.netflix.spinnaker.keel.front50.model.GenericStage
 import com.netflix.spinnaker.keel.front50.model.ManagedDeliveryConfig
 import com.netflix.spinnaker.keel.front50.model.Pipeline
 import com.netflix.spinnaker.keel.front50.model.Stage
@@ -60,8 +61,10 @@ class AdminServiceTests : JUnit5Minutests {
       )
     )
 
+    val artifactReference = "myartifact"
+
     val artifact = mockk<DeliveryArtifact> {
-      every { reference } returns "myartifact"
+      every { reference } returns artifactReference
     }
 
     val deliveryConfig = DeliveryConfig(
@@ -86,7 +89,7 @@ class AdminServiceTests : JUnit5Minutests {
       application = front50Application.name,
       disabled = false,
       triggers = listOf(Trigger(type = "trigger", enabled = true, application = front50Application.name)),
-      _stages = listOf(Stage(type = "importDeliveryConfig", name = "Import config", refId = "1"))
+      _stages = listOf(GenericStage(type = "importDeliveryConfig", name = "Import config", refId = "1"))
     )
 
     val executionSummaryService: ExecutionSummaryService = mockk()
@@ -126,20 +129,22 @@ class AdminServiceTests : JUnit5Minutests {
     }
 
     context("forcing environment constraint reevaluation") {
+      val version = "v0"
       test("clears state only for stateful constraints") {
-        subject.forceConstraintReevaluation(application, environment.name)
 
-        verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "manual-judgement") }
-        verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "pipeline") }
-        verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "allowed-times") }
+        subject.forceConstraintReevaluation(application, environment.name, artifactReference, version)
+
+        verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name,artifactReference, version, "manual-judgement") }
+        verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, artifactReference, version, "pipeline") }
+        verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, artifactReference, version, "allowed-times") }
       }
 
       test("clears a specific constraint type when asked to") {
-        subject.forceConstraintReevaluation(application, environment.name, "pipeline")
+        subject.forceConstraintReevaluation(application, environment.name, artifact.reference, version, "pipeline")
 
-        verify(exactly = 0) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "manual-judgement") }
-        verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "pipeline") }
-        verify(exactly = 0) { repository.deleteConstraintState(deliveryConfig.name, environment.name, "allowed-times") }
+        verify(exactly = 0) { repository.deleteConstraintState(deliveryConfig.name, environment.name, artifactReference, version, "manual-judgement") }
+        verify(exactly = 1) { repository.deleteConstraintState(deliveryConfig.name, environment.name, artifactReference, version, "pipeline") }
+        verify(exactly = 0) { repository.deleteConstraintState(deliveryConfig.name, environment.name, artifactReference, version, "allowed-times") }
       }
     }
 
@@ -212,7 +217,7 @@ class AdminServiceTests : JUnit5Minutests {
         before {
           every { front50Cache.pipelinesByApplication(front50Application.name) } returns listOf(
             importPipeline.copy(
-              _stages = listOf(Stage(type = "coolStage", name = "cool", refId = "1"))
+              _stages = listOf(GenericStage(type = "coolStage", name = "cool", refId = "1"))
             )
           )
         }

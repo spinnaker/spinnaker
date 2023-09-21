@@ -1,5 +1,5 @@
 plugins {
-  id("nu.studer.jooq") version "6.0"
+  id("nu.studer.jooq") version "6.0.1"
   id("org.liquibase.gradle") version "2.0.4"
 }
 
@@ -213,6 +213,11 @@ jooq {
                 userType = "com.netflix.spinnaker.keel.api.actuation.SubjectType"
                 enumConverter = true
                 includeExpression = "TASK_TRACKING.SUBJECT_TYPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.rollout.RolloutStatus"
+                enumConverter = true
+                includeExpression = "FEATURE_ROLLOUT.STATUS"
               }
             }
           }

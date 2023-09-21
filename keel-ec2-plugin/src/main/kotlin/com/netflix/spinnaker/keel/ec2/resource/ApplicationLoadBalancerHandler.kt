@@ -13,8 +13,8 @@ import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.ApplicationLoadBalancerOverride
-import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
+import com.netflix.spinnaker.keel.api.ec2.EC2_CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.plugins.Resolver
@@ -243,7 +243,7 @@ class ApplicationLoadBalancerHandler(
                         ?.let { cloudDriverCache.certificateByArn(it.certificateArn).serverCertificateName },
                       // TODO: filtering out default rules seems wrong, see TODO in ApplicationLoadBalancerNormalizer
                       rules = l.rules.filter { !it.default }.map { it.toEc2Api() }.toSet(),
-                      defaultActions = l.defaultActions.map { it.toEc2Api() }.toSet()
+                      defaultActions = l.defaultActions.map { it.toEc2Api() }.toSortedSet()
                     )
                   }.toSet(),
                   dependencies = LoadBalancerDependencies(
@@ -306,13 +306,15 @@ class ApplicationLoadBalancerHandler(
             mapOf(
               "port" to it.port,
               "protocol" to it.protocol,
-              "rules" to it.rules,
-              "defaultActions" to it.defaultActions.sortedBy(Action::order).map { action ->
+              "rules" to it.rules.map { rule ->
                 mapOf(
-                  "type" to action.type,
-                  "order" to action.order,
-                ) + action.toOrcaRequest()
+                  "priority" to rule.priority,
+                  "conditions" to rule.conditions,
+                  "default" to rule.default,
+                  "actions" to rule.actions.map(Action::toOrcaRequest)
+                )
               },
+              "defaultActions" to it.defaultActions.sortedBy(Action::order).map(Action::toOrcaRequest),
             ).run {
               it.certificate?.let { certificateName ->
                 this + mapOf(

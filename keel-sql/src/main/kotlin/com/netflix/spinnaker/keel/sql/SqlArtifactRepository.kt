@@ -105,6 +105,7 @@ class SqlArtifactRepository(
         .set(DELIVERY_ARTIFACT.TYPE, artifact.type)
         .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
         .set(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME, artifact.deliveryConfigName)
+        .set(DELIVERY_ARTIFACT.IS_PREVIEW, artifact.isPreview)
         .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
         .onDuplicateKeyUpdate()
         .set(DELIVERY_ARTIFACT.NAME, artifact.name)
@@ -354,6 +355,7 @@ class SqlArtifactRepository(
           PublishedArtifact(
             name = name,
             type = type,
+            reference = artifact.reference,
             version = version,
             status = status,
             createdAt = createdAt,
@@ -1927,6 +1929,19 @@ class SqlArtifactRepository(
       .and(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.between(startTime, endTime))
       .fetchSingleInto<Int>()
   }
+
+  override fun getLatestApprovedInEnvArtifactVersion(
+    config: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    environmentName: String
+  ): PublishedArtifact? {
+    latestVersionApprovedIn(config, artifact, environmentName)
+      ?.let { version ->
+        return getArtifactVersion(artifact, version, null)
+      }
+    return null
+  }
+
 
   private fun priorVersionDeployedIn(
     environmentId: String,

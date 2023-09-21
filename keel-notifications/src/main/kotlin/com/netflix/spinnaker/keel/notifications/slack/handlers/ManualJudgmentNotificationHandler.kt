@@ -45,7 +45,16 @@ class ManualJudgmentNotificationHandler(
       )
       val compareLink = artifactVersionLinks.generateCompareLink(artifactCandidate, currentArtifact, deliveryArtifact)
 
-      val descriptiveBlocks = notification.toBlocks(numVersionsToBePromoted)
+      //flag if there's more than a single artifact (not including preview env), so we would notify the user which artifact it is
+      val moreThanOneArtifact = config.artifacts.size != 1 &&
+        config.environments.map {
+          environment ->
+          deliveryArtifact.isUsedIn(environment) && !environment.isPreview
+        }.size > 1
+
+
+
+      val descriptiveBlocks = notification.toBlocks(numVersionsToBePromoted, moreThanOneArtifact)
 
       val actionBlocks = withBlocks {
         actions {
@@ -102,14 +111,15 @@ class ManualJudgmentNotificationHandler(
     }
   }
 
-  private fun SlackManualJudgmentNotification.toBlocks(numToBePromoted: Int): List<LayoutBlock> {
+  private fun SlackManualJudgmentNotification.toBlocks(numToBePromoted: Int, moreThanOneArtifact: Boolean): List<LayoutBlock> {
     return constructMessageWithoutButtons(
       targetEnvironment,
       application,
       artifactCandidate,
       pinnedArtifact,
       gitDataGenerator,
-      numToBePromoted
+      numToBePromoted,
+      moreThanOneArtifact
     )
   }
 
@@ -126,10 +136,11 @@ class ManualJudgmentNotificationHandler(
       pinnedArtifact: PublishedArtifact?,
       gitDataGenerator: GitDataGenerator,
       numToBePromoted: Int,
+      moreThanOneArtifact: Boolean,
       action: String = "awaiting judgement"
     ): List<LayoutBlock> {
       return withBlocks {
-        gitDataGenerator.notificationBodyWithEnv(this, ":gavel:", application, artifactCandidate, action, environment, "in")
+        gitDataGenerator.notificationBodyWithEnv(this, ":gavel:", application, artifactCandidate, action, environment, "in", moreThanOneArtifact)
 
         var text = ""
         if (numToBePromoted > 1) {

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
 import com.netflix.spinnaker.keel.api.DependencyType.TARGET_GROUP
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
+import com.netflix.spinnaker.keel.api.ManagedRolloutConfig
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
@@ -48,6 +49,7 @@ import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 data class TitusClusterSpec(
   override val moniker: Moniker,
   val deployWith: ClusterDeployStrategy = RedBlack(),
+  val managedRollout: ManagedRolloutConfig = ManagedRolloutConfig(),
   @param:Optional override val locations: SimpleLocations,
   private val _defaults: TitusServerGroupSpec,
   val overrides: Map<String, TitusServerGroupSpec> = emptyMap(),
@@ -75,7 +77,8 @@ data class TitusClusterSpec(
     dependencies: ClusterDependencies? = null,
     tags: Map<String, String> = emptyMap(),
     scaling: TitusScalingSpec? = null,
-    overrides: Map<String, TitusServerGroupSpec> = emptyMap()
+    overrides: Map<String, TitusServerGroupSpec> = emptyMap(),
+    managedRollout: ManagedRolloutConfig = ManagedRolloutConfig()
   ) : this(
     moniker = moniker,
     deployWith = deployWith,
@@ -95,7 +98,8 @@ data class TitusClusterSpec(
       scaling = scaling
     ),
     overrides = overrides,
-    container = container
+    container = container,
+    managedRollout = managedRollout
   )
 
   override val id = "${locations.account}:$moniker"
@@ -144,6 +148,9 @@ data class TitusClusterSpec(
       }
       deps
     }.toSet()
+
+  override fun deepRename(suffix: String) =
+    copy(moniker = moniker.withSuffix(suffix))
 }
 
 data class TitusServerGroupSpec(

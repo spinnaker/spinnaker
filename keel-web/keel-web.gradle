@@ -26,6 +26,7 @@ dependencies {
   api(project(":keel-lemur"))
   api(project(":keel-notifications"))
   api(project(":keel-front50"))
+  api(project(":keel-orca"))
 
   implementation(project(":keel-bakery-plugin"))
   implementation(project(":keel-ec2-plugin"))
@@ -47,8 +48,11 @@ dependencies {
   implementation("io.spinnaker.kork:kork-plugins")
   implementation("com.slack.api:bolt-servlet:1.6.0")
   implementation("com.graphql-java:graphql-java-extended-scalars:16.0.1")
-  implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:4.3.2'))
+
+  // DGS dependencies
+  implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:4.9.0'))
   implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter")
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
 
   runtimeOnly("io.spinnaker.kork:kork-runtime")
   runtimeOnly("io.springfox:springfox-boot-starter:3.0.0")

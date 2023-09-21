@@ -43,8 +43,8 @@ class ConstraintRepositoryBridge(
     return keelRepository.getConstraintStateById(uid)
   }
 
-  override fun deleteConstraintState(deliveryConfigName: String, environmentName: String, type: String) {
-    return keelRepository.deleteConstraintState(deliveryConfigName, environmentName, type)
+  override fun deleteConstraintState(deliveryConfigName: String, environmentName: String, reference: String, version: String, type: String): Int {
+    return keelRepository.deleteConstraintState(deliveryConfigName, environmentName, reference, version, type)
   }
 
   override fun constraintStateFor(application: String): List<ConstraintState> {

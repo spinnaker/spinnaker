@@ -43,9 +43,11 @@ import com.netflix.spinnaker.keel.api.titus.TitusServerGroup
 import com.netflix.spinnaker.keel.api.titus.TitusServerGroupSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
+import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.events.ResourceHealthEvent
@@ -94,8 +96,21 @@ import io.mockk.coVerify as verify
 // todo eb: we could probably have generic cluster tests
 // where you provide the correct info for the spec and active server groups
 class TitusClusterHandlerTests : JUnit5Minutests {
-  val cloudDriverService = mockk<CloudDriverService>()
-  val cloudDriverCache = mockk<CloudDriverCache>()
+  val titusAccount = "titustest"
+  val awsAccount = "test"
+  val titusAccountCredential = Credential(
+    name = titusAccount,
+    type = "titus",
+    environment = "testenv",
+    attributes = mutableMapOf("awsAccount" to awsAccount, "registry" to awsAccount + "registry")
+  )
+
+  val cloudDriverService = mockk<CloudDriverService>() {
+    every { listTitusServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
+  }
+  val cloudDriverCache = mockk<CloudDriverCache>() {
+    every { credentialBy(titusAccount) } returns titusAccountCredential
+  }
   val orcaService = mockk<OrcaService>()
   val resolvers = emptyList<Resolver<TitusClusterSpec>>()
   val repository = mockk<KeelRepository>()
@@ -115,9 +130,6 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val sg2West = SecurityGroupSummary("keel-elb", "sg-235425234", "vpc-1")
   val sg1East = SecurityGroupSummary("keel", "sg-279585936", "vpc-1")
   val sg2East = SecurityGroupSummary("keel-elb", "sg-610264122", "vpc-1")
-
-  val titusAccount = "titustest"
-  val awsAccount = "test"
 
   val digestProvider = DigestProvider(
     organization = "spinnaker",
@@ -226,11 +238,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         every { securityGroupById(awsAccount, "us-east-1", sg2East.id) } returns sg2East
         every { securityGroupByName(awsAccount, "us-east-1", sg1East.name) } returns sg1East
         every { securityGroupByName(awsAccount, "us-east-1", sg2East.name) } returns sg2East
-
-        every { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf(
-          "awsAccount" to awsAccount,
-          "registry" to awsAccount + "registry"
-        )
+        every { cloudDriverCache.credentialBy(titusAccount) } returns titusAccountCredential
       }
       every { repository.environmentFor(any()) } returns Environment("test")
       every {
@@ -428,8 +436,14 @@ class TitusClusterHandlerTests : JUnit5Minutests {
     }
 
     context("a diff has been detected") {
-      context("the diff is only in capacity") {
+      before {
+        every { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any(), any()) } returns
+          listOf(
+            DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111")
+          )
+      }
 
+      context("the diff is only in capacity") {
         val modified = setOf(
           serverGroupEast.copy(name = activeServerGroupResponseEast.name),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
@@ -442,6 +456,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         test("resolving diff resizes the current server group") {
           val slot = slot<OrchestrationRequest>()
           every { orcaService.orchestrate(resource.serviceAccount, capture(slot)) } answers { TaskRefResponse(ULID().nextULID())}
+          every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
 
           runBlocking {
             upsert(resource, diff)
@@ -523,6 +538,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         test("resolving diff clones the current server group by tag") {
           val slot = slot<OrchestrationRequest>()
           every { orcaService.orchestrate(resource.serviceAccount, capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
+          every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
 
           runBlocking {
             upsert(resource, diff)
@@ -556,6 +572,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         test("events are fired for the artifact deploying") {
           val slot = slot<OrchestrationRequest>()
           every { orcaService.orchestrate(resource.serviceAccount, capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
+          every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
 
           runBlocking {
             upsert(resource, diff)
@@ -568,6 +585,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         test("resolving diff clones the current server group by digest") {
           val slot = slot<OrchestrationRequest>()
           every { orcaService.orchestrate(resource.serviceAccount, capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
+          every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
 
           runBlocking {
             upsert(resource, diff)
@@ -590,6 +608,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         test("the default deploy strategy is used") {
           val slot = slot<OrchestrationRequest>()
           every { orcaService.orchestrate(resource.serviceAccount, capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
+          every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
 
           val deployWith = RedBlack()
           runBlocking {
@@ -609,6 +628,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         test("the deploy strategy is configured") {
           val slot = slot<OrchestrationRequest>()
           every { orcaService.orchestrate(resource.serviceAccount, capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
+          every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
 
           val deployWith = RedBlack(
             resizePreviousToZero = true,
@@ -633,6 +653,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         test("a different deploy strategy is used") {
           val slot = slot<OrchestrationRequest>()
           every { orcaService.orchestrate(resource.serviceAccount, capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
+          every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
 
           runBlocking {
             upsert(resource.copy(spec = resource.spec.copy(deployWith = Highlander())), diff)
@@ -653,6 +674,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         before {
           every { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any(), any()) } returns
             listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
+          every { cloudDriverService.listTitusServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection(titusAccount, emptySet())
         }
         val modified = setOf(
           serverGroupEast.copy(name = activeServerGroupResponseEast.name).withDifferentRuntimeOptions(),
@@ -732,13 +754,13 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           mapOf(
             "type" to "destroyServerGroup",
             "asgName" to it.name,
-            "moniker" to it.moniker,
+            "moniker" to it.moniker.orcaClusterMoniker,
             "serverGroupName" to it.name,
             "region" to it.region,
             "credentials" to allServerGroups.accountName,
             "cloudProvider" to "titus",
             "user" to resource.serviceAccount,
-            "completeOtherBranchesThenFail" to false,
+            "completeOtherBranchesThenFail" to true,
             "continuePipeline" to false,
             "failPipeline" to false,
           )

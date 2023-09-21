@@ -18,7 +18,10 @@ class ResourceDetailsFetcher(
   /**
    * Returns the raw definition of the resource in scope in YAML format. This will include metadata added by Keel.
    */
-  @DgsData(parentType = DgsConstants.MDRESOURCE.TYPE_NAME, field = DgsConstants.MDRESOURCE.RawDefinition)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDRESOURCE.TYPE_NAME, field = DgsConstants.MDRESOURCE.RawDefinition),
+    DgsData(parentType = DgsConstants.MD_RESOURCE.TYPE_NAME, field = DgsConstants.MD_RESOURCE.RawDefinition),
+  )
   fun rawDefinition(dfe: DgsDataFetchingEnvironment): String? {
     val resource: MdResource = dfe.getSource()
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)

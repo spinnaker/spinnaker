@@ -110,23 +110,13 @@ interface KeelRepository : KeelReadOnlyRepository {
   fun deleteEnvironment(deliveryConfigName: String, environmentName: String)
 
   /**
-   * Stores/updates an [Environment] associated with a [DeliveryConfig].
-   *
-   * Generally, updating environments should be done via [store]. This method is primarily
-   * intended to support the creation of preview environments, where none of the other
-   * properties of the delivery config have changed, which allows us to use a more efficient
-   * storage algorithm.
-   */
-  fun storeEnvironment(deliveryConfigName: String, environment: Environment)
-
-  /**
    * If the constraint state changed, publishes a [ConstraintStateChanged] event.
    */
   fun storeConstraintState(state: ConstraintState)
 
   fun getConstraintStateById(uid: UID): ConstraintState?
 
-  fun deleteConstraintState(deliveryConfigName: String, environmentName: String, type: String)
+  fun deleteConstraintState(deliveryConfigName: String, environmentName: String, reference: String, version: String, type: String): Int
 
   fun queueArtifactVersionForApproval(
     deliveryConfigName: String,
@@ -187,6 +177,8 @@ interface KeelRepository : KeelReadOnlyRepository {
   fun storeArtifactVersion(artifactVersion: PublishedArtifact): Boolean
 
   fun getArtifactVersion(artifact: DeliveryArtifact, version: String, status: ArtifactStatus? = null): PublishedArtifact?
+
+  fun getLatestApprovedInEnvArtifactVersion(config: DeliveryConfig, artifact: DeliveryArtifact, environmentName: String): PublishedArtifact?
 
   fun updateArtifactMetadata(artifact: PublishedArtifact, artifactMetadata: ArtifactMetadata)
 

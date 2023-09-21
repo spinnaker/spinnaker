@@ -245,7 +245,8 @@ data class LaunchTemplateData(
   val keyName: String,
   val iamInstanceProfile: IamInstanceProfile,
   val monitoring: InstanceMonitoring,
-  val ramDiskId: String?
+  val ramDiskId: String?,
+  val metadataOptions: Map<String, String> = emptyMap()
 )
 
 data class IamInstanceProfile(

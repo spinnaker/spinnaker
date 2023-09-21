@@ -35,7 +35,10 @@ class GitIntegration(
   private val deliveryConfigUpserter: DeliveryConfigUpserter,
   private val importer: DeliveryConfigImporter,
 ) {
-  @DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.GitIntegration)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MDAPPLICATION.TYPE_NAME, field = DgsConstants.MDAPPLICATION.GitIntegration),
+    DgsData(parentType = DgsConstants.MD_APPLICATION.TYPE_NAME, field = DgsConstants.MD_APPLICATION.GitIntegration),
+  )
   fun gitIntegration(dfe: DgsDataFetchingEnvironment): MdGitIntegration {
     val app: MdApplication = dfe.getSource()
     val config = applicationFetcherSupport.getDeliveryConfigFromContext(dfe)
@@ -44,7 +47,10 @@ class GitIntegration(
     }.toGitIntegration()
   }
 
-  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.UpdateGitIntegration)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.UpdateGitIntegration),
+    DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.Md_updateGitIntegration),
+  )
   @PreAuthorize(
     """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #payload.application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #payload.application)"""
@@ -69,7 +75,10 @@ class GitIntegration(
     return updatedFront50App.toGitIntegration()
   }
 
-  @DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.ImportDeliveryConfig)
+  @DgsData.List(
+    DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.ImportDeliveryConfig),
+    DgsData(parentType = DgsConstants.MUTATION.TYPE_NAME, field = DgsConstants.MUTATION.Md_importDeliveryConfig),
+  )
   @PreAuthorize(
     """@authorizationSupport.hasApplicationPermission('WRITE', 'APPLICATION', #application)
     and @authorizationSupport.hasServiceAccountAccess('APPLICATION', #application)"""
@@ -78,7 +87,7 @@ class GitIntegration(
     @InputArgument application: String,
   ): Boolean {
     val front50App = runBlocking {
-      front50Cache.applicationByName(application)
+      front50Cache.applicationByName(application, invalidateCache = true)
     }
     val defaultBranch = scmUtils.getDefaultBranch(front50App)
     val deliveryConfig =
@@ -94,14 +103,19 @@ class GitIntegration(
   }
 
   private fun Application.toGitIntegration(): MdGitIntegration {
-    val branch = scmUtils.getDefaultBranch(this)
-    return MdGitIntegration(
-      id = "${name}-git-integration",
-      repository = "${repoProjectKey}/${repoSlug}",
-      branch = branch,
-      isEnabled = managedDelivery?.importDeliveryConfig,
-      manifestPath = managedDelivery?.manifestPath ?: DEFAULT_MANIFEST_PATH,
-      link = scmUtils.getBranchLink(repoType, repoProjectKey, repoSlug, branch),
-    )
+    try {
+      scmUtils.getDefaultBranch(this)
+    } catch (e: Exception) {
+      throw DgsEntityNotFoundException("Unable to retrieve your app's git repo details. Please check the app config.")
+    }.let { branch ->
+      return MdGitIntegration(
+        id = "${name}-git-integration",
+        repository = "${repoProjectKey}/${repoSlug}",
+        branch = branch,
+        isEnabled = managedDelivery?.importDeliveryConfig,
+        manifestPath = managedDelivery?.manifestPath ?: DEFAULT_MANIFEST_PATH,
+        link = scmUtils.getBranchLink(repoType, repoProjectKey, repoSlug, branch),
+      )
+    }
   }
 }

@@ -37,6 +37,7 @@ class ContainerRunner(
   ): ActionState {
     @Suppress("UNCHECKED_CAST")
     val taskId = (oldState.metadata[TASKS] as Iterable<String>?)?.last()
+    log.debug("Checking status for task $taskId")
     require(taskId is String) {
       "No task id found in previous container state"
     }

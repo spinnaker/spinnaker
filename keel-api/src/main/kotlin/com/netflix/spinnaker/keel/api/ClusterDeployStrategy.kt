@@ -13,6 +13,10 @@ abstract class ClusterDeployStrategy {
 
   companion object {
     val DEFAULT_WAIT_FOR_INSTANCES_UP: Duration = Duration.ofMinutes(30)
+    const val RED_BLACK_STRATEGY = "red-black"
+    const val HIGHLANDER_STRATEGY = "highlander"
+    const val NONE_STRATEGY = "none"
+    const val ROLLING_PUSH_STRATEGY = "rolling-push"
   }
 }
 
@@ -28,7 +32,7 @@ data class RedBlack(
   // The order of this list is important for pauseTime based staggers
   override val stagger: List<StaggeredRegion> = emptyList()
 ) : ClusterDeployStrategy() {
-  override val strategy = "red-black"
+  override val strategy = RED_BLACK_STRATEGY
 
   override val isStaggered: Boolean
     get() = stagger.isNotEmpty()
@@ -37,13 +41,13 @@ data class RedBlack(
 data class Highlander(
   override val health: DeployHealth = AUTO
 ) : ClusterDeployStrategy() {
-  override val strategy = "highlander"
+  override val strategy = HIGHLANDER_STRATEGY
 }
 
 data class NoStrategy(
   override val health: DeployHealth = AUTO
 ): ClusterDeployStrategy() {
-  override val strategy = "none"
+  override val strategy = NONE_STRATEGY
 }
 
 data class RollingPush(
@@ -54,7 +58,7 @@ data class RollingPush(
   val totalRelaunches: Int? = null,
   val terminationOrder: TerminationOrder? = null
 ): ClusterDeployStrategy() {
-  override val strategy = "rolling-push"
+  override val strategy = ROLLING_PUSH_STRATEGY
 }
 
 enum class TerminationOrder {

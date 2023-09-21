@@ -249,9 +249,6 @@ class CombinedRepository(
   override fun deleteEnvironment(deliveryConfigName: String, environmentName: String) =
     deliveryConfigRepository.deleteEnvironment(deliveryConfigName, environmentName)
 
-  override fun storeEnvironment(deliveryConfigName: String, environment: Environment) =
-    deliveryConfigRepository.storeEnvironment(deliveryConfigName, environment)
-
   override fun storeConstraintState(state: ConstraintState) {
     val previousState = getConstraintState(
       deliveryConfigName = state.deliveryConfigName,
@@ -303,8 +300,8 @@ class CombinedRepository(
   override fun getConstraintStateById(uid: UID): ConstraintState? =
     deliveryConfigRepository.getConstraintStateById(uid)
 
-  override fun deleteConstraintState(deliveryConfigName: String, environmentName: String, type: String) =
-    deliveryConfigRepository.deleteConstraintState(deliveryConfigName, environmentName, type)
+  override fun deleteConstraintState(deliveryConfigName: String, environmentName: String, reference: String, version: String, type: String): Int =
+    deliveryConfigRepository.deleteConstraintState(deliveryConfigName, environmentName, reference, version, type)
 
   override fun constraintStateFor(application: String): List<ConstraintState> =
     deliveryConfigRepository.constraintStateFor(application)
@@ -420,6 +417,9 @@ class CombinedRepository(
 
   override fun getArtifactVersion(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): PublishedArtifact? =
     artifactRepository.getArtifactVersion(artifact, version, status)
+
+  override fun getLatestApprovedInEnvArtifactVersion(config: DeliveryConfig, artifact: DeliveryArtifact, environmentName: String): PublishedArtifact? =
+    artifactRepository.getLatestApprovedInEnvArtifactVersion(config, artifact, environmentName)
 
   override fun updateArtifactMetadata(artifact: PublishedArtifact, artifactMetadata: ArtifactMetadata) =
     artifactRepository.updateArtifactMetadata(artifact, artifactMetadata)

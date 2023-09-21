@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.DependencyType.TARGET_GROUP
 import com.netflix.spinnaker.keel.api.Dependent
 import com.netflix.spinnaker.keel.api.ExcludedFromDiff
 import com.netflix.spinnaker.keel.api.Locations
+import com.netflix.spinnaker.keel.api.ManagedRolloutConfig
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
@@ -41,12 +42,15 @@ fun ClusterSpec.resolve(): Set<ServerGroup> =
       dependencies = resolveDependencies(it.name),
       health = resolveHealth(it.name),
       scaling = resolveScaling(it.name),
-      tags = defaults.tags + overrides[it.name]?.tags,
+      tags = resolveTags(it.name),
       artifactName = artifactName,
       artifactVersion = artifactVersion
     )
   }
     .toSet()
+
+fun ClusterSpec.resolveTags(region: String? = null) =
+  defaults.tags + (region?.let { overrides[it] }?.tags ?: emptyMap())
 
 private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec): LaunchConfiguration {
   val image = checkNotNull(
@@ -83,47 +87,63 @@ private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec
       ?: defaults.launchConfiguration?.instanceMonitoring
       ?: LaunchConfiguration.DEFAULT_INSTANCE_MONITORING,
     ramdiskId = overrides[region.name]?.launchConfiguration?.ramdiskId
-      ?: defaults.launchConfiguration?.ramdiskId
+      ?: defaults.launchConfiguration?.ramdiskId,
+    requireIMDSv2 = (overrides[region.name]?.launchConfiguration?.instanceMetadataServiceVersion
+      ?: defaults.launchConfiguration?.instanceMetadataServiceVersion) == InstanceMetadataServiceVersion.V2
   )
 }
 
-fun ClusterSpec.resolveCapacity(region: String): Capacity =
-  overrides[region]?.resolveCapacity() ?: defaults.resolveCapacity() ?: Capacity.DefaultCapacity(1, 1, 1)
+fun ClusterSpec.resolveCapacity(region: String? = null): Capacity =
+  when (region) {
+    null -> defaults.resolveCapacity() ?: Capacity.DefaultCapacity(1, 1, 1)
+    else -> overrides[region]?.resolveCapacity() ?: defaults.resolveCapacity() ?: Capacity.DefaultCapacity(1, 1, 1)
+  }
 
 fun ServerGroupSpec.resolveCapacity(): Capacity? =
-  if (capacity == null) {
-    null
-  } else if (scaling.hasScalingPolicies()) {
-    Capacity.AutoScalingCapacity(capacity)
-  } else
-    Capacity.DefaultCapacity(capacity)
+  when {
+    capacity == null -> null
+    scaling.hasScalingPolicies() -> Capacity.AutoScalingCapacity(capacity)
+    else -> Capacity.DefaultCapacity(capacity)
+  }
 
-private fun ClusterSpec.resolveScaling(region: String): Scaling =
+fun ClusterSpec.resolveScaling(region: String? = null): Scaling =
   Scaling(
-    suspendedProcesses = defaults.scaling?.suspendedProcesses + overrides[region]?.scaling?.suspendedProcesses,
+    suspendedProcesses = defaults.scaling?.suspendedProcesses +
+      (region?.let { overrides[it] }?.scaling?.suspendedProcesses ?: emptySet()),
     targetTrackingPolicies = defaults.scaling?.targetTrackingPolicies +
-      overrides[region]?.scaling?.targetTrackingPolicies,
-    stepScalingPolicies = defaults.scaling?.stepScalingPolicies + overrides[region]?.scaling?.stepScalingPolicies
+      (region?.let { overrides[it] }?.scaling?.targetTrackingPolicies ?: emptySet()),
+    stepScalingPolicies = defaults.scaling?.stepScalingPolicies +
+      (region?.let { overrides[it] }?.scaling?.stepScalingPolicies ?: emptySet())
   )
 
-private fun ClusterSpec.resolveDependencies(region: String): ClusterDependencies =
+fun ClusterSpec.resolveDependencies(region: String? = null): ClusterDependencies =
   ClusterDependencies(
-    loadBalancerNames = defaults.dependencies?.loadBalancerNames + overrides[region]?.dependencies?.loadBalancerNames,
-    securityGroupNames = defaults.dependencies?.securityGroupNames + overrides[region]?.dependencies?.securityGroupNames,
-    targetGroups = defaults.dependencies?.targetGroups + overrides[region]?.dependencies?.targetGroups
+    loadBalancerNames = defaults.dependencies?.loadBalancerNames +
+      (region?.let { overrides[it] }?.dependencies?.loadBalancerNames ?: emptySet()),
+    securityGroupNames = defaults.dependencies?.securityGroupNames +
+      (region?.let { overrides[it] }?.dependencies?.securityGroupNames ?: emptySet()),
+    targetGroups = defaults.dependencies?.targetGroups +
+      (region?.let { overrides[it] }?.dependencies?.targetGroups ?: emptySet())
   )
 
-private fun ClusterSpec.resolveHealth(region: String): Health {
+fun ClusterSpec.resolveHealth(region: String? = null): Health {
   val default by lazy { Health() }
   return Health(
-    cooldown = overrides[region]?.health?.cooldown ?: defaults.health?.cooldown ?: default.cooldown,
-    warmup = overrides[region]?.health?.warmup ?: defaults.health?.warmup ?: default.warmup,
-    healthCheckType = overrides[region]?.health?.healthCheckType ?: defaults.health?.healthCheckType
-    ?: default.healthCheckType,
-    enabledMetrics = overrides[region]?.health?.enabledMetrics ?: defaults.health?.enabledMetrics
-    ?: default.enabledMetrics,
-    terminationPolicies = overrides[region]?.health?.terminationPolicies
-      ?: defaults.health?.terminationPolicies ?: default.terminationPolicies
+    cooldown = region?.let { overrides[it] }?.health?.cooldown
+      ?: defaults.health?.cooldown
+      ?: default.cooldown,
+    warmup = region?.let { overrides[it] }?.health?.warmup
+      ?: defaults.health?.warmup
+      ?: default.warmup,
+    healthCheckType = region?.let { overrides[it] }?.health?.healthCheckType
+      ?: defaults.health?.healthCheckType
+      ?: default.healthCheckType,
+    enabledMetrics = region?.let { overrides[it] }?.health?.enabledMetrics
+      ?: defaults.health?.enabledMetrics
+      ?: default.enabledMetrics,
+    terminationPolicies = region?.let { overrides[it] }?.health?.terminationPolicies
+      ?: defaults.health?.terminationPolicies
+      ?: default.terminationPolicies
   )
 }
 
@@ -131,6 +151,7 @@ data class ClusterSpec(
   override val moniker: Moniker,
   override val artifactReference: String? = null,
   val deployWith: ClusterDeployStrategy = RedBlack(),
+  val managedRollout: ManagedRolloutConfig = ManagedRolloutConfig(),
   override val locations: SubnetAwareLocations,
   private val _defaults: ServerGroupSpec,
   override val overrides: Map<String, ServerGroupSpec> = emptyMap(),
@@ -149,15 +170,17 @@ data class ClusterSpec(
     health: HealthSpec? = null,
     scaling: Scaling? = null,
     tags: Map<String, String>? = null,
-    overrides: Map<String, ServerGroupSpec> = emptyMap()
+    overrides: Map<String, ServerGroupSpec> = emptyMap(),
+    managedRollout: ManagedRolloutConfig = ManagedRolloutConfig()
   ) : this(
     moniker,
     artifactReference,
     deployWith,
+    managedRollout,
     locations,
     ServerGroupSpec(
       launchConfiguration,
-      capacity ,
+      capacity,
       dependencies,
       health,
       scaling,
@@ -204,6 +227,9 @@ data class ClusterSpec(
       }
       deps
     }.toSet()
+
+  override fun deepRename(suffix: String) =
+    copy(moniker = moniker.withSuffix(suffix))
 
   data class ServerGroupSpec(
     val launchConfiguration: LaunchConfigurationSpec? = null,

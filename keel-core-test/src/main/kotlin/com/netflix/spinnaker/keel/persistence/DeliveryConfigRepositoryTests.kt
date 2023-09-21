@@ -48,6 +48,7 @@ import strikt.api.expectThrows
 import strikt.assertions.all
 import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.filterNot
 import strikt.assertions.first
 import strikt.assertions.flatMap
 import strikt.assertions.hasSize
@@ -161,6 +162,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       }
     }
 
+    fun DeliveryArtifact.getVersionId(num: Int): String = "${name}-1.0.$num"
+
     fun storeJudgements() =
       storeArtifactVersionsAndJudgements(artifact, 1, 1)
 
@@ -175,7 +178,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
         artifactRepository.storeArtifactVersion(
           PublishedArtifact(
-            artifact.name, artifact.type, "${artifact.name}-1.0.$v", createdAt = clock.instant(),
+            artifact.name, artifact.type, artifact.getVersionId(v), createdAt = clock.instant(),
             gitMetadata = GitMetadata(commit = "ignored", branch = "main")
           )
         )
@@ -185,7 +188,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             ConstraintState(
               deliveryConfigName = deliveryConfig.name,
               environmentName = env.name,
-              artifactVersion = "${artifact.name}-1.0.$v",
+              artifactVersion = artifact.getVersionId(v),
               artifactReference = artifact.reference,
               type = "manual-judgement",
               status = ConstraintStatus.PENDING
@@ -445,6 +448,21 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         }
 
         context("artifact constraint flows") {
+          test("constraints can be deleted") {
+            storeArtifactVersionsAndJudgements(artifact, 2, 4)
+            val environment = deliveryConfig.environments.first { it.name == "staging" }
+            val numDeleted = repository.deleteConstraintState(
+              deliveryConfig.name,
+              environment.name,
+              artifact.reference,
+              artifact.getVersionId(1),
+              "manual-judgement"
+            )
+            val recentConstraintState = repository.constraintStateFor(deliveryConfig.name, environment.name)
+            expectThat(numDeleted).equals(1)
+            expectThat(recentConstraintState).filterNot { it.artifactVersion == artifact.getVersionId(1) }
+          }
+
           test("constraint states can be retrieved and updated") {
             val environment = deliveryConfig.environments.first { it.name == "staging" }
             val recentConstraintState = repository.constraintStateFor(deliveryConfig.name, environment.name)

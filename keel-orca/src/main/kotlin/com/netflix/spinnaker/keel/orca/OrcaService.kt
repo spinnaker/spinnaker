@@ -61,6 +61,12 @@ interface OrcaService {
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   )
 
+  @PUT("/tasks/cancel")
+  suspend fun cancelOrchestrations(
+    @Body taskIds: List<String>,
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
+  )
+
   @GET("/executions/correlated/{correlationId}")
   suspend fun getCorrelatedExecutions(
     @Path("correlationId") correlationId: String,

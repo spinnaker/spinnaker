@@ -40,6 +40,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCollection
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.core.orcaClusterMoniker
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -71,7 +72,9 @@ import io.mockk.coVerify as verify
 @Suppress("MemberVisibilityCanBePrivate")
 internal class ClusterHandlerTests : JUnit5Minutests {
 
-  val cloudDriverService = mockk<CloudDriverService>()
+  val cloudDriverService = mockk<CloudDriverService>() {
+    every { listServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection("test", emptySet())
+  }
   val cloudDriverCache = mockk<CloudDriverCache>()
   val orcaService = mockk<OrcaService>()
   val normalizers = emptyList<Resolver<ClusterSpec>>()
@@ -263,6 +266,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       every {
         springEnv.getProperty("keel.plugins.ec2.volumes.account-overrides.test.volume-type", String::class.java)
       } returns null
+
+      every { cloudDriverService.listServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection("test", emptySet())
     }
 
     after {
@@ -341,6 +346,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
 
       test("annealing a diff creates staggered server groups with scaling policies upserted in the same orchestration") {
+        every { cloudDriverService.listServerGroups(any(), any(), any(), any(), any()) } returns ServerGroupCollection("test", emptySet())
         val slot = slot<OrchestrationRequest>()
         every { orcaService.orchestrate(resource.serviceAccount, capture(slot)) } answers { TaskRefResponse(ULID().nextULID()) }
 
@@ -1139,13 +1145,13 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           mapOf(
             "type" to "destroyServerGroup",
             "asgName" to it.name,
-            "moniker" to it.moniker,
+            "moniker" to it.moniker.orcaClusterMoniker,
             "serverGroupName" to it.name,
             "region" to it.region,
             "credentials" to allServerGroups.accountName,
             "cloudProvider" to "aws",
             "user" to resource.serviceAccount,
-            "completeOtherBranchesThenFail" to false,
+            "completeOtherBranchesThenFail" to true,
             "continuePipeline" to false,
             "failPipeline" to false,
           )

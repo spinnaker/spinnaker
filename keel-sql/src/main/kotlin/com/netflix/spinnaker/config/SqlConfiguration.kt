@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.sql.SqlDiffFingerprintRepository
 import com.netflix.spinnaker.keel.sql.SqlDismissibleNotificationRepository
 import com.netflix.spinnaker.keel.sql.SqlEnvironmentDeletionRepository
 import com.netflix.spinnaker.keel.sql.SqlEnvironmentLeaseRepository
+import com.netflix.spinnaker.keel.sql.SqlFeatureRolloutRepository
 import com.netflix.spinnaker.keel.sql.SqlLifecycleEventRepository
 import com.netflix.spinnaker.keel.sql.SqlLifecycleMonitorRepository
 import com.netflix.spinnaker.keel.sql.SqlNotificationRepository
@@ -250,4 +251,10 @@ class SqlConfiguration
     clock: Clock,
     objectMapper: ObjectMapper
   ) = SqlWorkQueueRepository(jooq, clock, objectMapper, SqlRetry(sqlRetryProperties))
+
+  @Bean
+  fun featureRolloutRepository(
+    jooq: DSLContext,
+    clock: Clock
+  ) = SqlFeatureRolloutRepository(jooq, SqlRetry(sqlRetryProperties), clock)
 }

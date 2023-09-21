@@ -52,7 +52,10 @@ class TestContainerVerificationEvaluator(
     verification: Verification,
     oldState: ActionState
   ): ActionState =
-    runBlocking { containerRunner.getNewState(oldState, linkStrategy) }
+    runBlocking {
+      log.debug("Getting new verification state for ${context.shortName()}")
+      containerRunner.getNewState(oldState, linkStrategy)
+    }
 
   override fun start(context: ArtifactInEnvironmentContext, verification: Verification): Map<String, Any?> {
     require(verification is TestContainerVerification) {

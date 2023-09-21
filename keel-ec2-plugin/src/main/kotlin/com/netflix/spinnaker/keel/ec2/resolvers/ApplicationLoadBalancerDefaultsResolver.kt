@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.Action.For
 import com.netflix.spinnaker.keel.api.ec2.EC2_APPLICATION_LOAD_BALANCER_V1_2
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import org.springframework.stereotype.Component
+import java.util.SortedSet
 
 @Component
 class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancerSpec> {
@@ -16,8 +17,8 @@ class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancer
     if (resource.spec.listeners.any { it.defaultActions.isEmpty() } || resource.spec.dependencies.securityGroupNames.isEmpty()) {
       val listeners = resource.spec.listeners.map {
         if (it.defaultActions.isEmpty()) {
-          val defaultActions = if (it.defaultActions.isEmpty()) {
-            setOf(
+          val defaultActions: SortedSet<Action> = if (it.defaultActions.isEmpty()) {
+            sortedSetOf(
               ForwardAction(
                 order = 1,
                 targetGroupName = resource.spec.targetGroups.first().name

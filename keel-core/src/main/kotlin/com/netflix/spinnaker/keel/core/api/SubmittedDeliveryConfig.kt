@@ -60,6 +60,15 @@ data class SubmittedEnvironment(
   @Description("Optional locations that are propagated to any [resources] where they are not specified.")
   val locations: SubnetAwareLocations? = null
 ) {
+  // We declare the metadata field here such that it's not used in equals() and hashCode(), since we don't
+  // care about the metadata when comparing environments.
+  val metadata: MutableMap<String, Any?> = mutableMapOf()
+
+  fun addMetadata(vararg metadata: Pair<String, Any?>) =
+    apply {
+      this.metadata.putAll(metadata)
+    }
+
   fun toEnvironment(serviceAccount: String? = null) = Environment(
     name = name,
     resources = resources.mapTo(mutableSetOf()) { resource ->
@@ -71,5 +80,5 @@ data class SubmittedEnvironment(
     verifyWith = verifyWith,
     notifications = notifications,
     postDeploy = postDeploy
-  )
+  ).addMetadata(metadata)
 }

@@ -175,6 +175,7 @@ open class SqlResourceRepository(
         .set(RESOURCE_VERSION.CREATED_AT, clock.instant())
         .execute()
     } catch(e: Exception) {
+      log.error("Failed to insert resource version for ${resource.id}: $e", e)
       spectator.counter(resourceVersionInsertId.withTags(
         "success", "false",
         "application", resource.application, // Capture the app on fail cases to help repro

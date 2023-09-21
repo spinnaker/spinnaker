@@ -50,7 +50,8 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
       application = "fnord",
       environmentName = "prod",
       resourceId = resource.id,
-      name = "upsert server group"
+      name = "upsert server group",
+      artifactVersion = "v1"
     )
 
     val taskConstraintRecord = TaskRecord(
@@ -59,7 +60,8 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
       application = "fnord",
       environmentName = "prod",
       resourceId = null,
-      name = "canary constraint"
+      name = "canary constraint",
+      artifactVersion = "v1"
     )
 
     val task = Task(

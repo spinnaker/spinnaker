@@ -400,7 +400,8 @@ class NotificationEventListener(
               currentArtifact = currentArtifact,
               deliveryArtifact = deliveryArtifact,
               pinnedArtifact = pinnedArtifact,
-              stateUid = currentState.uid
+              stateUid = currentState.uid,
+              config = config
             ),
             MANUAL_JUDGMENT_AWAIT,
             environment.name
@@ -424,7 +425,8 @@ class NotificationEventListener(
                   deliveryArtifact = deliveryArtifact,
                   pinnedArtifact = pinnedArtifact,
                   author = slackDetail.author,
-                  display = slackDetail.display ?: NORMAL
+                  display = slackDetail.display ?: NORMAL,
+                  config = config
                 ),
                 MANUAL_JUDGMENT_UPDATE,
                 environment.name

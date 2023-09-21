@@ -1,0 +1,18 @@
+query fetchApplication($appName: String!) {
+  md_application(appName: $appName) {
+    name
+    environments {
+      name
+      state {
+        artifacts {
+          name
+          type
+          versions(statuses: [CURRENT]) {
+            status
+            version
+          }
+        }
+      }
+    }
+  }
+}

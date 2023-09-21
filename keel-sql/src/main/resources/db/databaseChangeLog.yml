@@ -368,3 +368,21 @@ databaseChangeLog:
 - include:
     file: changelog/20210909-task-tracking-resource-and-environment.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20210917-feature-rollout-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210923-rename-feature-rollout-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210928-add-status-to-feature-rollout.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20211007-task-tracking-indecies.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20211008-version-task-tracking.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20211014-artifact-is-preview-column.yml
+    relativeToChangelogFile: true

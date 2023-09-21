@@ -400,6 +400,7 @@ class SqlActionRepository(
     link: String?,
     type: ActionType
   ) {
+    log.debug("Updating action state for ${context.shortName()}: $status")
     with(context) {
       jooq
         .insertInto(ACTION_STATE)
