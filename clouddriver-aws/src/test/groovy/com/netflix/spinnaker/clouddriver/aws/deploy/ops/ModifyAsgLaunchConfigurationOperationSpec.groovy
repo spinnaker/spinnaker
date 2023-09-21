@@ -104,9 +104,9 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
-    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
-      assert region == region
+      assert region_local == region
       assert name == existingLc
 
       existing
@@ -154,9 +154,9 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
-    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
-      assert region == region
+      assert region_local == region
       assert name == existingLc
 
       existing
@@ -220,9 +220,9 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
-    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
-      assert region == region
+      assert region_local == region
       assert name == existingLc
 
       existing
@@ -280,9 +280,9 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
-    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
-      assert region == region
+      assert region_local == region
       assert name == existingLc
 
       existing
@@ -334,9 +334,9 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
-    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
-      assert region == region
+      assert region_local == region
       assert name == existingLc
 
       existing
@@ -383,9 +383,9 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
-    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
-      assert region == region
+      assert region_local == region
       assert name == existingLc
 
       existing
@@ -450,9 +450,9 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
-    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
-      assert region == region
+      assert region_local == region
       assert name == existingLc
 
       existing
@@ -519,9 +519,9 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
-    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region_local, name ->
       assert act == credential
-      assert region == region
+      assert region_local == region
       assert name == existingLc
 
       existing
