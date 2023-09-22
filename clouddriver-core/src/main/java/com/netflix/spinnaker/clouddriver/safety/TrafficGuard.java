@@ -30,15 +30,21 @@ import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.moniker.Moniker;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class TrafficGuard {
@@ -340,10 +346,9 @@ public class TrafficGuard {
     Map application;
     try {
       application = front50Service.getApplication(clusterMoniker.getApp());
-    } catch (RetrofitError e) {
+    } catch (SpinnakerHttpException e) {
       // ignore an unknown (404) or unauthorized (403) application
-      if (e.getResponse() != null
-          && Arrays.asList(404, 403).contains(e.getResponse().getStatus())) {
+      if (Arrays.asList(404, 403).contains(e.getResponseCode())) {
         application = null;
       } else {
         throw e;

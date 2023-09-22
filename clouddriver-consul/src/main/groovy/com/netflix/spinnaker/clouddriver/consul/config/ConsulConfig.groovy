@@ -17,14 +17,9 @@
 package com.netflix.spinnaker.clouddriver.consul.config
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.ConsulCatalog
-import com.netflix.spinnaker.clouddriver.consul.api.v1.services.CatalogApi
-import com.squareup.okhttp.OkHttpClient
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.util.logging.Slf4j
-import retrofit.RestAdapter
-import retrofit.RetrofitError
-import retrofit.client.OkClient
 
-import java.lang.invoke.ConstantCallSite
 import java.util.concurrent.TimeUnit
 
 @Slf4j
@@ -57,7 +52,7 @@ class ConsulConfig {
       try {
         def catalog = new ConsulCatalog(this)
         datacenters = catalog.api.datacenters()
-      } catch (RetrofitError e) {
+      } catch (SpinnakerServerException e) {
         log.warn "Unable to connect to Consul running on the local Clouddriver instance.", e
         datacenters = []
       }

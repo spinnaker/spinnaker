@@ -25,8 +25,8 @@ import com.netflix.spinnaker.clouddriver.docker.registry.cache.Keys
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProviderUtils
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.util.logging.Slf4j
-import retrofit.RetrofitError
 
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.TimeUnit
@@ -90,14 +90,14 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
     credentials.repositories.findAll { it ->
       threadCount == 1 || (it.hashCode() % threadCount).abs() == index
     }.collectEntries { repository ->
-      if(credentials.skip?.contains(repository)) {
-          return [:]
+      if (credentials.skip?.contains(repository)) {
+        return [:]
       }
       DockerRegistryTags tags = null
       try {
         tags = credentials.client.getTags(repository)
       } catch (Exception e) {
-        if (e instanceof RetrofitError && e.response?.status == 404) {
+        if (e instanceof SpinnakerHttpException && ((SpinnakerHttpException)e).getResponseCode() == 404) {
           log.warn("Could not load tags for ${repository} in ${credentials.client.address}, reason: ${e.message}")
         } else {
           log.error("Could not load tags for ${repository} in ${credentials.client.address}", e)
@@ -148,7 +148,8 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
           try {
             digest = credentials.client.getDigest(repository, tag)
           } catch (Exception e) {
-            if (e instanceof RetrofitError && ((RetrofitError) e).response?.status == 404) {
+            if(e instanceof SpinnakerHttpException && ((SpinnakerHttpException)e).getResponseCode() == 404)
+            {
               // Indicates inconsistency in registry, or deletion between call for all tags and manifest retrieval.
               // In either case, we need to trust that this tag no longer exists.
               log.warn("Image manifest for $tagKey no longer available; tag will not be cached: $e.message")

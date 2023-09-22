@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.model.SimpleInstance
 import com.netflix.spinnaker.clouddriver.model.SimpleServerGroup
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.moniker.Moniker
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -443,7 +444,7 @@ class TrafficGuardSpec extends Specification {
     !application.containsKey("trafficGuards")
     result == false
     1 * front50Service.getApplication("app") >> {
-      throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
+      throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null))
     }
   }
 

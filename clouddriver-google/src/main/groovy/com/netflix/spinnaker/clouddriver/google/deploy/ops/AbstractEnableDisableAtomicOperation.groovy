@@ -28,8 +28,8 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisable
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import org.springframework.beans.factory.annotation.Autowired
-import retrofit.RetrofitError
 
 abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412]
@@ -107,7 +107,7 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
                                               disable
                                               ? EnableDisableConsulInstance.State.disable
                                               : EnableDisableConsulInstance.State.enable)
-        } catch (RetrofitError e) {
+        } catch (SpinnakerServerException ignored) {
           // Consul isn't running
         }
       }

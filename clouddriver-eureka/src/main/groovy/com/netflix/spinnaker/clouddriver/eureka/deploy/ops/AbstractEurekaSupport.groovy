@@ -21,11 +21,13 @@ import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.helpers.EnableDisablePercentageCategorizer
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 import retrofit.client.Response
 
 @Slf4j
@@ -152,8 +154,8 @@ abstract class AbstractEurekaSupport {
             throw new RetryableException("Non HTTP 200 response from discovery for instance ${instanceId}, will retry (attempt: $retryCount}).")
           }
         }
-      } catch (RetrofitError retrofitError) {
-        def alwaysSkippable = retrofitError.response?.status == 404
+      } catch (SpinnakerServerException e) {
+        def alwaysSkippable = e instanceof SpinnakerHttpException && ((SpinnakerHttpException)e).getResponseCode() == 404
         def willSkip = alwaysSkippable || !strict
         def skippingOrNot = willSkip ? "skipping" : "not skipping"
 
@@ -162,7 +164,7 @@ abstract class AbstractEurekaSupport {
 
         // in strict mode, only 404 errors are ignored
         if (!willSkip) {
-          errors[instanceId] = retrofitError
+          errors[instanceId] = e
         } else {
           skipped.add(instanceId)
         }
@@ -219,22 +221,24 @@ abstract class AbstractEurekaSupport {
 
         retryCount++
         sleep(getDiscoveryRetryMs());
-      } catch (RetrofitError re) {
+      } catch (SpinnakerServerException e) {
         if (retryCount >= (maxRetries - 1)) {
-          throw re
+          throw e
         }
 
-        AbstractEurekaSupport.log.debug("[$phaseName] - Failed calling external service ${re.message}")
+        AbstractEurekaSupport.log.debug("[$phaseName] - Failed calling external service ${e.getMessage()}")
 
-        if (re.kind == RetrofitError.Kind.NETWORK || re.response.status == 404 || re.response.status == 406) {
+        if ( (e instanceof SpinnakerNetworkException)
+          || ((e instanceof SpinnakerHttpException) && ((SpinnakerHttpException) e).responseCode == 406)
+          || ((e instanceof SpinnakerHttpException) && ((SpinnakerHttpException) e).responseCode == 404)) {
           retryCount++
           sleep(getDiscoveryRetryMs())
-        } else if (re.response.status >= 500) {
+        } else if (e instanceof SpinnakerHttpException && ((SpinnakerHttpException) e).responseCode >= 500) {
           // automatically retry on server errors (but wait a little longer between attempts)
           sleep(getDiscoveryRetryMs() * 10)
           retryCount++
         } else {
-          throw re
+          throw e
         }
       } catch (AmazonServiceException ase) {
         if (ase.statusCode == 503) {
@@ -313,7 +317,7 @@ abstract class AbstractEurekaSupport {
     Set<String> eligible = []
 
     instances.each { instanceId ->
-      def instanceInExistingServerGroup = serverGroup.instances.find { it.name == instanceId   }
+      def instanceInExistingServerGroup = serverGroup.instances.find { it.name == instanceId }
 
       if (instanceInExistingServerGroup) {
         boolean anyDown = instanceInExistingServerGroup.health?.flatten()?.any {

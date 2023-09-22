@@ -42,6 +42,9 @@ import com.netflix.spinnaker.clouddriver.eureka.api.Eureka;
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport.DiscoveryStatus;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
@@ -56,7 +59,6 @@ import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import retrofit.RetrofitError;
 
 public class InstanceTerminationLifecycleWorker implements Runnable {
 
@@ -227,13 +229,14 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
       try {
         eureka.updateInstanceStatus(app, instanceId, DiscoveryStatus.OUT_OF_SERVICE.getValue());
         return true;
-      } catch (RetrofitError e) {
+      } catch (SpinnakerServerException e) {
         final String recoverableMessage =
             "Failed marking app out of service (status: {}, app: {}, instance: {}, retry: {})";
-        if (HttpStatus.NOT_FOUND.value() == e.getResponse().getStatus()) {
-          log.warn(recoverableMessage, e.getResponse().getStatus(), app, instanceId, retry);
-        } else if (e.getKind() == RetrofitError.Kind.NETWORK) {
-          log.error(recoverableMessage, e.getResponse().getStatus(), app, instanceId, retry, e);
+        if (e instanceof SpinnakerHttpException
+            && HttpStatus.NOT_FOUND.value() == ((SpinnakerHttpException) e).getResponseCode()) {
+          log.warn(recoverableMessage, 404, app, instanceId, retry);
+        } else if (e instanceof SpinnakerNetworkException) {
+          log.error(recoverableMessage, "none", app, instanceId, retry, e);
         } else {
           log.error(
               "Irrecoverable error while marking app out of service (app: {}, instance: {}, retry: {})",
@@ -245,6 +248,7 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
         }
       }
     }
+
     return false;
   }
 

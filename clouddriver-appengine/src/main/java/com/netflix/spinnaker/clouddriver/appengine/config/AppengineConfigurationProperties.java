@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor;
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.squareup.okhttp.OkHttpClient;
 import java.io.File;
 import java.util.ArrayList;
@@ -103,6 +104,7 @@ public class AppengineConfigurationProperties {
           new RestAdapter.Builder()
               .setEndpoint(metadataUrl)
               .setClient(new OkClient(client))
+              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
               .build();
       return restAdapter.create(MetadataService.class);
     }

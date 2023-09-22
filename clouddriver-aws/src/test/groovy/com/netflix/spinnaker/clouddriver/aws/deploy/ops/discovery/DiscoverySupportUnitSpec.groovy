@@ -24,7 +24,11 @@ import com.amazonaws.services.ec2.model.DescribeInstancesResult
 import com.amazonaws.services.ec2.model.InstanceState
 import com.amazonaws.services.ec2.model.InstanceStateName
 import com.amazonaws.services.ec2.model.Reservation
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.services.AsgService
+import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
@@ -33,10 +37,7 @@ import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaSupportConfigurationProperties
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
-import com.netflix.spinnaker.clouddriver.aws.services.AsgService
-import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
@@ -210,9 +211,9 @@ class DiscoverySupportUnitSpec extends Specification {
     task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * task.fail()
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName, status: "OUT_OF_SERVICE" ] ]
-    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(400)}
+    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw new SpinnakerHttpException(httpError(400))}
     1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {response(200)}
-    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(400)}
+    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw new SpinnakerHttpException(httpError(400))}
     1 * task.updateStatus("PHASE", { it.startsWith("Looking up discovery") })
     3 * task.updateStatus("PHASE", { it.startsWith("Attempting to mark") })
     2 * task.updateStatus('PHASE', { it.startsWith("Failed updating status") })
@@ -243,9 +244,9 @@ class DiscoverySupportUnitSpec extends Specification {
     then:
     task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName, status: "OUT_OF_SERVICE" ] ]
-    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(500)}
+    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw new SpinnakerHttpException(httpError(500))}
     1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> response(200)
-    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(500)}
+    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw new SpinnakerHttpException(httpError(500))}
     1 * task.updateStatus("PHASE", { it.startsWith("Looking up discovery") })
     3 * task.updateStatus("PHASE", { it.startsWith("Attempting to mark") })
     0 * task.updateStatus("PHASE", { it.startsWith("Failed marking instances 'UP'")})
@@ -279,9 +280,9 @@ class DiscoverySupportUnitSpec extends Specification {
     then:
     task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName, status: "OUT_OF_SERVICE" ] ]
-    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(500)}
+    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw new SpinnakerHttpException(httpError(500))}
     1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> response(200)
-    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw httpError(500)}
+    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> {throw new SpinnakerHttpException(httpError(500))}
     1 * task.updateStatus("PHASE", { it.startsWith("Looking up discovery") })
     3 * task.updateStatus("PHASE", { it.startsWith("Attempting to mark") })
     1 * task.updateStatus("PHASE", { it.startsWith("Failed marking instances 'UP'")})
@@ -313,10 +314,10 @@ class DiscoverySupportUnitSpec extends Specification {
     then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
     discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     discoverySupport.eurekaSupportConfigurationProperties.retryMax * eureka.getInstanceInfo(_) >> {
-      throw httpError(errorCode)
+        throw new SpinnakerHttpException(httpError(errorCode))
     }
     0 * task.fail()
-    thrown(RetrofitError)
+    thrown(SpinnakerHttpException)
 
     where:
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
@@ -377,8 +378,8 @@ class DiscoverySupportUnitSpec extends Specification {
           app: appName
         ]
       ]
-    eureka.updateInstanceStatus(appName, 'i-123', status.value) >> { throw httpError(404) }
-    eureka.resetInstanceStatus(appName, 'i-123', AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> { throw httpError(404) }
+    eureka.updateInstanceStatus(appName, 'i-123', status.value) >> { throw new SpinnakerHttpException(httpError(404)) }
+    eureka.resetInstanceStatus(appName, 'i-123', AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> { throw new SpinnakerHttpException(httpError(404)) }
     task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     0 * task.fail()
 

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.edda
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import retrofit.RestAdapter
 import retrofit.converter.Converter
 
@@ -33,6 +34,7 @@ class EddaApiFactory {
       return new RestAdapter.Builder()
         .setConverter(eddaConverter)
         .setEndpoint(endpointTemplate.replaceAll(Pattern.quote('{{region}}'), region))
+        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .build()
         .create(EddaApi)
     }

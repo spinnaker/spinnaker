@@ -6,6 +6,8 @@ dependencies {
   implementation "org.codehaus.groovy:groovy"
   implementation "org.codehaus.groovy:groovy-json"
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-exceptions"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"

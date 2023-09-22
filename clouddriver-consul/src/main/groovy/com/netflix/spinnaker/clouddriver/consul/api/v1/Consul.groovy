@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.consul.api.v1
 
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.squareup.okhttp.OkHttpClient
 import retrofit.RestAdapter
 import retrofit.client.OkClient
@@ -39,6 +40,7 @@ class Consul<T> {
       .setEndpoint(this.endpoint)
       .setClient(new OkClient(new OkHttpClient()))
       .setLogLevel(RestAdapter.LogLevel.NONE)
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()
       .create(type)
   }

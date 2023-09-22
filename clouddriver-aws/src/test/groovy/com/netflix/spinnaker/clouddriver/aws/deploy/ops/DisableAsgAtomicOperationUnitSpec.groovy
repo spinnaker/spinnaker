@@ -29,8 +29,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSuppo
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
-import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
-import com.netflix.spinnaker.clouddriver.eureka.model.EurekaInstance
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Unroll
@@ -134,9 +133,9 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
 
     eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE') >> {
-      throw new RetrofitError("error", "url",
+      throw new SpinnakerHttpException(new RetrofitError("error", "url",
         new Response("url", 503, "service unavailable", [], null),
-        null, null, null, null)
+        null, null, null, null))
     }
 
     when:

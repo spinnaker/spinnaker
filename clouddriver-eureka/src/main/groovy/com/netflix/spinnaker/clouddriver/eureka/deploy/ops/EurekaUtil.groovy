@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.clouddriver.eureka.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import org.apache.http.impl.client.HttpClients
 import retrofit.RestAdapter
 import retrofit.client.ApacheClient
@@ -27,7 +28,11 @@ class EurekaUtil {
 
   static Eureka getWritableEureka(String endpoint, String region) {
     String eurekaEndpoint = endpoint.replaceAll(Pattern.quote('{{region}}'), region)
-    new RestAdapter.Builder().setEndpoint(eurekaEndpoint).setClient(getApacheClient()).build().create(Eureka)
+    new RestAdapter.Builder()
+      .setEndpoint(eurekaEndpoint)
+      .setClient(getApacheClient())
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+      .build().create(Eureka)
   }
 
   //Lazy-create apache client on request if there is a discoveryEnabled AmazonCredentials:
