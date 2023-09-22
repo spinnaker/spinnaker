@@ -190,6 +190,7 @@ public interface MortService {
     }
   }
 
+  @Data
   class VPC {
     String id;
     String name;

@@ -25,6 +25,7 @@ import retrofit.converter.JacksonConverter
 import retrofit.mime.TypedInput
 import spock.lang.Specification
 import spock.lang.Unroll
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 
 import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.SecurityGroupIngress
 import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.applyMappings
@@ -252,6 +253,28 @@ class MortServiceSpec extends Specification {
       ])
 
     )
+  }
+
+  def "should correctly map VPC properties from JSON response"() {
+    given:
+    def objectMapper = OrcaObjectMapper.newInstance()
+    def vpcResponse = """
+      {
+        "account": "test",
+        "id": "vpc-12345",
+        "name": "vpc1",
+        "region": "us-west-1"
+      }
+    """
+
+    when:
+    def vpc = objectMapper.readValue(vpcResponse, MortService.VPC.class)
+
+    then:
+    vpc.account == "test"
+    vpc.id == "vpc-12345"
+    vpc.region == "us-west-1"
+    vpc.name == "vpc1"
   }
 
   static class MockTypedInput implements TypedInput {
