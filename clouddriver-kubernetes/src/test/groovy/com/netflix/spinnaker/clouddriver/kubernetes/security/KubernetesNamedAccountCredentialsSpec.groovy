@@ -58,7 +58,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
   void "should equal 2 Kubernetes accounts with same kubeconfig content"() {
     setup:
       def file1 = Files.createTempFile("test", "")
-      file1.append("some content")
+      file1.toFile().append("some content")
       def account1Def = new ManagedAccount()
       account1Def.setName("test")
       account1Def.setCacheThreads(1)
@@ -67,7 +67,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
       account1Def.setKubeconfigFile(file1.toString())
 
       def file2 = Files.createTempFile("other", "")
-      file2.append("some content")
+      file2.toFile().append("some content")
       def account2Def = new ManagedAccount()
       account2Def.setName("test")
       account2Def.setCacheThreads(1)
