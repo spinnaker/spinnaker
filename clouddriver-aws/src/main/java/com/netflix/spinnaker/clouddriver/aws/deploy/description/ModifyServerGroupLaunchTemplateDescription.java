@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
 import com.amazonaws.util.CollectionUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice;
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride;
@@ -101,6 +102,7 @@ public class ModifyServerGroupLaunchTemplateDescription extends AbstractAmazonCr
       launchTemplateOverridesForInstanceType;
 
   @Override
+  @JsonIgnore
   public Collection<String> getServerGroupNames() {
     return Collections.singletonList(asgName);
   }

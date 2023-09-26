@@ -3,6 +3,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.actions
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.LaunchTemplateSpecification
 import com.amazonaws.services.ec2.model.*
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyServerGroupLaunchTemplateDescription
 import com.netflix.spinnaker.clouddriver.aws.services.LaunchTemplateService
@@ -10,6 +11,7 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -78,5 +80,17 @@ class ModifyServerGroupLaunchTemplateSpec extends Specification {
       true            |        false              |        false        ||      true            ||     null           // update ASG MIP properties without creating a new LT version
       false           |        true               |        true         ||      true            ||      2L            // update ASG LT with new LT version and convert ASG to use MIP
       false           |        true               |        false        ||      false           ||      2L            // update ASG LT with new LT version, but don't use MIP
+  }
+
+  def "should not throw JsonProcessingException when deserializing"() {
+    given:
+    def objectMapper = AmazonObjectMapperConfigurer.createConfigured()
+    def json = objectMapper.writeValueAsString(dummyDescription)
+
+    when:
+    objectMapper.readValue(json, ModifyServerGroupLaunchTemplateDescription.class)
+
+    then:
+    notThrown(JsonMappingException)
   }
 }
