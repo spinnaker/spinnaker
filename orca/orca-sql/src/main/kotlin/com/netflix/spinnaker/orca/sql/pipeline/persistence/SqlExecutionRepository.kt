@@ -17,7 +17,6 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
@@ -57,6 +56,9 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeReposi
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
 import de.huxhorn.sulky.ulid.SpinULID
+import io.github.resilience4j.core.IntervalFunction
+import io.github.resilience4j.retry.RetryConfig
+import io.github.resilience4j.retry.RetryRegistry
 import java.time.Duration
 import org.jooq.DSLContext
 import org.jooq.DatePart
@@ -145,6 +147,7 @@ class SqlExecutionRepository(
   private val readPoolRetrieveSucceededId = registry.createId("executionRepository.sql.readPool.retrieveSucceeded")
   private val readPoolRetrieveFailedId = registry.createId("executionRepository.sql.readPool.retrieveFailed")
   private val readPoolRetrieveTotalId = registry.createId("executionRepository.sql.readPool.retrieveTotalAttempts")
+  private val readPoolRetryRegistry = initializeReadPoolRetryRegistry(retryProperties)
 
   init {
     // If there's no read pool configured, fall back to the default pool
@@ -179,6 +182,21 @@ class SqlExecutionRepository(
     } catch (e: TooManyRowsException) {
       throw SystemException("The partition_name table should have zero or one rows but multiple rows were found", e)
     }
+  }
+
+  private fun initializeReadPoolRetryRegistry(retryProperties: RetryProperties): RetryRegistry {
+    val exponentialMultiplier = 2.0
+    val jitter = 0.2
+    val retryInterval = IntervalFunction.ofExponentialRandomBackoff(retryProperties.backoffMs, exponentialMultiplier, jitter)
+    val retryConfig = RetryConfig.custom<ExecutionMapperResult>()
+      .maxAttempts(retryProperties.maxRetries)
+      .intervalFunction(retryInterval)
+      .retryOnResult { result ->
+        result.resultCode == ExecutionMapperResultCode.NOT_FOUND ||
+          result.resultCode == ExecutionMapperResultCode.INVALID_VERSION
+      }
+      .build()
+    return RetryRegistry.of(retryConfig)
   }
 
   override fun store(execution: PipelineExecution) {
@@ -1405,15 +1423,28 @@ class SqlExecutionRepository(
       }
     }
     // Attempt to find an up-to-date execution from the read pool
-    val (pipelineExecutions, resultCode) = withPool(readPoolName) {
-      registry.counter(readPoolRetrieveTotalId).increment()
-      val select = ctx.selectExecution(type).where(id.toWhereCondition())
-      select.fetchExecution(true)
+    val readPoolRetryContext = readPoolRetryRegistry.retry("$type-$id-read-pool")
+    var numberOfReadPoolQueries = 0L
+    val (pipelineExecutions, resultCode) = try {
+      withPool(readPoolName) {
+        readPoolRetryContext.executeSupplier {
+          numberOfReadPoolQueries += 1
+          val select = ctx.selectExecution(type).where(id.toWhereCondition())
+          select.fetchExecution(true)
+        }
+      }
+    } catch (e: Exception) {
+      // Swallow the exception and set the result code to NOT_FOUND to let the code fall back to the default pool
+      log.error("Encountered an exception when fetching executionType: $type, id: $id from the read pool", e)
+      ExecutionMapperResult(listOf(), ExecutionMapperResultCode.NOT_FOUND)
     }
+    registry.counter(readPoolRetrieveTotalId).increment()
     // Determine the result and perform additional tasks if necessary
     when (resultCode) {
       ExecutionMapperResultCode.SUCCESS -> {
-        registry.counter(readPoolRetrieveSucceededId).increment()
+        registry.counter(readPoolRetrieveSucceededId.withTag(
+          "numAttempts", numberOfReadPoolQueries.toString()
+        )).increment()
         return pipelineExecutions.first()
       }
       ExecutionMapperResultCode.NOT_FOUND, ExecutionMapperResultCode.INVALID_VERSION -> {

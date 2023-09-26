@@ -79,6 +79,7 @@ import org.springframework.test.context.TestPropertySource;
       "execution-repository.sql.enabled=true",
       "execution-repository.sql.read-replica.enabled=true",
       "sql.connectionPools.default.default=true",
+      "sql.retries.transactions.maxRetries=1"
     })
 public class SqlExecutionRepositoryReadReplicaTest {
   @Autowired ExecutionRepository executionRepository;
@@ -551,7 +552,10 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
   /** Verifies that the values of certain metrics are as expected */
   void verifyMetricValues() {
-    assertThat(registry.counter("executionRepository.sql.readPool.retrieveSucceeded").count())
+    assertThat(
+            registry
+                .counter("executionRepository.sql.readPool.retrieveSucceeded", "numAttempts", "1")
+                .count())
         .isEqualTo(retrieveSucceededCount);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveFailed").count())
         .isEqualTo(retrieveFailedCount);
