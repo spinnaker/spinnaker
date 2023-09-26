@@ -80,7 +80,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
     1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.yml", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> expectedResponse
 
     when:
-    Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref)
+    Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw)
 
     then:
     response == yamlMapper.readValue(expectedResponse.toTextContents(), Map.class)
@@ -92,6 +92,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
     manifest = 'manifest.yml'
     dir = 'dir'
     ref = 'refs/heads/master'
+    raw = false
     expectedResponse = new TextLinesResponse(
       lines: [
         [ text: "apiVersion: foo"],
@@ -109,7 +110,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
     1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.json", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> expectedResponse
 
     when:
-    Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref)
+    Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw)
 
     then:
     response == jsonMapper.readValue(expectedResponse.toTextContents(), Map.class)
@@ -121,6 +122,34 @@ class ManagedDeliveryScmServiceSpec extends Specification {
     manifest = 'manifest.json'
     dir = 'dir'
     ref = 'refs/heads/master'
+    raw = false
+    expectedResponse = new TextLinesResponse(
+      lines: [
+        [ text: '{ "apiVersion": "foo", "kind": "Foo", "metadata": {}, "spec": {} }']
+      ],
+      size: 1,
+      isLastPage: true
+    )
+  }
+
+  void 'get raw delivery config manifest'() {
+    given:
+    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.json", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> expectedResponse
+
+    when:
+    Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw)
+
+    then:
+    jsonMapper.readValue((String) response["manifest"], Map.class) == jsonMapper.readValue(expectedResponse.toTextContents(), Map.class)
+
+    where:
+    scmType = 'stash'
+    project = 'proj'
+    repo = 'repo'
+    manifest = 'manifest.json'
+    dir = 'dir'
+    ref = 'refs/heads/master'
+    raw = true
     expectedResponse = new TextLinesResponse(
       lines: [
         [ text: '{ "apiVersion": "foo", "kind": "Foo", "metadata": {}, "spec": {} }']

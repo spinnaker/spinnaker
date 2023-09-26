@@ -58,10 +58,10 @@ class ManagedDeliveryScmControllerSpec extends Specification {
 
   void 'get delivery config manifest returns contents from service'() {
     given:
-    1 * service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref) >> expectedResponse
+    1 * service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw) >> expectedResponse
 
     when:
-    ResponseEntity<Map<String, Object>> response = controller.getDeliveryConfigManifest(scmType, project, repo, manifest, dir, ref)
+    ResponseEntity<Map<String, Object>> response = controller.getDeliveryConfigManifest(scmType, project, repo, manifest, dir, ref, raw)
 
     then:
     response == new ResponseEntity(expectedResponse, HttpStatus.OK)
@@ -73,6 +73,7 @@ class ManagedDeliveryScmControllerSpec extends Specification {
     manifest = 'manifest.yml'
     dir = 'dir'
     ref = 'refs/heads/master'
+    raw = false
     expectedResponse = [
       apiVersion: "foo",
       kind: "Foo",
@@ -83,12 +84,12 @@ class ManagedDeliveryScmControllerSpec extends Specification {
 
   void 'IllegalArgumentException from service causes a 400'() {
     given:
-    1 * service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref) >> {
+    1 * service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw) >> {
       throw new IllegalArgumentException("oops!")
     }
 
     when:
-    ResponseEntity<Map<String, Object>> response = controller.getDeliveryConfigManifest(scmType, project, repo, manifest, dir, ref)
+    ResponseEntity<Map<String, Object>> response = controller.getDeliveryConfigManifest(scmType, project, repo, manifest, dir, ref, raw)
 
     then:
     response == new ResponseEntity<>(expectedResponse, HttpStatus.BAD_REQUEST)
@@ -100,12 +101,13 @@ class ManagedDeliveryScmControllerSpec extends Specification {
     manifest = 'somefile'
     dir = 'dir'
     ref = 'refs/heads/master'
+    raw = false
     expectedResponse = [error: "oops!"]
   }
 
   void '404 error from service is propagated'() {
     given:
-    1 * service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref) >> {
+    1 * service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw) >> {
       throw new SpinnakerHttpException(new RetrofitError("oops!", "http://nada",
         new Response("http://nada", 404, "", [], new TypedString('{"detail": "oops!"}')),
         new JacksonConverter(),
@@ -116,7 +118,7 @@ class ManagedDeliveryScmControllerSpec extends Specification {
     }
 
     when:
-    ResponseEntity<Map<String, Object>> response = controller.getDeliveryConfigManifest(scmType, project, repo, manifest, dir, ref)
+    ResponseEntity<Map<String, Object>> response = controller.getDeliveryConfigManifest(scmType, project, repo, manifest, dir, ref, raw)
 
     then:
     response == new ResponseEntity<>(expectedResponse, HttpStatus.NOT_FOUND)
@@ -128,17 +130,18 @@ class ManagedDeliveryScmControllerSpec extends Specification {
     manifest = 'somefile'
     dir = 'dir'
     ref = 'refs/heads/master'
+    raw = false
     expectedResponse = [error: [detail: "oops!"]]
   }
 
   void 'other exceptions from service cause a 500'() {
     given:
-    1 * service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref) >> {
+    1 * service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw) >> {
       throw new RuntimeException("another oops!")
     }
 
     when:
-    ResponseEntity<Map<String, Object>> response = controller.getDeliveryConfigManifest(scmType, project, repo, manifest, dir, ref)
+    ResponseEntity<Map<String, Object>> response = controller.getDeliveryConfigManifest(scmType, project, repo, manifest, dir, ref, raw)
 
     then:
     response == new ResponseEntity<>(expectedResponse, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -150,6 +153,7 @@ class ManagedDeliveryScmControllerSpec extends Specification {
     manifest = 'somefile'
     dir = 'dir'
     ref = 'refs/heads/master'
+    raw = false
     expectedResponse = [error: "another oops!"]
   }
 }

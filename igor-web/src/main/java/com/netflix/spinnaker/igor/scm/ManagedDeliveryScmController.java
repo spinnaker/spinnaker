@@ -75,11 +75,12 @@ public class ManagedDeliveryScmController {
       @RequestParam final String repository,
       @RequestParam final String manifest,
       @RequestParam(required = false) final String directory,
-      @RequestParam(required = false) final String ref) {
+      @RequestParam(required = false) final String ref,
+      @RequestParam(required = false, defaultValue = "false") final boolean raw) {
     try {
       return new ResponseEntity<>(
           mdScmService.getDeliveryConfigManifest(
-              scmType, project, repository, directory, manifest, ref),
+              scmType, project, repository, directory, manifest, ref, raw),
           HttpStatus.OK);
     } catch (Exception e) {
       HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
