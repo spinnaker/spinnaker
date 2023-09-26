@@ -27,7 +27,7 @@ class AssociateElasticIpTaskSpec extends Specification {
   def "should delegate Elastic Ip association to `flexService` and include result in outputs"() {
     given:
     def flexService = Mock(FlexService) {
-      1 * associateElasticIp(application, account, cluster, region, _) >> { application, account, cluster, region, elasticIp ->
+      1 * associateElasticIp(application, account, cluster, region, _) >> { application_local, account_local, cluster_local, region_local, elasticIp ->
         assert elasticIp.type == elasticIpType
         assert elasticIp.address == elasticIpAddress
         return elasticIpResult
