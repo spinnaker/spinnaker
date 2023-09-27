@@ -91,7 +91,7 @@ public class ArtifactController {
   Artifact.StoredView getStoredArtifact(
       @PathVariable(value = "application") String application,
       @PathVariable(value = "hash") String hash) {
-    Artifact artifact = storage.get(artifactStoreURIBuilder.buildRawURI(application, hash));
+    Artifact artifact = storage.get(artifactStoreURIBuilder.buildURIFromPaths(application, hash));
     Artifact.StoredView view = new Artifact.StoredView(artifact.getReference());
     return view;
   }
