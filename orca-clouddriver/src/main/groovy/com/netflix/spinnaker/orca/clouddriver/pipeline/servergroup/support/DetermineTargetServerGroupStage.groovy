@@ -29,7 +29,7 @@ import javax.annotation.Nonnull
 @CompileStatic
 class DetermineTargetServerGroupStage implements StageDefinitionBuilder {
   public static
-  final String PIPELINE_CONFIG_TYPE = getType(DetermineTargetServerGroupStage)
+  final String PIPELINE_CONFIG_TYPE = StageDefinitionBuilder.getType(DetermineTargetServerGroupStage)
 
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {

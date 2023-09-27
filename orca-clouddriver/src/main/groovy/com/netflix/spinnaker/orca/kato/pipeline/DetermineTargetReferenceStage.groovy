@@ -30,7 +30,7 @@ import javax.annotation.Nonnull
 @Deprecated
 class DetermineTargetReferenceStage implements StageDefinitionBuilder {
   public static
-  final String PIPELINE_CONFIG_TYPE = getType(DetermineTargetReferenceStage)
+  final String PIPELINE_CONFIG_TYPE = StageDefinitionBuilder.getType(DetermineTargetReferenceStage)
 
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {

@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.scalingprocess.ResumeAwsScalingProcessTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.scalingprocess.SuspendAwsScalingProcessTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +39,7 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport implements ForceCacheRefreshAware {
 
-  public static final String TYPE = getType(ModifyAwsScalingProcessStage)
+  public static final String TYPE = StageDefinitionBuilder.getType(ModifyAwsScalingProcessStage)
 
   private final DynamicConfigService dynamicConfigService
 
