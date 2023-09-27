@@ -47,10 +47,8 @@ class AbstractDeployStrategyStageSpec extends Specification {
     def basicTask = task("basic", Task)
 
     AbstractDeployStrategyStage testStage = Spy(AbstractDeployStrategyStage)
-    testStage.with {
-      strategies = [noStrat, aStrat, bStrat, cStrat]
-      noStrategy = noStrat
-    }
+    testStage.strategies = [noStrat, aStrat, bStrat, cStrat].asList()
+    testStage.noStrategy = noStrat
 
     StageExecutionImpl stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [strategy: specifiedStrategy])
 
