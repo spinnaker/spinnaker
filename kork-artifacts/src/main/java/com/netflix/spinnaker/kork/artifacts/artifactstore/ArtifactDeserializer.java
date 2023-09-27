@@ -44,7 +44,9 @@ public class ArtifactDeserializer extends StdDeserializer<Artifact> {
   public Artifact deserialize(JsonParser parser, DeserializationContext ctx) throws IOException {
     Artifact artifact = defaultObjectMapper.readValue(parser, Artifact.class);
     if (ArtifactTypes.REMOTE_BASE64.getMimeType().equals(artifact.getType())) {
-      return storage.get(artifact.getReference(), new ArtifactMergeReferenceDecorator(artifact));
+      return storage.get(
+          ArtifactReferenceURI.parse(artifact.getReference()),
+          new ArtifactMergeReferenceDecorator(artifact));
     }
 
     return artifact;

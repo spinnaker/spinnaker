@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDecorator;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
@@ -160,8 +161,8 @@ public class ExpressionsSupportTest {
     }
 
     @Override
-    public Artifact get(String id, ArtifactDecorator... decorators) {
-      String reference = cache.get(id);
+    public Artifact get(ArtifactReferenceURI uri, ArtifactDecorator... decorators) {
+      String reference = cache.get(uri.uri());
       Artifact.ArtifactBuilder builder =
           Artifact.builder()
               .reference(

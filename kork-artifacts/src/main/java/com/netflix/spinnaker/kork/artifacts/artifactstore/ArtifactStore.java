@@ -34,7 +34,7 @@ public abstract class ArtifactStore {
    * get is used to return an artifact with some id, while also decorating that artifact with any
    * necessary fields needed which should be then be returned by the artifact store.
    */
-  public abstract Artifact get(String id, ArtifactDecorator... decorators);
+  public abstract Artifact get(ArtifactReferenceURI uri, ArtifactDecorator... decorators);
 
   public static void setInstance(ArtifactStore storage) {
     if (!singletonSet.compareAndSet(false, true)) {

@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kork.artifacts.artifactstore.s3;
 
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDecorator;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURIBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -89,9 +90,12 @@ public class S3ArtifactStore extends ArtifactStore {
       return artifact;
     }
 
-    String ref = uriBuilder.buildArtifactURI(application, artifact);
+    ArtifactReferenceURI ref = uriBuilder.buildArtifactURI(application, artifact);
     Artifact remoteArtifact =
-        artifact.toBuilder().type(ArtifactTypes.REMOTE_BASE64.getMimeType()).reference(ref).build();
+        artifact.toBuilder()
+            .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
+            .reference(ref.uri())
+            .build();
 
     if (objectExists(ref)) {
       return remoteArtifact;
@@ -104,7 +108,7 @@ public class S3ArtifactStore extends ArtifactStore {
     PutObjectRequest request =
         PutObjectRequest.builder()
             .bucket(bucket)
-            .key(ref)
+            .key(ref.paths())
             .tagging(Tagging.builder().tagSet(accountTag).build())
             .build();
 
@@ -131,14 +135,14 @@ public class S3ArtifactStore extends ArtifactStore {
    * ArtifactDecorator} to further populate the artifact for returning
    */
   @Override
-  public Artifact get(String id, ArtifactDecorator... decorators) {
+  public Artifact get(ArtifactReferenceURI uri, ArtifactDecorator... decorators) {
     hasAuthorization(
-        id,
+        uri,
         AuthenticatedRequest.getSpinnakerUser()
             .orElseThrow(
                 () -> new NoSuchElementException("Could not authenticate due to missing user id")));
 
-    GetObjectRequest request = GetObjectRequest.builder().bucket(bucket).key(id).build();
+    GetObjectRequest request = GetObjectRequest.builder().bucket(bucket).key(uri.paths()).build();
 
     ResponseBytes<GetObjectResponse> resp = s3Client.getObjectAsBytes(request);
     Artifact.ArtifactBuilder builder =
@@ -163,9 +167,9 @@ public class S3ArtifactStore extends ArtifactStore {
    *
    * @throws AuthenticationServiceException when user does not have correct permissions
    */
-  private void hasAuthorization(String id, String userId) {
+  private void hasAuthorization(ArtifactReferenceURI uri, String userId) {
     GetObjectTaggingRequest request =
-        GetObjectTaggingRequest.builder().bucket(bucket).key(id).build();
+        GetObjectTaggingRequest.builder().bucket(bucket).key(uri.paths()).build();
 
     GetObjectTaggingResponse resp = s3Client.getObjectTagging(request);
     Tag tag =
@@ -193,15 +197,16 @@ public class S3ArtifactStore extends ArtifactStore {
    * writes of the same object is important, another filestore/db needs to be used, possibly
    * dynamodb.
    */
-  private boolean objectExists(String id) {
-    HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucket).key(id).build();
+  private boolean objectExists(ArtifactReferenceURI uri) {
+    HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucket).key(uri.paths()).build();
     try {
       s3Client.headObject(request);
+      log.debug("Artifact exists. No need to store. reference={}", uri.uri());
       return true;
     } catch (NoSuchKeyException e) {
       // pretty gross that we need to use exceptions as control flow, but the
       // java SDK doesn't have any other way of check if an object exists in s3
-      log.warn("Artifact does not exist reference={}", id, e);
+      log.info("Artifact does not exist reference={}", uri.uri());
       return false;
     }
   }

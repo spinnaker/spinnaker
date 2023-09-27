@@ -43,23 +43,22 @@ class ArtifactDeserializerTest {
     }
 
     @Override
-    public Artifact get(String id, ArtifactDecorator... decorator) {
-      return storageMap.get(id);
+    public Artifact get(ArtifactReferenceURI uri, ArtifactDecorator... decorator) {
+      return storageMap.get(uri.uri());
     }
   }
 
   @Test
   public void simpleDeserialization() throws IOException {
     String artifactJSON =
-        "{\"type\":\"remote/base64\",\"customKind\":false,\"name\":null,\"version\":null,\"location\":null,\"reference\":\"stored://link\",\"metadata\":{},\"artifactAccount\":null,\"provenance\":null,\"uuid\":null}";
+        "{\"type\":\"remote/base64\",\"customKind\":false,\"name\":null,\"version\":null,\"location\":null,\"reference\":\"ref://link\",\"metadata\":{},\"artifactAccount\":null,\"provenance\":null,\"uuid\":null}";
     String expectedReference = "foobar";
     Artifact expectedArtifact =
         Artifact.builder()
             .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
             .reference(expectedReference)
             .build();
-    InMemoryArtifactStore storage =
-        new InMemoryArtifactStore().put("stored://link", expectedArtifact);
+    InMemoryArtifactStore storage = new InMemoryArtifactStore().put("ref://link", expectedArtifact);
     ArtifactDeserializer deserializer = new ArtifactDeserializer(new ObjectMapper(), storage);
 
     // We avoid using an object mapper here since the Artifact class has a

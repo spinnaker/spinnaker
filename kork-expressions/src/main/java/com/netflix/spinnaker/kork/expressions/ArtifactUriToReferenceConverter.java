@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.expressions;
 
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.convert.TypeDescriptor;
@@ -58,6 +59,6 @@ public class ArtifactUriToReferenceConverter implements TypeConverter {
       return defaultTypeConverter.convertValue(value, sourceType, targetType);
     }
 
-    return artifactStore.get((String) value).getReference();
+    return artifactStore.get(ArtifactReferenceURI.parse((String) value)).getReference();
   }
 }

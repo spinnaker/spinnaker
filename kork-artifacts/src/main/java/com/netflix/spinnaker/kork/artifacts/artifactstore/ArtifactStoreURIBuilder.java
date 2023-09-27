@@ -32,7 +32,7 @@ public abstract class ArtifactStoreURIBuilder {
    * @param artifact that will be associated with the generated URI.
    * @return the remote URI
    */
-  public abstract String buildArtifactURI(String context, Artifact artifact);
+  public abstract ArtifactReferenceURI buildArtifactURI(String context, Artifact artifact);
 
   /**
    * buildRawURI is used when you have the raw path and context. This method just simply returns the
@@ -56,8 +56,8 @@ public abstract class ArtifactStoreURIBuilder {
    * }</pre>
    *
    * @param context is the context in which this artifact was run in, e.g. the application.
-   * @param raw is the identifier used in the URL, e.g. the hash.
+   * @param paths are any individual path required for distinguishing an artifact.
    * @return a properly formatted artifact store URI
    */
-  public abstract String buildRawURI(String context, String raw);
+  public abstract ArtifactReferenceURI buildURIFromPaths(String context, String... paths);
 }

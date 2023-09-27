@@ -17,20 +17,36 @@ package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
 import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Helper class to abstract away the need for other classes to know the {@link * #uriPrefix} format.
  */
 public class ArtifactStoreURISHA256Builder extends ArtifactStoreURIBuilder {
   @Override
-  public String buildArtifactURI(String context, Artifact artifact) {
-    return String.format(
-        "%s://%s/%s",
-        uriScheme, context, Hashing.sha256().hashBytes(artifact.getReference().getBytes()));
+  public ArtifactReferenceURI buildArtifactURI(String context, Artifact artifact) {
+    String ref = artifact.getReference();
+    if (ref == null) {
+      throw new NullPointerException("Artifact reference cannot be null");
+    }
+
+    List<String> uriPaths =
+        List.of(
+            context,
+            Hashing.sha256()
+                .hashBytes(artifact.getReference().getBytes(StandardCharsets.UTF_8))
+                .toString());
+    return ArtifactReferenceURI.builder().scheme(uriScheme).uriPaths(uriPaths).build();
   }
 
   @Override
-  public String buildRawURI(String context, String raw) {
-    return String.format("%s://%s/%s", uriScheme, context, raw);
+  public ArtifactReferenceURI buildURIFromPaths(String context, String... paths) {
+    List<String> uriPaths = new ArrayList<>();
+    uriPaths.add(context);
+    uriPaths.addAll(List.of(paths));
+
+    return ArtifactReferenceURI.builder().scheme(uriScheme).uriPaths(uriPaths).build();
   }
 }
