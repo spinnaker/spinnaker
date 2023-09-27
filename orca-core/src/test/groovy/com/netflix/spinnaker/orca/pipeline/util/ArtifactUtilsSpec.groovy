@@ -42,7 +42,7 @@ class ArtifactUtilsSpec extends Specification {
     return criteria
   }()
 
-  def executionRepository = Stub(ExecutionRepository) {
+  def executionRepository = Mock(ExecutionRepository) {
     // only a call to retrievePipelinesForPipelineConfigId() with these argument values is expected
     retrievePipelinesForPipelineConfigId(pipelineId, expectedExecutionCriteria) >> Observable.empty()
     // any other interaction is unexpected
@@ -336,7 +336,7 @@ class ArtifactUtilsSpec extends Specification {
     def executionTerminalCriteria = new ExecutionRepository.ExecutionCriteria()
     executionTerminalCriteria.setStatuses(ExecutionStatus.TERMINAL)
 
-    def executionRepositoryStub = Stub(ExecutionRepository) {
+    def executionRepositoryStub = Mock(ExecutionRepository) {
       // only a call to retrievePipelinesForPipelineConfigId() with these argument values is expected
       retrievePipelinesForPipelineConfigId(pipelineId, executionCriteria) >> Observable.just(execution)
       retrievePipelinesForPipelineConfigId(pipelineId, executionTerminalCriteria) >> Observable.empty()
@@ -375,7 +375,7 @@ class ArtifactUtilsSpec extends Specification {
     }
     execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [Artifact.builder().type("trigger").build()])
 
-    def executionRepositoryStub = Stub(ExecutionRepository) {
+    def executionRepositoryStub = Mock(ExecutionRepository) {
       // only a call to retrievePipelinesForPipelineConfigId() with these argument values is expected
       retrievePipelinesForPipelineConfigId(pipelineId, expectedExecutionCriteria) >> Observable.just(execution)
       // any other interaction is unexpected
