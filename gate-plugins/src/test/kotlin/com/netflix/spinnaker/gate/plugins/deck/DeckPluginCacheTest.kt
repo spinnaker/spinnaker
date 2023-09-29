@@ -28,7 +28,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mockk.verify
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -37,12 +36,17 @@ import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import java.nio.file.Path
 import java.util.Optional
 
 class DeckPluginCacheTest : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
+
+    after {
+      reset(pluginsDir)
+    }
 
     context("caching") {
       test("latest plugin releases with deck artifacts are added to cache") {
@@ -96,13 +100,14 @@ class DeckPluginCacheTest : JUnit5Minutests {
   }
 
   private inner class Fixture {
+    val pluginsDir = Files.createTempDirectory("plugins")
     val updateManager: SpinnakerUpdateManager = mockk(relaxed = true)
     val pluginBundleExtractor: PluginBundleExtractor = mockk(relaxed = true)
     val pluginStatusProvider: SpringPluginStatusProvider = mockk(relaxed = true)
     val pluginInfoReleaseProvider: PluginInfoReleaseProvider = mockk(relaxed = true)
     val registry: Registry = NoopRegistry()
     val springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider = mockk(relaxed = true)
-    val subject = DeckPluginCache(updateManager, pluginBundleExtractor, pluginStatusProvider, pluginInfoReleaseProvider, registry, springStrictPluginLoaderStatusProvider, Optional.empty())
+    val subject = DeckPluginCache(updateManager, pluginBundleExtractor, pluginStatusProvider, pluginInfoReleaseProvider, registry, springStrictPluginLoaderStatusProvider, Optional.of(pluginsDir.toString()))
 
     init {
       val plugins = listOf(
@@ -146,9 +151,11 @@ class DeckPluginCacheTest : JUnit5Minutests {
         }
         temp
       }
-      mockkStatic(Files::class)
-      every { Files.createDirectories(any()) } returns Paths.get("/dev/null")
-      every { Files.move(any(), any(), any()) } returns Paths.get("/dev/null")
+    }
+
+    fun reset(path: Path) {
+      path.toFile().deleteRecursively()
+      path.toFile().mkdir()
     }
   }
 }

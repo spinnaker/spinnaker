@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.util.NestedServletException
 import retrofit.RestAdapter
 import retrofit.client.OkClient
+import retrofit.converter.JacksonConverter
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -54,6 +55,7 @@ class WebhooksControllerSpec extends Specification {
     EchoService echoService = new RestAdapter.Builder()
       .setEndpoint("http://localhost:${localPort}")
       .setClient(new OkClient())
+      .setConverter(new JacksonConverter())
       .build()
       .create(EchoService)
 

@@ -41,6 +41,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import retrofit.RetrofitError
 import retrofit.RestAdapter;
 import retrofit.client.OkClient
+import retrofit.converter.JacksonConverter
 import retrofit.mime.TypedInput
 import spock.lang.Shared
 import spock.lang.Specification
@@ -100,6 +101,7 @@ class FunctionalSpec extends Specification {
     api = new RestAdapter.Builder()
         .setEndpoint("http://localhost:${localPort}")
         .setClient(new OkClient())
+        .setConverter(new JacksonConverter())
         .setLogLevel(RestAdapter.LogLevel.FULL)
         .build()
         .create(Api)

@@ -19,7 +19,9 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - uses: actions/setup-java@v3
         with:
-          java-version: 11
+          java-version: |
+            17
+            11
           distribution: 'zulu'
           cache: 'gradle'
       - name: Prepare build variables
@@ -51,3 +53,23 @@ jobs:
           tags: |
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest-ubuntu"
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-ubuntu"
+      - name: Build slim JRE 11 container image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile.java11.slim
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest-java11"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-java11"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest-java11-slim"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-java11-slim"
+      - name: Build ubuntu JRE 11 container image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile.java11.ubuntu
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest-java11-ubuntu"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-java11-ubuntu"
