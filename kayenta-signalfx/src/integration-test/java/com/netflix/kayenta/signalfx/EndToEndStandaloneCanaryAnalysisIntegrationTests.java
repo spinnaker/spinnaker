@@ -31,13 +31,13 @@ import com.netflix.kayenta.standalonecanaryanalysis.domain.CanaryAnalysisExecuti
 import com.netflix.kayenta.standalonecanaryanalysis.domain.StageMetadata;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class EndToEndStandaloneCanaryAnalysisIntegrationTests extends BaseSignalFxIntegrationTest {
 
-  @BeforeClass
+  @BeforeAll
   public static void beforeClass() {
     System.setProperty("block.for.metrics", System.getProperty("block.for.metrics", "false"));
   }

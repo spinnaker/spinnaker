@@ -1,7 +1,6 @@
 dependencies {
   implementation project(":kayenta-core")
 
-  testImplementation 'com.tngtech.java:junit-dataprovider:1.13.1'
 }
 
 test {

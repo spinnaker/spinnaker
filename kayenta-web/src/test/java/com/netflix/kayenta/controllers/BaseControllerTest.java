@@ -22,8 +22,8 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -41,7 +41,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @SpringBootTest(
     classes = BaseControllerTest.TestControllersConfiguration.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 public abstract class BaseControllerTest {
 
   protected static final String CONFIGS_ACCOUNT = "configs-account";
@@ -65,7 +65,7 @@ public abstract class BaseControllerTest {
 
   protected MockMvc mockMvc;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     this.mockMvc =
         MockMvcBuilders.webAppContextSetup(this.webApplicationContext).alwaysDo(print()).build();

@@ -15,12 +15,11 @@
  */
 package com.netflix.kayenta.wavefront.canary;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.kayenta.canary.CanaryScope;
 import java.time.Instant;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class WavefrontCanaryScopeFactoryTest {
 
@@ -38,7 +37,7 @@ public class WavefrontCanaryScopeFactoryTest {
             null);
     CanaryScope generatedCanaryScope = queryBuilder.buildCanaryScope(canaryScope);
     WavefrontCanaryScope wavefrontCanaryScope = (WavefrontCanaryScope) generatedCanaryScope;
-    assertThat(wavefrontCanaryScope.getGranularity(), is("s"));
+    assertThat(wavefrontCanaryScope.getGranularity()).isEqualTo("s");
   }
 
   @Test
@@ -53,7 +52,7 @@ public class WavefrontCanaryScopeFactoryTest {
             null);
     CanaryScope generatedCanaryScope = queryBuilder.buildCanaryScope(canaryScope);
     WavefrontCanaryScope wavefrontCanaryScope = (WavefrontCanaryScope) generatedCanaryScope;
-    assertThat(wavefrontCanaryScope.getGranularity(), is("m"));
+    assertThat(wavefrontCanaryScope.getGranularity()).isEqualTo("m");
   }
 
   @Test
@@ -68,7 +67,7 @@ public class WavefrontCanaryScopeFactoryTest {
             null);
     CanaryScope generatedCanaryScope = queryBuilder.buildCanaryScope(canaryScope);
     WavefrontCanaryScope wavefrontCanaryScope = (WavefrontCanaryScope) generatedCanaryScope;
-    assertThat(wavefrontCanaryScope.getGranularity(), is("h"));
+    assertThat(wavefrontCanaryScope.getGranularity()).isEqualTo("h");
   }
 
   @Test
@@ -83,6 +82,6 @@ public class WavefrontCanaryScopeFactoryTest {
             null);
     CanaryScope generatedCanaryScope = queryBuilder.buildCanaryScope(canaryScope);
     WavefrontCanaryScope wavefrontCanaryScope = (WavefrontCanaryScope) generatedCanaryScope;
-    assertThat(wavefrontCanaryScope.getGranularity(), is("d"));
+    assertThat(wavefrontCanaryScope.getGranularity()).isEqualTo("d");
   }
 }

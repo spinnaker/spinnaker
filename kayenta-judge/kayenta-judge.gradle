@@ -12,6 +12,7 @@ dependencies {
   api 'org.scala-lang:scala-reflect'
   api 'com.typesafe.scala-logging:scala-logging_2.12'
   testImplementation 'org.scalatest:scalatest_2.12'
+  testRuntimeOnly 'org.scalatestplus:junit-5-9_2.12'
 }
 
 task scalaTest(dependsOn: ['testClasses'], type: JavaExec) {

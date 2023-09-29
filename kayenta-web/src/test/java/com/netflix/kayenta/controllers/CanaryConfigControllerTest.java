@@ -15,7 +15,7 @@ import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CanaryConfigControllerTest extends BaseControllerTest {
 

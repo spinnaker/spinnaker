@@ -17,19 +17,16 @@
 
 package com.netflix.kayenta.signalfx.metrics;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.canary.providers.metrics.QueryPair;
 import com.netflix.kayenta.signalfx.canary.SignalFxCanaryScope;
 import com.netflix.kayenta.signalfx.config.SignalFxScopeConfiguration;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(DataProviderRunner.class)
 public class SimpleSignalFlowProgramBuilderTest {
 
   @Test
@@ -67,7 +64,6 @@ public class SimpleSignalFlowProgramBuilderTest {
     assertEquals(expected, builder.build());
   }
 
-  @DataProvider
   public static Object[][] locationScopeProvider() {
     return new Object[][] {
       {
@@ -94,8 +90,8 @@ public class SimpleSignalFlowProgramBuilderTest {
     };
   }
 
-  @Test
-  @UseDataProvider("locationScopeProvider")
+  @ParameterizedTest
+  @MethodSource("locationScopeProvider")
   public void test_that_the_program_builder_builds_the_expected_program_when_location_is_provided(
       SignalFxCanaryScope scope, SignalFxScopeConfiguration scopeConfiguration) {
 

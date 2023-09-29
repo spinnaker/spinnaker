@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.blobs.storage;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,17 +29,14 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import com.tngtech.java.junit.dataprovider.*;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
-@RunWith(DataProviderRunner.class)
 @Slf4j
 public class TestableBlobsStorageServiceTest {
 
@@ -48,7 +46,7 @@ public class TestableBlobsStorageServiceTest {
   private AccountCredentialsRepository credentialsRepository;
   private CanaryConfigIndex mockedCanaryConfigIndex;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     List<String> testAccountNames =
         Arrays.asList("AzDev_Testing_Account_1", "AzDev_Testing_Account_2");
@@ -76,18 +74,18 @@ public class TestableBlobsStorageServiceTest {
             testAccountNames, kayentaObjectMapper, credentialsRepository, mockedCanaryConfigIndex);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {}
 
-  @Test
-  @UseDataProvider("servicesAccountDataset")
+  @ParameterizedTest
+  @MethodSource("servicesAccountDataset")
   public void servicesAccount(String accountName, boolean expected) {
     log.info(String.format("Running servicesAccountTest(%s)", accountName));
-    Assert.assertEquals(expected, testBlobsStorageService.servicesAccount(accountName));
+    assertEquals(expected, testBlobsStorageService.servicesAccount(accountName));
   }
 
-  @Test
-  @UseDataProvider("loadObjectDataset")
+  @ParameterizedTest
+  @MethodSource("loadObjectDataset")
   public void loadObject(
       String accountName,
       ObjectType objectType,
@@ -104,24 +102,23 @@ public class TestableBlobsStorageServiceTest {
 
       CanaryConfig result =
           testBlobsStorageService.loadObject(accountName, objectType, testItemKey);
-      Assert.assertEquals(applications.get(0), result.getApplications().get(0));
+      assertEquals(applications.get(0), result.getApplications().get(0));
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals("Unable to resolve account " + accountName + ".", e.getMessage());
+      assertEquals("Unable to resolve account " + accountName + ".", e.getMessage());
     } catch (NotFoundException e) {
-      Assert.assertEquals(
+      assertEquals(
           "Could not fetch items from Azure Cloud Storage: Item not found at "
               + rootFolder
               + "/canary_config/"
               + testItemKey,
           e.getMessage());
     } catch (IllegalStateException e) {
-      Assert.assertEquals(
-          "Unable to deserialize object (key: " + testItemKey + ")", e.getMessage());
+      assertEquals("Unable to deserialize object (key: " + testItemKey + ")", e.getMessage());
     }
   }
 
-  @Test
-  @UseDataProvider("storeObjectDataset")
+  @ParameterizedTest
+  @MethodSource("storeObjectDataset")
   public void storeObject(
       String accountName,
       ObjectType objectType,
@@ -147,14 +144,14 @@ public class TestableBlobsStorageServiceTest {
       testBlobsStorageService.storeObject(
           accountName, objectType, testItemKey, canaryConfig, fakeFileName, isAnUpdate);
       HashMap<String, String> result = testBlobsStorageService.blobStored;
-      Assert.assertEquals(fakeBlobName, result.get("blob"));
+      assertEquals(fakeBlobName, result.get("blob"));
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals("Unable to resolve account " + accountName + ".", e.getMessage());
+      assertEquals("Unable to resolve account " + accountName + ".", e.getMessage());
     }
   }
 
-  @Test
-  @UseDataProvider("deleteObjectDataset")
+  @ParameterizedTest
+  @MethodSource("deleteObjectDataset")
   public void deleteObject(String accountName, ObjectType objectType, String testItemKey) {
 
     String fakeBlobName =
@@ -177,14 +174,14 @@ public class TestableBlobsStorageServiceTest {
           "Running deleteObjectTest for rootFolder/" + objectType.getGroup() + "/" + testItemKey);
       testBlobsStorageService.deleteObject(accountName, objectType, testItemKey);
       HashMap<String, String> result = testBlobsStorageService.blobStored;
-      Assert.assertEquals("invoked", result.get(String.format("deleteIfexists(%s)", fakeBlobName)));
+      assertEquals("invoked", result.get(String.format("deleteIfexists(%s)", fakeBlobName)));
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals("Unable to resolve account " + accountName + ".", e.getMessage());
+      assertEquals("Unable to resolve account " + accountName + ".", e.getMessage());
     }
   }
 
-  @Test
-  @UseDataProvider("listObjectKeysDataset")
+  @ParameterizedTest
+  @MethodSource("listObjectKeysDataset")
   public void listObjectKeys(
       String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
 
@@ -193,16 +190,15 @@ public class TestableBlobsStorageServiceTest {
       List<Map<String, Object>> result =
           testBlobsStorageService.listObjectKeys(accountName, objectType, applications, skipIndex);
       if (objectType == ObjectType.CANARY_CONFIG) {
-        Assert.assertEquals("canary_test", result.get(0).get("name"));
+        assertEquals("canary_test", result.get(0).get("name"));
       } else {
-        Assert.assertEquals(6, result.size());
+        assertEquals(6, result.size());
       }
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals("Unable to resolve account " + accountName + ".", e.getMessage());
+      assertEquals("Unable to resolve account " + accountName + ".", e.getMessage());
     }
   }
 
-  @DataProvider
   public static Object[][] servicesAccountDataset() {
     return new Object[][] {
       {"AzDev_Testing_Account_1", true},
@@ -212,7 +208,6 @@ public class TestableBlobsStorageServiceTest {
     };
   }
 
-  @DataProvider
   public static Object[][] loadObjectDataset() {
     return new Object[][] {
       {
@@ -260,7 +255,6 @@ public class TestableBlobsStorageServiceTest {
     };
   }
 
-  @DataProvider
   public static Object[][] storeObjectDataset() {
     return new Object[][] {
       {"Kayenta_Account_1", ObjectType.CANARY_CONFIG, "Test_Canary", "Test_App", false},
@@ -271,7 +265,6 @@ public class TestableBlobsStorageServiceTest {
     };
   }
 
-  @DataProvider
   public static Object[][] deleteObjectDataset() {
     return new Object[][] {
       {"Kayenta_Account_1", ObjectType.CANARY_CONFIG, "some(GUID)"},
@@ -282,7 +275,6 @@ public class TestableBlobsStorageServiceTest {
     };
   }
 
-  @DataProvider
   public static Object[][] listObjectKeysDataset() {
     return new Object[][] {
       {"Kayenta_Account_1", ObjectType.CANARY_CONFIG, Collections.singletonList("Test_App"), true},

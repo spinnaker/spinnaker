@@ -34,8 +34,8 @@ import io.restassured.response.ValidatableResponse;
 import java.io.IOException;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /** End to end integration tests */
 @Slf4j
@@ -43,7 +43,7 @@ public class EndToEndCanaryIntegrationTests extends BaseSignalFxIntegrationTest 
 
   public static final int CANARY_WINDOW_IN_MINUTES = 5;
 
-  @BeforeClass
+  @BeforeAll
   public static void beforeClass() {
     System.setProperty("block.for.metrics", System.getProperty("block.for.metrics", "true"));
   }

@@ -17,7 +17,7 @@
 package com.netflix.kayenta.standalonecanaryanalysis.orca.task;
 
 import static com.netflix.kayenta.standalonecanaryanalysis.orca.stage.RunCanaryStage.STAGE_TYPE;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,20 +28,16 @@ import com.google.common.collect.Maps;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(DataProviderRunner.class)
 public class GenerateCanaryAnalysisResultTaskTest {
 
   private GenerateCanaryAnalysisResultTask task;
 
-  @DataProvider
   public static Object[][] dataProviderGetAggregatedJudgment() {
     return new Object[][] {
       // final score, marginal, pass, expected didPass result
@@ -53,7 +49,7 @@ public class GenerateCanaryAnalysisResultTaskTest {
     };
   }
 
-  @Before
+  @BeforeEach
   public void before() {
     task = new GenerateCanaryAnalysisResultTask(new ObjectMapper());
   }
@@ -81,8 +77,8 @@ public class GenerateCanaryAnalysisResultTaskTest {
     }
   }
 
-  @Test
-  @UseDataProvider("dataProviderGetAggregatedJudgment")
+  @ParameterizedTest
+  @MethodSource("dataProviderGetAggregatedJudgment")
   public void test_getAggregatedJudgment(
       Double finalCanaryScore, Double marginalThreshold, Double passThreshold, boolean expected) {
     GenerateCanaryAnalysisResultTask.AggregatedJudgement aggregatedJudgement =

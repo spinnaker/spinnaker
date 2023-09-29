@@ -15,14 +15,13 @@
  */
 package com.netflix.kayenta.wavefront.metrics;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.WavefrontCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.wavefront.canary.WavefrontCanaryScope;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class WavefrontMetricsServiceTest {
 
@@ -38,7 +37,7 @@ public class WavefrontMetricsServiceTest {
     CanaryMetricConfig canaryMetricSetQueryConfig = queryConfig(AGGREGATE);
     String query =
         wavefrontMetricsService.buildQuery("", null, canaryMetricSetQueryConfig, canaryScope);
-    assertThat(query, is(AGGREGATE + "(ts(" + METRIC_NAME + "))"));
+    assertThat(query).isEqualTo(AGGREGATE + "(ts(" + METRIC_NAME + "))");
   }
 
   @Test
@@ -47,7 +46,7 @@ public class WavefrontMetricsServiceTest {
     CanaryMetricConfig canaryMetricSetQueryConfig = queryConfig("");
     String query =
         wavefrontMetricsService.buildQuery("", null, canaryMetricSetQueryConfig, canaryScope);
-    assertThat(query, is("ts(" + METRIC_NAME + ", " + SCOPE + ")"));
+    assertThat(query).isEqualTo("ts(" + METRIC_NAME + ", " + SCOPE + ")");
   }
 
   @Test
@@ -56,7 +55,7 @@ public class WavefrontMetricsServiceTest {
     CanaryMetricConfig canaryMetricSetQueryConfig = queryConfig("avg");
     String query =
         wavefrontMetricsService.buildQuery("", null, canaryMetricSetQueryConfig, canaryScope);
-    assertThat(query, is(AGGREGATE + "(ts(" + METRIC_NAME + ", " + SCOPE + "))"));
+    assertThat(query).isEqualTo(AGGREGATE + "(ts(" + METRIC_NAME + ", " + SCOPE + "))");
   }
 
   private CanaryMetricConfig queryConfig(String aggregate) {

@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class QueryConfigUtilsTest {
 

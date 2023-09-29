@@ -1,6 +1,5 @@
 dependencies {
   implementation project(":kayenta-core")
 
-  testImplementation group: 'junit', name: 'junit'
-  testImplementation group: 'org.mock-server', name: 'mockserver-junit-rule', version: '5.10.0'
+  testImplementation "org.mock-server:mockserver-junit-jupiter:5.15.0"
 }

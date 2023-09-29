@@ -22,14 +22,14 @@ import com.netflix.kayenta.canary.CanaryConfig;
 import java.io.IOException;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Main.class)
 @Slf4j
 public abstract class BaseSignalFxIntegrationTest {
@@ -55,7 +55,7 @@ public abstract class BaseSignalFxIntegrationTest {
     return "http://localhost:" + serverPort + "%s";
   }
 
-  @Before
+  @BeforeEach
   public void before() {
     try {
       integrationTestCanaryConfig =

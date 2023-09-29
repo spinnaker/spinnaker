@@ -16,9 +16,9 @@
 
 package com.netflix.kayenta.datadog.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -38,13 +38,13 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
-import org.mockserver.junit.MockServerRule;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
+import org.mockserver.netty.MockServer;
 import org.slf4j.LoggerFactory;
 
 /** TDD for https://github.com/spinnaker/kayenta/issues/684 */
@@ -53,9 +53,7 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
   private static final String API_KEY = "IAMASECRETANDSHOULDNOTBELOGGED";
   private static final String APPLICATION_KEY = "IAMASECRETANDALSOSHOULDNOTBELOGGED";
   private static final List<String> SECRETS = ImmutableList.of(API_KEY, APPLICATION_KEY);
-
-  @Rule public MockServerRule mockServerRule = new MockServerRule(this);
-
+  public MockServer mockServer;
   private ListAppender<ILoggingEvent> listAppender;
 
   private MockServerClient mockServerClient;
@@ -63,8 +61,10 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
 
   DatadogRemoteService datadogRemoteService;
 
-  @Before
+  @BeforeEach
   public void before() {
+    mockServer = new MockServer();
+    mockServerClient = new MockServerClient("localhost", mockServer.getPort());
     listAppender = new ListAppender<>();
     Logger mockLogger =
         (Logger) LoggerFactory.getLogger("DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest");
@@ -83,8 +83,14 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
         DatadogConfiguration.createDatadogRemoteService(
             retrofitClientFactory,
             objectMapper,
-            new RemoteService().setBaseUrl("http://localhost:" + mockServerRule.getPort()),
+            new RemoteService().setBaseUrl("http://localhost:" + mockServer.getPort()),
             new OkHttpClient());
+  }
+
+  @AfterEach
+  public void cleanup() {
+    mockServer.close();
+    mockServer.stop();
   }
 
   @Test
@@ -111,7 +117,7 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
             "some query");
 
     assertEquals(mockResponse, res);
-    assertTrue("We expected there to be at least 1 logged message", listAppender.list.size() > 0);
+    assertTrue(listAppender.list.size() > 0, "We expected there to be at least 1 logged message");
     assertMessagesDoNotContainSecrets(listAppender.list);
   }
 
@@ -135,7 +141,7 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
             API_KEY, APPLICATION_KEY, Instant.now().minus(5, ChronoUnit.MINUTES).toEpochMilli());
 
     assertEquals(mockResponse, res);
-    assertTrue("We expected there to be at least 1 logged message", listAppender.list.size() > 0);
+    assertTrue(listAppender.list.size() > 0, "We expected there to be at least 1 logged message");
     assertMessagesDoNotContainSecrets(listAppender.list);
   }
 

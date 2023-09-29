@@ -22,6 +22,7 @@ import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,17 +48,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-@RunWith(MockitoJUnitRunner.StrictStubs.class)
+@ExtendWith(MockitoExtension.class)
 public class SynchronousQueryProcessorTest {
 
   private static final String METRICS = "metrics-account";
@@ -77,16 +78,19 @@ public class SynchronousQueryProcessorTest {
 
   @InjectMocks SynchronousQueryProcessor processor;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(metricsServiceRepository.getRequiredOne(METRICS)).thenReturn(metricsService);
     when(storageServiceRepository.getRequiredOne(STORAGE)).thenReturn(storageService);
-    when(retryConfiguration.getAttempts()).thenReturn(ATTEMPTS);
-    when(retryConfiguration.getSeries())
+    lenient().when(retryConfiguration.getAttempts()).thenReturn(ATTEMPTS);
+    lenient()
+        .when(retryConfiguration.getSeries())
         .thenReturn(
             new HashSet<>(
                 Arrays.asList(HttpStatus.Series.SERVER_ERROR, HttpStatus.Series.REDIRECTION)));
-    when(retryConfiguration.getStatuses()).thenReturn(new HashSet<>(Arrays.asList(LOCKED)));
+    lenient()
+        .when(retryConfiguration.getStatuses())
+        .thenReturn(new HashSet<>(Arrays.asList(LOCKED)));
   }
 
   @Test

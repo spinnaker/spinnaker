@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.storage.ObjectType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CanaryControllerTest extends BaseControllerTest {
 

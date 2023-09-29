@@ -19,7 +19,7 @@ import static com.netflix.kayenta.utils.AwaitilityUtils.awaitThirtySecondsUntil;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 

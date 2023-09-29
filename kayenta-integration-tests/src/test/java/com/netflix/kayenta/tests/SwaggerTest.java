@@ -16,7 +16,7 @@
 package com.netflix.kayenta.tests;
 
 import io.restassured.RestAssured;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 public class SwaggerTest extends BaseIntegrationTest {

@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.signalfx.metrics;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableMap;
@@ -25,14 +25,14 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.metrics.SignalFxCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.signalfx.canary.SignalFxCanaryScope;
 import com.netflix.kayenta.signalfx.config.SignalFxScopeConfiguration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SignalFxQueryBuilderServiceTest {
 
   private SignalFxQueryBuilderService signalFxQueryBuilderService;
 
-  @Before
+  @BeforeEach
   public void before() {
     signalFxQueryBuilderService = new SignalFxQueryBuilderService();
   }

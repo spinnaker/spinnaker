@@ -4,5 +4,4 @@ dependencies {
 
     api 'com.microsoft.azure:azure-storage:8.3.0'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '1.9.10'
-    testImplementation group: 'com.tngtech.java', name: 'junit-dataprovider', version: '1.13.1'
 }

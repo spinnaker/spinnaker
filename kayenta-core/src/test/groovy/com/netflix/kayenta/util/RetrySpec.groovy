@@ -51,6 +51,7 @@ class RetrySpec extends Specification {
     11       || 10         || 10               || "Failed after 10 attempts"
   }
 
+  @Unroll
   def "should sleep exponentially"() {
     given:
     def retry = Spy(Retry) {

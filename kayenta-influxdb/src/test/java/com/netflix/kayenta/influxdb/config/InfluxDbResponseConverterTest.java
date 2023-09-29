@@ -16,16 +16,15 @@
 
 package com.netflix.kayenta.influxdb.config;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.influxdb.model.InfluxDbResult;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import retrofit.converter.ConversionException;
 import retrofit.mime.TypedByteArray;
 import retrofit.mime.TypedInput;
@@ -86,7 +85,7 @@ public class InfluxDbResponseConverterTest {
   @Test
   public void serialize() throws Exception {
     List<InfluxDbResult> results = setupAllIntegers();
-    assertThat(influxDbResponseConverter.toBody(results), is(nullValue()));
+    assertThat(influxDbResponseConverter.toBody(results)).isNull();
   }
 
   @Test
@@ -95,7 +94,7 @@ public class InfluxDbResponseConverterTest {
     TypedInput input = new TypedByteArray(MIME_TYPE, EXAMPLE_ALL_INTEGERS.getBytes());
     List<InfluxDbResult> result =
         (List<InfluxDbResult>) influxDbResponseConverter.fromBody(input, List.class);
-    assertThat(result, is(results));
+    assertThat(result).isEqualTo(results);
   }
 
   @Test
@@ -104,13 +103,14 @@ public class InfluxDbResponseConverterTest {
     TypedInput input = new TypedByteArray(MIME_TYPE, EXAMPLE_WITH_FLOATS.getBytes());
     List<InfluxDbResult> result =
         (List<InfluxDbResult>) influxDbResponseConverter.fromBody(input, List.class);
-    assertThat(result, is(results));
+    assertThat(result).isEqualTo(results);
   }
 
-  @Test(expected = ConversionException.class)
+  @Test
   public void deserializeWrongValue() throws Exception {
     TypedInput input = new TypedByteArray(MIME_TYPE, "{\"foo\":\"bar\"}".getBytes());
-    influxDbResponseConverter.fromBody(input, List.class);
+    assertThrows(
+        ConversionException.class, () -> influxDbResponseConverter.fromBody(input, List.class));
   }
 
   private String asString(TypedOutput typedOutput) throws Exception {

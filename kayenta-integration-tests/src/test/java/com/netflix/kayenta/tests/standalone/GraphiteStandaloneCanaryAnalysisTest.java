@@ -20,7 +20,7 @@ import static org.hamcrest.CoreMatchers.is;
 import com.netflix.kayenta.steps.StandaloneCanaryAnalysisSteps;
 import com.netflix.kayenta.tests.BaseIntegrationTest;
 import io.restassured.response.ValidatableResponse;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {

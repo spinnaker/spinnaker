@@ -1,5 +1,5 @@
 dependencies {
   implementation project(":kayenta-core")
 
-  testImplementation 'org.mock-server:mockserver-junit-rule:5.11.1'
+  testImplementation "org.mock-server:mockserver-junit-jupiter:5.15.0"
 }

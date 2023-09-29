@@ -111,7 +111,6 @@ dependencies {
 
   api 'com.signalfx.public:signalfx-java:1.0.5'
 
-  testImplementation 'com.tngtech.java:junit-dataprovider:1.13.1'
   testImplementation project(":kayenta-standalone-canary-analysis")
 
   // Integration Test dependencies

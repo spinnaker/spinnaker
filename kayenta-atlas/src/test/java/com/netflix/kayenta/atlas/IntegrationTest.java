@@ -19,14 +19,14 @@ import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import lombok.*;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @Configuration
 @ComponentScan({"com.netflix.kayenta.retrofit.config"})
@@ -43,7 +43,7 @@ class CanaryMetricConfigWithResults {
   @NotNull @Getter private List<AtlasResults> atlasResults;
 }
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TestConfig.class})
 public class IntegrationTest {
 

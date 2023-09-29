@@ -1,12 +1,13 @@
 package com.netflix.kayenta.atlas;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.netflix.kayenta.atlas.model.Backend;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class BackendTest {
   @Test

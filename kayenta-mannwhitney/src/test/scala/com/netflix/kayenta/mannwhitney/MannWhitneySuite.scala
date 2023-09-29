@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.mannwhitney
 
-import junit.framework.TestCase.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.apache.commons.math3.analysis.UnivariateFunction
 import org.apache.commons.math3.distribution.NormalDistribution
 import org.scalatest.FunSuite
