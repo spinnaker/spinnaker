@@ -181,4 +181,25 @@ public abstract class BaseUserRolesProvider implements UserRolesProvider {
       loadingCache.invalidateAll();
     }
   }
+
+  /** Returns {@code true} if caching is enabled. */
+  protected boolean checkCacheEnabled() {
+    return cacheEnabled;
+  }
+
+  /**
+   * Returns the number of active entries in the cache. This method is intended for testing purposes
+   * only as a cache clean up is manually invoked prior to the size calculation. If caching is not
+   * enabled then returns -1.
+   *
+   * @return Size of the cache or -1 if caching is not enabled.
+   */
+  protected long size() {
+    if (cacheEnabled) {
+      loadingCache.cleanUp();
+      return loadingCache.size();
+    } else {
+      return -1L;
+    }
+  }
 }
