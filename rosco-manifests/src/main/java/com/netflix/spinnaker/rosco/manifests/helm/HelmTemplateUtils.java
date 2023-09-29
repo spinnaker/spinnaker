@@ -89,7 +89,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
     }
 
     Map<String, Object> overrides = request.getOverrides();
-    if (!overrides.isEmpty()) {
+    if (overrides != null && !overrides.isEmpty()) {
       List<String> overrideList = new ArrayList<>();
       for (Map.Entry<String, Object> entry : overrides.entrySet()) {
         overrideList.add(entry.getKey() + "=" + entry.getValue().toString());

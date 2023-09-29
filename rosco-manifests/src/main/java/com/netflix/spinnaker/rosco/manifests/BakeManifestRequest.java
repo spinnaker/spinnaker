@@ -10,7 +10,7 @@ public class BakeManifestRequest {
   TemplateRenderer templateRenderer;
   String outputName;
   String outputArtifactName;
-  Map<String, Object> overrides;
+  @Nullable Map<String, Object> overrides;
 
   public enum TemplateRenderer {
     HELM2,

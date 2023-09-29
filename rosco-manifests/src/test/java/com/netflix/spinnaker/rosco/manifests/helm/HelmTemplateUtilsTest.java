@@ -93,6 +93,15 @@ final class HelmTemplateUtilsTest {
     }
   }
 
+  @Test
+  public void realNullReferenceOfOverrides() throws IOException {
+    bakeManifestRequest.setOverrides(null);
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = helmTemplateUtils.buildBakeRecipe(env, bakeManifestRequest);
+    }
+  }
+
   public void exceptionDownloading() throws IOException {
     // When artifactDownloader throws an exception, make sure we wrap it and get
     // a chance to include our own message, so the exception that goes up the
