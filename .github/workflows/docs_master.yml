@@ -15,12 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout service repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: service
 
       - name: Checkout docs repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: spinnaker/spinnaker.io
           path: docs
