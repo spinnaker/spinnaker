@@ -22,7 +22,7 @@ jobs:
           - "kindest/node:v1.19.11@sha256:07db187ae84b4b7de440a73886f008cf903fcf5764ba8106a9fd5243d6f32729"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # Install Java 8 for cross-compilation support. Setting it up before
       # Java 11 means it comes later in $PATH (because of how setup-java works)
       - uses: actions/setup-java@v3
