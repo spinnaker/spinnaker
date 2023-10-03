@@ -251,7 +251,7 @@ class MetricSetMixerServiceSpec extends Specification {
   }
 
   @Unroll
-  void "mixing #controlMetricSet and #experimentMetricSet should fail"() {
+  void "mixing #controlMetricSet.name and #experimentMetricSet.name should fail"() {
     setup:
     MetricSetMixerService metricSetMixerService = new MetricSetMixerService()
 
