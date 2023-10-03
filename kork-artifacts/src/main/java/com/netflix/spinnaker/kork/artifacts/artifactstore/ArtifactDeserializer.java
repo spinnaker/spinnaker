@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreIOException;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,9 +45,11 @@ public class ArtifactDeserializer extends StdDeserializer<Artifact> {
   public Artifact deserialize(JsonParser parser, DeserializationContext ctx) throws IOException {
     Artifact artifact = defaultObjectMapper.readValue(parser, Artifact.class);
     if (ArtifactTypes.REMOTE_BASE64.getMimeType().equals(artifact.getType())) {
-      return storage.get(
-          ArtifactReferenceURI.parse(artifact.getReference()),
-          new ArtifactMergeReferenceDecorator(artifact));
+      return ArtifactStoreIOException.throwIOException(
+          () ->
+              storage.get(
+                  ArtifactReferenceURI.parse(artifact.getReference()),
+                  new ArtifactMergeReferenceDecorator(artifact)));
     }
 
     return artifact;

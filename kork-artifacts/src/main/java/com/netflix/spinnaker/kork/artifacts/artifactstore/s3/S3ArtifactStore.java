@@ -21,11 +21,13 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURIBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 import lombok.extern.log4j.Log4j2;
+import org.apache.http.HttpStatus;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -40,6 +42,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectTaggingResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 
@@ -208,6 +211,37 @@ public class S3ArtifactStore extends ArtifactStore {
       // java SDK doesn't have any other way of check if an object exists in s3
       log.info("Artifact does not exist reference={}", uri.uri());
       return false;
+    } catch (S3Exception e) {
+      int statusCode = e.statusCode();
+      log.error(
+          "Artifact store failed head object request statusCode={} reference={}",
+          statusCode,
+          uri.uri());
+
+      if (statusCode != 0) {
+        // due to this being a HEAD request, there is no message giving a clear
+        // indication of what failed. Rather than seeing a useful message back
+        // to gate, we instead see just null. To alleviate this, we wrap the
+        // exception with a more meaningful message
+        throw new SpinnakerException(buildHeadObjectExceptionMessage(e), e);
+      }
+
+      throw new SpinnakerException("S3 head object failed", e);
+    }
+  }
+
+  /**
+   * S3's head object can only return 400, 403, and 404, and based on the HTTP status code, we will
+   * return the appropriate message back
+   */
+  private static String buildHeadObjectExceptionMessage(S3Exception e) {
+    switch (e.statusCode()) {
+      case HttpStatus.SC_FORBIDDEN:
+        return "Failed to query artifact due to IAM permissions either on the bucket or object";
+      case HttpStatus.SC_BAD_REQUEST:
+        return "Failed to query artifact due to invalid request";
+      default:
+        return String.format("Failed to query artifact: %d", e.statusCode());
     }
   }
 }

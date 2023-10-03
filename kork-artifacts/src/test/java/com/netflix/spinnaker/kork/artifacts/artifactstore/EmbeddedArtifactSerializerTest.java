@@ -16,20 +16,29 @@
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreIOException;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.common.Header;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.apache.commons.codec.binary.Base64;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 class EmbeddedArtifactSerializerTest {
   @ParameterizedTest(name = "{index} {0}")
@@ -49,6 +58,39 @@ class EmbeddedArtifactSerializerTest {
 
     String result = objectMapper.writeValueAsString(artifact);
     assertEquals(expectedJson, result);
+  }
+
+  @Test
+  public void ensureS3ExceptionHasProperMessages() {
+    S3Client client = mock(S3Client.class);
+    when(client.headObject((HeadObjectRequest) Mockito.any()))
+        .thenThrow(S3Exception.builder().statusCode(400).build());
+    AuthenticatedRequest.set(Header.APPLICATION, "my-application");
+    S3ArtifactStore artifactStore =
+        new S3ArtifactStore(client, null, "my-bucket", new ArtifactStoreURISHA256Builder(), null);
+
+    EmbeddedArtifactSerializer serializer =
+        new EmbeddedArtifactSerializer(new ObjectMapper(), artifactStore);
+    ObjectMapper objectMapper = new ObjectMapper();
+    SimpleModule module = new SimpleModule();
+    module.addSerializer(Artifact.class, serializer);
+    objectMapper.registerModule(module);
+
+    ArtifactStoreIOException e =
+        assertThrows(
+            ArtifactStoreIOException.class,
+            () -> {
+              objectMapper.writeValue(
+                  new ByteArrayOutputStream(),
+                  Artifact.builder()
+                      .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
+                      .reference("aGVsbG8gd29ybGQK") // arbitrary
+                      .build());
+            });
+
+    String expectedExceptionMessage =
+        "com.netflix.spinnaker.kork.exceptions.SpinnakerException: Failed to query artifact due to invalid request";
+    assertEquals(expectedExceptionMessage, e.getMessage());
   }
 
   private static Stream<Arguments> generateTestCase() {

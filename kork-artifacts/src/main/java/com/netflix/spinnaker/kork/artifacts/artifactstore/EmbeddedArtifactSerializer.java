@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreIOException;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
 
@@ -45,7 +46,7 @@ public class EmbeddedArtifactSerializer extends StdSerializer<Artifact> {
       return;
     }
 
-    Artifact stored = storage.store(artifact);
+    Artifact stored = ArtifactStoreIOException.throwIOException(() -> storage.store(artifact));
     defaultObjectMapper.writeValue(gen, stored);
   }
 
