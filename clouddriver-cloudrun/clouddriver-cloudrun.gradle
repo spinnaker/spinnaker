@@ -41,7 +41,6 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "org.mockito:mockito-core"
 
 }

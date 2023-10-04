@@ -51,8 +51,6 @@ dependencies {
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation "org.codehaus.groovy:groovy-test"
-
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
 
 configurations.all {

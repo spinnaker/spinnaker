@@ -53,7 +53,6 @@ dependencies {
   testImplementation "junit:junit"
   testImplementation "org.hamcrest:hamcrest-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"

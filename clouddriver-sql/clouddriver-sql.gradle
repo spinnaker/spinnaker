@@ -51,6 +51,4 @@ dependencies {
   testImplementation "io.mockk:mockk"
   testImplementation "com.fasterxml.jackson.module:jackson-module-kotlin"
   testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

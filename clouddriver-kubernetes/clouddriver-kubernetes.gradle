@@ -105,8 +105,6 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation "org.codehaus.groovy:groovy-templates"
 
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework.boot:spring-boot-starter-test"
   integrationImplementation "org.testcontainers:testcontainers"

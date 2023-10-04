@@ -41,6 +41,4 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
-
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

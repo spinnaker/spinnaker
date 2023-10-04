@@ -38,6 +38,4 @@ dependencies {
   testImplementation "io.strikt:strikt-core"
   testImplementation "dev.minutest:minutest"
   testImplementation "io.mockk:mockk"
-
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

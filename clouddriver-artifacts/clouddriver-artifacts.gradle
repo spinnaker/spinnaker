@@ -67,8 +67,6 @@ dependencies {
   testImplementation "org.testcontainers:localstack"
   testImplementation "ru.lanwen.wiremock:wiremock-junit5:1.2.0"
 
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-
   integrationImplementation project(":clouddriver-web")
   integrationImplementation project(":clouddriver-artifacts")
   integrationImplementation "org.springframework.boot:spring-boot-starter-test"
