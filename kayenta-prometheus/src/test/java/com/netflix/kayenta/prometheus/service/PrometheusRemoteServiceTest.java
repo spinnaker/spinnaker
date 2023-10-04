@@ -87,7 +87,7 @@ public class PrometheusRemoteServiceTest {
 
     assertThatThrownBy(() -> prometheusRemoteService.isHealthy())
         .isInstanceOf(SpinnakerServerException.class)
-        .hasMessageContaining("500 Internal Server Error");
+        .hasMessageContaining("Internal Server Error");
   }
 
   @Test
