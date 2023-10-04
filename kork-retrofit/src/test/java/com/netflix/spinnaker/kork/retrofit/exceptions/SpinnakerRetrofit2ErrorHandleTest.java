@@ -176,6 +176,23 @@ public class SpinnakerRetrofit2ErrorHandleTest {
     DummyWithExecute testWrongReturnType();
   }
 
+  @Test
+  void testSpinnakerConversionException() {
+
+    String invalidJsonTypeResponseBody = "{'testcasename': 'testSpinnakerConversionException'";
+
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setResponseCode(HttpStatus.OK.value())
+            .setBody(invalidJsonTypeResponseBody));
+
+    SpinnakerConversionException spinnakerConversionException =
+        assertThrows(
+            SpinnakerConversionException.class, () -> retrofit2Service.getRetrofit2().execute());
+
+    assertEquals("Failed to process response body", spinnakerConversionException.getMessage());
+  }
+
   interface DummyWithExecute {
     void execute();
   }
