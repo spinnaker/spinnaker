@@ -1,12 +1,16 @@
+<div align="center">
+
 # Halyard
 
-[![Build Status](https://api.travis-ci.org/spinnaker/halyard.svg?branch=master)](https://travis-ci.org/spinnaker/halyard)
+<img src="./spinnaker-seeklogo.svg" alt="Logo" width="120" height="120">
 
 A tool for configuring, installing, and updating Spinnaker.
 
 [Halyard Docs](https://spinnaker.io/setup/install/halyard/) are available on [spinnaker.io](https://spinnaker.io)
 
 ![](./demo.gif)
+
+</div>
 
 ## Installation
 
@@ -58,3 +62,5 @@ __hal__ is a CLI for making changes to your __halconfig__ via the __daemon__.
 
 Read the command reference [here](docs/commands.md).
 
+<!-- MARKDOWN LINKS & IMAGES -->
+[icon]: https://github.com/AnderMendoza/halyard/blob/master/spinnaker-seeklogo.com.svg
