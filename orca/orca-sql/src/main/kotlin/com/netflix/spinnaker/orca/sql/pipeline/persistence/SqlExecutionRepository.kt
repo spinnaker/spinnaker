@@ -437,7 +437,7 @@ class SqlExecutionRepository(
     withPool(readPoolName) {
       val select = jooq.selectExecutions(
         type,
-        fields = selectFields() + field("status"),
+        fields = selectFields(type) + field("status"),
         conditions = {
           if (partition.isNullOrEmpty()) {
             it.statusIn(criteria.statuses)
@@ -610,7 +610,7 @@ class SqlExecutionRepository(
     queryTimeoutSeconds: Int
   ): Collection<PipelineExecution> {
     withPool(readPoolName) {
-      val selectFrom = jooq.select(selectFields()).from(PIPELINE.tableName)
+      val selectFrom = jooq.select(selectFields(PIPELINE)).from(PIPELINE.tableName)
       if (compressionProperties.enabled) {
         selectFrom.leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
       }
@@ -620,7 +620,7 @@ class SqlExecutionRepository(
         .fetch()
 
       log.debug("getting stage information for all the executions found so far")
-      return ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(baseQuery.intoResultSet(), jooq)
+      return ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(baseQuery.intoResultSet(), jooq).executions
     }
   }
 
@@ -870,7 +870,51 @@ class SqlExecutionRepository(
     executionCriteria: ExecutionCriteria
   ): List<PipelineExecution> {
     withPool(readPoolName) {
-      val select = jooq.select(selectFields())
+      // The query here doesn't work with
+      //
+      // `pipelines_compressed_executions`.`updated_at` as `compressed_updated_at`
+      //
+      // from selectFields(PIPELINE) when compression is enabled.  The full error message is:
+      //
+      // org.jooq.exception.DataAccessException: SQL [select id, body, compressed_body, compression_type, `partition`, `pipelines`.`updated_at` as `updated_at`, `pipelines_compressed_executions`.`updated_at` as `compressed_updated_at` from pipelines join (select id, compressed_body, compression_type from pipelines left outer join pipelines_compressed_executions using (id) where (config_id in (?, ?) and build_time > ? and build_time < ?) order by build_time asc limit ? offset ?) as `alias_122785528` using (id) order by build_time asc]; Unknown column 'pipelines_compressed_executions.updated_at' in 'field list'
+      // 	at app//org.jooq.impl.Tools.translate(Tools.java:2903)
+      // 	at app//org.jooq.impl.DefaultExecuteContext.sqlException(DefaultExecuteContext.java:757)
+      // 	at app//org.jooq.impl.AbstractQuery.execute(AbstractQuery.java:389)
+      // 	at app//org.jooq.impl.AbstractResultQuery.fetch(AbstractResultQuery.java:337)
+      // 	at app//org.jooq.impl.SelectImpl.fetch(SelectImpl.java:2880)
+      // 	at app//com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository.fetchExecutions(SqlExecutionRepository.kt:1506)
+      // 	at app//com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(SqlExecutionRepository.kt:920)
+      // 	at app//com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(SqlExecutionRepository.kt:936)
+      // 	at app//com.netflix.spinnaker.kork.telemetry.InstrumentedProxy.invoke(InstrumentedProxy.java:103)
+      // 	at com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlPipelineExecutionRepositorySpec.can retrieve ALL pipelines by configIds between build time boundaries(SqlPipelineExecutionRepositorySpec.groovy:665)
+      // Caused by: java.sql.SQLSyntaxErrorException: Unknown column 'pipelines_compressed_executions.updated_at' in 'field list'
+      // 	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121)
+      // 	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
+      // 	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:916)
+      // 	at com.mysql.cj.jdbc.ClientPreparedStatement.execute(ClientPreparedStatement.java:354)
+      // 	at com.zaxxer.hikari.pool.ProxyPreparedStatement.execute(ProxyPreparedStatement.java:44)
+      // 	at org.jooq.tools.jdbc.DefaultPreparedStatement.execute(DefaultPreparedStatement.java:214)
+      // 	at org.jooq.impl.Tools.executeStatementAndGetFirstResultSet(Tools.java:4217)
+      // 	at org.jooq.impl.AbstractResultQuery.execute(AbstractResultQuery.java:283)
+      // 	at org.jooq.impl.AbstractQuery.execute(AbstractQuery.java:375)
+      // 	... 7 more
+      //
+      //
+      // So, since this is a query that uses the read pool already, and isn't concerned with replication lag, build the list of fields manually instead of calling selectFields(PIPELINE)
+      val baseFields = if (compressionProperties.enabled)
+        listOf(field("id"),
+          field("body"),
+          field("compressed_body"),
+          field("compression_type"),
+          field(name("partition")),
+          field("updated_at"))
+      else
+        listOf(field("id"),
+          field("body"),
+          field(name("partition")),
+          field("updated_at"))
+
+      val select = jooq.select(baseFields)
         .from(PIPELINE.tableName)
         .join(
           jooq.selectExecutions(
@@ -1002,6 +1046,7 @@ class SqlExecutionRepository(
       val tableName = execution.type.tableName
       val stageTableName = execution.type.stagesTableName
       val status = execution.status.toString()
+      val updatedAt = Instant.now().toEpochMilli()
       val body = mapper.writeValueAsString(execution)
       val bodySize = body.length.toLong()
       execution.setSize(bodySize)
@@ -1009,7 +1054,6 @@ class SqlExecutionRepository(
 
       val (executionId, legacyId) = mapLegacyId(ctx, tableName, execution.id, execution.startTime)
 
-      val updatedAt = Instant.now().toEpochMilli()
       val insertPairs = mutableMapOf(
         field("id") to executionId,
         field("legacy_id") to legacyId,
@@ -1096,6 +1140,7 @@ class SqlExecutionRepository(
   ) {
     val stageTable = stage.execution.type.stagesTableName
     val table = stage.execution.type.tableName
+    val updatedAt = Instant.now().toEpochMilli()
     val body = mapper.writeValueAsString(stage)
     val bodySize = body.length.toLong()
     stage.setSize(bodySize)
@@ -1106,7 +1151,6 @@ class SqlExecutionRepository(
     val executionUlid = executionId ?: mapLegacyId(ctx, table, stage.execution.id, buildTime).first
     val (stageId, legacyId) = mapLegacyId(ctx, stageTable, stage.id, buildTime)
 
-    val updatedAt = Instant.now().toEpochMilli()
     val insertPairs = mapOf(
       field("id") to stageId,
       field("legacy_id") to legacyId,
@@ -1345,28 +1389,44 @@ class SqlExecutionRepository(
         return select.fetchExecution()
       }
     }
-    if (requireLatestVersion) {
-      // Attempt to find an up-to-date execution from the read pool
-      val pipelineExecution = withPool(readPoolName) {
-        val select = ctx.selectExecution(
-          type,
-          fields = selectReadPoolFields(executionType = type)
-        )
-          .where(id.toWhereCondition())
-        select.fetchExecution(true)
-      }
-      if (pipelineExecution != null) {
-        return pipelineExecution
-      }
-      // If we couldn't find an up-to-date execution, use the regular pool instead
-      withPool(poolName) {
-        val select = ctx.selectExecution(type).where(id.toWhereCondition())
-        return select.fetchExecution()
-      }
-    } else {
+    if (!requireLatestVersion) {
       withPool(readPoolName) {
         val select = ctx.selectExecution(type).where(id.toWhereCondition())
         return select.fetchExecution()
+      }
+    }
+    // Attempt to find an up-to-date execution from the read pool
+    val (pipelineExecutions, resultCode) = withPool(readPoolName) {
+      val select = ctx.selectExecution(type).where(id.toWhereCondition())
+      select.fetchExecution(true)
+    }
+    // Determine the result and perform additional tasks if necessary
+    when (resultCode) {
+      ExecutionMapperResultCode.SUCCESS -> {
+        return pipelineExecutions.first()
+      }
+      ExecutionMapperResultCode.NOT_FOUND, ExecutionMapperResultCode.INVALID_VERSION -> {
+        withPool(poolName) {
+          val select = ctx.selectExecution(type).where(id.toWhereCondition())
+          return select.fetchExecution()
+        }
+      }
+      // If an execution is missing from the ExecutionUpdateTimeRepository, retrieve
+      // the execution using the default pool. If successful, also repopulate the
+      // ExecutionUpdateTimeRepository with the update timestamps
+      ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY -> {
+        val pipelineExecution = withPool(poolName) {
+          val select = ctx.selectExecution(type).where(id.toWhereCondition())
+          select.fetchExecution()
+        } ?: return null
+        executionUpdateTimeRepository.putPipelineExecutionUpdate(
+          pipelineExecution.id,
+          Instant.ofEpochMilli(pipelineExecution.updatedAt)
+        )
+        pipelineExecution.stages.forEach {
+          executionUpdateTimeRepository.putStageExecutionUpdate(it.id, Instant.ofEpochMilli(it.updatedAt))
+        }
+        return pipelineExecution
       }
     }
   }
@@ -1421,7 +1481,7 @@ class SqlExecutionRepository(
 
   private fun DSLContext.selectExecutions(
     type: ExecutionType,
-    fields: List<Field<Any>> = selectFields(),
+    fields: List<Field<Any>> = selectFields(type),
     conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
     seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
   ): SelectForUpdateStep<out Record> {
@@ -1438,7 +1498,7 @@ class SqlExecutionRepository(
 
   private fun DSLContext.selectExecutions(
     type: ExecutionType,
-    fields: List<Field<Any>> = selectFields(),
+    fields: List<Field<Any>> = selectFields(type),
     usingIndex: String,
     conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
     seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
@@ -1454,7 +1514,7 @@ class SqlExecutionRepository(
       .let { seek(it) }
   }
 
-  private fun DSLContext.selectExecution(type: ExecutionType, fields: List<Field<Any>> = selectFields()): SelectJoinStep<Record> {
+  private fun DSLContext.selectExecution(type: ExecutionType, fields: List<Field<Any>> = selectFields(type)): SelectJoinStep<Record> {
     val selectFrom = select(fields).from(type.tableName)
 
     if (compressionProperties.enabled) {
@@ -1467,23 +1527,7 @@ class SqlExecutionRepository(
   /**
    * The fields used in a SELECT executions query.
    */
-  private fun selectFields(): List<Field<Any>> {
-    if (compressionProperties.enabled) {
-      return listOf(field("id"),
-        field("body"),
-        field("compressed_body"),
-        field("compression_type"),
-        field(name("partition"))
-      )
-    }
-
-    return listOf(field("id"),
-      field("body"),
-      field(name("partition"))
-    )
-  }
-
-  private fun selectReadPoolFields(executionType: ExecutionType): List<Field<Any>> {
+  private fun selectFields(executionType: ExecutionType): List<Field<Any>> {
     if (compressionProperties.enabled) {
       return listOf(field("id"),
         field("body"),
@@ -1496,14 +1540,14 @@ class SqlExecutionRepository(
     }
 
     return listOf(field("id"),
-      field("body"),
-      field(name("partition")),
-      field("updated_at")
+        field("body"),
+        field(name("partition")),
+        field("updated_at")
     )
   }
 
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
-    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq)
+    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq).executions
 
   private fun SelectForUpdateStep<out Record>.fetchExecution() =
     fetchExecutions().firstOrNull()
@@ -1512,7 +1556,7 @@ class SqlExecutionRepository(
     ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled, requireLatestVersion, executionUpdateTimeRepository).map(fetch().intoResultSet(), jooq)
 
   private fun SelectForUpdateStep<out Record>.fetchExecution(requireLatestVersion: Boolean) =
-    fetchExecutions(requireLatestVersion).firstOrNull()
+    fetchExecutions(requireLatestVersion)
 
   private fun fetchExecutions(nextPage: (Int, String?) -> Iterable<PipelineExecution>) =
     object : Iterable<PipelineExecution> {

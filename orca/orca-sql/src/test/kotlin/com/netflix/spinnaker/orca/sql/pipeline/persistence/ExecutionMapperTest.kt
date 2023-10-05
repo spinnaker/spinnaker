@@ -22,17 +22,22 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.times
+import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.jooq.DSLContext
 import org.mockito.Mockito
@@ -49,11 +54,12 @@ import java.util.zip.DeflaterOutputStream
 class ExecutionMapperTest : JUnit5Minutests {
 
   fun tests() = rootContext<Unit> {
+    val compressionProperties = ExecutionCompressionProperties().apply {
+      enabled = true
+    }
 
     context("handle body decompression") {
-      val mapper = ExecutionMapper(mapper = ObjectMapper(), stageBatchSize = 200, ExecutionCompressionProperties().apply {
-        enabled = true
-      }, false)
+      val mapper = ExecutionMapper(mapper = ObjectMapper(), stageBatchSize = 200, compressionProperties, false)
 
       val mockedResultSet = mock<ResultSet>()
 
@@ -80,14 +86,14 @@ class ExecutionMapperTest : JUnit5Minutests {
     }
 
     context("handle PipelineRef conversion") {
-      val compressionProperties = ExecutionCompressionProperties().apply {
+      val compressionPropertiesDisabled = ExecutionCompressionProperties().apply {
         enabled = false
       }
       val database: DSLContext = Mockito.mock(DSLContext::class.java, Mockito.RETURNS_DEEP_STUBS)
 
       test("conversion ignored when trigger is not PipelineRef") {
         val mockedExecution = mock<PipelineExecution>()
-        val mapper = ExecutionMapper(ObjectMapper(), 200, compressionProperties, true)
+        val mapper = ExecutionMapper(ObjectMapper(), 200, compressionPropertiesDisabled, true)
         val spyMapper = Mockito.spy(mapper)
 
         doReturn(DefaultTrigger(type = "default")).`when`(mockedExecution).trigger
@@ -98,7 +104,7 @@ class ExecutionMapperTest : JUnit5Minutests {
 
       test("conversion is aborted when trigger is PipelineRef but parentExecution not found") {
         val mockedExecution = mock<PipelineExecution>()
-        val mapper = ExecutionMapper(ObjectMapper(), 200, compressionProperties, true)
+        val mapper = ExecutionMapper(ObjectMapper(), 200, compressionPropertiesDisabled, true)
         val spyMapper = Mockito.spy(mapper)
 
         doReturn(PipelineRefTrigger(parentExecutionId = "test-parent-id")).`when`(mockedExecution).trigger
@@ -130,7 +136,7 @@ class ExecutionMapperTest : JUnit5Minutests {
         }
 
         val mockedParentExecution = mock<PipelineExecution>()
-        val mapper = ExecutionMapper(ObjectMapper(), 200, compressionProperties, true)
+        val mapper = ExecutionMapper(ObjectMapper(), 200, compressionPropertiesDisabled, true)
         val spyMapper = Mockito.spy(mapper)
 
         doReturn(mockedParentExecution).`when`(spyMapper).fetchParentExecution(any(), any(), any())
@@ -161,9 +167,7 @@ class ExecutionMapperTest : JUnit5Minutests {
       val mapper = ExecutionMapper(
         mapper = ObjectMapper(),
         stageBatchSize = 200,
-        ExecutionCompressionProperties().apply {
-          enabled = true
-        },
+        compressionProperties = compressionProperties,
         pipelineRefEnabled = false,
         requireLatestVersion = true,
         executionUpdateTimeRepository = mock<ExecutionUpdateTimeRepository>()
@@ -201,6 +205,178 @@ class ExecutionMapperTest : JUnit5Minutests {
         doReturn(newerUpdatedAt).`when`(mockedResultSet).getLong("updated_at")
         doReturn(olderUpdatedAt).`when`(mockedResultSet).getLong("compressed_updated_at")
         assertThat(mapper.isUpToDateVersion(mockedResultSet, givenUpdatedAt)).isFalse()
+      }
+    }
+
+    context("return result codes") {
+      val pipelineExecutionResultSet = mock<ResultSet>()
+      val stageExecutionResultSet = mock<ResultSet>()
+      val objectMapper = OrcaObjectMapper.getInstance()
+      val pipelineExecutionId = ULID().nextULID()
+      val pipelineExecution = PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineExecutionId, "myapp")
+      val pipelineExecutionString = objectMapper.writeValueAsString(pipelineExecution)
+      val stageExecution = StageExecutionImpl(pipelineExecution, "test", "test stage", mutableMapOf())
+      val stageExecutionString = objectMapper.writeValueAsString(stageExecution)
+      val updatedAt = Instant.ofEpochMilli(1000L)
+
+      val mockedContext = mockk<DSLContext>()
+      // Mock the DSLContext.selectExecutionStages extension function
+      every {
+        mockedContext.selectExecutionStages(ExecutionType.PIPELINE, listOf(pipelineExecutionId), compressionProperties)
+      } returns stageExecutionResultSet
+
+      context("when requireLatestVersion is false") {
+        val mapper = ExecutionMapper(
+          mapper = objectMapper,
+          stageBatchSize = 200,
+          compressionProperties,
+          false
+        )
+
+        test("return NOT_FOUND when given an empty ResultSet") {
+          doReturn(false).`when`(pipelineExecutionResultSet).next()
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions).isEmpty()
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.NOT_FOUND)
+        }
+
+        test("return SUCCESS when there are no errors") {
+          // Mocked pipeline execution calls
+          doReturn(true, false).`when`(pipelineExecutionResultSet).next()
+          doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
+          doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
+          doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
+
+          // Mocked stage execution calls
+          doReturn(true, false).`when`(stageExecutionResultSet).next()
+          doReturn(pipelineExecutionId).`when`(stageExecutionResultSet).getString("execution_id")
+          doReturn(updatedAt.toEpochMilli()).`when`(stageExecutionResultSet).getLong("updated_at")
+          doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
+
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions.size).isEqualTo(1)
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.SUCCESS)
+        }
+      }
+
+      context("when requireLatestVersion is true") {
+        val executionUpdateTimeRepository = mock<ExecutionUpdateTimeRepository>()
+        val mapper = ExecutionMapper(
+          mapper = objectMapper,
+          stageBatchSize = 200,
+          compressionProperties = compressionProperties,
+          pipelineRefEnabled = false,
+          requireLatestVersion = true,
+          executionUpdateTimeRepository = executionUpdateTimeRepository
+        )
+
+        test("return NOT_FOUND when given an empty ResultSet") {
+          doReturn(false).`when`(pipelineExecutionResultSet).next()
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions).isEmpty()
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.NOT_FOUND)
+        }
+
+        test("return SUCCESS when there are no errors") {
+          // Mocked pipeline execution calls
+          doReturn(true, false).`when`(pipelineExecutionResultSet).next()
+          doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
+          doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
+          doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
+          doReturn(updatedAt).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+
+          // Mocked stage execution calls
+          doReturn(true, false).`when`(stageExecutionResultSet).next()
+          doReturn(pipelineExecutionId).`when`(stageExecutionResultSet).getString("execution_id")
+          doReturn(stageExecution.id).`when`(stageExecutionResultSet).getString("id")
+          doReturn(updatedAt.toEpochMilli()).`when`(stageExecutionResultSet).getLong("updated_at")
+          doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
+          doReturn(updatedAt).`when`(executionUpdateTimeRepository).getStageExecutionUpdate(stageExecution.id)
+
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions.size).isEqualTo(1)
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.SUCCESS)
+        }
+
+        test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when a pipeline execution id is missing from the ExecutionUpdateTimeRepository") {
+          // Mocked pipeline execution calls
+          doReturn(true, false).`when`(pipelineExecutionResultSet).next()
+          doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
+          doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
+          doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
+
+          // when
+          doReturn(null).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+
+          // then
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions).isEmpty()
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY)
+        }
+
+        test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when a stage execution id is missing from the ExecutionUpdateTimeRepository") {
+          // Mocked pipeline execution calls
+          doReturn(true, false).`when`(pipelineExecutionResultSet).next()
+          doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
+          doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
+          doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
+          doReturn(updatedAt).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+
+          // Mocked stage execution calls
+          doReturn(true, false).`when`(stageExecutionResultSet).next()
+          doReturn(pipelineExecutionId).`when`(stageExecutionResultSet).getString("execution_id")
+          doReturn(stageExecution.id).`when`(stageExecutionResultSet).getString("id")
+          doReturn(updatedAt.toEpochMilli()).`when`(stageExecutionResultSet).getLong("updated_at")
+          doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
+
+          // when
+          doReturn(null).`when`(executionUpdateTimeRepository).getStageExecutionUpdate(stageExecution.id)
+
+          // then
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions).isEmpty()
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY)
+        }
+
+        test("return INVALID_VERSION when a pipeline execution is too old") {
+          // Mocked pipeline execution calls
+          doReturn(true, false).`when`(pipelineExecutionResultSet).next()
+          doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
+          doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
+          doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
+
+          // when
+          doReturn(updatedAt.plusMillis(500L)).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+
+          // then
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions).isEmpty()
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.INVALID_VERSION)
+        }
+
+        test("return INVALID_VERSION when a stage execution is too old") {
+          // Mocked pipeline execution calls
+          doReturn(true, false).`when`(pipelineExecutionResultSet).next()
+          doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
+          doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
+          doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
+          doReturn(updatedAt).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+
+          // Mocked stage execution calls
+          doReturn(true, false).`when`(stageExecutionResultSet).next()
+          doReturn(pipelineExecutionId).`when`(stageExecutionResultSet).getString("execution_id")
+          doReturn(stageExecution.id).`when`(stageExecutionResultSet).getString("id")
+          doReturn(updatedAt.toEpochMilli()).`when`(stageExecutionResultSet).getLong("updated_at")
+          doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
+
+          // when
+          doReturn(updatedAt.plusMillis(500L)).`when`(executionUpdateTimeRepository).getStageExecutionUpdate(stageExecution.id)
+
+          // then
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions).isEmpty()
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.INVALID_VERSION)
+        }
       }
     }
   }

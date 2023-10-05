@@ -123,7 +123,8 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
             field("build_time"),
             field("start_time"),
             field("body"),
-            field("status")
+            field("status"),
+            field("updated_at")
           ))
         .values(
           listOf(
@@ -133,7 +134,8 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
             clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(120, ChronoUnit.MINUTES).toEpochMilli(),
             clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(120, ChronoUnit.HOURS).toEpochMilli(),
             "{\"id\": \"1-exec-id-1\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"1\"}",
-            "SUCCEEDED"
+            "SUCCEEDED",
+            Instant.EPOCH.toEpochMilli()
           )
         )
         .values(
@@ -144,7 +146,8 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
             clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(115, ChronoUnit.MINUTES).toEpochMilli(),
             clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(115, ChronoUnit.MINUTES).toEpochMilli(),
             "{\"id\": \"1-exec-id-2\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"1\"}",
-            "TERMINAL"
+            "TERMINAL",
+            Instant.EPOCH.toEpochMilli()
           )
         )
         .values(
@@ -155,7 +158,8 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
             clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(114, ChronoUnit.MINUTES).toEpochMilli(),
             clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(114, ChronoUnit.MINUTES).toEpochMilli(),
             "{\"id\": \"1-exec-id-3\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"1\"}",
-            "RUNNING"
+            "RUNNING",
+            Instant.EPOCH.toEpochMilli()
           )
         )
         .values(
@@ -166,7 +170,8 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
             clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(2, ChronoUnit.HOURS).toEpochMilli(),
             clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(2, ChronoUnit.HOURS).toEpochMilli(),
             "{\"id\": \"2-exec-id-1\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"2\"}",
-            "NOT_STARTED"
+            "NOT_STARTED",
+            Instant.EPOCH.toEpochMilli()
           )
         )
         .values(
@@ -177,7 +182,8 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
             clock.instant().minus(daysOfExecutionHistory + 1, ChronoUnit.DAYS).minus(2, ChronoUnit.HOURS).toEpochMilli(),
             clock.instant().minus(daysOfExecutionHistory + 1, ChronoUnit.DAYS).minus(2, ChronoUnit.HOURS).toEpochMilli(),
             "{\"id\": \"3-exec-id-1\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"3\"}",
-            "STOPPED"
+            "STOPPED",
+            Instant.EPOCH.toEpochMilli()
           )
         )
         .execute()

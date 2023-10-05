@@ -116,19 +116,22 @@ internal fun DSLContext.selectExecutionStages(executionType: ExecutionType, exec
 /**
  * The fields used in a SELECT executions query.
  */
-internal fun selectExecutionFields(compressionProperties: ExecutionCompressionProperties): List<Field<Any>> {
+internal fun selectExecutionFields(executionType: ExecutionType, compressionProperties: ExecutionCompressionProperties): List<Field<Any>> {
   if (compressionProperties.enabled) {
     return listOf(field("id"),
       field("body"),
       field("compressed_body"),
       field("compression_type"),
-      field(DSL.name("partition"))
+      field(DSL.name("partition")),
+      field(DSL.name(executionType.tableName.name, "updated_at")).`as`("updated_at"),
+      field(DSL.name(executionType.tableName.compressedExecTable.name, "updated_at")).`as`("compressed_updated_at")
     )
   }
 
   return listOf(field("id"),
     field("body"),
-    field(DSL.name("partition"))
+    field(DSL.name("partition")),
+    field("updated_at")
   )
 }
 
@@ -142,7 +145,7 @@ internal fun SelectForUpdateStep<out Record>.fetchExecutions(
   jooq: DSLContext,
   pipelineRefEnabled: Boolean
 ) =
-  ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq)
+  ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq).executions
 
 
 private fun selectStageFields(executionType: ExecutionType, compressionProperties: ExecutionCompressionProperties): List<Field<Any>> {
@@ -164,7 +167,7 @@ private fun selectStageFields(executionType: ExecutionType, compressionPropertie
   )
 }
 
-internal fun DSLContext.selectExecution(type: ExecutionType, compressionProperties: ExecutionCompressionProperties, fields: List<Field<Any>> = selectExecutionFields(compressionProperties)): SelectJoinStep<Record> {
+internal fun DSLContext.selectExecution(type: ExecutionType, compressionProperties: ExecutionCompressionProperties, fields: List<Field<Any>> = selectExecutionFields(type, compressionProperties)): SelectJoinStep<Record> {
   val selectFrom = select(fields).from(type.tableName)
 
   if (compressionProperties.enabled) {

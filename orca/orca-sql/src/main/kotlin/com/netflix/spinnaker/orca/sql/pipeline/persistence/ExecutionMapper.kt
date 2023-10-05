@@ -106,7 +106,17 @@ class ExecutionMapper(
     }
   }
 
-  fun map(rs: ResultSet, context: DSLContext): Collection<PipelineExecution> {
+  /**
+   * Maps a given ResultSet to a Collection<PipelineExecution> and returns the result
+   * in an [ExecutionMapperResult]. If the collection is empty,
+   * [ExecutionMapperResultCode] communicates the reason and the caller can use this information
+   * to perform additional processing as needed.
+   *
+   * Return an ExecutionMapperResult instead of throwing different exception classes because
+   * this function can return an empty collection as part of its normal behavior. In other words,
+   * returning an empty collection is not considered "truly exceptional" or "unexpected" behavior.
+   */
+  fun map(rs: ResultSet, context: DSLContext): ExecutionMapperResult {
     val results = mutableListOf<PipelineExecution>()
     val executionMap = mutableMapOf<String, PipelineExecution>()
     val legacyMap = mutableMapOf<String, String>()
@@ -115,8 +125,9 @@ class ExecutionMapper(
       if (requireLatestVersion) {
         val executionId = rs.getString("id")
         val oldestAllowedUpdate = executionUpdateTimeRepository.getPipelineExecutionUpdate(executionId)
-        if (oldestAllowedUpdate == null || !isUpToDateVersion(rs, oldestAllowedUpdate)) {
-          return mutableListOf()
+          ?: return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY)
+        if (!isUpToDateVersion(rs, oldestAllowedUpdate)) {
+          return ExecutionMapperResult(mutableListOf(),ExecutionMapperResultCode.INVALID_VERSION)
         }
       }
       val body = getDecompressedBody(rs)
@@ -126,6 +137,7 @@ class ExecutionMapper(
             execution ->
             convertPipelineRefTrigger(execution, context)
             execution.setSize(body.length.toLong())
+            execution.updatedAt = rs.getLong("updated_at")
             results.add(execution)
             execution.partition = rs.getString("partition")
 
@@ -143,7 +155,8 @@ class ExecutionMapper(
     if (results.isNotEmpty()) {
       val type = results[0].type
 
-      var outdatedStageFound = false
+      var invalidVersionFound = false
+      var missingFromUpdateTimeRepositoryFound = false
       results.chunked(stageBatchSize) { executions ->
         val executionIds: List<String> = executions.map {
           if (legacyMap.containsKey(it.id)) {
@@ -158,8 +171,12 @@ class ExecutionMapper(
             if (requireLatestVersion) {
               val stageId = stageResultSet.getString("id")
               val oldestAllowedUpdate = executionUpdateTimeRepository.getStageExecutionUpdate(stageId)
-              if (oldestAllowedUpdate == null || !isUpToDateVersion(stageResultSet, oldestAllowedUpdate)) {
-                outdatedStageFound = true
+              if (oldestAllowedUpdate == null) {
+                missingFromUpdateTimeRepositoryFound = true
+                return@chunked
+              }
+              if (!isUpToDateVersion(stageResultSet, oldestAllowedUpdate)) {
+                invalidVersionFound = true
                 return@chunked
               }
             }
@@ -172,13 +189,22 @@ class ExecutionMapper(
         }
       }
 
-      // Return an empty result to indicate that a retry is needed
-      if (outdatedStageFound) {
-        return mutableListOf()
+      // A result where the execution is missing from the ExecutionUpdateTimeRepository has a higher
+      // precedence than a result where the version is invalid since MISSING_FROM_UPDATE_TIME_REPOSITORY
+      // is a more specific case of INVALID_VERSION
+      if (missingFromUpdateTimeRepositoryFound) {
+        return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY)
+      }
+      if (invalidVersionFound) {
+        return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.INVALID_VERSION)
       }
     }
 
-    return results
+    return if (results.isNotEmpty()) {
+      ExecutionMapperResult(results, ExecutionMapperResultCode.SUCCESS)
+    } else {
+      ExecutionMapperResult(results, ExecutionMapperResultCode.NOT_FOUND)
+    }
   }
 
   private fun mapStage(rs: ResultSet, executions: Map<String, PipelineExecution>) {
@@ -191,6 +217,7 @@ class ExecutionMapper(
           .apply {
             execution = executions.getValue(executionId)
             setSize(body.length.toLong())
+            updatedAt = rs.getLong("updated_at")
           }
       )
   }

@@ -69,6 +69,10 @@ public interface StageExecution {
 
   void setEndTime(@Nullable Long endTime);
 
+  Long getUpdatedAt();
+
+  void setUpdatedAt(Long updatedAt);
+
   /** TODO(rz): Convert to Instant */
   @Nullable
   Long getStartTimeExpiry();

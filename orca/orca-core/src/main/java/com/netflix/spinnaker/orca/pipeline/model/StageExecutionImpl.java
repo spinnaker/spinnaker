@@ -231,6 +231,18 @@ public class StageExecutionImpl implements StageExecution, Serializable {
     this.endTime = endTime;
   }
 
+  private Long updatedAt = 0L;
+
+  @Override
+  public Long getUpdatedAt() {
+    return updatedAt;
+  }
+
+  @Override
+  public void setUpdatedAt(Long updatedAt) {
+    this.updatedAt = updatedAt;
+  }
+
   /**
    * Gets the start expiry timestamp for this stage. If the stage has not started before this
    * timestamp, the stage will be skipped.

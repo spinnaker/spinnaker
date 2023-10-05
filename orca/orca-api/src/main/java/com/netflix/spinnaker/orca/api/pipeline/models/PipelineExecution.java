@@ -90,6 +90,10 @@ public interface PipelineExecution {
 
   void setEndTime(Long endTime);
 
+  Long getUpdatedAt();
+
+  void setUpdatedAt(Long updatedAt);
+
   Long getStartTimeExpiry();
 
   void setStartTimeExpiry(Long startTimeExpiry);
