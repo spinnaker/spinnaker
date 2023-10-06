@@ -39,7 +39,7 @@ class AbstractEventNotificationAgentSpec extends Specification {
   @Unroll
   def "sends notifications based on status and configuration"() {
     given:
-    subclassMock.sendNotifications(*_) >> { notification, application, event, config, status_local -> }
+    subclassMock.sendNotifications(*_) >> { notification, application, event_local, config, status -> }
 
     when:
     agent.processEvent(event)
