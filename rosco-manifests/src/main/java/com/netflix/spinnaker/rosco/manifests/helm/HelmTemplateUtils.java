@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 @Slf4j
@@ -86,6 +87,18 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
     if (request.isIncludeCRDs()
         && request.getTemplateRenderer() == BakeManifestRequest.TemplateRenderer.HELM3) {
       command.add("--include-crds");
+    }
+
+    String apiVersions = request.getApiVersions();
+    if (StringUtils.hasText(apiVersions)) {
+      command.add("--api-versions");
+      command.add(apiVersions);
+    }
+
+    String kubeVersion = request.getKubeVersion();
+    if (StringUtils.hasText(kubeVersion)) {
+      command.add("--kube-version");
+      command.add(kubeVersion);
     }
 
     Map<String, Object> overrides = request.getOverrides();
