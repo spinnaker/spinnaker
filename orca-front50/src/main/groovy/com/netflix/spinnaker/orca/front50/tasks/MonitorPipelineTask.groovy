@@ -57,10 +57,18 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
     MonitorPipelineStage.StageParameters stageData = stage.mapTo(MonitorPipelineStage.StageParameters.class)
 
     if (stage.type == MonitorPipelineStage.PIPELINE_CONFIG_TYPE) {
-      pipelineIds = stageData.executionIds
+      // Use - null to remove null elements
+      pipelineIds = stageData.executionIds ? stageData.executionIds - null : Collections.emptyList()
     } else {
-      pipelineIds = Collections.singletonList(stageData.executionId)
+      pipelineIds = stageData.executionId ? Collections.singletonList(stageData.executionId) : Collections.emptyList()
       isLegacyStage = true
+    }
+
+    if (pipelineIds.size() == 0) {
+      String message = "no pipeline execution ids to monitor";
+      log.info(message)
+      stage.appendErrorMessage(message)
+      return TaskResult.ofStatus(ExecutionStatus.TERMINAL)
     }
 
     HashMap<String, MonitorPipelineStage.ChildPipelineStatusDetails> pipelineStatuses = new HashMap<>(pipelineIds.size())

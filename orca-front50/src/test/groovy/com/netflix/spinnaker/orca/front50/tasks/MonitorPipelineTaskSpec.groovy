@@ -28,6 +28,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -36,13 +37,14 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 class MonitorPipelineTaskSpec extends Specification {
 
   ExecutionRepository repo = Mock(ExecutionRepository)
-  StageExecutionImpl stage = new StageExecutionImpl(type: "whatever")
+  StageExecutionImpl stage = new StageExecutionImpl()
 
   @Subject
   MonitorPipelineTask task = new MonitorPipelineTask(repo, new ObjectMapper())
 
   def setup() {
     stage.context.executionId = 'abc'
+    stage.type = 'whatever'
   }
 
   @Unroll
@@ -309,4 +311,40 @@ class MonitorPipelineTaskSpec extends Specification {
     MonitorPipelineStage.MonitorBehavior.FailFast               || ExecutionStatus.TERMINAL
     MonitorPipelineStage.MonitorBehavior.WaitForAllToComplete   || ExecutionStatus.RUNNING
   }
+
+  @Unroll
+  def "handles a missing execution id (stage type: #stageType)"() {
+    given:
+    stage.context.remove('executionId')
+    stage.type = stageType
+
+    when:
+    task.execute(stage)
+
+    then:
+    noExceptionThrown()
+    0 * repo.retrieve(PIPELINE, _)
+
+    where:
+    stageType << [ MonitorPipelineStage.PIPELINE_CONFIG_TYPE, PipelineStage.PIPELINE_CONFIG_TYPE ]
+  }
+
+  @Unroll
+  def "handles a null execution id (stage type: #stageType)"() {
+    given:
+    stage.context.executionId = null
+    stage.context.executionIds = [null]
+    stage.type = stageType
+
+    when:
+    task.execute(stage)
+
+    then:
+    noExceptionThrown()
+    0 * repo.retrieve(PIPELINE, _)
+
+    where:
+    stageType << [ MonitorPipelineStage.PIPELINE_CONFIG_TYPE, PipelineStage.PIPELINE_CONFIG_TYPE ]
+  }
+
 }
