@@ -10,6 +10,7 @@ import {
   StageArtifactSelectorDelegate,
 } from '../../../../../artifact';
 import { StageConfigField } from '../../common/stageConfigField/StageConfigField';
+import { SETTINGS } from '../../../../../config';
 import type { IArtifact, IExpectedArtifact } from '../../../../../domain';
 import { MapEditor } from '../../../../../forms';
 import { CheckboxInput, TextInput } from '../../../../../presentation';
@@ -152,9 +153,30 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
 
   public render() {
     const stage = this.props.formik.values;
+    const enableApiVersions = SETTINGS.feature.helmApiVersions;
     return (
       <>
         <h4>Helm Options</h4>
+        {enableApiVersions && ( // Only render if enableApiVersions is true
+          <>
+            <StageConfigField fieldColumns={3} label={'ApiVersions'}>
+              <TextInput
+                onChange={(e: React.ChangeEvent<any>) => {
+                  this.props.formik.setFieldValue('apiVersions', e.target.value);
+                }}
+                value={stage.apiVersions}
+              />
+            </StageConfigField>
+            <StageConfigField fieldColumns={3} label={'KubeVersion'}>
+              <TextInput
+                onChange={(e: React.ChangeEvent<any>) => {
+                  this.props.formik.setFieldValue('kubeVersion', e.target.value);
+                }}
+                value={stage.kubeVersion}
+              />
+            </StageConfigField>
+          </>
+        )}
         <StageConfigField fieldColumns={3} label={'Name'}>
           <TextInput
             onChange={(e: React.ChangeEvent<any>) => {

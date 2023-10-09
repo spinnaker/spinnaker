@@ -57,6 +57,8 @@ const reduxLoggerEnabled = import.meta.env.VITE_REDUX_LOGGER === 'true' || proce
 const templatesEnabled = import.meta.env.VITE_TEMPLATES_ENABLED === 'true' || process.env.TEMPLATES_ENABLED === 'true';
 const useClassicFirewallLabels =
   import.meta.env.VITE_USE_CLASSIC_FIREWALL_LABELS === 'true' || process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
+const helmApiVersionsEnabled =
+  import.meta.env.VITE_API_VERSIONS_ENABLED === 'true' || process.env.API_VERSIONS_ENABLED === 'true' || false;
 const functionsEnabled =
   import.meta.env.VITE_FUNCTIONS_ENABLED === 'true' || process.env.FUNCTIONS_ENABLED === 'true' || false;
 const k8sRawResourcesEnabled =
@@ -131,6 +133,7 @@ window.spinnakerSettings = {
     slack: false,
     snapshots: false,
     functions: functionsEnabled,
+    helmApiVersions: helmApiVersionsEnabled,
     kubernetesRawResources: k8sRawResourcesEnabled,
   },
   gateUrl: apiHost,
