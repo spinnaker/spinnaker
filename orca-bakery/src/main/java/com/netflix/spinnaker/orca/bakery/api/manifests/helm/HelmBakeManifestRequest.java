@@ -29,6 +29,13 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class HelmBakeManifestRequest extends BakeManifestRequest {
+
+  @JsonProperty("apiVersions")
+  private String apiVersions;
+
+  @JsonProperty("kubeVersion")
+  private String kubeVersion;
+
   @JsonProperty("namespace")
   private String namespace;
 
@@ -59,6 +66,8 @@ public class HelmBakeManifestRequest extends BakeManifestRequest {
         outputArtifactName,
         bakeManifestContext.getOutputName());
     this.setOverrides(overrides);
+    this.setApiVersions(bakeManifestContext.getApiVersions());
+    this.setKubeVersion(bakeManifestContext.getKubeVersion());
     this.setNamespace(bakeManifestContext.getNamespace());
     this.setInputArtifacts(inputArtifacts);
     this.setRawOverrides(bakeManifestContext.getRawOverrides());
