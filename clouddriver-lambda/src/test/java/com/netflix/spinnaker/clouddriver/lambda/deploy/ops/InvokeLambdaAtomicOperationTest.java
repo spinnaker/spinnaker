@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
