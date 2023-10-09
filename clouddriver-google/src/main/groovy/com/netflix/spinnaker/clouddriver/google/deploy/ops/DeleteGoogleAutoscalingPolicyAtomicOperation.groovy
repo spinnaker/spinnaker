@@ -22,6 +22,7 @@ import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.RegionInstanceGroupManagersSetAutoHealingRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
@@ -39,24 +40,24 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
   private static final String BASE_PHASE = "DELETE_SCALING_POLICY"
   private final DeleteGoogleAutoscalingPolicyDescription description
 
-  @Autowired
   private GoogleClusterProvider googleClusterProvider
 
-  @Autowired
   private GoogleOperationPoller googleOperationPoller
 
-  @Autowired
   AtomicOperationsRegistry atomicOperationsRegistry
 
-  @Autowired
   OrchestrationProcessor orchestrationProcessor
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
 
-  DeleteGoogleAutoscalingPolicyAtomicOperation(DeleteGoogleAutoscalingPolicyDescription description) {
+  DeleteGoogleAutoscalingPolicyAtomicOperation(DeleteGoogleAutoscalingPolicyDescription description, @Autowired GoogleClusterProvider googleClusterProvider, @Autowired GoogleOperationPoller googleOperationPoller, @Autowired AtomicOperationsRegistry atomicOperationsRegistry, @Autowired OrchestrationProcessor orchestrationProcessor) {
     this.description = description
+    this.googleClusterProvider = googleClusterProvider
+    this.googleOperationPoller = googleOperationPoller
+    this.atomicOperationsRegistry = atomicOperationsRegistry
+    this.orchestrationProcessor = orchestrationProcessor
   }
 
   /**
@@ -88,7 +89,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         def deleteOp = timeExecute(
           compute.regionInstanceGroupManagers().setAutoHealingPolicies(project, region, serverGroupName, request),
           "compute.regionInstanceGroupManagers.setAutoHealingPolicies",
-          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, region)
         googleOperationPoller.waitForRegionalOperation(compute, project, region,
           deleteOp.getName(), null, task, "autoHealing policy for $serverGroupName", BASE_PHASE)
         deletePolicyMetadata(compute, credentials, project, GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
@@ -97,7 +98,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         def deleteOp = timeExecute(
           compute.instanceGroupManagers().setAutoHealingPolicies(project, zone, serverGroupName, request),
           "compute.instanceGroupManagers.setAutoHealingPolicies",
-          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, zone)
         googleOperationPoller.waitForZonalOperation(compute, project, zone,
           deleteOp.getName(), null, task, "autoHealing policy for $serverGroupName", BASE_PHASE)
         deletePolicyMetadata(compute, credentials, project, GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
@@ -109,7 +110,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         def deleteOp = timeExecute(
             compute.regionAutoscalers().delete(project, region, serverGroupName),
             "compute.regionAutoscalers.delete",
-            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, region)
         googleOperationPoller.waitForRegionalOperation(compute, project, region,
           deleteOp.getName(), null, task, "autoScaling policy for $serverGroupName", BASE_PHASE)
         deletePolicyMetadata(compute, credentials, project, GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
@@ -117,7 +118,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         def deleteOp = timeExecute(
             compute.autoscalers().delete(project, zone, serverGroupName),
             "compute.autoscalers.delete",
-            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+            GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, zone)
         googleOperationPoller.waitForZonalOperation(compute, project, zone,
           deleteOp.getName(), null, task, "autoScaling policy for $serverGroupName", BASE_PHASE)
         deletePolicyMetadata(compute, credentials, project, GCEUtil.buildZonalServerGroupUrl(project, zone, serverGroupName))
@@ -141,7 +142,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         templateUrl = timeExecute(
           compute.regionInstanceGroupManagers().get(project, groupRegion, groupName),
           "compute.regionInstanceGroupManagers.get",
-          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, groupRegion)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, groupRegion)
           .getInstanceTemplate()
         break
       case GoogleServerGroup.ServerGroupType.ZONAL:
@@ -149,7 +150,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         templateUrl = timeExecute(
           compute.instanceGroupManagers().get(project, groupZone, groupName),
           "compute.instanceGroupManagers.get",
-          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, groupZone)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, groupZone)
           .getInstanceTemplate()
         break
       default:
@@ -160,7 +161,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     InstanceTemplate template = timeExecute(
       compute.instanceTemplates().get(project, Utils.getLocalName(templateUrl)),
       "compute.instancesTemplates.get",
-      TAG_SCOPE, SCOPE_GLOBAL)
+      GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
     def instanceDescription = GCEUtil.buildInstanceDescriptionFromTemplate(project, template)
 
     def templateOpMap = [

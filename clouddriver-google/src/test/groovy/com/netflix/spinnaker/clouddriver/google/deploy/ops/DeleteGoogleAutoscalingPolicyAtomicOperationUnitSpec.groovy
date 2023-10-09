@@ -29,6 +29,10 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleA
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.DefaultOrchestrationProcessor
+import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -40,9 +44,11 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   private static final PROJECT_NAME = "my-project"
   private static final ZONE = "us-central1-f"
 
-  def googleClusterProviderMock = Mock(GoogleClusterProvider)
-  def computeMock = Mock(Compute)
-  def operationPollerMock = Mock(GoogleOperationPoller)
+  GoogleClusterProvider googleClusterProviderMock = Mock(GoogleClusterProvider)
+  Compute computeMock = Mock(Compute)
+  GoogleOperationPoller operationPollerMock = Mock(GoogleOperationPoller)
+  AtomicOperationsRegistry atomicOperationsRegistry = Mock(AtomicOperationsRegistry)
+  DefaultOrchestrationProcessor orchestrationProcessorMock = Mock(DefaultOrchestrationProcessor)
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -73,10 +79,8 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       region: REGION,
       accountName: ACCOUNT_NAME,
       credentials: credentials)
-    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
+    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock, atomicOperationsRegistry, orchestrationProcessorMock])
     operation.registry = registry
-    operation.googleClusterProvider = googleClusterProviderMock
-    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -134,10 +138,8 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
           "compute.regionInstanceGroupManagers.setAutoHealingPolicies",
           [scope: "regional", region: REGION])
 
-    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
+    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock, atomicOperationsRegistry, orchestrationProcessorMock])    
     operation.registry = registry
-    operation.googleClusterProvider = googleClusterProviderMock
-    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -190,10 +192,8 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       serviceAccounts: [[email: 'serviceAccount@google.com']]
     ])
 
-    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
+    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock, atomicOperationsRegistry, orchestrationProcessorMock])
     operation.registry = registry
-    operation.googleClusterProvider = googleClusterProviderMock
-    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.deletePolicyMetadata(computeMock, credentials, PROJECT_NAME, groupUrl)
