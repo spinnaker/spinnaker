@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCach
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesInstance;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.ContainerLog;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.DefaultKubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
 import io.kubernetes.client.openapi.models.V1Container;
@@ -119,7 +119,7 @@ public class KubernetesInstanceProvider
       String containerLogs =
           credentials.logs(metadata.getNamespace(), metadata.getName(), containerName);
       return new ContainerLog(containerName, containerLogs);
-    } catch (KubectlJobExecutor.KubectlException e) {
+    } catch (DefaultKubectlJobExecutor.KubectlException e) {
       // Typically happens if the container/pod isn't running yet
       return new ContainerLog(containerName, e.getMessage());
     }

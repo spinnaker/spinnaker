@@ -44,9 +44,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlException;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlNotFoundException;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.DefaultKubectlJobExecutor;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.DefaultKubectlJobExecutor.KubectlException;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.DefaultKubectlJobExecutor.KubectlNotFoundException;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import java.util.HashMap;
@@ -59,7 +59,8 @@ final class KubernetesCredentialsTest {
   private final String OP_NAME = "KubernetesCredentialsTest";
   private final Task task = new DefaultTask("task-id");
 
-  private KubernetesCredentials getCredentials(Registry registry, KubectlJobExecutor jobExecutor) {
+  private KubernetesCredentials getCredentials(
+      Registry registry, DefaultKubectlJobExecutor jobExecutor) {
     KubernetesCredentials.Factory factory =
         new KubernetesCredentials.Factory(
             registry,
@@ -90,7 +91,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void metricTagsForSuccessfulDeploy() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.deploy(getManifest(), task, OP_NAME);
@@ -111,7 +112,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void metricTagsForSuccessfulList() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.list(
@@ -133,7 +134,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void metricTagsForSuccessfulListNoNamespace() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.list(ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET), null);
@@ -148,7 +149,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void metricTagsForSuccessfulListEmptyNamespace() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
     credentials.list(ImmutableList.of(KubernetesKind.DEPLOYMENT, KubernetesKind.REPLICA_SET), "");
@@ -163,7 +164,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void returnValueForSuccessfulList() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
@@ -178,7 +179,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void timeRecordedForSuccessfulList() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
 
     ManualClock clock = new ManualClock();
     Registry registry = new DefaultRegistry(clock);
@@ -204,7 +205,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void metricTagsForListThrowingKubectlException() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
@@ -237,7 +238,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void propagatedExceptionForListThrowingKubectlException() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
@@ -257,7 +258,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void timeRecordedForListThrowingKubectlException() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
 
     ManualClock clock = new ManualClock();
     Registry registry = new DefaultRegistry(clock);
@@ -288,7 +289,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void metricTagsForListThrowingOtherException() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
@@ -319,7 +320,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void timeRecordedForListThrowingOtherException() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
 
     ManualClock clock = new ManualClock();
     Registry registry = new DefaultRegistry(clock);
@@ -349,7 +350,7 @@ final class KubernetesCredentialsTest {
 
   @Test
   void propagatedExceptionForListThrowingOtherException() {
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
 
@@ -369,7 +370,7 @@ final class KubernetesCredentialsTest {
   @Test
   void replaceWhenResourceExists() {
     KubernetesManifest manifest = getManifest();
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
     when(jobExecutor.create(credentials, manifest, task, OP_NAME))
         .thenThrow(new KubectlException("Create failed: Error from server (AlreadyExists)"));
@@ -382,7 +383,7 @@ final class KubernetesCredentialsTest {
   @Test
   void replaceWhenResourceDoesNotExist() {
     KubernetesManifest manifest = getManifest();
-    KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
+    DefaultKubectlJobExecutor jobExecutor = mock(DefaultKubectlJobExecutor.class);
     KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
     when(jobExecutor.replace(credentials, manifest, task, OP_NAME))
         .thenThrow(new KubectlNotFoundException("Not found"));

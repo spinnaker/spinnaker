@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinna
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler
-import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.DefaultKubectlJobExecutor
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import spock.lang.Specification
@@ -41,7 +41,7 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
   KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(ImmutableList.of())
   GlobalResourcePropertyRegistry globalResourcePropertyRegistry = new GlobalResourcePropertyRegistry(ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler())
 
-  KubectlJobExecutor mockKubectlJobExecutor = Mock(KubectlJobExecutor)
+  DefaultKubectlJobExecutor mockKubectlJobExecutor = Mock(DefaultKubectlJobExecutor)
 
   KubernetesCredentials.Factory credentialFactory = new KubernetesCredentials.Factory(
     new NoopRegistry(),
