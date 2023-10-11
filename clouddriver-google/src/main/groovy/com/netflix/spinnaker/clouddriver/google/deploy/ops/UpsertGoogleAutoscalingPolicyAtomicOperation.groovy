@@ -23,6 +23,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
@@ -44,29 +45,27 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     TaskRepository.threadLocalTask.get()
   }
 
-  @Autowired
   private GoogleClusterProvider googleClusterProvider
 
-  @Autowired
   private GoogleOperationPoller googleOperationPoller
 
-  @Autowired
   AtomicOperationsRegistry atomicOperationsRegistry
 
-  @Autowired
   OrchestrationProcessor orchestrationProcessor
 
-  @Autowired
   Cache cacheView
 
-  @Autowired
   ObjectMapper objectMapper
 
   private final UpsertGoogleAutoscalingPolicyDescription description
 
-  UpsertGoogleAutoscalingPolicyAtomicOperation(UpsertGoogleAutoscalingPolicyDescription description) {
+  UpsertGoogleAutoscalingPolicyAtomicOperation(UpsertGoogleAutoscalingPolicyDescription description, @Autowired GoogleClusterProvider googleClusterProvider, @Autowired GoogleOperationPoller googleOperationPoller, @Autowired AtomicOperationsRegistry atomicOperationsRegistry, @Autowired OrchestrationProcessor orchestrationProcessor) {
     this.description = description
-  }
+    this.googleClusterProvider = googleClusterProvider
+    this.googleOperationPoller = googleOperationPoller
+    this.atomicOperationsRegistry = atomicOperationsRegistry
+    this.orchestrationProcessor = orchestrationProcessor
+   }
 
   /**
    * Autoscaling policy:
@@ -111,14 +110,14 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
           def updateOp = timeExecute(
             compute.regionAutoscalers().update(project, region, autoscaler),
             "compute.regionAutoscalers.update",
-            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+            GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, region)
           googleOperationPoller.waitForRegionalOperation(compute, project, region,
             updateOp.getName(), null, task, "autoScaler ${autoscaler.getName()} for server group $serverGroupName", BASE_PHASE)
         } else {
           def updateOp = timeExecute(
             compute.autoscalers().update(project, zone, autoscaler),
             "compute.autoscalers.update",
-            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+            GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, zone)
           googleOperationPoller.waitForZonalOperation(compute, project, zone,
             updateOp.getName(), null, task, "autoScaler ${autoscaler.getName()} for server group $serverGroupName", BASE_PHASE)
         }
@@ -133,14 +132,14 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
           def insertOp = timeExecute(
             compute.regionAutoscalers().insert(project, region, autoscaler),
             "compute.regionAutoscalers.insert",
-            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+            GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, region)
           googleOperationPoller.waitForRegionalOperation(compute, project, region,
             insertOp.getName(), null, task, "autoScaler ${autoscaler.getName()} for server group $serverGroupName", BASE_PHASE)
         } else {
           def insertOp = timeExecute(
             compute.autoscalers().insert(project, zone, autoscaler),
             "compute.autoscalers.insert",
-            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+            GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, zone)
           googleOperationPoller.waitForZonalOperation(compute, project, zone,
             insertOp.getName(), null, task, "autoScaler ${autoscaler.getName()} for server group $serverGroupName", BASE_PHASE)
         }
@@ -156,7 +155,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         def autoHealingOp = timeExecute(
           compute.regionInstanceGroupManagers().setAutoHealingPolicies(project, region, serverGroupName, request),
           "compute.regionInstanceGroupManagers.setAutoHealingPolicies",
-          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, region)
         googleOperationPoller.waitForRegionalOperation(compute, project, region,
           autoHealingOp.getName(), null, task, "autoHealing policy ${policy} for server group $serverGroupName", BASE_PHASE)
       }
@@ -166,7 +165,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         def autoHealingOp = timeExecute(
           compute.instanceGroupManagers().setAutoHealingPolicies(project, zone, serverGroupName, request),
           "compute.instanceGroupManagers.setAutoHealingPolicies",
-          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, zone)
         googleOperationPoller.waitForZonalOperation(compute, project, zone,
           autoHealingOp.getName(), null, task, "autoHealing policy ${policy} for server group $serverGroupName", BASE_PHASE)
       }
@@ -335,7 +334,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         templateUrl = timeExecute(
           compute.regionInstanceGroupManagers().get(project, groupRegion, groupName),
           "compute.regionInstanceGroupManagers.get",
-          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, groupRegion)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, groupRegion)
           .getInstanceTemplate()
         break
       case GoogleServerGroup.ServerGroupType.ZONAL:
@@ -343,7 +342,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         templateUrl = timeExecute(
           compute.instanceGroupManagers().get(project, groupZone, groupName),
           "compute.instanceGroupManagers.get",
-          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, groupZone)
+          GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, groupZone)
           .getInstanceTemplate()
         break
       default:
@@ -354,7 +353,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     InstanceTemplate template = timeExecute(
       compute.instanceTemplates().get(project, Utils.getLocalName(templateUrl)),
       "compute.instancesTemplates.get",
-      TAG_SCOPE, SCOPE_GLOBAL)
+      GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
     def instanceDescription = GCEUtil.buildInstanceDescriptionFromTemplate(project, template)
 
     def templateOpMap = [

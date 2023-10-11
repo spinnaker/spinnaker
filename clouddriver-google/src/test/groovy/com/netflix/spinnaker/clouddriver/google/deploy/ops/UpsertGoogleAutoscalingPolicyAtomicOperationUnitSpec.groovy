@@ -31,6 +31,8 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.Cu
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.DefaultOrchestrationProcessor
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -68,9 +70,11 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   private static final REGION = "us-central1"
   private static final AUTOSCALER = GCEUtil.buildAutoscaler(SERVER_GROUP_NAME, SELF_LINK, GOOGLE_SCALING_POLICY)
 
-  def googleClusterProviderMock = Mock(GoogleClusterProvider)
-  def computeMock = Mock(Compute)
-  def operationPollerMock = Mock(GoogleOperationPoller)
+  GoogleClusterProvider googleClusterProviderMock = Mock(GoogleClusterProvider)
+  Compute computeMock = Mock(Compute)
+  GoogleOperationPoller operationPollerMock = Mock(GoogleOperationPoller)
+  AtomicOperationsRegistry atomicOperationsRegistryMock = Mock(AtomicOperationsRegistry)
+  DefaultOrchestrationProcessor orchestrationProcessorMock = Mock(DefaultOrchestrationProcessor)
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -103,10 +107,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def regionalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.regionAutoscalers.insert", [scope: "regional", region: REGION])
     registry.timer(regionalTimerId)
 
-    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
+    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock,atomicOperationsRegistryMock, orchestrationProcessorMock])
     operation.registry = registry
-    operation.googleClusterProvider = googleClusterProviderMock
-    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -164,10 +166,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def regionUpdateMock = Mock(Compute.RegionAutoscalers.Update)
     def regionalTimerId = GoogleApiTestUtils.makeOkId(registry, "compute.regionAutoscalers.update", [scope: "regional", region: REGION])
 
-    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
+    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock,atomicOperationsRegistryMock, orchestrationProcessorMock])
     operation.registry = registry
-    operation.googleClusterProvider = googleClusterProviderMock
-    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -235,10 +235,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def regionAutoscalerMock = Mock(Compute.RegionAutoscalers)
     def regionUpdateMock = Mock(Compute.RegionAutoscalers.Update)
 
-    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
+    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock,atomicOperationsRegistryMock, orchestrationProcessorMock])
     operation.registry = registry
-    operation.googleClusterProvider = googleClusterProviderMock
-    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -312,10 +310,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def regionAutoscalerMock = Mock(Compute.RegionAutoscalers)
     def regionUpdateMock = Mock(Compute.RegionAutoscalers.Update)
 
-    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
+    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock,atomicOperationsRegistryMock, orchestrationProcessorMock])
     operation.registry = registry
-    operation.googleClusterProvider = googleClusterProviderMock
-    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.operate([])
@@ -426,10 +422,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       serviceAccounts: [[email: 'serviceAccount@google.com']]
     ])
 
-    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description])
+    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock,atomicOperationsRegistryMock, orchestrationProcessorMock])
     operation.registry = registry
-    operation.googleClusterProvider = googleClusterProviderMock
-    operation.googleOperationPoller = operationPollerMock
 
     when:
     operation.updatePolicyMetadata(computeMock, credentials, PROJECT_NAME, groupUrl, autoscaler)

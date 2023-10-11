@@ -17,20 +17,38 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.UpsertGoogleAutoscalingPolicyAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.UPSERT_SCALING_POLICY)
 @Component("upsertGoogleScalingPolicyDescription")
 class UpsertGoogleAutoscalingPolicyAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials>{
+
+  @Autowired
+  GoogleClusterProvider googleClusterProvider
+
+  @Autowired
+  GoogleOperationPoller googleOperationPoller
+
+  @Autowired
+  AtomicOperationsRegistry atomicOperationsRegistry
+
+  @Autowired
+  OrchestrationProcessor orchestrationProcessor
+
   @Override
   AtomicOperation convertOperation(Map input) {
-    new UpsertGoogleAutoscalingPolicyAtomicOperation(convertDescription(input))
+    new UpsertGoogleAutoscalingPolicyAtomicOperation(convertDescription(input), googleClusterProvider, googleOperationPoller, atomicOperationsRegistry, orchestrationProcessor)
   }
 
   @Override

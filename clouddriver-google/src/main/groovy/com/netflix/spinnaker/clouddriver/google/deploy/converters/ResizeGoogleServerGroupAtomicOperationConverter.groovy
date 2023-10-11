@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 import com.google.api.services.compute.model.AutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.ResizeGoogleServerGroupAtomicOperation
@@ -29,7 +30,9 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvi
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription
+import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -41,6 +44,15 @@ class ResizeGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOper
   @Autowired
   GoogleClusterProvider googleClusterProvider
 
+  @Autowired
+  GoogleOperationPoller googleOperationPoller
+
+  @Autowired
+  AtomicOperationsRegistry atomicOperationsRegistry
+
+  @Autowired
+  OrchestrationProcessor orchestrationProcessor
+
   @Override
   AtomicOperation convertOperation(Map input) {
     // If the target server group has an Autoscaler configured we need to modify that policy as opposed to the
@@ -49,7 +61,7 @@ class ResizeGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOper
     def convertedDescription = convertDescription(input, autoscalingPolicy)
 
     if (autoscalingPolicy) {
-      new UpsertGoogleAutoscalingPolicyAtomicOperation(convertedDescription)
+      new UpsertGoogleAutoscalingPolicyAtomicOperation(convertedDescription, googleClusterProvider, googleOperationPoller, atomicOperationsRegistry, orchestrationProcessor)
     } else {
       new ResizeGoogleServerGroupAtomicOperation(convertedDescription)
     }
