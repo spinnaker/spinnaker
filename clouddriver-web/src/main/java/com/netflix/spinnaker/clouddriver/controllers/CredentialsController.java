@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -118,11 +117,11 @@ public class CredentialsController {
   @Beta
   public List<? extends CredentialsDefinition> listAccountsByType(
       @PathVariable String accountType,
-      @RequestParam OptionalInt limit,
-      @RequestParam Optional<String> startingAccountName) {
+      @RequestParam(required = false, defaultValue = "100") Integer limit,
+      @RequestParam(required = false) String startingAccountName) {
     validateAccountStorageEnabled();
     return accountDefinitionService.listAccountDefinitionsByType(
-        accountType, limit.orElse(100), startingAccountName.orElse(null));
+        accountType, limit, startingAccountName);
   }
 
   @PostMapping

@@ -19,11 +19,12 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.configuration.CredentialsConfiguration
+import com.netflix.spinnaker.clouddriver.controllers.resources.DefaultAccountDefinitionService
+import com.netflix.spinnaker.clouddriver.controllers.resources.ManagedAccount
+import com.netflix.spinnaker.clouddriver.controllers.resources.MapBackedAccountDefinitionRepository
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
-
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -31,7 +32,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Shared
 import spock.lang.Specification
-
 
 class CredentialsControllerSpec extends Specification {
 
@@ -56,6 +56,115 @@ class CredentialsControllerSpec extends Specification {
     List<Map> parsedResponse = new JsonSlurper().parseText(result.response.contentAsString) as List
 
     parsedResponse == [[name: "test", environment: "env", accountType: "acctType", cloudProvider: "testProvider", type: "testProvider", requiredGroupMembership: ["test"], permissions: [READ:["test"], WRITE:["test"]], challengeDestructiveActions: false, primaryAccount: false]]
+  }
+
+  /**
+   * Test to verify the use of the mandatory type (path) parameter,
+   * without passing the optional limit (query) parameter
+   */
+  void "credentials are listed by type"() {
+    setup:
+
+    def objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    def credsRepo = new MapBackedAccountCredentialsRepository()
+    def accountDefRepo = new MapBackedAccountDefinitionRepository()
+    def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
+    def accountDefSrvc = Optional.of(new DefaultAccountDefinitionService(accountDefRepo))
+    accountDefRepo.save(new ManagedAccount("test1", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("test2", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("test3", "acctType2"))
+    accountDefRepo.save(new ManagedAccount("test4", "acctType2"))
+    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountDefSrvc, new CredentialsConfiguration(), objectMapper, credsProvider)).build()
+
+    // path param:
+    def acctType = "acctType1"
+
+    when:
+    def result = mvc.perform(MockMvcRequestBuilders.get("/credentials/type/${acctType}").accept(MediaType.APPLICATION_JSON)).andReturn()
+
+    then:
+    result.response.status == 200
+
+    List<Map> parsedResponse = new JsonSlurper().parseText(result.response.contentAsString) as List
+
+    parsedResponse.every { acct -> acct.accountType == acctType }
+  }
+
+  /**
+   * Test to verify the use of the type (path)
+   * and limit (query) parameters
+   */
+  void "credentials are listed by type and with limit"() {
+    setup:
+
+    def objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    def credsRepo = new MapBackedAccountCredentialsRepository()
+    def accountDefRepo = new MapBackedAccountDefinitionRepository()
+    def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
+    def accountDefSrvc = Optional.of(new DefaultAccountDefinitionService(accountDefRepo))
+    accountDefRepo.save(new ManagedAccount("test1", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("test2", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("test3", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("test4", "acctType1"))
+    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountDefSrvc, new CredentialsConfiguration(), objectMapper, credsProvider)).build()
+
+    // path param:
+    def acctType = "acctType1"
+    // query param:
+    def limit = 2
+
+    when:
+    def result = mvc.perform(MockMvcRequestBuilders.get("/credentials/type/${acctType}")
+      .param("limit", "${limit}").accept(MediaType.APPLICATION_JSON)).andReturn()
+
+    then:
+    result.response.status == 200
+
+    List<Map> parsedResponse = new JsonSlurper().parseText(result.response.contentAsString) as List
+
+    parsedResponse.size() == limit
+    parsedResponse.every { acct -> acct.accountType == acctType }
+  }
+
+  /**
+   * Test to verify the use of the type (path),
+   * limit (query) and startingAccountName (query) parameters
+   */
+  void "credentials are listed by type, startingAccountName and with limit"() {
+    setup:
+
+    def objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    def credsRepo = new MapBackedAccountCredentialsRepository()
+    def accountDefRepo = new MapBackedAccountDefinitionRepository()
+    def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
+    def accountDefSrvc = Optional.of(new DefaultAccountDefinitionService(accountDefRepo))
+    accountDefRepo.save(new ManagedAccount("foo", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("bar1", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("bar2", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("baz1", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("baz2", "acctType1"))
+    accountDefRepo.save(new ManagedAccount("test", "acctType1"))
+    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountDefSrvc, new CredentialsConfiguration(), objectMapper, credsProvider)).build()
+
+    // path param:
+    def acctType = "acctType1"
+    // query params:
+    def limit = 3
+    def startingAccountName = "ba"
+
+    when:
+    def result = mvc.perform(MockMvcRequestBuilders.get("/credentials/type/${acctType}")
+      .param("limit", "${limit}")
+      .param("startingAccountName", "${startingAccountName}")
+      .accept(MediaType.APPLICATION_JSON)).andReturn()
+
+    then:
+    result.response.status == 200
+
+    List<Map> parsedResponse = new JsonSlurper().parseText(result.response.contentAsString) as List
+
+    parsedResponse.size() == limit
+    parsedResponse.every { acct -> acct.name.startsWith(startingAccountName) }
   }
 
   static class TestNamedAccountCredentials extends AbstractAccountCredentials<Map> {
