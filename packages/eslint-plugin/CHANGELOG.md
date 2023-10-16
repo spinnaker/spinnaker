@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.0.2](https://github.com/spinnaker/deck/compare/@spinnaker/eslint-plugin@3.0.1...@spinnaker/eslint-plugin@3.0.2) (2023-10-16)
+
+
+### Bug Fixes
+
+* **publish:** set access config in deck libraries ([#10049](https://github.com/spinnaker/deck/issues/10049)) ([2a5ebe2](https://github.com/spinnaker/deck/commit/2a5ebe25662eeb9d41b5071749266bf9d6d51104))
+
+
+
+
+
 ## [3.0.1](https://github.com/spinnaker/deck/compare/@spinnaker/eslint-plugin@3.0.0...@spinnaker/eslint-plugin@3.0.1) (2021-11-03)
 
 **Note:** Version bump only for package @spinnaker/eslint-plugin

@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.27.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.26.0...@spinnaker/core@0.27.0) (2023-10-16)
+
+
+### Bug Fixes
+
+* **publish:** set access config in deck libraries ([#10049](https://github.com/spinnaker/deck/issues/10049)) ([2a5ebe2](https://github.com/spinnaker/deck/commit/2a5ebe25662eeb9d41b5071749266bf9d6d51104))
+
+
+### Features
+
+* **helm/bake:** Add additional input fields where we can fill in details of the APIs versions ([#10036](https://github.com/spinnaker/deck/issues/10036)) ([d968183](https://github.com/spinnaker/deck/commit/d9681830244ecd1c70cc02459f148d0822b7187e))
+
+
+
+
+
 # [0.26.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.25.0...@spinnaker/core@0.26.0) (2023-09-06)
 
 

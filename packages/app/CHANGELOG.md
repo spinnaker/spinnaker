@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.6.0](https://github.com/spinnaker/deck/compare/deck-app@2.5.7...deck-app@2.6.0) (2023-10-16)
+
+
+### Features
+
+* **helm/bake:** Add additional input fields where we can fill in details of the APIs versions ([#10036](https://github.com/spinnaker/deck/issues/10036)) ([d968183](https://github.com/spinnaker/deck/commit/d9681830244ecd1c70cc02459f148d0822b7187e))
+
+
+
+
+
 ## [2.5.7](https://github.com/spinnaker/deck/compare/deck-app@2.5.6...deck-app@2.5.7) (2023-09-06)
 
 **Note:** Version bump only for package deck-app

@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/cloudrun",
   "license": "Apache-2.0",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "publishConfig": {
@@ -16,7 +16,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.26.0",
+    "@spinnaker/core": "^0.27.0",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/react": "1.0.7",
     "angular": "1.8.3",
@@ -38,8 +38,8 @@
     "rxjs": "6.6.7"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "^3.0.1",
-    "@spinnaker/scripts": "^0.3.0",
+    "@spinnaker/eslint-plugin": "^3.0.2",
+    "@spinnaker/scripts": "^0.3.1",
     "@types/angular": "1.8.5",
     "@types/angular-ui-bootstrap": "0.13.41",
     "@types/dompurify": "^2.3.3",

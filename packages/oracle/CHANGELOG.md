@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.88](https://github.com/spinnaker/deck/compare/@spinnaker/oracle@0.0.87...@spinnaker/oracle@0.0.88) (2023-10-16)
+
+
+### Bug Fixes
+
+* **publish:** set access config in deck libraries ([#10049](https://github.com/spinnaker/deck/issues/10049)) ([2a5ebe2](https://github.com/spinnaker/deck/commit/2a5ebe25662eeb9d41b5071749266bf9d6d51104))
+
+
+
+
+
 ## [0.0.87](https://github.com/spinnaker/deck/compare/@spinnaker/oracle@0.0.86...@spinnaker/oracle@0.0.87) (2023-09-06)
 
 **Note:** Version bump only for package @spinnaker/oracle

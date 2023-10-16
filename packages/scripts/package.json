@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/scripts",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Spinnaker scripts",
   "main": "index.js",
   "bin": {
@@ -21,7 +21,7 @@
     "@rollup/plugin-replace": "2.4.2",
     "@rollup/plugin-typescript": "^8.1.0",
     "@rollup/plugin-url": "^6.0.0",
-    "@spinnaker/eslint-plugin": "^3.0.1",
+    "@spinnaker/eslint-plugin": "^3.0.2",
     "@spinnaker/styleguide": "^2.0.0",
     "@svgr/rollup": "^6.3.1",
     "autoprefixer": "^10.4.8",
