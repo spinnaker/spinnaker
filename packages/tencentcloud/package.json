@@ -4,6 +4,9 @@
   "version": "0.0.80",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "clean": "shx rm -rf dist",
     "prepublishOnly": "npm run build",

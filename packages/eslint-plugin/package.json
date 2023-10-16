@@ -3,6 +3,9 @@
   "version": "3.0.1",
   "main": "index.js",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "create-rule": "create-rule.js",
     "dev": "npm run test:debug",

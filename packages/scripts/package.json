@@ -7,6 +7,9 @@
     "spinnaker-scripts": "./index.js",
     "read-write-json": "./read-write-json.js"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {},
   "keywords": [],
   "author": "",

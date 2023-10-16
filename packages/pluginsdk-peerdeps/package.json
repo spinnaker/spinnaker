@@ -3,6 +3,9 @@
   "description": "Provides package dependencies to plugin developers",
   "version": "0.17.0",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "temp": "./convert-peerdeps.js --from-peerdeps --input package.json --output package.temp.json",
     "restoretemp": "./convert-peerdeps.js --to-peerdeps --output package.json --input package.temp.json && rm package.temp.json",
