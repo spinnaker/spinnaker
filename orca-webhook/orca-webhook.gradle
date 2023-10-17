@@ -28,7 +28,6 @@ dependencies {
   implementation("com.jayway.jsonpath:json-path:2.2.0")
   implementation("com.squareup.okhttp3:okhttp")
   implementation("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
-//  testImplementation project(':orca-test')
   testImplementation("org.springframework:spring-test")
   testImplementation("org.codehaus.groovy:groovy-json")
 

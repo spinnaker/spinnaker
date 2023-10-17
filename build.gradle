@@ -61,6 +61,7 @@ subprojects {
       testLogging {
         exceptionFormat = "full"
       }
+      useJUnitPlatform()
     }
 
     def licenseExtension = project.extensions.findByName('license')
