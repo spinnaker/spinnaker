@@ -14,7 +14,7 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
-  testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
 test{
   useJUnitPlatform()
