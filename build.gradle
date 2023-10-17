@@ -71,7 +71,7 @@ subprojects { project ->
       testImplementation("org.springframework:spring-test")
       testImplementation("org.hamcrest:hamcrest-core")
       testRuntimeOnly("cglib:cglib-nodep")
-      testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+      testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
       testRuntimeOnly("org.objenesis:objenesis")
     }
     // Keep this constraint till all other components get bumped up to this version and subsequently updated in the kork.
