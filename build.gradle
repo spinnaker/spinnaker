@@ -52,7 +52,7 @@ subprojects {
     annotationProcessor "org.projectlombok:lombok"
     testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
     testAnnotationProcessor "org.projectlombok:lombok"
-    testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   }
 }
 
