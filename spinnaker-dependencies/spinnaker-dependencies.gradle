@@ -12,7 +12,6 @@ ext {
     bouncycastle     : "1.70",
     brave            : "5.12.3",
     gcp              : "25.3.0",
-    groovy           : "2.5.15",
     jooq             : "3.13.6",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
@@ -24,11 +23,6 @@ ext {
     okhttp           : "2.7.5", // CVE-2016-2402
     okhttp3          : "4.9.3",
     openapi          : "1.3.9", // this needs to be kept in sync with spring boot as it pulls in the spring-boot-dependencies BOM
-    //Spring boot 2.5.14 upgrade brings io.rest-assured 4.3.3 as transitive dependency.
-    //io.rest-assured 4.3.x require groovy 3.0.2. So, pinning the nearest version
-    //using groovy 2.x. This can be removed with groovy 3.x upgrade.
-    //[https://github.com/rest-assured/rest-assured/blob/9b683130c93188cabdef850e89d0c9417d847a17/changelog.txt#L200]
-    restassured      : "4.2.0",
     retrofit         : "1.9.0",
     retrofit2        : "2.8.1",
     spectator        : "1.0.6",
@@ -60,14 +54,6 @@ dependencies {
    // 2.16.0 is subject to CVE-2021-45105.  2.17.0 is subject to CVE-2021-44832, so use >= 2.17.1.
   api(platform("org.apache.logging.log4j:log4j-bom:2.20.0"))
 
-  //Upgrade of spring boot 2.5.x brings groovy 3.x as transitive dependency.
-  //To avoid transitive upgrade of groovy, pinning it with enforcedPlatform() closure.
-  //It forces version for internal submodules of kork as well as for all the consumer spinnaker services.
-  api(enforcedPlatform("org.codehaus.groovy:groovy-bom")){
-     version {
-       strictly "${versions.groovy}"
-     }
-  }
   api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.4.3"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
@@ -82,7 +68,7 @@ dependencies {
   api(platform("com.google.cloud:google-cloud-secretmanager:2.1.7"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))
-  api(platform("org.spockframework:spock-bom:1.3-groovy-2.5"))
+  api(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:1.5.17"))
   api(platform("org.testcontainers:testcontainers-bom:1.16.2"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
@@ -170,26 +156,6 @@ dependencies {
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
     api("io.mockk:mockk:1.10.5")
-    api("io.rest-assured:rest-assured"){
-       version {
-         strictly "${versions.restassured}"
-       }
-    }
-    api("io.rest-assured:rest-assured-common"){
-       version {
-         strictly "${versions.restassured}"
-       }
-    }
-    api("io.rest-assured:json-path"){
-       version {
-         strictly "${versions.restassured}"
-       }
-    }
-    api("io.rest-assured:xml-path"){
-       version {
-         strictly "${versions.restassured}"
-       }
-    }
     api("io.springfox:springfox-swagger-ui:${versions.springfoxSwagger}")
     api("io.springfox:springfox-swagger2:${versions.springfoxSwagger}")
     api("io.swagger:swagger-annotations:${versions.swagger}")
@@ -246,17 +212,9 @@ dependencies {
     api("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.3.12.RELEASE")
     api("org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE")
     api("org.springframework.security.extensions:spring-security-saml2-core:1.0.9.RELEASE")
-    api("org.testng:testng:7.4.0") // TODO: remove this with upgrade of spring-boot version to 2.5.0 or with upgrade of groovy-all to 3.0.8
     api("org.threeten:threeten-extra:1.0")
     api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
-    api('org.apache.ant:ant:1.10.12') {
-      because "1.9.15 is resolved transitively through Groovy, removes CVE-2021-36374, CVE-2021-36373, CVE-2020-11979, CVE-2020-15250"
-    }
-    api('org.apache.ant:ant-launcher:1.10.12'){
-      because "1.9.15 is resolved transitively through Groovy, removes CVE-2021-36374, CVE-2021-36373, CVE-2020-11979, CVE-2020-15250"
-    }
-
   }
 }

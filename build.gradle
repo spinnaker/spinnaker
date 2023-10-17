@@ -31,14 +31,12 @@ subprojects {
   if (it.name != "kork-bom" && it.name != "spinnaker-dependencies") {
     apply plugin: 'java-library'
     test {
-      useJUnitPlatform {
-        includeEngines "spek2", "junit-vintage", "junit-jupiter"
-      }
+      useJUnitPlatform()
     }
     dependencies {
       annotationProcessor(platform(project(":spinnaker-dependencies")))
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-      testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+      testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     }
   }
 }
