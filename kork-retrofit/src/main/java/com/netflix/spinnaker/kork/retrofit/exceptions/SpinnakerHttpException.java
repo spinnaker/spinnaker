@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.kork.annotations.NullableByDefault;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
@@ -219,10 +218,10 @@ public class SpinnakerHttpException extends SpinnakerServerException {
   }
 
   /**
-   * HTTP response body converted to specified {@code type}. {@code null} if there is no response.
+   * HTTP error response body converted to the specified {@code type}.
    *
-   * @throws RuntimeException wrapping the underlying IOException if unable to convert the body to
-   *     the specified {@code type}.
+   * @return null if there's no response or unable to convert the body to the specified {@code
+   *     type}.
    */
   private Map<String, Object> getErrorBodyAs(Retrofit retrofit) {
     if (retrofit2Response == null) {
@@ -233,8 +232,14 @@ public class SpinnakerHttpException extends SpinnakerServerException {
         retrofit.responseBodyConverter(Map.class, new Annotation[0]);
     try {
       return converter.convert(retrofit2Response.errorBody());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (Exception e) {
+      log.debug(
+          "unable to convert response to map ({} {}, {})",
+          retrofit2Response.raw().request().method(),
+          retrofit2Response.code(),
+          retrofit2Response.raw().request().url(),
+          e);
+      return null;
     }
   }
 }

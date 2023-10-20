@@ -48,6 +48,8 @@ public class SpinnakerRetrofit2ErrorHandleTest {
 
   private static String responseBodyString;
 
+  private static String baseUrl = mockWebServer.url("/").toString();
+
   @BeforeAll
   public static void setupOnce() throws Exception {
 
@@ -58,7 +60,7 @@ public class SpinnakerRetrofit2ErrorHandleTest {
 
     retrofit2Service =
         new Retrofit.Builder()
-            .baseUrl(mockWebServer.url("/").toString())
+            .baseUrl(baseUrl)
             .client(
                 new OkHttpClient.Builder()
                     .callTimeout(1, TimeUnit.SECONDS)
@@ -191,6 +193,27 @@ public class SpinnakerRetrofit2ErrorHandleTest {
             SpinnakerConversionException.class, () -> retrofit2Service.getRetrofit2().execute());
 
     assertEquals("Failed to process response body", spinnakerConversionException.getMessage());
+  }
+
+  @Test
+  public void testNonJsonHttpErrorResponse() {
+
+    String invalidJsonTypeResponseBody = "{'errorResponse': 'Failure'";
+    int responseCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+    String url = baseUrl + "retrofit2";
+    String reason = "Server Error";
+
+    mockWebServer.enqueue(
+        new MockResponse().setResponseCode(responseCode).setBody(invalidJsonTypeResponseBody));
+    SpinnakerHttpException spinnakerHttpException =
+        assertThrows(SpinnakerHttpException.class, () -> retrofit2Service.getRetrofit2().execute());
+    assertNull(spinnakerHttpException.getResponseBody());
+    assertEquals(responseCode, spinnakerHttpException.getResponseCode());
+    assertEquals(
+        "Status: " + responseCode + ", URL: " + url + ", Message: " + reason,
+        spinnakerHttpException.getMessage());
+    assertEquals(url, spinnakerHttpException.getUrl());
+    assertEquals(reason, spinnakerHttpException.getReason());
   }
 
   interface DummyWithExecute {
