@@ -19,22 +19,7 @@ import { s3BucketNameValidator } from '../../aws.validators';
 import type { IAmazonFunction } from '../../domain';
 import type { IAmazonFunctionUpsertCommand } from '../../index';
 
-const availableRuntimes = [
-  'nodejs10.x',
-  'nodejs12.x',
-  'java8',
-  'java11',
-  'python2.7',
-  'python3.6',
-  'python3.7',
-  'python3.8',
-  'dotnetcore2.1',
-  'dotnetcore3.1',
-  'go1.x',
-  'ruby2.5',
-  'ruby2.7',
-  'provided',
-];
+import { availableRuntimes } from '../../pipeline/stages/deployLambda/components/function.constants';
 
 export interface IFunctionProps {
   app: Application;
