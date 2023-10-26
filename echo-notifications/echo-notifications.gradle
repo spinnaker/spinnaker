@@ -34,6 +34,9 @@ dependencies {
   implementation "org.jsoup:jsoup:1.8.3"
   implementation "com.atlassian.commonmark:commonmark:0.9.0"
   implementation "org.codehaus.groovy:groovy-json"
+  implementation "io.cloudevents:cloudevents-http-basic:2.5.0"
+  implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
+  implementation ("dev.cdevents:cdevents-sdk-java:0.1.2")
   testImplementation("com.icegreen:greenmail:1.5.14") {
     exclude group: "com.sun.mail", module: "javax.mail"
   }
