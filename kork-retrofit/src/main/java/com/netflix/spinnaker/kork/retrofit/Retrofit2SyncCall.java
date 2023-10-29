@@ -33,7 +33,7 @@ public class Retrofit2SyncCall<T> {
     try {
       return call.execute().body();
     } catch (IOException e) {
-      throw new SpinnakerNetworkException(e);
+      throw new SpinnakerNetworkException(e, call.request());
     }
   }
 }

@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.SocketPolicy;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -42,14 +40,14 @@ import retrofit.client.Response;
 import retrofit.converter.JacksonConverter;
 import retrofit.http.GET;
 
-public class SpinnakerRetrofitErrorHandlerTest {
+class SpinnakerRetrofitErrorHandlerTest {
 
   private static RetrofitService retrofitService;
 
   private static final MockWebServer mockWebServer = new MockWebServer();
 
   @BeforeAll
-  public static void setupOnce() throws Exception {
+  static void setupOnce() throws Exception {
     mockWebServer.start();
 
     retrofitService =
@@ -61,17 +59,24 @@ public class SpinnakerRetrofitErrorHandlerTest {
   }
 
   @AfterAll
-  public static void shutdownOnce() throws Exception {
+  static void shutdownOnce() throws Exception {
     mockWebServer.shutdown();
   }
 
   @Test
-  public void testNotFoundIsNotRetryable() {
+  void testNotFoundIsNotRetryable() {
     mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.value()));
     SpinnakerHttpException notFoundException =
-        assertThrows(SpinnakerHttpException.class, () -> retrofitService.getFoo());
-    assertNotNull(notFoundException.getRetryable());
-    assertFalse(notFoundException.getRetryable());
+        catchThrowableOfType(() -> retrofitService.getFoo(), SpinnakerHttpException.class);
+    assertThat(notFoundException.getRetryable()).isNotNull();
+    assertThat(notFoundException.getRetryable()).isFalse();
+  }
+
+  @Test
+  void testSpinnakerNetworkException() {
+    mockWebServer.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE));
+    assertThatExceptionOfType(SpinnakerNetworkException.class)
+        .isThrownBy(() -> retrofitService.getFoo());
   }
 
   @ParameterizedTest(name = "Deserialize response using {0}")
@@ -88,7 +93,7 @@ public class SpinnakerRetrofitErrorHandlerTest {
   //   is set when building out the RestAdapter
   @ValueSource(
       strings = {"Default_GSONConverter", "JacksonConverter", "JacksonConverterWithObjectMapper"})
-  public void testResponseWithExtraField(String retrofitConverter) throws Exception {
+  void testResponseWithExtraField(String retrofitConverter) throws Exception {
     Map<String, String> responseBodyMap = new HashMap<>();
     responseBodyMap.put("timestamp", "123123123123");
     responseBodyMap.put("message", "Not Found error Message");
@@ -131,82 +136,97 @@ public class SpinnakerRetrofitErrorHandlerTest {
     // "..."
     //
     // so make sure we get a SpinnakerHttpException from calling getFoo
-    assertThrows(SpinnakerHttpException.class, retrofitServiceTestConverter::getFoo);
+    SpinnakerHttpException spinnakerHttpException =
+        catchThrowableOfType(retrofitServiceTestConverter::getFoo, SpinnakerHttpException.class);
+    assertThat(spinnakerHttpException.getUrl()).isEqualTo(mockWebServer.url("/foo").toString());
   }
 
   @Test
-  public void testBadRequestIsNotRetryable() {
+  void testBadRequestIsNotRetryable() {
     mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value()));
     SpinnakerHttpException spinnakerHttpException =
-        assertThrows(SpinnakerHttpException.class, () -> retrofitService.getFoo());
-    assertNotNull(spinnakerHttpException.getRetryable());
-    assertFalse(spinnakerHttpException.getRetryable());
+        catchThrowableOfType(() -> retrofitService.getFoo(), SpinnakerHttpException.class);
+    assertThat(spinnakerHttpException.getRetryable()).isNotNull();
+    assertThat(spinnakerHttpException.getRetryable()).isFalse();
+    assertThat(spinnakerHttpException.getUrl()).isEqualTo(mockWebServer.url("/foo").toString());
   }
 
   @Test
-  public void testOtherClientErrorHasNullRetryable() {
+  void testOtherClientErrorHasNullRetryable() {
     // Arbitrarily choose GONE as an example of a client (e.g. 4xx) error that
     // we expect to have null retryable
     mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.GONE.value()));
     SpinnakerHttpException spinnakerHttpException =
-        assertThrows(SpinnakerHttpException.class, () -> retrofitService.getFoo());
-    assertNull(spinnakerHttpException.getRetryable());
+        catchThrowableOfType(() -> retrofitService.getFoo(), SpinnakerHttpException.class);
+    assertThat(spinnakerHttpException.getRetryable()).isNull();
+    assertThat(spinnakerHttpException.getUrl()).isEqualTo(mockWebServer.url("/foo").toString());
   }
 
   @Test
-  public void testResponseHeadersInException() {
+  void testResponseHeadersInException() {
     // Check response headers are retrievable from a SpinnakerHttpException
     mockWebServer.enqueue(
         new MockResponse()
             .setResponseCode(HttpStatus.BAD_REQUEST.value())
             .setHeader("Test", "true"));
     SpinnakerHttpException spinnakerHttpException =
-        assertThrows(SpinnakerHttpException.class, () -> retrofitService.getFoo());
-    assertTrue(spinnakerHttpException.getHeaders().containsKey("Test"));
-    assertTrue(spinnakerHttpException.getHeaders().get("Test").contains("true"));
+        catchThrowableOfType(() -> retrofitService.getFoo(), SpinnakerHttpException.class);
+    assertThat(spinnakerHttpException.getHeaders().containsKey("Test")).isTrue();
+    assertThat(spinnakerHttpException.getHeaders().get("Test").contains("true")).isTrue();
+    assertThat(spinnakerHttpException.getUrl()).isEqualTo(mockWebServer.url("/foo").toString());
   }
 
   @Test
-  public void testSimpleSpinnakerNetworkException() {
+  void testSimpleSpinnakerNetworkException() {
     String message = "my custom message";
     IOException e = new IOException(message);
-    RetrofitError retrofitError = RetrofitError.networkError("http://localhost", e);
+    String url = "http://localhost";
+    RetrofitError retrofitError = RetrofitError.networkError(url, e);
     SpinnakerRetrofitErrorHandler handler = SpinnakerRetrofitErrorHandler.getInstance();
     Throwable throwable = handler.handleError(retrofitError);
-    assertEquals(message, throwable.getMessage());
+    assertThat(throwable).hasMessage(message);
+    assertThat(throwable).isInstanceOf(SpinnakerNetworkException.class);
+    SpinnakerNetworkException spinnakerNetworkException = (SpinnakerNetworkException) throwable;
+    assertThat(spinnakerNetworkException.getUrl()).isEqualTo(url);
   }
 
   @Test
-  public void testSpinnakerConversionException() {
+  void testSpinnakerConversionException() {
     mockWebServer.enqueue(
         new MockResponse().setBody("Invalid JSON response").setResponseCode(HttpStatus.OK.value()));
 
     SpinnakerConversionException spinnakerConversionException =
-        assertThrows(SpinnakerConversionException.class, () -> retrofitService.getData());
-    assertTrue(
-        spinnakerConversionException
-            .getMessage()
-            .contains("Expected BEGIN_OBJECT but was STRING at line 1 column 1 path $"));
+        catchThrowableOfType(() -> retrofitService.getData(), SpinnakerConversionException.class);
+    assertThat(spinnakerConversionException.getRetryable()).isNotNull();
+    assertThat(spinnakerConversionException.getRetryable()).isFalse();
+    assertThat(spinnakerConversionException)
+        .hasMessageContaining("Expected BEGIN_OBJECT but was STRING at line 1 column 1 path $");
+    assertThat(spinnakerConversionException.getUrl())
+        .isEqualTo(mockWebServer.url("/data").toString());
   }
 
   @Test
-  public void testChainSpinnakerException_SpinnakerNetworkException() {
+  void testChainSpinnakerException_SpinnakerNetworkException() {
     SpinnakerRetrofitErrorHandler handler = SpinnakerRetrofitErrorHandler.getInstance();
 
     String originalMessage = "original message";
     String newMessage = "new message";
 
     IOException originalException = new IOException(originalMessage);
-    RetrofitError retrofitError = RetrofitError.networkError("http://localhost", originalException);
+
+    String url = "http://localhost";
+    RetrofitError retrofitError = RetrofitError.networkError(url, originalException);
 
     Throwable newException =
         handler.handleError(
             retrofitError,
             (exception) -> String.format("%s: %s", newMessage, exception.getMessage()));
 
-    assertTrue(newException instanceof SpinnakerNetworkException);
-    assertEquals("new message: original message", newException.getMessage());
-    assertEquals(originalMessage, newException.getCause().getMessage());
+    assertThat(newException).isInstanceOf(SpinnakerNetworkException.class);
+    assertThat(newException).hasMessage("new message: original message");
+    assertThat(newException.getCause()).hasMessage(originalMessage);
+    SpinnakerNetworkException spinnakerNetworkException = (SpinnakerNetworkException) newException;
+    assertThat(spinnakerNetworkException.getUrl()).isEqualTo(url);
   }
 
   interface RetrofitService {

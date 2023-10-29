@@ -56,8 +56,6 @@ public class SpinnakerHttpException extends SpinnakerServerException {
 
   private final Map<String, Object> responseBody;
 
-  private final String url;
-
   private final int responseCode;
 
   /**
@@ -66,6 +64,7 @@ public class SpinnakerHttpException extends SpinnakerServerException {
    */
   private final String reason;
 
+  /** Construct a SpinnakerHttpException corresponding to a RetrofitError. */
   public SpinnakerHttpException(RetrofitError e) {
     super(e);
 
@@ -101,7 +100,6 @@ public class SpinnakerHttpException extends SpinnakerServerException {
     if (responseBody != null) {
       tmpMessage = (String) responseBody.get("message");
     }
-    url = e.getUrl();
     responseCode = response.getStatus();
     reason = response.getReason();
     rawMessage = tmpMessage != null ? tmpMessage : reason;
@@ -113,6 +111,7 @@ public class SpinnakerHttpException extends SpinnakerServerException {
    */
   public SpinnakerHttpException(
       retrofit2.Response<?> retrofit2Response, retrofit2.Retrofit retrofit) {
+    super(retrofit2Response.raw().request());
     this.response = null;
     this.retrofit2Response = retrofit2Response;
     if ((retrofit2Response.code() == HttpStatus.NOT_FOUND.value())
@@ -120,7 +119,6 @@ public class SpinnakerHttpException extends SpinnakerServerException {
       setRetryable(false);
     }
     responseBody = this.getErrorBodyAs(retrofit);
-    url = retrofit2Response.raw().request().url().toString();
     responseCode = retrofit2Response.code();
     reason = retrofit2Response.message();
     this.rawMessage =
@@ -159,7 +157,6 @@ public class SpinnakerHttpException extends SpinnakerServerException {
     this.retrofit2Response = cause.retrofit2Response;
     rawMessage = null;
     this.responseBody = cause.responseBody;
-    this.url = cause.url;
     this.responseCode = cause.responseCode;
     this.reason = cause.reason;
   }
@@ -197,7 +194,8 @@ public class SpinnakerHttpException extends SpinnakerServerException {
       return super.getMessage();
     }
 
-    return String.format("Status: %s, URL: %s, Message: %s", responseCode, url, getRawMessage());
+    return String.format(
+        "Status: %s, URL: %s, Message: %s", responseCode, this.getUrl(), getRawMessage());
   }
 
   @Override
@@ -207,10 +205,6 @@ public class SpinnakerHttpException extends SpinnakerServerException {
 
   public Map<String, Object> getResponseBody() {
     return this.responseBody;
-  }
-
-  public String getUrl() {
-    return this.url;
   }
 
   public String getReason() {

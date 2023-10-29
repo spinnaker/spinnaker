@@ -59,11 +59,11 @@ public final class SpinnakerRetrofitErrorHandler implements ErrorHandler {
         }
         return retval;
       case NETWORK:
-        return new SpinnakerNetworkException(e.getMessage(), e.getCause());
+        return new SpinnakerNetworkException(e);
       case CONVERSION:
-        return new SpinnakerConversionException(e.getMessage(), e.getCause());
+        return new SpinnakerConversionException(e);
       default:
-        return new SpinnakerServerException(e.getMessage(), e.getCause());
+        return new SpinnakerServerException(e);
     }
   }
 

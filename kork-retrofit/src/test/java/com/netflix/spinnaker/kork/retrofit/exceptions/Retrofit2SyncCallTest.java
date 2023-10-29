@@ -16,38 +16,45 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.io.IOException;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import retrofit2.Call;
 import retrofit2.Response;
 
-public class Retrofit2SyncCallTest {
+class Retrofit2SyncCallTest {
 
   @Test
-  public void testExecuteSuccss() throws IOException {
-    Call<String> mockcall = Mockito.mock(Call.class);
-    when(mockcall.execute()).thenReturn(Response.success("testing"));
-    String execute = Retrofit2SyncCall.execute(mockcall);
-    assertEquals("testing", execute);
+  void testExecuteSuccess() throws IOException {
+    Call<String> mockCall = mock(Call.class);
+    String responseBody = "testing";
+    when(mockCall.execute()).thenReturn(Response.success(responseBody));
+    String execute = Retrofit2SyncCall.execute(mockCall);
+    assertThat(execute).isEqualTo(responseBody);
   }
 
   @Test
-  public void testExecuteThrowException() throws IOException {
-    Call<String> mockcall = Mockito.mock(Call.class);
+  void testExecuteThrowException() throws IOException {
+    Call<String> mockCall = mock(Call.class);
     IOException ioException = new IOException("exception test");
-    when(mockcall.execute()).thenThrow(ioException);
-    SpinnakerNetworkException networkEx =
-        assertThrows(
-            SpinnakerNetworkException.class,
-            () -> {
-              Retrofit2SyncCall.execute(mockcall);
-            });
-    assertEquals(ioException, networkEx.getCause());
+    when(mockCall.execute()).thenThrow(ioException);
+
+    HttpUrl url = HttpUrl.parse("http://arbitrary-url");
+    Request mockRequest = mock(Request.class);
+    when(mockCall.request()).thenReturn(mockRequest);
+    when(mockRequest.url()).thenReturn(url);
+
+    SpinnakerNetworkException thrown =
+        catchThrowableOfType(
+            () -> Retrofit2SyncCall.execute(mockCall), SpinnakerNetworkException.class);
+    assertThat(thrown).hasCause(ioException);
+    assertThat(thrown.getUrl()).isEqualTo(url.toString());
   }
 }

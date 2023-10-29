@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +74,7 @@ class SpinnakerRetrofitExceptionHandlersTest {
   private MemoryAppender memoryAppender;
 
   @BeforeEach
-  private void setup(TestInfo testInfo) {
+  void setup(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
     memoryAppender = new MemoryAppender(SpinnakerRetrofitExceptionHandlers.class);
   }
@@ -84,8 +84,8 @@ class SpinnakerRetrofitExceptionHandlersTest {
     URI uri = getUri("/spinnakerServerException");
 
     ResponseEntity<String> entity = restTemplate.getForEntity(uri, String.class);
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, entity.getStatusCode());
-    assertEquals(1, memoryAppender.countEventsForLevel(Level.ERROR));
+    assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    assertThat(memoryAppender.countEventsForLevel(Level.ERROR)).isEqualTo(1);
   }
 
   @Test
@@ -93,11 +93,11 @@ class SpinnakerRetrofitExceptionHandlersTest {
     URI uri = getUri("/chainedSpinnakerServerException");
 
     ResponseEntity<String> entity = restTemplate.getForEntity(uri, String.class);
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, entity.getStatusCode());
-    assertEquals(1, memoryAppender.countEventsForLevel(Level.ERROR));
+    assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    assertThat(memoryAppender.countEventsForLevel(Level.ERROR)).isEqualTo(1);
 
     // Make sure the message is what we expect.
-    assertEquals(1, memoryAppender.search(CUSTOM_MESSAGE, Level.ERROR).size());
+    assertThat(memoryAppender.search(CUSTOM_MESSAGE, Level.ERROR)).hasSize(1);
   }
 
   @ParameterizedTest(name = "testSpinnakerHttpException status = {0}")
@@ -106,15 +106,15 @@ class SpinnakerRetrofitExceptionHandlersTest {
     URI uri = getUri("/spinnakerHttpException/" + String.valueOf(status));
 
     ResponseEntity<String> entity = restTemplate.getForEntity(uri, String.class);
-    assertEquals(status, entity.getStatusCode().value());
+    assertThat(entity.getStatusCode().value()).isEqualTo(status);
 
     // Only expect error logging for a server error, debug otherwise.  No need
     // to fill up logs with client errors assuming the server is doing the best
     // it can.
-    assertEquals(
-        1,
-        memoryAppender.countEventsForLevel(
-            HttpStatus.resolve(status).is5xxServerError() ? Level.ERROR : Level.DEBUG));
+    assertThat(
+            memoryAppender.countEventsForLevel(
+                HttpStatus.resolve(status).is5xxServerError() ? Level.ERROR : Level.DEBUG))
+        .isEqualTo(1);
   }
 
   @ParameterizedTest(name = "testChainedSpinnakerHttpException status = {0}")
@@ -123,24 +123,22 @@ class SpinnakerRetrofitExceptionHandlersTest {
     URI uri = getUri("/chainedSpinnakerHttpException/" + String.valueOf(status));
 
     ResponseEntity<String> entity = restTemplate.getForEntity(uri, String.class);
-    assertEquals(status, entity.getStatusCode().value());
+    assertThat(entity.getStatusCode().value()).isEqualTo(status);
 
     // Only expect error logging for a server error, debug otherwise.  No need
     // to fill up logs with client errors assuming the server is doing the best
     // it can.
-    assertEquals(
-        1,
-        memoryAppender.countEventsForLevel(
-            HttpStatus.resolve(status).is5xxServerError() ? Level.ERROR : Level.DEBUG));
+    assertThat(
+            memoryAppender.countEventsForLevel(
+                HttpStatus.resolve(status).is5xxServerError() ? Level.ERROR : Level.DEBUG))
+        .isEqualTo(1);
 
     // Make sure the message is what we expect.
-    assertEquals(
-        1,
-        memoryAppender
-            .search(
+    assertThat(
+            memoryAppender.search(
                 CUSTOM_MESSAGE,
-                HttpStatus.resolve(status).is5xxServerError() ? Level.ERROR : Level.DEBUG)
-            .size());
+                HttpStatus.resolve(status).is5xxServerError() ? Level.ERROR : Level.DEBUG))
+        .hasSize(1);
   }
 
   private URI getUri(String path) {

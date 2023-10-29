@@ -16,11 +16,33 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
+import okhttp3.Request;
+import retrofit.RetrofitError;
+
 /** Wraps an exception converting a successful retrofit http response body to its indicated type */
 public class SpinnakerConversionException extends SpinnakerServerException {
 
-  public SpinnakerConversionException(String message, Throwable cause) {
+  /**
+   * Construct a SpinnakerServerException from retrofit2 with a message and cause (e.g. an exception
+   * converting a response to the specified type).
+   */
+  public SpinnakerConversionException(String message, Throwable cause, Request request) {
+    super(message, cause, request);
+    setRetryable(false);
+  }
+
+  /**
+   * Construct a SpinnakerConversionException from another SpinnakerConversionException (e.g. via
+   * newInstance).
+   */
+  public SpinnakerConversionException(String message, SpinnakerConversionException cause) {
     super(message, cause);
+    setRetryable(false);
+  }
+
+  /** Construct a SpinnakerConversionException corresponding to a RetrofitError. */
+  public SpinnakerConversionException(RetrofitError e) {
+    super(e);
     setRetryable(false);
   }
 

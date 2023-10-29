@@ -18,20 +18,57 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import lombok.Getter;
+import okhttp3.Request;
+import retrofit.RetrofitError;
 
 /** Represents an error while attempting to execute a retrofit http client request. */
 @NonnullByDefault
 public class SpinnakerServerException extends SpinnakerException {
 
-  public SpinnakerServerException(String message, Throwable cause) {
-    super(message, cause);
+  @Getter private final String url;
+
+  /** Construct a SpinnakerServerException corresponding to a RetrofitError. */
+  public SpinnakerServerException(RetrofitError e) {
+    super(e.getMessage(), e.getCause());
+    url = e.getUrl();
   }
 
-  public SpinnakerServerException(Throwable cause) {
+  /**
+   * Construct a SpinnakerServerException from retrofit2 with no cause (e.g. a non-200 http
+   * response).
+   */
+  public SpinnakerServerException(Request request) {
+    super();
+    url = request.url().toString();
+  }
+
+  /**
+   * Construct a SpinnakerServerException from retrofit2 with a cause (e.g. an exception sending a
+   * request or processing a response).
+   */
+  public SpinnakerServerException(Throwable cause, Request request) {
     super(cause);
+    this.url = request.url().toString();
   }
 
-  public SpinnakerServerException() {}
+  /**
+   * Construct a SpinnakerServerException from retrofit2 with a message and cause (e.g. an exception
+   * converting a response to the specified type).
+   */
+  public SpinnakerServerException(String message, Throwable cause, Request request) {
+    super(message, cause);
+    this.url = request.url().toString();
+  }
+
+  /**
+   * Construct a SpinnakerServerException from another SpinnakerServerException (e.g. via
+   * newInstance).
+   */
+  public SpinnakerServerException(String message, SpinnakerServerException cause) {
+    super(message, cause);
+    this.url = cause.getUrl();
+  }
 
   @Override
   public SpinnakerServerException newInstance(String message) {
