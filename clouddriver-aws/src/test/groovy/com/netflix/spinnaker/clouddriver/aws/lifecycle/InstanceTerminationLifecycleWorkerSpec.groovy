@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport.DiscoveryStatus
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import retrofit.RetrofitError
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -210,7 +211,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
 
     then:
     1 * eureka.updateInstanceStatus(_, _, _) >> {
-      throw new SpinnakerNetworkException(new RuntimeException("cannot connect"))    }
+      throw new SpinnakerNetworkException(RetrofitError.networkError("http://some-url", new IOException("cannot connect")))    }
     1 * eureka.updateInstanceStatus(_, _, _)
     0 * eureka.updateInstanceStatus(_, _, _)
   }
