@@ -30,6 +30,7 @@ import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import okhttp3.Request;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import retrofit2.Call;
@@ -58,11 +59,12 @@ final class ArtifactDownloaderImplTest {
   @Test
   public void retries() throws IOException {
     ArtifactDownloaderImpl artifactDownloader = new ArtifactDownloaderImpl(clouddriverService);
+    Request request = new Request.Builder().url("http://some-url").build();
     String testContent = "abcdefg";
     try (ArtifactDownloaderImplTest.AutoDeletingFile file = new AutoDeletingFile()) {
       when(clouddriverService.fetchArtifact(testArtifact)).thenReturn(mockCall);
       when(mockCall.execute())
-          .thenThrow(new SpinnakerNetworkException(new IOException("timeout")))
+          .thenThrow(new SpinnakerNetworkException(new IOException("timeout"), request))
           .thenReturn(successfulResponse(testContent));
       artifactDownloader.downloadArtifactToFile(testArtifact, file.path);
 
