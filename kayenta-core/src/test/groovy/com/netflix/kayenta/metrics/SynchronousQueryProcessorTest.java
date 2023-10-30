@@ -236,7 +236,9 @@ public class SynchronousQueryProcessorTest {
             any(CanaryConfig.class),
             any(CanaryMetricConfig.class),
             any(CanaryScope.class)))
-        .thenThrow(new SpinnakerNetworkException(new SocketTimeoutException()));
+        .thenThrow(
+            new SpinnakerNetworkException(
+                RetrofitError.networkError("http://some-url", new SocketTimeoutException())));
 
     assertThatThrownBy(
             () ->
