@@ -35,6 +35,7 @@ import com.netflix.spinnaker.igor.polling.PollingDelta
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.time.TimeCategory
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,7 +43,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.stereotype.Service
-import retrofit.RetrofitError
 import java.util.stream.Collectors
 
 import static net.logstash.logback.argument.StructuredArguments.kv
@@ -157,9 +157,8 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
 
         } catch (e) {
             log.error("Error processing builds for [{}:{}]", kv("master", master), kv("job", job.name), e)
-            if (e.cause instanceof RetrofitError) {
-                def re = (RetrofitError) e.cause
-                log.error("Error communicating with jenkins for [{}:{}]: {}", kv("master", master), kv("job", job.name), kv("url", re.url), re)
+            if (e instanceof SpinnakerServerException) {
+                log.error("Error communicating with jenkins for [{}:{}]: {}", kv("master", master), kv("job", job.name), kv("url", e.url), e)
             }
         }
     }

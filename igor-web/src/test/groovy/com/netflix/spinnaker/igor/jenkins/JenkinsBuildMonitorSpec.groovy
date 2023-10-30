@@ -257,9 +257,8 @@ class   JenkinsBuildMonitorSpec extends Specification {
             new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min)
         ]
 
-        def retrofitEx = new SpinnakerServerException(RetrofitError.unexpectedError("http://retro.fit/mock/error", new Exception('mock root cause')));
-        def runtimeException = new RuntimeException ("Mocked failure while fetching 'job2'", retrofitEx)
-        jenkinsService.getBuilds('job2') >> { throw runtimeException.getCause() }
+        def spinnakerServerException = new SpinnakerServerException(RetrofitError.unexpectedError("http://retro.fit/mock/error", new Exception('mock root cause')));
+        jenkinsService.getBuilds('job2') >> { throw spinnakerServerException }
 
         jenkinsService.getBuilds('job3') >> [
             new Build(number: 3, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min)
