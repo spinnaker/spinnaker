@@ -76,7 +76,7 @@ dependencies {
   constraints {
     api("cglib:cglib-nodep:3.3.0")
     //A bug is reported in 1.2.11 and fixed in 1.2.12.
-    //So pinning the version to 1.2.12 untill spring boot upgrade to 2.5.15 or above.
+    //So pinning the version to 1.2.12 until spring boot upgrade to 2.5.15 or above.
     //[https://jira.qos.ch/browse/LOGBACK-1623]
     api("ch.qos.logback:logback-core"){
        version {
@@ -88,7 +88,7 @@ dependencies {
          strictly "${versions.logback}"
        }
     }
-    api("ch.qos.logback:logback-classic"){
+    api("ch.qos.logback:logback-access"){
        version {
          strictly "${versions.logback}"
        }
