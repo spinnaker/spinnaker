@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.front50
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
@@ -102,7 +104,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
       parameters           : [:],
       strategy             : suppliedParameters.strategy == true,
       correlationId        : "${parentPipeline.id}_${parentPipelineStageId}_${pipelineConfig.id}_${parentPipeline.startTime}".toString(),
-      expectedArtifactIds  : expectedArtifactIds.toSet().toList()
     ]
     /* correlationId is added so that two pipelines aren't triggered when a pipeline is canceled.
      * parentPipelineStageId is added so that a child pipeline (via pipeline stage)
@@ -121,8 +122,10 @@ class DependentPipelineStarter implements ApplicationContextAware {
       }
     }
 
+    // keep the trigger as the preprocessor may remove it. Preprocessor will
+    // only remove the trigger key if the pipeline is a pipeline template
+    // otherwise, the trigger remains intact
     def trigger = pipelineConfig.trigger
-    //keep the trigger as the preprocessor removes it.
 
     if (parentPipelineStageId != null) {
       pipelineConfig.receivedArtifacts = artifactUtils?.getArtifacts(parentPipeline.stageById(parentPipelineStageId))
@@ -132,6 +135,25 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     // This is required for template source with jinja expressions
     trigger.artifacts = pipelineConfig.receivedArtifacts
+
+    // expectedArtifacts for triggers are defined at the top level of the
+    // pipeline, so we need to extract that and match them against the incoming
+    // artifacts to understand which expected artifact IDs are necessary to pass
+    // to the artifact resolution
+    expectedArtifactIds.addAll(pipelineConfig.get("expectedArtifacts", []).collectMany {
+      def expectedArtifact = objectMapper.convertValue(it, ExpectedArtifact)
+      return trigger.artifacts.findAll {
+        // The idea here is we are only interested in matching against incoming
+        // artifacts. So if the expected artifact does not match on any incoming
+        // artifact, we will simply not add the expected artifact ID to the
+        // array. This is very similar to how echo works.
+        def artifact = objectMapper.convertValue(it, Artifact)
+        return expectedArtifact.matches(artifact)
+      }.collect {
+        return expectedArtifact.id
+      }
+    } as String[])
+    trigger.expectedArtifactIds = expectedArtifactIds
 
     for (ExecutionPreprocessor preprocessor : executionPreprocessors.findAll {
       it.supports(pipelineConfig, ExecutionPreprocessor.Type.PIPELINE)
