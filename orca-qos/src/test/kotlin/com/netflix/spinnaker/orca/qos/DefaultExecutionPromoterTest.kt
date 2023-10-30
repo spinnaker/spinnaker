@@ -73,19 +73,19 @@ class DefaultExecutionPromoterTest : SubjectSpek<DefaultExecutionPromoter>({
 
       on("promote schedule") {
         subject.tick()
+      }
 
-        it("promotes all policy-selected candidate executions via status update") {
-          assertThat(execution1.status).isEqualTo(NOT_STARTED)
-          assertThat(execution2.status).isEqualTo(NOT_STARTED)
-          verify(executionRepository).updateStatus(execution1)
-          verify(executionRepository).updateStatus(execution2)
-        }
+      it("promotes all policy-selected candidate executions via status update") {
+        assertThat(execution1.status).isEqualTo(NOT_STARTED)
+        assertThat(execution2.status).isEqualTo(NOT_STARTED)
+        verify(executionRepository).updateStatus(execution1)
+        verify(executionRepository).updateStatus(execution2)
+      }
 
-        it("starts the executions immediately") {
-          verify(executionLauncher).start(execution1)
-          verify(executionLauncher).start(execution2)
-          verifyNoMoreInteractions(executionLauncher)
-        }
+      it("starts the executions immediately") {
+        verify(executionLauncher).start(execution1)
+        verify(executionLauncher).start(execution2)
+        verifyNoMoreInteractions(executionLauncher)
       }
     }
   }
