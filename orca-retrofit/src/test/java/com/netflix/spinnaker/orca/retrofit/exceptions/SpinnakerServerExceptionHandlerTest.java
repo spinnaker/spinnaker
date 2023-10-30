@@ -142,10 +142,11 @@ class SpinnakerServerExceptionHandlerTest {
 
   private static Stream<Arguments> exceptionsForHandlesTest() {
     RetrofitError retrofitError = makeRetrofitError(response);
+    okhttp3.Request request = new okhttp3.Request.Builder().url(URL).build();
     return Stream.of(
         Arguments.of(new SpinnakerHttpException(retrofitError), true),
-        Arguments.of(new SpinnakerServerException(io), true),
-        Arguments.of(new SpinnakerNetworkException(io), true),
+        Arguments.of(new SpinnakerServerException(io, request), true),
+        Arguments.of(new SpinnakerNetworkException(io, request), true),
         Arguments.of(new RuntimeException(), false),
         Arguments.of(new IllegalArgumentException(), false));
   }
