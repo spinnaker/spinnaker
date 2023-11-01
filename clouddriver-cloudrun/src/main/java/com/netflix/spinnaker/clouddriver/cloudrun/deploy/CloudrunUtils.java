@@ -35,6 +35,9 @@ public class CloudrunUtils {
       String project, CloudrunNamedAccountCredentials credentials, Task task, String phase) {
     task.updateStatus(phase, "Querying all revisions for project $project...");
     List<Revision> serverGroups = getRevisionsList(project, credentials);
+    if (serverGroups == null) {
+      serverGroups = new ArrayList<>();
+    }
     return serverGroups;
   }
 

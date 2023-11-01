@@ -431,12 +431,14 @@ public class CloudrunServerGroupCachingAgent extends AbstractCloudrunCachingAgen
       return serverGroupsByLoadBalancer;
     }
     List<Service> loadbalancers = getServicesList(project);
-    if (loadbalancers.isEmpty()) {
+    if (loadbalancers != null && loadbalancers.isEmpty()) {
       return serverGroupsByLoadBalancer;
     }
     Map<String, Service> loadbalancerMap = new HashMap<>();
     Map<String, List<Revision>> lbServerGroupMap = new HashMap<>();
-    loadbalancers.forEach(lb -> loadbalancerMap.put(lb.getMetadata().getName(), lb));
+    if (loadbalancers != null) {
+      loadbalancers.forEach(lb -> loadbalancerMap.put(lb.getMetadata().getName(), lb));
+    }
 
     JsonBatchCallback<ListRevisionsResponse> callback =
         new JsonBatchCallback<>() {

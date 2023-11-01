@@ -27,7 +27,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnExpression("${kubernetes.enabled:false} || ${dockerRegistry.enabled:false}")
+@ConditionalOnExpression(
+    "${kubernetes.enabled:false} || ${cloudrun.enabled:false} || ${dockerRegistry.enabled:false}")
 @RequiredArgsConstructor
 @Slf4j
 class DockerArtifactConfiguration {

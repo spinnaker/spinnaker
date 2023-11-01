@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.CloudrunServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.DeployCloudrunDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception.CloudrunOperationException;
-import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunLoadBalancer;
-import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunService;
+import com.netflix.spinnaker.clouddriver.cloudrun.model.*;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.view.CloudrunLoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -57,6 +57,13 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
 
   DeployCloudrunDescription description;
 
+  private final ObjectMapper objectMapper =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+  private final ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
+
+  private CloudrunYmlData ymlData = new CloudrunYmlData();
+
   public DeployCloudrunAtomicOperation(DeployCloudrunDescription description) {
     this.description = description;
   }
@@ -77,6 +84,13 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
             description.getFreeFormDetails(),
             description.getSuppressVersionString());
     List<String> configFiles = description.getConfigFiles();
+    try {
+      populateCloudrunYmlData(configFiles);
+    } catch (Exception e) {
+      log.error("Failed to populate the cloudrun yml data ", e);
+      throw new CloudrunOperationException(
+          "Failed to populate the cloudrun yml data " + e.getMessage());
+    }
     List<String> modConfigFiles =
         insertSpinnakerAppNameServiceNameVersionName(configFiles, clusterName, versionName);
     List<String> writtenFullConfigFilePaths =
@@ -110,6 +124,26 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
     return versionName;
   }
 
+  private void populateCloudrunYmlData(List<String> configFiles) throws JsonProcessingException {
+
+    for (String configFile : configFiles) {
+      CloudrunService yamlObj = yamlReader.readValue(configFile, CloudrunService.class);
+      if (yamlObj != null && yamlObj.getMetadata() != null && yamlObj.getSpec() != null) {
+        ymlData.setKind(yamlObj.getKind());
+        ymlData.setApiVersion(yamlObj.getApiVersion());
+
+        String metaDataJson = objectMapper.writeValueAsString(yamlObj.getMetadata());
+        CloudrunMetaData cloudrunMetaData =
+            objectMapper.readValue(metaDataJson, CloudrunMetaData.class);
+        ymlData.setMetadata(cloudrunMetaData);
+
+        String specJson = objectMapper.writeValueAsString(yamlObj.getSpec());
+        CloudrunSpec spec = objectMapper.readValue(specJson, CloudrunSpec.class);
+        ymlData.setSpec(spec);
+      }
+    }
+  }
+
   private List<String> insertSpinnakerAppNameServiceNameVersionName(
       List<String> configFiles, String clusterName, String versionName) {
 
@@ -117,48 +151,36 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
         .map(
             (configFile) -> {
               try {
-                ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
                 CloudrunService yamlObj = yamlReader.readValue(configFile, CloudrunService.class);
-                if (yamlObj != null) {
-                  if (yamlObj.getMetadata() != null) {
-                    LinkedHashMap<String, Object> metadataMap = yamlObj.getMetadata();
-                    LinkedHashMap<String, Object> specMap = yamlObj.getSpec();
-                    if (metadataMap != null && specMap != null) {
-                      if (specMap.get("template") != null
-                          && ((LinkedHashMap<String, Object>) specMap.get("template"))
-                                  .get("metadata")
-                              != null) {
-                        LinkedHashMap<String, Object> specMetadataMap =
-                            (LinkedHashMap<String, Object>)
-                                ((LinkedHashMap<String, Object>) specMap.get("template"))
-                                    .get("metadata");
-                        specMetadataMap.put("name", versionName);
-                        metadataMap.put("name", clusterName);
-                        CloudrunLoadBalancer loadBalancer =
-                            provider.getLoadBalancer(description.getAccountName(), clusterName);
-                        if (loadBalancer != null) {
-                          insertTrafficPercent(specMap, loadBalancer);
-                        }
+                if (yamlObj != null && yamlObj.getMetadata() != null) {
+                  CloudrunMetaData metadata = ymlData.getMetadata();
+                  CloudrunSpec spec = ymlData.getSpec();
+                  if (metadata != null && spec != null) {
+                    if (spec.getTemplate() != null && spec.getTemplate().getMetadata() != null) {
+                      CloudrunSpecTemplateMetadata specMetadata = spec.getTemplate().getMetadata();
+                      specMetadata.setName(versionName);
+                      metadata.setName(clusterName);
+                      CloudrunLoadBalancer loadBalancer =
+                          provider.getLoadBalancer(description.getAccountName(), clusterName);
+                      if (loadBalancer != null) {
+                        insertTrafficPercent(spec, loadBalancer);
                       }
                     }
-                    LinkedHashMap<String, Object> annotationsMap =
-                        (LinkedHashMap<String, Object>) metadataMap.get("annotations");
-                    LinkedHashMap<String, Object> labelsMap =
-                        (LinkedHashMap<String, Object>) metadataMap.get("labels");
-                    if (annotationsMap == null) {
-                      Map<String, Object> tempMap = new LinkedHashMap<>();
-                      tempMap.put("spinnaker/application", description.getApplication());
-                      metadataMap.put("annotations", tempMap);
-                      description.setRegion(
-                          (String) labelsMap.get("cloud.googleapis.com/location"));
-                    } else if (annotationsMap != null && labelsMap != null) {
-                      annotationsMap.put("spinnaker/application", description.getApplication());
-                      description.setRegion(
-                          (String) labelsMap.get("cloud.googleapis.com/location"));
-                    }
+                  }
+                  CloudrunMetadataAnnotations annotations = metadata.getAnnotations();
+                  CloudrunMetadataLabels labels = metadata.getLabels();
+                  if (annotations == null) {
+                    CloudrunMetadataAnnotations metadataAnnotations =
+                        new CloudrunMetadataAnnotations();
+                    metadataAnnotations.setSpinnakerApplication(description.getApplication());
+                    metadata.setAnnotations(metadataAnnotations);
+                    description.setRegion(labels.getCloudGoogleapisComLocation());
+                  } else if (annotations != null && labels != null) {
+                    annotations.setSpinnakerApplication(description.getApplication());
+                    description.setRegion(labels.getCloudGoogleapisComLocation());
                   }
                 }
-                return yamlReader.writeValueAsString(yamlObj);
+                return yamlReader.writeValueAsString(ymlData);
               } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
               }
@@ -166,22 +188,21 @@ public class DeployCloudrunAtomicOperation implements AtomicOperation<Deployment
         .collect(Collectors.toList());
   }
 
-  private void insertTrafficPercent(
-      LinkedHashMap<String, Object> specMap, CloudrunLoadBalancer loadBalancer) {
+  private void insertTrafficPercent(CloudrunSpec spec, CloudrunLoadBalancer loadBalancer) {
 
-    List<Map<String, Object>> trafficPercentList = new ArrayList<>();
+    List<CloudrunSpecTraffic> trafficTargets = new ArrayList<>();
     if (loadBalancer.getSplit() != null && loadBalancer.getSplit().getTrafficTargets() != null) {
       loadBalancer
           .getSplit()
           .getTrafficTargets()
           .forEach(
               trafficTarget -> {
-                Map<String, Object> existingTrafficMap = new LinkedHashMap<>();
-                existingTrafficMap.put("percent", trafficTarget.getPercent());
-                existingTrafficMap.put("revisionName", trafficTarget.getRevisionName());
-                trafficPercentList.add(existingTrafficMap);
+                CloudrunSpecTraffic existingTrafficMap = new CloudrunSpecTraffic();
+                existingTrafficMap.setPercent(trafficTarget.getPercent());
+                existingTrafficMap.setRevisionName(trafficTarget.getRevisionName());
+                trafficTargets.add(existingTrafficMap);
               });
-      specMap.put("traffic", trafficPercentList);
+      spec.setTraffic(trafficTargets.toArray(new CloudrunSpecTraffic[0]));
     }
   }
 

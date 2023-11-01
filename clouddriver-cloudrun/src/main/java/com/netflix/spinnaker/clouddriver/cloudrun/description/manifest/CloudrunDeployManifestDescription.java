@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.cloudrun.description.manifest;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.AbstractCloudrunCredentialsDescription;
 import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunService;
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.List;
 import java.util.Map;
@@ -31,13 +32,15 @@ public class CloudrunDeployManifestDescription extends AbstractCloudrunCredentia
 
   private boolean enableTraffic = false;
 
-  private List<CloudrunService> optionalArtifacts;
+  private List<Artifact> optionalArtifacts;
 
   private String cloudProvider;
 
   private List<CloudrunService> manifests;
 
   private Map<String, Object> trafficManagement;
+
+  private boolean enableArtifactBinding = true;
 
   private Moniker moniker;
 
@@ -59,7 +62,7 @@ public class CloudrunDeployManifestDescription extends AbstractCloudrunCredentia
 
   private boolean skipExpressionEvaluator;
 
-  private List<String> requiredArtifacts;
+  private List<Artifact> requiredArtifacts;
 
   public String getAccountName() {
     return accountName;
@@ -85,11 +88,11 @@ public class CloudrunDeployManifestDescription extends AbstractCloudrunCredentia
     this.enableTraffic = enableTraffic;
   }
 
-  public List<CloudrunService> getOptionalArtifacts() {
+  public List<Artifact> getOptionalArtifacts() {
     return optionalArtifacts;
   }
 
-  public void setOptionalArtifacts(List<CloudrunService> optionalArtifacts) {
+  public void setOptionalArtifacts(List<Artifact> optionalArtifacts) {
     this.optionalArtifacts = optionalArtifacts;
   }
 
@@ -149,11 +152,11 @@ public class CloudrunDeployManifestDescription extends AbstractCloudrunCredentia
     this.skipExpressionEvaluator = skipExpressionEvaluator;
   }
 
-  public List<String> getRequiredArtifacts() {
+  public List<Artifact> getRequiredArtifacts() {
     return requiredArtifacts;
   }
 
-  public void setRequiredArtifacts(List<String> requiredArtifacts) {
+  public void setRequiredArtifacts(List<Artifact> requiredArtifacts) {
     this.requiredArtifacts = requiredArtifacts;
   }
 
@@ -187,5 +190,13 @@ public class CloudrunDeployManifestDescription extends AbstractCloudrunCredentia
 
   public void setApplication(String application) {
     this.application = application;
+  }
+
+  public boolean isEnableArtifactBinding() {
+    return enableArtifactBinding;
+  }
+
+  public void setEnableArtifactBinding(boolean enableArtifactBinding) {
+    this.enableArtifactBinding = enableArtifactBinding;
   }
 }

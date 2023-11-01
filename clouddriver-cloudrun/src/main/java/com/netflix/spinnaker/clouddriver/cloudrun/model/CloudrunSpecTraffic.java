@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 OpsMx, Inc.
+ * Copyright 2023 OpsMx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,28 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.netflix.spinnaker.clouddriver.cloudrun.op;
+package com.netflix.spinnaker.clouddriver.cloudrun.model;
 
-import com.netflix.spinnaker.clouddriver.cloudrun.model.CloudrunService;
-import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class CloudrunManifestOperationResult extends DeploymentResult {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class CloudrunSpecTraffic {
 
-  private Set<CloudrunService> manifests = new HashSet<>();
+  private long percent;
 
-  public CloudrunManifestOperationResult addManifest(CloudrunService manifest) {
-    manifests.add(manifest);
-    return this;
-  }
+  private boolean latestRevision;
+
+  private String revisionName;
 }
