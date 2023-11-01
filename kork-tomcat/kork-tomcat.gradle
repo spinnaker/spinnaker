@@ -8,6 +8,7 @@ dependencies {
   implementation("com.netflix.spectator:spectator-api")
   implementation("com.google.guava:guava")
   implementation(project(":kork-core"))
+  implementation(project(":kork-crypto"))
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 }
