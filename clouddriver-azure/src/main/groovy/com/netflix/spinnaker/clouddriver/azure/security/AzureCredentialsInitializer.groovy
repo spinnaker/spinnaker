@@ -33,7 +33,7 @@ class AzureCredentialsInitializer {
                                                                   AccountCredentialsRepository accountCredentialsRepository,
                                                                   String clouddriverUserAgentApplicationName) {
 
-    def azureAccounts = []
+    List<AzureNamedAccountCredentials> azureAccounts = []
     azureConfigurationProperties.accounts.each { AzureConfigurationProperties.ManagedAccount managedAccount ->
       try {
         def azureAccount = new AzureNamedAccountCredentials(

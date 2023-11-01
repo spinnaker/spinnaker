@@ -202,7 +202,7 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return a Collection of objects which represent an Application Gateway in Azure
    */
   Collection<AzureAppGatewayDescription> getAppGatewaysAll(String region) {
-    def result = []
+    Collection<AzureAppGatewayDescription> result = []
 
     try {
       def currentTime = System.currentTimeMillis()
