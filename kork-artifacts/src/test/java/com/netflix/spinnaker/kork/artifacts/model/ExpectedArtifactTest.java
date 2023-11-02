@@ -189,4 +189,37 @@ final class ExpectedArtifactTest {
             s -> Artifact.builder().artifactAccount(s).build())
         .map(Arguments::of);
   }
+
+  @ParameterizedTest
+  @MethodSource("referenceCases")
+  void testReferenceMatches(
+      String matchReference, String otherReference, boolean shouldMatch, String caseName) {
+    ExpectedArtifact expectedArtifact =
+        ExpectedArtifact.builder()
+            .id("test")
+            .matchArtifact(
+                Artifact.builder()
+                    .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
+                    .reference(matchReference)
+                    .build())
+            .build();
+
+    assertThat(
+            expectedArtifact.matches(
+                Artifact.builder()
+                    .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
+                    .reference(otherReference)
+                    .build()))
+        .as(caseName)
+        .isEqualTo(shouldMatch);
+  }
+
+  private static Stream<Arguments> referenceCases() {
+    return Stream.of(
+        Arguments.of("SGVsbG8gV29ybGQK", "SGVsbG8gV29ybGQK", true, "simple"),
+        Arguments.of("SGVsbG8gV29ybGQK", null, false, "other reference as null"),
+        Arguments.of("SGVsbG8gV29ybGQK", "", false, "other reference is empty"),
+        Arguments.of("", "SGVsbG8gV29ybGQK", true, "match reference is empty"),
+        Arguments.of("+++", "+++", true, "valid base64 but invalid regex"));
+  }
 }

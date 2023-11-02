@@ -98,7 +98,23 @@ public final class ExpectedArtifact {
   }
 
   private boolean matches(@Nullable String us, @Nullable String other) {
-    return StringUtils.isEmpty(us) || (other != null && patternMatches(us, other));
+    if (StringUtils.isEmpty(us)) {
+      return true;
+    }
+
+    if (other == null) {
+      return false;
+    }
+
+    // The strict equals is mostly to ensure base64 references can be compared
+    // against each other, since the '+' is a completely valid base64 character.
+    // The '+' in regex has the meaning of one or more, and will change the
+    // semantics of comparing two references.
+    //
+    // So rather than having references implement its own matching, users may
+    // rely on matching artifacts with some regex. To be backwards compatible we
+    // will do a strict comparison as well as pattern matching.
+    return us.equals(other) || patternMatches(us, other);
   }
 
   /**
