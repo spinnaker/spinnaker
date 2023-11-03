@@ -155,7 +155,7 @@ class BakeStage implements StageDefinitionBuilder {
 
     @Nonnull
     TaskResult execute(@Nonnull StageExecution stage) {
-      def relatedBakeStages = stage.execution.stages.findAll {
+      List<StageExecution> relatedBakeStages = stage.execution.stages.findAll {
         it.type == PIPELINE_CONFIG_TYPE && stage.id == it.parentStageId
       }
 
@@ -174,7 +174,7 @@ class BakeStage implements StageDefinitionBuilder {
 
       if (failOnImageNameMismatchEnabled()) {
         // find distinct image names in bake stages that are actually related to the stage passed into the task
-        List<String> distinctImageNames = relatedBakeStages
+        List<Object> distinctImageNames = relatedBakeStages
           .findAll { childStage -> childStage.parentStageId == stage.id && childStage.context.imageName }
           .stream()
           .map { childStage -> childStage.context.imageName }
