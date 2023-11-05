@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Component
 @Deprecated
@@ -61,7 +61,7 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
       def instanceService = createInstanceService("http://${host}:${healthCheckUrl.port}")
       try { // keep trying until we get a 200 or time out
         instanceService.healthCheck(healthCheckUrl.path.substring(1))
-      } catch (RetrofitError e) {
+      } catch (SpinnakerServerException e) {
         executionStatus = ExecutionStatus.RUNNING
       }
     }

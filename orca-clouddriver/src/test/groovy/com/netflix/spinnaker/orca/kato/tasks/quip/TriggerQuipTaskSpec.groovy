@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
+
 import java.nio.charset.Charset
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -176,7 +179,7 @@ class TriggerQuipTaskSpec extends Specification {
       // need to do this since I can't stick exceptions on the data table
       if (it) {
         1 * instanceService.patchInstance(app, patchVersion, "") >> {
-          throw new RetrofitError(null, null, null, null, null, null, null)
+          throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))
         }
       } else {
         1 * instanceService.patchInstance(app, patchVersion, "") >> instanceResponse
@@ -250,7 +253,7 @@ class TriggerQuipTaskSpec extends Specification {
 
     then:
     2 * instanceService.getCurrentVersion(app) >> {
-      throw RetrofitError.networkError('http://foo', new IOException('failed'))
+      throw new SpinnakerNetworkException(RetrofitError.networkError('http://foo', new IOException('failed')))
     } >> mkResponse([version: patchVersion])
 
     result.context.skippedInstances.keySet() == ["i-1234"] as Set

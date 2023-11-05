@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.ModelUtils
@@ -60,7 +61,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
       if (responseCode.get(i) == 200) {
         1 * instanceService.healthCheck("healthCheck") >> responses.get(i)
       } else {
-        1 * instanceService.healthCheck("healthCheck") >> { throw new RetrofitError(null, null, null, null, null, null, null) }
+        1 * instanceService.healthCheck("healthCheck") >> { throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null)) }
       }
     }
 

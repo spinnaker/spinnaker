@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.squareup.okhttp.OkHttpClient
@@ -30,6 +31,7 @@ abstract class AbstractQuipTask implements Task {
       .setEndpoint(address)
       .setClient(new OkClient(new OkHttpClient(retryOnConnectionFailure: false)))
       .setLogLevel(BASIC)
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()
     return restAdapter.create(InstanceService.class)
   }

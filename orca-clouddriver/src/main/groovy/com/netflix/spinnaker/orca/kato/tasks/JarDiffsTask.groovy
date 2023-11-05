@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
 
@@ -121,6 +122,7 @@ class JarDiffsTask implements DiffTask {
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
       .setClient(new OkClient(okHttpClient))
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()
 
     return restAdapter.create(InstanceService.class)

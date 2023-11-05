@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
@@ -118,7 +119,6 @@ class MonitorQuipTaskSpec extends Specification {
     def stage = new StageExecutionImpl(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
-
     task.createInstanceService(_) >> instanceService
 
     when:
@@ -126,7 +126,7 @@ class MonitorQuipTaskSpec extends Specification {
 
     then:
     taskIds.eachWithIndex { def entry, int i ->
-      instanceService.listTask(entry.value) >> { throw new RetrofitError(null, null, null, null, null, null, null)}
+      instanceService.listTask(entry.value) >> { throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
     }
     result.status == ExecutionStatus.RUNNING
 

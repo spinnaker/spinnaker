@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 import retrofit.client.Client
 
 @Deprecated
@@ -69,7 +69,7 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
         } else {
           throw new RuntimeException("quip task failed for ${hostName} with a result of ${status}, see http://${hostName}:5050/tasks/${taskId}")
         }
-      } catch(RetrofitError e) {
+      } catch(SpinnakerServerException e) {
         result = TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
     }

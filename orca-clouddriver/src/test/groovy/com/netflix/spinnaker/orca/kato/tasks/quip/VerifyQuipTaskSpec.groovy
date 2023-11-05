@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
@@ -233,7 +234,7 @@ class VerifyQuipTaskSpec extends Specification {
     2 * task.createInstanceService(_) >> instanceService
     1 * instanceService.listTasks() >> instanceResponse
     1 * instanceService.listTasks() >> {
-      throw new RetrofitError(null, null, null, null, null, null, null)
+      throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))
     }
     !result?.context
     thrown(RuntimeException)

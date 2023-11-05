@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
@@ -103,7 +104,7 @@ class JarDiffsTaskSpec extends Specification {
     Response jarsResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(sourceJarsResponse))
 
     when:
-    1 * instanceService.getJars() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+    1 * instanceService.getJars() >> {throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
     1 * instanceService.getJars() >> jarsResponse
     def result = task.getJarList([foo: [hostName : "bar"], foo2: [hostName : "bar2"]])
 
@@ -121,7 +122,7 @@ class JarDiffsTaskSpec extends Specification {
     5 * task.createInstanceService("http://bar:8077") >> instanceService
 
     when:
-    5 * instanceService.getJars() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+    5 * instanceService.getJars() >> {throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
     def result = task.getJarList((1..5).collectEntries { ["${it}": [hostName : "bar"]] })
 
     then:
@@ -138,7 +139,7 @@ class JarDiffsTaskSpec extends Specification {
     Response jarsResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(sourceJarsResponse))
 
     when:
-    1 * instanceService.getJars() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+    1 * instanceService.getJars() >> {throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
     1 * instanceService.getJars() >> jarsResponse
     def result = task.getJarList([foo: [hostName : "bar"], foo2: [hostName : "bar2"], foo3: [hostName : "bar3"]])
 
@@ -215,7 +216,7 @@ class JarDiffsTaskSpec extends Specification {
     task.oortHelper = oortHelper
     1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v000", false) >> sourceExpectedInstances
     1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v002", false) >> targetExpectedInstances
-    1 * instanceService.getJars() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+    1 * instanceService.getJars() >> {throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
     1 * instanceService.getJars() >> targetResponse
 
     TaskResult result = task.execute(stage)
