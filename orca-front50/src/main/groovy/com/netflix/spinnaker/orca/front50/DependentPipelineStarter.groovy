@@ -87,15 +87,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
       it.expectedArtifactIds ?: []
     }
 
-    // we are following a similar approach as triggers above
-    // expectedArtifacts can be used in triggers and stages
-    // for now we identified DeployManifestStage
-    // in ResolveDeploySourceManifestTask using ManifestEvaluator.getRequiredArtifacts
-    def requiredArtifactIds = pipelineConfig.get("stages", []).collectMany {
-      it.requiredArtifactIds ?: []
-    }
-    expectedArtifactIds.addAll(requiredArtifactIds)
-
     pipelineConfig.trigger = [
       type                 : "pipeline",
       user                 : authenticationDetails?.user ?: user ?: "[anonymous]",
