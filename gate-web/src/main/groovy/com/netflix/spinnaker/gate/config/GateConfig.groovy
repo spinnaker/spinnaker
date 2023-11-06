@@ -23,6 +23,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
+import com.netflix.spinnaker.config.ServiceEndpoint
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
@@ -216,7 +217,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
       //     priority: 2
       //     origin: deck
 
-      def defaultSelector = new DefaultServiceSelector(
+      ServiceSelector defaultSelector = new DefaultServiceSelector(
         defaultClouddriverService,
         1,
         null)
@@ -317,7 +318,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   private <T> T buildService(String serviceName, Class<T> type, Endpoint endpoint) {
-    ObjectMapper objectMapper = objectMapperBuilder.build()
+    ObjectMapper objectMapper = objectMapperBuilder.build() as ObjectMapper
     if(serviceName.equals("echo")) {
       objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
