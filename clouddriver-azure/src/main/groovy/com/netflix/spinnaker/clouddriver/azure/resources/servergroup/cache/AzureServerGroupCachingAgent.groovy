@@ -66,11 +66,11 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
     serverGroups?.each {
       try {
         if (it.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_LOAD_BALANCER.toString()) {
-          it.isDisabled = creds.networkClient.isServerGroupWithLoadBalancerDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.loadBalancerName, it.name)
+          it.disabled = creds.networkClient.isServerGroupWithLoadBalancerDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.loadBalancerName, it.name)
         } else if (it.loadBalancerType == AzureLoadBalancer.AzureLoadBalancerType.AZURE_APPLICATION_GATEWAY.toString()) {
-          it.isDisabled = creds.networkClient.isServerGroupWithAppGatewayDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.appGatewayName, it.name)
+          it.disabled = creds.networkClient.isServerGroupWithAppGatewayDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.appGatewayName, it.name)
         } else if (it.loadBalancerType == null) {
-          it.isDisabled = creds.networkClient.isServerGroupWithoutLoadBalancerDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.name)
+          it.disabled = creds.networkClient.isServerGroupWithoutLoadBalancerDisabled(AzureUtilities.getResourceGroupName(it.appName, region), it.name)
         } else {
           throw new RuntimeException("Invalid load balancer type $it.loadBalancerType")
         }
