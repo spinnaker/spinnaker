@@ -1,32 +1,23 @@
 package com.netflix.spinnaker.kork.jedis;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.utility.DockerImageName;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.util.Pool;
-import redis.embedded.RedisServer;
 
 public class EmbeddedRedis implements AutoCloseable {
 
-  private final URI connection;
-  private final RedisServer redisServer;
+  private static final int REDIS_PORT = 6379;
 
-  private Pool<Jedis> jedis;
+  private final GenericContainer<?> redisContainer;
 
-  private EmbeddedRedis(int port) throws IOException, URISyntaxException {
-    this.connection = URI.create(String.format("redis://127.0.0.1:%d/0", port));
-    this.redisServer =
-        RedisServer.builder()
-            .port(port)
-            .setting("bind 127.0.0.1")
-            .setting("appendonly no")
-            .setting("save \"\"")
-            .setting("databases 1")
-            .build();
-    this.redisServer.start();
+  private JedisPool jedis;
+
+  private EmbeddedRedis() {
+    redisContainer =
+        new GenericContainer<>(DockerImageName.parse("library/redis:5-alpine"))
+            .withExposedPorts(REDIS_PORT);
+    redisContainer.start();
   }
 
   @Override
@@ -35,20 +26,20 @@ public class EmbeddedRedis implements AutoCloseable {
   }
 
   public void destroy() {
-    try {
-      this.redisServer.stop();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    redisContainer.stop();
+  }
+
+  public String getHost() {
+    return redisContainer.getHost();
   }
 
   public int getPort() {
-    return redisServer.ports().get(0);
+    return redisContainer.getMappedPort(REDIS_PORT);
   }
 
-  public Pool<Jedis> getPool() {
+  public JedisPool getPool() {
     if (jedis == null) {
-      jedis = new JedisPool(connection);
+      jedis = new JedisPool(getHost(), getPort());
     }
     return jedis;
   }
@@ -58,13 +49,6 @@ public class EmbeddedRedis implements AutoCloseable {
   }
 
   public static EmbeddedRedis embed() {
-    try {
-      ServerSocket serverSocket = new ServerSocket(0);
-      int port = serverSocket.getLocalPort();
-      serverSocket.close();
-      return new EmbeddedRedis(port);
-    } catch (IOException | URISyntaxException e) {
-      throw new RuntimeException("Failed to create embedded Redis", e);
-    }
+    return new EmbeddedRedis();
   }
 }

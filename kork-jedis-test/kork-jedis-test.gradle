@@ -4,5 +4,5 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   api "redis.clients:jedis"
-  api "io.spinnaker.embedded-redis:embedded-redis"
+  implementation "org.testcontainers:testcontainers"
 }
