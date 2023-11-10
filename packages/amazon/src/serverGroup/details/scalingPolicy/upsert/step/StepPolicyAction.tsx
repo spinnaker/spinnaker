@@ -106,6 +106,7 @@ export const StepPolicyAction = ({
                 <NumberInput
                   value={step.metricIntervalLowerBound}
                   max={step.metricIntervalUpperBound}
+                  step={0.1}
                   onChange={(e) =>
                     updateStep({ ...step, metricIntervalLowerBound: Number.parseFloat(e.target.value) }, index)
                   }
@@ -121,6 +122,7 @@ export const StepPolicyAction = ({
                 <NumberInput
                   value={step.metricIntervalUpperBound}
                   min={step.metricIntervalLowerBound}
+                  step={0.1}
                   onChange={(e) =>
                     updateStep({ ...step, metricIntervalUpperBound: Number.parseFloat(e.target.value) }, index)
                   }

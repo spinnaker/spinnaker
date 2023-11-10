@@ -169,6 +169,17 @@ describe('awsServerGroupTransformer', () => {
           [0, 10, -5],
         );
       });
+
+      it('verify float adjustments work within the range', function () {
+        this.test(
+          [
+            { id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3.5, metricIntervalUpperBound: 5.5 },
+            { id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5.5 },
+            { id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1.2, metricIntervalUpperBound: 3.5 },
+          ],
+          [-5, 10, 0],
+        );
+      });
     });
   });
 });
