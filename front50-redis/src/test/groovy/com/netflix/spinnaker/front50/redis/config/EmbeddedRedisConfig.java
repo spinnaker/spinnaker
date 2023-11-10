@@ -33,6 +33,7 @@ public class EmbeddedRedisConfig {
   @Primary
   RedisConfigurationProperties redisConfigurationProperties(EmbeddedRedis embeddedRedis) {
     RedisConfigurationProperties redisConfigurationProperties = new RedisConfigurationProperties();
+    redisConfigurationProperties.setHost(embeddedRedis.getHost());
     redisConfigurationProperties.setPort(embeddedRedis.getPort());
     return redisConfigurationProperties;
   }
