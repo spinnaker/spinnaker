@@ -40,12 +40,13 @@ class AsgConfigHelperSpec extends Specification {
       .application("fooTest")
       .stack("stack").build()
 
-  void setup() {
+  void setupSpec() {
     // test code shouldn't assume it will run in less than one second, so let's control the clock
+    // we use setupSpec rather than setup because setup is called after a where block
     AsgConfigHelper.clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
   }
 
-  void cleanup() {
+  void cleanupSpec() {
     AsgConfigHelper.clock = Clock.systemDefaultZone()
   }
 
