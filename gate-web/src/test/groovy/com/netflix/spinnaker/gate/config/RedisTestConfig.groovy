@@ -26,12 +26,12 @@ class RedisTestConfig {
   @Primary
   @SpringSessionRedisConnectionFactory
   JedisConnectionFactory jedisConnectionFactory(EmbeddedRedis embeddedRedis) {
-    return new JedisConnectionFactory(new RedisStandaloneConfiguration("127.0.0.1", embeddedRedis.port))
+    return new JedisConnectionFactory(new RedisStandaloneConfiguration(embeddedRedis.host, embeddedRedis.port))
   }
 
   @Bean
   @Primary
   JedisPool jedis(EmbeddedRedis embeddedRedis) {
-    return new JedisPool(new URI("redis://127.0.0.1:$embeddedRedis.port"), 5000)
+    return embeddedRedis.getPool();
   }
 }
