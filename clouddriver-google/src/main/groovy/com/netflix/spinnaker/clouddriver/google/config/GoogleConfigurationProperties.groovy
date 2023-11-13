@@ -18,11 +18,24 @@ package com.netflix.spinnaker.clouddriver.google.config
 
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount
+import groovy.transform.Canonical
 import groovy.transform.ToString
+import org.springframework.boot.context.properties.NestedConfigurationProperty
 
 class GoogleConfigurationProperties {
   public static final int ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT = 300
   public static final int ASYNC_OPERATION_MAX_POLLING_INTERVAL_SECONDS = 8
+
+  /**
+   * health check related config settings
+   */
+  @Canonical
+  static class HealthConfig {
+    /**
+     * flag to toggle verifying account health check. by default, account health check is enabled.
+     */
+    boolean verifyAccountHealth = true
+  }
 
   @ToString(includeNames = true)
   static class ManagedAccount extends GoogleCommonManagedAccount {
@@ -45,4 +58,7 @@ class GoogleConfigurationProperties {
   // Takes a list of regions you want indexed. Will default to indexing all regions if left
   // unspecified. An empty list will index no regions.
   List<String> defaultRegions
+
+  @NestedConfigurationProperty
+  final HealthConfig health = new HealthConfig()
 }

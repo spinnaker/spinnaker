@@ -32,19 +32,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.testing.http.MockLowLevelHttpRequest;
 import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Autoscaler;
-import com.google.api.services.compute.model.AutoscalerAggregatedList;
-import com.google.api.services.compute.model.AutoscalerList;
-import com.google.api.services.compute.model.AutoscalersScopedList;
-import com.google.api.services.compute.model.Instance;
-import com.google.api.services.compute.model.InstanceAggregatedList;
-import com.google.api.services.compute.model.InstanceGroupManager;
-import com.google.api.services.compute.model.InstanceGroupManagerList;
-import com.google.api.services.compute.model.InstanceList;
-import com.google.api.services.compute.model.InstanceTemplate;
-import com.google.api.services.compute.model.InstanceTemplateList;
-import com.google.api.services.compute.model.InstancesScopedList;
-import com.google.api.services.compute.model.RegionInstanceGroupManagerList;
+import com.google.api.services.compute.model.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -72,8 +60,10 @@ final class StubComputeFactory {
 
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
+  private static final String COMPUTE_PATH_PREFIX = "/compute/[-.a-zA-Z0-9]+";
+
   private static final String COMPUTE_PROJECT_PATH_PREFIX =
-      "/compute/[-.a-zA-Z0-9]+/projects/[-.a-zA-Z0-9]+";
+      COMPUTE_PATH_PREFIX + "/projects/[-.a-zA-Z0-9]+";
 
   private static final Pattern BATCH_COMPUTE_PATTERN =
       Pattern.compile("/batch/compute/[-.a-zA-Z0-9]+");
@@ -114,11 +104,15 @@ final class StubComputeFactory {
       Pattern.compile(COMPUTE_PROJECT_PATH_PREFIX + "/regions/([-a-z0-9]+)/autoscalers");
   private static final Pattern AGGREGATED_AUTOSCALERS_PATTERN =
       Pattern.compile(COMPUTE_PROJECT_PATH_PREFIX + "/aggregated/autoscalers");
+  private static final Pattern GET_PROJECT_PATTERN =
+      Pattern.compile(COMPUTE_PATH_PREFIX + "/projects/([-.a-zA-Z0-9]+)");
 
   private List<InstanceGroupManager> instanceGroupManagers = new ArrayList<>();
   private List<InstanceTemplate> instanceTemplates = new ArrayList<>();
   private List<Instance> instances = new ArrayList<>();
   private List<Autoscaler> autoscalers = new ArrayList<>();
+  private List<Project> projects = new ArrayList<>();
+  private Exception projectException;
 
   StubComputeFactory setInstanceGroupManagers(InstanceGroupManager... instanceGroupManagers) {
     this.instanceGroupManagers = ImmutableList.copyOf(instanceGroupManagers);
@@ -137,6 +131,16 @@ final class StubComputeFactory {
 
   StubComputeFactory setAutoscalers(Autoscaler... autoscalers) {
     this.autoscalers = ImmutableList.copyOf(autoscalers);
+    return this;
+  }
+
+  StubComputeFactory setProjects(Project... projects) {
+    this.projects = ImmutableList.copyOf(projects);
+    return this;
+  }
+
+  StubComputeFactory setProjectException(Exception projectException) {
+    this.projectException = projectException;
     return this;
   }
 
@@ -166,7 +170,8 @@ final class StubComputeFactory {
             .addGetResponse(
                 LIST_REGIONAL_AUTOSCALERS_PATTERN,
                 new PathBasedJsonResponseGenerator(this::regionalAutoscalerList))
-            .addGetResponse(AGGREGATED_AUTOSCALERS_PATTERN, this::autoscalerAggregatedList);
+            .addGetResponse(AGGREGATED_AUTOSCALERS_PATTERN, this::autoscalerAggregatedList)
+            .addGetResponse(GET_PROJECT_PATTERN, this::project);
     return new Compute(
         httpTransport, JacksonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
   }
@@ -322,6 +327,21 @@ final class StubComputeFactory {
     return jsonResponse(new AutoscalerAggregatedList().setItems(autoscalers));
   }
 
+  private MockLowLevelHttpResponse project(MockLowLevelHttpRequest request) {
+    if (projectException != null) {
+      return errorResponse(500, projectException);
+    }
+
+    Matcher matcher = GET_PROJECT_PATTERN.matcher(getPath(request));
+    checkState(matcher.matches());
+    String name = matcher.group(1);
+    return projects.stream()
+        .filter(project -> name.equals(project.getName()))
+        .findFirst()
+        .map(StubComputeFactory::jsonResponse)
+        .orElse(errorResponse(404));
+  }
+
   private static <T> ImmutableListMultimap<String, T> aggregate(
       Collection<T> items, Function<T, String> zoneFunction, Function<T, String> regionFunction) {
     return items.stream()
@@ -345,9 +365,18 @@ final class StubComputeFactory {
   }
 
   private static MockLowLevelHttpResponse errorResponse(int statusCode) {
+    return errorResponse(statusCode, null);
+  }
+
+  private static MockLowLevelHttpResponse errorResponse(int statusCode, Exception exception) {
     GoogleJsonErrorContainer errorContainer = new GoogleJsonErrorContainer();
     GoogleJsonError error = new GoogleJsonError();
     error.setCode(statusCode);
+
+    if (exception != null) {
+      error.setMessage(exception.getMessage());
+    }
+
     errorContainer.setError(error);
     return jsonResponse(statusCode, errorContainer);
   }

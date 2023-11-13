@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.config.GoogleCredentialsConfiguration
 
@@ -49,6 +48,7 @@ class GoogleConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty("google.health.verifyAccountHealth")
   GoogleHealthIndicator googleHealthIndicator() {
     new GoogleHealthIndicator()
   }
