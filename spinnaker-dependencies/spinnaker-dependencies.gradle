@@ -15,10 +15,6 @@ ext {
     jooq             : "3.13.6",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
-    // spring boot 2.5.14 specifies logback 1.2.11, but a rosco test hung with
-    // 1.2.11 from https://jira.qos.ch/browse/LOGBACK-1623 so pinning it to 1.2.12
-    // until spring boot upgrade 2.5.15 or above.
-    logback          : "1.2.12",
     protobuf         : "3.21.12",
     okhttp           : "2.7.5", // CVE-2016-2402
     okhttp3          : "4.9.3",
@@ -28,7 +24,7 @@ ext {
     spectator        : "1.0.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
-    springBoot       : "2.5.14",
+    springBoot       : "2.5.15",
     springCloud      : "2020.0.6",
     springfoxSwagger : "2.9.2",
     swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects
@@ -58,7 +54,6 @@ dependencies {
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
-  api(platform("com.fasterxml.jackson:jackson-bom:2.12.7.20221012"))
   api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
@@ -75,24 +70,6 @@ dependencies {
 
   constraints {
     api("cglib:cglib-nodep:3.3.0")
-    //A bug is reported in 1.2.11 and fixed in 1.2.12.
-    //So pinning the version to 1.2.12 until spring boot upgrade to 2.5.15 or above.
-    //[https://jira.qos.ch/browse/LOGBACK-1623]
-    api("ch.qos.logback:logback-core"){
-       version {
-         strictly "${versions.logback}"
-       }
-    }
-    api("ch.qos.logback:logback-classic"){
-       version {
-         strictly "${versions.logback}"
-       }
-    }
-    api("ch.qos.logback:logback-access"){
-       version {
-         strictly "${versions.logback}"
-       }
-    }
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:1.30.10") // TODO: Track update for CVE-2020-7692, reanalysis pending.
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev105-1.25.0")
