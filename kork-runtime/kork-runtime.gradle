@@ -1,4 +1,6 @@
 dependencies {
+  runtimeOnly(platform(project(":spinnaker-dependencies")))
+
   // Add each included runtime project as a runtime dependency
   gradle.includedRuntimeProjects.each {
     runtimeOnly project(it)

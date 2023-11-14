@@ -181,7 +181,12 @@ dependencies {
     // when we upgrade to spring boot 2.6.x.  It's safe to upgrade beyond 1.29
     // with spring boot >= 2.6.12.  See
     // https://github.com/spring-projects/spring-boot/issues/32228#issue-136185850.0.
-    api("org.yaml:snakeyaml:1.27")
+    // making it strict as some of the modules have it resolved to higher versions (ex: kork-secrets-gcp to 1.30)
+    api("org.yaml:snakeyaml") {
+      version {
+        strictly "1.27"
+      }
+    }
     api("org.springdoc:springdoc-openapi-webmvc-core:${versions.openapi}")
     api("org.springdoc:springdoc-openapi-kotlin:${versions.openapi}")
     api("org.springframework.boot:spring-boot-configuration-processor:${versions.springBoot}")
