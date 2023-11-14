@@ -75,7 +75,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 
-final class DefaultKubectlJobExecutorTest {
+final class KubectlJobExecutorTest {
   private static final String NAMESPACE = "test-namespace";
   JobExecutor jobExecutor;
   KubernetesConfigurationProperties kubernetesConfigurationProperties;
@@ -98,11 +98,11 @@ final class DefaultKubectlJobExecutorTest {
         new KubernetesConfigurationProperties();
     kubernetesConfigurationProperties.getJobExecutor().getRetries().setEnabled(retriesEnabled);
 
-    DefaultKubectlJobExecutor defaultKubectlJobExecutor =
-        new DefaultKubectlJobExecutor(
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
             jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
     Collection<KubernetesPodMetric> podMetrics =
-        defaultKubectlJobExecutor.topPod(mockKubernetesCredentials(), "test", "");
+        kubectlJobExecutor.topPod(mockKubernetesCredentials(), "test", "");
     assertThat(podMetrics).isEmpty();
 
     // should only be called once as no retries are performed
@@ -110,8 +110,8 @@ final class DefaultKubectlJobExecutorTest {
 
     if (retriesEnabled) {
       // verify retry registry
-      assertTrue(defaultKubectlJobExecutor.getRetryRegistry().isPresent());
-      RetryRegistry retryRegistry = defaultKubectlJobExecutor.getRetryRegistry().get();
+      assertTrue(kubectlJobExecutor.getRetryRegistry().isPresent());
+      RetryRegistry retryRegistry = kubectlJobExecutor.getRetryRegistry().get();
       assertThat(retryRegistry.getAllRetries().size()).isEqualTo(1);
       assertThat(retryRegistry.getAllRetries().get(0).getName()).isEqualTo("mock-account");
 
@@ -131,16 +131,15 @@ final class DefaultKubectlJobExecutorTest {
         .thenReturn(
             JobResult.<String>builder()
                 .result(Result.SUCCESS)
-                .output(
-                    ManifestFetcher.getResource(DefaultKubectlJobExecutorTest.class, "top-pod.txt"))
+                .output(ManifestFetcher.getResource(KubectlJobExecutorTest.class, "top-pod.txt"))
                 .error("")
                 .build());
 
-    DefaultKubectlJobExecutor defaultKubectlJobExecutor =
-        new DefaultKubectlJobExecutor(
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
             jobExecutor, new KubernetesConfigurationProperties(), new SimpleMeterRegistry());
     Collection<KubernetesPodMetric> podMetrics =
-        defaultKubectlJobExecutor.topPod(mockKubernetesCredentials(), NAMESPACE, "");
+        kubectlJobExecutor.topPod(mockKubernetesCredentials(), NAMESPACE, "");
     assertThat(podMetrics).hasSize(2);
 
     ImmutableSetMultimap<String, ContainerMetric> expectedMetrics =
@@ -193,15 +192,15 @@ final class DefaultKubectlJobExecutorTest {
                 .error("some error")
                 .build());
 
-    DefaultKubectlJobExecutor defaultKubectlJobExecutor =
-        new DefaultKubectlJobExecutor(
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
             jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
 
     // then
-    DefaultKubectlJobExecutor.KubectlException thrown =
+    KubectlJobExecutor.KubectlException thrown =
         assertThrows(
-            DefaultKubectlJobExecutor.KubectlException.class,
-            () -> defaultKubectlJobExecutor.topPod(mockKubernetesCredentials(), "test", ""));
+            KubectlJobExecutor.KubectlException.class,
+            () -> kubectlJobExecutor.topPod(mockKubernetesCredentials(), "test", ""));
 
     assertTrue(thrown.getMessage().contains("some error"));
     // should only be called once as no retries are performed for this error
@@ -220,13 +219,13 @@ final class DefaultKubectlJobExecutorTest {
     kubernetesConfigurationProperties.getJobExecutor().getRetries().setEnabled(true);
 
     // to test log messages
-    MemoryAppender memoryAppender = new MemoryAppender(DefaultKubectlJobExecutor.class);
+    MemoryAppender memoryAppender = new MemoryAppender(KubectlJobExecutor.class);
 
     final ExecutorService executor =
         Executors.newFixedThreadPool(
             numberOfThreads,
             new ThreadFactoryBuilder()
-                .setNameFormat(DefaultKubectlJobExecutorTest.class.getSimpleName() + "-%d")
+                .setNameFormat(KubectlJobExecutorTest.class.getSimpleName() + "-%d")
                 .build());
 
     final ArrayList<Future<ImmutableList<KubernetesPodMetric>>> futures =
@@ -241,16 +240,14 @@ final class DefaultKubectlJobExecutorTest {
                 .error("Unable to connect to the server: net/http: TLS handshake timeout")
                 .build());
 
-    DefaultKubectlJobExecutor defaultKubectlJobExecutor =
-        new DefaultKubectlJobExecutor(
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
             jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
 
     for (int i = 1; i <= numberOfThreads; i++) {
       futures.add(
           executor.submit(
-              () ->
-                  defaultKubectlJobExecutor.topPod(
-                      mockKubernetesCredentials(), NAMESPACE, "test-pod")));
+              () -> kubectlJobExecutor.topPod(mockKubernetesCredentials(), NAMESPACE, "test-pod")));
     }
 
     // then
@@ -258,7 +255,7 @@ final class DefaultKubectlJobExecutorTest {
       try {
         future.get();
       } catch (final ExecutionException e) {
-        assertTrue(e.getCause() instanceof DefaultKubectlJobExecutor.KubectlException);
+        assertTrue(e.getCause() instanceof KubectlJobExecutor.KubectlException);
         assertTrue(
             e.getMessage()
                 .contains("Unable to connect to the server: net/http: TLS handshake timeout"));
@@ -278,8 +275,8 @@ final class DefaultKubectlJobExecutorTest {
         .runJob(any(JobRequest.class));
 
     // verify retry registry
-    assertTrue(defaultKubectlJobExecutor.getRetryRegistry().isPresent());
-    RetryRegistry retryRegistry = defaultKubectlJobExecutor.getRetryRegistry().get();
+    assertTrue(kubectlJobExecutor.getRetryRegistry().isPresent());
+    RetryRegistry retryRegistry = kubectlJobExecutor.getRetryRegistry().get();
     assertThat(retryRegistry.getAllRetries().size()).isEqualTo(1);
     assertThat(retryRegistry.getAllRetries().get(0).getName()).isEqualTo("mock-account");
 
@@ -297,7 +294,7 @@ final class DefaultKubectlJobExecutorTest {
             "Kubectl command for mock-account failed after "
                 + kubernetesConfigurationProperties.getJobExecutor().getRetries().getMaxAttempts()
                 + " attempts. Exception: com.netflix.spinnaker.clouddriver.kubernetes.op."
-                + "job.DefaultKubectlJobExecutor$KubectlException: command: 'kubectl "
+                + "job.KubectlJobExecutor$KubectlException: command: 'kubectl "
                 + "--request-timeout=0 --namespace=test-namespace top po test-pod "
                 + "--containers' in account: mock-account failed. Error: Unable to "
                 + "connect to the server: net/http: TLS handshake timeout",
@@ -318,7 +315,7 @@ final class DefaultKubectlJobExecutorTest {
     kubernetesConfigurationProperties.getJobExecutor().getRetries().setEnabled(true);
 
     // to test log messages
-    Logger logger = (Logger) LoggerFactory.getLogger(DefaultKubectlJobExecutor.class);
+    Logger logger = (Logger) LoggerFactory.getLogger(KubectlJobExecutor.class);
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
     listAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
     logger.addAppender(listAppender);
@@ -328,7 +325,7 @@ final class DefaultKubectlJobExecutorTest {
         Executors.newFixedThreadPool(
             numberOfThreads,
             new ThreadFactoryBuilder()
-                .setNameFormat(DefaultKubectlJobExecutorTest.class.getSimpleName() + "-%d")
+                .setNameFormat(KubectlJobExecutorTest.class.getSimpleName() + "-%d")
                 .build());
 
     final ArrayList<Future<ImmutableList<KubernetesPodMetric>>> futures =
@@ -343,16 +340,14 @@ final class DefaultKubectlJobExecutorTest {
                 .error("un-retryable error")
                 .build());
 
-    DefaultKubectlJobExecutor defaultKubectlJobExecutor =
-        new DefaultKubectlJobExecutor(
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
             jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
 
     for (int i = 1; i <= numberOfThreads; i++) {
       futures.add(
           executor.submit(
-              () ->
-                  defaultKubectlJobExecutor.topPod(
-                      mockKubernetesCredentials(), NAMESPACE, "test-pod")));
+              () -> kubectlJobExecutor.topPod(mockKubernetesCredentials(), NAMESPACE, "test-pod")));
     }
 
     // then
@@ -360,7 +355,7 @@ final class DefaultKubectlJobExecutorTest {
       try {
         future.get();
       } catch (final ExecutionException e) {
-        assertTrue(e.getCause() instanceof DefaultKubectlJobExecutor.KubectlException);
+        assertTrue(e.getCause() instanceof KubectlJobExecutor.KubectlException);
         assertTrue(e.getMessage().contains("un-retryable error"));
       } catch (final InterruptedException ignored) {
       }
@@ -372,8 +367,8 @@ final class DefaultKubectlJobExecutorTest {
     verify(jobExecutor, times(numberOfThreads)).runJob(any(JobRequest.class));
 
     // verify retry registry
-    assertTrue(defaultKubectlJobExecutor.getRetryRegistry().isPresent());
-    RetryRegistry retryRegistry = defaultKubectlJobExecutor.getRetryRegistry().get();
+    assertTrue(kubectlJobExecutor.getRetryRegistry().isPresent());
+    RetryRegistry retryRegistry = kubectlJobExecutor.getRetryRegistry().get();
     assertThat(retryRegistry.getAllRetries().size()).isEqualTo(1);
     assertThat(retryRegistry.getAllRetries().get(0).getName()).isEqualTo("mock-account");
 
@@ -410,7 +405,7 @@ final class DefaultKubectlJobExecutorTest {
     kubernetesConfigurationProperties.getJobExecutor().getRetries().setEnabled(true);
 
     // to test log messages
-    Logger logger = (Logger) LoggerFactory.getLogger(DefaultKubectlJobExecutor.class);
+    Logger logger = (Logger) LoggerFactory.getLogger(KubectlJobExecutor.class);
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
     listAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
     logger.addAppender(listAppender);
@@ -427,17 +422,16 @@ final class DefaultKubectlJobExecutorTest {
         .thenReturn(
             JobResult.<String>builder()
                 .result(Result.SUCCESS)
-                .output(
-                    ManifestFetcher.getResource(DefaultKubectlJobExecutorTest.class, "top-pod.txt"))
+                .output(ManifestFetcher.getResource(KubectlJobExecutorTest.class, "top-pod.txt"))
                 .error("")
                 .build());
 
-    DefaultKubectlJobExecutor defaultKubectlJobExecutor =
-        new DefaultKubectlJobExecutor(
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
             jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
 
     Collection<KubernetesPodMetric> podMetrics =
-        defaultKubectlJobExecutor.topPod(mockKubernetesCredentials(), NAMESPACE, "test-pod");
+        kubectlJobExecutor.topPod(mockKubernetesCredentials(), NAMESPACE, "test-pod");
 
     // then
 
@@ -446,8 +440,8 @@ final class DefaultKubectlJobExecutorTest {
     verify(jobExecutor, times(2)).runJob(any(JobRequest.class));
 
     // verify retry registry
-    assertTrue(defaultKubectlJobExecutor.getRetryRegistry().isPresent());
-    RetryRegistry retryRegistry = defaultKubectlJobExecutor.getRetryRegistry().get();
+    assertTrue(kubectlJobExecutor.getRetryRegistry().isPresent());
+    RetryRegistry retryRegistry = kubectlJobExecutor.getRetryRegistry().get();
     assertThat(retryRegistry.getAllRetries().size()).isEqualTo(1);
     assertThat(retryRegistry.getAllRetries().get(0).getName()).isEqualTo("mock-account");
 
@@ -470,7 +464,7 @@ final class DefaultKubectlJobExecutorTest {
                         .contains(
                             "Kubectl command for mock-account is now successful in attempt #2. Last "
                                 + "attempt had failed with exception: com.netflix.spinnaker.clouddriver"
-                                + ".kubernetes.op.job.DefaultKubectlJobExecutor$KubectlException: command: "
+                                + ".kubernetes.op.job.KubectlJobExecutor$KubectlException: command: "
                                 + "'kubectl --request-timeout=0 --namespace=test-namespace top po test-pod"
                                 + " --containers' in account: mock-account failed. Error: Unable to connect to"
                                 + " the server: net/http: TLS handshake timeout"))
@@ -529,15 +523,14 @@ final class DefaultKubectlJobExecutorTest {
       kubernetesConfigurationProperties.getJobExecutor().getRetries().setEnabled(true);
     }
 
-    DefaultKubectlJobExecutor defaultKubectlJobExecutor =
-        new DefaultKubectlJobExecutor(
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
             jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
 
     JobExecutionException thrown =
         assertThrows(
             JobExecutionException.class,
-            () ->
-                defaultKubectlJobExecutor.topPod(mockKubernetesCredentials(), "test", "test-pod"));
+            () -> kubectlJobExecutor.topPod(mockKubernetesCredentials(), "test", "test-pod"));
 
     if (retriesEnabled) {
       // should be called 3 times as there were max 3 attempts made
@@ -559,19 +552,19 @@ final class DefaultKubectlJobExecutorTest {
 
     // fetch a test manifest
     KubernetesManifest inputManifest =
-        ManifestFetcher.getManifest(DefaultKubectlJobExecutorTest.class, "job.yml").get(0);
+        ManifestFetcher.getManifest(KubectlJobExecutorTest.class, "job.yml").get(0);
 
-    DefaultKubectlJobExecutor defaultKubectlJobExecutor =
-        new TestScriptJobExecutorDefault(
+    KubectlJobExecutor kubectlJobExecutor =
+        new TestScriptJobExecutor(
             new JobExecutorLocal(/* timeoutMinutes */ 1),
             kubernetesConfigurationProperties,
             new SimpleMeterRegistry(),
-            TestScriptJobExecutorDefault.RetryBehavior.SUCCESS_AFTER_INITIAL_FAILURE);
+            TestScriptJobExecutor.RetryBehavior.SUCCESS_AFTER_INITIAL_FAILURE);
 
     // We are using a real job executor. Therefore, we can simulate the call `kubectl apply -f -`
     // by substituting kubectl with a test script that accepts stdin
     KubernetesManifest returnedManifest =
-        defaultKubectlJobExecutor.deploy(
+        kubectlJobExecutor.deploy(
             mockKubernetesCredentials(
                 "src/test/resources/com/netflix/spinnaker/clouddriver/kubernetes/op/job/mock-kubectl-stdin-command.sh"),
             inputManifest,
@@ -594,22 +587,22 @@ final class DefaultKubectlJobExecutorTest {
 
     // fetch a test manifest
     KubernetesManifest inputManifest =
-        ManifestFetcher.getManifest(DefaultKubectlJobExecutorTest.class, "job.yml").get(0);
+        ManifestFetcher.getManifest(KubectlJobExecutorTest.class, "job.yml").get(0);
 
-    DefaultKubectlJobExecutor defaultKubectlJobExecutor =
-        new TestScriptJobExecutorDefault(
+    KubectlJobExecutor kubectlJobExecutor =
+        new TestScriptJobExecutor(
             new JobExecutorLocal(/* timeoutMinutes */ 1),
             kubernetesConfigurationProperties,
             new SimpleMeterRegistry(),
-            TestScriptJobExecutorDefault.RetryBehavior.FAILED);
+            TestScriptJobExecutor.RetryBehavior.FAILED);
 
     // We are using a real job executor. Therefore, we can simulate the call `kubectl apply -f -`
     // by substituting kubectl with a test script that accepts stdin
-    DefaultKubectlJobExecutor.KubectlException thrown =
+    KubectlJobExecutor.KubectlException thrown =
         assertThrows(
-            DefaultKubectlJobExecutor.KubectlException.class,
+            KubectlJobExecutor.KubectlException.class,
             () ->
-                defaultKubectlJobExecutor.deploy(
+                kubectlJobExecutor.deploy(
                     mockKubernetesCredentials(
                         "src/test/resources/com/netflix/spinnaker/clouddriver/kubernetes/op/job/mock-kubectl-stdin-command.sh"),
                     inputManifest,
@@ -642,7 +635,7 @@ final class DefaultKubectlJobExecutorTest {
    * Only meant to be used in tests where mocking certain kubectl calls prove to be tricky. This is
    * currently used in tests that verify retry behavior for such calls.
    */
-  private static class TestScriptJobExecutorDefault extends DefaultKubectlJobExecutor {
+  private static class TestScriptJobExecutor extends KubectlJobExecutor {
     /**
      * depending on the custom script provided, to simulate retry attempts, we need to let the
      * script know when to emit an error message vs when to emit a success message. These enums help
@@ -659,7 +652,7 @@ final class DefaultKubectlJobExecutorTest {
 
     private int createJobRequestInvokedCounter;
 
-    TestScriptJobExecutorDefault(
+    TestScriptJobExecutor(
         JobExecutor jobExecutor,
         KubernetesConfigurationProperties kubernetesConfigurationProperties,
         MeterRegistry meterRegistry,

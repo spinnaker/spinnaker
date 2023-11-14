@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.job.DefaultKubectlJobExecutor;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
@@ -52,7 +52,7 @@ public interface CanDeploy {
               new V1DeleteOptions(),
               task,
               opName);
-        } catch (DefaultKubectlJobExecutor.KubectlException ignored) {
+        } catch (KubectlJobExecutor.KubectlException ignored) {
         }
         deployedManifest = credentials.deploy(manifest, task, opName);
         break;

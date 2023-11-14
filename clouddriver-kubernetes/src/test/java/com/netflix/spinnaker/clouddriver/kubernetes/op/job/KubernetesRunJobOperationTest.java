@@ -146,7 +146,7 @@ final class KubernetesRunJobOperationTest {
                   invocation.getArgument(0, KubernetesManifest.class).clone();
               if (Strings.isNullOrEmpty(result.getName())) {
                 // We can't apply if there is no name; throw an exception here
-                throw new DefaultKubectlJobExecutor.KubectlException(
+                throw new KubectlJobExecutor.KubectlException(
                     "error: error when retrieving current configuration");
               }
               return result;

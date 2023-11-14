@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordi
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.ContainerLog;
-import com.netflix.spinnaker.clouddriver.kubernetes.op.job.DefaultKubectlJobExecutor;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1Container;
@@ -170,7 +170,7 @@ final class KubernetesInstanceProviderTest {
                 .build()))
         .thenReturn(manifest);
     when(credentials.logs(anyString(), anyString(), anyString()))
-        .thenThrow(new DefaultKubectlJobExecutor.KubectlException(LOG_OUTPUT, null));
+        .thenThrow(new KubectlJobExecutor.KubectlException(LOG_OUTPUT, null));
 
     List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
 

@@ -41,6 +41,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties.ResourceScope;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import java.util.Arrays;
@@ -84,6 +85,7 @@ public abstract class KubernetesCachingAgent
 
   protected final int agentIndex;
   protected final int agentCount;
+  protected KubectlJobExecutor jobExecutor;
 
   @Getter protected String providerName = KubernetesCloudProvider.ID;
 

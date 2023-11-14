@@ -30,14 +30,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler
-import com.netflix.spinnaker.clouddriver.kubernetes.op.job.DefaultKubectlJobExecutor
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials.KubernetesKindStatus
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import spock.lang.Specification
 
 class KubernetesCredentialsSpec extends Specification {
   Registry registry = Stub(Registry)
-  DefaultKubectlJobExecutor kubectlJobExecutor = Stub(DefaultKubectlJobExecutor)
+  KubectlJobExecutor kubectlJobExecutor = Stub(KubectlJobExecutor)
   String NAMESPACE = "my-namespace"
   AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory = Mock(AccountResourcePropertyRegistry.Factory)
   KubernetesKindRegistry.Factory kindRegistryFactory = new KubernetesKindRegistry.Factory(
@@ -137,7 +137,7 @@ class KubernetesCredentialsSpec extends Specification {
         checkPermissionsOnStartup: true,
       ))
     kubectlJobExecutor.list(_ as KubernetesCredentials, ImmutableList.of(KubernetesKind.DEPLOYMENT), NAMESPACE, _ as KubernetesSelectorList) >> {
-      throw new DefaultKubectlJobExecutor.KubectlException("Error", new Exception())
+      throw new KubectlJobExecutor.KubectlException("Error", new Exception())
     }
     kubectlJobExecutor.list(_ as KubernetesCredentials, ImmutableList.of(KubernetesKind.REPLICA_SET), NAMESPACE, _ as KubernetesSelectorList) >> {
       return ImmutableList.of()
@@ -187,7 +187,7 @@ class KubernetesCredentialsSpec extends Specification {
         metrics: true
       ))
     kubectlJobExecutor.topPod(_ as KubernetesCredentials, NAMESPACE, _) >> {
-      throw new DefaultKubectlJobExecutor.KubectlException("Error", new Exception())
+      throw new KubectlJobExecutor.KubectlException("Error", new Exception())
     }
 
     expect:

@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesManifestContainer
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
-import com.netflix.spinnaker.clouddriver.kubernetes.op.job.DefaultKubectlJobExecutor
+import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -79,7 +79,7 @@ class KubernetesJobProviderSpec extends Specification {
     given:
     def mockCredentials = Mock(KubernetesCredentials) {
       jobLogs(*_) >> {
-        throw new DefaultKubectlJobExecutor.KubectlException("some exception while getting logs", new Exception())
+        throw new KubectlJobExecutor.KubectlException("some exception while getting logs", new Exception())
       }
     }
 
@@ -150,7 +150,7 @@ class KubernetesJobProviderSpec extends Specification {
     given:
     def mockCredentials = Mock(KubernetesCredentials) {
       logs(*_) >> {
-        throw new DefaultKubectlJobExecutor.KubectlException("some exception while getting logs", new Exception())
+        throw new KubectlJobExecutor.KubectlException("some exception while getting logs", new Exception())
       }
     }
 
