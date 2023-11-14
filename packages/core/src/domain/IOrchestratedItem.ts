@@ -16,6 +16,7 @@ export interface IOrchestratedItem extends ITimedItem {
   getValueFor: (k: string) => any;
   originalStatus: string;
   status: string;
+  failureMessages: string[];
   failureMessage: string;
   isBuffered: boolean;
   isCompleted: boolean;

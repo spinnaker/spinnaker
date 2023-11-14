@@ -12,9 +12,11 @@ export const CollapsibleElement: React.FC<{ maxHeight: number }> = ({ children, 
     setIsOverflowing(contentRef.current.offsetHeight < contentRef.current.scrollHeight);
   }, []);
 
-  React.useEffect(() => {
-    checkIsOverflowing();
-  }, [children, checkIsOverflowing]);
+  React.useLayoutEffect(() => {
+    setTimeout(() => {
+      checkIsOverflowing();
+    });
+  }, [checkIsOverflowing]);
 
   React.useEffect(() => {
     window.addEventListener('resize', checkIsOverflowing);

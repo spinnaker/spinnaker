@@ -75,8 +75,11 @@ export class OrchestratedItemTransformer {
     item.originalStatus = item.status;
 
     Object.defineProperties(item, {
+      failureMessages: {
+        get: (): string[] => this.getFailureMessages(item),
+      },
       failureMessage: {
-        get: (): string => this.mergeExceptions(item),
+        get: (): string => this.getFailureMessagesAsString(item),
       },
       isCompleted: {
         get: (): boolean => ['SUCCEEDED', 'SKIPPED'].includes(item.status),
@@ -131,19 +134,23 @@ export class OrchestratedItemTransformer {
     });
   }
 
-  private static mergeExceptions(item: any): string | null {
-    const exceptions = [
-      this.getCustomException(item),
-      this.getGeneralException(item),
-      this.getOrchestrationException(item),
-    ].filter((it) => !!it);
+  private static getFailureMessagesAsString(item: any): string | null {
+    const exceptions = this.getFailureMessages(item);
     if (exceptions.length === 0) {
       return null;
     }
     return exceptions.join('\n\n');
   }
 
-  private static getOrchestrationException(task: ITask): string {
+  private static getFailureMessages(task: ITask): string[] {
+    return [
+      this.getCustomExceptionMessage(task),
+      ...this.getGeneralExceptionMessages(task),
+      this.getOrchestrationExceptionMessage(task),
+    ].filter((it) => !!it);
+  }
+
+  private static getOrchestrationExceptionMessage(task: ITask): string {
     const katoTasks: any[] = task.getValueFor('kato.tasks');
     if (katoTasks && katoTasks.length) {
       const failedTask: any = katoTasks.find((t) => t.status && t.status.failed);
@@ -190,7 +197,7 @@ export class OrchestratedItemTransformer {
     return null;
   }
 
-  private static getCustomException(task: ITask): string {
+  private static getCustomExceptionMessage(task: ITask): string {
     const generalException: any = task.getValueFor('exception');
     if (generalException) {
       if (generalException.exceptionType && generalException.exceptionType === 'LockFailureException') {
@@ -200,16 +207,17 @@ export class OrchestratedItemTransformer {
     return null;
   }
 
-  private static getGeneralException(task: ITask): string {
+  private static getGeneralExceptionMessages(task: ITask): string[] {
     const generalException: any = task.getValueFor('exception');
     if (generalException) {
       const errors = (generalException.details?.errors ?? []).filter((m: any) => !!m);
       if (errors.length) {
-        return errors.join('\n\n');
+        return errors;
       }
-      return generalException.details?.error ?? null;
+
+      return generalException.details?.error ? [generalException.details.error] : [];
     }
-    return null;
+    return [];
   }
 
   private static calculateRunningTime(item: IOrchestratedItem): () => number {

@@ -2,11 +2,13 @@ import { get } from 'lodash';
 import React from 'react';
 
 import type { IExecutionDetailsSectionProps, IManifest } from '@spinnaker/core';
-import { ExecutionDetailsSection, StageFailureMessage } from '@spinnaker/core';
+import { CollapsibleElement, ExecutionDetailsSection, StageFailureMessage } from '@spinnaker/core';
 
 import { ManifestStatus } from './ManifestStatus';
 import type { IStageManifest } from '../../../../manifest/manifest.service';
 import { KubernetesManifestService } from '../../../../manifest/manifest.service';
+
+import './DeployStatus.less';
 
 export interface IManifestSubscription {
   id: string;
@@ -87,22 +89,28 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
     const { name: sectionName, current: currentSection, stage } = this.props;
     const manifests: IManifest[] = this.state.subscriptions.filter((sub) => !!sub.manifest).map((sub) => sub.manifest);
     return (
-      <ExecutionDetailsSection name={sectionName} current={currentSection}>
-        <StageFailureMessage stage={stage} message={stage.failureMessage} />
-        {manifests && (
-          <div className="row">
-            <div className="col-md-12">
-              <div className="well alert alert-info">
-                {manifests.map((manifest) => {
-                  const uid =
-                    manifest.manifest.metadata.uid || KubernetesManifestService.manifestIdentifier(manifest.manifest);
-                  return <ManifestStatus key={uid} manifest={manifest} account={stage.context.account} />;
-                })}
+      <div className="deploy-status">
+        <ExecutionDetailsSection name={sectionName} current={currentSection}>
+          {stage.failureMessages.map((failureMessage) => (
+            <CollapsibleElement key={failureMessage} maxHeight={150}>
+              <StageFailureMessage stage={stage} message={failureMessage} />
+            </CollapsibleElement>
+          ))}
+          {!!manifests?.length && (
+            <div className="row">
+              <div className="col-md-12">
+                <div className="well alert alert-info">
+                  {manifests.map((manifest) => {
+                    const uid =
+                      manifest.manifest.metadata.uid || KubernetesManifestService.manifestIdentifier(manifest.manifest);
+                    return <ManifestStatus key={uid} manifest={manifest} account={stage.context.account} />;
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </ExecutionDetailsSection>
+          )}
+        </ExecutionDetailsSection>
+      </div>
     );
   }
 }
