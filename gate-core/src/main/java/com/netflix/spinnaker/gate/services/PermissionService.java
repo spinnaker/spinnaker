@@ -77,7 +77,9 @@ public class PermissionService {
       try {
         AuthenticatedRequest.allowAnonymous(
             () -> {
-              getFiatServiceForLogin().loginUser(userId, null);
+              // TODO(jvz): FiatService::loginUser should have only one parameter as Retrofit no
+              // longer requires this body parameter
+              getFiatServiceForLogin().loginUser(userId, "");
               permissionEvaluator.invalidatePermission(userId);
               return null;
             });
