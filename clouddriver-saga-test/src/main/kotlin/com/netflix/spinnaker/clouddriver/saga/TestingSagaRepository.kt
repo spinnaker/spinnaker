@@ -35,7 +35,7 @@ class TestingSagaRepository : SagaRepository {
   override fun save(saga: Saga, additionalEvents: List<SagaEvent>) {
     sagas.putIfAbsent(createId(saga), saga)
 
-    val currentSequence = saga.getEvents().map { it.getMetadata().sequence }.max() ?: 0
+    val currentSequence = saga.getEvents().map { it.getMetadata().sequence }.maxOrNull() ?: 0
     val originatingVersion = saga.getVersion()
 
     saga.getPendingEvents()

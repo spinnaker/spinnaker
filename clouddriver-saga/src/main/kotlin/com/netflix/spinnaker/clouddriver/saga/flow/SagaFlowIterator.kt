@@ -182,7 +182,7 @@ class SagaFlowIterator(
 
     index = listOf(SagaCommandCompletedEventSeeker(), SagaCommandEventSeeker())
       .mapNotNull { it.invoke(index, steps, saga)?.coerceAtLeast(0) }
-      .min()
+      .minOrNull()
       ?: index
 
     if (index != 0) {
