@@ -51,6 +51,10 @@ const managedServiceAccountsEnabled =
 const managedResourcesEnabled =
   import.meta.env.VITE_MANAGED_RESOURCES_ENABLED === 'true' || process.env.MANAGED_RESOURCES_ENABLED === 'true';
 const manualJudgmentParentPipelineEnabled = import.meta.env.MJ_PARENTPIPELINE_ENABLED !== 'false';
+const multiBlockFailureMessagesEnabled =
+  import.meta.env.MULTI_BLOCK_FAILURE_MESSAGES_ENABLED === 'true' ||
+  process.env.MULTI_BLOCK_FAILURE_MESSAGES_ENABLED === 'true' ||
+  false;
 const onDemandClusterThreshold =
   import.meta.env.VITE_ON_DEMAND_CLUSTER_THRESHOLD || process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
 const reduxLoggerEnabled = import.meta.env.VITE_REDUX_LOGGER === 'true' || process.env.REDUX_LOGGER === 'true';
@@ -123,6 +127,7 @@ window.spinnakerSettings = {
     managedServiceAccounts: managedServiceAccountsEnabled,
     managedResources: managedResourcesEnabled,
     manualJudgmentParentPipeline: manualJudgmentParentPipelineEnabled,
+    multiBlockFailureMessages: multiBlockFailureMessagesEnabled,
     dynamicRollbackTimeout: dynamicRollbackTimeoutEnabled,
     notifications: false,
     pagerDuty: false,

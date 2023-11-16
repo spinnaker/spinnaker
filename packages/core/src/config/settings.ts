@@ -39,6 +39,7 @@ export interface IFeatures {
   mdGitIntegration?: boolean;
   managedServiceAccounts?: boolean;
   managedResources?: boolean;
+  multiBlockFailureMessages?: boolean;
   notifications?: boolean;
   pagerDuty?: boolean;
   pipelines?: boolean;

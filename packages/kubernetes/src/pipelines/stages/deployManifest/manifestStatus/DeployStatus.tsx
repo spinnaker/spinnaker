@@ -2,7 +2,7 @@ import { get } from 'lodash';
 import React from 'react';
 
 import type { IExecutionDetailsSectionProps, IManifest } from '@spinnaker/core';
-import { CollapsibleElement, ExecutionDetailsSection, StageFailureMessage } from '@spinnaker/core';
+import { CollapsibleElement, ExecutionDetailsSection, SETTINGS, StageFailureMessage } from '@spinnaker/core';
 
 import { ManifestStatus } from './ManifestStatus';
 import type { IStageManifest } from '../../../../manifest/manifest.service';
@@ -91,11 +91,15 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
     return (
       <div className="deploy-status">
         <ExecutionDetailsSection name={sectionName} current={currentSection}>
-          {stage.failureMessages.map((failureMessage) => (
-            <CollapsibleElement key={failureMessage} maxHeight={150}>
-              <StageFailureMessage stage={stage} message={failureMessage} />
-            </CollapsibleElement>
-          ))}
+          {SETTINGS.feature.multiBlockFailureMessages ? (
+            stage.failureMessages.map((failureMessage) => (
+              <CollapsibleElement key={failureMessage} maxHeight={150}>
+                <StageFailureMessage stage={stage} message={failureMessage} />
+              </CollapsibleElement>
+            ))
+          ) : (
+            <StageFailureMessage stage={stage} message={stage.failureMessage} />
+          )}
           {!!manifests?.length && (
             <div className="row">
               <div className="col-md-12">
