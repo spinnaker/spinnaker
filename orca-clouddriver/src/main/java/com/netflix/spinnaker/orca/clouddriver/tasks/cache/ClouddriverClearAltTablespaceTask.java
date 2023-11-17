@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cache;
 
 import static java.util.Collections.emptyList;
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -17,8 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
-import retrofit.mime.TypedByteArray;
 
 @Component
 public class ClouddriverClearAltTablespaceTask implements Task {
@@ -48,17 +47,11 @@ public class ClouddriverClearAltTablespaceTask implements Task {
           result.getOrDefault("tables", emptyList()));
 
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(result).build();
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       Map<String, Object> output = new HashMap<>();
       List<String> errors = new ArrayList<>();
 
-      if (e.getResponse() != null && e.getResponse().getBody() != null) {
-        String error = new String(((TypedByteArray) e.getResponse().getBody()).getBytes());
-        log.error("Failed clearing clouddriver table namespace: {}", error, e);
-        errors.add(error);
-      } else {
-        errors.add(e.getMessage());
-      }
+      errors.add(e.getMessage());
       output.put("errors", errors);
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(output).build();
     }
