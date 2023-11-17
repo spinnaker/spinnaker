@@ -561,12 +561,13 @@ public class KubernetesCredentials {
         () -> jobExecutor.topPod(this, coords.getNamespace(), coords.getName()));
   }
 
-  public KubernetesManifest deploy(KubernetesManifest manifest, Task task, String opName) {
+  public KubernetesManifest deploy(
+      KubernetesManifest manifest, Task task, String opName, String... cmdArgs) {
     return runAndRecordMetrics(
         "deploy",
         manifest.getKind(),
         manifest.getNamespace(),
-        () -> jobExecutor.deploy(this, manifest, task, opName));
+        () -> jobExecutor.deploy(this, manifest, task, opName, cmdArgs));
   }
 
   private KubernetesManifest replace(KubernetesManifest manifest, Task task, String opName) {

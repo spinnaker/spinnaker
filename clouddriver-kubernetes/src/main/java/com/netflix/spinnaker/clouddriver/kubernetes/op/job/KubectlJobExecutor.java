@@ -587,12 +587,17 @@ public class KubectlJobExecutor {
   }
 
   public KubernetesManifest deploy(
-      KubernetesCredentials credentials, KubernetesManifest manifest, Task task, String opName) {
+      KubernetesCredentials credentials,
+      KubernetesManifest manifest,
+      Task task,
+      String opName,
+      String... cmdArgs) {
     log.info("Deploying manifest {}", manifest.getFullResourceName());
     List<String> command = kubectlAuthPrefix(credentials);
 
     // Read from stdin
     command.add("apply");
+    command.addAll(List.of(cmdArgs));
     command.add("-o");
     command.add("json");
     command.add("-f");

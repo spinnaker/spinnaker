@@ -158,7 +158,12 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
                       + " to kubernetes master...");
           result.merge(
               deployer.deploy(
-                  credentials, holder.manifest, strategy.getDeployStrategy(), getTask(), OP_NAME));
+                  credentials,
+                  holder.manifest,
+                  strategy.getDeployStrategy(),
+                  strategy.getServerSideApplyStrategy(),
+                  getTask(),
+                  OP_NAME));
 
           result.getCreatedArtifacts().add(holder.artifact);
           getTask()

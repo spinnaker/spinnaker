@@ -25,12 +25,15 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface CanDeploy {
   default OperationResult deploy(
       KubernetesCredentials credentials,
       KubernetesManifest manifest,
       KubernetesManifestStrategy.DeployStrategy deployStrategy,
+      KubernetesManifestStrategy.ServerSideApplyStrategy serverSideApplyStrategy,
       Task task,
       String opName) {
     // If the manifest has a generateName, we must apply with kubectl create as all other operations
@@ -58,6 +61,16 @@ public interface CanDeploy {
         break;
       case REPLACE:
         deployedManifest = credentials.createOrReplace(manifest, task, opName);
+        break;
+      case SERVER_SIDE_APPLY:
+        List<String> cmdArgs = new ArrayList<>();
+        cmdArgs.add("--server-side=true");
+        if (serverSideApplyStrategy.equals(
+            KubernetesManifestStrategy.ServerSideApplyStrategy.FORCE_CONFLICTS)) {
+          cmdArgs.add("--force-conflicts=true");
+        }
+        deployedManifest =
+            credentials.deploy(manifest, task, opName, cmdArgs.toArray(new String[cmdArgs.size()]));
         break;
       case APPLY:
         deployedManifest = credentials.deploy(manifest, task, opName);

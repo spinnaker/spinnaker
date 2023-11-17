@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.entry;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy.DeployStrategy;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy.ServerSideApplyStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy.Versioned;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +66,63 @@ final class KubernetesManifestStrategyTest {
   }
 
   @Test
+  void deployStrategysSrverSideApplyForce() {
+    KubernetesManifestStrategy.DeployStrategy strategy =
+        KubernetesManifestStrategy.DeployStrategy.fromAnnotations(
+            ImmutableMap.of("strategy.spinnaker.io/server-side-apply", "force-conflicts"));
+    assertThat(strategy).isEqualTo(DeployStrategy.SERVER_SIDE_APPLY);
+  }
+
+  @Test
+  void deployStrategyServerSideApplyDefault() {
+    KubernetesManifestStrategy.DeployStrategy strategy =
+        KubernetesManifestStrategy.DeployStrategy.fromAnnotations(
+            ImmutableMap.of("strategy.spinnaker.io/server-side-apply", "true"));
+    assertThat(strategy).isEqualTo(DeployStrategy.SERVER_SIDE_APPLY);
+  }
+
+  @Test
+  void deployStrategyServerSideApplyDisabled() {
+    KubernetesManifestStrategy.DeployStrategy strategy =
+        KubernetesManifestStrategy.DeployStrategy.fromAnnotations(
+            ImmutableMap.of("strategy.spinnaker.io/server-side-apply", "false"));
+    assertThat(strategy).isEqualTo(DeployStrategy.APPLY);
+  }
+
+  @Test
+  void serverSideApplyStrategyForceConflict() {
+    KubernetesManifestStrategy.ServerSideApplyStrategy conflictResolution =
+        KubernetesManifestStrategy.ServerSideApplyStrategy.fromAnnotations(
+            ImmutableMap.of("strategy.spinnaker.io/server-side-apply", "force-conflicts"));
+    assertThat(conflictResolution)
+        .isEqualTo(KubernetesManifestStrategy.ServerSideApplyStrategy.FORCE_CONFLICTS);
+  }
+
+  @Test
+  void serverSideApplyStrategyDefault() {
+    KubernetesManifestStrategy.ServerSideApplyStrategy conflictResolution =
+        KubernetesManifestStrategy.ServerSideApplyStrategy.fromAnnotations(
+            ImmutableMap.of("strategy.spinnaker.io/server-side-apply", "true"));
+    assertThat(conflictResolution).isEqualTo(ServerSideApplyStrategy.DEFAULT);
+  }
+
+  @Test
+  void serverSideApplyStrategyDisabled() {
+    KubernetesManifestStrategy.ServerSideApplyStrategy conflictResolution =
+        KubernetesManifestStrategy.ServerSideApplyStrategy.fromAnnotations(
+            ImmutableMap.of("strategy.spinnaker.io/server-side-apply", "false"));
+    assertThat(conflictResolution).isEqualTo(ServerSideApplyStrategy.DISABLED);
+  }
+
+  @Test
+  void serverSideApplyStrategyInvalidValue() {
+    KubernetesManifestStrategy.ServerSideApplyStrategy conflictResolution =
+        KubernetesManifestStrategy.ServerSideApplyStrategy.fromAnnotations(
+            ImmutableMap.of("strategy.spinnaker.io/server-side-apply", "zzzz"));
+    assertThat(conflictResolution).isEqualTo(ServerSideApplyStrategy.DISABLED);
+  }
+
+  @Test
   void nonBooleanValue() {
     KubernetesManifestStrategy.DeployStrategy strategy =
         KubernetesManifestStrategy.DeployStrategy.fromAnnotations(
@@ -80,6 +138,16 @@ final class KubernetesManifestStrategyTest {
                 "strategy.spinnaker.io/replace", "true",
                 "strategy.spinnaker.io/recreate", "true"));
     assertThat(strategy).isEqualTo(DeployStrategy.RECREATE);
+  }
+
+  @Test
+  void replacePreferredOverServerSideApply() {
+    KubernetesManifestStrategy.DeployStrategy strategy =
+        KubernetesManifestStrategy.DeployStrategy.fromAnnotations(
+            ImmutableMap.of(
+                "strategy.spinnaker.io/replace", "true",
+                "strategy.spinnaker.io/server-side-apply", "true"));
+    assertThat(strategy).isEqualTo(DeployStrategy.REPLACE);
   }
 
   @Test

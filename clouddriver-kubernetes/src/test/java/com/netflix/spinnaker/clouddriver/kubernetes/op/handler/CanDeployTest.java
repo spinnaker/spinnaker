@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy.DeployStrategy;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestStrategy.ServerSideApplyStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
@@ -46,7 +47,13 @@ final class CanDeployTest {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.deploy(manifest, task, OP_NAME)).thenReturn(manifest);
-    handler.deploy(credentials, manifest, DeployStrategy.APPLY, task, OP_NAME);
+    handler.deploy(
+        credentials,
+        manifest,
+        DeployStrategy.APPLY,
+        ServerSideApplyStrategy.DEFAULT,
+        task,
+        OP_NAME);
     verify(credentials).deploy(manifest, task, OP_NAME);
     verifyNoMoreInteractions(credentials);
   }
@@ -57,8 +64,49 @@ final class CanDeployTest {
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.deploy(manifest, task, OP_NAME)).thenReturn(manifest);
     OperationResult result =
-        handler.deploy(credentials, manifest, DeployStrategy.APPLY, task, OP_NAME);
+        handler.deploy(
+            credentials,
+            manifest,
+            DeployStrategy.APPLY,
+            ServerSideApplyStrategy.DEFAULT,
+            task,
+            OP_NAME);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
+  }
+
+  @Test
+  void applyServerSideMutations() {
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
+    KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
+    when(credentials.deploy(manifest, task, OP_NAME, "--server-side=true")).thenReturn(manifest);
+    handler.deploy(
+        credentials,
+        manifest,
+        DeployStrategy.SERVER_SIDE_APPLY,
+        ServerSideApplyStrategy.DEFAULT,
+        task,
+        OP_NAME);
+    verify(credentials).deploy(manifest, task, OP_NAME, "--server-side=true");
+    verifyNoMoreInteractions(credentials);
+  }
+
+  @Test
+  void applyServerSideForceConflictMutations() {
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
+    KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
+    when(credentials.deploy(
+            manifest, task, OP_NAME, "--server-side=true", "--force-conflicts=true"))
+        .thenReturn(manifest);
+    handler.deploy(
+        credentials,
+        manifest,
+        DeployStrategy.SERVER_SIDE_APPLY,
+        ServerSideApplyStrategy.FORCE_CONFLICTS,
+        task,
+        OP_NAME);
+    verify(credentials)
+        .deploy(manifest, task, OP_NAME, "--server-side=true", "--force-conflicts=true");
+    verifyNoMoreInteractions(credentials);
   }
 
   @Test
@@ -66,7 +114,13 @@ final class CanDeployTest {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.createOrReplace(manifest, task, OP_NAME)).thenReturn(manifest);
-    handler.deploy(credentials, manifest, DeployStrategy.REPLACE, task, OP_NAME);
+    handler.deploy(
+        credentials,
+        manifest,
+        DeployStrategy.REPLACE,
+        ServerSideApplyStrategy.DEFAULT,
+        task,
+        OP_NAME);
     verify(credentials).createOrReplace(manifest, task, OP_NAME);
     verifyNoMoreInteractions(credentials);
   }
@@ -77,7 +131,13 @@ final class CanDeployTest {
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.createOrReplace(manifest, task, OP_NAME)).thenReturn(manifest);
     OperationResult result =
-        handler.deploy(credentials, manifest, DeployStrategy.REPLACE, task, OP_NAME);
+        handler.deploy(
+            credentials,
+            manifest,
+            DeployStrategy.REPLACE,
+            ServerSideApplyStrategy.DEFAULT,
+            task,
+            OP_NAME);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
   }
 
@@ -86,7 +146,13 @@ final class CanDeployTest {
     KubernetesCredentials credentials = mock(KubernetesCredentials.class);
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.deploy(manifest, task, OP_NAME)).thenReturn(manifest);
-    handler.deploy(credentials, manifest, DeployStrategy.RECREATE, task, OP_NAME);
+    handler.deploy(
+        credentials,
+        manifest,
+        DeployStrategy.RECREATE,
+        ServerSideApplyStrategy.DEFAULT,
+        task,
+        OP_NAME);
     verify(credentials).deploy(manifest, task, OP_NAME);
     verify(credentials)
         .delete(
@@ -106,7 +172,13 @@ final class CanDeployTest {
     KubernetesManifest manifest = ManifestFetcher.getManifest("candeploy/deployment.yml");
     when(credentials.deploy(manifest, task, OP_NAME)).thenReturn(manifest);
     OperationResult result =
-        handler.deploy(credentials, manifest, DeployStrategy.RECREATE, task, OP_NAME);
+        handler.deploy(
+            credentials,
+            manifest,
+            DeployStrategy.RECREATE,
+            ServerSideApplyStrategy.DEFAULT,
+            task,
+            OP_NAME);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(manifest);
   }
 
@@ -118,7 +190,13 @@ final class CanDeployTest {
     KubernetesManifest createResult =
         ManifestFetcher.getManifest("candeploy/deployment-generate-name-result.yml");
     when(credentials.create(manifest, task, OP_NAME)).thenReturn(createResult);
-    handler.deploy(credentials, manifest, DeployStrategy.APPLY, task, OP_NAME);
+    handler.deploy(
+        credentials,
+        manifest,
+        DeployStrategy.APPLY,
+        ServerSideApplyStrategy.DEFAULT,
+        task,
+        OP_NAME);
     verify(credentials).create(manifest, task, OP_NAME);
     verifyNoMoreInteractions(credentials);
   }
@@ -132,7 +210,13 @@ final class CanDeployTest {
         ManifestFetcher.getManifest("candeploy/deployment-generate-name-result.yml");
     when(credentials.create(manifest, task, OP_NAME)).thenReturn(createResult);
     OperationResult result =
-        handler.deploy(credentials, manifest, DeployStrategy.APPLY, task, OP_NAME);
+        handler.deploy(
+            credentials,
+            manifest,
+            DeployStrategy.APPLY,
+            ServerSideApplyStrategy.DEFAULT,
+            task,
+            OP_NAME);
     assertThat(result.getManifests()).containsExactlyInAnyOrder(createResult);
   }
 }
