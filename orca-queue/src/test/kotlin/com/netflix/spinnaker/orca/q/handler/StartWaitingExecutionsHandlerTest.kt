@@ -133,8 +133,8 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
           }
         }
       }
-      val oldest = waitingPipelines.minBy { it.buildTime!! }!!
-      val newest = waitingPipelines.maxBy { it.buildTime!! }!!
+      val oldest = waitingPipelines.minByOrNull { it.buildTime!! }!!
+      val newest = waitingPipelines.maxByOrNull { it.buildTime!! }!!
 
       given("the queue should not be purged") {
         beforeGroup {

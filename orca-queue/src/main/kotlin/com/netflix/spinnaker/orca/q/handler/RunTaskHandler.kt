@@ -352,7 +352,7 @@ class RunTaskHandler(
       }
     }
 
-    return backOffs.max() ?: dynamicBackOffPeriod
+    return backOffs.maxOrNull() ?: dynamicBackOffPeriod
   }
 
   private fun List<TaskExecutionInterceptor>.maxBackoff(): Long =
