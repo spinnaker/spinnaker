@@ -37,7 +37,7 @@ import static retrofit.RestAdapter.LogLevel.FULL
 
 class KatoRestServiceSpec extends Specification {
 
-  public WireMockServer wireMockServer = new WireMockServer()
+  public WireMockServer wireMockServer = new WireMockServer(0)
 
   @Subject
   KatoRestService service
@@ -59,6 +59,7 @@ class KatoRestServiceSpec extends Specification {
   @BeforeAll
   def setup() {
     wireMockServer.start()
+    configureFor(wireMockServer.port())
     def cfg = new CloudDriverConfiguration()
     def builder = cfg.clouddriverRetrofitBuilder(
       mapper,
