@@ -114,7 +114,7 @@ public class OrcaConfiguration {
     return Schedulers.io();
   }
 
-  @Bean
+  @Bean(name = {"mapper", "objectMapper"})
   public ObjectMapper mapper() {
     return OrcaObjectMapper.getInstance();
   }
