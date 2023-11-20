@@ -1,4 +1,8 @@
 databaseChangeLog:
+- removeChangeSetProperty:
+    change: addColumn
+    dbms: postgresql
+    remove: afterColumn
 - changeSet:
     id: partition-updated-executions
     author: rzienert

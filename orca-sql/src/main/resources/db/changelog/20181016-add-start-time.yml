@@ -1,4 +1,8 @@
 databaseChangeLog:
+- removeChangeSetProperty:
+    change: addColumn
+    dbms: postgresql
+    remove: afterColumn
 - changeSet:
     id: 20181016-add-start-time
     author: robzienert
