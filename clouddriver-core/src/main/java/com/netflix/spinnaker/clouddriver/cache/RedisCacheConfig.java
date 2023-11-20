@@ -56,8 +56,8 @@ class RedisCacheConfig {
       RedisConfigurationProperties redisConfigurationProperties) {
     return new CustomSchedulableAgentIntervalProvider(
         TimeUnit.SECONDS.toMillis(redisConfigurationProperties.getPoll().getIntervalSeconds()),
-        TimeUnit.SECONDS.toMillis(redisConfigurationProperties.getPoll().getIntervalSeconds()),
-        TimeUnit.SECONDS.toMillis(redisConfigurationProperties.getPoll().getIntervalSeconds()));
+        TimeUnit.SECONDS.toMillis(redisConfigurationProperties.getPoll().getErrorIntervalSeconds()),
+        TimeUnit.SECONDS.toMillis(redisConfigurationProperties.getPoll().getTimeoutSeconds()));
   }
 
   @Bean
