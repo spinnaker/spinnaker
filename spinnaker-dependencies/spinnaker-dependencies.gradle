@@ -165,7 +165,7 @@ dependencies {
     // containing `afterColumn` construct, with a validation error for postgresql. So pin with 3.10.3
     api("org.liquibase:liquibase-core"){
        version {
-         strictly "3.10.3"
+         strictly "4.24.0"
        }
     }
     api("org.objenesis:objenesis:2.5.1")

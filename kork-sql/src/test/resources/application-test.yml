@@ -26,10 +26,12 @@ sql:
     jdbcUrl: "jdbc:h2:mem:test"
     user:
     password:
+    duplicateFileMode: WARN
   secondaryMigration:
     jdbcUrl: "jdbc:h2:mem:test"
     user:
     password:
+    duplicateFileMode: WARN
 ---
 
 spring:
@@ -52,3 +54,4 @@ sql:
     jdbcUrl: "jdbc:h2:mem:test"
     user:
     password:
+    duplicateFileMode: WARN

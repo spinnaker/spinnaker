@@ -1,1 +1,21 @@
-databaseChangeLog: []
+databaseChangeLog:
+  - changeSet:
+      id: create-sample-table
+      author: kirangodishala
+      changes:
+        - createTable:
+            tableName: sample
+            columns:
+              - column:
+                  name: id
+                  type: boolean
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: sample

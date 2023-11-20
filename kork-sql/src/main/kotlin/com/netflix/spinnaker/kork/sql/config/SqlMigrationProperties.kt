@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.kork.sql.config
 
+import liquibase.GlobalConfiguration
+
 /**
  * Defines the configuration properties for connecting to a SQL database for schema migration purposes.
  *
@@ -23,11 +25,14 @@ package com.netflix.spinnaker.kork.sql.config
  * @param password The password to authenticate the [user]
  * @param driver The JDBC driver name
  * @param additionalChangeLogs A list of additional change log paths. This is useful for libraries and extensions.
+ * @param duplicateFileMode flag to handle if multiple files are found in the search path that have duplicate paths.
  */
 data class SqlMigrationProperties(
   var jdbcUrl: String? = null,
   var user: String? = null,
   var password: String? = null,
   var driver: String? = null,
-  var additionalChangeLogs: List<String> = mutableListOf()
+  var additionalChangeLogs: List<String> = mutableListOf(),
+  var duplicateFileMode: GlobalConfiguration.DuplicateFileMode = GlobalConfiguration.DUPLICATE_FILE_MODE.defaultValue
+
 )

@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -43,6 +44,7 @@ import strikt.assertions.isNotNull
     "sql.enabled=true",
     "sql.migration.jdbcUrl=jdbc:h2:mem:test",
     "sql.migration.dialect=H2",
+    "sql.migration.duplicateFileMode=WARN",
     "sql.connectionPool.jdbcUrl=jdbc:h2:mem:test",
     "sql.connectionPool.dialect=H2"
   ]

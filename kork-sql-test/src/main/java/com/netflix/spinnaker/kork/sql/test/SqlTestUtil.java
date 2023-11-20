@@ -223,7 +223,7 @@ public class SqlTestUtil {
 
     Liquibase migrate;
     try {
-      DatabaseChangeLog changeLog = new DatabaseChangeLog();
+      DatabaseChangeLog changeLog = new DatabaseChangeLog("db/changelog/");
 
       changeLog.setChangeLogParameters(
           new ChangeLogParameters(
