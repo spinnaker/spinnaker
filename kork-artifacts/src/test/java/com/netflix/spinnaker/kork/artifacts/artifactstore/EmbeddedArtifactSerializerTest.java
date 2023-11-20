@@ -23,7 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreIOException;
-import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStore;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStoreGetter;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStoreStorer;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -46,7 +47,7 @@ class EmbeddedArtifactSerializerTest {
   public void serializeEmbeddedBase64Artifact_test(
       String name, String expectedJson, Artifact artifact, Artifact mockArtifact)
       throws IOException {
-    ArtifactStore storage = Mockito.mock(S3ArtifactStore.class);
+    ArtifactStore storage = Mockito.mock(ArtifactStore.class);
     when(storage.store(Mockito.any())).thenReturn(mockArtifact);
 
     EmbeddedArtifactSerializer serializer =
@@ -66,8 +67,11 @@ class EmbeddedArtifactSerializerTest {
     when(client.headObject((HeadObjectRequest) Mockito.any()))
         .thenThrow(S3Exception.builder().statusCode(400).build());
     AuthenticatedRequest.set(Header.APPLICATION, "my-application");
-    S3ArtifactStore artifactStore =
-        new S3ArtifactStore(client, null, "my-bucket", new ArtifactStoreURISHA256Builder(), null);
+    ArtifactStoreGetter s3ArtifactStoreGetter =
+        new S3ArtifactStoreGetter(client, null, "my-bucket");
+    ArtifactStoreStorer artifactStoreStorer =
+        new S3ArtifactStoreStorer(client, "my-bucket", new ArtifactStoreURISHA256Builder(), null);
+    ArtifactStore artifactStore = new ArtifactStore(s3ArtifactStoreGetter, artifactStoreStorer);
 
     EmbeddedArtifactSerializer serializer =
         new EmbeddedArtifactSerializer(new ObjectMapper(), artifactStore);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Apple Inc.
+ * Copyright 2023 Salesforce Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.artifacts.artifactstore.s3;
+package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
-public final class S3ArtifactStore {
-  public static final String ENFORCE_PERMS_KEY = "application";
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 
-  private S3ArtifactStore() {}
+/**
+ * ArtifactStoreStorer is an interface that allows for different types of artifact storage to be
+ * used during runtime.
+ */
+public interface ArtifactStoreStorer {
+
+  Artifact store(Artifact artifact);
 }

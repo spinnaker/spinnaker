@@ -22,6 +22,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("artifact-store")
 public class ArtifactStoreConfigurationProperties {
   private String applicationsRegex = null;
+
+  /** The type of artifact store to use (e.g. s3). */
+  private String type = null;
+
   /** Configuration for an s3 client which will utilize credentials in the AWS credentials file. */
   @Data
   public static class S3ClientConfig {

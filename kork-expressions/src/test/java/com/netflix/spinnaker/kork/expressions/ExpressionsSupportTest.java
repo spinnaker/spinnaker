@@ -155,6 +155,10 @@ public class ExpressionsSupportTest {
   public class MockArtifactStore extends ArtifactStore {
     public Map<String, String> cache = new HashMap<>();
 
+    public MockArtifactStore() {
+      super(null, null);
+    }
+
     @Override
     public Artifact store(Artifact artifact) {
       return null;

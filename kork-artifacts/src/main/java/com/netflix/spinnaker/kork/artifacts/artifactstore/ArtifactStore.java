@@ -16,32 +16,46 @@
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 
-/**
- * ArtifactStore is an interface that allows for different types of artifact storage to be used
- * during runtime
- */
-public abstract class ArtifactStore {
-  /** ensures the singleton has only been set once */
-  private static final AtomicBoolean singletonSet = new AtomicBoolean(false);
+/** ArtifactStore allows for different types of artifact storage to be used during runtime */
+@Log4j2
+public class ArtifactStore implements ArtifactStoreGetter, ArtifactStoreStorer {
+  @Getter private static volatile ArtifactStore instance = null;
 
-  @Getter private static ArtifactStore instance = null;
+  private final ArtifactStoreGetter artifactStoreGetter;
 
-  public abstract Artifact store(Artifact artifact);
+  private final ArtifactStoreStorer artifactStoreStorer;
+
+  public ArtifactStore(
+      ArtifactStoreGetter artifactStoreGetter, ArtifactStoreStorer artifactStoreStorer) {
+    this.artifactStoreGetter = artifactStoreGetter;
+    this.artifactStoreStorer = artifactStoreStorer;
+  }
+
+  /** Store an artifact in the artifact store */
+  public Artifact store(Artifact artifact) {
+    return artifactStoreStorer.store(artifact);
+  }
+
   /**
    * get is used to return an artifact with some id, while also decorating that artifact with any
    * necessary fields needed which should be then be returned by the artifact store.
    */
-  public abstract Artifact get(ArtifactReferenceURI uri, ArtifactDecorator... decorators);
+  public Artifact get(ArtifactReferenceURI uri, ArtifactDecorator... decorators) {
+    return artifactStoreGetter.get(uri, decorators);
+  }
 
   public static void setInstance(ArtifactStore storage) {
-    if (!singletonSet.compareAndSet(false, true)) {
-      throw new IllegalStateException("Multiple attempts at setting ArtifactStore's singleton");
-    }
+    synchronized (ArtifactStore.class) {
+      if (instance == null) {
+        instance = storage;
+        return;
+      }
 
-    ArtifactStore.instance = storage;
+      log.warn("Multiple attempts in setting the singleton artifact store");
+    }
   }
 
   public boolean isArtifactURI(String value) {

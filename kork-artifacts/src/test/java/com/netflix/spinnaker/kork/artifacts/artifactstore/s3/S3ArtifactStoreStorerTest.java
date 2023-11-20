@@ -33,21 +33,21 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-public class S3ArtifactStoreTest {
+public class S3ArtifactStoreStorerTest {
   @Test
   public void testExceptionPathOfObjectExists() {
     S3Client client = mock(S3Client.class);
     when(client.headObject((HeadObjectRequest) Mockito.any()))
         .thenThrow(S3Exception.builder().statusCode(400).build());
     AuthenticatedRequest.set(Header.APPLICATION, "my-application");
-    S3ArtifactStore artifactStore =
-        new S3ArtifactStore(client, null, "my-bucket", new ArtifactStoreURISHA256Builder(), null);
+    S3ArtifactStoreStorer artifactStoreStorer =
+        new S3ArtifactStoreStorer(client, "my-bucket", new ArtifactStoreURISHA256Builder(), null);
     String expectedExceptionMessage = "Failed to query artifact due to invalid request";
     SpinnakerException e =
         Assertions.assertThrows(
             SpinnakerException.class,
             () -> {
-              artifactStore.store(
+              artifactStoreStorer.store(
                   Artifact.builder()
                       .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
                       .reference("aGVsbG8gd29ybGQK")
