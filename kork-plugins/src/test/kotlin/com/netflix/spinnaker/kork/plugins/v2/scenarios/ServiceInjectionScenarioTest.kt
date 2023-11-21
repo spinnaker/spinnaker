@@ -73,14 +73,14 @@ class ServiceInjectionScenarioTest : JUnit5Minutests {
   }
 
   @TestConfiguration
-  private class ServiceInjectionTestConfiguration {
+  class ServiceInjectionTestConfiguration {
     @Bean
     fun injectsPluginExtensions(testExtensions: List<TestExtension>): InjectsPluginExtensions {
       return InjectsPluginExtensions(testExtensions)
     }
   }
 
-  private class InjectsPluginExtensions(val testExtensions: List<TestExtension>) {
+  class InjectsPluginExtensions(val testExtensions: List<TestExtension>) {
     @PostConstruct
     fun tryOutExtensions() {
       // Verify that extensions can be used immediately.

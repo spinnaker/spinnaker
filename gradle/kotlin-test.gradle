@@ -35,7 +35,7 @@ dependencies {
 
 compileTestKotlin {
   kotlinOptions {
-    languageVersion = "1.4"
+    languageVersion = "1.5"
     jvmTarget = "11"
   }
 }

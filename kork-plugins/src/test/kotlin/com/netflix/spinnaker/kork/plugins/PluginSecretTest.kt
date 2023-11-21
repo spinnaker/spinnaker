@@ -113,7 +113,7 @@ class PluginSecretTest : JUnit5Minutests {
   }
 
   @TestConfiguration
-  private class TestSecretEngineConfiguration {
+  class TestSecretEngineConfiguration {
     @Bean
     fun testSecretEngine(): SecretEngine = object : SecretEngine {
       override fun clearCache() = Unit

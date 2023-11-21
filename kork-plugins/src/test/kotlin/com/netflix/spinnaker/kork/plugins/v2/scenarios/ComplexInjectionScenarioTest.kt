@@ -115,14 +115,14 @@ class ComplexInjectionScenarioTest : JUnit5Minutests {
 
   @TestConfiguration
   @ComponentScan("com.netflix.spinnaker.kork.plugins.v2.scenarios.fixtures")
-  private class ComplexInjectionTestConfiguration {
+  class ComplexInjectionTestConfiguration {
     @Bean
     fun injectsPluginExtensions(testExtensions: List<TestExtension>): InjectsPluginExtensions {
       return InjectsPluginExtensions(testExtensions)
     }
   }
 
-  private class InjectsPluginExtensions(val testExtensions: List<TestExtension>) {
+  class InjectsPluginExtensions(val testExtensions: List<TestExtension>) {
     @PostConstruct
     fun tryOutExtensions() {
       // Verify that extensions can be used immediately.

@@ -78,7 +78,7 @@ class ServiceDependenciesScenarioTest : JUnit5Minutests {
 
   @Configuration
   @ComponentScan("com.netflix.spinnaker.kork.plugins.v2.scenarios.fixtures")
-  private class TestApplicationConfiguration
+  class TestApplicationConfiguration
 
   companion object {
     private val GENERATED = testPlugin {
