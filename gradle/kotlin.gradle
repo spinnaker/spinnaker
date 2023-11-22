@@ -18,14 +18,14 @@ apply plugin: "kotlin"
 
 compileKotlin {
   kotlinOptions {
-    languageVersion = "1.4"
+    languageVersion = "1.5"
     jvmTarget = "11"
   }
 }
 
 compileTestKotlin {
   kotlinOptions {
-    languageVersion = "1.4"
+    languageVersion = "1.5"
     jvmTarget = "11"
   }
 }
