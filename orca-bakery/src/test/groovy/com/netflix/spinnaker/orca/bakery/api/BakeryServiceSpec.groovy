@@ -32,7 +32,7 @@ import static retrofit.RestAdapter.LogLevel.FULL
 
 class BakeryServiceSpec extends Specification {
 
-  static WireMockServer wireMockServer = new WireMockServer()
+  static WireMockServer wireMockServer = new WireMockServer(0)
 
   @Subject BakeryService bakery
 
@@ -50,6 +50,7 @@ class BakeryServiceSpec extends Specification {
 
   def setupSpec() {
     wireMockServer.start()
+    configureFor(wireMockServer.port())
     bakeURI = wireMockServer.url(bakePath)
     statusURI = wireMockServer.url(statusPath)
   }
