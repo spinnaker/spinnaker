@@ -63,7 +63,7 @@ class ShrinkClusterTaskSpec extends Specification {
     1 * cloudDriverService.maybeCluster('foo', 'test', 'foo-test', 'aws') >> Optional.of(cluster)
 
     (expectedItems ? 1 : 0) * katoService.requestOperations('aws', _) >> { p, ops ->
-      assert ops.size == expected.size()
+      assert ops.size() == expected.size()
       expected.each { expect ->
         assert ops.find { it.destroyServerGroup.serverGroupName == expect.name && it.destroyServerGroup.region == expect.region }
       }

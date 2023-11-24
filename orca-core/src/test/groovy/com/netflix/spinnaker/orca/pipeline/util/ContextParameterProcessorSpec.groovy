@@ -452,7 +452,7 @@ class ContextParameterProcessorSpec extends Specification {
     def result = contextParameterProcessor.process(source, contextParameterProcessor.buildExecutionContext(execution), true)
 
     then:
-    result.deployed.size == 2
+    result.deployed.size() == 2
     result.deployed.serverGroup == ["flex-test-v043", "flex-prestaging-v011"]
     result.deployed.region == ["us-east-1", "us-west-1"]
     result.deployed.ami == ["ami-06362b6e", "ami-f759b7b3"]
@@ -601,7 +601,7 @@ class ContextParameterProcessorSpec extends Specification {
     def result = contextParameterProcessor.process(source, contextParameterProcessor.buildExecutionContext(execution), true)
 
     then:
-    result.deployed.size == 2
+    result.deployed.size() == 2
     result.deployed.serverGroup == ["flex-test-v043", "flex-prestaging-v011"]
     result.deployed.region == ["us-east-1", "us-west-1"]
     result.deployed.ami == ["ami-06362b6e", "ami-f759b7b3"]
@@ -612,7 +612,7 @@ class ContextParameterProcessorSpec extends Specification {
     result = contextParameterProcessor.process(source, contextParameterProcessor.buildExecutionContext(execution), true)
 
     then: 'should only consider the specified stage name/id'
-    result.deployed.size == 1
+    result.deployed.size() == 1
     result.deployed.serverGroup == ["flex-test-v043"]
     result.deployed.region == ["us-east-1"]
     result.deployed.ami == ["ami-06362b6e"]

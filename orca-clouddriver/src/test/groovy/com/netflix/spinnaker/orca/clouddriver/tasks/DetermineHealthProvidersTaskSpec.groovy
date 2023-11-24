@@ -34,7 +34,7 @@ class DetermineHealthProvidersTaskSpec extends Specification {
 
   @Subject
   def task = new DetermineHealthProvidersTask(
-    new Optional<Front50Service>(front50Service),
+    Optional<Front50Service>.of(front50Service),
     [],
     [new AmazonServerGroupCreator(), new GoogleServerGroupCreator(), new DcosServerGroupCreator()]
   )

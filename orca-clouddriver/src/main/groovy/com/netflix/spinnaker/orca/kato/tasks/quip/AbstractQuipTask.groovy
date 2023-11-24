@@ -22,6 +22,8 @@ import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.squareup.okhttp.OkHttpClient
 import retrofit.RestAdapter
 import retrofit.client.OkClient
+import retrofit.converter.JacksonConverter
+
 import static retrofit.RestAdapter.LogLevel.BASIC
 
 @Deprecated
@@ -29,6 +31,7 @@ abstract class AbstractQuipTask implements Task {
   InstanceService createInstanceService(String address) {
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
+      .setConverter(new JacksonConverter())
       .setClient(new OkClient(new OkHttpClient(retryOnConnectionFailure: false)))
       .setLogLevel(BASIC)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())

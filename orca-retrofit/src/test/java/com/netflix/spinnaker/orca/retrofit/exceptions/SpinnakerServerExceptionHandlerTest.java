@@ -43,6 +43,7 @@ import retrofit.client.Client;
 import retrofit.client.Request;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
+import retrofit.converter.JacksonConverter;
 import retrofit.mime.TypedString;
 
 class SpinnakerServerExceptionHandlerTest {
@@ -186,6 +187,7 @@ class SpinnakerServerExceptionHandlerTest {
         new RestAdapter.Builder()
             .setEndpoint(URL)
             .setClient(client)
+            .setConverter(new JacksonConverter())
             .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .build()
             .create(DummyRetrofitApi.class);

@@ -44,9 +44,9 @@ class TerminatingInstanceSupportSpec extends Specification {
       def results = support.remainingInstances(stage)
 
     then:
-      getTSGCount * cloudDriverService.getTargetServerGroup("creds", "santa-claus", "north-pole") >> [
+      getTSGCount * cloudDriverService.getTargetServerGroup("creds", "santa-claus", "north-pole") >> Optional.of([
           new TargetServerGroup(instances: returnedInstances)
-      ]
+      ])
       results == expected
 
     where:

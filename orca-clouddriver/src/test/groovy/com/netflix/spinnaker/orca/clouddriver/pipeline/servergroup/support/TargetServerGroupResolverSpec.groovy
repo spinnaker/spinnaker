@@ -31,6 +31,7 @@ import retrofit.client.Client
 import retrofit.client.Response
 import retrofit.converter.ConversionException
 import retrofit.converter.GsonConverter
+import retrofit.converter.JacksonConverter
 import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
@@ -67,6 +68,7 @@ class TargetServerGroupResolverSpec extends Specification {
         new RestAdapter.Builder()
             .setEndpoint("clouddriver")
             .setClient(client)
+            .setConverter(new JacksonConverter())
             .setErrorHandler(spinnakerRetrofitErrorHandler)
             .build()
             .create(OortService.class);
@@ -109,6 +111,7 @@ class TargetServerGroupResolverSpec extends Specification {
         new RestAdapter.Builder()
             .setEndpoint("clouddriver")
             .setClient(client)
+            .setConverter(new JacksonConverter())
             .setErrorHandler(spinnakerRetrofitErrorHandler)
             .build()
             .create(OortService.class);

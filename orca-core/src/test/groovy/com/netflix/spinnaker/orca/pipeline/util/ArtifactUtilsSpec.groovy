@@ -88,7 +88,7 @@ class ArtifactUtilsSpec extends Specification {
 
     then:
     def artifacts = artifactUtils.getArtifacts(desired)
-    artifacts.size == 3
+    artifacts.size() == 3
     artifacts.find { it.type == "1" } != null
     artifacts.find { it.type == "2" } != null
     artifacts.find { it.type == "extra" } != null
@@ -122,7 +122,7 @@ class ArtifactUtilsSpec extends Specification {
 
     then:
     def artifacts = artifactUtils.getArtifacts(desired)
-    artifacts.size == 1
+    artifacts.size() == 1
     artifacts.find { it.type == "1" } != null
 
     where:
@@ -168,7 +168,7 @@ class ArtifactUtilsSpec extends Specification {
 
     then:
     def artifacts = artifactUtils.getArtifacts(desired)
-    artifacts.size == 2
+    artifacts.size() == 2
     artifacts.find { it.type == "1" } != null
     artifacts.find { it.type == "trigger" } != null
   }
@@ -192,7 +192,7 @@ class ArtifactUtilsSpec extends Specification {
 
     then:
     def artifacts = artifactUtils.getArtifacts(desired)
-    artifacts.size == 0
+    artifacts.size() == 0
   }
 
   def "should find a bound artifact from upstream stages"() {
@@ -281,7 +281,7 @@ class ArtifactUtilsSpec extends Specification {
 
     then:
     def artifacts = artifactUtils.getAllArtifacts(execution)
-    artifacts.size == 3
+    artifacts.size() == 3
     artifacts*.type == ["2", "1", "trigger"]
   }
 
@@ -324,7 +324,7 @@ class ArtifactUtilsSpec extends Specification {
 
     then:
     def artifacts = artifactUtils.getArtifactsForPipelineId(pipelineId, executionCriteria)
-    artifacts.size == 3
+    artifacts.size() == 3
     artifacts*.type == ["2", "1", "trigger"]
 
     def emptyArtifacts = artifactUtils.getArtifactsForPipelineId(pipelineId, executionTerminalCriteria)
@@ -362,7 +362,7 @@ class ArtifactUtilsSpec extends Specification {
 
     then:
     def artifacts = artifactUtils.getArtifactsForPipelineIdWithoutStageRef(pipelineId, "2", expectedExecutionCriteria)
-    artifacts.size == 2
+    artifacts.size() == 2
     artifacts*.type == ["1", "trigger"]
   }
 

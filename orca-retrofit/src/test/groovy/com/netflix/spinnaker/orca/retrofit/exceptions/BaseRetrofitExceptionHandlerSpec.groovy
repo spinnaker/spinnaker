@@ -20,6 +20,7 @@ import retrofit.RestAdapter
 import retrofit.RetrofitError
 import retrofit.client.Client
 import retrofit.client.Response
+import retrofit.converter.JacksonConverter
 import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
@@ -60,6 +61,7 @@ class BaseRetrofitExceptionHandlerSpec extends Specification {
     def api = new RestAdapter.Builder()
       .setEndpoint("http://localhost:1337")
       .setClient(client)
+      .setConverter(new JacksonConverter())
       .build()
       .create(DummyRetrofitApi)
 
@@ -85,6 +87,7 @@ class BaseRetrofitExceptionHandlerSpec extends Specification {
     def api = new RestAdapter.Builder()
       .setEndpoint("http://localhost:1337")
       .setClient(client)
+      .setConverter(new JacksonConverter())
       .build()
       .create(DummyRetrofitApi)
 
@@ -114,6 +117,7 @@ class BaseRetrofitExceptionHandlerSpec extends Specification {
     def api = new RestAdapter.Builder()
       .setEndpoint("http://localhost:1337")
       .setClient(client)
+      .setConverter(new JacksonConverter())
       .build()
       .create(DummyRetrofitApi)
 
@@ -142,6 +146,7 @@ class BaseRetrofitExceptionHandlerSpec extends Specification {
     and:
     def api = new RestAdapter.Builder()
       .setEndpoint("http://localhost:1337")
+      .setConverter(new JacksonConverter())
       .setClient(client)
       .build()
       .create(DummyRetrofitApi)

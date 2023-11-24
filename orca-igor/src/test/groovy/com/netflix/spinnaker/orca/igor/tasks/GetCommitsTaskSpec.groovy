@@ -211,7 +211,7 @@ class GetCommitsTaskSpec extends Specification {
 
   boolean assertResults(TaskResult result, ExecutionStatus taskStatus) {
     assert result.status == taskStatus
-    assert result.context.commits.size == 2
+    assert result.context.commits.size() == 2
     assert result.context.commits[0].displayId == "abcdab"
     assert result.context.commits[0].id == "abcdabcdabcdabcd"
     assert result.context.commits[0].authorDisplayName == "Joe Coder"
@@ -421,7 +421,7 @@ class GetCommitsTaskSpec extends Specification {
 
     then:
     result.status == taskStatus
-    result.context.commits.size == 0
+    result.context.commits.size() == 0
 
     where:
     app = "myapp"
@@ -472,7 +472,7 @@ class GetCommitsTaskSpec extends Specification {
 
     then:
     result.status == taskStatus
-    result.context.commits.size == 0
+    result.context.commits.size() == 0
 
     where:
     app = "myapp"
@@ -513,7 +513,7 @@ class GetCommitsTaskSpec extends Specification {
 
     then:
     result.status == SUCCEEDED
-    result.context.commits.size == 0
+    result.context.commits.size() == 0
 
     where:
     app = "myapp"

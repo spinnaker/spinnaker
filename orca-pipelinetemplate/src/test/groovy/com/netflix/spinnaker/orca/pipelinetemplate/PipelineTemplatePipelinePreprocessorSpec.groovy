@@ -344,7 +344,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     def result = subject.process(template)
 
     then:
-    result.stages.size == 4
+    result.stages.size() == 4
     result.stages*.name.toSet() == ["Wait", "Deploy to cluster-1", "Deploy to cluster-2", "Deploy to cluster-3"].toSet()
   }
 

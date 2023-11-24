@@ -104,7 +104,7 @@ class MonitorPipelineTaskSpec extends Specification {
 
     then:
     result.outputs.containsKey("artifacts")
-    result.outputs["artifacts"].size == 1
+    result.outputs["artifacts"].size() == 1
   }
 
   def "propagates pipeline exceptions"() {

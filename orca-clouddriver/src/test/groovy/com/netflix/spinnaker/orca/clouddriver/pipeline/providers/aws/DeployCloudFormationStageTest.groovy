@@ -43,7 +43,7 @@ class DeployCloudFormationStageTest extends Specification {
     cloudFormationStage.taskGraph(stage, builder)
 
     then:
-    builder.graph.size == graphSize
+    builder.graph.size() == graphSize
 
     where:
     isChangeSet | executeChangeSet || graphSize
