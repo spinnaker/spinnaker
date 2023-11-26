@@ -38,8 +38,6 @@ import com.netflix.spinnaker.rosco.services.ServiceConfig
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
@@ -104,13 +102,11 @@ class Main extends SpringBootServletInitializer {
   }
 
   @Bean
-  @ConditionalOnExpression('${artifact-store.enabled:false}')
   EmbeddedArtifactSerializer artifactSerializer(ArtifactStore store, @Qualifier("artifactObjectMapper") ObjectMapper objectMapper) {
     return new EmbeddedArtifactSerializer(objectMapper, store);
   }
 
   @Bean
-  @ConditionalOnBean(EmbeddedArtifactSerializer.class)
   ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder, EmbeddedArtifactSerializer serializer) {
     return builder.createXmlMapper(false)
             .serializerByType(Artifact.class, serializer)
