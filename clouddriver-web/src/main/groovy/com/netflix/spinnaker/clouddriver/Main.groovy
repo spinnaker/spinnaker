@@ -28,8 +28,6 @@ import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearc
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -88,18 +86,10 @@ class Main extends SpringBootServletInitializer {
 
   @Bean
   @Primary
-  @ConditionalOnBean(value = ArtifactDeserializer.class)
   ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
     return builder.createXmlMapper(false)
       .mixIn(Artifact.class, ArtifactMixin.class)
       .build()
-  }
-
-  @Bean
-  @Primary
-  @ConditionalOnMissingBean(value = ArtifactDeserializer.class)
-  ObjectMapper jacksonObjectMapper(Jackson2ObjectMapperBuilder builder) {
-    return builder.createXmlMapper(false).build()
   }
 
   @Override
@@ -110,8 +100,8 @@ class Main extends SpringBootServletInitializer {
   }
 
   /**
-   * Used to deserialize artifacts utilizing an artifact store if it is enabled,
-   * and thus bypassing the default deserializer on the artifact object itself.
+   * Used to deserialize artifacts utilizing an artifact store, and thus
+   * bypassing the default deserializer on the artifact object itself.
    */
   @JsonDeserialize(using = ArtifactDeserializer.class)
   private static interface ArtifactMixin{}

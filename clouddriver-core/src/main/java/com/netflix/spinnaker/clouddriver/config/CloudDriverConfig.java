@@ -425,7 +425,6 @@ class CloudDriverConfig {
   }
 
   @Bean
-  @ConditionalOnExpression("${artifact-store.enabled:false}")
   ArtifactDeserializer artifactDeserializer(
       ArtifactStore storage, @Qualifier("artifactObjectMapper") ObjectMapper objectMapper) {
     return new ArtifactDeserializer(objectMapper, storage);
