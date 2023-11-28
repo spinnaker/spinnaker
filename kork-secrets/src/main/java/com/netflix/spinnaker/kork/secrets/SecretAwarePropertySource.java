@@ -53,4 +53,8 @@ public class SecretAwarePropertySource<T> extends EnumerablePropertySource<T> {
   public boolean containsProperty(String name) {
     return delegate.containsProperty(name);
   }
+
+  public EnumerablePropertySource<T> getDelegate() {
+    return delegate;
+  }
 }
