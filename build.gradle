@@ -54,6 +54,17 @@ subprojects { project ->
       }
     }
 
+    tasks.withType(JavaCompile).configureEach {
+      javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(11)
+      }
+    }
+    tasks.withType(Test).configureEach {
+      javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+      }
+    }
+
     configurations.all {
       exclude group: 'org.mortbay.jetty', module: 'servlet-api'
       exclude group: 'javax.servlet', module: 'servlet-api'
