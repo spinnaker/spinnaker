@@ -2,6 +2,7 @@ dependencies {
   implementation project(":clouddriver-core")
 
   implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.squareup.retrofit:retrofit"
   implementation "org.codehaus.groovy:groovy"
   implementation "org.codehaus.groovy:groovy-json"

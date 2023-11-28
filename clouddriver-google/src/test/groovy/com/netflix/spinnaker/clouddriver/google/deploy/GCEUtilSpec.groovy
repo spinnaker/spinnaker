@@ -590,7 +590,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       _ * computeMock.forwardingRules() >> forwardingRules
       _ * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
       _ * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
-      bs.backends.size == lbNames.size
+      bs.backends.size() == lbNames.size()
 
     where:
       isRegional | location | loadBalancerList                                                         | lbNames                          | backendServiceNames

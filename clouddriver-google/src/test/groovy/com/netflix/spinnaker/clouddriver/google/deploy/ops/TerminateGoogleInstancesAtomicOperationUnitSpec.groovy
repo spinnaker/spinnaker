@@ -115,12 +115,12 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
           GoogleApiTestUtils.makeOkId(
             registry, "compute.instances.delete",
             [scope: "zonal", zone: ZONE])
-      ).count() == GOOD_INSTANCE_IDS.size
+      ).count() == GOOD_INSTANCE_IDS.size()
       registry.timer(
           GoogleApiTestUtils.makeId(
             registry, "compute.instances.delete", 404,
             [scope: "zonal", zone: ZONE])
-      ).count() == BAD_INSTANCE_IDS.size
+      ).count() == BAD_INSTANCE_IDS.size()
       thrown IOException
   }
 

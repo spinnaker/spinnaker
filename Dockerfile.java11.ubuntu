@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y curl gnupg && \
   apt-get update && \
   apt-get upgrade -y && \
   apt-get install -y \
-  openjdk-17-jre-headless \
+  openjdk-11-jre-headless \
   wget \
   python3-pip \
   python3 \

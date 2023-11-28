@@ -396,7 +396,7 @@ class GCEUtil {
       it.name in forwardingRuleNames
     }
 
-    if (foundForwardingRules.size == forwardingRuleNames.size) {
+    if (foundForwardingRules.size() == forwardingRuleNames.size()) {
       return foundForwardingRules
     } else {
       def foundNames = foundForwardingRules.collect { it.name }
@@ -448,7 +448,7 @@ class GCEUtil {
       }
     }.flatten() - null
 
-    if (foundInstances.size == instanceLocalNames.size) {
+    if (foundInstances.size() == instanceLocalNames.size()) {
       return foundInstances.collect { it.selfLink }
     } else {
       def foundNames = foundInstances.collect { it.name }
@@ -605,9 +605,9 @@ class GCEUtil {
         "$instanceTemplate.name.")
     }
 
-    if (instanceTemplateProperties.networkInterfaces?.size != 1) {
+    if (instanceTemplateProperties.networkInterfaces?.size() != 1) {
       throw new GoogleOperationException("Instance templates must have exactly one network interface defined. " +
-        "Instance template $instanceTemplate.name has ${instanceTemplateProperties.networkInterfaces?.size}.")
+        "Instance template $instanceTemplate.name has ${instanceTemplateProperties.networkInterfaces?.size()}.")
     }
 
     def image
@@ -627,7 +627,7 @@ class GCEUtil {
       }
     } else {
       throw new GoogleOperationException("Instance templates must have at least one disk defined. Instance template " +
-        "$instanceTemplate.name has ${instanceTemplateProperties.disks?.size}.")
+        "$instanceTemplate.name has ${instanceTemplateProperties.disks?.size()}.")
     }
 
     def networkInterface = instanceTemplateProperties.networkInterfaces[0]

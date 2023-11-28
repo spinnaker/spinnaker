@@ -160,7 +160,7 @@ class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
         portRange: description.portRange
       )
       List<GoogleBackendService> services = Utils.getBackendServicesFromHttpLoadBalancerView(httpLoadBalancer.view)
-      services.findAll { it.healthCheck == (hc as GoogleHealthCheck) }.size == 3
+      services.findAll { it.healthCheck == (hc as GoogleHealthCheck) }.size() == 3
       description.defaultService.name == DEFAULT_SERVICE
       description.hostRules[0].pathMatcher.defaultService.name == DEFAULT_PM_SERVICE
       description.hostRules[0].pathMatcher.pathRules[0].backendService.name == PM_SERVICE

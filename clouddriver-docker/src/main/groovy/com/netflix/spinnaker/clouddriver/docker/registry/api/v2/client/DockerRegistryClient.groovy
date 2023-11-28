@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory
 import retrofit.RestAdapter
 import retrofit.client.Response
 import retrofit.converter.GsonConverter
+import retrofit.converter.JacksonConverter
 import retrofit.http.GET
 import retrofit.http.Header
 import retrofit.http.Headers
@@ -172,6 +173,7 @@ class DockerRegistryClient {
     this.registryService = new RestAdapter.Builder()
       .setEndpoint(address)
       .setClient(okClientProvider.provide(address, clientTimeoutMillis, insecureRegistry))
+      .setConverter(new JacksonConverter())
       .setLogLevel(RestAdapter.LogLevel.NONE)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()

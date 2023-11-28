@@ -40,7 +40,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.scheduling.annotation.EnableScheduling
-import sun.net.InetAddressCachePolicy
 
 import java.security.Security
 
@@ -71,7 +70,6 @@ class Main extends SpringBootServletInitializer {
      * We often operate in an environment where we expect resolution of DNS names for remote dependencies to change
      * frequently, so it's best to tell the JVM to avoid caching DNS results internally.
      */
-    InetAddressCachePolicy.cachePolicy = InetAddressCachePolicy.NEVER
     Security.setProperty('networkaddress.cache.ttl', '0')
     System.setProperty("spring.main.allow-bean-definition-overriding", "true")
   }

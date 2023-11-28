@@ -45,9 +45,9 @@ class CacheExecutionSpec extends Specification {
       ]
     }
     1 * cachingAgent.getCacheKeyPatterns() >> {
-      return [
+      return Optional.of([
         "securityGroups": "securityGroups:*:test:us-west-1"
-      ]
+      ])
     }
     1 * providerCache.filterIdentifiers("securityGroups", "securityGroups:*:test:us-west-1") >> {
       return [

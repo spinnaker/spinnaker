@@ -388,7 +388,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     _ * computeMock.forwardingRules() >> forwardingRules
     _ * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
     _ * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
-    bs.backends.size == 0
+    bs.backends.size() == 0
 
     where:
     isRegional | location | loadBalancerList                                                        | lbNames
@@ -482,7 +482,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     _ * computeMock.forwardingRules() >> forwardingRules
     _ * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
     _ * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
-    bs.backends.size == 0
+    bs.backends.size() == 0
 
     where:
     isRegional | location | loadBalancerList                                                                                                                              | lbNames

@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import retrofit.client.Response;
+import retrofit.converter.JacksonConverter;
 import retrofit.http.GET;
 import retrofit.http.Headers;
 import retrofit.mime.TypedByteArray;
@@ -103,6 +104,7 @@ public class AppengineConfigurationProperties {
       RestAdapter restAdapter =
           new RestAdapter.Builder()
               .setEndpoint(metadataUrl)
+              .setConverter(new JacksonConverter())
               .setClient(new OkClient(client))
               .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
               .build();

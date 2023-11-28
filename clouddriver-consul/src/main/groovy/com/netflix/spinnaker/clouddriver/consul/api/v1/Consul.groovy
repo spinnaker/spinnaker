@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHand
 import com.squareup.okhttp.OkHttpClient
 import retrofit.RestAdapter
 import retrofit.client.OkClient
+import retrofit.converter.JacksonConverter
 
 class Consul<T> {
   T api
@@ -39,6 +40,7 @@ class Consul<T> {
     this.api = new RestAdapter.Builder()
       .setEndpoint(this.endpoint)
       .setClient(new OkClient(new OkHttpClient()))
+      .setConverter(new JacksonConverter())
       .setLogLevel(RestAdapter.LogLevel.NONE)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()

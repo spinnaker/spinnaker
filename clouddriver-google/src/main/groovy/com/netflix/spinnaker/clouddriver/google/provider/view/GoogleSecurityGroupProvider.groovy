@@ -137,7 +137,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
       def rangeParts = sourceRange.split("/") as List
 
       // A sourceRange may in fact be just a single ip address.
-      if (rangeParts.size == 1) {
+      if (rangeParts.size() == 1) {
         rangeParts << "32"
       }
 

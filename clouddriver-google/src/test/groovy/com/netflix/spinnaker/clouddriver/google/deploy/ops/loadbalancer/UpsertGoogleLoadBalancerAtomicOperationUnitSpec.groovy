@@ -1285,7 +1285,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       // Add missing instances to target pool.
       1 * computeMock.targetPools() >> targetPools
       1 * targetPools.addInstance(PROJECT_NAME, REGION_US, TARGET_POOL_NAME,
-        {it.instances.size == 2 &&
+        {it.instances.size() == 2 &&
           it.instances[0].instance == INSTANCE_1_URL &&
           it.instances[1].instance == INSTANCE_3_URL}) >> targetPoolsAddInstance
       1 * targetPoolsAddInstance.execute()
@@ -1383,7 +1383,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       // Remove extraneous instances from target pool.
       1 * computeMock.targetPools() >> targetPools
       1 * targetPools.removeInstance(PROJECT_NAME, REGION_US, TARGET_POOL_NAME,
-        {it.instances.size == 2 &&
+        {it.instances.size() == 2 &&
           it.instances[0].instance == INSTANCE_1_URL &&
           it.instances[1].instance == INSTANCE_2_URL}) >> targetPoolsRemoveInstance
       1 * targetPoolsRemoveInstance.execute()
@@ -1482,13 +1482,13 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       // Add missing instances to target pool.
       1 * computeMock.targetPools() >> targetPools
       1 * targetPools.addInstance(PROJECT_NAME, REGION_US, TARGET_POOL_NAME,
-        {it.instances.size == 1 && it.instances[0].instance == INSTANCE_3_URL}) >> targetPoolsAddInstance
+        {it.instances.size() == 1 && it.instances[0].instance == INSTANCE_3_URL}) >> targetPoolsAddInstance
       1 * targetPoolsAddInstance.execute()
 
       // Remove extraneous instances from target pool.
       1 * computeMock.targetPools() >> targetPools
       1 * targetPools.removeInstance(PROJECT_NAME, REGION_US, TARGET_POOL_NAME,
-        {it.instances.size == 1 && it.instances[0].instance == INSTANCE_1_URL}) >> targetPoolsRemoveInstance
+        {it.instances.size() == 1 && it.instances[0].instance == INSTANCE_1_URL}) >> targetPoolsRemoveInstance
       1 * targetPoolsRemoveInstance.execute()
   }
 

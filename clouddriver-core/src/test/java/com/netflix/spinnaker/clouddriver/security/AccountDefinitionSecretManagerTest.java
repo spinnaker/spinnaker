@@ -22,8 +22,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static uk.org.webcompere.systemstubs.resource.Resources.with;
 
-import com.github.stefanbirkner.systemlambda.SystemLambda;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
 import com.netflix.spinnaker.clouddriver.config.AccountDefinitionConfiguration;
 import com.netflix.spinnaker.kork.secrets.SecretManager;
@@ -42,6 +42,7 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 
 @SpringBootTest(classes = AccountDefinitionConfiguration.class)
 @ImportAutoConfiguration(JacksonAutoConfiguration.class)
@@ -155,11 +156,8 @@ class AccountDefinitionSecretManagerTest {
             + "  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/dummy%40my-test-project.iam.gserviceaccount.com\"\n"
             + "}";
     String credentialsPath = writeToFile(credentials, "credentials.json");
-    SystemLambda.withEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath)
-        .execute(
-            () -> {
-              assertDoesNotThrow(() -> SecretManagerServiceClient.create());
-            });
+    with(new EnvironmentVariables().set("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath))
+        .execute(() -> assertDoesNotThrow(() -> SecretManagerServiceClient.create()));
   }
 
   private String writeToFile(String content, String fileName) throws IOException {

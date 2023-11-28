@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHand
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.IOUtils
 import retrofit.RestAdapter
+import retrofit.converter.JacksonConverter
 import retrofit.http.GET
 import retrofit.http.Headers
 import retrofit.http.Path
@@ -191,6 +192,7 @@ class DockerBearerTokenService {
     if (tokenService == null) {
       def builder = new RestAdapter.Builder()
         .setEndpoint(realm)
+        .setConverter(new JacksonConverter())
         .setLogLevel(RestAdapter.LogLevel.NONE)
         .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .build()

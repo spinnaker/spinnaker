@@ -79,7 +79,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
         }
       }
 
-      googleBatchMock.demand.size { return 1 }
+      googleBatchMock.demand.size() { return 1 }
       googleBatchMock.demand.execute {
         def imageList = new ImageList(
           selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
@@ -149,7 +149,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
         }
       }
 
-      googleBatchMock.demand.size { return 1 }
+      googleBatchMock.demand.size() { return 1 }
       googleBatchMock.demand.execute {
         def imageList = new ImageList(
           selfLink: "https://compute.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
@@ -219,7 +219,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
         }
       }
 
-      googleBatchMock.demand.size { return 1 }
+      googleBatchMock.demand.size() { return 1 }
       googleBatchMock.demand.execute {
         callback.onSuccess(emptyImageList, null)
         callback.onSuccess(emptyImageList, null)

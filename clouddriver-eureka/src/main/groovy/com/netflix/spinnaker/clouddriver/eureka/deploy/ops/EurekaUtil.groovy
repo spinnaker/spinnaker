@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHand
 import org.apache.http.impl.client.HttpClients
 import retrofit.RestAdapter
 import retrofit.client.ApacheClient
+import retrofit.converter.JacksonConverter
 
 import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Pattern
@@ -31,6 +32,7 @@ class EurekaUtil {
     new RestAdapter.Builder()
       .setEndpoint(eurekaEndpoint)
       .setClient(getApacheClient())
+      .setConverter(new JacksonConverter())
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build().create(Eureka)
   }
