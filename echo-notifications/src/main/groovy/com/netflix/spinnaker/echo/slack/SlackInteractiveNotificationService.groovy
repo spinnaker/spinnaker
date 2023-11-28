@@ -105,7 +105,7 @@ class SlackInteractiveNotificationService extends SlackNotificationService imple
     Map payload = parseSlackPayload(request.getBody())
     log.debug("Received callback event from Slack of type ${payload.type}")
 
-    if (payload.actions.size > 1) {
+    if (payload.actions.size() > 1) {
       log.warn("Expected a single selected action from Slack, but received ${payload.actions.size}")
     }
 

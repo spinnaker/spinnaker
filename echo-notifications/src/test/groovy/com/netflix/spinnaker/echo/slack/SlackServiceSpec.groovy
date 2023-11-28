@@ -141,7 +141,7 @@ class SlackServiceSpec extends Specification {
     attachmentsJson[0]["fallback"] == "the text"
     attachmentsJson[0]["footer"] == "Spinnaker"
     attachmentsJson[0]["mrkdwn_in"] == ["text"]
-    attachmentsJson[0]["actions"].size == 1
+    attachmentsJson[0]["actions"].size() == 1
     attachmentsJson[0]["actions"][0] == [
       type: "button",
       name: "choice",

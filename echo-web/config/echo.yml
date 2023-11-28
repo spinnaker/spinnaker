@@ -10,6 +10,11 @@ spinnaker:
 front50:
   baseUrl: ${services.front50.baseUrl:http://localhost:8080}
 
+services:
+  fiat:
+    enabled: ${services.fiat.enabled:false}
+    baseUrl: ${services.fiat.baseUrl:http://localhost:8089}
+
 igor:
   enabled: ${services.igor.enabled:false}
   baseUrl: ${services.igor.baseUrl:http://localhost:8088}

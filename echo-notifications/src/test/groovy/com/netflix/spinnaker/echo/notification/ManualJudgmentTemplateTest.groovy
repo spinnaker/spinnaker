@@ -50,12 +50,12 @@ class ManualJudgmentTemplateTest extends Specification {
         rendered == expected
 
         where:
-        expected = '''\
-        Stage <SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1|stage-name> for *testapp*'s *exe-name* pipeline build #*12345* is awaiting manual judgment.
+        expected = """\
+Stage <SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1|stage-name> for *testapp*'s *exe-name* pipeline build #*12345* is awaiting manual judgment.
 
-        *Instructions:*
-        Do the thing <http://foo>
-        '''.stripIndent()
+*Instructions:*
+Do the thing <http://foo>
+"""
     }
 
     void "should handle fully formed email notification"() {
@@ -70,16 +70,16 @@ class ManualJudgmentTemplateTest extends Specification {
         rendered == expected
 
         where:
-        expected = '''\
-        <html>
-        Stage <a href="SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1">stage-name</a> for <b>testapp</b>'s <b>exe-name</b> pipeline build #<b>12345</b> is awaiting manual judgment.
+        expected = """\
+<html>
+Stage <a href="SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1">stage-name</a> for <b>testapp</b>'s <b>exe-name</b> pipeline build #<b>12345</b> is awaiting manual judgment.
 
-        <br/>
-        <b>Instructions:</b>
-        <p>Do the <a href="http://foo">thing</a></p>
+<br/>
+<b>Instructions:</b>
+<p>Do the <a href="http://foo">thing</a></p>
 
-        </html>
-        '''.stripIndent()
+</html>
+"""
     }
 
     @Unroll
@@ -95,12 +95,12 @@ class ManualJudgmentTemplateTest extends Specification {
         rendered == expected
 
         where:
-        expected = '''\
-        Stage <SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1|stage-name> for *testapp*'s *exe-name* pipeline is awaiting manual judgment.
+        expected = """\
+Stage <SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1|stage-name> for *testapp*'s *exe-name* pipeline is awaiting manual judgment.
 
-        *Instructions:*
-        Do the thing <http://foo>
-        '''.stripIndent()
+*Instructions:*
+Do the thing <http://foo>
+"""
 
 
         trigger           | description
@@ -137,7 +137,6 @@ class ManualJudgmentTemplateTest extends Specification {
                 "restrictExecutionDuringTimeWindow": true
         ]
 
-
         return notification
     }
 
@@ -159,16 +158,17 @@ class ManualJudgmentTemplateTest extends Specification {
     rendered == expected
 
     where:
-
+    // @formatter:off
     // Note, there's a whitespace after each new line of the `instructions` because of `Jsoup.parse(...)`.
-    // This is because the field is HTML parsed to plaintext. Which also can contain Slack's psudo-markdown flavor.
-    expected = '''\
-        Stage <SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1|stage-name> for *testapp*'s *exe-name* pipeline build #*12345* is awaiting manual judgment.
+    // This is because the field is HTML parsed to plaintext. Which also can contain Slack's pseudo-markdown flavor.
+    expected = """\
+Stage <SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1|stage-name> for *testapp*'s *exe-name* pipeline build #*12345* is awaiting manual judgment.
 
-        *Instructions:*
-        This is an example message from spinnaker that's more than 80 characters to make sure that we won't wrap it. Note the extra whitespace at the end here: 
+*Instructions:*
+This is an example message from spinnaker that's more than 80 characters to make sure that we won't wrap it. Note the extra whitespace at the end here: 
 
-         ``` This test was added was because code blocks in Slack would word wrap at 80 characters and inject newlines in codeblocks. Note the extra whitespaces after each original newline. ``` 
-        '''.stripIndent()
+ ``` This test was added was because code blocks in Slack would word wrap at 80 characters and inject newlines in codeblocks. Note the extra whitespaces after each original newline. ``` 
+"""
+    // @formatter:on
   }
 }
