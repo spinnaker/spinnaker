@@ -247,7 +247,7 @@ class OCIBakeHandlerSpec extends Specification implements TestDefaults {
     then:
     with(options) {
       cloudProvider == 'oracle'
-      baseImages.size == 2
+      baseImages.size() == 2
       baseImages[0].id == 'ubuntu16_04'
       baseImages[1].id == 'centos_7'
     }

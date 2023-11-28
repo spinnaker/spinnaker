@@ -10,7 +10,7 @@ ARG TARGETARCH
 
 WORKDIR /packer
 
-RUN apt-get update && apt-get -y install openjdk-17-jre-headless wget unzip curl git openssh-client && \
+RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget unzip curl git openssh-client && \
   wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   unzip packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip && \
   rm packer_${PACKER_VERSION}_linux_${TARGETARCH}.zip

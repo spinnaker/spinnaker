@@ -720,7 +720,7 @@ class BakeryControllerSpec extends Specification {
       def result = bakeryController.bakeOptions()
 
     then:
-      result.size == 2
+      result.size() == 2
       result.find { it.cloudProvider == "aws" }.baseImages[0].id == "santa"
       result.find { it.cloudProvider == "gce" }.baseImages[0].id == "claus"
 
