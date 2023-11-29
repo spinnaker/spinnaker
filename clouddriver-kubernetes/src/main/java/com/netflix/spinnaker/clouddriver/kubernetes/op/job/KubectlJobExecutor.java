@@ -654,7 +654,7 @@ public class KubectlJobExecutor {
 
   public KubernetesManifest create(
       KubernetesCredentials credentials, KubernetesManifest manifest, Task task, String opName) {
-    log.info("Creating manifest {}", manifest.getName());
+    log.info("Creating manifest {}", manifest.getFullResourceName());
     List<String> command = kubectlAuthPrefix(credentials);
 
     // Read from stdin
