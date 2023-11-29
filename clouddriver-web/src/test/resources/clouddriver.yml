@@ -1,0 +1,5 @@
+kubernetes:
+  enabled: true
+  accounts:
+    - name: my-k8s-account
+      cacheIntervalSeconds: 60

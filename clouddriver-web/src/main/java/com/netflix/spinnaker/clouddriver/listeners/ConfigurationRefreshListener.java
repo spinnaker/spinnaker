@@ -23,7 +23,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 @Component
-class ConfigurationRefreshListener implements ApplicationListener<RefreshScopeRefreshedEvent> {
+public class ConfigurationRefreshListener
+    implements ApplicationListener<RefreshScopeRefreshedEvent> {
 
   private final List<CredentialsInitializerSynchronizable> credentialsSynchronizers;
 

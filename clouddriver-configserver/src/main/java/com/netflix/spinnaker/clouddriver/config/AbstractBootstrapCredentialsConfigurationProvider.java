@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.wnameless.json.flattener.JsonFlattener;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.SecretAwarePropertySource;
 import com.netflix.spinnaker.kork.secrets.SecretManager;
 import com.netflix.spinnaker.kork.secrets.SecretSession;
 import java.nio.file.Path;
@@ -65,7 +66,10 @@ public abstract class AbstractBootstrapCredentialsConfigurationProvider<T>
     Map<String, Object> map;
 
     for (PropertySource<?> propertySource : environment.getPropertySources()) {
-      if (propertySource instanceof BootstrapPropertySource) {
+      if (propertySource instanceof BootstrapPropertySource
+          || (propertySource instanceof SecretAwarePropertySource
+              && ((SecretAwarePropertySource<?>) propertySource).getDelegate()
+                  instanceof BootstrapPropertySource)) {
         map = (Map<String, Object>) propertySource.getSource();
         if (map.containsKey(property)) {
           return map;
