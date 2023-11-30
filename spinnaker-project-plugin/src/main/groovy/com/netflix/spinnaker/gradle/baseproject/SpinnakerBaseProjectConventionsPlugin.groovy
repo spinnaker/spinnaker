@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.gradle.baseproject
 
-
+import com.netflix.spinnaker.gradle.Flags
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
@@ -19,12 +19,14 @@ import org.gradle.jvm.tasks.Jar
 class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
+      def javaVersion = Flags.targetJava17(project) ? JavaVersion.VERSION_17 : JavaVersion.VERSION_11
+
       project.plugins.withType(JavaBasePlugin) {
         project.plugins.apply(MavenPublishPlugin)
         project.repositories.mavenCentral()
         JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-        convention.sourceCompatibility = JavaVersion.VERSION_11
-        convention.targetCompatibility = JavaVersion.VERSION_11
+        convention.sourceCompatibility = javaVersion
+        convention.targetCompatibility = javaVersion
       }
       project.plugins.withType(JavaLibraryPlugin) {
         JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)

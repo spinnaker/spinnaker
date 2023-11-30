@@ -5,6 +5,7 @@ dependencies {
   implementation 'org.owasp:dependency-check-gradle:5.1.0'
   implementation "com.diffplug.spotless:spotless-plugin-gradle:6.23.2"
   implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
+  implementation 'com.netflix.nebula:gradle-java-cross-compile-plugin:8.0.0'
   implementation 'com.netflix.nebula:gradle-ospackage-plugin:8.4.1'
   implementation 'gradle.plugin.com.google.cloud.artifactregistry:artifactregistry-gradle-plugin:2.1.1'
   implementation platform('com.google.cloud:libraries-bom:26.1.4')
