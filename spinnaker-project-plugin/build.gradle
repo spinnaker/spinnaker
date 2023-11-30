@@ -3,7 +3,7 @@ apply plugin: 'groovy'
 dependencies {
   implementation 'com.github.jk1:gradle-license-report:1.8'
   implementation 'org.owasp:dependency-check-gradle:5.1.0'
-  implementation "com.diffplug.spotless:spotless-plugin-gradle:5.17.1"
+  implementation "com.diffplug.spotless:spotless-plugin-gradle:6.23.2"
   implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
   implementation 'com.netflix.nebula:gradle-ospackage-plugin:8.4.1'
   implementation 'gradle.plugin.com.google.cloud.artifactregistry:artifactregistry-gradle-plugin:2.1.1'
