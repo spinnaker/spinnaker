@@ -54,7 +54,7 @@ jobs:
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest-ubuntu"
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-ubuntu"
       - name: Build slim JRE 11 container image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile.java11.slim
@@ -65,7 +65,7 @@ jobs:
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest-java11-slim"
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-java11-slim"
       - name: Build ubuntu JRE 11 container image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile.java11.ubuntu
