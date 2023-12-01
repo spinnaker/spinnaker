@@ -64,7 +64,7 @@ jobs:
           GOARCH=arm64 GOOS=darwin go build -ldflags "${LDFLAGS}" -o dist/${{ github.ref_name }}/${{ steps.build_variables.outputs.VERSION_WITHOUT_BRANCH }}/darwin/arm64/spin .
           dist/${{ github.ref_name }}/${{ steps.build_variables.outputs.VERSION_WITHOUT_BRANCH }}/linux/amd64/spin --version
       - name: Login to Google Cloud
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         # use service account flow defined at: https://github.com/google-github-actions/upload-cloud-storage#authenticating-via-service-account-key-json
         with:
           credentials_json: '${{ secrets.GAR_JSON_KEY }}'
