@@ -20,10 +20,9 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
       def javaVersion = Flags.targetJava17(project) ? JavaVersion.VERSION_17 : JavaVersion.VERSION_11
-
+      project.repositories.mavenCentral()
       project.plugins.withType(JavaBasePlugin) {
         project.plugins.apply(MavenPublishPlugin)
-        project.repositories.mavenCentral()
         JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
         convention.sourceCompatibility = javaVersion
         convention.targetCompatibility = javaVersion
