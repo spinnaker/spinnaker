@@ -63,7 +63,7 @@ jobs:
       - name: Login to Google Cloud
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         # use service account flow defined at: https://github.com/google-github-actions/upload-cloud-storage#authenticating-via-service-account-key-json
         with:
           credentials_json: '${{ secrets.GAR_JSON_KEY }}'
