@@ -151,17 +151,6 @@ dependencies {
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
     api("org.jooq:jooq:${versions.jooq}")
     api("org.jooq:jooq-kotlin:${versions.jooq}")
-
-    // The liquibase version starting from 4.0.0 till 4.12.0
-    // has an issue w.r.t parsing the changelog file,
-    // if found at multiple places within the classpath
-    // https://github.com/liquibase/liquibase/issues/2818
-    // This duplicate changelog issue is fixed in 4.13.0,
-    // but identified another issue that gets introduced in 4.13.0.
-    // This issue(https://github.com/liquibase/liquibase/issues/3091)
-    // hinders the migration of sql scripts available in orca
-    // (https://github.com/spinnaker/orca/tree/master/orca-sql/src/main/resources/db/changelog),
-    // containing `afterColumn` construct, with a validation error for postgresql. So pin with 3.10.3
     api("org.liquibase:liquibase-core"){
        version {
          strictly "4.24.0"
