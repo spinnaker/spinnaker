@@ -20,6 +20,7 @@
 apply plugin: "kotlin"
 
 dependencies {
+  testImplementation(platform(project(":spinnaker-dependencies")))
   testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
@@ -29,6 +30,7 @@ dependencies {
   testImplementation "dev.minutest:minutest"
   testImplementation "io.mockk:mockk"
 
+  testRuntimeOnly(platform(project(":spinnaker-dependencies")))
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

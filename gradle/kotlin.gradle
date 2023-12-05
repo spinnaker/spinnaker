@@ -19,6 +19,7 @@ apply plugin: "kotlin-spring"
 apply plugin: "io.gitlab.arturbosch.detekt"
 
 dependencies {
+  testImplementation(platform(project(":spinnaker-dependencies")))
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.platform:junit-platform-runner"
   testImplementation "org.spekframework.spek2:spek-dsl-jvm"
@@ -28,6 +29,7 @@ dependencies {
   testImplementation "dev.minutest:minutest"
   testImplementation "io.mockk:mockk"
 
+  testRuntimeOnly(platform(project(":spinnaker-dependencies")))
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   testRuntimeOnly "org.junit.vintage:junit-vintage-engine"

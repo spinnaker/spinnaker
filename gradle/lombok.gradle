@@ -1,8 +1,10 @@
 dependencies {
   compileOnly "org.projectlombok:lombok"
+  compileOnly(platform(project(":spinnaker-dependencies")))
   annotationProcessor "org.projectlombok:lombok"
   annotationProcessor(platform(project(":spinnaker-dependencies")))
   testCompileOnly "org.projectlombok:lombok"
+  testCompileOnly(platform(project(":spinnaker-dependencies")))
   testAnnotationProcessor(platform(project(":spinnaker-dependencies")))
   testAnnotationProcessor "org.projectlombok:lombok"
 }
