@@ -3510,22 +3510,22 @@
   resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.549.tgz#e7246140825705e6d295c30010de4f71a78d1670"
   integrity sha512-8EDwICoaqOtWFYQHvSNrTNh0ksIEVp9i/GueClvHbrcSRxYOqPDxQcSs3RGihxahjlfXIi7zjqvK0aDvSYBo0w==
 
-"@spinnaker/kayenta@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-2.0.0.tgz#0fc18a641ee2577c21c0bdf5eb24ac1a5ab1caf5"
-  integrity sha512-h0Vu1X6wXBJwqXfrosc4d3DbyWuv7u7cSfMAt+BPFcbu3qU9Ua2TF9jSGRcMvI0Vo3C+fC+HxufvKJh7ZQ83vg==
+"@spinnaker/kayenta@2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-2.1.0.tgz#d2a3c02034ea38014ae1565724b2e4d7a36dd593"
+  integrity sha512-8HhcEFjjibPCGxzkKZ6KPIo0lBAFHa8GSEUILmp5AN2IkGIB98OKRCZ7bwg0LOg+BnW8g1a9TydZE2OkQA26Mg==
   dependencies:
     "@uirouter/core" "6.0.4"
     "@uirouter/react" "1.0.2"
     "@uirouter/react-hybrid" "1.0.2"
     angular-ui-bootstrap "^2.5.0"
-    ansi_up "^4.0.4"
+    ansi_up "^5.0.0"
     bootstrap "3.4.1"
     class-autobind-decorator "^2.2.1"
     human-readable-ids "^1.0.4"
     lodash "4.17.21"
     lodash-decorators "4.5.0"
-    lodash-es "4.17.15"
+    lodash-es "4.17.21"
     memoize-one "^4.0.2"
     ngimport "^0.6.0"
     react "~16.14.0"
@@ -4863,10 +4863,10 @@ ansi_up@5.1.0:
   resolved "https://registry.yarnpkg.com/ansi_up/-/ansi_up-5.1.0.tgz#9cf10e6d359bb434bdcfab5ae4c3abfe1617b6db"
   integrity sha512-3wwu+nJCKBVBwOCurm0uv91lMoVkhFB+3qZQz3U11AmAdDJ4tkw1sNPWJQcVxMVYwe0pGEALOjSBOxdxNc+pNQ==
 
-ansi_up@^4.0.4:
-  version "4.0.4"
-  resolved "https://registry.yarnpkg.com/ansi_up/-/ansi_up-4.0.4.tgz#5b8c35f0b02e4476f3f18cf89c3bf48d15d054f6"
-  integrity sha512-vRxC8q6QY918MbehO869biJW4tiunJdjOhi5fpY6NLOliBQlZhOkKgABJKJqH+JZfb/WfjvjN1chLWI6tODerw==
+ansi_up@^5.0.0:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/ansi_up/-/ansi_up-5.2.1.tgz#9437082c7ad4975c15ec57d30a6b55da295bee36"
+  integrity sha512-5bz5T/7FRmlxA37zDXhG6cAwlcZtfnmNLDJra66EEIT3kYlw5aPJdbkJEhm59D6kA4Wi5ict6u6IDYHJaQlH+g==
 
 any-observable@^0.3.0:
   version "0.3.0"
@@ -12180,12 +12180,7 @@ lodash-decorators@4.5.0:
   dependencies:
     tslib "^1.7.1"
 
-lodash-es@4.17.15:
-  version "4.17.15"
-  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.15.tgz#21bd96839354412f23d7a10340e5eac6ee455d78"
-  integrity sha512-rlrc3yU3+JNOpZ9zj5pQtxnx2THmvRykwL4Xlxoa8I9lHBlVbbyPhgyPMioxVZ4NqyxaVVtaJnzsyOidQIhyyQ==
-
-lodash-es@^4.17.11, lodash-es@^4.17.21, lodash-es@^4.2.1:
+lodash-es@4.17.21, lodash-es@^4.17.11, lodash-es@^4.17.21, lodash-es@^4.2.1:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"
   integrity sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==

@@ -22,7 +22,7 @@
     "@spinnaker/docker": "^0.0.144",
     "@spinnaker/ecs": "^0.0.363",
     "@spinnaker/google": "^0.2.11",
-    "@spinnaker/kayenta": "2.0.0",
+    "@spinnaker/kayenta": "2.1.0",
     "@spinnaker/kubernetes": "^0.5.2",
     "@spinnaker/oracle": "^0.0.88",
     "@spinnaker/styleguide": "^2.0.0",
