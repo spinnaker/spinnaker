@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 import com.google.common.io.CharStreams;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -267,7 +268,8 @@ public class MonitoredDeployBaseTask implements RetryableTask {
     return stage.mapTo(MonitoredDeployStageData.class);
   }
 
-  private String getRetrofitLogMessage(Response response) {
+  @VisibleForTesting
+  String getRetrofitLogMessage(Response response) {
     if (response == null) {
       return "<NO RESPONSE>";
     }
