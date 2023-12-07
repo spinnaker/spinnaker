@@ -8,7 +8,6 @@ import * as reactDOM from 'react-dom';
 import * as rxjs from 'rxjs';
 
 import * as spinnakerCore from '../index';
-
 export const sharedLibraries = {
   // This is the global (window) variable that the shared libs will be exposed on
   globalVariablePrefix: 'spinnaker.plugins.sharedLibraries',
@@ -30,7 +29,9 @@ export const sharedLibraries = {
     if (destinationObject) {
       // Temporarily expose @spinnaker/core.
       // This should be removed at some point and replaced with a much smaller spinnaker/ui module which doesn't yet exist
+      exposeSharedLibrary('ajv', require('ajv'));
       exposeSharedLibrary('@spinnaker/core', spinnakerCore);
+      exposeSharedLibrary('@spinnaker/kayenta', require('@spinnaker/kayenta'));
       exposeSharedLibrary('@uirouter/core', uiRouterCore);
       exposeSharedLibrary('@uirouter/react', uiRouterReact);
       exposeSharedLibrary('@uirouter/rx', uiRouterRx);
@@ -38,6 +39,9 @@ export const sharedLibraries = {
       exposeSharedLibrary('prop-types', propTypes);
       exposeSharedLibrary('react', react);
       exposeSharedLibrary('react-dom', reactDOM);
+      exposeSharedLibrary('react-redux', require('react-redux'));
+      exposeSharedLibrary('redux-actions', require('redux-actions'));
+      exposeSharedLibrary('reselect', require('reselect'));
       exposeSharedLibrary('rxjs', rxjs);
       exposeSharedLibrary('rxjs/Observable', { Observable: rxjs.Observable });
     }

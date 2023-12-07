@@ -15,7 +15,9 @@ module.exports = {
 function spinnakerSharedLibraries() {
   // Updates here should also be added in core/src/plugins/sharedLibraries.ts
   const libraries = [
+    'ajv',
     '@spinnaker/core',
+    '@spinnaker/kayenta',
     '@uirouter/core',
     '@uirouter/react',
     '@uirouter/rx',
@@ -23,6 +25,9 @@ function spinnakerSharedLibraries() {
     'prop-types',
     'react',
     'react-dom',
+    'react-redux',
+    'redux-actions',
+    'reselect',
     'rxjs',
     'rxjs/Observable',
   ];
