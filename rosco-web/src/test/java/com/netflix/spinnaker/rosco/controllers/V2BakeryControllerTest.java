@@ -29,6 +29,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.rosco.Main;
+import com.netflix.spinnaker.rosco.executor.BakePoller;
 import com.netflix.spinnaker.rosco.manifests.helm.HelmBakeManifestRequest;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.nio.charset.StandardCharsets;
@@ -53,6 +54,8 @@ class V2BakeryControllerTest {
   private MockMvc webAppMockMvc;
 
   @Autowired private WebApplicationContext webApplicationContext;
+
+  @MockBean BakePoller bakePoller;
 
   @MockBean ClouddriverService clouddriverService;
 
