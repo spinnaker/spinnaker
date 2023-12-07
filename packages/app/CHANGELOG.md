@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.7.0](https://github.com/spinnaker/deck/compare/deck-app@2.6.0...deck-app@2.7.0) (2023-12-07)
+
+
+### Features
+
+* Add feature flag for multi block failure messages. ([#10061](https://github.com/spinnaker/deck/issues/10061)) ([374f724](https://github.com/spinnaker/deck/commit/374f724de221d68030a86e1f6452e3303390339a))
+
+
+
+
+
 # [2.6.0](https://github.com/spinnaker/deck/compare/deck-app@2.5.7...deck-app@2.6.0) (2023-10-16)
 
 

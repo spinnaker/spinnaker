@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.3](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.14.2...@spinnaker/amazon@0.14.3) (2023-12-07)
+
+
+### Bug Fixes
+
+* **amazon:** Allow scaling bounds to use floats between input steps ([#10059](https://github.com/spinnaker/deck/issues/10059)) ([5c1ebfd](https://github.com/spinnaker/deck/commit/5c1ebfdf924e73aa6877943cb008c216177b8256))
+* **lambda:** available Runtimes shared between Deploy stage and Functions tab ([#10050](https://github.com/spinnaker/deck/issues/10050)) ([889d769](https://github.com/spinnaker/deck/commit/889d769c600e298917ec2471cd88a4bdd808ed91))
+
+
+
+
+
 ## [0.14.2](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.14.1...@spinnaker/amazon@0.14.2) (2023-10-16)
 
 

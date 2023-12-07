@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/cloudfoundry",
   "license": "Apache-2.0",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "publishConfig": {
@@ -16,7 +16,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.27.0",
+    "@spinnaker/core": "^0.28.0",
     "@uirouter/react": "1.0.7",
     "@uirouter/react-hybrid": "1.0.2",
     "angular": "1.6.10",
@@ -35,7 +35,7 @@
     "@rollup/plugin-alias": "^3.1.2",
     "@spinnaker/eslint-plugin": "^3.0.2",
     "@spinnaker/mocks": "1.0.7",
-    "@spinnaker/scripts": "^0.3.1",
+    "@spinnaker/scripts": "^0.4.0",
     "@types/angular": "1.6.26",
     "@types/angular-ui-bootstrap": "0.13.41",
     "@types/enzyme": "3.10.3",

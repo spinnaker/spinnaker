@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.28.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.27.0...@spinnaker/core@0.28.0) (2023-12-07)
+
+
+### Features
+
+* Add feature flag for multi block failure messages. ([#10061](https://github.com/spinnaker/deck/issues/10061)) ([374f724](https://github.com/spinnaker/deck/commit/374f724de221d68030a86e1f6452e3303390339a))
+* Expose spinnaker/kayenta to the plugin framework to allow us to create kayenta plugins in Deck ([#10072](https://github.com/spinnaker/deck/issues/10072)) ([dbf0574](https://github.com/spinnaker/deck/commit/dbf0574176cbbca781d970c64dfe49f6911ef8b8))
+* Split deployment failure messages. ([#10060](https://github.com/spinnaker/deck/issues/10060)) ([73dda48](https://github.com/spinnaker/deck/commit/73dda48caccd969ef562af3f86bc1f17efbdad7f))
+
+
+
+
+
 # [0.27.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.26.0...@spinnaker/core@0.27.0) (2023-10-16)
 
 
