@@ -108,18 +108,25 @@ public class KayentaConfiguration {
         ImmutableList.of("com.netflix.kayenta.canary.providers.metrics"));
   }
 
-  @Primary
   @Bean
-  ObjectMapper kayentaObjectMapper(ObjectMapper mapper) {
-    return mapper;
+  @ConditionalOnMissingBean
+  public ObjectMapperSubtypeConfigurer objectMapperSubtypeConfigurer() {
+    return new ObjectMapperSubtypeConfigurer(true);
   }
 
-  @Autowired
-  public void objectMapper(
+  @Primary
+  @Bean
+  ObjectMapper kayentaObjectMapper(
       ObjectMapper mapper,
+      ObjectMapperSubtypeConfigurer objectMapperSubtypeConfigurer,
       List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators,
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
-    configureObjectMapper(mapper, subtypeLocators, kayentaSerializationConfigurationProperties);
+    configureObjectMapper(
+        mapper,
+        objectMapperSubtypeConfigurer,
+        subtypeLocators,
+        kayentaSerializationConfigurationProperties);
+    return mapper;
   }
 
   public static void configureObjectMapperFeatures(
@@ -141,9 +148,10 @@ public class KayentaConfiguration {
 
   private void configureObjectMapper(
       ObjectMapper objectMapper,
+      ObjectMapperSubtypeConfigurer objectMapperSubtypeConfigurer,
       List<ObjectMapperSubtypeConfigurer.SubtypeLocator> subtypeLocators,
       KayentaSerializationConfigurationProperties kayentaSerializationConfigurationProperties) {
-    new ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, subtypeLocators);
+    objectMapperSubtypeConfigurer.registerSubtypes(objectMapper, subtypeLocators);
     configureObjectMapperFeatures(objectMapper, kayentaSerializationConfigurationProperties);
   }
 
