@@ -16,24 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.AbstractLambdaFunctionDescription;
-import com.netflix.spinnaker.clouddriver.lambda.deploy.exception.InvalidAccountException;
 import com.netflix.spinnaker.clouddriver.lambda.provider.view.LambdaFunctionProvider;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractLambdaAtomicOperation<T extends AbstractLambdaFunctionDescription, K>
-    implements AtomicOperation<K> {
-  @Autowired AmazonClientProvider amazonClientProvider;
-
-  @Autowired AccountCredentialsProvider accountCredentialsProvider;
+    extends LambdaClientProvider implements AtomicOperation<K> {
 
   @Autowired LambdaFunctionProvider lambdaFunctionProvider;
 
@@ -42,29 +33,13 @@ public abstract class AbstractLambdaAtomicOperation<T extends AbstractLambdaFunc
   T description;
 
   AbstractLambdaAtomicOperation(T description, String basePhase) {
+    super(description.getRegion(), description.getCredentials());
     this.description = description;
     this.basePhase = basePhase;
   }
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
-  }
-
-  AWSLambda getLambdaClient() {
-    String region = getRegion();
-    NetflixAmazonCredentials credentialAccount = description.getCredentials();
-    if (!credentialAccount.getLambdaEnabled()) {
-      throw new InvalidAccountException("AWS Lambda is not enabled for provided account. \n");
-    }
-    return amazonClientProvider.getAmazonLambda(credentialAccount, region);
-  }
-
-  protected String getRegion() {
-    return description.getRegion();
-  }
-
-  protected AmazonCredentials getCredentials() {
-    return (AmazonCredentials) accountCredentialsProvider.getCredentials(description.getAccount());
   }
 
   void updateTaskStatus(String status) {

@@ -20,3 +20,4 @@ clouddriver-oracle-bmcs/bmcs-sdk
 gatling.conf
 .DS_Store
 /plugins/
+*/test-tar/*

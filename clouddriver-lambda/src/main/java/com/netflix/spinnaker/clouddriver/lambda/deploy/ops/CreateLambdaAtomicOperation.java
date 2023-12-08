@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
@@ -32,7 +31,6 @@ import com.amazonaws.services.lambda.model.Environment;
 import com.amazonaws.services.lambda.model.FunctionCode;
 import com.amazonaws.services.lambda.model.VpcConfig;
 import com.netflix.frigga.Names;
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.HashMap;
@@ -181,10 +179,8 @@ public class CreateLambdaAtomicOperation
   }
 
   private AmazonElasticLoadBalancing getAmazonElasticLoadBalancingClient() {
-    AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
-    NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
-    return amazonClientProvider.getAmazonElasticLoadBalancingV2(
-        credentialAccount, getRegion(), false);
+    return getAmazonClientProvider()
+        .getAmazonElasticLoadBalancingV2(description.getCredentials(), getRegion(), false);
   }
 }

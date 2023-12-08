@@ -164,8 +164,8 @@ public class UpdateLambdaConfigurationAtomicOperation
     AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
-    return amazonClientProvider.getAmazonElasticLoadBalancingV2(
-        credentialAccount, getRegion(), false);
+    return getAmazonClientProvider()
+        .getAmazonElasticLoadBalancingV2(credentialAccount, getRegion(), false);
   }
 
   private void registerTarget(

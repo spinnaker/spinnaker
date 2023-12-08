@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 
 import static java.util.Objects.requireNonNull;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -70,6 +71,25 @@ public class ProxyHandlerBuilder {
       NetflixAmazonCredentials amazonCredentials,
       String region,
       boolean skipEdda) {
+    return getProxyHandler(interfaceKlazz, impl, amazonCredentials, region, skipEdda, null);
+  }
+
+  public <T extends AwsClientBuilder<T, U>, U> U getProxyHandler(
+      Class<U> interfaceKlazz,
+      Class<T> impl,
+      NetflixAmazonCredentials amazonCredentials,
+      String region,
+      ClientConfiguration clientConfig) {
+    return getProxyHandler(interfaceKlazz, impl, amazonCredentials, region, false, clientConfig);
+  }
+
+  public <T extends AwsClientBuilder<T, U>, U> U getProxyHandler(
+      Class<U> interfaceKlazz,
+      Class<T> impl,
+      NetflixAmazonCredentials amazonCredentials,
+      String region,
+      boolean skipEdda,
+      ClientConfiguration clientConfiguration) {
     requireNonNull(amazonCredentials, "Credentials cannot be null");
     try {
       U delegate =
@@ -78,7 +98,8 @@ public class ProxyHandlerBuilder {
               interfaceKlazz,
               amazonCredentials.getName(),
               amazonCredentials.getCredentialsProvider(),
-              region);
+              region,
+              clientConfiguration);
       if (skipEdda
           || !amazonCredentials.getEddaEnabled()
           || eddaTimeoutConfig.getDisabledRegions().contains(region)) {

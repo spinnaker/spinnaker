@@ -28,4 +28,7 @@ public class InvokeLambdaFunctionDescription extends AbstractLambdaFunctionDescr
 
   String payload;
   Artifact payloadArtifact;
+  // -1 disables the timeout which is the default behavior - default to the ClientConfiguration
+  // timeout
+  int timeout = -1;
 }

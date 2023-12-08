@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.springframework.util.ReflectionUtils;
 
 /** Factory for shared instances of AWS SDK clients. */
 public class AwsSdkClientSupplier {
@@ -74,9 +75,19 @@ public class AwsSdkClientSupplier {
       String account,
       AWSCredentialsProvider awsCredentialsProvider,
       String region) {
+    return getClient(impl, iface, account, awsCredentialsProvider, region, null);
+  }
+
+  public <T> T getClient(
+      Class<? extends AwsClientBuilder<?, T>> impl,
+      Class<T> iface,
+      String account,
+      AWSCredentialsProvider awsCredentialsProvider,
+      String region,
+      ClientConfiguration clientConfig) {
     final RequestHandler2 handler = getRateLimiterHandler(iface, account, region);
     final AmazonClientKey<T> key =
-        new AmazonClientKey<>(impl, awsCredentialsProvider, region, handler);
+        new AmazonClientKey<>(impl, awsCredentialsProvider, region, handler, clientConfig);
 
     try {
       return iface.cast(awsSdkClients.get(key));
@@ -127,6 +138,9 @@ public class AwsSdkClientSupplier {
       AwsClientBuilder<?, ?> builder = key.implClass.cast(m.invoke(null));
 
       ClientConfiguration clientConfiguration = new ClientConfiguration();
+      if (key.getClientConfiguration() != null) {
+        ReflectionUtils.shallowCopyFieldState(key.getClientConfiguration(), clientConfiguration);
+      }
       clientConfiguration.setRetryPolicy(getRetryPolicy(key));
       clientConfiguration.setUseGzip(useGzip);
       clientConfiguration.setUserAgentSuffix("spinnaker");
@@ -189,16 +203,19 @@ public class AwsSdkClientSupplier {
     private final AWSCredentialsProvider awsCredentialsProvider;
     private final Region region;
     private final RequestHandler2 requestHandler;
+    private final ClientConfiguration clientConfiguration;
 
     public AmazonClientKey(
         Class<? extends AwsClientBuilder<?, T>> implClass,
         AWSCredentialsProvider awsCredentialsProvider,
         String region,
-        RequestHandler2 requestHandler) {
+        RequestHandler2 requestHandler,
+        ClientConfiguration configuration) {
       this.implClass = requireNonNull(implClass);
       this.awsCredentialsProvider = requireNonNull(awsCredentialsProvider);
       this.region = region == null ? null : RegionUtils.getRegion(region);
       this.requestHandler = requestHandler;
+      this.clientConfiguration = configuration;
     }
 
     public Class<? extends AwsClientBuilder<?, T>> getImplClass() {
@@ -211,6 +228,10 @@ public class AwsSdkClientSupplier {
 
     public Optional<String> getRegion() {
       return Optional.ofNullable(region).map(Region::getName);
+    }
+
+    public ClientConfiguration getClientConfiguration() {
+      return clientConfiguration;
     }
 
     public Optional<RequestHandler2> getRequestHandler() {
@@ -227,9 +248,7 @@ public class AwsSdkClientSupplier {
       if (!implClass.equals(that.implClass)) return false;
       if (!awsCredentialsProvider.equals(that.awsCredentialsProvider)) return false;
       if (region != that.region) return false;
-      return requestHandler != null
-          ? requestHandler.equals(that.requestHandler)
-          : that.requestHandler == null;
+      return Objects.equals(requestHandler, that.requestHandler);
     }
 
     @Override

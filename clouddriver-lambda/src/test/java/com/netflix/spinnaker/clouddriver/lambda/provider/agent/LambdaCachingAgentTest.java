@@ -29,7 +29,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
-import com.netflix.spinnaker.clouddriver.lambda.service.config.LambdaServiceConfig;
+import com.netflix.spinnaker.config.LambdaServiceConfig;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +48,6 @@ public class LambdaCachingAgentTest {
 
   @BeforeEach
   public void setup() {
-    when(config.getRetry()).thenReturn(new LambdaServiceConfig.Retry());
     when(serviceLimitConfiguration.getLimit(any(), any(), any(), any(), any())).thenReturn(1.0);
     lambdaCachingAgent =
         new LambdaCachingAgent(

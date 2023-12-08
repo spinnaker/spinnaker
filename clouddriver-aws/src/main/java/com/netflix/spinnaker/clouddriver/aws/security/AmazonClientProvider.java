@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.retry.PredefinedRetryPolicies;
@@ -39,8 +40,6 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingCli
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.AWSLambdaAsync;
-import com.amazonaws.services.lambda.AWSLambdaAsyncClientBuilder;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
@@ -230,7 +229,11 @@ public class AmazonClientProvider {
         if (maxErrorRetry == null) {
           return PredefinedRetryPolicies.getDefaultRetryPolicy();
         }
-        return PredefinedRetryPolicies.getDefaultRetryPolicyWithCustomMaxRetries(maxErrorRetry);
+        return new RetryPolicy(
+            PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION,
+            PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY,
+            maxErrorRetry,
+            true);
       }
       RetryPolicy.RetryCondition condition =
           this.retryCondition == null
@@ -353,32 +356,63 @@ public class AmazonClientProvider {
     // AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
   }
 
-  public AWSLambda getAmazonLambda(NetflixAmazonCredentials amazonCredentials, String region) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AWSLambda.class, AWSLambdaClientBuilder.class, amazonCredentials, region);
-  }
+  //  public AWSLambda getAmazonLambda(NetflixAmazonCredentials amazonCredentials, String region) {
+  //    return proxyHandlerBuilder.getProxyHandler(
+  //        AWSLambda.class, AWSLambdaClientBuilder.class, amazonCredentials, region);
+  //  }
 
+  /**
+   * It's VERY important that this be called (currently) with only one standardized
+   * ClientConfiguration. That initial client config will be used for the cache for ALL requests
+   * there-after, despite any changes to that clientConfiguration. As such it's recommend to make
+   * use of the AbstractLambdaProvider class which loads the config parameters and timeouts.
+   *
+   * @param amazonCredentials
+   * @param clientConfiguration
+   * @param region
+   * @return
+   */
   public AWSLambda getAmazonLambda(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AWSLambdaClientBuilder.class, AWSLambda.class, accountName, awsCredentialsProvider, region);
-  }
-
-  public AWSLambdaAsync getAmazonLambdaAsync(
-      NetflixAmazonCredentials amazonCredentials, String region) {
+      NetflixAmazonCredentials amazonCredentials,
+      ClientConfiguration clientConfiguration,
+      String region) {
     return proxyHandlerBuilder.getProxyHandler(
-        AWSLambdaAsync.class, AWSLambdaAsyncClientBuilder.class, amazonCredentials, region);
+        AWSLambda.class,
+        AWSLambdaClientBuilder.class,
+        amazonCredentials,
+        region,
+        clientConfiguration);
   }
 
-  public AWSLambdaAsync getAmazonLambdaAsync(
-      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(
-        AWSLambdaAsyncClientBuilder.class,
-        AWSLambdaAsync.class,
-        accountName,
-        awsCredentialsProvider,
-        region);
-  }
+  //  public AWSLambda getAmazonLambda(
+  //      String accountName,
+  //      ClientConfiguration clientConfiguration,
+  //      AWSCredentialsProvider awsCredentialsProvider,
+  //      String region) {
+  //    return awsSdkClientSupplier.getClient(
+  //        AWSLambdaClientBuilder.class,
+  //        AWSLambda.class,
+  //        accountName,
+  //        awsCredentialsProvider,
+  //        region,
+  //        clientConfiguration);
+  //  }
+
+  //  public AWSLambdaAsync getAmazonLambdaAsync(
+  //      NetflixAmazonCredentials amazonCredentials, String region) {
+  //    return proxyHandlerBuilder.getProxyHandler(
+  //        AWSLambdaAsync.class, AWSLambdaAsyncClientBuilder.class, amazonCredentials, region);
+  //  }
+  //
+  //  public AWSLambdaAsync getAmazonLambdaAsync(
+  //      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+  //    return awsSdkClientSupplier.getClient(
+  //        AWSLambdaAsyncClientBuilder.class,
+  //        AWSLambdaAsync.class,
+  //        accountName,
+  //        awsCredentialsProvider,
+  //        region);
+  //  }
 
   public AmazonS3 getAmazonS3(NetflixAmazonCredentials amazonCredentials, String region) {
     return proxyHandlerBuilder.getProxyHandler(
