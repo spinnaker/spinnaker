@@ -66,9 +66,7 @@ public class AmazonCredentialsInitializerTest {
             UserConfigurations.of(TestExternalAccountStorageDependencyConfiguration.class))
         .run(
             ctx -> {
-              // FIXME: once implemented, an AccountDefinitionSource bean is present in the context
-              // assertThat(ctx).hasSingleBean(AccountDefinitionSource.class);
-              assertThat(ctx).doesNotHaveBean(AccountDefinitionSource.class);
+              assertThat(ctx).hasSingleBean(AccountDefinitionSource.class);
             });
   }
 
