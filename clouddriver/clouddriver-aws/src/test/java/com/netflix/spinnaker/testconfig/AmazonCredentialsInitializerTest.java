@@ -25,8 +25,15 @@ import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactor
 import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer;
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository;
+import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSource;
+import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.aws.AwsComponents;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -49,6 +56,20 @@ public class AmazonCredentialsInitializerTest {
         ctx -> {
           assertThat(ctx).hasSingleBean(CredentialsParser.class);
         });
+  }
+
+  @Test
+  void testBeansForExternalAccountStorageAreAvailableByDefault() {
+    runner
+        .withPropertyValues("account.storage.enabled:true", "account.storage.aws.enabled:true")
+        .withConfiguration(
+            UserConfigurations.of(TestExternalAccountStorageDependencyConfiguration.class))
+        .run(
+            ctx -> {
+              // FIXME: once implemented, an AccountDefinitionSource bean is present in the context
+              // assertThat(ctx).hasSingleBean(AccountDefinitionSource.class);
+              assertThat(ctx).doesNotHaveBean(AccountDefinitionSource.class);
+            });
   }
 
   /**
@@ -76,6 +97,51 @@ public class AmazonCredentialsInitializerTest {
     @Bean
     AWSCredentialsProviderFactory awsCredentialsProviderFactory() {
       return mock(AWSCredentialsProviderFactory.class);
+    }
+  }
+
+  @TestConfiguration
+  static class TestExternalAccountStorageDependencyConfiguration {
+    @Bean
+    AccountDefinitionRepository accountDefinitionRepository() {
+      return new TestAccountDefinitionRepository();
+    }
+
+    @NonnullByDefault
+    static class TestAccountDefinitionRepository implements AccountDefinitionRepository {
+      @Nullable
+      @Override
+      public CredentialsDefinition getByName(String name) {
+        return null;
+      }
+
+      @Override
+      public List<? extends CredentialsDefinition> listByType(
+          String typeName, int limit, @Nullable String startingAccountName) {
+        return new ArrayList<>();
+      }
+
+      @Override
+      public List<? extends CredentialsDefinition> listByType(String typeName) {
+        return new ArrayList<>();
+      }
+
+      @Override
+      public void create(CredentialsDefinition definition) {}
+
+      @Override
+      public void save(CredentialsDefinition definition) {}
+
+      @Override
+      public void update(CredentialsDefinition definition) {}
+
+      @Override
+      public void delete(String name) {}
+
+      @Override
+      public List<Revision> revisionHistory(String name) {
+        return new ArrayList<>();
+      }
     }
   }
 }
