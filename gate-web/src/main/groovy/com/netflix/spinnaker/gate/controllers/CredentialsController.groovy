@@ -97,11 +97,11 @@ class CredentialsController {
     @ApiParam(value = 'Value of the "@type" key for accounts to search for.', example = 'kubernetes')
     @PathVariable String accountType,
     @ApiParam('Maximum number of entries to return in results. Used for pagination.')
-    @RequestParam OptionalInt limit,
+    @RequestParam(required = false) Integer limit,
     @ApiParam('Account name to start account definition listing from. Used for pagination.')
-    @RequestParam Optional<String> startingAccountName
+    @RequestParam(required = false) String startingAccountName
   ) {
-    clouddriverService.getAccountDefinitionsByType(accountType, limit.isPresent() ? limit.getAsInt() : null, startingAccountName.orElse(null))
+    clouddriverService.getAccountDefinitionsByType(accountType, limit, startingAccountName)
   }
 
   @PostMapping
