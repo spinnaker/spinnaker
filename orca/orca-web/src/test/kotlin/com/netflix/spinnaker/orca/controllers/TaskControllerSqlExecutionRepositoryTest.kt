@@ -31,6 +31,7 @@ import com.nhaarman.mockito_kotlin.mock
 import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import org.assertj.core.api.Assertions.assertThat
 import org.jooq.exception.DataAccessException
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
@@ -40,9 +41,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import retrofit2.mock.Calls
 import strikt.api.expectCatching
-import strikt.api.expectThat
 import strikt.assertions.isA
-import strikt.assertions.isEqualTo
 import strikt.assertions.isFailure
 import java.time.Clock
 import java.time.Instant
@@ -189,13 +188,11 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
     }
 
     fun verifyExecutionRetrieval(url: String, expectedOutput: List<String>, numPipelines: Int) {
-      expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(numPipelines)
+      assertThat(database.context.fetchCount(table("pipelines"))).isEqualTo(numPipelines)
       val response = subject.perform(get(url)).andReturn().response
       val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-      expectThat(results.size).isEqualTo(expectedOutput.size)
-      results.forEach {
-        assert(it.id in expectedOutput)
-      }
+      assertThat(results.size).isEqualTo(expectedOutput.size)
+      assertThat(results.map { it.id }).containsExactlyInAnyOrderElementsOf(expectedOutput)
     }
   }
 
