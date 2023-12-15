@@ -562,7 +562,15 @@ class SqlExecutionRepository(
       val baseQuery = jooq.select(field("config_id"), field("id"))
         .from(table)
         .where(baseQueryPredicate)
-         .orderBy(field("config_id"))
+        // ULIDs are ordered by time.  Assume id is a ULID since what gate's
+        // PipelineController.triggerViaEcho provides.  Currently (4-nov-26), the
+        // UI uses triggerViaEcho to invoke pipelines.  If there's no execution id
+        // provided (e.g. via gate's PipelineController.trigger method), a
+        // PipelineExecutionImpl constructor provides one.  If a non-ULID is
+        // provided somehow, mapLegacyId in this class ensures id is a ULID.
+        //
+        // Order the result by id to retrieve the newest executions
+         .orderBy(field("config_id"), field("id"))
          .fetch().intoGroups("config_id", "id")
 
         baseQuery.forEach {
