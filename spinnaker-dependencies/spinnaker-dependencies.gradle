@@ -83,7 +83,7 @@ dependencies {
     // JinJava 2.5.3 has a bad bug: https://github.com/HubSpot/jinjava/issues/429
     api("com.hubspot.jinjava:jinjava:2.5.2")
     api("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
-    api("com.jcraft.jsch:${versions.jsch}")
+    api("com.jcraft:jsch:${versions.jsch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
     api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
     api("com.natpryce:hamkrest:1.4.2.2")
