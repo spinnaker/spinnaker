@@ -23,11 +23,13 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigura
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURIBuilder;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.NoopArtifactStoreGetter;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.NoopArtifactStoreStorer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 
 class S3ArtifactStoreConfigurationTest {
@@ -39,6 +41,16 @@ class S3ArtifactStoreConfigurationTest {
   @BeforeEach
   void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
+  }
+
+  @AfterEach
+  void cleanup() {
+    // Clear ArtifactStore.instance so we don't leave lingering state for other
+    // tests that assume it's null.
+    //
+    // Note that ArtifactStore.setInstance(null) doesn't set instance to null
+    // if it's already set.
+    ReflectionTestUtils.setField(ArtifactStore.class, "instance", null);
   }
 
   @Test
