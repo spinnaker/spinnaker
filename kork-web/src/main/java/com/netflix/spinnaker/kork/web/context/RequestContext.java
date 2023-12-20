@@ -46,6 +46,14 @@ public interface RequestContext {
     return get(Header.APPLICATION);
   }
 
+  default Optional<String> getAccount() {
+    return get(Header.ACCOUNT);
+  }
+
+  default Optional<String> getCloudProvider() {
+    return get(Header.CLOUD_PROVIDER);
+  }
+
   default Optional<String> getExecutionType() {
     return get(Header.EXECUTION_TYPE);
   }
@@ -81,6 +89,14 @@ public interface RequestContext {
 
   default void setApplication(String value) {
     set(Header.APPLICATION, value);
+  }
+
+  default void setAccount(String value) {
+    set(Header.ACCOUNT, value);
+  }
+
+  default void setCloudProvider(String value) {
+    set(Header.CLOUD_PROVIDER, value);
   }
 
   default void setExecutionType(String value) {
