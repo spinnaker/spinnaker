@@ -18,7 +18,7 @@ package com.netflix.spinnaker.igor.nexus;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.netflix.spinnaker.igor.config.NexusProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
@@ -116,7 +116,7 @@ class NexusEventPosterTest {
 
     nexusEventPoster.postEvent(payload);
 
-    verifyZeroInteractions(echoService);
+    verifyNoMoreInteractions(echoService);
   }
 
   @Test
@@ -126,7 +126,7 @@ class NexusEventPosterTest {
 
     nexusEventPoster.postEvent(payload);
 
-    verifyZeroInteractions(echoService);
+    verifyNoMoreInteractions(echoService);
   }
 
   @Test
@@ -136,7 +136,7 @@ class NexusEventPosterTest {
 
     nexusEventPoster.postEvent(payload);
 
-    verifyZeroInteractions(echoService);
+    verifyNoMoreInteractions(echoService);
   }
 
   @Test
