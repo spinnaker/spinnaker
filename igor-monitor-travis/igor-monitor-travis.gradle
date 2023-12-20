@@ -32,6 +32,7 @@ dependencies {
   implementation "com.squareup.retrofit:retrofit"
   implementation "io.reactivex:rxjava" // TODO(jervi): get rid of this dependency
   implementation "javax.validation:validation-api"
+  implementation "javax.xml.bind:jaxb-api"
 
   testImplementation "com.squareup.okhttp:mockwebserver"
 }
