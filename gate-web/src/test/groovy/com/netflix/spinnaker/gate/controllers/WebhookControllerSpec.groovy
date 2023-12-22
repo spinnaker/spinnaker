@@ -118,13 +118,30 @@ class WebhooksControllerSpec extends Specification {
     headers.add("Ce-Type", "dev.cdevents.artifact.packaged")
     headers.add("Ce-Source", "spinnaker.test.io")
     headers.add("Content-Type", "application/cloudevents+json")
-    String payload = "{\"id\": \"1234\", \"subject\": \"event\"}"
+    String cdEventData = "{\n" +
+      "  \"context\": {\n" +
+      "    \"version\": \"0.1.2\",\n" +
+      "    \"id\": \"c046b63b-a340-4847-bc39-ee408ad666d9\",\n" +
+      "    \"source\": \"http://dev.cdevents\",\n" +
+      "    \"type\": \"dev.cdevents.artifact.published.0.1.0\",\n" +
+      "    \"timestamp\": \"2023-11-28T15:33:03Z\"\n" +
+      "  },\n" +
+      "  \"subject\": {\n" +
+      "    \"id\": \"pkg:oci/myapp@sha256%3A0b31b1c02ff458ad9b7b\",\n" +
+      "    \"source\": \"/dev/artifact/source\",\n" +
+      "    \"type\": \"artifact\",\n" +
+      "    \"content\": {\n" +
+      "    }\n" +
+      "  },\n" +
+      "  \"customData\": {},\n" +
+      "  \"customDataContentType\": \"application/json\"\n" +
+      "}"
     Map<String, Object> cdEvent = [
       specversion: "1.0",
       type: "dev.cdevents.artifact.packaged",
       source: "/spinnaker.test.io",
       id: "12345",
-      data: payload
+      data: cdEventData
     ]
 
     when:

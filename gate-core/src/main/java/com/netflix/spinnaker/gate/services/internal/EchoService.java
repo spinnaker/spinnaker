@@ -24,6 +24,7 @@ public interface EchoService {
   ResponseEntity<Void> webhooks(
       @Path("source") String source,
       @Body CloudEvent cdevent,
+      @Header("Ce-Data") String ceDataJsonString,
       @Header("Ce-Id") String cdId,
       @Header("Ce-Specversion") String cdSpecVersion,
       @Header("Ce-Type") String cdType,
