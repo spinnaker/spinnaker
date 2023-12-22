@@ -5,3 +5,4 @@ export * from './microsoftteams/MicrosoftTeamsNotificationType';
 export * from './pubsub/PubsubNotificationType';
 export * from './slack/SlackNotificationType';
 export * from './sms/SmsNotificationType';
+export * from './cdevents/CDEventsNotificationType';

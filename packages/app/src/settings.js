@@ -178,6 +178,9 @@ window.spinnakerSettings = {
     sms: {
       enabled: true,
     },
+    cdevents: {
+      enabled: true,
+    },
   },
   onDemandClusterThreshold: Number(onDemandClusterThreshold),
   pollSchedule: 30000,

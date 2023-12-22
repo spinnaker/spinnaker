@@ -21,6 +21,7 @@ export interface INotificationSettings {
   pubsub: { enabled: boolean };
   slack: { botName: string; enabled: boolean };
   sms: { enabled: boolean };
+  cdevents: { enabled: boolean };
 }
 
 export interface IFeatures {
@@ -152,6 +153,10 @@ export interface ISpinnakerSettings {
   useClassicFirewallLabels: boolean;
   kubernetesAdHocInfraWritesEnabled: boolean;
   changelogUrl: string;
+  cdevents?: {
+    validUrlPattern: string;
+    validCDEvent: string;
+  };
 }
 
 export const SETTINGS: ISpinnakerSettings = (window as any).spinnakerSettings || {};

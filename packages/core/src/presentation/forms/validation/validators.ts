@@ -1,6 +1,7 @@
 import { isNumber } from 'lodash';
-import { robotToHuman } from '../../robotToHumanFilter/robotToHuman.filter';
 
+import { SETTINGS } from '../../../config/settings';
+import { robotToHuman } from '../../robotToHumanFilter/robotToHuman.filter';
 import type { IValidator } from './validation';
 
 const THIS_FIELD = 'This field';
@@ -9,10 +10,30 @@ const VALID_EMAIL_REGEX = new RegExp(
   '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
 );
 
+const urlPattern = SETTINGS.cdevents?.validUrlPattern ?? '^https?://.+$';
+const VALID_URL = new RegExp(urlPattern);
+
+const cdeventPattern = SETTINGS.cdevents?.validCDEvent ?? '^dev\\.cdevents\\.[^.]+\\.[^.]+$';
+const VALID_CDEVENT_REGEX = new RegExp(cdeventPattern);
+
 const emailValue = (message?: string): IValidator => {
   return function emailValue(val: string, label = THIS_FIELD) {
     message = message || `${label} is not a valid email address.`;
     return val && !VALID_EMAIL_REGEX.test(val) && message;
+  };
+};
+
+const urlValue = (message?: string): IValidator => {
+  return function urlValue(val: string, label = THIS_FIELD) {
+    message = message || `${label} is not a valid URL.`;
+    return val && !VALID_URL.test(val) && message;
+  };
+};
+
+const cdeventsTypeValue = (message?: string): IValidator => {
+  return function cdeventsTypeValue(val: string, label = THIS_FIELD) {
+    message = message || `${label} is not a valid CDEvents Type.`;
+    return val && !VALID_CDEVENT_REGEX.test(val) && message;
   };
 };
 
@@ -138,6 +159,8 @@ export const Validators = {
   arrayNotEmpty,
   checkBetween,
   emailValue,
+  cdeventsTypeValue,
+  urlValue,
   isNum,
   isRequired,
   isValidJson,

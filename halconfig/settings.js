@@ -142,6 +142,9 @@ window.spinnakerSettings = {
     pubsub: {
       enabled: true,
     },
+    cdevents: {
+      enabled: true,
+    },
     slack: slack,
     sms: sms,
   },
