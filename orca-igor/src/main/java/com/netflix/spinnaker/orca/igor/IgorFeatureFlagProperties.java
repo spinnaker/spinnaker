@@ -16,17 +16,13 @@
 
 package com.netflix.spinnaker.orca.igor;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+@Getter
+@Setter
 @ConfigurationProperties(prefix = "feature.igor")
 public class IgorFeatureFlagProperties {
   private boolean jobNameAsQueryParameter = true;
-
-  public boolean isJobNameAsQueryParameter() {
-    return jobNameAsQueryParameter;
-  }
-
-  public void setJobNameAsQueryParameter(boolean jobNameAsQueryParameter) {
-    this.jobNameAsQueryParameter = jobNameAsQueryParameter;
-  }
 }

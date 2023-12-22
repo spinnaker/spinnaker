@@ -66,6 +66,12 @@ public interface IgorService {
       @Path("master") String master,
       @Path(encode = false, value = "job") String job);
 
+  @GET("/builds/status/{buildNumber}/{master}")
+  Map<String, Object> getBuildWithJobAsQueryParam(
+      @Path("buildNumber") Integer buildNumber,
+      @Path("master") String master,
+      @Query(encodeValue = false, value = "job") String job);
+
   @GET("/builds/properties/{buildNumber}/{fileName}/{master}/{job}")
   Map<String, Object> getPropertyFile(
       @Path("buildNumber") Integer buildNumber,
