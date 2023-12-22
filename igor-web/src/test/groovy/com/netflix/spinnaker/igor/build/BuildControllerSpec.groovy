@@ -129,6 +129,19 @@ class BuildControllerSpec extends Specification {
     response.contentAsString == "{\"building\":false,\"number\":${BUILD_NUMBER}}"
   }
 
+  void 'get the status of a build with job name as query parameter'() {
+    given:
+    1 * service.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> new GenericBuild(building: false, number: BUILD_NUMBER)
+
+    when:
+    MockHttpServletResponse response = mockMvc.perform(get("/builds/status/${BUILD_NUMBER}/${SERVICE}")
+      .param("job", JOB_NAME)
+      .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+    then:
+    response.contentAsString == "{\"building\":false,\"number\":${BUILD_NUMBER}}"
+  }
+
   void 'get an item from the queue'() {
     given:
     1 * jenkinsService.queuedBuild(_, QUEUED_JOB_NUMBER) >> new QueuedJob(executable: [number: QUEUED_JOB_NUMBER])

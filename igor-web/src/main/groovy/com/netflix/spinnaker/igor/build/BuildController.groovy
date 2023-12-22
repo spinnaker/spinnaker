@@ -107,6 +107,16 @@ class BuildController {
     return jobStatus(buildService, master, job, buildNumber)
   }
 
+  @RequestMapping(value = '/builds/status/{buildNumber}/{master}')
+  @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
+  GenericBuild getJobStatus(
+    @PathVariable String master,
+    @PathVariable Integer buildNumber,
+    @RequestParam("job") String job) {
+    def buildService = getBuildService(master)
+    return jobStatus(buildService, master, job, buildNumber)
+  }
+
   @RequestMapping(value = '/builds/artifacts/{buildNumber}/{master:.+}/**')
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
   List<Artifact> getBuildResults(@PathVariable String master, @PathVariable
