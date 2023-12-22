@@ -18,13 +18,18 @@ package com.netflix.spinnaker.echo.build;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.echo.config.IgorConfigurationProperties;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +45,7 @@ import org.springframework.stereotype.Component;
 public class BuildInfoService {
   private final IgorService igorService;
   private final RetrySupport retrySupport;
+  private final IgorConfigurationProperties igorConfigurationProperties;
   private final ObjectMapper objectMapper = EchoObjectMapper.getInstance();
 
   // Manual triggers try to replicate actual events (and in some cases build events) but rather than
@@ -49,7 +55,11 @@ public class BuildInfoService {
   // an event as with other triggers, but for now we'll see whether we can extract a build event
   // from the trigger.
   public BuildEvent getBuildEvent(String master, String job, int buildNumber) {
-    Map<String, Object> rawBuild = retry(() -> igorService.getBuild(buildNumber, master, job));
+    Map<String, Object> rawBuild =
+        retry(
+            igorConfigurationProperties.isJobNameAsQueryParameter()
+                ? () -> igorService.getBuildStatusWithJobQueryParameter(buildNumber, master, job)
+                : () -> igorService.getBuild(buildNumber, master, job));
     BuildEvent.Build build = objectMapper.convertValue(rawBuild, BuildEvent.Build.class);
     BuildEvent.Project project = new BuildEvent.Project(job, build);
     BuildEvent.Content content = new BuildEvent.Content(project, master);
@@ -64,7 +74,11 @@ public class BuildInfoService {
     int buildNumber = event.getBuildNumber();
 
     if (StringUtils.isNoneEmpty(master, job)) {
-      return retry(() -> igorService.getBuild(buildNumber, master, job));
+      return retry(
+          () ->
+              igorConfigurationProperties.isJobNameAsQueryParameter()
+                  ? igorService.getBuildStatusWithJobQueryParameter(buildNumber, master, job)
+                  : igorService.getBuild(buildNumber, master, job));
     }
     return Collections.emptyMap();
   }

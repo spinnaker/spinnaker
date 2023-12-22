@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.services;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 import retrofit.client.Response;
 import retrofit.http.*;
 import retrofit.mime.TypedInput;
@@ -29,6 +30,12 @@ public interface IgorService {
       @Path("buildNumber") Integer buildNumber,
       @Path("master") String master,
       @Path(value = "job", encode = false) String job);
+
+  @GET("/builds/status/{buildNumber}/{master}")
+  Map<String, Object> getBuildStatusWithJobQueryParameter(
+      @NotNull @Path("buildNumber") Integer buildNumber,
+      @NotNull @Path("master") String master,
+      @NotNull @Query(value = "job") String job);
 
   @GET("/builds/properties/{buildNumber}/{fileName}/{master}/{job}")
   Map<String, Object> getPropertyFile(

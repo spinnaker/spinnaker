@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.build.BuildInfoService
+import com.netflix.spinnaker.echo.config.IgorConfigurationProperties
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent
@@ -20,7 +20,7 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
   def igorService = Mock(IgorService)
-  def buildInformation = new BuildInfoService(igorService, new RetrySupport())
+  def buildInformation = new BuildInfoService(igorService, new RetrySupport(), new IgorConfigurationProperties(jobNameAsQueryParameter: false))
   def handlerSupport = new EventHandlerSupport()
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
@@ -244,6 +244,29 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     then:
     1 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> BUILD_INFO
     outputTrigger.buildInfo.equals(BUILD_INFO)
+  }
+
+  def "getBuildInfo method gets job name from query when flag is true"()
+  {
+    given:
+    def mockBuildInfo = BUILD_INFO
+    def trigger = enabledJenkinsTrigger.withMaster(MASTER_NAME).withBuildNumber(BUILD_NUMBER)
+    createPipelineWith(enabledJenkinsTrigger).withTrigger(trigger)
+    def event = getBuildEvent()
+
+    def retrySupport = new RetrySupport()
+    def configProperties = new IgorConfigurationProperties(jobNameAsQueryParameter: true)
+    def buildInfoService = new BuildInfoService(igorService, retrySupport, configProperties)
+
+    def permissionEvaluator = fiatPermissionEvaluator
+    def buildEventHandler = new BuildEventHandler(registry, objectMapper, Optional.of(buildInfoService), permissionEvaluator)
+
+    when:
+    def outputTrigger = buildEventHandler.buildTrigger(event).apply(trigger)
+
+    then:
+    1 * igorService.getBuildStatusWithJobQueryParameter(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> mockBuildInfo
+    outputTrigger.buildInfo == mockBuildInfo
   }
 
   def "fetches property file if defined"() {
