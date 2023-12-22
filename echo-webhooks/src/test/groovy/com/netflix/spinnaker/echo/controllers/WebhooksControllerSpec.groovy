@@ -29,7 +29,9 @@ import com.netflix.spinnaker.echo.scm.bitbucket.server.BitbucketServerEventHandl
 import org.springframework.http.HttpHeaders
 import spock.lang.Specification
 import io.cloudevents.CloudEvent
-import io.cloudevents.core.builder.CloudEventBuilder;
+import io.cloudevents.core.builder.CloudEventBuilder
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 
 
 import java.nio.charset.StandardCharsets
@@ -821,28 +823,46 @@ class WebhooksControllerSpec extends Specification {
     event.content.action == "repo:push"
   }
 
-  void "handles CDEvents Webhook Event"() {
+  void "handles CDEvents Webhook with Valid CDEvent Data"() {
     def event
 
     given:
     WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
     controller.propagator = Mock(EventPropagator)
 
+    String cdEventData = "{\n" +
+      "  \"context\": {\n" +
+      "    \"version\": \"0.1.2\",\n" +
+      "    \"id\": \"c046b63b-a340-4847-bc39-ee408ad666d9\",\n" +
+      "    \"source\": \"http://dev.cdevents\",\n" +
+      "    \"type\": \"dev.cdevents.artifact.published.0.1.0\",\n" +
+      "    \"timestamp\": \"2023-11-28T15:33:03Z\"\n" +
+      "  },\n" +
+      "  \"subject\": {\n" +
+      "    \"id\": \"pkg:oci/myapp@sha256%3A0b31b1c02ff458ad9b7b\",\n" +
+      "    \"source\": \"/dev/artifact/source\",\n" +
+      "    \"type\": \"artifact\",\n" +
+      "    \"content\": {\n" +
+      "    }\n" +
+      "  },\n" +
+      "  \"customData\": {\n" +
+      "  },\n" +
+      "  \"customDataContentType\": \"application/json\"\n" +
+      "}"
     HttpHeaders headers = new HttpHeaders();
     headers.add("Ce-Id", "1234")
     headers.add("Ce-Specversion", "1.0")
-    headers.add("Ce-Type", "dev.cdevents.artifact.packaged")
+    headers.add("Ce-Type", "dev.cdevents.artifact.published")
+    headers.add("Ce-Data", cdEventData)
 
-    String eventData = "{\"id\": \"1234\", \"subject\": \"event\"}";
-    CloudEvent cdevent = CloudEventBuilder.v1() //
-      .withId("12345") //
-      .withType("dev.cdevents.artifact.packaged") //
-      .withSource(URI.create("https://cdevents.dev")) //
-      .withData(eventData.getBytes(StandardCharsets.UTF_8)) //
+    CloudEvent cdevent = CloudEventBuilder.v1()
+      .withId("12345")
+      .withType("dev.cdevents.artifact.published")
+      .withSource(URI.create("https://cdevents.dev"))
       .build();
 
     when:
-    def response = controller.forwardEvent("artifactPackaged",cdevent, headers)
+    controller.forwardEvent("artifactPublished",cdevent, headers)
 
     then:
     1 * controller.propagator.processEvent(_) >> {
@@ -850,10 +870,339 @@ class WebhooksControllerSpec extends Specification {
     }
 
     event.details.type == "cdevents"
-    event.details.source == "artifactPackaged"
-    event.rawContent == eventData
-    event.details.requestHeaders.get("Ce-Type")[0] == "dev.cdevents.artifact.packaged"
-    event.details.requestHeaders.get("Ce-Id")[0] == "1234"
+    event.details.source == "artifactPublished"
+    event.rawContent == cdEventData
+  }
 
+  void "handles valid CDEvents Webhook Event with Attribute Constraints in request Headers"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+
+    String cdEventData = "{\n" +
+      "  \"context\": {\n" +
+      "    \"version\": \"0.1.2\",\n" +
+      "    \"id\": \"c046b63b-a340-4847-bc39-ee408ad666d9\",\n" +
+      "    \"source\": \"http://dev.cdevents\",\n" +
+      "    \"type\": \"dev.cdevents.artifact.published.0.1.0\",\n" +
+      "    \"timestamp\": \"2023-11-28T15:33:03Z\"\n" +
+      "  },\n" +
+      "  \"subject\": {\n" +
+      "    \"id\": \"pkg:oci/myapp@sha256%3A0b31b1c02ff458ad9b7b\",\n" +
+      "    \"source\": \"/dev/artifact/source\",\n" +
+      "    \"type\": \"artifact\",\n" +
+      "    \"content\": {\n" +
+      "    }\n" +
+      "  },\n" +
+      "  \"customData\": {\n" +
+      "  },\n" +
+      "  \"customDataContentType\": \"application/json\"\n" +
+      "}"
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Ce-Id", "1234")
+    headers.add("Ce-Specversion", "1.0")
+    headers.add("Ce-Type", "dev.cdevents.artifact.published")
+    headers.add("Ce-Data", cdEventData)
+
+    CloudEvent cdevent = CloudEventBuilder.v1()
+      .withId("12345")
+      .withType("dev.cdevents.artifact.published")
+      .withSource(URI.create("https://cdevents.dev"))
+      .build();
+
+    when:
+    controller.forwardEvent("artifactPublished",cdevent, headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.details.requestHeaders.get("Ce-Type")[0] == "dev.cdevents.artifact.published"
+    event.details.requestHeaders.get("Ce-Id")[0] == "1234"
+    event.details.requestHeaders.get("Ce-Specversion")[0] == "1.0"
+    event.details.requestHeaders.get("Ce-Data")[0] == cdEventData
+
+  }
+
+  void "handles valid CDEvents Webhook Event with Payload Constraints in customData"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+
+    String cdEventData = "{\n" +
+      "  \"context\": {\n" +
+      "    \"version\": \"0.1.2\",\n" +
+      "    \"id\": \"c046b63b-a340-4847-bc39-ee408ad666d9\",\n" +
+      "    \"source\": \"http://dev.cdevents\",\n" +
+      "    \"type\": \"dev.cdevents.artifact.published.0.1.0\",\n" +
+      "    \"timestamp\": \"2023-11-28T15:33:03Z\"\n" +
+      "  },\n" +
+      "  \"subject\": {\n" +
+      "    \"id\": \"pkg:oci/myapp@sha256%3A0b31b1c02ff458ad9b7b\",\n" +
+      "    \"source\": \"/dev/artifact/source\",\n" +
+      "    \"type\": \"artifact\",\n" +
+      "    \"content\": {\n" +
+      "    }\n" +
+      "  },\n" +
+      "  \"customData\": {\n" +
+      "    \"mykey\": \"myvalue\",\n" +
+      "    \"bing\": \"boooop\"\n" +
+      "  },\n" +
+      "  \"customDataContentType\": \"application/json\"\n" +
+      "}"
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Ce-Id", "1234")
+    headers.add("Ce-Specversion", "1.0")
+    headers.add("Ce-Type", "dev.cdevents.artifact.published")
+    headers.add("Ce-Data", cdEventData)
+
+    CloudEvent cdevent = CloudEventBuilder.v1()
+      .withId("12345")
+      .withType("dev.cdevents.artifact.published")
+      .withSource(URI.create("https://cdevents.dev"))
+      .build();
+
+    when:
+    controller.forwardEvent("artifactPublished",cdevent, headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.payload.get("customData").get("mykey") == "myvalue"
+    event.payload.get("customData").get("bing") == "boooop"
+  }
+
+  void "handles valid CDEvents Webhook Event with Parameter in customData"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+
+    String cdEventData = "{\n" +
+      "  \"context\": {\n" +
+      "    \"version\": \"0.1.2\",\n" +
+      "    \"id\": \"c046b63b-a340-4847-bc39-ee408ad666d9\",\n" +
+      "    \"source\": \"http://dev.cdevents\",\n" +
+      "    \"type\": \"dev.cdevents.artifact.published.0.1.0\",\n" +
+      "    \"timestamp\": \"2023-11-28T15:33:03Z\"\n" +
+      "  },\n" +
+      "  \"subject\": {\n" +
+      "    \"id\": \"pkg:oci/myapp@sha256%3A0b31b1c02ff458ad9b7b\",\n" +
+      "    \"source\": \"/dev/artifact/source\",\n" +
+      "    \"type\": \"artifact\",\n" +
+      "    \"content\": {\n" +
+      "    }\n" +
+      "  },\n" +
+      "  \"customData\": {\n" +
+      "    \"parameters\": {\n" +
+      "      \"stack\": \"prod\"\n" +
+      "    }\n" +
+      "  },\n" +
+      "  \"customDataContentType\": \"application/json\"\n" +
+      "}"
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Ce-Id", "1234")
+    headers.add("Ce-Specversion", "1.0")
+    headers.add("Ce-Type", "dev.cdevents.artifact.published")
+    headers.add("Ce-Data", cdEventData)
+
+    CloudEvent cdevent = CloudEventBuilder.v1()
+      .withId("12345")
+      .withType("dev.cdevents.artifact.published")
+      .withSource(URI.create("https://cdevents.dev"))
+      .build();
+
+    when:
+    def response = controller.forwardEvent("artifactPublished",cdevent, headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.content.parameters.get("stack") == "prod"
+
+  }
+
+  void "handles valid CDEvents Webhook Event with Artifact Constraints in customData"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+
+    String cdEventData = "{\n" +
+      "  \"context\": {\n" +
+      "    \"version\": \"0.1.2\",\n" +
+      "    \"id\": \"c046b63b-a340-4847-bc39-ee408ad666d9\",\n" +
+      "    \"source\": \"http://dev.cdevents\",\n" +
+      "    \"type\": \"dev.cdevents.artifact.published.0.1.0\",\n" +
+      "    \"timestamp\": \"2023-11-28T15:33:03Z\"\n" +
+      "  },\n" +
+      "  \"subject\": {\n" +
+      "    \"id\": \"pkg:oci/myapp@sha256%3A0b31b1c02ff458ad9b7b\",\n" +
+      "    \"source\": \"/dev/artifact/source\",\n" +
+      "    \"type\": \"artifact\",\n" +
+      "    \"content\": {\n" +
+      "    }\n" +
+      "  },\n" +
+      "  \"customData\": {\n" +
+      "    \"artifacts\": [\n" +
+      "      {\n" +
+      "        \"type\": \"custom/object\",\n" +
+      "        \"name\": \"image-cdevents\",\n" +
+      "        \"version\": \"1.0.1\",\n" +
+      "        \"reference\": \"custom/object/artifact\"\n" +
+      "      }\n" +
+      "    ]\n" +
+      "  },\n" +
+      "  \"customDataContentType\": \"application/json\"\n" +
+      "}"
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("Ce-Id", "1234")
+    headers.add("Ce-Specversion", "1.0")
+    headers.add("Ce-Type", "dev.cdevents.artifact.published")
+    headers.add("Ce-Data", cdEventData)
+
+    CloudEvent cdevent = CloudEventBuilder.v1()
+      .withId("12345")
+      .withType("dev.cdevents.artifact.published")
+      .withSource(URI.create("https://cdevents.dev"))
+      .build();
+
+
+    when:
+    controller.forwardEvent("artifactPublished",cdevent, headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.content.artifacts[0].get("name") == "image-cdevents"
+    event.content.artifacts[0].get("version") == "1.0.1"
+    event.content.artifacts[0].get("reference") == "custom/object/artifact"
+    event.content.artifacts[0].get("type") == "custom/object"
+  }
+
+  void "handles invalid CDEvents Webhook Event with out customData"() {
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    String cdEventData = "{\n" +
+      "  \"context\": {\n" +
+      "    \"version\": \"0.1.2\",\n" +
+      "    \"id\": \"c046b63b-a340-4847-bc39-ee408ad666d9\",\n" +
+      "    \"source\": \"http://dev.cdevents\",\n" +
+      "    \"type\": \"dev.cdevents.artifact.published.0.1.0\",\n" +
+      "    \"timestamp\": \"2023-11-28T15:33:03Z\"\n" +
+      "  },\n" +
+      "  \"subject\": {\n" +
+      "    \"id\": \"pkg:oci/myapp@sha256%3A0b31b1c02ff458ad9b7b\",\n" +
+      "    \"source\": \"/dev/artifact/source\",\n" +
+      "    \"type\": \"artifact\",\n" +
+      "    \"content\": {\n" +
+      "    }\n" +
+      "  },\n" +
+      "  \"customDataContentType\": \"application/json\"\n" +
+      "}"
+    HttpHeaders headers = new HttpHeaders()
+    headers.add("Ce-Id", "1234")
+    headers.add("Ce-Specversion", "1.0")
+    headers.add("Ce-Type", "dev.cdevents.artifact.published")
+    headers.add("Ce-Data", cdEventData)
+
+    CloudEvent cdevent = CloudEventBuilder.v1()
+      .withId("12345")
+      .withType("dev.cdevents.artifact.published")
+      .withSource(URI.create("https://cdevents.dev"))
+      .build();
+    Map dataMap = new ObjectMapper().readValue(cdEventData, Map) ?: [:]
+
+    when:
+    controller.forwardEvent("artifactPublished",cdevent, headers)
+    then:
+    def exception = thrown(InvalidRequestException)
+    exception.message == "Invalid CDEvent data posted with the CloudEvent RequestBody - $dataMap"
+
+  }
+
+  void "handles invalid CDEvents Webhook Event with no CDEvents context"() {
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    String cdEventData = "{\n" +
+      "  \"subject\": {\n" +
+      "    \"id\": \"pkg:oci/myapp@sha256%3A0b31b1c02ff458ad9b7b\",\n" +
+      "    \"source\": \"/dev/artifact/source\",\n" +
+      "    \"type\": \"artifact\",\n" +
+      "    \"content\": {\n" +
+      "    }\n" +
+      "  },\n" +
+      "  \"customData\": {},\n" +
+      "  \"customDataContentType\": \"application/json\"\n" +
+      "}"
+    HttpHeaders headers = new HttpHeaders()
+    headers.add("Ce-Id", "1234")
+    headers.add("Ce-Specversion", "1.0")
+    headers.add("Ce-Type", "dev.cdevents.artifact.published")
+    headers.add("Ce-Data", cdEventData)
+
+    CloudEvent cdevent = CloudEventBuilder.v1()
+      .withId("12345")
+      .withType("dev.cdevents.artifact.published")
+      .withSource(URI.create("https://cdevents.dev"))
+      .build();
+    Map dataMap = new ObjectMapper().readValue(cdEventData, Map) ?: [:]
+
+    when:
+    controller.forwardEvent("artifactPublished",cdevent, headers)
+    then:
+    def exception = thrown(InvalidRequestException)
+    exception.message == "Invalid CDEvent data posted with the CloudEvent RequestBody - $dataMap"
+
+  }
+
+  void "handles invalid CDEvents Webhook Event with no CDEvents subject"() {
+    given:
+    WebhooksController controller = new WebhooksController(mapper: EchoObjectMapper.getInstance(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    String cdEventData = "{\n" +
+      "  \"context\": {\n" +
+      "    \"version\": \"0.1.2\",\n" +
+      "    \"id\": \"c046b63b-a340-4847-bc39-ee408ad666d9\",\n" +
+      "    \"source\": \"http://dev.cdevents\",\n" +
+      "    \"type\": \"dev.cdevents.artifact.published.0.1.0\",\n" +
+      "    \"timestamp\": \"2023-11-28T15:33:03Z\"\n" +
+      "  },\n" +
+      "  \"customData\": {},\n" +
+      "  \"customDataContentType\": \"application/json\"\n" +
+      "}"
+    HttpHeaders headers = new HttpHeaders()
+    headers.add("Ce-Id", "1234")
+    headers.add("Ce-Specversion", "1.0")
+    headers.add("Ce-Type", "dev.cdevents.artifact.published")
+    headers.add("Ce-Data", cdEventData)
+
+    CloudEvent cdevent = CloudEventBuilder.v1()
+      .withId("12345")
+      .withType("dev.cdevents.artifact.published")
+      .withSource(URI.create("https://cdevents.dev"))
+      .build();
+    Map dataMap = new ObjectMapper().readValue(cdEventData, Map) ?: [:]
+
+    when:
+    controller.forwardEvent("artifactPublished",cdevent, headers)
+    then:
+    def exception = thrown(InvalidRequestException)
+    exception.message == "Invalid CDEvent data posted with the CloudEvent RequestBody - $dataMap"
   }
 }

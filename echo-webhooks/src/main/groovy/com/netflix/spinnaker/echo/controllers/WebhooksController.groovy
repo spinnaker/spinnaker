@@ -17,21 +17,20 @@
 package com.netflix.spinnaker.echo.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor
-import com.netflix.spinnaker.echo.events.EventPropagator
-import com.netflix.spinnaker.echo.scm.ScmWebhookHandler
-import com.netflix.spinnaker.echo.scm.GitWebhookHandler
 import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.api.events.Metadata
+import com.netflix.spinnaker.echo.artifacts.ArtifactExtractor
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.netflix.spinnaker.echo.events.EventPropagator
+import com.netflix.spinnaker.echo.scm.GitWebhookHandler
+import com.netflix.spinnaker.echo.scm.ScmWebhookHandler
 import groovy.util.logging.Slf4j
+import io.cloudevents.CloudEvent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.util.CollectionUtils
-import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.*
-import io.cloudevents.CloudEvent
-import java.nio.charset.StandardCharsets
 
 @RestController
 @Slf4j
@@ -140,31 +139,43 @@ class WebhooksController {
                                     @RequestBody CloudEvent cdevent,
                                     @RequestHeader HttpHeaders headers) {
     log.info("CDEvents Webhook received with source ${source} and with event type ${cdevent.getType()}")
-
-    String ceDataJsonString = new String(cdevent.getData().toBytes(), StandardCharsets.UTF_8);
+    String ceDataJsonString  = headers.get("Ce-Data").get(0)
+    log.info("CDEvent received with in the CloudEvent data request {}", ceDataJsonString)
+    Map postedEvent
+    try {
+      postedEvent = mapper.readValue(ceDataJsonString, Map) ?: [:]
+      if (postedEvent.get("customData") == null || !postedEvent.get("context") || !postedEvent.get("subject")) {
+        throw new InvalidRequestException("Invalid CDEvent data posted with the CloudEvent RequestBody - " + postedEvent);
+      }
+    } catch (Exception e) {
+      log.error("Failed to parse payload ceDataJsonString: {}", ceDataJsonString, e);
+      throw e
+    }
 
     Event event = new Event()
-    boolean sendEvent = true
     event.details = new Metadata()
     event.details.source = source
     event.details.type = "cdevents"
     event.details.requestHeaders = headers
     event.rawContent = ceDataJsonString
-    Map postedEvent
-    try {
-      postedEvent = mapper.readValue(ceDataJsonString, Map) ?: [:]
-    } catch (Exception e) {
-      log.error("Failed to parse payload ceDataJsonString: {}", ceDataJsonString, e);
-      throw e
-    }
-    event.content = postedEvent
     event.payload = new HashMap(postedEvent)
+    event.content = new HashMap<>();
 
+    Map customDataMap = new HashMap(postedEvent.get("customData"))
+    def artifacts = customDataMap.get("artifacts")
+    def parameters = customDataMap.get("parameters")
+    if (artifacts){
+      log.info("Artifacts received from postedEvent - {}", artifacts)
+      event.content.artifacts = artifacts
+    }
+    if (parameters){
+      log.info("Parameters received from postedEvent - {}", parameters)
+      event.content.parameters = parameters
+    }
     propagator.processEvent(event)
 
     WebhookResponse.newInstance(eventProcessed: true, eventId: event.eventId)
     ResponseEntity.ok().build();
-
   }
 
   private static class WebhookResponse {
