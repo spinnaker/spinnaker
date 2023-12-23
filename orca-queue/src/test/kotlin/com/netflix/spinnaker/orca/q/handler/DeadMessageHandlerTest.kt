@@ -29,7 +29,7 @@ import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
@@ -100,7 +100,7 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
     }
 
     it("does nothing") {
-      verifyZeroInteractions(queue)
+      verifyNoMoreInteractions(queue)
     }
   }
 })

@@ -82,7 +82,7 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.spy
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import java.time.Duration.ZERO
 import org.assertj.core.api.Assertions.assertThat
@@ -214,8 +214,8 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
           it("ignores the message") {
             verify(repository, never()).storeStage(any())
-            verifyZeroInteractions(queue)
-            verifyZeroInteractions(publisher)
+            verifyNoMoreInteractions(queue)
+            verifyNoMoreInteractions(publisher)
           }
         }
 

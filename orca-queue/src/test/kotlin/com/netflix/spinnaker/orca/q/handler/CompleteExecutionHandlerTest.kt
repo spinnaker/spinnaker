@@ -43,7 +43,6 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import java.time.Duration
 import java.util.UUID
@@ -110,7 +109,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       }
 
       it("does not queue any other commands") {
-        verifyZeroInteractions(queue)
+        verifyNoMoreInteractions(queue)
       }
     }
 
@@ -175,7 +174,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
       }
 
       it("does not publish any events") {
-        verifyZeroInteractions(publisher)
+        verifyNoMoreInteractions(publisher)
       }
 
       it("re-queues the message for later evaluation") {
@@ -281,7 +280,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     }
 
     it("does not queue any other commands") {
-      verifyZeroInteractions(queue)
+      verifyNoMoreInteractions(queue)
     }
   }
 
@@ -330,7 +329,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     }
 
     it("does not queue any other commands") {
-      verifyZeroInteractions(queue)
+      verifyNoMoreInteractions(queue)
     }
   }
 
@@ -375,7 +374,7 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
     }
 
     it("publishes no events") {
-      verifyZeroInteractions(publisher)
+      verifyNoMoreInteractions(publisher)
     }
 
     it("re-queues the message") {

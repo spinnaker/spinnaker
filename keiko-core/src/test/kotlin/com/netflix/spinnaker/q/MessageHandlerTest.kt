@@ -20,7 +20,7 @@ import com.netflix.spinnaker.assertj.isA
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -58,7 +58,7 @@ object MessageHandlerTest : SubjectSpek<MessageHandler<*>>({
     }
 
     it("does not invoke the handler") {
-      verifyZeroInteractions(handleCallback)
+      verifyNoMoreInteractions(handleCallback)
     }
   }
 

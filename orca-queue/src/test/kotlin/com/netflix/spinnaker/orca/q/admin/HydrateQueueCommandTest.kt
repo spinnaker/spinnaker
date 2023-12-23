@@ -50,7 +50,6 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import java.time.Instant
 import org.assertj.core.api.Assertions.assertThat
@@ -85,7 +84,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         subject.invoke(HydrateQueueInput(dryRun = false))
 
         it("does nothing") {
-          verifyZeroInteractions(queue)
+          verifyNoMoreInteractions(queue)
         }
       }
     }
@@ -128,7 +127,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         )
 
         it("does nothing") {
-          verifyZeroInteractions(queue)
+          verifyNoMoreInteractions(queue)
         }
       }
     }
@@ -155,7 +154,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         subject.invoke(HydrateQueueInput(executionId = "2", dryRun = false))
 
         it("does nothing") {
-          verifyZeroInteractions(queue)
+          verifyNoMoreInteractions(queue)
         }
       }
     }
@@ -465,7 +464,7 @@ object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
         val output = subject.invoke(HydrateQueueInput(dryRun = true))
 
         it("does not interact with queue") {
-          verifyZeroInteractions(queue)
+          verifyNoMoreInteractions(queue)
         }
 
         it("emits dry run output") {

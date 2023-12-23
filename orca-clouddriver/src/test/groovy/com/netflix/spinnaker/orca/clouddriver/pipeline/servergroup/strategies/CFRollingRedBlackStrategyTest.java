@@ -213,8 +213,8 @@ class CFRollingRedBlackStrategyTest {
     assertThat(deployServerGroupStage.getContext().get("useSourceCapacity")).isNull();
     assertThat(deployServerGroupStage.getContext().get("capacity")).isEqualTo(zeroCapacity);
     assertThat(deployServerGroupStage.getContext().get("manifest")).isEqualTo(expectedManifest);
-    verifyZeroInteractions(artifactUtils);
-    verifyZeroInteractions(oortService);
+    verifyNoMoreInteractions(artifactUtils);
+    verifyNoMoreInteractions(oortService);
   }
 
   @Test
@@ -281,8 +281,8 @@ class CFRollingRedBlackStrategyTest {
     assertThat(deployServerGroupStage.getContext().get("useSourceCapacity")).isNull();
     assertThat(deployServerGroupStage.getContext().get("capacity")).isEqualTo(zeroCapacity);
     assertThat(deployServerGroupStage.getContext().get("manifest")).isEqualTo(expectedManifest);
-    verifyZeroInteractions(artifactUtils);
-    verifyZeroInteractions(oortService);
+    verifyNoMoreInteractions(artifactUtils);
+    verifyNoMoreInteractions(oortService);
   }
 
   @Test

@@ -31,7 +31,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -113,10 +113,10 @@ class QueueShovelTest : SubjectSpek<QueueShovel>({
 
       it("leaves the message on the old queue") {
         // not pushed
-        verifyZeroInteractions(queue)
+        verifyNoMoreInteractions(queue)
 
         // not acked
-        verifyZeroInteractions(ackCallback)
+        verifyNoMoreInteractions(ackCallback)
 
         // execution not updated
         verify(executionRepository, never()).handlesPartition(anyString())
@@ -142,10 +142,10 @@ class QueueShovelTest : SubjectSpek<QueueShovel>({
         verify(executionRepository).store(execution)
 
         // not pushed
-        verifyZeroInteractions(queue)
+        verifyNoMoreInteractions(queue)
 
         // not acked
-        verifyZeroInteractions(ackCallback)
+        verifyNoMoreInteractions(ackCallback)
       }
     }
   }

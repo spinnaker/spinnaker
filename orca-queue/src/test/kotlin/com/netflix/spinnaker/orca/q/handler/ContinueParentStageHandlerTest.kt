@@ -43,7 +43,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import java.time.Duration
 import org.jetbrains.spek.api.dsl.describe
@@ -121,7 +121,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         }
 
         it("does not re-queue the message") {
-          verifyZeroInteractions(queue)
+          verifyNoMoreInteractions(queue)
         }
       }
 
@@ -170,7 +170,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
           }
 
           it("ignores the message") {
-            verifyZeroInteractions(queue)
+            verifyNoMoreInteractions(queue)
           }
         }
       }

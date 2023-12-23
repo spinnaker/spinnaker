@@ -42,7 +42,7 @@ import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
@@ -91,8 +91,8 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
 
       it("ignores the message") {
         verify(repository, never()).storeStage(any())
-        verifyZeroInteractions(queue)
-        verifyZeroInteractions(publisher)
+        verifyNoMoreInteractions(queue)
+        verifyNoMoreInteractions(publisher)
       }
     }
 

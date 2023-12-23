@@ -33,7 +33,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
@@ -97,7 +97,7 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
       }
 
       it("does not send any further messages") {
-        verifyZeroInteractions(queue)
+        verifyNoMoreInteractions(queue)
       }
     }
 

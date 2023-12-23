@@ -36,7 +36,7 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import java.time.Duration
 import java.time.Instant.now
@@ -116,7 +116,7 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
           subject.checkForZombies()
 
           it("does not increment zombie counter") {
-            verifyZeroInteractions(zombieCounter)
+            verifyNoMoreInteractions(zombieCounter)
           }
         }
       }
@@ -149,7 +149,7 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
           subject.checkForZombies()
 
           it("does not increment the counter") {
-            verifyZeroInteractions(zombieCounter)
+            verifyNoMoreInteractions(zombieCounter)
           }
         }
       }
@@ -171,7 +171,7 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
           subject.checkForZombies()
 
           it("does not increment the counter") {
-            verifyZeroInteractions(zombieCounter)
+            verifyNoMoreInteractions(zombieCounter)
           }
         }
       }

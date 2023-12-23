@@ -80,7 +80,6 @@ import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.spy
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import java.time.Duration
 import org.assertj.core.api.Assertions.assertThat
@@ -473,7 +472,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("does not publish an event") {
-          verifyZeroInteractions(publisher)
+          verifyNoMoreInteractions(publisher)
         }
 
         it("re-queues the message with a delay") {
@@ -517,7 +516,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("publishes no events") {
-          verifyZeroInteractions(publisher)
+          verifyNoMoreInteractions(publisher)
         }
 
         it("completes the execution") {
@@ -541,11 +540,11 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("does not queue any messages") {
-          verifyZeroInteractions(queue)
+          verifyNoMoreInteractions(queue)
         }
 
         it("does not publish any events") {
-          verifyZeroInteractions(publisher)
+          verifyNoMoreInteractions(publisher)
         }
       }
     }
@@ -631,7 +630,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           }
         }
       }
-      
+
       and("parallel stages") {
         val pipeline = pipeline {
           application = "foo"

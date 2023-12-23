@@ -42,7 +42,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
@@ -131,7 +131,7 @@ object CancelStageHandlerTest : SubjectSpek<CancelStageHandler>({
         }
 
         it("should not push any messages to the queue") {
-          verifyZeroInteractions(queue)
+          verifyNoMoreInteractions(queue)
         }
       }
     }
@@ -160,7 +160,7 @@ object CancelStageHandlerTest : SubjectSpek<CancelStageHandler>({
         }
 
         it("should not push any messages to the queue") {
-          verifyZeroInteractions(queue)
+          verifyNoMoreInteractions(queue)
         }
       }
     }

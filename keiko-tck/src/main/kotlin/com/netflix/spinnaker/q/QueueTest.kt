@@ -25,7 +25,6 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import java.io.Closeable
 import java.time.Clock
 import java.time.Duration
@@ -72,7 +71,7 @@ abstract class QueueTest<out Q : Queue>(
       }
 
       it("does not invoke the callback") {
-        verifyZeroInteractions(callback)
+        verifyNoMoreInteractions(callback)
       }
     }
 
@@ -143,7 +142,7 @@ abstract class QueueTest<out Q : Queue>(
         }
 
         it("does not invoke the callback") {
-          verifyZeroInteractions(callback)
+          verifyNoMoreInteractions(callback)
         }
       }
 
@@ -196,7 +195,7 @@ abstract class QueueTest<out Q : Queue>(
       }
 
       it("does not retry the message") {
-        verifyZeroInteractions(callback)
+        verifyNoMoreInteractions(callback)
       }
     }
 
@@ -252,7 +251,7 @@ abstract class QueueTest<out Q : Queue>(
       }
 
       it("does not retry the message") {
-        verifyZeroInteractions(callback)
+        verifyNoMoreInteractions(callback)
       }
 
       on("polling the queue after the message acknowledgment override has timed out") {
@@ -325,7 +324,7 @@ abstract class QueueTest<out Q : Queue>(
       }
 
       it("stops retrying the message") {
-        verifyZeroInteractions(callback)
+        verifyNoMoreInteractions(callback)
       }
 
       it("passes the failed message to the dead letter handler") {
@@ -341,7 +340,7 @@ abstract class QueueTest<out Q : Queue>(
         }
 
         it("it does not get redelivered again") {
-          verifyZeroInteractions(callback)
+          verifyNoMoreInteractions(callback)
         }
 
         it("no longer gets sent to the dead letter handler") {
@@ -473,7 +472,7 @@ abstract class QueueTest<out Q : Queue>(
         }
 
         it("did not enqueue the duplicate message") {
-          verifyZeroInteractions(callback)
+          verifyNoMoreInteractions(callback)
         }
       }
 

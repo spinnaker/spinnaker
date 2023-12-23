@@ -31,7 +31,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
@@ -77,7 +77,7 @@ object QueueProcessorTest : Spek({
       }
 
       it("does not poll the queue") {
-        verifyZeroInteractions(queue)
+        verifyNoMoreInteractions(queue)
       }
     }
 
@@ -112,7 +112,7 @@ object QueueProcessorTest : Spek({
         }
 
         it("does not poll the queue") {
-          verifyZeroInteractions(queue)
+          verifyNoMoreInteractions(queue)
         }
 
         it("fires an event") {
