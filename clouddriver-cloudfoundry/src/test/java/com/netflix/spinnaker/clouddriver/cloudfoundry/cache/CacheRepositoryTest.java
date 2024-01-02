@@ -20,8 +20,8 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheReposito
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollectionOf;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -129,7 +129,7 @@ class CacheRepositoryTest {
     when(apps.all(emptyList())).thenReturn(List.of(app, appWithoutInstances));
     when(routes.all(emptyList())).thenReturn(emptyList());
     when(providerCache.filterIdentifiers(any(), any())).thenReturn(emptyList());
-    when(providerCache.getAll(any(), anyCollectionOf(String.class))).thenReturn(emptyList());
+    when(providerCache.getAll(any(), anyCollection())).thenReturn(emptyList());
     when(credentials.getName()).thenReturn("devaccount");
     when(credentials.getClient()).thenReturn(client);
 

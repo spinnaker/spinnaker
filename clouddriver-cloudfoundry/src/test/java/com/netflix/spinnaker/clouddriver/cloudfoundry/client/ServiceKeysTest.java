@@ -23,10 +23,13 @@ import static com.netflix.spinnaker.clouddriver.cloudfoundry.utils.TestUtils.ass
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceKeyService;
@@ -70,13 +73,13 @@ class ServiceKeysTest {
           .toJavaMap();
 
   {
-    when(serviceInstanceService.findService(any(), anyListOf(String.class)))
+    when(serviceInstanceService.findService(any(), anyList()))
         .thenReturn(
             Calls.response(
                 Response.success(
                     Page.singleton(new Service().setLabel("service1"), "service-guid"))));
 
-    when(serviceInstanceService.findServicePlans(any(), anyListOf(String.class)))
+    when(serviceInstanceService.findServicePlans(any(), anyList()))
         .thenReturn(
             Calls.response(
                 Response.success(
