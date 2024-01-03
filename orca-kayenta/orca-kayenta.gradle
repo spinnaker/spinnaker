@@ -29,5 +29,5 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
   testImplementation(project(":orca-test-kotlin"))
-  testImplementation("com.github.tomakehurst:wiremock:2.15.0")
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
 }
