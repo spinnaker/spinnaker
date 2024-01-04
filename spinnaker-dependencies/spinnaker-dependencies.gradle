@@ -55,6 +55,7 @@ dependencies {
   // this project and need to configure gradle plugins etc.
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
   api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
+  api(platform("org.junit:junit-bom:5.8.2")) // remove with spring boot >= 2.6.2
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
