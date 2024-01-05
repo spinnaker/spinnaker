@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.credentials;
 
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -24,7 +25,7 @@ import javax.annotation.Nullable;
  *
  * @param <T>
  */
-public interface CredentialsRepository<T extends Credentials> {
+public interface CredentialsRepository<T extends Credentials> extends SpinnakerExtensionPoint {
   /**
    * @param name
    * @return Credentials with the given name or null

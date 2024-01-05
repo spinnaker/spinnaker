@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.credentials.poller;
 
 import com.netflix.spinnaker.credentials.Credentials;
-import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
+import com.netflix.spinnaker.credentials.definition.CredentialsLoader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class Poller<T extends Credentials> implements Runnable {
-  private final AbstractCredentialsLoader<T> credentialsLoader;
+  private final CredentialsLoader<T> credentialsLoader;
 
   public void run() {
     try {

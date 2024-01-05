@@ -21,7 +21,8 @@ import com.netflix.spinnaker.credentials.CredentialsRepository;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 
-public abstract class AbstractCredentialsLoader<T extends Credentials> {
+public abstract class AbstractCredentialsLoader<T extends Credentials>
+    implements CredentialsLoader<T> {
   @Getter protected final CredentialsRepository<T> credentialsRepository;
 
   public AbstractCredentialsLoader(CredentialsRepository<T> credentialsRepository) {
@@ -34,5 +35,6 @@ public abstract class AbstractCredentialsLoader<T extends Credentials> {
    * thereafter.
    */
   @PostConstruct
+  @Override
   public abstract void load();
 }

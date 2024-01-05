@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.credentials.definition;
 
 import com.netflix.spinnaker.credentials.Credentials;
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
 import javax.annotation.Nullable;
 
 /**
@@ -25,7 +26,8 @@ import javax.annotation.Nullable;
  * @param <T>
  * @param <U>
  */
-public interface CredentialsParser<T extends CredentialsDefinition, U extends Credentials> {
+public interface CredentialsParser<T extends CredentialsDefinition, U extends Credentials>
+    extends SpinnakerExtensionPoint {
   /** Parses a definition into credentials. Can return null if the definition is to be ignored. */
   @Nullable
   U parse(T credentials);

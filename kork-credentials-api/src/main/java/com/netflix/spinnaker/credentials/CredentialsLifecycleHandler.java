@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.credentials;
 
+import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
+
 /**
  * After {@link Credentials} have been parsed, they can be activated, refreshed, or retired - e.g.
  * adding agents. This happens before credentials are added or updated in the {@link
@@ -23,7 +25,8 @@ package com.netflix.spinnaker.credentials;
  *
  * @param <T>
  */
-public interface CredentialsLifecycleHandler<T extends Credentials> {
+public interface CredentialsLifecycleHandler<T extends Credentials>
+    extends SpinnakerExtensionPoint {
 
   /**
    * Credentials have been added. This is called before credentials are available in {@link

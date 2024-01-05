@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Armory
+ * Copyright 2023 Apple Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,12 @@
 
 package com.netflix.spinnaker.credentials.definition;
 
+import com.netflix.spinnaker.credentials.Credentials;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
-import java.util.List;
 
-/**
- * A source of credentials definitions. It could be backed by Spring properties or fetched from an
- * external system.
- *
- * @param <T>
- */
-public interface CredentialsDefinitionSource<T extends CredentialsDefinition>
-    extends SpinnakerExtensionPoint {
-  List<T> getCredentialsDefinitions();
+public interface CredentialsLoader<T extends Credentials> extends SpinnakerExtensionPoint {
+  CredentialsRepository<T> getCredentialsRepository();
+
+  void load();
 }
