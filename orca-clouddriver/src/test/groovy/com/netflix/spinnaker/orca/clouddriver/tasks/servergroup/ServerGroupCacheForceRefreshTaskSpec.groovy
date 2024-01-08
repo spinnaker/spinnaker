@@ -85,7 +85,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   void "should auto-succeed if force cache refresh takes longer than 12 minutes"() {
     setup:
     task.clock = Mock(Clock) {
-      1 * millis() >> TimeUnit.MINUTES.toMillis(12) + 1
+      2 * millis() >> TimeUnit.MINUTES.toMillis(12) + 1
     }
 
     expect:

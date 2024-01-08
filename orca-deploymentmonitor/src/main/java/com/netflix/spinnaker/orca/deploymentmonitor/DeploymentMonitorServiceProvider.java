@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.deploymentmonitor;
 
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.exceptions.UserException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog;
 import java.util.HashMap;
 import java.util.List;
@@ -81,6 +82,7 @@ public class DeploymentMonitorServiceProvider {
               .setLogLevel(retrofitLogLevel)
               .setLog(new RetrofitSlf4jLog(DeploymentMonitorService.class))
               .setConverter(new JacksonConverter())
+              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
               .build()
               .create(DeploymentMonitorService.class);
 

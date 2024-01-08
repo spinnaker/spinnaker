@@ -19,6 +19,7 @@ apply from: "$rootDir/gradle/spock.gradle"
 dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
+  implementation("io.spinnaker.kork:kork-retrofit")
 
   implementation("org.springframework.boot:spring-boot-autoconfigure")
 
