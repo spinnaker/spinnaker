@@ -21,10 +21,6 @@ dependencies {
     runtimeOnly(project(":clouddriver-sql-postgres"))
   }
 
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"

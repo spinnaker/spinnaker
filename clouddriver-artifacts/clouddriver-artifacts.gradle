@@ -22,10 +22,6 @@ dependencies {
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
 
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
   implementation "com.amazonaws:aws-java-sdk-s3"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"

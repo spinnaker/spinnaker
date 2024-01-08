@@ -9,13 +9,4 @@ dependencies {
   implementation "org.spockframework:spock-spring"
   implementation "cglib:cglib-nodep"
   implementation "org.objenesis:objenesis"
-
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-}
-test{
-  useJUnitPlatform()
 }

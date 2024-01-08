@@ -1,8 +1,4 @@
 dependencies {
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
   implementation "com.google.api-client:google-api-client"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "io.spinnaker.kork:kork-annotations"

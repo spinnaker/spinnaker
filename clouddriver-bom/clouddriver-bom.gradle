@@ -22,7 +22,7 @@ javaPlatform {
 }
 
 dependencies {
-  api(platform("io.spinnaker.kork:kork-bom:$korkVersion"))
+  api(enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion"))
 
   constraints {
     api("io.spinnaker.fiat:fiat-api:$fiatVersion")

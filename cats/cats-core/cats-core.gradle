@@ -6,15 +6,8 @@ dependencies {
   implementation "org.codehaus.groovy:groovy"
   implementation "com.google.guava:guava"
 
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
   testImplementation project(":cats:cats-test")
 
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
-}
-test{
-  useJUnitPlatform()
 }

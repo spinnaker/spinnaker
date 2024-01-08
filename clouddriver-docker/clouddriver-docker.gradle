@@ -4,9 +4,6 @@ dependencies {
   implementation project(":clouddriver-security")
   implementation project(":cats:cats-core")
 
-  compileOnly "org.projectlombok:lombok"
-  testCompileOnly "org.projectlombok:lombok"
-
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.cloud:spring-cloud-context"

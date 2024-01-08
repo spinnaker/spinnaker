@@ -9,9 +9,6 @@ sourceSets {
 }
 
 dependencies {
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-
   implementation "com.google.guava:guava"
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-config"

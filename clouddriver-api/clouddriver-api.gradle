@@ -17,8 +17,8 @@
 apply plugin: 'java-library'
 
 dependencies {
-  implementation platform("io.spinnaker.kork:kork-bom:$korkVersion")
-  annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+  implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+  annotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
 
   api("io.spinnaker.kork:kork-plugins-api")
   api("io.spinnaker.kork:kork-credentials-api")

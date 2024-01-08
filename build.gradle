@@ -54,13 +54,22 @@ subprojects {
     sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
     dependencies {
-      implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      api enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
 
-      annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+      compileOnly enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      compileOnly "org.projectlombok:lombok"
+
+      annotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
       annotationProcessor "org.projectlombok:lombok"
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-      testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+
+      testAnnotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
       testAnnotationProcessor "org.projectlombok:lombok"
+
+      testCompileOnly enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      testCompileOnly "org.projectlombok:lombok"
+
+      testRuntimeOnly enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     }
 

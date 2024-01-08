@@ -7,10 +7,6 @@ dependencies {
   implementation project(":clouddriver-google-common")
   implementation project(":clouddriver-security")
 
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
   implementation "org.codehaus.groovy:groovy"
   implementation "org.codehaus.groovy:groovy-json"
   implementation "org.apache.commons:commons-lang3"

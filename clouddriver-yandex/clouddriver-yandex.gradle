@@ -9,10 +9,6 @@ dependencies {
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")
 
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
   implementation 'com.yandex.cloud:java-sdk-services:2.1.1'
   compileOnly "io.opencensus:opencensus-api"
   compileOnly "io.opencensus:opencensus-contrib-grpc-metrics"

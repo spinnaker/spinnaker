@@ -2,8 +2,6 @@ dependencies {
   implementation project(":cats:cats-core")
 
   compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
 
   implementation "org.codehaus.groovy:groovy"
   implementation "com.fasterxml.jackson.core:jackson-databind"

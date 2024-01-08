@@ -24,10 +24,6 @@ dependencies {
   implementation project(":clouddriver-security")
   implementation project(":clouddriver-saga")
 
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-  testAnnotationProcessor "org.projectlombok:lombok"
-
   implementation "javax.inject:javax.inject:1"
   implementation "com.amazonaws:aws-java-sdk"
   implementation "com.github.ben-manes.caffeine:guava"
