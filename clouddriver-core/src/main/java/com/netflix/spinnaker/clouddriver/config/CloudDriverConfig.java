@@ -94,8 +94,9 @@ import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRep
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.credentials.CompositeCredentialsRepository;
+import com.netflix.spinnaker.credentials.Credentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
-import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
+import com.netflix.spinnaker.credentials.definition.CredentialsLoader;
 import com.netflix.spinnaker.credentials.poller.PollerConfiguration;
 import com.netflix.spinnaker.credentials.poller.PollerConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
@@ -111,6 +112,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Provider;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -216,7 +218,7 @@ class CloudDriverConfig {
 
   @Bean
   PollerConfiguration pollerConfiguration(
-      List<AbstractCredentialsLoader<?>> pollers,
+      ObjectProvider<CredentialsLoader<? extends Credentials>> pollers,
       PollerConfigurationProperties pollerConfigurationProperties) {
     return new PollerConfiguration(pollerConfigurationProperties, pollers);
   }
