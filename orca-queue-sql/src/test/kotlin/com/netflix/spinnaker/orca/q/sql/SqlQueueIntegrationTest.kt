@@ -53,7 +53,6 @@ import java.time.Duration
 import java.util.Optional
 import org.jooq.DSLContext
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -67,13 +66,13 @@ class SqlTestConfig {
     return testDatabase.context
   }
 
-  @Autowired
+  @Bean
   fun sqlQueueObjectMapper(
     mapper: ObjectMapper,
     objectMapperSubtypeProperties: ObjectMapperSubtypeProperties,
     taskResolver: TaskResolver
-  ) {
-    mapper.apply {
+  ): ObjectMapper {
+    return mapper.apply {
       registerModule(KotlinModule.Builder().build())
       registerModule(
         SimpleModule()
