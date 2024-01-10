@@ -2,4 +2,6 @@ dependencies {
   implementation project(":kayenta-core")
   implementation project(":kayenta-google")
   api "com.google.apis:google-api-services-monitoring"
+
+  testImplementation 'org.mockito:mockito-inline'
 }
