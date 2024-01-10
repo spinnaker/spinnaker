@@ -68,7 +68,7 @@ public class KubernetesJobStatus implements JobStatus {
     this.account = account;
     this.name = job.getMetadata().getName();
     this.location = job.getMetadata().getNamespace();
-    this.createdTime = job.getMetadata().getCreationTimestamp().getMillis();
+    this.createdTime = job.getMetadata().getCreationTimestamp().toInstant().toEpochMilli();
   }
 
   @Override

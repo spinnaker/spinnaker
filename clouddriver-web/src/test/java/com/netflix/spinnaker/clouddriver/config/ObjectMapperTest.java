@@ -26,8 +26,8 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodCondition;
 import io.kubernetes.client.openapi.models.V1PodStatus;
+import java.time.OffsetDateTime;
 import java.util.List;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,14 +53,14 @@ public class ObjectMapperTest {
   public void testJodaTimeSerializationForKubernetesJob() {
     V1Job job = new V1Job();
     V1ObjectMeta metadata = new V1ObjectMeta();
-    metadata.setCreationTimestamp(DateTime.now());
+    metadata.setCreationTimestamp(OffsetDateTime.now());
     job.setMetadata(metadata);
     KubernetesJobStatus kubernetesJobStatus = new KubernetesJobStatus(job, "kubernetesAccount");
 
     V1Pod pod = new V1Pod();
     V1PodStatus status = new V1PodStatus();
     V1PodCondition condition = new V1PodCondition();
-    condition.setLastTransitionTime(DateTime.now());
+    condition.setLastTransitionTime(OffsetDateTime.now());
     status.setConditions(List.of(condition));
     pod.setStatus(status);
     V1ObjectMeta metadataPod = new V1ObjectMeta();
