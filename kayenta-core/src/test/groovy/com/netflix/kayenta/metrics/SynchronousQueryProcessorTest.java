@@ -26,7 +26,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -118,7 +118,7 @@ public class SynchronousQueryProcessorTest {
             any(CanaryConfig.class),
             any(CanaryMetricConfig.class),
             any(CanaryScope.class));
-    verifyZeroInteractions(storageService);
+    verifyNoMoreInteractions(storageService);
   }
 
   @Test
@@ -198,7 +198,7 @@ public class SynchronousQueryProcessorTest {
             any(CanaryConfig.class),
             any(CanaryMetricConfig.class),
             any(CanaryScope.class));
-    verifyZeroInteractions(storageService);
+    verifyNoMoreInteractions(storageService);
   }
 
   @Test
@@ -226,7 +226,7 @@ public class SynchronousQueryProcessorTest {
             any(CanaryConfig.class),
             any(CanaryMetricConfig.class),
             any(CanaryScope.class));
-    verifyZeroInteractions(storageService);
+    verifyNoMoreInteractions(storageService);
   }
 
   @Test
@@ -256,7 +256,7 @@ public class SynchronousQueryProcessorTest {
             any(CanaryConfig.class),
             any(CanaryMetricConfig.class),
             any(CanaryScope.class));
-    verifyZeroInteractions(storageService);
+    verifyNoMoreInteractions(storageService);
   }
 
   private SpinnakerHttpException getSpinnakerHttpException(int status) {
