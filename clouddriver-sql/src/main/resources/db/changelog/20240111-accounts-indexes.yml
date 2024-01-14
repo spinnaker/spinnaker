@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: delete-unused-indexes
+      author: dzheng
+      changes:
+        - dropIndex:
+            indexName: accounts_type_index
+            tableName: accounts
+        - dropIndex:
+            indexName: accounts_timestamp_index
+            tableName: accounts
+      rollback:
+        - createIndex:
+            indexName: accounts_type_index
+            tableName: accounts
+            columns:
+              - column:
+                  name: id
+              - column:
+                  name: type
+        - createIndex:
+            indexName: accounts_timestamp_index
+            tableName: accounts
+            columns:
+              - column:
+                  name: id
+              - column:
+                  name: type
+              - column:
+                  name: created_at
+              - column:
+                  name: last_modified_at
+
+  - changeSet:
+      id: create-type-index
+      author: dzheng
+      changes:
+        - createIndex:
+            indexName: accounts_type_index
+            tableName: accounts
+            columns:
+              - column:
+                  name: type
+      rollback:
+        - dropIndex:
+            indexName: accounts_type_index
+            tableName: accounts
