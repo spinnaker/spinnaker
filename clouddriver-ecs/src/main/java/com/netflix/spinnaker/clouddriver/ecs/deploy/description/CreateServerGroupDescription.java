@@ -99,6 +99,7 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   String taskDefinitionArtifactAccount;
   Map<String, String> containerToImageMap;
   boolean enableExecuteCommand;
+  boolean enableDeploymentCircuitBreaker;
 
   /**
    * @deprecated this field only allows for one container to be specified. ECS supports the ability

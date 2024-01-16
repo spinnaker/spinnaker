@@ -536,6 +536,12 @@ public class CreateServerGroupAtomicOperation
     DeploymentConfiguration deploymentConfiguration =
         new DeploymentConfiguration().withMinimumHealthyPercent(100).withMaximumPercent(200);
 
+    DeploymentCircuitBreaker deploymentCircuitBreaker =
+        new DeploymentCircuitBreaker()
+            .withEnable(description.isEnableDeploymentCircuitBreaker())
+            .withRollback(false);
+    deploymentConfiguration.setDeploymentCircuitBreaker(deploymentCircuitBreaker);
+
     CreateServiceRequest request =
         new CreateServiceRequest()
             .withServiceName(newServerGroupName.getServiceName())

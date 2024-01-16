@@ -180,6 +180,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.launchType == null
       request.platformVersion == null
       request.enableExecuteCommand == false
+      request.deploymentConfiguration.deploymentCircuitBreaker.enable == false
     }) >> new CreateServiceResult().withService(service)
 
     result.getServerGroupNames().size() == 1
@@ -246,7 +247,8 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       securityGroupNames: ['helloworld'],
       associatePublicIpAddress: true,
       serviceDiscoveryAssociations: [serviceRegistry],
-      enableExecuteCommand: true
+      enableExecuteCommand: true,
+      enableDeploymentCircuitBreaker: true
     )
 
     def operation = new CreateServerGroupAtomicOperation(description)
@@ -311,6 +313,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.launchType == 'FARGATE'
       request.platformVersion == '1.0.0'
       request.enableExecuteCommand == true
+      request.deploymentConfiguration.deploymentCircuitBreaker.enable == true
     } as CreateServiceRequest) >> new CreateServiceResult().withService(service)
 
     result.getServerGroupNames().size() == 1
