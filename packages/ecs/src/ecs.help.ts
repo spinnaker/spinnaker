@@ -36,6 +36,7 @@ const helpContents: { [key: string]: string } = {
   'ecs.placementStrategy':
     '<p>The strategy the container scheduler will be using.  See <a href="http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html" target="_blank">AWS documentation</a> for more details. </p><p>You should at least balance across availability zones</p><p>Custom placement strategies have not been implemented yet.</p>',
   'ecs.platformVersion': '<p>Defaults to the latest platform version.</p>',
+  'ecs.enableDeploymentCircuitBreaker': '<p>Enable circuit breaker for the ECS service.</p>',
   'ecs.capacity.copySourceScalingPoliciesAndActions':
     '<p>Copy Application Autoscaling policies and their associated alarms from the previous ECS service.</p>',
   'ecs.launchtype': '<p>Launch service tasks on your own EC2 instances or on Fargate.</p>',

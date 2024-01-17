@@ -151,6 +151,7 @@ angular
               copySourceScalingPoliciesAndActions: true,
               preferSourceCapacity: true,
               useSourceCapacity: true,
+              enableDeploymentCircuitBreaker: false,
               viewState: {
                 useAllImageSelection: false,
                 useSimpleCapacity: true,
