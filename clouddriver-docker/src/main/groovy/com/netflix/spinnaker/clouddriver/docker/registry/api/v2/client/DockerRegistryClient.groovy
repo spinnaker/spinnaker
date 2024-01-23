@@ -497,7 +497,7 @@ class DockerRegistryClient {
         // note, this is a workaround for registries that should be returning
         // 401 when a token expires
         if ([400, 401].contains(status)) {
-          String authenticateHeader = null
+          List<String> authenticateHeader = null
 
           error.headers.entrySet().forEach { header ->
             if (header.key.equalsIgnoreCase("www-authenticate")) {
@@ -505,7 +505,7 @@ class DockerRegistryClient {
             }
           }
 
-          if (!authenticateHeader) {
+          if (!authenticateHeader || authenticateHeader.isEmpty()) {
             log.warn "Registry $address returned status $status for request '$target' without a WWW-Authenticate header"
             tokenService.clearToken(target)
             throw error
@@ -513,19 +513,21 @@ class DockerRegistryClient {
 
           String bearerPrefix = "bearer "
           String basicPrefix = "basic "
-          if (bearerPrefix.equalsIgnoreCase(authenticateHeader.substring(0, bearerPrefix.length()))) {
-            // If we got a 401 and the request requires bearer auth, get a new token and try again
-            dockerToken = tokenService.getToken(target, authenticateHeader.substring(bearerPrefix.length()))
-            token = "Bearer ${(dockerToken.bearer_token ?: dockerToken.token) ?: dockerToken.access_token}"
-            response = withToken(token)
-          } else if (basicPrefix.equalsIgnoreCase(authenticateHeader.substring(0, basicPrefix.length()))) {
-            // If we got a 401 and the request requires basic auth, there's no point in trying again
-            tokenService.clearToken(target)
-            throw error
-          } else {
-            tokenService.clearToken(target)
-            throw new DockerRegistryAuthenticationException("Docker registry must support 'Bearer' or 'Basic' authentication.")
+          for (String headerValue in authenticateHeader) {
+            if (bearerPrefix.equalsIgnoreCase(headerValue.substring(0, bearerPrefix.length()))) {
+              // If we got a 401 and the request requires bearer auth, get a new token and try again
+              dockerToken = tokenService.getToken(target, headerValue.substring(bearerPrefix.length()))
+              token = "Bearer ${(dockerToken.bearer_token ?: dockerToken.token) ?: dockerToken.access_token}"
+              return withToken(token)
+            } else if (basicPrefix.equalsIgnoreCase(headerValue.substring(0, basicPrefix.length()))) {
+              // If we got a 401 and the request requires basic auth, there's no point in trying again
+              tokenService.clearToken(target)
+              throw error
+            }
           }
+
+          tokenService.clearToken(target)
+          throw new DockerRegistryAuthenticationException("Docker registry must support 'Bearer' or 'Basic' authentication.")
         } else {
           throw error
         }

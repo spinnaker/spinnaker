@@ -16,7 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import org.springframework.http.HttpStatus
+import retrofit.RetrofitError
+import retrofit.client.Header
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import retrofit.mime.TypedInput
@@ -181,5 +186,22 @@ class DockerRegistryClientSpec extends Specification {
     then:
     results?.config?.Labels != null
     results?.config?.Labels?.commitId == "b48e2cf960de545597411c99ec969e47a7635ba3"
+  }
+
+  void "DockerRegistryClient should honor the www-authenticate header"() {
+    setup:
+    def authenticateDetails = "realm=\"https://auth.docker.io/token\",service=\"registry.docker.io\",scope=\"repository:${REPOSITORY1}:pull\""
+    def unauthorizedRetroFitError = RetrofitError.httpError("url",
+      new Response("url", HttpStatus.UNAUTHORIZED.value(), "authentication required", [new Header("www-authenticate", "Bearer ${authenticateDetails}")], null),
+      null, null)
+    DockerBearerToken token = new DockerBearerToken()
+    token.bearer_token = "bearer-token"
+
+    when:
+    client = new DockerRegistryClient("https://index.docker.io", 100, "", "", stubbedRegistryService, dockerBearerTokenService)
+    client.request(() -> {throw new SpinnakerHttpException(unauthorizedRetroFitError)}, (_) -> null, REPOSITORY1)
+
+    then:
+      1 * dockerBearerTokenService.getToken(REPOSITORY1, authenticateDetails) >> token
   }
 }
