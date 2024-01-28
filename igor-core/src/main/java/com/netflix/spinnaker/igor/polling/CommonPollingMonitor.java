@@ -24,13 +24,17 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 import javax.annotation.PreDestroy;
 import net.logstash.logback.argument.StructuredArguments;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
@@ -44,15 +48,15 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
   protected final Id missedNotificationId;
   private final DiscoveryStatusListener discoveryStatusListener;
   private final AtomicLong lastPoll = new AtomicLong();
-  private final Id itemsCachedId;
-  private final Id itemsOverThresholdId;
-  private final Id pollCycleFailedId;
-  private final Id pollCycleTimingId;
   private final Optional<LockService> lockService;
   private ScheduledFuture<?> monitor;
+  private final CommonPollingMonitorInstrumentation instrumentation;
   protected Logger log = LoggerFactory.getLogger(getClass());
   protected TaskScheduler scheduler;
   protected final DynamicConfigService dynamicConfigService;
+
+  private Map<String, AtomicInteger> itemsOverThresholdMap = new ConcurrentHashMap<>();
+  private Map<String, AtomicInteger> itemsCachedMap = new ConcurrentHashMap<>();
 
   public CommonPollingMonitor(
       IgorConfigurationProperties igorProperties,
@@ -67,12 +71,9 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     this.discoveryStatusListener = discoveryStatusListener;
     this.lockService = lockService;
     this.scheduler = scheduler;
+    this.instrumentation = new CommonPollingMonitorInstrumentation(registry);
 
-    itemsCachedId = registry.createId("pollingMonitor.newItems");
-    itemsOverThresholdId = registry.createId("pollingMonitor.itemsOverThreshold");
-    pollCycleFailedId = registry.createId("pollingMonitor.failed");
     missedNotificationId = registry.createId("pollingMonitor.missedEchoNotification");
-    pollCycleTimingId = registry.createId("pollingMonitor.pollTiming");
   }
 
   @Override
@@ -86,20 +87,19 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     this.monitor =
         scheduler.schedule(
             () ->
-                registry
-                    .timer(pollCycleTimingId.withTag("monitor", getClass().getSimpleName()))
-                    .record(
-                        () -> {
-                          if (isInService()) {
-                            poll(true);
-                            lastPoll.set(System.currentTimeMillis());
-                          } else {
-                            log.info(
-                                "not in service (lastPoll: {})",
-                                (lastPoll.get() == 0) ? "n/a" : lastPoll.toString());
-                            lastPoll.set(0);
-                          }
-                        }),
+                instrumentation.trackPollCycleTime(
+                    this.getName(),
+                    () -> {
+                      if (isInService()) {
+                        poll(true);
+                        lastPoll.set(System.currentTimeMillis());
+                      } else {
+                        log.info(
+                            "not in service (lastPoll: {})",
+                            (lastPoll.get() == 0) ? "n/a" : lastPoll.toString());
+                        lastPoll.set(0);
+                      }
+                    }),
             new PeriodicTrigger(getPollInterval(), TimeUnit.SECONDS));
   }
 
@@ -163,7 +163,17 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
   }
 
   protected void internalPollSingle(PollContext ctx) {
-    String monitorName = getClass().getSimpleName();
+    String monitorName =
+        !StringUtils.isBlank(this.getName()) ? this.getName() : getClass().getSimpleName();
+
+    itemsCachedMap.putIfAbsent(ctx.partitionName, new AtomicInteger(0));
+    itemsOverThresholdMap.putIfAbsent(ctx.partitionName, new AtomicInteger(0));
+
+    instrumentation.trackItemsCached(
+        itemsCachedMap.get(ctx.partitionName), monitorName, ctx.partitionName);
+
+    instrumentation.trackItemsOverThreshold(
+        itemsOverThresholdMap.get(ctx.partitionName), monitorName, ctx.partitionName);
 
     try {
       T delta = generateDelta(ctx);
@@ -175,58 +185,40 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
       boolean sendEvents = !ctx.fastForward;
       int deltaSize = delta.getItems().size();
       if (deltaSize > upperThreshold) {
-        registry
-            .gauge(
-                itemsOverThresholdId.withTags(
-                    "monitor", monitorName, "partition", ctx.partitionName))
-            .set(deltaSize);
+        itemsOverThresholdMap.get(ctx.partitionName).set(deltaSize);
         if (ctx.fastForward) {
           log.warn(
               "Fast forwarding items ({}) in {} {}",
-              deltaSize,
+              itemsOverThresholdMap.get(ctx.partitionName).get(),
               StructuredArguments.kv("monitor", monitorName),
               StructuredArguments.kv("partition", ctx.partitionName));
           sendEvents = false;
         } else {
           log.error(
               "Number of items ({}) to cache exceeds upper threshold ({}) in {} {}",
-              deltaSize,
+              itemsOverThresholdMap.get(ctx.partitionName).get(),
               upperThreshold,
               StructuredArguments.kv("monitor", monitorName),
               StructuredArguments.kv("partition", ctx.partitionName));
           return;
         }
       } else {
-        registry
-            .gauge(
-                itemsOverThresholdId.withTags(
-                    "monitor", monitorName, "partition", ctx.partitionName))
-            .set(0);
+        itemsOverThresholdMap.get(ctx.partitionName).set(0);
       }
 
       sendEvents = sendEvents && isSendEventsEnabled();
 
       commitDelta(delta, sendEvents);
-      registry
-          .gauge(itemsCachedId.withTags("monitor", monitorName, "partition", ctx.partitionName))
-          .set(deltaSize);
+      itemsCachedMap.get(ctx.partitionName).set(deltaSize);
     } catch (Exception e) {
       log.error(
           "Failed to update monitor items for {}:{}",
           StructuredArguments.kv("monitor", monitorName),
           StructuredArguments.kv("partition", ctx.partitionName),
           e);
-      registry
-          .counter(
-              pollCycleFailedId.withTags("monitor", monitorName, "partition", ctx.partitionName))
-          .increment();
-      registry
-          .gauge(itemsCachedId.withTags("monitor", monitorName, "partition", ctx.partitionName))
-          .set(0);
-      registry
-          .gauge(
-              itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName))
-          .set(0);
+      instrumentation.trackPollCycleFailed(monitorName, ctx.partitionName);
+      itemsCachedMap.get(ctx.partitionName).set(0);
+      itemsOverThresholdMap.get(ctx.partitionName).set(0);
     }
   }
 

@@ -7,4 +7,6 @@ dependencies {
 
   // TODO(rz): Get rid of this dependency!
   implementation "com.squareup.retrofit:retrofit"
+
+  testImplementation "com.netflix.spectator:spectator-reg-micrometer"
 }
