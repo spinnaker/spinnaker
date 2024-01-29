@@ -52,6 +52,7 @@ class RestartStageHandler(
       if (topStage.status.isComplete || topStage.status == NOT_STARTED) {
         topStage.addRestartDetails(message.user)
         topStage.reset()
+        topStage.resetChildren()
         if (stage.execution.shouldQueue()) {
           // this pipeline is already running and has limitConcurrent = true
           if (topStage.execution.status == NOT_STARTED) {
@@ -126,8 +127,10 @@ class RestartStageHandler(
 
       removeSynthetics()
     }
+  }
 
-    downstreamStages().forEach { it.reset() }
+  private fun StageExecution.resetChildren() {
+    allDownstreamStages().forEach { it.reset() }
   }
 
   private fun StageExecution.removeSynthetics() {

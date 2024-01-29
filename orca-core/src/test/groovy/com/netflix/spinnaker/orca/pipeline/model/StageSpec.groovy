@@ -206,6 +206,57 @@ class StageSpec extends Specification {
     descendants.find {it.refId == "7"} != null
   }
 
+  def "descendents do not multiply"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        refId = "0"
+      }
+      stage {
+        refId = "1"
+        requisiteStageRefIds = ["0"]
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["0"]
+      }
+      stage {
+        refId = "3"
+        requisiteStageRefIds = ["0"]
+      }
+      stage {
+        refId = "4"
+        requisiteStageRefIds = ["1", "2", "3"]
+      }
+      stage {
+        refId = "5"
+        requisiteStageRefIds = ["1", "2", "3"]
+      }
+      stage {
+        refId = "6"
+        requisiteStageRefIds = ["1", "2", "3"]
+      }
+      stage {
+        refId = "7"
+        requisiteStageRefIds = ["4", "5", "6"]
+      }
+    }
+
+    def stage = pipeline.stageByRef("0")
+
+    when:
+    def descendants = stage.allDownstreamStages()
+
+    then:
+    descendants.size() == 7
+    descendants.find {it.refId == "2"} != null
+    descendants.find {it.refId == "3"} != null
+    descendants.find {it.refId == "4"} != null
+    descendants.find {it.refId == "5"} != null
+    descendants.find {it.refId == "6"} != null
+    descendants.find {it.refId == "7"} != null
+  }
+
   def "should not fail on no descendents"() {
     given:
     def pipeline = pipeline {
