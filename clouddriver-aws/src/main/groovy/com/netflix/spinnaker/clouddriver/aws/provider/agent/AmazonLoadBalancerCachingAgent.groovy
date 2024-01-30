@@ -17,7 +17,12 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.*
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesRequest
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
+import com.amazonaws.services.elasticloadbalancing.model.DescribeTagsRequest
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
@@ -32,9 +37,10 @@ import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
-import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 
 class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAgent {
 
@@ -55,9 +61,9 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
 
   @Override
   Optional<Map<String, String>> getCacheKeyPatterns() {
-    return [
+    return Optional.of([
       (LOAD_BALANCERS.ns): Keys.getLoadBalancerKey('*', account.name, region, 'vpc-????????', null)
-    ]
+    ])
   }
 
   @Override

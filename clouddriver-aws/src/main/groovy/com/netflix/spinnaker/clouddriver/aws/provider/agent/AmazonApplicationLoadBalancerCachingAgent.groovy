@@ -82,9 +82,9 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
   @Override
   Optional<Map<String, String>> getCacheKeyPatterns() {
-    return [
+    return Optional.of([
       (LOAD_BALANCERS.ns): Keys.getLoadBalancerKey('*', account.name, region, 'vpc-????????', '*')
-    ]
+    ])
   }
 
   @Override

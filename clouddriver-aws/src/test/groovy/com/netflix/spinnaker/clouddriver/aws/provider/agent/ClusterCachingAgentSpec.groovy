@@ -37,6 +37,8 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
+
 class ClusterCachingAgentSpec extends Specification {
   static String region = 'region'
   static String accountName = 'accountName'
@@ -214,6 +216,20 @@ class ClusterCachingAgentSpec extends Specification {
     null                          | [taggify("hello", "goodbye")] | ["test-hello-tag-value-different", "test-hello-tag-no-value", "test-no-hello-tag", "test-no-tags"]
     [taggify("hello", "goodbye")] | [taggify("hello")]            | []
     [taggify(".*", "ciao")]       | [taggify("hello", ".*")]      | []
+  }
+
+  void "should get correct cache key pattern"() {
+    given:
+    def agent = getAgent()
+
+    when:
+    def cacheKeyPatterns = agent.getCacheKeyPatterns()
+
+    then:
+    cacheKeyPatterns.isPresent()
+    cacheKeyPatterns.get() == [
+      (SERVER_GROUPS.ns): "aws:serverGroups:*:accountName:region:*"
+    ]
   }
 
   private static final List<AutoScalingGroup> filterableASGs = [

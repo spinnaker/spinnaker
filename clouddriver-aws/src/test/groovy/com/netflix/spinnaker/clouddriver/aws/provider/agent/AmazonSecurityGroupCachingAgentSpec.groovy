@@ -98,4 +98,18 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     cache.cacheResults[SECURITY_GROUPS.ns] == existingCacheData
 
   }
+
+  void "should get correct cache key pattern"() {
+    given:
+    def agent = getAgent()
+
+    when:
+    def cacheKeyPatterns = agent.getCacheKeyPatterns()
+
+    then:
+    cacheKeyPatterns.isPresent()
+    cacheKeyPatterns.get() == [
+      (SECURITY_GROUPS.ns): "aws:securityGroups:*:*:region:account:*"
+    ]
+  }
 }

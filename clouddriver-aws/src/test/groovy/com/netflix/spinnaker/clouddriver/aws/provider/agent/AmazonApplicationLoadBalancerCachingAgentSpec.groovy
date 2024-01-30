@@ -112,6 +112,20 @@ class AmazonApplicationLoadBalancerCachingAgentSpec extends Specification {
     [taggify(".*", "ciao")]       | [taggify("hello", ".*")]      | buildCacheKeys([])
   }
 
+  void "should get correct cache key pattern"() {
+    given:
+    def agent = getAgent()
+
+    when:
+    def cacheKeyPatterns = agent.getCacheKeyPatterns()
+
+    then:
+    cacheKeyPatterns.isPresent()
+    cacheKeyPatterns.get() == [
+      loadBalancers: buildCacheKey("*:vpc-????????:*")
+    ]
+  }
+
   private static final Map<LoadBalancer, List<TagDescription>> filterableLBs() {
     return [
       (new LoadBalancer().withLoadBalancerName("test-hello-tag-value").withLoadBalancerArn(buildELBArn("test-hello-tag-value")))                    :
