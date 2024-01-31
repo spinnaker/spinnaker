@@ -1,0 +1,141 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-pipelines-compressed-executions-table
+      author: apattan
+      changes:
+      - createTable:
+          tableName: pipelines_compressed_executions
+          columns:
+          - column:
+              name: id
+              type: char(26)
+              constraints:
+                primaryKey: true
+                nullable: false
+          - column:
+              name: compressed_body
+              type: longblob
+              constraints:
+                nullable: false
+      - sql:
+          dbms: mysql
+          sql: ALTER TABLE `pipelines_compressed_executions` ADD COLUMN `compression_type` ENUM("GZIP", "ZLIB") NOT NULL DEFAULT "ZLIB"
+      - addForeignKeyConstraint:
+          baseColumnNames: id
+          baseTableName: pipelines_compressed_executions
+          constraintName: pipelines_compressed_executions_id_fk
+          onDelete: CASCADE
+          onUpdate: RESTRICT
+          referencedColumnNames: id
+          referencedTableName: pipelines
+      rollback:
+        - dropTable:
+            tableName: pipelines_compressed_executions
+        - dropForeignKeyConstraint:
+            constraintName: pipelines_compressed_executions_id_fk
+            baseTableName: pipelines_compressed_executions
+  - changeSet:
+      id: create-pipeline-stages-compressed-executions-table
+      author: apattan
+      changes:
+      - createTable:
+          tableName: pipeline_stages_compressed_executions
+          columns:
+          - column:
+              name: id
+              type: char(26)
+              constraints:
+                primaryKey: true
+                nullable: false
+          - column:
+              name: compressed_body
+              type: longblob
+              constraints:
+                nullable: false
+      - sql:
+          dbms: mysql
+          sql: ALTER TABLE `pipeline_stages_compressed_executions` ADD COLUMN `compression_type` ENUM("GZIP", "ZLIB") NOT NULL DEFAULT "ZLIB"
+      - addForeignKeyConstraint:
+          baseColumnNames: id
+          baseTableName: pipeline_stages_compressed_executions
+          constraintName: pipeline_stages_compressed_executions_id_fk
+          onDelete: CASCADE
+          onUpdate: RESTRICT
+          referencedColumnNames: id
+          referencedTableName: pipeline_stages
+      rollback:
+        - dropTable:
+            tableName: pipeline_stages_compressed_executions
+        - dropForeignKeyConstraint:
+            constraintName: pipeline_stages_compressed_executions_id_fk
+            baseTableName: pipeline_stages_compressed_executions
+  - changeSet:
+      id: create-orchestrations-compressed-executions-table
+      author: apattan
+      changes:
+      - createTable:
+          tableName: orchestrations_compressed_executions
+          columns:
+            - column:
+                name: id
+                type: char(26)
+                constraints:
+                  primaryKey: true
+                  nullable: false
+            - column:
+                name: compressed_body
+                type: longblob
+                constraints:
+                  nullable: false
+      - sql:
+          dbms: mysql
+          sql: ALTER TABLE `orchestrations_compressed_executions` ADD COLUMN `compression_type` ENUM("GZIP", "ZLIB") NOT NULL DEFAULT "ZLIB"
+      - addForeignKeyConstraint:
+          baseColumnNames: id
+          baseTableName: orchestrations_compressed_executions
+          constraintName: orchestrations_compressed_executions_id_fk
+          onDelete: CASCADE
+          onUpdate: RESTRICT
+          referencedColumnNames: id
+          referencedTableName: orchestrations
+      rollback:
+        - dropTable:
+            tableName: orchestrations_compressed_executions
+        - dropForeignKeyConstraint:
+            constraintName: orchestrations_compressed_executions_id_fk
+            baseTableName: orchestrations_compressed_executions
+  - changeSet:
+      id: create-orchestrations-stages-compressed-executions-table
+      author: apattan
+      changes:
+      - createTable:
+          tableName: orchestration_stages_compressed_executions
+          columns:
+            - column:
+                name: id
+                type: char(26)
+                constraints:
+                  primaryKey: true
+                  nullable: false
+            - column:
+                name: compressed_body
+                type: longblob
+                constraints:
+                  nullable: false
+      - sql:
+          dbms: mysql
+          sql: ALTER TABLE `orchestration_stages_compressed_executions` ADD COLUMN `compression_type` ENUM("GZIP", "ZLIB") NOT NULL DEFAULT "ZLIB"
+      - addForeignKeyConstraint:
+          baseColumnNames: id
+          baseTableName: orchestration_stages_compressed_executions
+          constraintName: orchestration_stages_compressed_executions_fk
+          onDelete: CASCADE
+          onUpdate: RESTRICT
+          referencedColumnNames: id
+          referencedTableName: orchestration_stages
+      rollback:
+        - dropTable:
+            tableName: orchestration_stages_compressed_executions
+        - dropForeignKeyConstraint:
+            constraintName: orchestration_stages_compressed_executions_fk
+            baseTableName: orchestration_stages_compressed_executions

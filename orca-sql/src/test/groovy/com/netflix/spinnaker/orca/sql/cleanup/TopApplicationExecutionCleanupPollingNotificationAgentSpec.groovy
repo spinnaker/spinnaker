@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.sql.cleanup
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.config.TopApplicationExecutionCleanupAgentConfigurationProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
+import org.jooq.SQLDialect
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
@@ -80,7 +82,7 @@ abstract class TopApplicationExecutionCleanupPollingNotificationAgentSpec extend
 
   def setupSpec() {
     currentDatabase = getDatabase()
-    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null, [])
+    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null, [], new ExecutionCompressionProperties())
   }
 
   def cleanup() {

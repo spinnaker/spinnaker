@@ -17,11 +17,15 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.config.CompressionType
+import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import java.sql.ResultSet
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
+import java.nio.charset.StandardCharsets
 
 /**
  * Converts a SQL [ResultSet] into an Execution.
@@ -31,10 +35,36 @@ import org.slf4j.LoggerFactory
  */
 class ExecutionMapper(
   private val mapper: ObjectMapper,
-  private val stageBatchSize: Int
+  private val stageBatchSize: Int,
+  private val compressionProperties: ExecutionCompressionProperties
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
+
+  /**
+   * Conditionally decompresses a compressed execution body. if present, and provides the
+   * execution body content as a string
+   *
+   * @param rs [ResultSet] to pull the body from
+   *
+   * @return the decompressed execution body content
+   */
+  @VisibleForTesting
+  fun getDecompressedBody(rs: ResultSet): String {
+    val body: String? = rs.getString("body")
+
+    // If compression is disabled, rs doesn't contain compression-related
+    // fields, so don't try to access them.
+    return if (compressionProperties.enabled && body.isNullOrEmpty()) {
+      val compressionType = CompressionType.valueOf(rs.getString("compression_type"))
+      val compressedBody = rs.getBytes("compressed_body")
+      compressionType.getInflator(compressedBody.inputStream())
+        .bufferedReader(StandardCharsets.UTF_8)
+        .use { it.readText() }
+    } else {
+      body ?: ""
+    }
+  }
 
   fun map(rs: ResultSet, context: DSLContext): Collection<PipelineExecution> {
     val results = mutableListOf<PipelineExecution>()
@@ -42,20 +72,23 @@ class ExecutionMapper(
     val legacyMap = mutableMapOf<String, String>()
 
     while (rs.next()) {
-      mapper.readValue<PipelineExecution>(rs.getString("body"))
-        .also {
-          execution ->
-          results.add(execution)
-          execution.partition = rs.getString("partition")
+      val body = getDecompressedBody(rs)
+      if (body.isNotEmpty()) {
+        mapper.readValue<PipelineExecution>(body)
+          .also {
+            execution ->
+            results.add(execution)
+            execution.partition = rs.getString("partition")
 
-          if (rs.getString("id") != execution.id) {
-            // Map legacyId executions to their current ULID
-            legacyMap[execution.id] = rs.getString("id")
-            executionMap[rs.getString("id")] = execution
-          } else {
-            executionMap[execution.id] = execution
+            if (rs.getString("id") != execution.id) {
+              // Map legacyId executions to their current ULID
+              legacyMap[execution.id] = rs.getString("id")
+              executionMap[rs.getString("id")] = execution
+            } else {
+              executionMap[execution.id] = execution
+            }
           }
-        }
+      }
     }
 
     if (results.isNotEmpty()) {
@@ -70,7 +103,7 @@ class ExecutionMapper(
           }
         }
 
-        context.selectExecutionStages(type, executionIds).let { stageResultSet ->
+        context.selectExecutionStages(type, executionIds, compressionProperties).let { stageResultSet ->
           while (stageResultSet.next()) {
             mapStage(stageResultSet, executionMap)
           }
@@ -90,7 +123,7 @@ class ExecutionMapper(
     executions.getValue(executionId)
       .stages
       .add(
-        mapper.readValue<StageExecution>(rs.getString("body"))
+        mapper.readValue<StageExecution>(getDecompressedBody(rs))
           .apply {
             execution = executions.getValue(executionId)
           }

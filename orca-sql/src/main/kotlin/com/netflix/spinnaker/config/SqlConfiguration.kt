@@ -52,7 +52,7 @@ import javax.sql.DataSource
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
-@EnableConfigurationProperties(OrcaSqlProperties::class)
+@EnableConfigurationProperties(OrcaSqlProperties::class, ExecutionCompressionProperties::class)
 @Import(DefaultSqlConfiguration::class)
 @ComponentScan("com.netflix.spinnaker.orca.sql")
 
@@ -72,7 +72,8 @@ class SqlConfiguration {
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     interlink: Optional<Interlink>,
-    executionRepositoryListeners: Collection<ExecutionRepositoryListener>
+    executionRepositoryListeners: Collection<ExecutionRepositoryListener>,
+    compressionProperties: ExecutionCompressionProperties
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -82,7 +83,8 @@ class SqlConfiguration {
       orcaSqlProperties.batchReadSize,
       orcaSqlProperties.stageReadSize,
       interlink = interlink.orElse(null),
-      executionRepositoryListeners = executionRepositoryListeners
+      executionRepositoryListeners = executionRepositoryListeners,
+      compressionProperties = compressionProperties
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "primary"))) as ExecutionRepository
     }
@@ -95,7 +97,8 @@ class SqlConfiguration {
     registry: Registry,
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
-    @Value("\${execution-repository.sql.secondary.pool-name}") poolName: String
+    @Value("\${execution-repository.sql.secondary.pool-name}") poolName: String,
+    compressionProperties: ExecutionCompressionProperties
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -104,7 +107,8 @@ class SqlConfiguration {
       properties.retries.transactions,
       orcaSqlProperties.batchReadSize,
       orcaSqlProperties.stageReadSize,
-      poolName
+      poolName,
+      compressionProperties = compressionProperties
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }

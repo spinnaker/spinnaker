@@ -18,8 +18,10 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.TestDatabase
+import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.interlink.Interlink
@@ -94,9 +96,9 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
   }
 
   ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null) {
-    return com.netflix.spinnaker.kork.telemetry.InstrumentedProxy.proxy(
+    return InstrumentedProxy.proxy(
         new DefaultRegistry(),
-        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink, []),
+        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink, [], new ExecutionCompressionProperties()),
         "namespace")
   }
 
