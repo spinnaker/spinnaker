@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # Remember to also update Dockerfile.*
-# KUBECTL_RELEASE kept one minor version behind latest to maximise compatibility overlap
-KUBECTL_RELEASE=1.22.17
+KUBECTL_DEFAULT_RELEASE=1.22.17
+KUBECTL_RELEASES="${KUBECTL_DEFAULT_RELEASE} 1.26.12 1.27.9 1.28.5 1.29.0"
 
 # ubuntu
 # check that owner group exists
@@ -17,9 +17,12 @@ fi
 
 install_kubectl() {
   if [ -z "$(which kubectl)" ]; then
-    wget "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl"
-    chmod +x kubectl
-    mv ./kubectl /usr/local/bin/kubectl
+    for version in $KUBECTL_RELEASES; do
+      release_version=$(echo "${version}" | cut -d. -f1,2); \
+      wget -nv "https://cdn.dl.k8s.io/release/v${version}/bin/linux/amd64/kubectl" -O "/usr/local/bin/kubectl-${release_version}";
+      chmod +x "/usr/local/bin/kubectl-${release_version}";
+    done
+    ln -sf "/usr/local/bin/kubectl-$(echo ${KUBECTL_DEFAULT_RELEASE} | cut -d. -f1,2)" /usr/local/bin/kubectl
   fi
 }
 

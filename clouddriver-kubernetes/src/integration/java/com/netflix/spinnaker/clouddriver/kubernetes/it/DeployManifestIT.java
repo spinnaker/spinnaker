@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.it;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -1844,6 +1847,9 @@ public class DeployManifestIT extends BaseTest {
                 + " get deployment "
                 + DEPLOYMENT_1_NAME
                 + " -o=jsonpath='{.metadata.managedFields[?(@.operation==\"Apply\")].manager}'");
+    // kubectl v1.26+ adds a "kubectl-last-applied" manager as well. Remove it. The jsonpath
+    // implementation in kubectl is really limited, so we have to do this in java.
+    applyManager = applyManager.replaceAll("\\s?kubectl-last-applied\\s?", "");
     assertEquals(
         "kubectl",
         applyManager,

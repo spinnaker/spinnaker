@@ -126,6 +126,7 @@ task integrationTest(type: Test) {
 
   environment "IT_BUILD_HOME", "$project.buildDir/it"
   environment "IMAGE", project.getProperties().get("kubernetes-image")
+  environment "KUBECTL_VERSION", project.getProperties().get("kubectl-version")
   environment "KUBERNETES_VERSION", project.getProperties().get("kubernetes-version")
   useJUnitPlatform()
 

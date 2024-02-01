@@ -21,14 +21,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import com.google.gson.Gson;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.springframework.util.FileCopyUtils;
 
@@ -37,7 +49,7 @@ public class KubernetesCluster {
   private static KubernetesCluster INSTANCE;
   private static final String IMAGE = System.getenv("IMAGE");
   private static final String KIND_VERSION = "0.20.0";
-  private static final String KUBECTL_VERSION = "1.22.17";
+  private static final String KUBECTL_VERSION = System.getenv("KUBECTL_VERSION");
   private static final Path IT_BUILD_HOME = Paths.get(System.getenv("IT_BUILD_HOME"));
   private static final Path KUBECFG_PATH = Paths.get(IT_BUILD_HOME.toString(), "kubecfg.yml");
   private static final Path KUBECTL_PATH = Paths.get(IT_BUILD_HOME.toString(), "kubectl");
@@ -149,8 +161,7 @@ public class KubernetesCluster {
     if (!kubectl.toFile().exists()) {
       String url =
           String.format(
-              "https://storage.googleapis.com/kubernetes-release/release/v%s/bin/%s/%s/kubectl",
-              KUBECTL_VERSION, os, arch);
+              "https://cdn.dl.k8s.io/release/v%s/bin/%s/%s/kubectl", KUBECTL_VERSION, os, arch);
       System.out.println("Downloading kubectl from " + url);
       downloadFile(kubectl, url);
     }

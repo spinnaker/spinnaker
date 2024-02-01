@@ -3,7 +3,8 @@ LABEL maintainer="sig-platform@spinnaker.io"
 ARG TARGETARCH
 ENV GOOGLE_CLOUD_SDK_VERSION=412.0.0
 ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
-ENV KUBECTL_RELEASE=1.22.17
+ENV KUBECTL_DEFAULT_RELEASE=1.22.17
+ENV KUBECTL_RELEASES="${KUBECTL_DEFAULT_RELEASE} 1.26.12 1.27.9 1.28.5 1.29.0"
 ENV AWS_CLI_VERSION=1.22
 ENV AWS_CLI_S3_CMD=2.0.2
 ENV AWS_AIM_AUTHENTICATOR_VERSION=0.5.9
@@ -27,13 +28,16 @@ RUN pip install --upgrade  --no-build-isolation awscli==${AWS_CLI_VERSION} s3cmd
   && apt remove -y python3-pip
 
 # kubectl + AWS IAM authenticator
-RUN wget https://cdn.dl.k8s.io/release/v${KUBECTL_RELEASE}/bin/linux/${TARGETARCH}/kubectl \
-  && chmod +x kubectl \
-  && mv ./kubectl /usr/local/bin/kubectl \
-  && wget -O aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_${TARGETARCH} \
-	&& chmod +x ./aws-iam-authenticator \
-	&& mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator\
-    && ln -sf /usr/local/bin/aws-iam-authenticator /usr/local/bin/heptio-authenticator-aws
+RUN for version in $KUBECTL_RELEASES; do \
+      release_version=$(echo ${version} | cut -d. -f1,2); \
+      wget -nv https://cdn.dl.k8s.io/release/v${version}/bin/linux/${TARGETARCH}/kubectl -O /usr/local/bin/kubectl-${release_version}; \
+      chmod +x /usr/local/bin/kubectl-${release_version}; \
+      done \
+  && ln -sf "/usr/local/bin/kubectl-$(echo ${KUBECTL_DEFAULT_RELEASE} | cut -d. -f1,2)" /usr/local/bin/kubectl \
+  && wget -nv -O aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_${TARGETARCH} \
+  && chmod +x ./aws-iam-authenticator \
+  && mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator\
+  && ln -sf /usr/local/bin/aws-iam-authenticator /usr/local/bin/heptio-authenticator-aws
 
 # Google cloud SDK
 RUN [ $TARGETARCH == 'amd64' ] &&  export GCP_ARCH="x86_64" || export GCP_ARCH="arm"  \
