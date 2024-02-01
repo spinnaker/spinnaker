@@ -8,6 +8,7 @@ Registry.pipeline.registerStage({
   label: 'Wait',
   description: 'Waits a specified period of time',
   key: 'wait',
+  restartable: true,
   component: WaitStageConfig,
   executionDetailsSections: [WaitExecutionDetails, ExecutionDetailsTasks],
   executionLabelComponent: WaitExecutionLabel,
