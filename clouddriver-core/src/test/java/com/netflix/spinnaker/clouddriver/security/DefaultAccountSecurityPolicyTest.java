@@ -30,10 +30,12 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class DefaultAccountSecurityPolicyTest {
   private static final String username = "testUser";
+  private static final String account = "testAccount";
   FiatPermissionEvaluator fiatPermissionEvaluator = mock(FiatPermissionEvaluator.class);
   DefaultAccountSecurityPolicy policy;
 
@@ -54,9 +56,8 @@ public class DefaultAccountSecurityPolicyTest {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   public void testIsAccountManager(boolean isAccountManager) {
-    // TODO: replace with UserPermission.View::setAccountManager after fiat updated
     when(fiatPermissionEvaluator.getPermission(username))
-        .thenReturn(new UserPermission.View().setAdmin(isAccountManager));
+        .thenReturn(new UserPermission.View().setAccountManager(isAccountManager));
 
     assertEquals(isAccountManager, policy.isAccountManager(username));
   }
@@ -78,7 +79,6 @@ public class DefaultAccountSecurityPolicyTest {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   public void testCanUseAccount_NotAdmin(boolean hasPermission) {
-    String account = "testAccount";
     when(fiatPermissionEvaluator.getPermission(username))
         .thenReturn(new UserPermission.View().setAdmin(false));
     when(fiatPermissionEvaluator.hasPermission(username, account, "account", Authorization.WRITE))
@@ -90,11 +90,22 @@ public class DefaultAccountSecurityPolicyTest {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   public void testCanModifyAccount(boolean isAdmin) {
-    /* TODO: when isAccountManager uses the account manager value, update to get value from
-    hasPermission mock. */
     when(fiatPermissionEvaluator.getPermission(username))
         .thenReturn(new UserPermission.View().setAdmin(isAdmin));
 
-    assertEquals(isAdmin, policy.canModifyAccount(username, "testAccount"));
+    assertEquals(isAdmin, policy.canModifyAccount(username, account));
+  }
+
+  @ParameterizedTest
+  @CsvSource({"false,false", "false,true", "true,false", "true,true"})
+  public void testCanModifyAccountAsAccountManager(
+      boolean isAccountManager, boolean hasWritePermission) {
+    when(fiatPermissionEvaluator.getPermission(username))
+        .thenReturn(new UserPermission.View().setAdmin(false).setAccountManager(isAccountManager));
+    when(fiatPermissionEvaluator.hasPermission(username, account, "account", Authorization.WRITE))
+        .thenReturn(hasWritePermission);
+
+    assertEquals(
+        isAccountManager && hasWritePermission, policy.canModifyAccount(username, account));
   }
 }

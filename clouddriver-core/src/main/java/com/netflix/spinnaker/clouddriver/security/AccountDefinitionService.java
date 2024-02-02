@@ -20,6 +20,7 @@ import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.secrets.SecretException;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -126,14 +127,21 @@ public class AccountDefinitionService {
     if (policy.isAdmin(username)) {
       return;
     }
-    var accountName = definition.getName();
+    Set<String> userRoles = policy.getRoles(username);
+    validateAccountAuthorization(userRoles, definition, action);
+    validateUserSecretAuthorization(userRoles, definition, action);
+  }
+
+  @VisibleForTesting
+  void validateAccountAuthorization(
+      Set<String> userRoles, CredentialsDefinition definition, AccountAction action) {
+    String accountName = definition.getName();
     var type = definition.getClass();
     Set<String> authorizedRoles =
         extractors.stream()
             .filter(extractor -> extractor.supportsType(type))
             .flatMap(extractor -> extractor.getAuthorizedRoles(definition).stream())
             .collect(Collectors.toSet());
-    var userRoles = policy.getRoles(username);
     // if the account defines authorized roles and the user has no roles in common with these
     // authorized roles, then the user attempted to create an account they'd immediately be
     // locked out from which is a poor user experience
@@ -144,11 +152,19 @@ public class AccountDefinitionService {
               "Cannot %s account without granting permissions for current user (name: %s)",
               action.name().toLowerCase(Locale.ROOT), accountName));
     }
+  }
+
+  @VisibleForTesting
+  void validateUserSecretAuthorization(
+      Set<String> userRoles, CredentialsDefinition definition, AccountAction action) {
+    var type = definition.getClass();
     Set<UserSecretReference> secretReferences = new HashSet<>();
     ReflectionUtils.doWithFields(
         type,
-        field ->
-            UserSecretReference.tryParse(field.get(definition)).ifPresent(secretReferences::add),
+        field -> {
+          field.setAccessible(true);
+          UserSecretReference.tryParse(field.get(definition)).ifPresent(secretReferences::add);
+        },
         field -> field.getType() == String.class);
     // if the account uses any UserSecrets and the user has no roles in common with any of
     // the UserSecrets, then don't allow the user to save this account due to lack of authorization
@@ -169,7 +185,8 @@ public class AccountDefinitionService {
     }
   }
 
-  private enum AccountAction {
+  @VisibleForTesting
+  enum AccountAction {
     CREATE,
     UPDATE,
     SAVE

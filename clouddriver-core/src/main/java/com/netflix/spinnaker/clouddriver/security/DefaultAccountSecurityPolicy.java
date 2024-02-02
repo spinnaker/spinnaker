@@ -84,7 +84,6 @@ public class DefaultAccountSecurityPolicy implements AccountSecurityPolicy {
   }
 
   private static boolean isAccountManager(UserPermission.View permission) {
-    // TODO(jvz): replace with UserPermission.View::isAccountManager after fiat updated
-    return permission.isAdmin();
+    return permission.isAccountManager();
   }
 }
