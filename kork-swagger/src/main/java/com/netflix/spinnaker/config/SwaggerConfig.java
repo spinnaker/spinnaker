@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.config;
 
-import static com.google.common.base.Predicates.or;
-
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -32,11 +29,9 @@ import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.paths.AbstractPathProvider;
+import springfox.documentation.spring.web.paths.DefaultPathProvider;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-@EnableSwagger2
 @Configuration
 @ConditionalOnProperty("swagger.enabled")
 @ConfigurationProperties(prefix = "swagger")
@@ -54,7 +49,7 @@ public class SwaggerConfig {
   @Bean
   public Docket gateApi() {
     return new Docket(DocumentationType.SWAGGER_2)
-        .pathProvider(new BasePathProvider(basePath, documentationPath))
+        .pathProvider(new BasePathProvider(documentationPath))
         .select()
         .apis(RequestHandlerSelectors.any())
         .paths(paths())
@@ -80,7 +75,7 @@ public class SwaggerConfig {
   }
 
   private Predicate<String> paths() {
-    return or(patterns.stream().map(PathSelectors::regex).collect(Collectors.toList()));
+    return patterns.stream().map(PathSelectors::regex).reduce((x, y) -> x.or(y)).get();
   }
 
   private ApiInfo apiInfo() {
@@ -123,18 +118,11 @@ public class SwaggerConfig {
     return documentationPath;
   }
 
-  public class BasePathProvider extends AbstractPathProvider {
-    private String basePath;
+  public class BasePathProvider extends DefaultPathProvider {
     private String documentationPath;
 
-    private BasePathProvider(String basePath, String documentationPath) {
-      this.basePath = basePath;
+    private BasePathProvider(String documentationPath) {
       this.documentationPath = documentationPath;
-    }
-
-    @Override
-    protected String applicationPath() {
-      return basePath;
     }
 
     @Override
