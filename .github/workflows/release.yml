@@ -53,7 +53,7 @@ jobs:
         run: sleep 300
       - name: Trigger dependency bump workflow
         if: steps.release_info.outputs.IS_CANDIDATE == 'false'
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
           event-type: bump-dependencies
