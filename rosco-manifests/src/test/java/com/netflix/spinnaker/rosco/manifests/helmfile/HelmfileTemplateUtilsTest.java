@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigurationProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
@@ -49,6 +50,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -72,6 +74,8 @@ final class HelmfileTemplateUtilsTest {
 
   private HelmfileBakeManifestRequest bakeManifestRequest;
 
+  private ArtifactStoreConfigurationProperties artifactStoreConfig;
+
   @BeforeEach
   private void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
@@ -79,8 +83,17 @@ final class HelmfileTemplateUtilsTest {
     artifactDownloader = mock(ArtifactDownloader.class);
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
+    artifactStoreConfig = new ArtifactStoreConfigurationProperties();
+    ArtifactStoreConfigurationProperties.HelmConfig helmConfig =
+        new ArtifactStoreConfigurationProperties.HelmConfig();
+    artifactStoreConfig.setHelm(helmConfig);
+    helmConfig.setExpandOverrides(false);
     helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
     Artifact chartArtifact = Artifact.builder().name("test-artifact").version("3").build();
 
     bakeManifestRequest = new HelmfileBakeManifestRequest();
@@ -177,7 +190,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     String output = helmfileTemplateUtils.removeTestsDirectoryTemplates(inputManifests);
 
@@ -231,7 +248,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     String output = helmfileTemplateUtils.removeTestsDirectoryTemplates(inputManifests);
 
@@ -246,7 +267,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
     RoscoHelmConfigurationProperties helmConfigurationProperties =
         new RoscoHelmConfigurationProperties();
 
@@ -280,7 +305,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
 
@@ -320,7 +349,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
 
@@ -459,7 +492,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -483,7 +520,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -502,7 +543,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -526,7 +571,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -545,7 +594,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -567,7 +620,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -586,7 +643,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -610,7 +671,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -629,7 +694,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
 
@@ -656,7 +725,11 @@ final class HelmfileTemplateUtilsTest {
     RoscoHelmfileConfigurationProperties helmfileConfigurationProperties =
         new RoscoHelmfileConfigurationProperties();
     HelmfileTemplateUtils helmfileTemplateUtils =
-        new HelmfileTemplateUtils(artifactDownloader, helmfileConfigurationProperties);
+        new HelmfileTemplateUtils(
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmfileConfigurationProperties);
 
     HelmfileBakeManifestRequest request = new HelmfileBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();

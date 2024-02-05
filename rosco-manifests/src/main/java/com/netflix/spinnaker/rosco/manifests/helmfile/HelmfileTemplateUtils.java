@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.rosco.manifests.helmfile;
 
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigurationProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
@@ -28,6 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -41,8 +44,10 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
 
   public HelmfileTemplateUtils(
       ArtifactDownloader artifactDownloader,
+      Optional<ArtifactStore> artifactStore,
+      ArtifactStoreConfigurationProperties artifactStoreConfig,
       RoscoHelmfileConfigurationProperties helmfileConfigurationProperties) {
-    super(artifactDownloader);
+    super(artifactDownloader, artifactStore, artifactStoreConfig.getHelm());
     this.helmfileConfigurationProperties = helmfileConfigurationProperties;
   }
 
@@ -105,10 +110,7 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
 
     Map<String, Object> overrides = request.getOverrides();
     if (!overrides.isEmpty()) {
-      List<String> overrideList = new ArrayList<>();
-      for (Map.Entry<String, Object> entry : overrides.entrySet()) {
-        overrideList.add(entry.getKey() + "=" + entry.getValue().toString());
-      }
+      List<String> overrideList = buildOverrideList(overrides);
       command.add("--set");
       command.add(String.join(",", overrideList));
     }

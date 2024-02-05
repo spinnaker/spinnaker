@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.rosco.manifests.helm;
 
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigurationProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
@@ -12,20 +14,25 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
 @Slf4j
+@ConfigurationPropertiesScan("com.netflix.spinnaker.kork.artifacts.artifactstore")
 public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestRequest> {
   private final RoscoHelmConfigurationProperties helmConfigurationProperties;
 
   public HelmTemplateUtils(
       ArtifactDownloader artifactDownloader,
+      Optional<ArtifactStore> artifactStore,
+      ArtifactStoreConfigurationProperties artifactStoreProperties,
       RoscoHelmConfigurationProperties helmConfigurationProperties) {
-    super(artifactDownloader);
+    super(artifactDownloader, artifactStore, artifactStoreProperties.getHelm());
     this.helmConfigurationProperties = helmConfigurationProperties;
   }
 
@@ -103,10 +110,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
 
     Map<String, Object> overrides = request.getOverrides();
     if (overrides != null && !overrides.isEmpty()) {
-      List<String> overrideList = new ArrayList<>();
-      for (Map.Entry<String, Object> entry : overrides.entrySet()) {
-        overrideList.add(entry.getKey() + "=" + entry.getValue().toString());
-      }
+      List<String> overrideList = buildOverrideList(overrides);
       String overrideOption = request.isRawOverrides() ? "--set" : "--set-string";
       command.add(overrideOption);
       command.add(String.join(",", overrideList));
