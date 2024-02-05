@@ -25,7 +25,7 @@ public class SwaggerTest extends BaseIntegrationTest {
   public void swaggerUiIsPresent() {
     RestAssured.given()
         .port(serverPort)
-        .get("/swagger-ui.html")
+        .get("/swagger-ui/index.html")
         .prettyPeek()
         .then()
         .assertThat()
