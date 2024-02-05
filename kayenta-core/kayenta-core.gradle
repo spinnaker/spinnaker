@@ -5,10 +5,7 @@ dependencies {
   api "io.spinnaker.kork:kork-retrofit"
   api "com.netflix.spectator:spectator-api"
 
-  // TODO update korkSwagger?
-  // Force a newer version than what comes with korkSwagger, so that the api docs page isn't broken.
-  api "io.springfox:springfox-swagger-ui:2.9.2"
-  api "io.springfox:springfox-swagger2:2.9.2"
+  api "io.swagger:swagger-annotations"
 
   api "io.spinnaker.orca:orca-core"
   api "io.spinnaker.orca:orca-retrofit"
