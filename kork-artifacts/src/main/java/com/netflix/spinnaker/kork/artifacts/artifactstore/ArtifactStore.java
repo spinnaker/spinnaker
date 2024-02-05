@@ -57,8 +57,4 @@ public class ArtifactStore implements ArtifactStoreGetter, ArtifactStoreStorer {
       log.warn("Multiple attempts in setting the singleton artifact store");
     }
   }
-
-  public boolean isArtifactURI(String value) {
-    return value.startsWith(ArtifactStoreURIBuilder.uriScheme + "://");
-  }
 }

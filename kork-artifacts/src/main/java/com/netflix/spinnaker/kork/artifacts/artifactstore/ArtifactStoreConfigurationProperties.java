@@ -44,5 +44,12 @@ public class ArtifactStoreConfigurationProperties {
     private boolean forcePathStyle = true;
   }
 
-  private S3ClientConfig s3 = null;
+  @Data
+  public static class HelmConfig {
+    /** Enables Rosco to expand any artifact URIs passed as parameters for Helm. */
+    private boolean expandOverrides = false;
+  }
+
+  private S3ClientConfig s3 = new S3ClientConfig();
+  private HelmConfig helm = new HelmConfig();
 }

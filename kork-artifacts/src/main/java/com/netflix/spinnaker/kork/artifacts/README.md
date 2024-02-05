@@ -81,10 +81,23 @@ To enable artifact storage, simple add this to your `spinnaker-local.yml` file
 
 ```yaml
 artifact-store:
-  enabled: true
+  type: s3
   s3:
     enabled: true
     bucket: some-artifact-store-bucket
+```
+
+### Rosco and Helm
+
+If any pipelines are passing artifact references to bake stages as a parameter,
+enabling this field will allow those URIs to be expanded to the full
+references:
+
+```yaml
+artifact-store:
+  type: s3
+  helm:
+    expandOverrides: true
 ```
 
 ## Storage Options
@@ -97,7 +110,7 @@ against AWS.
 
 ```yaml
 artifact-store:
-  enabled: true
+  type: s3
   s3:
     enabled: true
     profile: dev # if you want to authenticate using a certain profile
@@ -119,7 +132,7 @@ Next enable the configuration
 
 ```yaml
 artifact-store:
-  enabled: true
+  type: s3
   s3:
     enabled: true
     url: http://localhost:8333 # this URL will be used to make S3 API requests to

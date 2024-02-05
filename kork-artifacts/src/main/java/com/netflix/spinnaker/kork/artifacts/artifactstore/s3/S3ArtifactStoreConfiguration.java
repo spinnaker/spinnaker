@@ -66,7 +66,7 @@ public class S3ArtifactStoreConfiguration {
           "PermissionEvaluator is not present. This means anyone will be able to access any artifact in the store.");
     }
 
-    String bucket = properties.getS3() != null ? properties.getS3().getBucket() : null;
+    String bucket = properties.getS3().getBucket();
 
     return new S3ArtifactStoreGetter(s3Client, permissionEvaluator.orElse(null), bucket);
   }

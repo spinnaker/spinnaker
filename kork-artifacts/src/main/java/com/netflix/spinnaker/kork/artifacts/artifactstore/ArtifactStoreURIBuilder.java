@@ -19,13 +19,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 
 public abstract class ArtifactStoreURIBuilder {
   /**
-   * uriScheme is used as an HTTP scheme to let us further distinguish a String that is a URI to an
-   * artifact. This is helpful in determining what is an artifact since sometimes we are only given
-   * a string rather than a full artifact.
-   */
-  public static final String uriScheme = "ref";
-
-  /**
    * Returns the remote artifact URI that will be associated with some artifact.
    *
    * @param context is the context in which this artifact was run in, e.g. the application.

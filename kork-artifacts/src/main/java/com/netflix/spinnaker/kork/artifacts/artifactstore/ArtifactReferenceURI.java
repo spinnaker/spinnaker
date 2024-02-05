@@ -29,24 +29,31 @@ import org.apache.logging.log4j.util.Strings;
 @Builder
 @Getter
 public class ArtifactReferenceURI {
-  private final String scheme;
+  /**
+   * uriScheme is used as an HTTP scheme to let us further distinguish a String that is a URI to an
+   * artifact. This is helpful in determining what is an artifact since sometimes we are only given
+   * a string rather than a full artifact.
+   */
+  private static final String uriScheme = "ref://";
+
   private final List<String> uriPaths;
 
   public String uri() {
-    return String.format("%s://%s", scheme, paths());
+    return uriScheme + paths();
   }
 
   public String paths() {
     return Strings.join(uriPaths, '/');
   }
 
+  /** Used to determine whether a String is in the artifact reference URI format. */
+  public static boolean is(String reference) {
+    return reference.startsWith(uriScheme);
+  }
+
   public static ArtifactReferenceURI parse(String reference) {
-    String noSchemeURI =
-        StringUtils.removeStart(reference, ArtifactStoreURIBuilder.uriScheme + "://");
+    String noSchemeURI = StringUtils.removeStart(reference, uriScheme);
     String[] paths = StringUtils.split(noSchemeURI, '/');
-    return ArtifactReferenceURI.builder()
-        .scheme(ArtifactStoreURIBuilder.uriScheme)
-        .uriPaths(Arrays.asList(paths))
-        .build();
+    return ArtifactReferenceURI.builder().uriPaths(Arrays.asList(paths)).build();
   }
 }

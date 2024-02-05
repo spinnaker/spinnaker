@@ -38,7 +38,7 @@ public class ArtifactStoreURISHA256Builder extends ArtifactStoreURIBuilder {
             Hashing.sha256()
                 .hashBytes(artifact.getReference().getBytes(StandardCharsets.UTF_8))
                 .toString());
-    return ArtifactReferenceURI.builder().scheme(uriScheme).uriPaths(uriPaths).build();
+    return ArtifactReferenceURI.builder().uriPaths(uriPaths).build();
   }
 
   @Override
@@ -47,6 +47,6 @@ public class ArtifactStoreURISHA256Builder extends ArtifactStoreURIBuilder {
     uriPaths.add(context);
     uriPaths.addAll(List.of(paths));
 
-    return ArtifactReferenceURI.builder().scheme(uriScheme).uriPaths(uriPaths).build();
+    return ArtifactReferenceURI.builder().uriPaths(uriPaths).build();
   }
 }

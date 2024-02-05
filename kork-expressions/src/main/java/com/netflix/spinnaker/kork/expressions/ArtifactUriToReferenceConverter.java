@@ -55,7 +55,7 @@ public class ArtifactUriToReferenceConverter implements TypeConverter {
       return defaultTypeConverter.convertValue(value, sourceType, targetType);
     }
 
-    if (artifactStore == null || !artifactStore.isArtifactURI((String) value)) {
+    if (artifactStore == null || !ArtifactReferenceURI.is((String) value)) {
       return defaultTypeConverter.convertValue(value, sourceType, targetType);
     }
 
