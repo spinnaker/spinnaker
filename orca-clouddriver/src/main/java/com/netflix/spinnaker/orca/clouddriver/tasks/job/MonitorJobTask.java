@@ -23,15 +23,21 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
+import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MonitorJobTask extends MonitorKatoTask {
+  public static final String TASK_NAME = "monitorDeploy";
   private final JobUtils jobUtils;
+  private static final Logger log = LoggerFactory.getLogger(MonitorJobTask.class);
 
   @Autowired
   public MonitorJobTask(
@@ -63,5 +69,11 @@ public class MonitorJobTask extends MonitorKatoTask {
   @Override
   public void onCancel(@Nonnull StageExecution stage) {
     jobUtils.cancelWait(stage);
+  }
+
+  @Override
+  protected void handleClouddriverRetries(
+      StageExecution stage, Task katoTask, Map<String, Object> outputs) {
+    log.debug("handling clouddriver retries is not supported for Jobs");
   }
 }

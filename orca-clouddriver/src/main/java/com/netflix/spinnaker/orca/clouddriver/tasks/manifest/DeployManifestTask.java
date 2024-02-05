@@ -55,7 +55,8 @@ public final class DeployManifestTask implements CloudProviderAware, Task {
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }
 
-  private ImmutableMap<String, Map> getOperation(StageExecution stage) {
+  /** Build the operation map necessary for a DeployManifestTask. */
+  public static ImmutableMap<String, Map> getOperation(StageExecution stage) {
     DeployManifestContext context = stage.mapTo(DeployManifestContext.class);
 
     Map<String, Object> task = new HashMap<>(stage.getContext());

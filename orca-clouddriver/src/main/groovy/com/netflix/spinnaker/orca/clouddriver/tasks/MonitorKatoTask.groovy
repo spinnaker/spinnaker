@@ -21,10 +21,11 @@ import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
@@ -38,8 +39,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
+import javax.annotation.Nullable
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 @Slf4j
@@ -69,6 +72,18 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
     this.kato = katoService
     this.dynamicConfigService = dynamicConfigService
     this.retrySupport = retrySupport
+  }
+
+  DynamicConfigService getDynamicConfigService() {
+    return this.dynamicConfigService
+  }
+
+  KatoService getKatoService() {
+    return this.kato
+  }
+
+  Clock getClock() {
+    return this.clock
   }
 
   long getBackoffPeriod() { 5000L }
@@ -209,6 +224,10 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
       log.info("Retrying kato task ${katoTask.id} (retry: ${retryCount}) with exception: {}", getException(katoTask))
     }
 
+    if (status == ExecutionStatus.RUNNING) {
+      handleClouddriverRetries(stage, katoTask, outputs)
+    }
+
     return TaskResult.builder(status).context(outputs).build()
   }
 
@@ -218,6 +237,17 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
       && katoTask.status.retryable
       && dynamicConfigService.isEnabled("tasks.monitor-kato-task.terminal-retries", true)
     )
+  }
+
+  /**
+   * If it's appropriate to retry a task, instruct clouddriver to retry it
+   *
+   * @param stage the stage containing the task
+   * @param task the task under consideration
+   * @param outputs outputs of the task
+   */
+  protected void handleClouddriverRetries(StageExecution stage, Task katoTask, Map<String, Object> outputs) {
+    log.debug("this should be implemented in the monitor task sub-classes")
   }
 
   private static ExecutionStatus katoStatusToTaskStatus(Task katoTask, boolean katoResultExpected) {
@@ -238,7 +268,7 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
    * Log and emits a metric when a kato task retry is finally terminal - typically either from
    * the task timing out or from an unexpected error, like a 404, when attempting to retry.
    */
-  private void monitorFinalTerminalRetry(StageExecution stage, String reason) {
+  protected void monitorFinalTerminalRetry(StageExecution stage, String reason) {
     if (stage.context."kato.task.retriedOperation" == true) {
       TaskId taskId = stage.context."kato.last.task.id" as TaskId
       Integer totalRetries = stage.context."kato.task.terminalRetryCount" as Integer
@@ -293,5 +323,51 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
 
   private static Map getException(Task task) {
     return task.resultObjects?.find { it.type == "EXCEPTION" } ?: [:]
+  }
+
+  /**
+   * Calculate the execution time of a task with the given name in the given stage.
+   *
+   * @param stage the stage to look in
+   * @param katoTask a task (used only for logging its id)
+   * @param currentTaskName the name of a task
+   * @return the execution time, empty if not available
+   */
+  protected Optional<Duration> getCurrentTaskExecutionTime(StageExecution stage, Task katoTask, String currentTaskName) {
+    Optional<TaskExecution> taskExecution =
+        stage.getTasks()
+            .stream()
+            .filter({ t -> t.getName().equals(currentTaskName) })
+            .findFirst()
+    if (taskExecution.isEmpty()) {
+      log.debug(
+          "no task execution for task with id: {} found in the stage: {}",
+          stage.getName(),
+          katoTask.getId())
+      return Optional.empty();
+    }
+
+    Long taskStartTime = taskExecution.get().getStartTime()
+    if (taskStartTime == null) {
+      log.debug("no startTime found for task: {}", katoTask.getId())
+      return Optional.empty();
+    }
+
+    Instant startTime = Instant.ofEpochMilli(taskStartTime)
+    return Optional.of(Duration.between(startTime, getClock().instant()));
+  }
+
+  /**
+   * return true if there's a successful task with the given name in the given stage
+   */
+  protected boolean hasSuccessfulTask(StageExecution stage, String taskName) {
+    log.debug("stage execution: {}", stage);
+    Optional<TaskExecution> taskExecution =
+        stage.getTasks().stream()
+            .filter({ t -> t.getName().equals(taskName) && t.getStatus().isSuccessful() })
+            .findFirst();
+
+    log.debug("task type found: {}", taskExecution);
+    return taskExecution.isPresent();
   }
 }

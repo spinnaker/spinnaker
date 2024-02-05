@@ -54,7 +54,9 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
 
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
-    builder.withTask("runJob", RunJobTask.class).withTask("monitorDeploy", MonitorJobTask.class);
+    builder
+        .withTask(RunJobTask.TASK_NAME, RunJobTask.class)
+        .withTask(MonitorJobTask.TASK_NAME, MonitorJobTask.class);
 
     getCloudProviderDecorator(stage).ifPresent(it -> it.afterRunJobTaskGraph(stage, builder));
 

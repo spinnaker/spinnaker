@@ -45,6 +45,17 @@ public class DelegatingKatoRestService extends DelegatingClouddriverService<Kato
   }
 
   @Override
+  public TaskId updateTask(String cloudProvider, String id, Map details) {
+    return getService().updateTask(cloudProvider, id, details);
+  }
+
+  @Override
+  public TaskId restartTaskViaOperations(
+      String cloudProvider, String id, Collection<? extends Map<String, Map>> operations) {
+    return getService().restartTaskViaOperations(cloudProvider, id, operations);
+  }
+
+  @Override
   public Response collectJob(String app, String account, String region, String id) {
     return getService().collectJob(app, account, region, id);
   }

@@ -63,7 +63,7 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
     builder
         .withTask(ResolveDeploySourceManifestTask.TASK_NAME, ResolveDeploySourceManifestTask.class)
         .withTask(DeployManifestTask.TASK_NAME, DeployManifestTask.class)
-        .withTask("monitorDeploy", MonitorKatoTask.class)
+        .withTask(MonitorDeployManifestTask.TASK_NAME, MonitorDeployManifestTask.class)
         .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)
         .withTask(WaitForManifestStableTask.TASK_NAME, WaitForManifestStableTask.class)
         .withTask(CleanupArtifactsTask.TASK_NAME, CleanupArtifactsTask.class)

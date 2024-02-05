@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
+import com.netflix.spinnaker.orca.clouddriver.model.TaskOwner;
+import javax.annotation.Nonnull;
 
 public class DelegatingCloudDriverTaskStatusService
     extends DelegatingClouddriverService<CloudDriverTaskStatusService>
@@ -30,5 +32,10 @@ public class DelegatingCloudDriverTaskStatusService
   @Override
   public Task lookupTask(String id) {
     return getService().lookupTask(id);
+  }
+
+  @Override
+  public TaskOwner lookupTaskOwner(@Nonnull String cloudProvider, String id) {
+    return getService().lookupTaskOwner(cloudProvider, id);
   }
 }

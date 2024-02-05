@@ -1,0 +1,6 @@
+{
+  "error":"Not Found",
+  "message":"Manifest (account: k8s-spinnaker1-v2-account, location: spinnaker, name: pod spin-clouddriver-7b6d557868-s8d6s) not found",
+  "status":404,
+  "timestamp":"2021-01-25T21:52:25.252+00:00"
+}

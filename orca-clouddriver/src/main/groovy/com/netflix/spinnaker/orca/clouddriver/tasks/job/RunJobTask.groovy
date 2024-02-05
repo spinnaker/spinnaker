@@ -35,6 +35,8 @@ import java.time.Duration
 @Component
 class RunJobTask implements CloudProviderAware, RetryableTask {
 
+  public static final String TASK_NAME = "runJob";
+
   @Autowired
   KatoService kato
 
