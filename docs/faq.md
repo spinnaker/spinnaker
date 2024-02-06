@@ -16,7 +16,7 @@ See [Kayenta Standalone](./kayenta-standalone.md) for more information.
 
 ## Where are the API docs?
 
-When Kayenta is running, it serves its API docs at [http://localhost:8090/swagger-ui.html](http://localhost:8090/swagger-ui.html).
+When Kayenta is running, it serves its API docs at [http://localhost:8090/swagger-ui/index.html](http://localhost:8090/swagger-ui/index.html).
 
 You can control what endpoints show up on that page via the [swagger config](../kayenta-web/config/kayenta.yml) section of the main config.
 <!-- TODO explain how this is controlled in the yaml. -->
