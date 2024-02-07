@@ -1,13 +1,13 @@
 dependencies {
   implementation project(':gate-core')
-  implementation "org.bouncycastle:bcprov-jdk15on"
+  implementation "org.bouncycastle:bcprov-jdk18on"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-security"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.github.ben-manes.caffeine:caffeine"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
-  testImplementation "org.bouncycastle:bcpkix-jdk15on"
+  testImplementation "org.bouncycastle:bcpkix-jdk18on"
 }
 
 sourceSets {
