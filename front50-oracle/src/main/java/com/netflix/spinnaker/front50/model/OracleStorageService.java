@@ -10,8 +10,8 @@ package com.netflix.spinnaker.front50.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.google.common.base.Supplier;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.OracleProperties;
@@ -21,7 +21,6 @@ import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
 import com.oracle.bmc.auth.SimplePrivateKeySupplier;
-import com.oracle.bmc.http.internal.ExplicitlySetFilter;
 import com.oracle.bmc.http.signing.DefaultRequestSigner;
 import com.oracle.bmc.http.signing.RequestSigner;
 import com.oracle.bmc.objectstorage.model.CreateBucketDetails;
@@ -45,6 +44,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
@@ -113,10 +113,11 @@ public class OracleStorageService implements StorageService {
     ClientConfig clientConfig = new DefaultClientConfig();
     client = new Client(new URLConnectionClientHandler(), clientConfig);
     client.addFilter(new OracleStorageService.RequestSigningFilter(requestSigner));
-
     FilterProvider filters =
         new SimpleFilterProvider()
-            .addFilter(ExplicitlySetFilter.NAME, ExplicitlySetFilter.INSTANCE);
+            .addFilter(
+                "explicitlySetFilter",
+                SimpleBeanPropertyFilter.serializeAllExcept("__explicitlySet__"));
     objectMapper.setFilterProvider(filters);
   }
 
