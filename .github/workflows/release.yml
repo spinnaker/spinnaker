@@ -7,7 +7,7 @@ on:
     - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
 
 env:
-  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx10g -Xms10g
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx12g -Xms12g
   CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
 
 jobs:

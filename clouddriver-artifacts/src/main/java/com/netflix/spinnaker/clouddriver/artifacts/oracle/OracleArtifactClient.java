@@ -9,7 +9,6 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.oracle;
 
-import com.google.common.base.Supplier;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider;
 import com.oracle.bmc.auth.SimplePrivateKeySupplier;
@@ -26,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.ws.rs.core.MediaType;
 
 class OracleArtifactClient {

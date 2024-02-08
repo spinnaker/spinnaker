@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.artifacts;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
@@ -25,7 +26,7 @@ import org.apache.commons.io.FileUtils;
 public class CredentialReader {
   public static String credentialsFromFile(String filename) {
     try {
-      String credentials = FileUtils.readFileToString(new File(filename));
+      String credentials = FileUtils.readFileToString(new File(filename), Charset.defaultCharset());
       return credentials.replace("\n", "");
     } catch (IOException e) {
       throw new IllegalStateException("Could not read credentials file: " + filename, e);

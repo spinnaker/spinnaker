@@ -44,6 +44,7 @@ dependencies {
   implementation "com.oracle.oci.sdk:oci-java-sdk-core"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.sun.jersey:jersey-client:1.9.1"
+  implementation 'commons-io:commons-io:2.15.1'
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.ivy:ivy:2.4.0"
   implementation "org.apache.maven:maven-resolver-provider:3.5.4"

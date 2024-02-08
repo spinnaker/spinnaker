@@ -9,7 +9,11 @@ dependencies {
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")
 
-  implementation 'com.yandex.cloud:java-sdk-services:2.1.1'
+  //exclude BC -jdk15on libraries to remove CVE-2023-33201. *-jdk18on libraries are already present in the classpath
+  implementation ('com.yandex.cloud:java-sdk-services:2.1.1'){
+    exclude group: "org.bouncycastle", module: "bcpkix-jdk15on"
+    exclude group: "org.bouncycastle", module: "bcprov-jdk15on"
+  }
   compileOnly "io.opencensus:opencensus-api"
   compileOnly "io.opencensus:opencensus-contrib-grpc-metrics"
   implementation "org.codehaus.groovy:groovy-datetime"

@@ -4,5 +4,5 @@ RUN apt-get update && apt-get install -y \
  && rm -rf /var/lib/apt/lists/*
 LABEL maintainer="sig-platform@spinnaker.io"
 ENV GRADLE_USER_HOME /workspace/.gradle
-ENV GRADLE_OPTS "-Xmx10g -Xms10g"
+ENV GRADLE_OPTS "-Xmx12g -Xms12g"
 CMD ./gradlew --no-daemon clouddriver-web:installDist -x test

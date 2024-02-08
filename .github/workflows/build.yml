@@ -7,7 +7,7 @@ on:
     - release-*
 
 env:
-  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx10g -Xms10g
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx12g -Xms12g
   CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
 
 jobs:
