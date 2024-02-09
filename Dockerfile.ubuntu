@@ -3,10 +3,11 @@ LABEL maintainer="sig-platform@spinnaker.io"
 
 ENV KUSTOMIZE_VERSION=3.8.6
 ENV KUSTOMIZE4_VERSION=4.5.5
-ENV PACKER_VERSION=1.8.1
+ENV PACKER_VERSION=1.10.1
 ENV HELMFILE_VERSION=0.153.1
 
 ARG TARGETARCH
+ARG PACKER_PLUGINS="amazon azure googlecompute"
 
 WORKDIR /packer
 
@@ -48,10 +49,34 @@ RUN mkdir helmfile && \
   mv ./helmfile/helmfile /usr/local/bin/helmfile && \
   rm -rf ./helmfile
 
+# Install AWS CLI 2 and the session manager plugin
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip" && \
+    curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_arm64/session-manager-plugin.deb" -o "session-manager-plugin.deb"; \
+  else \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"; \
+  fi && \
+  unzip awscliv2.zip && \
+  ./aws/install && \
+  rm -rf ./awscliv2.zip ./aws && \
+  dpkg -i session-manager-plugin.deb && \
+  rm session-manager-plugin.deb
+
 RUN adduser --system --uid 10111 --group spinnaker
 COPY rosco-web/build/install/rosco /opt/rosco
 COPY rosco-web/config              /opt/rosco
 COPY halconfig/packer              /opt/rosco/config/packer
 RUN mkdir -p /opt/rosco/plugins && chown -R spinnaker:nogroup /opt/rosco/plugins
 USER spinnaker
+
+# Install packer plugins (must be run as spinnaker user). To provide a github token (optional), run docker build with something like "--secret id=github_token,env=PACKER_GITHUB_API_TOKEN"
+RUN for plugin in $PACKER_PLUGINS ; do \
+  if [ -f /run/secrets/github_token ]; then \
+    PACKER_GITHUB_API_TOKEN=$(cat /run/secrets/github_token) packer plugins install "github.com/hashicorp/$plugin"; \
+  else \
+    packer plugins install "github.com/hashicorp/$plugin"; \
+  fi; \
+done
+
 CMD ["/opt/rosco/bin/rosco"]

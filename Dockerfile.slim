@@ -3,11 +3,12 @@ LABEL maintainer="sig-platform@spinnaker.io"
 
 ENV KUSTOMIZE_VERSION=3.8.6
 ENV KUSTOMIZE4_VERSION=4.5.5
-ENV PACKER_VERSION=1.8.1
+ENV PACKER_VERSION=1.10.1
 ENV HELMFILE_VERSION=0.153.1
 
 
 ARG TARGETARCH
+ARG PACKER_PLUGINS="amazon azure googlecompute"
 
 WORKDIR /packer
 
@@ -56,5 +57,15 @@ COPY rosco-web/config              /opt/rosco
 COPY halconfig/packer              /opt/rosco/config/packer
 RUN mkdir -p /opt/rosco/plugins && chown -R spinnaker:nogroup /opt/rosco/plugins
 USER spinnaker
+
+# Install packer plugins (must be run as spinnaker user). To provide a github token (optional), run docker build with something like "--secret id=github_token,env=PACKER_GITHUB_API_TOKEN"
+RUN for plugin in $PACKER_PLUGINS ; do \
+  if [ -f /run/secrets/github_token ]; then \
+    PACKER_GITHUB_API_TOKEN=$(cat /run/secrets/github_token) packer plugins install "github.com/hashicorp/$plugin"; \
+  else \
+    packer plugins install "github.com/hashicorp/$plugin"; \
+  fi; \
+done
+
 CMD ["/opt/rosco/bin/rosco"]
 
