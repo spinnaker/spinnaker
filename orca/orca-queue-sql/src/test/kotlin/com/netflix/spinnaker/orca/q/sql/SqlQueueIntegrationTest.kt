@@ -140,7 +140,8 @@ class SqlTestConfig {
     compressionProperties = compressionProperties,
     pipelineRefEnabled = false,
     dataSource = dataSource,
-    executionUpdateTimeRepository = executionUpdateTimeRepository
+    executionUpdateTimeRepository = executionUpdateTimeRepository,
+    registry = registry
   )
 
   @Bean

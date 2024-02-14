@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.CompressionMode
 import com.netflix.spinnaker.config.CompressionType
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
@@ -605,7 +606,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
           executionCompressionPropertiesEnabled, // arbitrary
           false,
           mockedAbstractRoutingDataSource,
-          mockedExecutionUpdateTimeRepository
+          mockedExecutionUpdateTimeRepository,
+          NoopRegistry()
         )
 
         verify(mockedAbstractRoutingDataSource, atLeastOnce()).resolvedDataSources
@@ -632,7 +634,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
           executionCompressionPropertiesEnabled, // arbitrary
           false,
           mockedAbstractRoutingDataSource,
-          mockedExecutionUpdateTimeRepository
+          mockedExecutionUpdateTimeRepository,
+          NoopRegistry()
         )
 
         verify(mockedAbstractRoutingDataSource, atLeastOnce()).resolvedDataSources
@@ -680,7 +683,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesEnabled,
         false,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository
+        mockedExecutionUpdateTimeRepository,
+        NoopRegistry()
       )
 
     val executionCompressionPropertiesDisabled = ExecutionCompressionProperties().apply {
@@ -702,7 +706,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesDisabled,
         false,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository
+        mockedExecutionUpdateTimeRepository,
+        NoopRegistry()
       )
 
     val executionCompressionPropertiesReadOnly = ExecutionCompressionProperties().apply {
@@ -727,7 +732,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesReadOnly,
         false,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository
+        mockedExecutionUpdateTimeRepository,
+        NoopRegistry()
       )
 
     val sqlExecutionRepositoryWithPipelineRefOnly =
@@ -745,7 +751,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesDisabled,
         true,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository
+        mockedExecutionUpdateTimeRepository,
+        NoopRegistry()
       )
 
     val sqlExecutionRepositoryWithPipelineRefAndCompression =
@@ -763,7 +770,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesEnabled,
         true,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository
+        mockedExecutionUpdateTimeRepository,
+        NoopRegistry()
       )
 
     fun addCustomDeserializerWithFeatureFlagEnabled() {

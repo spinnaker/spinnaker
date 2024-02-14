@@ -20,6 +20,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.doReturn;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.config.CompressionType;
 import com.netflix.spinnaker.config.ExecutionCompressionProperties;
 import com.netflix.spinnaker.config.SqlConfiguration;
@@ -88,6 +89,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
   @MockBean Clock clock;
   @Autowired DataSourceConnectionProvider dataSourceConnectionProvider;
   @Autowired ObjectMapper mapper;
+  @Autowired DefaultRegistry registry;
   private static final String primaryInstanceUrl = SqlTestUtil.tcJdbcUrl;
   private static final String readReplicaUrl = SqlTestUtil.tcJdbcUrl + "replica";
   private static SqlTestUtil.TestDatabase primaryInstance =
@@ -101,6 +103,11 @@ public class SqlExecutionRepositoryReadReplicaTest {
   private final long firstStageReadPoolUpdatedAt = 5000L;
   private final long secondStageReadPoolUpdatedAt = 2000L;
 
+  // Set up initial metric values
+  private long retrieveSucceededCount = 0;
+  private long retrieveFailedCount = 0;
+  private long retrieveTotalAttemptsCount = 0;
+
   @DynamicPropertySource
   static void registerSQLProperties(DynamicPropertyRegistry registry) {
     registry.add("sql.connectionPools.default.jdbcUrl", () -> primaryInstanceUrl);
@@ -109,7 +116,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
   }
 
   @AfterEach
-  void resetTables() throws SQLException {
+  void resetState() throws SQLException {
     try (Connection connection = primaryInstance.dataSource.getConnection();
         Statement stmt = connection.createStatement()) {
       stmt.execute("DELETE FROM pipelines");
@@ -125,6 +132,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
       stmt.execute("DELETE FROM pipeline_stages");
       stmt.execute("DELETE FROM pipeline_stages_compressed_executions");
     }
+
+    // Reset metrics
+    registry.reset();
   }
 
   @AfterAll
@@ -160,6 +170,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
     PipelineExecution execution =
         executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+    retrieveSucceededCount++;
+    retrieveTotalAttemptsCount++;
+    verifyMetricValues();
 
     // when readPoolUpdatedAt == expected pipeline execution update
     // i.e. the read pool is up-to-date
@@ -168,6 +181,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
         .getPipelineExecutionUpdate(pipelineId);
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+    retrieveSucceededCount++;
+    retrieveTotalAttemptsCount++;
+    verifyMetricValues();
 
     // when readPoolUpdatedAt < expected pipeline execution update
     // i.e. the read pool is not up-to-date
@@ -178,6 +194,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
         .getPipelineExecutionUpdate(pipelineId);
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+    retrieveFailedCount++;
+    retrieveTotalAttemptsCount++;
+    verifyMetricValues();
 
     // when requireLatestVersion = false
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
@@ -218,6 +237,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
     PipelineExecution execution =
         executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+    retrieveSucceededCount++;
+    retrieveTotalAttemptsCount++;
+    verifyMetricValues();
 
     // when readPoolUpdatedAt > expected pipeline execution update > readPoolCompressedUpdatedAt
     // i.e. the pipeline execution table is up-to-date but the compressed pipeline execution table
@@ -230,6 +252,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
         .getPipelineExecutionUpdate(pipelineId);
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+    retrieveFailedCount++;
+    retrieveTotalAttemptsCount++;
+    verifyMetricValues();
 
     // when expected pipeline execution update > readPoolUpdatedAt > readPoolCompressedUpdatedAt
     // i.e. neither the pipeline nor the compressed pipeline execution tables are up-to-date
@@ -240,6 +265,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
         .getPipelineExecutionUpdate(pipelineId);
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+    retrieveFailedCount++;
+    retrieveTotalAttemptsCount++;
+    verifyMetricValues();
 
     // given
     // Set up stages
@@ -297,8 +325,11 @@ public class SqlExecutionRepositoryReadReplicaTest {
             .sorted()
             .collect(Collectors.toList());
     assertThat(actualStageNames).isEqualTo(expectedStageNames);
+    retrieveSucceededCount++;
+    retrieveTotalAttemptsCount++;
+    verifyMetricValues();
 
-    // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update and
+    // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update
     // and firstStageReadPoolUpdatedAt > expected first stage execution update
     // and expected second stage execution update > secondStageReadPoolUpdatedAt
     // i.e. all executions in the read replica are up-to-date except for secondStageReadPool
@@ -330,6 +361,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
             .sorted()
             .collect(Collectors.toList());
     assertThat(actualStageNames).isEqualTo(expectedStageNames);
+    retrieveFailedCount++;
+    retrieveTotalAttemptsCount++;
+    verifyMetricValues();
 
     // when requireLatestVersion = false
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
@@ -515,11 +549,26 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
   }
 
+  /** Verifies that the values of certain metrics are as expected */
+  void verifyMetricValues() {
+    assertThat(registry.counter("executionRepository.sql.readPool.retrieveSucceeded").count())
+        .isEqualTo(retrieveSucceededCount);
+    assertThat(registry.counter("executionRepository.sql.readPool.retrieveFailed").count())
+        .isEqualTo(retrieveFailedCount);
+    assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
+        .isEqualTo(retrieveTotalAttemptsCount);
+  }
+
   @TestConfiguration
   static class SqlExecutionRepositoryReadReplicaTestConfiguration {
     @Bean
     ObjectMapper orcaObjectMapper() {
       return OrcaObjectMapper.getInstance();
+    }
+
+    @Bean
+    DefaultRegistry resettableRegistry() {
+      return new DefaultRegistry();
     }
   }
 }

@@ -17,6 +17,8 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
@@ -131,7 +133,8 @@ class SqlExecutionRepository(
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
   private val dataSource: DataSource,
-  private val executionUpdateTimeRepository: ExecutionUpdateTimeRepository
+  private val executionUpdateTimeRepository: ExecutionUpdateTimeRepository,
+  private val registry: Registry
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
     val ulid = SpinULID(SecureRandom())
@@ -139,6 +142,9 @@ class SqlExecutionRepository(
   }
 
   private val log = LoggerFactory.getLogger(javaClass)
+  private val readPoolRetrieveSucceededId = registry.createId("executionRepository.sql.readPool.retrieveSucceeded")
+  private val readPoolRetrieveFailedId = registry.createId("executionRepository.sql.readPool.retrieveFailed")
+  private val readPoolRetrieveTotalId = registry.createId("executionRepository.sql.readPool.retrieveTotalAttempts")
 
   init {
     // If there's no read pool configured, fall back to the default pool
@@ -1389,6 +1395,9 @@ class SqlExecutionRepository(
         return select.fetchExecution()
       }
     }
+    // Avoid collecting the readPoolRetrieve class of metrics here because it will
+    // skew the number of times that retrieving using the read pool succeeded
+    // on the first try
     if (!requireLatestVersion) {
       withPool(readPoolName) {
         val select = ctx.selectExecution(type).where(id.toWhereCondition())
@@ -1397,15 +1406,18 @@ class SqlExecutionRepository(
     }
     // Attempt to find an up-to-date execution from the read pool
     val (pipelineExecutions, resultCode) = withPool(readPoolName) {
+      registry.counter(readPoolRetrieveTotalId).increment()
       val select = ctx.selectExecution(type).where(id.toWhereCondition())
       select.fetchExecution(true)
     }
     // Determine the result and perform additional tasks if necessary
     when (resultCode) {
       ExecutionMapperResultCode.SUCCESS -> {
+        registry.counter(readPoolRetrieveSucceededId).increment()
         return pipelineExecutions.first()
       }
       ExecutionMapperResultCode.NOT_FOUND, ExecutionMapperResultCode.INVALID_VERSION -> {
+        registry.counter(readPoolRetrieveFailedId).increment()
         withPool(poolName) {
           val select = ctx.selectExecution(type).where(id.toWhereCondition())
           return select.fetchExecution()
@@ -1415,6 +1427,7 @@ class SqlExecutionRepository(
       // the execution using the default pool. If successful, also repopulate the
       // ExecutionUpdateTimeRepository with the update timestamps
       ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY -> {
+        registry.counter(readPoolRetrieveFailedId).increment()
         val pipelineExecution = withPool(poolName) {
           val select = ctx.selectExecution(type).where(id.toWhereCondition())
           select.fetchExecution()

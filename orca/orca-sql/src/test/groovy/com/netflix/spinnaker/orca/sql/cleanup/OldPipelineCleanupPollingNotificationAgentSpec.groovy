@@ -95,7 +95,8 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
         new ExecutionCompressionProperties(),
         false,
         Mock(DataSource),
-        new NoopExecutionUpdateTimeRepository()
+        new NoopExecutionUpdateTimeRepository(),
+        new NoopRegistry()
     )
   }
 

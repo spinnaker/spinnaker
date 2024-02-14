@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.TestDatabase
@@ -114,7 +115,8 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
             new ExecutionCompressionProperties(enabled: compression),
             false,
             Mock(DataSource),
-            new NoopExecutionUpdateTimeRepository()
+            new NoopExecutionUpdateTimeRepository(),
+            new NoopRegistry()
         ),
         "namespace")
   }

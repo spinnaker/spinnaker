@@ -104,7 +104,8 @@ class SqlConfiguration {
       compressionProperties = compressionProperties,
       pipelineRefEnabled = pipelineRefProperties.enabled,
       dataSource = dataSource,
-      executionUpdateTimeRepository = executionUpdateTimeRepository
+      executionUpdateTimeRepository = executionUpdateTimeRepository,
+      registry = registry
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "primary"))) as ExecutionRepository
     }
@@ -134,7 +135,8 @@ class SqlConfiguration {
       compressionProperties = compressionProperties,
       pipelineRefEnabled = pipelineRefProperties.enabled,
       dataSource = dataSource,
-      executionUpdateTimeRepository = executionUpdateTimeRepository
+      executionUpdateTimeRepository = executionUpdateTimeRepository,
+      registry = registry
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }

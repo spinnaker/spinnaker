@@ -97,7 +97,8 @@ abstract class TopApplicationExecutionCleanupPollingNotificationAgentSpec extend
         new ExecutionCompressionProperties(),
         false,
         Mock(DataSource),
-        new NoopExecutionUpdateTimeRepository()
+        new NoopExecutionUpdateTimeRepository(),
+        new NoopRegistry()
     )
   }
 

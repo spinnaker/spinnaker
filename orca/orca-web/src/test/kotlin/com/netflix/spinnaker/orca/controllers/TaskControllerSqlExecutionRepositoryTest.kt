@@ -63,7 +63,8 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
       compressionProperties = ExecutionCompressionProperties(),
       pipelineRefEnabled = false,
       dataSource = mock(),
-      executionUpdateTimeRepository = NoopExecutionUpdateTimeRepository()
+      executionUpdateTimeRepository = NoopExecutionUpdateTimeRepository(),
+      registry = NoopRegistry()
     )
 
     private val taskControllerConfigurationProperties: TaskControllerConfigurationProperties = TaskControllerConfigurationProperties()
