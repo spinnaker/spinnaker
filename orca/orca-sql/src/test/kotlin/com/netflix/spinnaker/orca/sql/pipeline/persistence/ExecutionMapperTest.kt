@@ -25,8 +25,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
-import com.nhaarman.mockito_kotlin.mock
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.times
@@ -42,8 +43,8 @@ import strikt.assertions.isEqualTo
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.sql.ResultSet
+import java.time.Instant
 import java.util.zip.DeflaterOutputStream
-
 
 class ExecutionMapperTest : JUnit5Minutests {
 
@@ -86,7 +87,7 @@ class ExecutionMapperTest : JUnit5Minutests {
 
       test("conversion ignored when trigger is not PipelineRef") {
         val mockedExecution = mock<PipelineExecution>()
-        val mapper = ExecutionMapper(mapper = ObjectMapper(), stageBatchSize = 200, compressionProperties = compressionProperties, true)
+        val mapper = ExecutionMapper(ObjectMapper(), 200, compressionProperties, true)
         val spyMapper = Mockito.spy(mapper)
 
         doReturn(DefaultTrigger(type = "default")).`when`(mockedExecution).trigger
@@ -97,7 +98,7 @@ class ExecutionMapperTest : JUnit5Minutests {
 
       test("conversion is aborted when trigger is PipelineRef but parentExecution not found") {
         val mockedExecution = mock<PipelineExecution>()
-        val mapper = ExecutionMapper(mapper = ObjectMapper(), stageBatchSize = 200, compressionProperties = compressionProperties, true)
+        val mapper = ExecutionMapper(ObjectMapper(), 200, compressionProperties, true)
         val spyMapper = Mockito.spy(mapper)
 
         doReturn(PipelineRefTrigger(parentExecutionId = "test-parent-id")).`when`(mockedExecution).trigger
@@ -129,7 +130,7 @@ class ExecutionMapperTest : JUnit5Minutests {
         }
 
         val mockedParentExecution = mock<PipelineExecution>()
-        val mapper = ExecutionMapper(mapper = ObjectMapper(), stageBatchSize = 200, compressionProperties = compressionProperties, true)
+        val mapper = ExecutionMapper(ObjectMapper(), 200, compressionProperties, true)
         val spyMapper = Mockito.spy(mapper)
 
         doReturn(mockedParentExecution).`when`(spyMapper).fetchParentExecution(any(), any(), any())
@@ -150,6 +151,56 @@ class ExecutionMapperTest : JUnit5Minutests {
           .get(PipelineTrigger::parentExecution).isEqualTo(mockedParentExecution)
 
         verify(spyMapper, times(1)).fetchParentExecution(any(), any(), any())
+      }
+    }
+
+    context("when the latest version of an execution is required") {
+      val givenUpdatedAt = Instant.ofEpochMilli(10000L)
+      val olderUpdatedAt = 5000L
+      val newerUpdatedAt = 20000L
+      val mapper = ExecutionMapper(
+        mapper = ObjectMapper(),
+        stageBatchSize = 200,
+        ExecutionCompressionProperties().apply {
+          enabled = true
+        },
+        pipelineRefEnabled = false,
+        requireLatestVersion = true,
+        executionUpdateTimeRepository = mock<ExecutionUpdateTimeRepository>()
+      )
+      val mockedResultSet = mock<ResultSet>()
+
+      test("version is valid for an execution when updated_at is newer than the given value") {
+        doReturn("12345").`when`(mockedResultSet).getString("body")
+        doReturn(newerUpdatedAt).`when`(mockedResultSet).getLong("updated_at")
+        assertThat(mapper.isUpToDateVersion(mockedResultSet, givenUpdatedAt)).isTrue()
+      }
+
+      test("version is valid for a compressed execution when both updated_at values are newer than the given value") {
+        doReturn("").`when`(mockedResultSet).getString("body")
+        doReturn(newerUpdatedAt).`when`(mockedResultSet).getLong("updated_at")
+        doReturn(newerUpdatedAt).`when`(mockedResultSet).getLong("compressed_updated_at")
+        assertThat(mapper.isUpToDateVersion(mockedResultSet, givenUpdatedAt)).isTrue()
+      }
+
+      test("version is not valid for an execution when updated_at is older than the given value") {
+        doReturn("12345").`when`(mockedResultSet).getString("body")
+        doReturn(olderUpdatedAt).`when`(mockedResultSet).getLong("updated_at")
+        assertThat(mapper.isUpToDateVersion(mockedResultSet, givenUpdatedAt)).isFalse()
+      }
+
+      test("version is not valid for a compressed execution when updated_at is older than the given value") {
+        doReturn("").`when`(mockedResultSet).getString("body")
+        doReturn(olderUpdatedAt).`when`(mockedResultSet).getLong("updated_at")
+        doReturn(newerUpdatedAt).`when`(mockedResultSet).getLong("compressed_updated_at")
+        assertThat(mapper.isUpToDateVersion(mockedResultSet, givenUpdatedAt)).isFalse()
+      }
+
+      test("version is not valid for a compressed execution when compressed_updated_at is older than the given value") {
+        doReturn("").`when`(mockedResultSet).getString("body")
+        doReturn(newerUpdatedAt).`when`(mockedResultSet).getLong("updated_at")
+        doReturn(olderUpdatedAt).`when`(mockedResultSet).getLong("compressed_updated_at")
+        assertThat(mapper.isUpToDateVersion(mockedResultSet, givenUpdatedAt)).isFalse()
       }
     }
   }

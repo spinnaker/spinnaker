@@ -37,6 +37,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.config.JedisConfiguration
 import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.RedisExecutionUpdateTimeRepository
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.TestConfig
 import com.netflix.spinnaker.orca.q.migration.ExecutionTypeDeserializer
@@ -124,7 +127,8 @@ class SqlTestConfig {
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     compressionProperties: ExecutionCompressionProperties,
-    dataSource: DataSource
+    dataSource: DataSource,
+    executionUpdateTimeRepository: ExecutionUpdateTimeRepository
   ) = SqlExecutionRepository(
     orcaSqlProperties.partitionName,
     dsl,
@@ -135,7 +139,8 @@ class SqlTestConfig {
     interlink = null,
     compressionProperties = compressionProperties,
     pipelineRefEnabled = false,
-    dataSource = dataSource
+    dataSource = dataSource,
+    executionUpdateTimeRepository = executionUpdateTimeRepository
   )
 
   @Bean
@@ -168,6 +173,13 @@ class SqlTestConfig {
   @Bean
   fun redisClientSelector(redisClientDelegates: List<RedisClientDelegate>) =
     RedisClientSelector(redisClientDelegates)
+
+  @Bean
+  fun executionUpdateTimeRepository(redisClientSelector: RedisClientSelector) =
+    RedisExecutionUpdateTimeRepository(
+      redisClientSelector.primary("default"),
+      "spinnaker:orca"
+    )
 }
 
 @ExtendWith(SpringExtension::class)
@@ -188,6 +200,7 @@ class SqlTestConfig {
     "logging.level.org.springframework.test=ERROR",
     "logging.level.com.netflix.spinnaker=FATAL",
     "execution-repository.sql.enabled=true",
+    "execution-repository.sql.read-replica.enabled=true",
     "execution-repository.redis.enabled=false",
     "keiko.queue.redis.enabled=false",
     "keiko.queue.sql.enabled=true",

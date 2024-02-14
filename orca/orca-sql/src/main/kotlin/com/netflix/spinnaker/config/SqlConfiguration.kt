@@ -18,6 +18,9 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
@@ -31,6 +34,9 @@ import com.netflix.spinnaker.orca.notifications.SqlNotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.support.CustomTriggerDeserializerSupplier
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.RedisExecutionUpdateTimeRepository
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
@@ -61,7 +67,7 @@ import org.springframework.context.annotation.Primary
 @Configuration
 @ConditionalOnProperty("sql.enabled")
 @EnableConfigurationProperties(OrcaSqlProperties::class, ExecutionCompressionProperties::class, PipelineRefProperties::class)
-@Import(DefaultSqlConfiguration::class)
+@Import(DefaultSqlConfiguration::class, JedisClientConfiguration::class)
 @ComponentScan("com.netflix.spinnaker.orca.sql")
 
 class SqlConfiguration {
@@ -83,7 +89,8 @@ class SqlConfiguration {
     executionRepositoryListeners: Collection<ExecutionRepositoryListener>,
     compressionProperties: ExecutionCompressionProperties,
     pipelineRefProperties: PipelineRefProperties,
-    dataSource: DataSource
+    dataSource: DataSource,
+    executionUpdateTimeRepository: ExecutionUpdateTimeRepository
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -96,7 +103,8 @@ class SqlConfiguration {
       executionRepositoryListeners = executionRepositoryListeners,
       compressionProperties = compressionProperties,
       pipelineRefEnabled = pipelineRefProperties.enabled,
-      dataSource = dataSource
+      dataSource = dataSource,
+      executionUpdateTimeRepository = executionUpdateTimeRepository
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "primary"))) as ExecutionRepository
     }
@@ -112,7 +120,8 @@ class SqlConfiguration {
     @Value("\${execution-repository.sql.secondary.pool-name}") poolName: String,
     compressionProperties: ExecutionCompressionProperties,
     pipelineRefProperties: PipelineRefProperties,
-    dataSource: DataSource
+    dataSource: DataSource,
+    executionUpdateTimeRepository: ExecutionUpdateTimeRepository
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -124,7 +133,8 @@ class SqlConfiguration {
       poolName,
       compressionProperties = compressionProperties,
       pipelineRefEnabled = pipelineRefProperties.enabled,
-      dataSource = dataSource
+      dataSource = dataSource,
+      executionUpdateTimeRepository = executionUpdateTimeRepository
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }
@@ -164,7 +174,6 @@ class SqlConfiguration {
     retryProperties = properties.retries.transactions
   )
 
-
   @Bean
   @ConditionalOnProperty("sql.external-lock.enabled")
   fun sqlRunOnLockAcquired(lockProvider: LockProvider): RunOnLockAcquired {
@@ -187,4 +196,16 @@ class SqlConfiguration {
     return customTrigger
   }
 
+  @ConditionalOnProperty("execution-repository.sql.read-replica.enabled")
+  @Bean
+  fun redisExecutionUpdateTimeRepository(redisClientSelector: RedisClientSelector) =
+    RedisExecutionUpdateTimeRepository(
+      redisClientSelector.primary("default"),
+      "spinnaker:orca"
+    )
+
+  @ConditionalOnProperty("execution-repository.sql.enabled")
+  @ConditionalOnMissingBean(ExecutionUpdateTimeRepository::class)
+  @Bean
+  fun noopExecutionUpdateTimeRepository() = NoopExecutionUpdateTimeRepository()
 }

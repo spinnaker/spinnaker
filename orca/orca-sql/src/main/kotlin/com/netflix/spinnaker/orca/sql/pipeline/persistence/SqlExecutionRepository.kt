@@ -51,6 +51,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
 import de.huxhorn.sulky.ulid.SpinULID
@@ -83,6 +84,7 @@ import java.io.ByteArrayOutputStream
 import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
+import java.time.Instant
 import java.util.stream.Collectors.toList
 import javax.sql.DataSource
 import kotlin.collections.Collection
@@ -128,7 +130,8 @@ class SqlExecutionRepository(
   private val executionRepositoryListeners: Collection<ExecutionRepositoryListener> = emptyList(),
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
-  private val dataSource: DataSource
+  private val dataSource: DataSource,
+  private val executionUpdateTimeRepository: ExecutionUpdateTimeRepository
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
     val ulid = SpinULID(SecureRandom())
@@ -617,7 +620,7 @@ class SqlExecutionRepository(
         .fetch()
 
       log.debug("getting stage information for all the executions found so far")
-      return ExecutionMapper(mapper, stageReadSize,compressionProperties, pipelineRefEnabled).map(baseQuery.intoResultSet(), jooq)
+      return ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(baseQuery.intoResultSet(), jooq)
     }
   }
 
@@ -1006,6 +1009,7 @@ class SqlExecutionRepository(
 
       val (executionId, legacyId) = mapLegacyId(ctx, tableName, execution.id, execution.startTime)
 
+      val updatedAt = Instant.now().toEpochMilli()
       val insertPairs = mutableMapOf(
         field("id") to executionId,
         field("legacy_id") to legacyId,
@@ -1014,7 +1018,7 @@ class SqlExecutionRepository(
         field("application") to execution.application,
         field("build_time") to (execution.buildTime ?: currentTimeMillis()),
         field("canceled") to execution.isCanceled,
-        field("updated_at") to currentTimeMillis(),
+        field("updated_at") to updatedAt,
         field("body") to body
       )
 
@@ -1024,7 +1028,7 @@ class SqlExecutionRepository(
         field(name("partition")) to partitionName,
         // won't have started on insert
         field("canceled") to execution.isCanceled,
-        field("updated_at") to currentTimeMillis()
+        field("updated_at") to updatedAt
       )
 
       // Set startTime only if it is not null
@@ -1053,6 +1057,7 @@ class SqlExecutionRepository(
           compressionProperties.isWriteEnabled()
         )
       }
+      executionUpdateTimeRepository.putPipelineExecutionUpdate(executionId, Instant.ofEpochMilli(updatedAt))
 
       storeCorrelationIdInternal(ctx, execution)
 
@@ -1101,22 +1106,24 @@ class SqlExecutionRepository(
     val executionUlid = executionId ?: mapLegacyId(ctx, table, stage.execution.id, buildTime).first
     val (stageId, legacyId) = mapLegacyId(ctx, stageTable, stage.id, buildTime)
 
+    val updatedAt = Instant.now().toEpochMilli()
     val insertPairs = mapOf(
       field("id") to stageId,
       field("legacy_id") to legacyId,
       field("execution_id") to executionUlid,
       field("status") to stage.status.toString(),
-      field("updated_at") to currentTimeMillis(),
+      field("updated_at") to updatedAt,
       field("body") to body
     )
 
     val updatePairs = mapOf(
       field("status") to stage.status.toString(),
-      field("updated_at") to currentTimeMillis(),
+      field("updated_at") to updatedAt,
       field("body") to body
     )
 
     upsert(ctx, stageTable, insertPairs, updatePairs, stage.id, compressionProperties.isWriteEnabled())
+    executionUpdateTimeRepository.putStageExecutionUpdate(stageId, Instant.ofEpochMilli(updatedAt))
 
     // This method is called from [storeInternal] as well. We don't want to notify multiple times for the same
     // overall persist operation.
@@ -1330,10 +1337,38 @@ class SqlExecutionRepository(
     id: String,
     requireLatestVersion: Boolean
   ): PipelineExecution? {
-    val selectPool = if (requireLatestVersion) poolName else readPoolName
-    withPool(selectPool) {
-      val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
-      return select.fetchExecution()
+    // If we are not using a read pool, then retrieve the execution normally
+    // because the default pool always contains the latest version
+    if (!readPoolEnabled()) {
+      withPool(poolName) {
+        val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+        return select.fetchExecution()
+      }
+    }
+    if (requireLatestVersion) {
+      // Attempt to find an up-to-date execution from the read pool
+      val pipelineExecution = withPool(readPoolName) {
+        val select = ctx.selectExecution(
+          type,
+          compressionProperties,
+          fields = selectReadPoolFields(executionType = type)
+        )
+          .where(id.toWhereCondition())
+        select.fetchExecution(true)
+      }
+      if (pipelineExecution != null) {
+        return pipelineExecution
+      }
+      // If we couldn't find an up-to-date execution, use the regular pool instead
+      withPool(poolName) {
+        val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+        return select.fetchExecution()
+      }
+    } else {
+      withPool(readPoolName) {
+        val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+        return select.fetchExecution()
+      }
     }
   }
 
@@ -1420,11 +1455,36 @@ class SqlExecutionRepository(
       .let { seek(it) }
   }
 
+  private fun selectReadPoolFields(executionType: ExecutionType): List<Field<Any>> {
+    if (compressionProperties.enabled) {
+      return listOf(field("id"),
+        field("body"),
+        field("compressed_body"),
+        field("compression_type"),
+        field(name("partition")),
+        field(name(executionType.tableName.name, "updated_at")).`as`("updated_at"),
+        field(name(executionType.tableName.compressedExecTable.name, "updated_at")).`as`("compressed_updated_at")
+      )
+    }
+
+    return listOf(field("id"),
+      field("body"),
+      field(name("partition")),
+      field("updated_at")
+    )
+  }
+
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
     ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq)
 
   private fun SelectForUpdateStep<out Record>.fetchExecution() =
     fetchExecutions().firstOrNull()
+
+  private fun SelectForUpdateStep<out Record>.fetchExecutions(requireLatestVersion: Boolean) =
+    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled, requireLatestVersion, executionUpdateTimeRepository).map(fetch().intoResultSet(), jooq)
+
+  private fun SelectForUpdateStep<out Record>.fetchExecution(requireLatestVersion: Boolean) =
+    fetchExecutions(requireLatestVersion).firstOrNull()
 
   private fun fetchExecutions(nextPage: (Int, String?) -> Iterable<PipelineExecution>) =
     object : Iterable<PipelineExecution> {
@@ -1472,6 +1532,8 @@ class SqlExecutionRepository(
       }
     }
   }
+
+  private fun readPoolEnabled(): Boolean = readPoolName != poolName
 
   class SyntheticStageRequired : IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")
 }

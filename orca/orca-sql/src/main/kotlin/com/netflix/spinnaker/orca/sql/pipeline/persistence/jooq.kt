@@ -101,7 +101,7 @@ internal val Table<Record>.compressedExecTable: Table<Record>
  * Selects all stages for an [executionType] and List [executionIds].
  */
 internal fun DSLContext.selectExecutionStages(executionType: ExecutionType, executionIds: Collection<String>, compressionProperties: ExecutionCompressionProperties): ResultSet {
-  val selectFrom = select(selectStageFields(compressionProperties)).from(executionType.stagesTableName)
+  val selectFrom = select(selectStageFields(executionType, compressionProperties)).from(executionType.stagesTableName)
 
   if (compressionProperties.enabled) {
     selectFrom.leftJoin(executionType.stagesTableName.compressedExecTable).using(field("id"))
@@ -145,17 +145,22 @@ internal fun SelectForUpdateStep<out Record>.fetchExecutions(
   ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq)
 
 
-private fun selectStageFields(compressionProperties: ExecutionCompressionProperties): List<Field<Any>> {
+private fun selectStageFields(executionType: ExecutionType, compressionProperties: ExecutionCompressionProperties): List<Field<Any>> {
   if (compressionProperties.enabled) {
-    return listOf(field("execution_id"),
+    return listOf(field("id"),
+      field("execution_id"),
       field("body"),
       field("compressed_body"),
-      field("compression_type")
+      field("compression_type"),
+      field(DSL.name(executionType.stagesTableName.name, "updated_at")).`as`("updated_at"),
+      field(DSL.name(executionType.stagesTableName.compressedExecTable.name, "updated_at")).`as`("compressed_updated_at")
     )
   }
 
-  return listOf(field("execution_id"),
-    field("body")
+  return listOf(field("id"),
+    field("execution_id"),
+    field("body"),
+    field("updated_at")
   )
 }
 

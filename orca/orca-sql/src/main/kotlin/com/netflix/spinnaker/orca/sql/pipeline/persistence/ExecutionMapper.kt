@@ -23,25 +23,38 @@ import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import java.sql.ResultSet
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
+import java.sql.ResultSet
+import java.time.Instant
 
 /**
  * Converts a SQL [ResultSet] into an Execution.
  *
  * When retrieving an Execution from SQL, we lazily load its stages on-demand
  * in this mapper as well.
+ *
+ * Optionally, the mapper can accept the requireLatestVersion and
+ * executionUpdateTimeRepository parameters, which work together as a unit.
+ * If requireLatestVersion is true, the mapper will verify that all executions
+ * and compressed executions are newer than the update timestamp provided by
+ * the executionUpdateTimeRepository. If any part of the ResultSet fails the
+ * requirements, the mapper will return an empty list of executions
  */
 class ExecutionMapper(
   private val mapper: ObjectMapper,
   private val stageBatchSize: Int,
   private val compressionProperties: ExecutionCompressionProperties,
-  private val pipelineRefEnabled: Boolean
+  private val pipelineRefEnabled: Boolean,
+  private val requireLatestVersion: Boolean,
+  private val executionUpdateTimeRepository: ExecutionUpdateTimeRepository
 ) {
-
+  constructor(mapper: ObjectMapper, stageBatchSize: Int, executionCompressionProperties: ExecutionCompressionProperties, pipelineRefEnabled: Boolean) :
+    this(mapper, stageBatchSize, executionCompressionProperties, pipelineRefEnabled, false, NoopExecutionUpdateTimeRepository())
   private val log = LoggerFactory.getLogger(javaClass)
 
   /**
@@ -69,12 +82,43 @@ class ExecutionMapper(
     }
   }
 
+  /**
+   * Determines whether the execution represented by the ResultSet is an up-to-date version.
+   * The ResultSet is expected to contain an `updated_at` column which represents the update time of the execution
+   * and a `compressed_updated_at` column which represents the update time of the compressed
+   * execution, if it exists.
+   *
+   * @param rs [ResultSet] representing the execution
+   *
+   * @return true if the execution is up-to-date, false otherwise
+   */
+  @VisibleForTesting
+  fun isUpToDateVersion(rs: ResultSet, oldestAllowedUpdate: Instant): Boolean {
+    if (rs.getLong("updated_at") < oldestAllowedUpdate.toEpochMilli()) {
+      return false
+    }
+    // If the execution is compressed, then confirm that the compressed execution is up-to-date
+    val body: String? = rs.getString("body")
+    return if (compressionProperties.enabled && body.isNullOrEmpty()) {
+      rs.getLong("compressed_updated_at") >= oldestAllowedUpdate.toEpochMilli()
+    } else {
+      true
+    }
+  }
+
   fun map(rs: ResultSet, context: DSLContext): Collection<PipelineExecution> {
     val results = mutableListOf<PipelineExecution>()
     val executionMap = mutableMapOf<String, PipelineExecution>()
     val legacyMap = mutableMapOf<String, String>()
 
     while (rs.next()) {
+      if (requireLatestVersion) {
+        val executionId = rs.getString("id")
+        val oldestAllowedUpdate = executionUpdateTimeRepository.getPipelineExecutionUpdate(executionId)
+        if (oldestAllowedUpdate == null || !isUpToDateVersion(rs, oldestAllowedUpdate)) {
+          return mutableListOf()
+        }
+      }
       val body = getDecompressedBody(rs)
       if (body.isNotEmpty()) {
         mapper.readValue<PipelineExecution>(body)
@@ -99,6 +143,7 @@ class ExecutionMapper(
     if (results.isNotEmpty()) {
       val type = results[0].type
 
+      var outdatedStageFound = false
       results.chunked(stageBatchSize) { executions ->
         val executionIds: List<String> = executions.map {
           if (legacyMap.containsKey(it.id)) {
@@ -110,6 +155,14 @@ class ExecutionMapper(
 
         context.selectExecutionStages(type, executionIds, compressionProperties).let { stageResultSet ->
           while (stageResultSet.next()) {
+            if (requireLatestVersion) {
+              val stageId = stageResultSet.getString("id")
+              val oldestAllowedUpdate = executionUpdateTimeRepository.getStageExecutionUpdate(stageId)
+              if (oldestAllowedUpdate == null || !isUpToDateVersion(stageResultSet, oldestAllowedUpdate)) {
+                outdatedStageFound = true
+                return@chunked
+              }
+            }
             mapStage(stageResultSet, executionMap)
           }
         }
@@ -117,6 +170,11 @@ class ExecutionMapper(
         executions.forEach { execution ->
           execution.stages.sortBy { it.refId }
         }
+      }
+
+      // Return an empty result to indicate that a retry is needed
+      if (outdatedStageFound) {
+        return mutableListOf()
       }
     }
 

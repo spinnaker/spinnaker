@@ -17,31 +17,51 @@
 package com.netflix.spinnaker.orca.sql.pipeline.persistence;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.doReturn;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.CompressionType;
+import com.netflix.spinnaker.config.ExecutionCompressionProperties;
 import com.netflix.spinnaker.config.SqlConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository;
 import de.huxhorn.sulky.ulid.ULID;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -56,12 +76,15 @@ import org.springframework.test.context.TestPropertySource;
     properties = {
       "sql.enabled=true",
       "execution-repository.sql.enabled=true",
-      "sql.connectionPools.default.default=true"
+      "execution-repository.sql.read-replica.enabled=true",
+      "sql.connectionPools.default.default=true",
     })
 public class SqlExecutionRepositoryReadReplicaTest {
   @Autowired ExecutionRepository executionRepository;
 
   @MockBean OkHttpClientProvider okHttpClientProvider;
+  @SpyBean ExecutionCompressionProperties executionCompressionProperties;
+  @MockBean ExecutionUpdateTimeRepository executionUpdateTimeRepository;
   @MockBean Clock clock;
   @Autowired DataSourceConnectionProvider dataSourceConnectionProvider;
   @Autowired ObjectMapper mapper;
@@ -72,11 +95,11 @@ public class SqlExecutionRepositoryReadReplicaTest {
   private static SqlTestUtil.TestDatabase readReplica =
       SqlTestUtil.initDatabase(readReplicaUrl, SQLDialect.MYSQL);
   private static final ULID ID_GENERATOR = new ULID();
-  private final String pipelineId = ID_GENERATOR.nextULID();
-  private PipelineExecution defaultPoolPipelineExecution =
-      new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
-  private PipelineExecution readPoolPipelineExecution =
-      new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
+  private final long defaultPoolUpdatedAt = 10000L;
+  private final long readPoolUpdatedAt = 5000L;
+  private final long readPoolCompressedUpdatedAt = 3000L;
+  private final long firstStageReadPoolUpdatedAt = 5000L;
+  private final long secondStageReadPoolUpdatedAt = 2000L;
 
   @DynamicPropertySource
   static void registerSQLProperties(DynamicPropertyRegistry registry) {
@@ -85,12 +108,240 @@ public class SqlExecutionRepositoryReadReplicaTest {
     registry.add("sql.connectionPools.read.jdbcUrl", () -> readReplicaUrl);
   }
 
-  @BeforeEach
-  void initDatabases() throws SQLException {
+  @AfterEach
+  void resetTables() throws SQLException {
+    try (Connection connection = primaryInstance.dataSource.getConnection();
+        Statement stmt = connection.createStatement()) {
+      stmt.execute("DELETE FROM pipelines");
+      stmt.execute("DELETE FROM pipelines_compressed_executions");
+      stmt.execute("DELETE FROM pipeline_stages");
+      stmt.execute("DELETE FROM pipeline_stages_compressed_executions");
+    }
+
+    try (Connection connection = readReplica.dataSource.getConnection();
+        Statement stmt = connection.createStatement()) {
+      stmt.execute("DELETE FROM pipelines");
+      stmt.execute("DELETE FROM pipelines_compressed_executions");
+      stmt.execute("DELETE FROM pipeline_stages");
+      stmt.execute("DELETE FROM pipeline_stages_compressed_executions");
+    }
+  }
+
+  @AfterAll
+  static void cleanup() {
+    SqlTestUtil.cleanupDb(primaryInstance.context);
+    SqlTestUtil.cleanupDb(readReplica.context);
+  }
+
+  /**
+   * Retrieve a pipeline execution from the read pool if it is up-to-date. Otherwise, use the
+   * default pool. If the latest version of a pipeline execution is not required
+   * (requireLatestVersion = false), then retrieve the execution from the read pool
+   */
+  @Test
+  void testRetrieveRequireLatestVersion() throws SQLException, IOException {
+    // given
+    // Set up tables
+    String pipelineId = ID_GENERATOR.nextULID();
+    PipelineExecution defaultPoolPipelineExecution =
+        new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
+    PipelineExecution readPoolPipelineExecution =
+        new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
     // Set some fields in the PipelineExecutions to differentiate them from each other
     defaultPoolPipelineExecution.setName("defaultPoolPipelineExecution");
     readPoolPipelineExecution.setName("readPoolPipelineExecution");
+    initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
 
+    // when readPoolUpdatedAt > expected pipeline execution update
+    // i.e. the read pool is up-to-date and contains a more recent execution than what we need
+    doReturn(Instant.ofEpochMilli(ThreadLocalRandom.current().nextLong(0L, readPoolUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getPipelineExecutionUpdate(pipelineId);
+    PipelineExecution execution =
+        executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+
+    // when readPoolUpdatedAt == expected pipeline execution update
+    // i.e. the read pool is up-to-date
+    doReturn(Instant.ofEpochMilli(readPoolUpdatedAt))
+        .when(executionUpdateTimeRepository)
+        .getPipelineExecutionUpdate(pipelineId);
+    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+
+    // when readPoolUpdatedAt < expected pipeline execution update
+    // i.e. the read pool is not up-to-date
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current().nextLong(readPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getPipelineExecutionUpdate(pipelineId);
+    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+    assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+
+    // when requireLatestVersion = false
+    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
+    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+  }
+
+  /**
+   * Retrieve a pipeline execution from the read pool if the executions table and the compressed
+   * executions tables for pipelines and stages are up-to-date. Otherwise, use the default pool. If
+   * the latest version of a pipeline execution is not required (requireLatestVersion = false), then
+   * retrieve the execution from the read pool
+   */
+  @Test
+  void testRetrieveCompressedExecutionRequireLatestVersion() throws SQLException, IOException {
+    doReturn(true).when(executionCompressionProperties).getEnabled();
+
+    // given
+    // Set up tables
+    // Pipeline executions
+    String pipelineId = ID_GENERATOR.nextULID();
+    PipelineExecution defaultPoolPipelineExecution =
+        new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
+    PipelineExecution readPoolPipelineExecution =
+        new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
+    // Set some fields in the PipelineExecutions to differentiate them from each other
+    defaultPoolPipelineExecution.setName("defaultPoolPipelineExecution");
+    readPoolPipelineExecution.setName("readPoolPipelineExecution");
+    initDBWithCompressedExecution(
+        pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+
+    // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update
+    // i.e. both the pipeline and compressed pipeline execution tables are up-to-date
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getPipelineExecutionUpdate(pipelineId);
+    PipelineExecution execution =
+        executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+
+    // when readPoolUpdatedAt > expected pipeline execution update > readPoolCompressedUpdatedAt
+    // i.e. the pipeline execution table is up-to-date but the compressed pipeline execution table
+    // is not
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current()
+                    .nextLong(readPoolCompressedUpdatedAt + 1, readPoolUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getPipelineExecutionUpdate(pipelineId);
+    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+    assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+
+    // when expected pipeline execution update > readPoolUpdatedAt > readPoolCompressedUpdatedAt
+    // i.e. neither the pipeline nor the compressed pipeline execution tables are up-to-date
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current().nextLong(readPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getPipelineExecutionUpdate(pipelineId);
+    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+    assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+
+    // given
+    // Set up stages
+    // Stage executions
+    StageExecution firstStageDefaultPool =
+        new StageExecutionImpl(
+            defaultPoolPipelineExecution, "test", "stage 1 default", new HashMap<>());
+    StageExecution secondStageDefaultPool =
+        new StageExecutionImpl(
+            defaultPoolPipelineExecution, "test", "stage 2 default", new HashMap<>());
+    StageExecution firstStageReadPool =
+        new StageExecutionImpl(readPoolPipelineExecution, "test", "stage 1 read", new HashMap<>());
+    StageExecution secondStageReadPool =
+        new StageExecutionImpl(readPoolPipelineExecution, "test", "stage 2 read", new HashMap<>());
+    initDBWithStages(
+        pipelineId,
+        Map.of(
+            firstStageDefaultPool,
+            defaultPoolUpdatedAt,
+            secondStageDefaultPool,
+            defaultPoolUpdatedAt),
+        Map.of(
+            firstStageReadPool,
+            firstStageReadPoolUpdatedAt,
+            secondStageReadPool,
+            secondStageReadPoolUpdatedAt));
+
+    // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update and
+    // firstStageReadPoolUpdatedAt > secondStageReadPoolUpdatedAt > expected stage execution updates
+    // i.e. all pipeline and stage execution tables are up-to-date
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getPipelineExecutionUpdate(pipelineId);
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current().nextLong(0L, firstStageReadPoolUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getStageExecutionUpdate(firstStageReadPool.getId());
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current().nextLong(0L, secondStageReadPoolUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getStageExecutionUpdate(secondStageReadPool.getId());
+    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+    List<String> expectedStageNames = new ArrayList<>();
+    expectedStageNames.add(firstStageReadPool.getName());
+    expectedStageNames.add(secondStageReadPool.getName());
+    Collections.sort(expectedStageNames);
+    List<String> actualStageNames =
+        execution.getStages().stream()
+            .map(StageExecution::getName)
+            .sorted()
+            .collect(Collectors.toList());
+    assertThat(actualStageNames).isEqualTo(expectedStageNames);
+
+    // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update and
+    // and firstStageReadPoolUpdatedAt > expected first stage execution update
+    // and expected second stage execution update > secondStageReadPoolUpdatedAt
+    // i.e. all executions in the read replica are up-to-date except for secondStageReadPool
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getPipelineExecutionUpdate(pipelineId);
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current().nextLong(0L, firstStageReadPoolUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getStageExecutionUpdate(firstStageReadPool.getId());
+    doReturn(
+            Instant.ofEpochMilli(
+                ThreadLocalRandom.current()
+                    .nextLong(secondStageReadPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
+        .when(executionUpdateTimeRepository)
+        .getStageExecutionUpdate(secondStageReadPool.getId());
+    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+    assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+    expectedStageNames = new ArrayList<>();
+    expectedStageNames.add(firstStageDefaultPool.getName());
+    expectedStageNames.add(secondStageDefaultPool.getName());
+    Collections.sort(expectedStageNames);
+    actualStageNames =
+        execution.getStages().stream()
+            .map(StageExecution::getName)
+            .sorted()
+            .collect(Collectors.toList());
+    assertThat(actualStageNames).isEqualTo(expectedStageNames);
+
+    // when requireLatestVersion = false
+    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
+    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+  }
+
+  // Initialize the DB with a pipeline execution
+  void initDBWithExecution(
+      String pipelineId,
+      PipelineExecution defaultPoolPipelineExecution,
+      PipelineExecution readPoolPipelineExecution)
+      throws SQLException, IOException {
     String insertSql =
         "INSERT INTO pipelines (id, application, build_time, canceled, updated_at, body) VALUES (?, ?, ?, ?, ?, ?)";
     // populate primary instance
@@ -101,11 +352,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
       stmt.setString(2, defaultPoolPipelineExecution.getApplication());
       stmt.setLong(3, Instant.now().toEpochMilli());
       stmt.setBoolean(4, defaultPoolPipelineExecution.isCanceled());
-      stmt.setLong(5, Instant.now().toEpochMilli());
+      stmt.setLong(5, defaultPoolUpdatedAt);
       stmt.setString(6, defaultPoolBody);
       stmt.executeUpdate();
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
     }
 
     // populate read replica
@@ -116,22 +365,154 @@ public class SqlExecutionRepositoryReadReplicaTest {
       stmt.setString(2, readPoolPipelineExecution.getApplication());
       stmt.setLong(3, Instant.now().toEpochMilli());
       stmt.setBoolean(4, readPoolPipelineExecution.isCanceled());
-      stmt.setLong(5, Instant.now().toEpochMilli());
+      stmt.setLong(5, readPoolUpdatedAt);
       stmt.setString(6, readPoolBody);
       stmt.executeUpdate();
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
     }
   }
 
-  @Test
-  void testRetrieveRequireLatestVersion() {
-    PipelineExecution execution =
-        executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
-    assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+  // Initialize the DB with a pipeline execution and its compressed counterpart
+  void initDBWithCompressedExecution(
+      String pipelineId,
+      PipelineExecution defaultPoolPipelineExecution,
+      PipelineExecution readPoolPipelineExecution)
+      throws SQLException, IOException {
+    String insertExecutionSql =
+        "INSERT INTO pipelines (id, application, build_time, canceled, updated_at, body) VALUES (?, ?, ?, ?, ?, ?)";
+    String insertCompressedExecutionSql =
+        "INSERT INTO pipelines_compressed_executions (id, compressed_body, compression_type, updated_at) VALUES (?, ?, ?, ?)";
+    // populate primary instance
+    try (Connection connection = primaryInstance.dataSource.getConnection();
+        PreparedStatement stmt = connection.prepareStatement(insertExecutionSql);
+        PreparedStatement compressedStmt =
+            connection.prepareStatement(insertCompressedExecutionSql)) {
+      // write regular execution
+      stmt.setString(1, pipelineId);
+      stmt.setString(2, defaultPoolPipelineExecution.getApplication());
+      stmt.setLong(3, Instant.now().toEpochMilli());
+      stmt.setBoolean(4, defaultPoolPipelineExecution.isCanceled());
+      stmt.setLong(5, defaultPoolUpdatedAt);
+      stmt.setString(6, "");
+      stmt.executeUpdate();
 
-    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
-    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+      // write compressed execution
+      String body = mapper.writeValueAsString(defaultPoolPipelineExecution);
+      ByteArrayOutputStream compressedBodyStream = new ByteArrayOutputStream();
+      DeflaterOutputStream deflaterOutputStream =
+          new DeflaterOutputStream(compressedBodyStream, new Deflater());
+      deflaterOutputStream.write(body.getBytes(StandardCharsets.UTF_8));
+      deflaterOutputStream.close();
+      compressedStmt.setString(1, pipelineId);
+      compressedStmt.setBytes(2, compressedBodyStream.toByteArray());
+      compressedStmt.setString(3, CompressionType.ZLIB.toString());
+      compressedStmt.setLong(4, defaultPoolUpdatedAt);
+      compressedStmt.executeUpdate();
+    }
+
+    // populate read replica
+    try (Connection connection = readReplica.dataSource.getConnection();
+        PreparedStatement stmt = connection.prepareStatement(insertExecutionSql);
+        PreparedStatement compressedStmt =
+            connection.prepareStatement(insertCompressedExecutionSql)) {
+      // write regular execution
+      stmt.setString(1, pipelineId);
+      stmt.setString(2, readPoolPipelineExecution.getApplication());
+      stmt.setLong(3, Instant.now().toEpochMilli());
+      stmt.setBoolean(4, readPoolPipelineExecution.isCanceled());
+      stmt.setLong(5, readPoolUpdatedAt);
+      stmt.setString(6, "");
+      stmt.executeUpdate();
+
+      // write compressed execution
+      String body = mapper.writeValueAsString(readPoolPipelineExecution);
+      ByteArrayOutputStream compressedBodyStream = new ByteArrayOutputStream();
+      DeflaterOutputStream deflaterOutputStream =
+          new DeflaterOutputStream(compressedBodyStream, new Deflater());
+      deflaterOutputStream.write(body.getBytes(StandardCharsets.UTF_8));
+      deflaterOutputStream.close();
+      compressedStmt.setString(1, pipelineId);
+      compressedStmt.setBytes(2, compressedBodyStream.toByteArray());
+      compressedStmt.setString(3, CompressionType.ZLIB.toString());
+      compressedStmt.setLong(4, readPoolCompressedUpdatedAt);
+      compressedStmt.executeUpdate();
+    }
+  }
+
+  // Initialize the DB with a list of stage executions and their compressed counterparts
+  void initDBWithStages(
+      String pipelineExecutionId,
+      Map<StageExecution, Long> defaultPoolStageExecutionUpdates,
+      Map<StageExecution, Long> readPoolStageExecutionUpdates)
+      throws SQLException, IOException {
+    String insertExecutionSql =
+        "INSERT INTO pipeline_stages (id, execution_id, status, updated_at, body) VALUES (?, ?, ?, ?, ?)";
+    String insertCompressedExecutionSql =
+        "INSERT INTO pipeline_stages_compressed_executions (id, compressed_body, compression_type, updated_at) VALUES (?, ?, ?, ?)";
+    // populate primary instance
+    try (Connection connection = primaryInstance.dataSource.getConnection();
+        PreparedStatement stmt = connection.prepareStatement(insertExecutionSql);
+        PreparedStatement compressedStmt =
+            connection.prepareStatement(insertCompressedExecutionSql)) {
+      for (Map.Entry<StageExecution, Long> entry : defaultPoolStageExecutionUpdates.entrySet()) {
+        StageExecution stageExecution = entry.getKey();
+        Long updatedAt = entry.getValue();
+        // write regular execution
+        stmt.setString(1, stageExecution.getId());
+        stmt.setString(2, pipelineExecutionId);
+        stmt.setString(3, stageExecution.getStatus().toString());
+        stmt.setLong(4, updatedAt);
+        stmt.setString(5, "");
+        stmt.addBatch();
+
+        // write compressed execution
+        String body = mapper.writeValueAsString(stageExecution);
+        ByteArrayOutputStream compressedBodyStream = new ByteArrayOutputStream();
+        DeflaterOutputStream deflaterOutputStream =
+            new DeflaterOutputStream(compressedBodyStream, new Deflater());
+        deflaterOutputStream.write(body.getBytes(StandardCharsets.UTF_8));
+        deflaterOutputStream.close();
+        compressedStmt.setString(1, stageExecution.getId());
+        compressedStmt.setBytes(2, compressedBodyStream.toByteArray());
+        compressedStmt.setString(3, CompressionType.ZLIB.toString());
+        compressedStmt.setLong(4, updatedAt);
+        compressedStmt.addBatch();
+      }
+      stmt.executeBatch();
+      compressedStmt.executeBatch();
+    }
+
+    // populate read replica
+    try (Connection connection = readReplica.dataSource.getConnection();
+        PreparedStatement stmt = connection.prepareStatement(insertExecutionSql);
+        PreparedStatement compressedStmt =
+            connection.prepareStatement(insertCompressedExecutionSql)) {
+      for (Map.Entry<StageExecution, Long> entry : readPoolStageExecutionUpdates.entrySet()) {
+        StageExecution stageExecution = entry.getKey();
+        Long updatedAt = entry.getValue();
+        // write regular execution
+        stmt.setString(1, stageExecution.getId());
+        stmt.setString(2, pipelineExecutionId);
+        stmt.setString(3, stageExecution.getStatus().toString());
+        stmt.setLong(4, updatedAt);
+        stmt.setString(5, "");
+        stmt.addBatch();
+
+        // write compressed execution
+        String body = mapper.writeValueAsString(stageExecution);
+        ByteArrayOutputStream compressedBodyStream = new ByteArrayOutputStream();
+        DeflaterOutputStream deflaterOutputStream =
+            new DeflaterOutputStream(compressedBodyStream, new Deflater());
+        deflaterOutputStream.write(body.getBytes(StandardCharsets.UTF_8));
+        deflaterOutputStream.close();
+        compressedStmt.setString(1, stageExecution.getId());
+        compressedStmt.setBytes(2, compressedBodyStream.toByteArray());
+        compressedStmt.setString(3, CompressionType.ZLIB.toString());
+        compressedStmt.setLong(4, updatedAt);
+        compressedStmt.addBatch();
+      }
+      stmt.executeBatch();
+      compressedStmt.executeBatch();
+    }
   }
 
   @TestConfiguration
