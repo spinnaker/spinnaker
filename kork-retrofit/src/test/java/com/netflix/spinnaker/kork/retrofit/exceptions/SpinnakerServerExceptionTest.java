@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.List;
 import okhttp3.Request;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import retrofit.converter.ConversionException;
@@ -41,6 +42,19 @@ class SpinnakerServerExceptionTest {
     SpinnakerNetworkException spinnakerNetworkException =
         new SpinnakerNetworkException(cause, request);
     assertThat(spinnakerNetworkException.getUrl()).isEqualTo(url);
+    assertThat(spinnakerNetworkException.getHttpMethod()).isEqualTo(HttpMethod.GET.toString());
+  }
+
+  @Test
+  void testSpinnakerNetworkExceptionWithSpecificMethod() {
+    Throwable cause = new Throwable("arbitrary message");
+    String url = "http://some-url/";
+    Request request =
+        new Request.Builder().url(url).method(HttpMethod.DELETE.toString(), null).build();
+    SpinnakerNetworkException spinnakerNetworkException =
+        new SpinnakerNetworkException(cause, request);
+    assertThat(spinnakerNetworkException.getUrl()).isEqualTo(url);
+    assertThat(spinnakerNetworkException.getHttpMethod()).isEqualTo(HttpMethod.DELETE.toString());
   }
 
   @Test
@@ -70,6 +84,19 @@ class SpinnakerServerExceptionTest {
     SpinnakerServerException spinnakerServerException =
         new SpinnakerServerException(cause, request);
     assertThat(spinnakerServerException.getUrl()).isEqualTo(url);
+    assertThat(spinnakerServerException.getHttpMethod()).isEqualTo(HttpMethod.GET.toString());
+  }
+
+  @Test
+  void testSpinnakerServerExceptionWithSpecificMethod() {
+    Throwable cause = new Throwable("arbitrary message");
+    String url = "http://some-url/";
+    Request request =
+        new Request.Builder().url(url).method(HttpMethod.DELETE.toString(), null).build();
+    SpinnakerServerException spinnakerServerException =
+        new SpinnakerServerException(cause, request);
+    assertThat(spinnakerServerException.getUrl()).isEqualTo(url);
+    assertThat(spinnakerServerException.getHttpMethod()).isEqualTo(HttpMethod.DELETE.toString());
   }
 
   @Test

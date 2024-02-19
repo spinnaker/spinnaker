@@ -27,11 +27,13 @@ import retrofit.RetrofitError;
 public class SpinnakerServerException extends SpinnakerException {
 
   @Getter private final String url;
+  @Getter private final String httpMethod;
 
   /** Construct a SpinnakerServerException corresponding to a RetrofitError. */
   public SpinnakerServerException(RetrofitError e) {
     super(e.getMessage(), e.getCause());
     url = e.getUrl();
+    httpMethod = null;
   }
 
   /**
@@ -41,6 +43,7 @@ public class SpinnakerServerException extends SpinnakerException {
   public SpinnakerServerException(Request request) {
     super();
     url = request.url().toString();
+    httpMethod = request.method();
   }
 
   /**
@@ -50,6 +53,7 @@ public class SpinnakerServerException extends SpinnakerException {
   public SpinnakerServerException(Throwable cause, Request request) {
     super(cause);
     this.url = request.url().toString();
+    this.httpMethod = request.method();
   }
 
   /**
@@ -59,6 +63,7 @@ public class SpinnakerServerException extends SpinnakerException {
   public SpinnakerServerException(String message, Throwable cause, Request request) {
     super(message, cause);
     this.url = request.url().toString();
+    this.httpMethod = request.method();
   }
 
   /**
@@ -68,6 +73,7 @@ public class SpinnakerServerException extends SpinnakerException {
   public SpinnakerServerException(String message, SpinnakerServerException cause) {
     super(message, cause);
     this.url = cause.getUrl();
+    this.httpMethod = cause.getHttpMethod();
   }
 
   @Override

@@ -28,6 +28,7 @@ import java.util.Map;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -63,6 +64,7 @@ class SpinnakerHttpExceptionTest {
         .isEqualTo("Status: " + statusCode + ", URL: " + url + ", Message: " + message);
     assertThat(spinnakerHttpException.getUrl()).isEqualTo(url);
     assertThat(spinnakerHttpException.getReason()).isEqualTo(reason);
+    assertThat(spinnakerHttpException.getHttpMethod()).isNull();
   }
 
   @Test
@@ -92,6 +94,7 @@ class SpinnakerHttpExceptionTest {
     assertThat(notFoundException.getResponseCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
     assertThat(notFoundException)
         .hasMessageContaining(String.valueOf(HttpStatus.NOT_FOUND.value()));
+    assertThat(notFoundException.getHttpMethod()).isEqualTo(HttpMethod.GET.toString());
   }
 
   @Test

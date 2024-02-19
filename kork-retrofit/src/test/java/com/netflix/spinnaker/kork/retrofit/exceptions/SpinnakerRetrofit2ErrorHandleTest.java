@@ -31,6 +31,7 @@ import okhttp3.mockwebserver.SocketPolicy;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import retrofit2.Call;
 import retrofit2.Retrofit;
@@ -146,6 +147,21 @@ class SpinnakerRetrofit2ErrorHandleTest {
   }
 
   @Test
+  void testHttpMethodInException() {
+    // Check http request method is retrievable from a SpinnakerHttpException
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setResponseCode(HttpStatus.BAD_REQUEST.value())
+            .setBody(responseBodyString));
+    SpinnakerHttpException spinnakerHttpException =
+        catchThrowableOfType(
+            () -> retrofit2Service.deleteRetrofit2().execute(), SpinnakerHttpException.class);
+    assertThat(spinnakerHttpException.getUrl())
+        .isEqualTo(mockWebServer.url("/retrofit2").toString());
+    assertThat(spinnakerHttpException.getHttpMethod()).isEqualTo(HttpMethod.DELETE.toString());
+  }
+
+  @Test
   void testNotParameterizedException() {
     IllegalArgumentException illegalArgumentException =
         catchThrowableOfType(
@@ -177,6 +193,9 @@ class SpinnakerRetrofit2ErrorHandleTest {
 
     @retrofit2.http.GET("/retrofit2/wrongReturnType")
     DummyWithExecute testWrongReturnType();
+
+    @retrofit2.http.DELETE("/retrofit2")
+    Call<String> deleteRetrofit2();
   }
 
   @Test

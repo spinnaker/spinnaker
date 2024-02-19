@@ -177,6 +177,17 @@ class SpinnakerRetrofitErrorHandlerTest {
   }
 
   @Test
+  void testExceptionFromRetrofitErrorHasNullHttpMethod() {
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setResponseCode(HttpStatus.BAD_REQUEST.value())
+            .setHeader("Test", "true"));
+    SpinnakerHttpException spinnakerHttpException =
+        catchThrowableOfType(() -> retrofitService.getFoo(), SpinnakerHttpException.class);
+    assertThat(spinnakerHttpException.getHttpMethod()).isNull();
+  }
+
+  @Test
   void testSimpleSpinnakerNetworkException() {
     String message = "my custom message";
     IOException e = new IOException(message);
