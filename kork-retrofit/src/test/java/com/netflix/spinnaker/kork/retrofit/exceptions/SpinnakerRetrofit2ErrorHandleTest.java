@@ -234,7 +234,8 @@ class SpinnakerRetrofit2ErrorHandleTest {
     assertThat(spinnakerHttpException.getResponseBody()).isNull();
     assertThat(spinnakerHttpException.getResponseCode()).isEqualTo(responseCode);
     assertThat(spinnakerHttpException)
-        .hasMessage("Status: " + responseCode + ", URL: " + url + ", Message: " + reason);
+        .hasMessage(
+            "Status: " + responseCode + ", Method: GET, URL: " + url + ", Message: " + reason);
     assertThat(spinnakerHttpException.getUrl()).isEqualTo(url);
     assertThat(spinnakerHttpException.getReason()).isEqualTo(reason);
   }

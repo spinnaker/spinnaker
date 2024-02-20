@@ -194,8 +194,14 @@ public class SpinnakerHttpException extends SpinnakerServerException {
       return super.getMessage();
     }
 
+    if (getHttpMethod() == null) {
+      return String.format(
+          "Status: %s, URL: %s, Message: %s", responseCode, this.getUrl(), getRawMessage());
+    }
+
     return String.format(
-        "Status: %s, URL: %s, Message: %s", responseCode, this.getUrl(), getRawMessage());
+        "Status: %s, Method: %s, URL: %s, Message: %s",
+        responseCode, getHttpMethod(), this.getUrl(), getRawMessage());
   }
 
   @Override
