@@ -26,6 +26,6 @@ import org.pf4j.util.ExtensionFileFilter
 /**
  * A [PluginRepository] supporting [PluginRef] type [Plugin]s by matching files with the extension [PluginRef.EXTENSION].
  */
-class PluginRefPluginRepository(pluginPath: Path) : BasePluginRepository(pluginPath, ExtensionFileFilter(PluginRef.EXTENSION)) {
+class PluginRefPluginRepository(pluginPath: Path) : BasePluginRepository(listOf(pluginPath), ExtensionFileFilter(PluginRef.EXTENSION)) {
   override fun deletePluginPath(pluginPath: Path?): Boolean = false
 }
