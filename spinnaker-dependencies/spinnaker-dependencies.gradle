@@ -12,7 +12,6 @@ ext {
     bouncycastle     : "1.77",
     brave            : "5.12.3",
     gcp              : "25.3.0",
-    jooq             : "3.13.6",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
     protobuf         : "3.21.12",
@@ -155,8 +154,6 @@ dependencies {
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
-    api("org.jooq:jooq:${versions.jooq}")
-    api("org.jooq:jooq-kotlin:${versions.jooq}")
     api("org.liquibase:liquibase-core"){
        version {
          strictly "4.24.0"
