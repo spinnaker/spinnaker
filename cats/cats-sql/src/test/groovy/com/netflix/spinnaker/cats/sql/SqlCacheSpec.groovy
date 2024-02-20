@@ -117,6 +117,6 @@ abstract class SqlCacheSpec extends WriteableCacheSpec {
     null                                                   || DSL.field("meowdy").eq("partner") || "meowdy = 'partner'"
     RelationshipCacheFilter.include("instances", "images") || null                              || "(\n  rel_type like 'instances%'\n  or rel_type like 'images%'\n)"
     RelationshipCacheFilter.include("images")              || DSL.field("meowdy").eq("partner") || "(\n  meowdy = 'partner'\n  and rel_type like 'images%'\n)"
-    null                                                   || null                              || "1 = 1"
+    null                                                   || null                              || "true"
   }
 }

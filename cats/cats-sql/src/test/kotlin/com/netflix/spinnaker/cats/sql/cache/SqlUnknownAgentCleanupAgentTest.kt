@@ -56,7 +56,6 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
 
     after {
       SqlTestUtil.cleanupDb(dslContext)
-      dslContext.close()
     }
 
     context("test and prod accounts exist") {
