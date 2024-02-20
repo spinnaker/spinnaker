@@ -152,7 +152,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                 val first = jooq.select(USER.UPDATED_AT)
                     .from(USER)
                     .where(USER.ID.eq(user1.id))
-                    .fetchOne(USER.UPDATED_AT)
+                    .fetchOne(USER.UPDATED_AT)!!
 
                 user1.isAdmin = true
 
@@ -163,7 +163,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                 val second = jooq.select(USER.UPDATED_AT)
                     .from(USER)
                     .where(USER.ID.eq(user1.id))
-                    .fetchOne(USER.UPDATED_AT)
+                    .fetchOne(USER.UPDATED_AT)!!
 
                 expectThat(second).isGreaterThan(first)
             }
@@ -182,7 +182,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                         RESOURCE.RESOURCE_TYPE.eq(account1.resourceType).and(
                             RESOURCE.RESOURCE_NAME.eq(account1.name)
                         )
-                    ).fetchOne(RESOURCE.UPDATED_AT)
+                    ).fetchOne(RESOURCE.UPDATED_AT)!!
 
                 clock.tick(Duration.ofSeconds(1))
 
@@ -194,7 +194,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                         RESOURCE.RESOURCE_TYPE.eq(account1.resourceType).and(
                             RESOURCE.RESOURCE_NAME.eq(account1.name)
                         )
-                    ).fetchOne(RESOURCE.UPDATED_AT)
+                    ).fetchOne(RESOURCE.UPDATED_AT)!!
 
                 expectThat(same).isEqualTo(first)
 
@@ -211,7 +211,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                         RESOURCE.RESOURCE_TYPE.eq(account1.resourceType).and(
                             RESOURCE.RESOURCE_NAME.eq(account1.name)
                         )
-                    ).fetchOne(RESOURCE.UPDATED_AT)
+                    ).fetchOne(RESOURCE.UPDATED_AT)!!
 
                 expectThat(second).isGreaterThan(first)
             }
@@ -725,10 +725,6 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
 
         after {
             jooq.flushAll()
-        }
-
-        afterAll {
-            jooq.close()
         }
     }
 
