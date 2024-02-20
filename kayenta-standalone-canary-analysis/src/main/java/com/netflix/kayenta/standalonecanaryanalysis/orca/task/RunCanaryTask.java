@@ -34,6 +34,7 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /** Orca Task that tells Kayenta to execute a canary analysis / judgement */
@@ -47,6 +48,7 @@ public class RunCanaryTask implements Task {
   private final ExecutionMapper executionMapper;
   private final ObjectMapper kayentaObjectMapper;
 
+  @Lazy
   @Autowired
   public RunCanaryTask(
       AccountCredentialsRepository accountCredentialsRepository,

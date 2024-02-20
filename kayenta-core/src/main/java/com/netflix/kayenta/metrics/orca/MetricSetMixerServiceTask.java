@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -47,6 +48,7 @@ public class MetricSetMixerServiceTask implements RetryableTask {
   private final MetricSetMixerService metricSetMixerService;
   private final ExecutionMapper executionMapper;
 
+  @Lazy
   @Autowired
   public MetricSetMixerServiceTask(
       AccountCredentialsRepository accountCredentialsRepository,
