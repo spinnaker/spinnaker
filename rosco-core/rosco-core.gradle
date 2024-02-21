@@ -1,7 +1,4 @@
 dependencies {
-  compileOnly "org.projectlombok:lombok"
-  annotationProcessor "org.projectlombok:lombok"
-
   api "io.spinnaker.kork:kork-artifacts"
   api "io.spinnaker.kork:kork-plugins"
   api "org.codehaus.groovy:groovy"
