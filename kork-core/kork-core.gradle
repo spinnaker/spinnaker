@@ -25,6 +25,8 @@ dependencies {
   implementation "com.netflix.spectator:spectator-ext-jvm"
   implementation "com.netflix.spectator:spectator-reg-micrometer"
 
+  testImplementation project(":kork-test")
+  testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation("org.mockito:mockito-core")
   testImplementation "org.spockframework:spock-core"
