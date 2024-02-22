@@ -7,7 +7,7 @@ javaPlatform {
 ext {
   versions = [
     arrow            : "0.13.2",
-    aws              : "1.12.176",
+    aws              : "1.12.261",
     awsv2            : "2.19.0",
     bouncycastle     : "1.77",
     brave            : "5.12.3",
