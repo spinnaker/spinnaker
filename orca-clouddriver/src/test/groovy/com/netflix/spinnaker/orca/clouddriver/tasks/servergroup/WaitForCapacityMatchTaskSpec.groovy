@@ -30,7 +30,7 @@ import spock.lang.Unroll
 class WaitForCapacityMatchTaskSpec extends Specification {
 
   CloudDriverService cloudDriverService = Mock()
-  @Subject WaitForCapacityMatchTask task = new WaitForCapacityMatchTask() {
+  @Subject WaitForCapacityMatchTask task = new WaitForCapacityMatchTask(new ServerGroupProperties()) {
     @Override
     void verifyServerGroupsExist(StageExecution stage) {
       // do nothing
@@ -262,6 +262,60 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     // asg value is used when autoscaling
     true   || 4       | [min: 3, max: 10, desired: 4]   | [min: 1, max: 50, desired: 5]
     true   || 4       | [min: 3, max: 10, desired: 4]   | [min: "1", max: "50", desired: "5"]
+  }
+
+  @Unroll
+  void 'should use number of instances when determining if scaling has succeeded even if targetHealthyDeployPercentage is defined'() {
+    def serverGroupProperties = new ServerGroupProperties()
+    def resize = new ServerGroupProperties.Resize()
+    resize.setMatchInstancesSize(true)
+    serverGroupProperties.setResize(resize)
+    WaitForCapacityMatchTask task = new WaitForCapacityMatchTask(serverGroupProperties) {
+      @Override
+      void verifyServerGroupsExist(StageExecution stage) {
+        // do nothing
+      }
+    }
+    when:
+    def context  = [
+        capacity: [
+            min: configured.min,
+            max: configured.max,
+            desired: configured.desired
+        ],
+        targetHealthyDeployPercentage: targetHealthyDeployPercentage,
+        targetDesiredSize: targetHealthyDeployPercentage
+            ? Math.round(targetHealthyDeployPercentage * configured.desired / 100) : null
+    ]
+
+    def serverGroup = ModelUtils.serverGroup([
+        asg: [
+            desiredCapacity: asg.desired
+        ],
+        capacity: [
+            min: asg.min,
+            max: asg.max,
+            desired: asg.desired
+        ]
+    ])
+
+    def instances = []
+    (1..healthy).each {
+      instances << ModelUtils.instance([health: [[state: 'Up']]])
+    }
+
+    then:
+    result == task.hasSucceeded(
+        new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", context),
+        serverGroup, instances, null
+    )
+
+    where:
+    result || healthy | asg                             | configured                      | targetHealthyDeployPercentage
+    false  || 5       | [min: 10, max: 15, desired: 15] | [min: 10, max: 15, desired: 15] | 85
+    false  || 12      | [min: 10, max: 15, desired: 15] | [min: 10, max: 15, desired: 15] | 85
+    false  || 13      | [min: 10, max: 15, desired: 15] | [min: 10, max: 15, desired: 15] | 85
+    true   || 15      | [min: 10, max: 15, desired: 15] | [min: 10, max: 15, desired: 15] | 100
   }
 
   private static Instance makeInstance(id, healthState = 'Up') {

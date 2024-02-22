@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2024 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,6 +26,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
+
+  private final ServerGroupProperties serverGroupProperties;
+
+  public WaitForCapacityMatchTask(ServerGroupProperties serverGroupProperties) {
+    this.serverGroupProperties = serverGroupProperties;
+  }
 
   @Override
   protected Map<String, List<String>> getServerGroups(StageExecution stage) {
@@ -88,27 +94,37 @@ public class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
         desired = capacity.getDesired();
       }
 
-      Integer targetDesiredSize =
-          Optional.ofNullable((Number) context.get("targetDesiredSize"))
-              .map(Number::intValue)
-              .orElse(null);
-
-      splainer.add(
-          String.format(
-              "checking if capacity matches (desired=%s, target=%s current=%s)",
-              desired, targetDesiredSize == null ? "none" : targetDesiredSize, instances.size()));
-      if (targetDesiredSize != null && targetDesiredSize != 0) {
-        // `targetDesiredSize` is derived from `targetHealthyDeployPercentage` and if present,
-        // then scaling has succeeded if the number of instances is greater than this value.
-        if (instances.size() < targetDesiredSize) {
+      if (serverGroupProperties.getResize().isMatchInstancesSize()) {
+        splainer.add(
+            "checking if capacity matches (desired=${desired}, instances.size()=${instances.size()}) ");
+        if (desired == null || desired != instances.size()) {
           splainer.add(
-              "short-circuiting out of WaitForCapacityMatchTask because targetDesired and current capacity don't match");
+              "short-circuiting out of WaitForCapacityMatchTask because expected and current capacity don't match}");
           return false;
         }
-      } else if (desired == null || desired != instances.size()) {
+      } else {
+        Integer targetDesiredSize =
+            Optional.ofNullable((Number) context.get("targetDesiredSize"))
+                .map(Number::intValue)
+                .orElse(null);
+
         splainer.add(
-            "short-circuiting out of WaitForCapacityMatchTask because expected and current capacity don't match");
-        return false;
+            String.format(
+                "checking if capacity matches (desired=%s, target=%s current=%s)",
+                desired, targetDesiredSize == null ? "none" : targetDesiredSize, instances.size()));
+        if (targetDesiredSize != null && targetDesiredSize != 0) {
+          // `targetDesiredSize` is derived from `targetHealthyDeployPercentage` and if present,
+          // then scaling has succeeded if the number of instances is greater than this value.
+          if (instances.size() < targetDesiredSize) {
+            splainer.add(
+                "short-circuiting out of WaitForCapacityMatchTask because targetDesired and current capacity don't match");
+            return false;
+          }
+        } else if (desired == null || desired != instances.size()) {
+          splainer.add(
+              "short-circuiting out of WaitForCapacityMatchTask because expected and current capacity don't match");
+          return false;
+        }
       }
 
       boolean disabled = Boolean.TRUE.equals(serverGroup.getDisabled());
