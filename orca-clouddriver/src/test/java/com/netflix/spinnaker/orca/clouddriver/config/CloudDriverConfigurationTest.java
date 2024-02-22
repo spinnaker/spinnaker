@@ -78,7 +78,7 @@ public class CloudDriverConfigurationTest extends YamlFileApplicationContextInit
 
     ObjectMapper objectMapper = new ObjectMapper();
     RestAdapter.LogLevel logLevel = RestAdapter.LogLevel.FULL;
-    RequestInterceptor requestInterceptor = new SpinnakerRequestInterceptor(null);
+    RequestInterceptor requestInterceptor = new SpinnakerRequestInterceptor(true);
 
     this.clouddriverRetrofitBuilder =
         new CloudDriverConfiguration.ClouddriverRetrofitBuilder(

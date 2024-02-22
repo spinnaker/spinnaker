@@ -36,7 +36,6 @@ import com.google.common.collect.Iterables;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
-import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -119,7 +118,7 @@ public class EvaluateDeploymentHealthTaskTest {
         new DeploymentMonitorServiceProvider(
             okClient,
             retrofitLogLevel,
-            new SpinnakerRequestInterceptor(new OkHttpClientConfigurationProperties()),
+            new SpinnakerRequestInterceptor(true),
             deploymentMonitorDefinitions);
     evaluateDeploymentHealthTask =
         new EvaluateDeploymentHealthTask(deploymentMonitorServiceProvider, new NoopRegistry());
