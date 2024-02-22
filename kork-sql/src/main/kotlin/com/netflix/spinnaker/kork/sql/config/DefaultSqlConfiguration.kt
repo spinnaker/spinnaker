@@ -143,12 +143,13 @@ class DefaultSqlConfiguration {
   @Suppress("UndocumentedPublicFunction")
   @Bean
   @ConditionalOnMissingBean(DataSourceConnectionProvider::class)
-  fun dataSourceConnectionProvider(dataSource: DataSource): DataSourceConnectionProvider =
+  fun dataSourceConnectionProvider(dataSource: DataSource, sqlProperties: SqlProperties): DataSourceConnectionProvider =
     object : DataSourceConnectionProvider(TransactionAwareDataSourceProxy(dataSource)) {
-      // Use READ COMMITTED if possible
       override fun acquire(): Connection = super.acquire().apply {
-        if (metaData.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)) {
-          transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
+        if (sqlProperties.setTransactionIsolation) {
+          if (metaData.supportsTransactionIsolationLevel(sqlProperties.transactionIsolation!!)) {
+            transactionIsolation = sqlProperties.transactionIsolation!!
+          }
         }
       }
     }

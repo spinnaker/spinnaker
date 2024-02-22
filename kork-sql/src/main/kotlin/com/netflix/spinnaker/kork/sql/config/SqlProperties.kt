@@ -16,6 +16,12 @@
 package com.netflix.spinnaker.kork.sql.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.validation.annotation.Validated
+import java.sql.Connection
+import javax.validation.Constraint
+import javax.validation.ConstraintValidator
+import javax.validation.ConstraintValidatorContext
+import kotlin.reflect.KClass
 
 /**
  * The entrypoint configuration properties for SQL integrations.
@@ -27,14 +33,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @param secondaryMigration Migration configuration for the secondary database, if one is available
  * @param connectionPools All non-migration connection pools for the application
  * @param retries Default, global retry configuration across connection pools
+ * @param setTransactionIsolation if true, set the transaction isolation level on each database connection.  Note that the the jdbc driver may have a setting (e.g. mysql-connector-java has alwaysSendSetIsolation, see https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-configuration-properties.html) that influences behavior here.
+ * @param transactionIsolation the transaction isolation level to set, required if setTransactionIsolation is true.
+ *   See e.g. https://docs.oracle.com/en/java/javase/11/docs/api/constant-values.html#java.sql.Connection.TRANSACTION_NONE.
  * @param connectionPool Deprecated. Use [connectionPools] instead.
  */
+@SqlProperties.SpinValidated
 @ConfigurationProperties("sql")
 data class SqlProperties(
   var migration: SqlMigrationProperties = SqlMigrationProperties(),
   var secondaryMigration: SqlMigrationProperties = SqlMigrationProperties(),
   var connectionPools: MutableMap<String, ConnectionPoolProperties> = mutableMapOf(),
   var retries: SqlRetryProperties = SqlRetryProperties(),
+  var setTransactionIsolation: Boolean = true,
+  var transactionIsolation : Int? = Connection.TRANSACTION_READ_COMMITTED,
 
   @Deprecated("use named connection pools instead")
   var connectionPool: ConnectionPoolProperties? = null
@@ -55,6 +67,46 @@ data class SqlProperties(
       connectionPools.values.first()
     } else {
       connectionPools.values.first { it.default }
+    }
+  }
+
+  /**
+   * Validation annotation for SqlProperties
+   */
+  @Validated
+  @Constraint(validatedBy = [Validator::class])
+  @Target(AnnotationTarget.CLASS)
+  annotation class SpinValidated(
+    /**
+     * default error message
+     */
+    val message: String = "Invalid sql configuration",
+
+    /**
+     * to customize the targeted groups
+     */
+    val groups: Array<KClass<out Any>> = [],
+
+    /**
+     * for extensibility
+     */
+    val payload: Array<KClass<out Any>> = []
+  )
+
+  /**
+   * Validate that transactionIsolation is present if setTransactionIsolation is true
+   */
+  class Validator : ConstraintValidator<SpinValidated, SqlProperties> {
+    override fun isValid(
+      value: SqlProperties,
+      context: ConstraintValidatorContext
+    ): Boolean {
+      if (value.setTransactionIsolation && (value.transactionIsolation == null)) {
+        context.buildConstraintViolationWithTemplate("must specify transactionIsolation if setTransactionIsolation is true")
+          .addConstraintViolation()
+        return false
+      }
+      return true
     }
   }
 }

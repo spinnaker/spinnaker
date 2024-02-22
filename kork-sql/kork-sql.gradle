@@ -13,13 +13,16 @@ dependencies {
   api "com.zaxxer:HikariCP"
 
   implementation 'com.github.blagerweij:liquibase-sessionlock:1.5.0'
+  implementation "javax.validation:validation-api"
+  implementation "org.hibernate.validator:hibernate-validator"
 
+  testImplementation project(":kork-sql-test")
   testImplementation "org.springframework.boot:spring-boot-starter-actuator"
   testImplementation "org.springframework.boot:spring-boot-starter-web"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 
-  testRuntimeOnly project(":kork-sql-test")
   testRuntimeOnly project(":kork-web")
+  testRuntimeOnly "mysql:mysql-connector-java"
 }
 
 detekt {
