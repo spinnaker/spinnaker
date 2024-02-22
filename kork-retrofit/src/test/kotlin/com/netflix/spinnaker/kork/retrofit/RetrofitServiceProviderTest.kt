@@ -119,5 +119,3 @@ interface Retrofit1Service {
   fun getSomething(@Path("user") user: String?, callback: Callback<List<*>?>?)
 
 }
-
-

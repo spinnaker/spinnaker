@@ -102,7 +102,7 @@ private open class TestConfiguration {
 
   @Bean
   open fun spinnakerRequestInterceptor(): SpinnakerRequestInterceptor {
-    return SpinnakerRequestInterceptor(OkHttpClientConfigurationProperties())
+    return SpinnakerRequestInterceptor(true)
   }
 
   @Bean

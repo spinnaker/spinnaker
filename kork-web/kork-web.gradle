@@ -43,8 +43,11 @@ dependencies {
   runtimeOnly "org.hibernate.validator:hibernate-validator"
 
   testImplementation project(":kork-test")
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "ch.qos.logback:logback-classic"
   testImplementation "ch.qos.logback:logback-core"
+  testImplementation "com.squareup.retrofit2:retrofit"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"

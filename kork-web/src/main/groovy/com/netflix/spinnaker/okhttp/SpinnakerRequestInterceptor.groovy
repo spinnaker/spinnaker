@@ -16,24 +16,37 @@
 
 package com.netflix.spinnaker.okhttp
 
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import retrofit.RequestInterceptor
 
 class SpinnakerRequestInterceptor implements RequestInterceptor {
-  private final OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
+  private final boolean propagateSpinnakerHeaders;
 
-  SpinnakerRequestInterceptor(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
-    this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
+  /**
+   * Don't propagate X-SPINNAKER-ACCOUNTS.  Only relevant when propagateSpinnakerHeaders is true.
+   */
+  private final boolean skipAccountsHeader;
+
+  SpinnakerRequestInterceptor(boolean propagateSpinnakerHeaders) {
+    this.propagateSpinnakerHeaders = propagateSpinnakerHeaders
+    this.skipAccountsHeader = false
+  }
+
+  SpinnakerRequestInterceptor(boolean propagateSpinnakerHeaders,
+                              boolean skipAccountsHeader) {
+    this.propagateSpinnakerHeaders = propagateSpinnakerHeaders
+    this.skipAccountsHeader = skipAccountsHeader
   }
 
   void intercept(RequestInterceptor.RequestFacade request) {
-    if (!okHttpClientConfigurationProperties.propagateSpinnakerHeaders) {
+    if (!propagateSpinnakerHeaders) {
       // noop
       return
     }
 
     AuthenticatedRequest.authenticationHeaders.each { String key, Optional<String> value ->
-      if (value.present) {
+      if (value.present && (!skipAccountsHeader || !Header.ACCOUNTS.getHeader().equals(key))) {
         request.addHeader(key, value.get())
       }
     }
