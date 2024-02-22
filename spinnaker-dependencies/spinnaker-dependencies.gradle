@@ -28,11 +28,11 @@ ext {
     springfoxSwagger : "3.0.0",
     swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects.
 
-    // Spring boot 2.4.13 brings in 9.0.55.  Spring boot 2.5.14 brings in
-    // 9.0.63.  Use 9.0.69 to resolve CVE-2022-42252 and CVE-2022-45143.  Spring
-    // boot 2.6.14 and 2.7.6 bring in 9.0.69.
-    // https://tomcat.apache.org/security-9.html for latest security fixes
-    tomcat           : "9.0.81"
+    // Spring boot 2.5.15 and 2.6.15 bring in 9.0.75.  2.7.18
+    // brings in 9.0.83, which fixes all CVEs to date (20-feb-24).
+    //
+    // See https://tomcat.apache.org/security-9.html for latest security fixes.
+    tomcat           : "9.0.83"
   ]
 }
 
