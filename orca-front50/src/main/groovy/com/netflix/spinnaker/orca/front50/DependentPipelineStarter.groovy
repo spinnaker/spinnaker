@@ -76,8 +76,9 @@ class DependentPipelineStarter implements ApplicationContextAware {
       throw new ConfigurationException("Pipeline '${pipelineConfig.name}' is disabled and cannot be triggered")
     }
 
-    if (log.isInfoEnabled()) {
-      log.info('triggering dependent pipeline {}:{}', pipelineConfig.id,
+    log.info("triggering dependent pipeline ${pipelineConfig.id}")
+    if (log.isDebugEnabled()) {
+      log.debug('triggering dependent pipeline {}:{}', pipelineConfig.id,
           objectMapper.writeValueAsString(pipelineConfig))
     }
 
@@ -180,8 +181,9 @@ class DependentPipelineStarter implements ApplicationContextAware {
     def augmentedContext = [trigger: pipelineConfig.trigger]
     def processedPipeline = contextParameterProcessor.processPipeline(pipelineConfig, augmentedContext, false)
 
-    if (log.isInfoEnabled()) {
-      log.info('running pipeline {}:{}', pipelineConfig.id, objectMapper.writeValueAsString(processedPipeline))
+    log.info("running pipeline ${pipelineConfig.id}")
+    if (log.isDebugEnabled()) {
+      log.debug('running pipeline {}:{}', pipelineConfig.id, objectMapper.writeValueAsString(processedPipeline))
     }
 
     Callable<PipelineExecution> callable
