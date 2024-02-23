@@ -84,14 +84,30 @@ public class PipelineBuilder {
   }
 
   public PipelineBuilder withStages(List<Map<String, Object>> stages) {
-    if (stages != null) {
-      stages.forEach(
-          it -> {
-            String type = it.remove("type").toString();
-            String name = it.containsKey("name") ? it.remove("name").toString() : null;
-            withStage(type, name != null ? name : type, it);
-          });
+    if (stages == null) {
+      throw new IllegalArgumentException(
+          "null stages in pipeline '"
+              + pipeline.getName()
+              + "' in application '"
+              + pipeline.getApplication()
+              + "'");
     }
+    stages.forEach(
+        it -> {
+          String name = it.containsKey("name") ? it.remove("name").toString() : null;
+          if (!it.containsKey("type")) {
+            throw new IllegalArgumentException(
+                "type missing from pipeline '"
+                    + pipeline.getName()
+                    + "' in application '"
+                    + pipeline.getApplication()
+                    + "', stage name: '"
+                    + name
+                    + "'");
+          }
+          String type = it.remove("type").toString();
+          withStage(type, name != null ? name : type, it);
+        });
     return this;
   }
 
