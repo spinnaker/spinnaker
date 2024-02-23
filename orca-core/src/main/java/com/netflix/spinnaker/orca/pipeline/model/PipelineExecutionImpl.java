@@ -444,5 +444,13 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
 
       return Optional.empty();
     }
+
+    public static Optional<AuthenticationDetails> buildWithoutAccounts() {
+      Optional<String> spinnakerUserOptional = AuthenticatedRequest.getSpinnakerUser();
+      if (spinnakerUserOptional.isPresent()) {
+        return Optional.of(new AuthenticationDetails(spinnakerUserOptional.orElse(null)));
+      }
+      return Optional.empty();
+    }
   }
 }

@@ -42,6 +42,9 @@ public class ExecutionConfigurationProperties {
    */
   private Set<OrchestrationExecution> allowedOrchestrationExecutions = Set.of();
 
+  /** flag to include/exclude the set of allowed accounts in an execution context */
+  private boolean includeAllowedAccounts = true;
+
   /**
    * helper method that returns an {@link Optional<OrchestrationExecution>} object if the
    * orchestration execution provided as an input is in the allowed orchestration executions set.

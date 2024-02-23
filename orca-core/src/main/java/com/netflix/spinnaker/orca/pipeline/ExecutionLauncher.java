@@ -230,6 +230,7 @@ public class ExecutionLauncher {
                     config.get("source"), PipelineExecution.PipelineSource.class))
         .withSpelEvaluator(getString(config, "spelEvaluator"))
         .withTemplateVariables(getMap(config, "templateVariables"))
+        .withIncludeAllowedAccounts(executionConfigurationProperties.isIncludeAllowedAccounts())
         .build();
   }
 
@@ -269,8 +270,14 @@ public class ExecutionLauncher {
     PipelineExecution.AuthenticationDetails auth = new PipelineExecution.AuthenticationDetails();
     auth.setUser(getString(config, "user"));
 
-    orchestration.setAuthentication(
-        PipelineExecutionImpl.AuthenticationHelper.build().orElse(auth));
+    if (executionConfigurationProperties.isIncludeAllowedAccounts()) {
+      orchestration.setAuthentication(
+          PipelineExecutionImpl.AuthenticationHelper.build().orElse(auth));
+    } else {
+      orchestration.setAuthentication(
+          PipelineExecutionImpl.AuthenticationHelper.buildWithoutAccounts().orElse(auth));
+    }
+
     orchestration.setOrigin((String) config.getOrDefault("origin", "unknown"));
     orchestration.setStartTimeExpiry((Long) config.get("startTimeExpiry"));
     orchestration.setSpelEvaluator(getString(config, "spelEvaluator"));

@@ -57,6 +57,19 @@ class PipelineExecutionImplSpec extends Specification {
     authenticationDetails.allowedAccounts == ["Account1", "Account2"] as Set
   }
 
+  def "should build AuthenticationDetails without accounts"() {
+    given:
+    MDC.put(Header.USER.header, "SpinnakerUser")
+    MDC.put(Header.ACCOUNTS.header, "Account1,Account2")
+
+    when:
+    def authenticationDetails = PipelineExecutionImpl.AuthenticationHelper.buildWithoutAccounts().get()
+
+    then:
+    authenticationDetails.user == "SpinnakerUser"
+    authenticationDetails.allowedAccounts == [] as Set
+  }
+
   def "should calculate context from outputs of all stages"() {
     given:
     def pipeline = pipeline {

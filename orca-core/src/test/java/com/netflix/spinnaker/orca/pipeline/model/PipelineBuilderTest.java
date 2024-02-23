@@ -16,14 +16,24 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.netflix.spinnaker.kork.common.Header;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 
 class PipelineBuilderTest {
+  @BeforeEach
+  public void setup() {
+    MDC.clear();
+  }
 
   @Test
   void withStagesChecksForNull() {
@@ -39,5 +49,36 @@ class PipelineBuilderTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> pipelineBuilder.withStages(List.of(stageWithoutType)));
+  }
+
+  @Test
+  void buildIncludesAllowedAccountsWhenTrue() {
+    // given
+    MDC.put(Header.USER.getHeader(), "SpinnakerUser");
+    MDC.put(Header.ACCOUNTS.getHeader(), "Account1,Account2");
+
+    // when
+    PipelineBuilder pipelineBuilder =
+        new PipelineBuilder("my-application").withIncludeAllowedAccounts(true);
+    PipelineExecution execution = pipelineBuilder.build();
+
+    // then
+    assertThat(execution.getAuthentication().getAllowedAccounts())
+        .isEqualTo(Set.of("Account1", "Account2"));
+  }
+
+  @Test
+  void buildExcludesAllowedAccountsWhenFalse() {
+    // given
+    MDC.put(Header.USER.getHeader(), "SpinnakerUser");
+    MDC.put(Header.ACCOUNTS.getHeader(), "Account1,Account2");
+
+    // when
+    PipelineBuilder pipelineBuilder =
+        new PipelineBuilder("my-application").withIncludeAllowedAccounts(false);
+    PipelineExecution execution = pipelineBuilder.build();
+
+    // then
+    assertThat(execution.getAuthentication().getAllowedAccounts()).isEqualTo(Set.of());
   }
 }

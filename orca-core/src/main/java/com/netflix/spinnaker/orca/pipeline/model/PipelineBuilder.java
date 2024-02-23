@@ -26,8 +26,15 @@ import java.util.Map;
 
 @Deprecated
 public class PipelineBuilder {
+  private boolean includeAllowedAccounts;
+
   public PipelineBuilder(String application) {
     pipeline = PipelineExecutionImpl.newPipeline(application);
+  }
+
+  public PipelineBuilder withIncludeAllowedAccounts(boolean includeAllowedAccounts) {
+    this.includeAllowedAccounts = includeAllowedAccounts;
+    return this;
   }
 
   public PipelineBuilder withId(String id) {
@@ -113,9 +120,15 @@ public class PipelineBuilder {
 
   public PipelineExecution build() {
     pipeline.setBuildTime(System.currentTimeMillis());
-    pipeline.setAuthentication(
-        PipelineExecutionImpl.AuthenticationHelper.build()
-            .orElse(new PipelineExecution.AuthenticationDetails()));
+    if (this.includeAllowedAccounts) {
+      pipeline.setAuthentication(
+          PipelineExecutionImpl.AuthenticationHelper.build()
+              .orElse(new PipelineExecution.AuthenticationDetails()));
+    } else {
+      pipeline.setAuthentication(
+          PipelineExecutionImpl.AuthenticationHelper.buildWithoutAccounts()
+              .orElse(new PipelineExecution.AuthenticationDetails()));
+    }
 
     return pipeline;
   }

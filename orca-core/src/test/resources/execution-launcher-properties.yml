@@ -7,3 +7,4 @@ executions:
     - name: updateApplication # eg. config to show how to set the name and allowAllUsers properties for an execution
       allowAllUsers: true
     - name: saveApplication # eg. config to show how to set just the name of an execution. It defaults to allowAllUsers: true
+  includeAllowedAccounts: true
