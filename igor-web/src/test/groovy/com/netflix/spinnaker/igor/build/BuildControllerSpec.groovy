@@ -238,6 +238,21 @@ class BuildControllerSpec extends Specification {
       .andReturn().response
   }
 
+  void 'get properties of a build with job Name in query parameters' () {
+    given:
+    1 * jenkinsService.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> genericBuild
+    1 * jenkinsService.getBuildProperties(JOB_NAME, genericBuild, FILE_NAME) >> ['foo': 'bar']
+
+    when:
+    MockHttpServletResponse response = mockMvc.perform(
+      get("/builds/properties/${BUILD_NUMBER}/${FILE_NAME}/${JENKINS_SERVICE}")
+        .param("job", JOB_NAME)
+        .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+    then:
+    response.contentAsString == "{\"foo\":\"bar\"}"
+  }
+
   void 'get properties of a travis build'() {
     given:
     1 * travisService.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> genericBuild
