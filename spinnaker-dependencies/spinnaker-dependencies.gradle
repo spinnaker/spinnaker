@@ -8,12 +8,13 @@ ext {
   versions = [
     arrow            : "0.13.2",
     aws              : "1.12.261",
-    awsv2            : "2.19.0",
+    awsv2            : "2.23.7",
     bouncycastle     : "1.77",
     brave            : "5.12.3",
     gcp              : "25.3.0",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
+    netty            : "4.1.100.Final",
     protobuf         : "3.21.12",
     okhttp           : "2.7.5", // CVE-2016-2402
     okhttp3          : "4.9.3",
@@ -56,6 +57,7 @@ dependencies {
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
   api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
   api(platform("org.junit:junit-bom:5.8.2")) // remove with spring boot >= 2.6.2
+  api(platform("io.netty:netty-bom:${versions.netty}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
