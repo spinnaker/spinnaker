@@ -90,6 +90,11 @@ task integrationTest(type: Test) {
   classpath = sourceSets.integration.runtimeClasspath
   shouldRunAfter test
 
+
+  minHeapSize = "512m"
+  maxHeapSize = "${testJvmMaxMemory}"
+  maxParallelForks = 4
+
   testlogger {
     theme 'standard'
     showStandardStreams true
