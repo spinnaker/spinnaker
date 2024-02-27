@@ -60,12 +60,16 @@ public class BuildService {
 
   public Map<String, Object> getPropertyFile(
       Integer buildNumber, String fileName, String master, String job) {
-    return igorService.getPropertyFile(buildNumber, fileName, master, encode(job));
+    return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
+        ? igorService.getPropertyFileWithJobAsQueryParam(buildNumber, fileName, master, encode(job))
+        : igorService.getPropertyFile(buildNumber, fileName, master, encode(job));
   }
 
   public List<Artifact> getArtifacts(
       Integer buildNumber, String fileName, String master, String job) {
-    return igorService.getArtifacts(buildNumber, fileName, master, encode(job));
+    return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
+        ? igorService.getArtifactsWithJobAsQueryParam(buildNumber, fileName, master, encode(job))
+        : igorService.getArtifacts(buildNumber, fileName, master, encode(job));
   }
 
   public Response updateBuild(

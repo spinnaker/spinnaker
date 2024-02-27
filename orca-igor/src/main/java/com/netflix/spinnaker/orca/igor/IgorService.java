@@ -79,6 +79,13 @@ public interface IgorService {
       @Path("master") String master,
       @Path(encode = false, value = "job") String job);
 
+  @GET("/builds/properties/{buildNumber}/{fileName}/{master}")
+  Map<String, Object> getPropertyFileWithJobAsQueryParam(
+      @Path("buildNumber") Integer buildNumber,
+      @Path("fileName") String fileName,
+      @Path("master") String master,
+      @Query(value = "job") String job);
+
   @GET("/{repoType}/{projectKey}/{repositorySlug}/compareCommits")
   List compareCommits(
       @Path("repoType") String repoType,
@@ -92,6 +99,13 @@ public interface IgorService {
       @Query("propertyFile") String propertyFile,
       @Path("master") String master,
       @Path(value = "job", encode = false) String job);
+
+  @GET("/builds/artifacts/{buildNumber}/{master}")
+  List<Artifact> getArtifactsWithJobAsQueryParam(
+      @Path("buildNumber") Integer buildNumber,
+      @Query("propertyFile") String propertyFile,
+      @Path("master") String master,
+      @Query(value = "job") String job);
 
   @POST("/gcb/builds/create/{account}")
   GoogleCloudBuild createGoogleCloudBuild(
