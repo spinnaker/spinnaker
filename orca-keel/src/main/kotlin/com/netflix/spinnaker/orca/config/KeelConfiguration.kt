@@ -22,6 +22,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import org.springframework.beans.factory.annotation.Value
@@ -60,6 +61,7 @@ class KeelConfiguration {
       .setEndpoint(keelEndpoint)
       .setClient(Ok3Client(clientProvider.getClient(DefaultServiceEndpoint("keel", keelEndpoint.url))))
       .setLogLevel(retrofitLogLevel)
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setConverter(JacksonConverter(keelObjectMapper))
       .build()
       .create(KeelService::class.java)

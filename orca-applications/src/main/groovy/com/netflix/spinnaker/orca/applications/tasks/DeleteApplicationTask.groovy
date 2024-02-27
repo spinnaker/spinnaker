@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -92,6 +94,15 @@ class DeleteApplicationTask extends AbstractFront50Task {
         return TaskResult.SUCCEEDED
       }
       log.error("Could not delete application", e)
+      return TaskResult.builder(ExecutionStatus.TERMINAL).outputs(outputs).build()
+    } catch (SpinnakerHttpException httpException){
+      if (httpException.responseCode == 404) {
+        return TaskResult.SUCCEEDED
+      }
+      log.error("Could not delete application", httpException)
+      return TaskResult.builder(ExecutionStatus.TERMINAL).outputs(outputs).build()
+    } catch (SpinnakerServerException serverException) {
+      log.error("Could not delete application", serverException)
       return TaskResult.builder(ExecutionStatus.TERMINAL).outputs(outputs).build()
     }
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build()
