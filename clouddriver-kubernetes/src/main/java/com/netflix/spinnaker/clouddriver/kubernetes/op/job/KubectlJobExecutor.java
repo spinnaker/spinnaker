@@ -37,17 +37,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
-import io.github.resilience4j.core.EventConsumer;
+import com.netflix.spinnaker.kork.resilience4j.Resilience4jHelper;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.micrometer.tagged.TaggedRetryMetrics;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
-import io.github.resilience4j.retry.event.RetryEvent;
-import io.github.resilience4j.retry.event.RetryOnErrorEvent;
-import io.github.resilience4j.retry.event.RetryOnIgnoredErrorEvent;
-import io.github.resilience4j.retry.event.RetryOnRetryEvent;
-import io.github.resilience4j.retry.event.RetryOnSuccessEvent;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.io.BufferedReader;
@@ -131,66 +126,7 @@ public class KubectlJobExecutor {
       // create the retry registry
       RetryRegistry retryRegistry = RetryRegistry.of(retryConfig.build());
 
-      // log whenever a new retry instance is added, removed or replaced from the registry
-      retryRegistry
-          .getEventPublisher()
-          .onEntryAdded(
-              entryAddedEvent -> {
-                Retry addedRetry = entryAddedEvent.getAddedEntry();
-                log.info("Kubectl retries configured for: {}", addedRetry.getName());
-              })
-          .onEntryRemoved(
-              entryRemovedEvent -> {
-                Retry removedRetry = entryRemovedEvent.getRemovedEntry();
-                log.info("Kubectl retries removed for: {}", removedRetry.getName());
-              })
-          .onEntryReplaced(
-              entryReplacedEvent -> {
-                Retry oldEntry = entryReplacedEvent.getOldEntry();
-                Retry newEntry = entryReplacedEvent.getNewEntry();
-                log.info(
-                    "Kubectl retry: {} updated to: {}", oldEntry.getName(), newEntry.getName());
-              });
-
-      // define an event consumer once for the entire registry as mentioned here:
-      // https://github.com/resilience4j/resilience4j/issues/974#issuecomment-619956673
-      // If we don't do this once, but add it for each individual retry instance, and if
-      // that retry instance is invoked by multiple threads, then there is a lot of log duplication.
-      // For example, if 10 threads invoke an action to get the top pod, and it is
-      // configured to use the retry instance with the identifier "mock-account.topPod.test-pod",
-      // then we will see 10*10 log lines showing up for each retry event instead of just 10 that
-      // we expect.
-      EventConsumer<RetryEvent> eventConsumer =
-          retryEvent -> {
-            if (retryEvent instanceof RetryOnErrorEvent) {
-              log.error(
-                  "Kubectl command for {} failed after {} attempts. Exception: {}",
-                  retryEvent.getName(),
-                  retryEvent.getNumberOfRetryAttempts(),
-                  retryEvent.getLastThrowable().toString());
-            } else if (retryEvent instanceof RetryOnSuccessEvent) {
-              log.info(
-                  "Kubectl command for {} is now successful in attempt #{}. Last attempt had failed with exception: {}",
-                  retryEvent.getName(),
-                  retryEvent.getNumberOfRetryAttempts() + 1,
-                  retryEvent.getLastThrowable().toString());
-            } else if (retryEvent instanceof RetryOnRetryEvent) {
-              log.info(
-                  "Retrying Kubectl command for {}. Attempt #{} failed with exception: {}",
-                  retryEvent.getName(),
-                  retryEvent.getNumberOfRetryAttempts(),
-                  retryEvent.getLastThrowable().toString());
-            } else if (!(retryEvent instanceof RetryOnIgnoredErrorEvent)) {
-              // don't log anything for Ignored exceptions as it just leads to noise in the logs
-              log.info(retryEvent.toString());
-            }
-          };
-      retryRegistry
-          .getAllRetries()
-          .forEach(retry -> retry.getEventPublisher().onEvent(eventConsumer));
-      retryRegistry
-          .getEventPublisher()
-          .onEntryAdded(event -> event.getAddedEntry().getEventPublisher().onEvent(eventConsumer));
+      Resilience4jHelper.configureLogging(retryRegistry, "Kubectl command", log);
 
       if (this.kubernetesConfigurationProperties
           .getJobExecutor()
