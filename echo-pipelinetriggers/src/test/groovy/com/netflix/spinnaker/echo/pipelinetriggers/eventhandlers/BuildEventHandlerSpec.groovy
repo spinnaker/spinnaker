@@ -290,6 +290,30 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     outputTrigger.properties.equals(PROPERTIES)
   }
 
+  def "fetches fetches property file if defined with job name from query when flag is true"() {
+    given:
+    def mockProperties = PROPERTIES
+    def trigger = enabledJenkinsTrigger.withMaster(MASTER_NAME).withBuildNumber(BUILD_NUMBER).withPropertyFile(PROPERTY_FILE)
+    createPipelineWith(enabledJenkinsTrigger).withTrigger(trigger)
+    def event = getBuildEvent()
+
+    def retrySupport = new RetrySupport()
+    def configProperties = new IgorConfigurationProperties(jobNameAsQueryParameter: true)
+    def buildInfoService = new BuildInfoService(igorService, retrySupport, configProperties)
+
+    def permissionEvaluator = fiatPermissionEvaluator
+    def buildEventHandler = new BuildEventHandler(registry, objectMapper, Optional.of(buildInfoService), permissionEvaluator)
+
+    when:
+    def outputTrigger = buildEventHandler.buildTrigger(event).apply(trigger)
+
+    then:
+    1 * igorService.getBuildStatusWithJobQueryParameter(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> BUILD_INFO
+    1 * igorService.getPropertyFileWithJobQueryParameter(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> mockProperties
+    outputTrigger.buildInfo == BUILD_INFO
+    outputTrigger.properties == mockProperties
+  }
+
  def "checks constraints on property file if defined"() {
     given:
     def trigger = enabledJenkinsTrigger
