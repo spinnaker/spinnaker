@@ -17,4 +17,8 @@ dependencies {
   implementation "redis.clients:jedis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.objenesis:objenesis"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation project(":rosco-web")
 }
