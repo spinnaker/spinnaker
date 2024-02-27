@@ -209,7 +209,7 @@ public class AmazonInstanceTypeCachingAgent implements CachingAgent, AccountAwar
 
   @Override
   public String getAgentType() {
-    return String.format("%s/%s/%s", account.getName(), region, getClass().getSimpleName());
+    return getClass().getSimpleName() + "/" + region;
   }
 
   @Override
