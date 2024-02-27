@@ -90,9 +90,11 @@ subprojects {
             }
           }
         }
-        minHeapSize = "512m"
-        maxHeapSize = "512m"
+
       }
+      minHeapSize = "512m"
+      maxHeapSize = "1g"
+      maxParallelForks = 4
       jacoco {
         enabled = project.hasProperty('testCoverage')
       }
