@@ -40,7 +40,7 @@ RUN for version in $KUBECTL_RELEASES; do \
   && ln -sf /usr/local/bin/aws-iam-authenticator /usr/local/bin/heptio-authenticator-aws
 
 # Google cloud SDK
-RUN [ $TARGETARCH == 'amd64' ] &&  export GCP_ARCH="x86_64" || export GCP_ARCH="arm"  \
+RUN [ $TARGETARCH = 'amd64' ] &&  export GCP_ARCH="x86_64" || export GCP_ARCH="arm"  \
   && wget -nv https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-${GCP_ARCH}.tar.gz \
   && mkdir -p /opt && cd /opt \
   && tar -xzf /google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-${GCP_ARCH}.tar.gz \
