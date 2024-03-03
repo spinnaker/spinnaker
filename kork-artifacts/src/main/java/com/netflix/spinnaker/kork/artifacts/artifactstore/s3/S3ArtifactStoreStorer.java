@@ -48,7 +48,7 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
   private final S3Client s3Client;
   private final String bucket;
   private final ArtifactStoreURIBuilder uriBuilder;
-  private final String applicationsRegex;
+  private final Pattern applicationsPattern;
 
   public S3ArtifactStoreStorer(
       S3Client s3Client,
@@ -58,7 +58,8 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
     this.s3Client = s3Client;
     this.bucket = bucket;
     this.uriBuilder = uriBuilder;
-    this.applicationsRegex = applicationsRegex;
+    this.applicationsPattern =
+        (applicationsRegex != null) ? Pattern.compile(applicationsRegex) : null;
   }
 
   /**
@@ -76,7 +77,7 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
       return artifact;
     }
 
-    if (applicationsRegex != null && !Pattern.matches(applicationsRegex, application)) {
+    if (applicationsPattern != null && !applicationsPattern.matcher(application).matches()) {
       return artifact;
     }
 
