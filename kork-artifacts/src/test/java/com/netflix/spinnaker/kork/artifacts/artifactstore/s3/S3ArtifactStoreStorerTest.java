@@ -84,7 +84,7 @@ public class S3ArtifactStoreStorerTest {
   }
 
   private static Stream<Arguments> applicationsRegexArgs() {
-    List<String> apps = List.of("app-one", "app-two", "app-three");
+    List<String> apps = List.of("app-one", "app-two", "app-three", "app-five.*");
 
     // The artifact store is enabled only for exact matches (e.g. not partial
     // matches) of applications in the list.
@@ -92,16 +92,22 @@ public class S3ArtifactStoreStorerTest {
 
     // To test applicationsRegex as a "deny list", meaning that the artifact
     // store is enabled for all apps except those in the list, use a negative
-    // lookahead (?!).  See https://stackoverflow.com/a/406408/9572.
-    String denyRegex = "^((?!(" + String.join("|", apps) + ")).)*$";
+    // lookahead (?!).  See https://stackoverflow.com/a/14147470/9572.
+    String denyRegex = "^(?!(" + String.join("|", apps) + ")$).*";
 
     return Stream.of(
+        Arguments.of("any", null, true),
         Arguments.of("app-one", allowRegex, true),
         Arguments.of("app-four", allowRegex, false),
         Arguments.of("one", allowRegex, false),
+        Arguments.of("app-one-more", allowRegex, false),
+        Arguments.of("app-five", allowRegex, true),
+        Arguments.of("app-five-more", allowRegex, true),
         Arguments.of("app-one", denyRegex, false),
         Arguments.of("app-four", denyRegex, true),
         Arguments.of("one", denyRegex, true),
-        Arguments.of("any", null, true));
+        Arguments.of("app-one-more", denyRegex, true),
+        Arguments.of("app-five", denyRegex, false),
+        Arguments.of("app-five-more", denyRegex, false));
   }
 }
