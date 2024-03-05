@@ -81,6 +81,20 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
       return artifact;
     }
 
+    byte[] referenceBytes;
+    try {
+      referenceBytes = getReferenceAsBytes(artifact);
+    } catch (IllegalArgumentException e) {
+      // When this occurs, that means we've run into an embedded/base64 artifact
+      // that does not contain base64 in its reference. This can happen a couple
+      // of ways with using SpEL within an artifact, manipulating the pipeline
+      // JSON directly, etc. So instead of trying to evaluate SpEL here or
+      // failing, we will just return the raw artifact, and not store this
+      // particular one.
+      log.warn("Artifact cannot be stored due to reference not being base64 encoded");
+      return artifact;
+    }
+
     ArtifactReferenceURI ref = uriBuilder.buildArtifactURI(application, artifact);
     Artifact remoteArtifact =
         artifact.toBuilder()
@@ -103,7 +117,7 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
             .tagging(Tagging.builder().tagSet(accountTag).build())
             .build();
 
-    s3Client.putObject(request, RequestBody.fromBytes(getReferenceAsBytes(artifact)));
+    s3Client.putObject(request, RequestBody.fromBytes(referenceBytes));
     return remoteArtifact;
   }
 
