@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.google.common.base.Enums
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -26,7 +27,6 @@ import com.netflix.spinnaker.orca.igor.BuildService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import java.util.concurrent.TimeUnit
 
@@ -81,9 +81,9 @@ class MonitorJenkinsJobTask implements OverridableTimeoutRetryableTask {
       }
 
       return TaskResult.builder(taskStatus).context(outputs).outputs(outputs).build()
-    } catch (RetrofitError e) {
-      if ([503, 500, 404].contains(e.response?.status)) {
-        log.warn("Http ${e.response.status} received from `igor`, retrying...")
+    } catch (SpinnakerHttpException e) {
+      if ([503, 500, 404].contains(e.responseCode)) {
+        log.warn("Http ${e.responseCode} received from `igor`, retrying...")
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 

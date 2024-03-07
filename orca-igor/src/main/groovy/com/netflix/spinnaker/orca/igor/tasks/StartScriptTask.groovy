@@ -18,13 +18,14 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.igor.BuildService
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
+import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +33,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 import retrofit.client.Response
 
 import javax.annotation.Nonnull
@@ -49,7 +49,7 @@ class StartScriptTask implements RetryableTask {
   ObjectMapper objectMapper
 
   @Autowired
-  RetrofitExceptionHandler retrofitExceptionHandler
+  SpinnakerServerExceptionHandler spinnakerServerExceptionHandler
 
   @Autowired
   Environment environment
@@ -113,9 +113,9 @@ class StartScriptTask implements RetryableTask {
             .build()
       }
     }
-    catch (RetrofitError e) {
+    catch (SpinnakerServerException e) {
       // This igor call is idempotent so we can retry despite it being PUT/POST
-      ExceptionHandler.Response exceptionResponse = retrofitExceptionHandler.handle("StartJenkinsJob", e)
+      ExceptionHandler.Response exceptionResponse = spinnakerServerExceptionHandler.handle("StartJenkinsJob", e)
 
       if (exceptionResponse.shouldRetry) {
         log.warn("Failure communicating with igor to start a jenkins job, will retry", e)

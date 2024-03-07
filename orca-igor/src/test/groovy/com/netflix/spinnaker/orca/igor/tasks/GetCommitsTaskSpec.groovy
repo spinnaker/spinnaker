@@ -260,8 +260,7 @@ class GetCommitsTaskSpec extends Specification {
 
     then:
     1 * scmService.compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
-      throw new RetrofitError(null, null,
-          new Response("http://stash.com", 500, "test reason", [], null), null, null, null, null)
+      throw new SpinnakerHttpException(RetrofitError.httpError("http://stash.com", new Response("http://stash.com", 500, "test reason", [], null), null, null))
     }
     result.status == taskStatus
 
@@ -450,7 +449,7 @@ class GetCommitsTaskSpec extends Specification {
     and:
     task.scmService = Stub(ScmService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
-        throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
+        throw new SpinnakerHttpException(RetrofitError.httpError("http://stash.com", new Response("http://stash.com", 404, "test reason", [], null), null, null))
       }
     }
 

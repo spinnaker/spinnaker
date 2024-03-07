@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
@@ -288,11 +289,11 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws RetrofitError.httpError(
+            } throws SpinnakerHttpException(RetrofitError.httpError(
               "http://igor",
               Response("http://igor", 404, "", emptyList(), null),
               null, null
-            )
+            ))
           }
         }
 
@@ -314,11 +315,11 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws RetrofitError.httpError(
+            } throws SpinnakerHttpException(RetrofitError.httpError(
               "http://igor",
               Response("http://igor", 401, "", emptyList(), null),
               null, null
-            )
+            ))
           }
         }
 
@@ -341,11 +342,11 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws RetrofitError.httpError(
+            } throws SpinnakerHttpException(RetrofitError.httpError(
               "http://igor",
               Response("http://igor", 503, "", emptyList(), null),
               null, null
-            )
+            ))
           }
         }
 

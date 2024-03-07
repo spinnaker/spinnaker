@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
@@ -34,7 +35,6 @@ import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
-import retrofit.client.Client
 import retrofit.converter.JacksonConverter
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -61,6 +61,7 @@ class IgorConfiguration {
       .setEndpoint(igorEndpoint)
       .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("igor", igorEndpoint.url))))
       .setLogLevel(retrofitLogLevel)
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setRequestInterceptor(spinnakerRequestInterceptor)
       .setLog(new RetrofitSlf4jLog(IgorService))
       .setConverter(new JacksonConverter(mapper))

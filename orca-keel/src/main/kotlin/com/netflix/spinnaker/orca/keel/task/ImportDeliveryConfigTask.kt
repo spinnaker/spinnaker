@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.keel.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
@@ -40,7 +39,6 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 /**
  * Task that retrieves a Managed Delivery config manifest from source control via igor, then publishes it to keel,
@@ -78,8 +76,6 @@ constructor(
       keelService.publishDeliveryConfig(deliveryConfig)
 
       TaskResult.builder(ExecutionStatus.SUCCEEDED).context(emptyMap<String, Any?>()).build()
-    } catch (e: RetrofitError) {
-      handleRetryableFailures(e, context)
     } catch (e: SpinnakerServerException) {
       handleRetryableFailures(e, context)
     } catch (e: Exception) {
@@ -222,48 +218,6 @@ constructor(
   }
 
   /**
-   * Handle (potentially) retryable failures by looking at the retrofit error type or HTTP status code. A few 40x errors
-   * are handled as special cases to provide more friendly error messages to the UI.
-   */
-  private fun handleRetryableFailures(error: RetrofitError, context: ImportDeliveryConfigContext): TaskResult {
-    return when {
-      error.kind == RetrofitError.Kind.NETWORK -> {
-        // retry if unable to connect
-        buildRetry(
-          context,
-          "Network error talking to downstream service, attempt ${context.attempt} of ${context.maxRetries}: ${error.friendlyMessage}"
-        )
-      }
-      error.response?.status in 400..499 -> {
-        val response = error.response!!
-        // just give up on 4xx errors, which are unlikely to resolve with retries, but give users a hint about 401
-        // errors from igor/scm, and attempt to parse keel errors (which are typically more informative)
-        buildError(
-          if (error.fromIgor && response.status == 401) {
-            UNAUTHORIZED_SCM_ACCESS_MESSAGE
-          } else if (error.fromKeel && response.body.length() > 0) {
-            // keel's errors should use the standard Spring format, so we try to parse them
-            try {
-              objectMapper.readValue<SpringHttpError>(response.body.`in`())
-            } catch (_: Exception) {
-              "Non-retryable HTTP response ${error.response?.status} received from downstream service: ${error.friendlyMessage}"
-            }
-          } else {
-            "Non-retryable HTTP response ${error.response?.status} received from downstream service: ${error.friendlyMessage}"
-          }
-        )
-      }
-      else -> {
-        // retry on other status codes
-        buildRetry(
-          context,
-          "Retryable HTTP response ${error.response?.status} received from downstream service: ${error.friendlyMessage}"
-        )
-      }
-    }
-  }
-
-  /**
    * Builds a [TaskResult] that indicates the task is still running, so that we will try again in the next execution loop.
    */
   private fun buildRetry(context: ImportDeliveryConfigContext, errorMessage: String): TaskResult {
@@ -301,13 +255,6 @@ constructor(
 
   override fun getTimeout() = TimeUnit.SECONDS.toMillis(180)
 
-  val RetrofitError.friendlyMessage: String
-    get() = if (kind == RetrofitError.Kind.HTTP) {
-      "HTTP ${response.status} ${response.url}: ${cause?.message ?: message}"
-    } else {
-      "$message: ${cause?.message ?: ""}"
-    }
-
   val SpinnakerHttpException.httpErrorMessage: String
     get() {
       return "HTTP ${responseCode} ${url}: ${cause?.message ?: message}"
@@ -323,22 +270,10 @@ constructor(
       return "$message"
     }
 
-  val RetrofitError.fromIgor: Boolean
-    get() {
-      val parsedUrl = URL(url)
-      return parsedUrl.host.contains("igor") || parsedUrl.port == 8085
-    }
-
   val SpinnakerServerException.fromIgor: Boolean
     get() {
       val parsedUrl = URL(url)
       return parsedUrl.host.contains("igor") || parsedUrl.port == 8085
-    }
-
-  val RetrofitError.fromKeel: Boolean
-    get() {
-      val parsedUrl = URL(url)
-      return parsedUrl.host.contains("keel") || parsedUrl.port == 8087
     }
 
   val SpinnakerServerException.fromKeel: Boolean

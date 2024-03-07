@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.job.model.JobStatus
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -111,8 +113,10 @@ class MonitorJenkinsJobTaskSpec extends Specification {
       getResponse() >> new Response('', httpStatus, '', [], null)
     }
 
+    def httpException = new SpinnakerHttpException(exception)
+
     task.buildService = Stub(BuildService) {
-      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> { throw exception }
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> { throw httpException }
     }
 
     when:
@@ -120,12 +124,12 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     def thrownException = null
     try {
       result = task.execute(stage)
-    } catch (RetrofitError e) {
+    } catch (SpinnakerHttpException e) {
       thrownException = e
     }
 
     then:
-    thrownException ? thrownException == exception : result.status == expectedExecutionStatus
+    thrownException ? thrownException == httpException : result.status == expectedExecutionStatus
 
     where:
     httpStatus || expectedExecutionStatus

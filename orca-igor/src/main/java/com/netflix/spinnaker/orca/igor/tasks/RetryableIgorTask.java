@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -28,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import retrofit.RetrofitError;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -53,7 +55,7 @@ public abstract class RetryableIgorTask<T extends RetryableStageDefinition>
     try {
       TaskResult result = tryExecute(stageDefinition);
       return resetErrorCount(result);
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       if (stageDefinition.getConsecutiveErrors() < getMaxConsecutiveErrors() && isRetryable(e)) {
         return TaskResult.builder(ExecutionStatus.RUNNING)
             .context(errorContext(errors + 1))
@@ -83,14 +85,13 @@ public abstract class RetryableIgorTask<T extends RetryableStageDefinition>
     return Collections.singletonMap("consecutiveErrors", errors);
   }
 
-  private boolean isRetryable(RetrofitError retrofitError) {
-    if (retrofitError.getKind() == RetrofitError.Kind.NETWORK) {
+  private boolean isRetryable(SpinnakerServerException exception) {
+    if (exception instanceof SpinnakerNetworkException) {
       log.warn("Failed to communicate with igor, retrying...");
       return true;
-    }
-
-    if (retrofitError.getResponse() != null) {
-      int status = retrofitError.getResponse().getStatus();
+    } else if (exception instanceof SpinnakerHttpException) {
+      var httpException = (SpinnakerHttpException) exception;
+      int status = httpException.getResponseCode();
       if (status == 500 || status == 503) {
         log.warn(String.format("Received HTTP %s response from igor, retrying...", status));
         return true;

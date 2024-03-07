@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -120,9 +121,11 @@ class GetBuildPropertiesTaskSpec extends Specification {
       getResponse() >> new Response("", 500, "", Collections.emptyList(), null)
     }
 
+    def httpException = new SpinnakerHttpException(igorError)
+
     and:
     1 * buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >>
-      { throw igorError }
+      { throw httpException }
 
     when:
     TaskResult result = task.execute(stage)

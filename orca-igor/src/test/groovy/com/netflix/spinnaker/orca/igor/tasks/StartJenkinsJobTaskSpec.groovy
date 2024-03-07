@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
+import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -39,7 +40,7 @@ class StartJenkinsJobTaskSpec extends Specification {
       convertValue(_,_) >> [:]
     }
 
-    task.retrofitExceptionHandler = new RetrofitExceptionHandler()
+    task.spinnakerServerExceptionHandler = new SpinnakerServerExceptionHandler()
   }
 
   @Shared
@@ -85,14 +86,14 @@ class StartJenkinsJobTaskSpec extends Specification {
 
         and:
         task.buildService = Stub(BuildService) {
-            build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >> {throw RetrofitError.unexpectedError("http://test", new RuntimeException())}
+            build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >> {throw new SpinnakerServerException(RetrofitError.unexpectedError("http://test", new RuntimeException()))}
         }
 
         when:
         task.execute(stage)
 
         then:
-        thrown(RetrofitError)
+        thrown(SpinnakerServerException)
     }
 
   def "handle 202 response from igor"() {

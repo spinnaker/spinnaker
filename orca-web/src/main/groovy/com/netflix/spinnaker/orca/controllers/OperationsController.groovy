@@ -23,6 +23,8 @@ import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
@@ -327,12 +329,14 @@ class OperationsController {
       def buildInfo
       try {
         buildInfo = buildService.getBuild(trigger.buildNumber, trigger.master, trigger.job)
-      } catch (RetrofitError e) {
-        if (e.response?.status == 404) {
+      } catch (SpinnakerHttpException e) {
+        if (e.responseCode == 404) {
           throw new ConfigurationException("Build ${trigger.buildNumber} of ${trigger.master}/${trigger.job} not found")
         } else {
           throw new OperationFailedException("Failed to get build ${trigger.buildNumber} of ${trigger.master}/${trigger.job}", e)
         }
+      } catch (SpinnakerServerException e){
+        throw new OperationFailedException("Failed to get build ${trigger.buildNumber} of ${trigger.master}/${trigger.job}", e)
       }
       if (buildInfo?.artifacts) {
         if (trigger.type == "manual") {
@@ -348,12 +352,14 @@ class OperationsController {
             trigger.master as String,
             trigger.job as String
           )
-        } catch (RetrofitError e) {
-          if (e.response?.status == 404) {
+        } catch (SpinnakerHttpException e) {
+          if (e.responseCode == 404) {
             throw new ConfigurationException("Expected properties file " + trigger.propertyFile + " (configured on trigger), but it was missing")
           } else {
             throw new OperationFailedException("Failed to get properties file ${trigger.propertyFile}", e)
           }
+        } catch (SpinnakerServerException e){
+          throw new OperationFailedException("Failed to get properties file ${trigger.propertyFile}", e)
         }
       }
     }

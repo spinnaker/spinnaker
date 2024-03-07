@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.igor.model.RetryableStageDefinition
@@ -51,7 +53,7 @@ class RetryableIgorTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * task.tryExecute(jobRequest) >> { throw stubRetrofitError(500) }
+    1 * task.tryExecute(jobRequest) >> { throw stubHttpError(500) }
     jobRequest.getConsecutiveErrors() >> 0
     result.status == ExecutionStatus.RUNNING
     result.context.get("consecutiveErrors") == 1
@@ -62,7 +64,7 @@ class RetryableIgorTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * task.tryExecute(jobRequest) >> { throw stubRetrofitNetworkError() }
+    1 * task.tryExecute(jobRequest) >> { throw stubNetworkError() }
     jobRequest.getConsecutiveErrors() >> 0
     result.status == ExecutionStatus.RUNNING
     result.context.get("consecutiveErrors") == 1
@@ -73,9 +75,9 @@ class RetryableIgorTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * task.tryExecute(jobRequest) >> { throw stubRetrofitError(404) }
+    1 * task.tryExecute(jobRequest) >> { throw stubHttpError(404) }
     jobRequest.getConsecutiveErrors() >> 0
-    thrown RetrofitError
+    thrown SpinnakerHttpException
   }
 
   def "should propagate the error we have reached the retry limit"() {
@@ -83,9 +85,9 @@ class RetryableIgorTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * task.tryExecute(jobRequest) >> { throw stubRetrofitError(500) }
+    1 * task.tryExecute(jobRequest) >> { throw stubHttpError(500) }
     jobRequest.getConsecutiveErrors() >> 5
-    thrown RetrofitError
+    thrown SpinnakerHttpException
   }
 
   def "should propagate a non-successful task status"() {
@@ -109,16 +111,16 @@ class RetryableIgorTaskSpec extends Specification {
     result.context.get("consecutiveErrors") == 0
   }
 
-  def stubRetrofitError(int statusCode) {
-    return Stub(RetrofitError) {
+  def stubHttpError(int statusCode) {
+    return new SpinnakerHttpException(Stub(RetrofitError) {
       getKind() >> RetrofitError.Kind.HTTP
       getResponse() >> new Response("", statusCode, "", Collections.emptyList(), null)
-    }
+    })
   }
 
-  def stubRetrofitNetworkError() {
-    return Stub(RetrofitError) {
+  def stubNetworkError() {
+    return new SpinnakerNetworkException(Stub(RetrofitError) {
       getKind() >> RetrofitError.Kind.NETWORK
-    }
+    })
   }
 }

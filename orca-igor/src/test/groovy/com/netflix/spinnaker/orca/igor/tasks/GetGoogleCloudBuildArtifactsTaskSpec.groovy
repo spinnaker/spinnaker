@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
@@ -72,14 +73,14 @@ class GetGoogleCloudBuildArtifactsTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.getGoogleCloudBuildArtifacts(ACCOUNT, BUILD_ID) >> { throw stubRetrofitError() }
+    1 * igorService.getGoogleCloudBuildArtifacts(ACCOUNT, BUILD_ID) >> { throw stubNetworkError() }
     0 * igorService._
     result.getStatus() == ExecutionStatus.RUNNING
   }
 
-  def stubRetrofitError() {
-    return Stub(RetrofitError) {
+  def stubNetworkError() {
+    return new SpinnakerNetworkException(Stub(RetrofitError) {
       getKind() >> RetrofitError.Kind.NETWORK
-    }
+    })
   }
 }
