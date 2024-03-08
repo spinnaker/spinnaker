@@ -51,7 +51,7 @@ dependencies {
   implementation("org.apache.httpcomponents:httpclient")
   implementation("javax.servlet:javax.servlet-api:4.0.1")
   implementation("javax.validation:validation-api")
-  implementation("com.jayway.jsonpath:json-path:2.2.0")
+  implementation("com.jayway.jsonpath:json-path")
   implementation("org.yaml:snakeyaml")
   implementation("org.codehaus.groovy:groovy")
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.44.0")

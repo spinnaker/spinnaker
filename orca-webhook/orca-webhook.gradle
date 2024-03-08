@@ -25,7 +25,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
-  implementation("com.jayway.jsonpath:json-path:2.2.0")
+  implementation("com.jayway.jsonpath:json-path")
   implementation("com.squareup.okhttp3:okhttp")
   implementation("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
   testImplementation("org.springframework:spring-test")
