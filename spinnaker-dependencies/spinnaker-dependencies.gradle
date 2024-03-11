@@ -141,7 +141,7 @@ dependencies {
     api("javax.xml.bind:jaxb-api:2.3.1")
     api("net.logstash.logback:logstash-logback-encoder:4.11")
     api("org.apache.commons:commons-exec:1.3")
-    api("org.bitbucket.b_c:jose4j:0.9.3")
+    api("org.bitbucket.b_c:jose4j:0.9.4")
     //  from BC 1.71, module names changed from *-jdk15on to *-jdk18on
     // due to this change, some of the modules in downstream services like clouddriver, gate would fall back to
     // lower versions(<1.70) as transitive dependencies. So to make them use BC >=1.74(CVE free versions),
