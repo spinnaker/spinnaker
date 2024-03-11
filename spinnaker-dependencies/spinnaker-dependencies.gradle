@@ -14,6 +14,10 @@ ext {
     gcp              : "25.3.0",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
+    // spring boot 2.5.15 specifies logback 1.2.12.  Pin to 1.2.13 to resolve
+    // CVE-2023-6378 and CVE-2023-6481 until spring boot 3.1.7 which brings in
+    // 1.4.14.  See https://logback.qos.ch/news.html#1.3.12.
+    logback          : "1.2.13",
     netty            : "4.1.100.Final",
     protobuf         : "3.21.12",
     okhttp           : "2.7.5", // CVE-2016-2402
@@ -72,6 +76,15 @@ dependencies {
 
   constraints {
     api("cglib:cglib-nodep:3.3.0")
+    api("ch.qos.logback:logback-core:${versions.logback}") {
+       force = true
+    }
+    api("ch.qos.logback:logback-classic:${versions.logback}") {
+       force = true
+    }
+    api("ch.qos.logback:logback-access:${versions.logback}") {
+       force = true
+    }
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:1.30.10") // TODO: Track update for CVE-2020-7692, reanalysis pending.
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev105-1.25.0")
