@@ -21,6 +21,7 @@ import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener
@@ -69,6 +70,7 @@ class EchoConfiguration {
       .setEndpoint(echoEndpoint)
       .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("echo", echoEndpoint.url))))
       .setLogLevel(retrofitLogLevel)
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setLog(new RetrofitSlf4jLog(EchoService))
       .setConverter(new JacksonConverter())
       .build()

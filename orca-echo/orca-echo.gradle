@@ -28,6 +28,7 @@ dependencies {
   implementation("javax.validation:validation-api")
   implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
   implementation("io.spinnaker.fiat:fiat-api:$fiatVersion")
+  implementation("io.spinnaker.kork:kork-retrofit")
 
   testImplementation("com.squareup.retrofit:retrofit-mock")
 }
