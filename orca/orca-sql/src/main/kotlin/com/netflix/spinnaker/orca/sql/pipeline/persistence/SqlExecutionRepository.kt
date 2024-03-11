@@ -53,6 +53,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
 import de.huxhorn.sulky.ulid.SpinULID
@@ -1405,19 +1406,20 @@ class SqlExecutionRepository(
     id: String,
     requireLatestVersion: Boolean
   ): PipelineExecution? {
-    // If we are not using a read pool, then retrieve the execution normally
-    // because the default pool always contains the latest version
-    if (!readPoolEnabled()) {
-      withPool(poolName) {
-        val select = ctx.selectExecution(type).where(id.toWhereCondition())
-        return select.fetchExecution()
-      }
-    }
     // Avoid collecting the readPoolRetrieve class of metrics here because it will
     // skew the number of times that retrieving using the read pool succeeded
     // on the first try
     if (!requireLatestVersion) {
       withPool(readPoolName) {
+        val select = ctx.selectExecution(type).where(id.toWhereCondition())
+        return select.fetchExecution()
+      }
+    }
+    // If the read pool configuration does not enforce strict consistency, then
+    // retrieve the execution from the default pool which does. This ensures that
+    // the retrieved execution is up-to-date
+    if (!readPoolStrictConsistencyEnforced()) {
+      withPool(poolName) {
         val select = ctx.selectExecution(type).where(id.toWhereCondition())
         return select.fetchExecution()
       }
@@ -1649,7 +1651,9 @@ class SqlExecutionRepository(
     }
   }
 
-  private fun readPoolEnabled(): Boolean = readPoolName != poolName
+  private fun readPoolStrictConsistencyEnforced(): Boolean {
+    return readPoolName != poolName && executionUpdateTimeRepository !is NoopExecutionUpdateTimeRepository
+  }
 
   class SyntheticStageRequired : IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")
 }
