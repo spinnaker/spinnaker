@@ -77,7 +77,8 @@ class SqlQueue(
   override val publisher: EventPublisher,
   private val sqlRetryProperties: SqlRetryProperties,
   private val ULID: ULID = ULID(),
-  private val poolName: String = "default"
+  private val poolName: String = "default",
+  private val containsMessageBatchSize: Int = 100,
 ) : MonitorableQueue {
 
   companion object {
@@ -187,33 +188,32 @@ class SqlQueue(
   }
 
   private fun doContainsMessage(predicate: (Message) -> Boolean): Boolean {
-    val batchSize = 100
+    val batchSize = containsMessageBatchSize
     var found = false
     var lastId = "0"
 
     do {
-      val rs: ResultSet = withRetry(READ) {
+      val rs = withRetry(READ) {
         jooq.select(idField, fingerprintField, bodyField)
           .from(messagesTable)
           .where(idField.gt(lastId))
+          .orderBy(idField.asc())
           .limit(batchSize)
           .fetch()
-          .intoResultSet()
       }
 
-      while (!found && rs.next()) {
+      val rsIterator = rs.iterator()
+      while (!found && rsIterator.hasNext()) {
+        val record = rsIterator.next()
+        val body = record[bodyField, String::class.java]
         try {
-          found = predicate.invoke(mapper.readValue(rs.getString("body")))
+          found = predicate.invoke(mapper.readValue(body))
         } catch (e: Exception) {
-          log.error(
-            "Failed reading message with fingerprint: ${rs.getString("fingerprint")} " +
-              "message: ${rs.getString("body")}",
-            e
-          )
+          log.error("Failed reading message with fingerprint: ${record[fingerprintField, String::class.java]} message: $body", e)
         }
-        lastId = rs.getString("id")
+        lastId = record[idField, String::class.java]
       }
-    } while (!found && rs.row == batchSize)
+    } while (!found && rs.isNotEmpty)
 
     return found
   }

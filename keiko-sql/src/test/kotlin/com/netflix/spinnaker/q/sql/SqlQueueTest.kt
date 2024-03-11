@@ -15,6 +15,12 @@ import com.netflix.spinnaker.q.TestMessage
 import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.metrics.MonitorableQueueTest
 import com.netflix.spinnaker.q.metrics.QueueEvent
+import com.netflix.spinnaker.time.MutableClock
+import com.nhaarman.mockito_kotlin.mock
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.BeforeEach
 import java.time.Clock
 import java.time.Duration
 import java.util.Optional
@@ -37,7 +43,8 @@ private val createQueueNoPublisher = { clock: Clock,
 
 private fun createQueue(clock: Clock,
                         deadLetterCallback: DeadMessageCallback,
-                        publisher: EventPublisher?): SqlQueue {
+                        publisher: EventPublisher?,
+                        containsMessageBatchSize: Int = 5): SqlQueue {
   return SqlQueue(
     queueName = "test",
     schemaVersion = 1,
@@ -66,7 +73,8 @@ private fun createQueue(clock: Clock,
     sqlRetryProperties = SqlRetryProperties(
       transactions = retryPolicy,
       reads = retryPolicy
-    )
+    ),
+    containsMessageBatchSize = containsMessageBatchSize,
   )
 }
 
@@ -78,3 +86,49 @@ private val retryPolicy: RetryProperties = RetryProperties(
   maxRetries = 1,
   backoffMs = 10 // minimum allowed
 )
+
+class SqlQueueSpecificTests {
+  private val batchSize = 5
+  private val clock = MutableClock()
+  private val deadMessageHandler: DeadMessageCallback = mock()
+  private val publisher: EventPublisher = mock()
+  private var queue: SqlQueue? = null
+
+  @BeforeEach
+  fun setup() {
+    queue = createQueue(clock, deadMessageHandler, publisher, batchSize)
+  }
+
+  @AfterEach
+  fun cleanup() {
+    cleanupCallback()
+  }
+
+  @Test
+  fun `doContainsMessage works with no messages present`() {
+    assertThat(doContainsMessagePayload("test")).isFalse
+  }
+
+  @Test
+  fun `doContainsMessage works with a single batch`() {
+    pushTestMessages(batchSize)
+    assertThat(doContainsMessagePayload("${batchSize-1}")).isTrue
+    assertThat(doContainsMessagePayload("")).isFalse
+  }
+
+  @Test
+  fun `doContainsMessage handles multiple batches during search`() {
+    pushTestMessages(batchSize * 2)
+    assertThat(doContainsMessagePayload("${batchSize+1}")).isTrue
+    assertThat(doContainsMessagePayload("")).isFalse
+  }
+
+  private fun pushTestMessages(numberOfMessages: Int) {
+    for (i in 1 .. numberOfMessages) {
+      queue?.push(TestMessage(i.toString()))
+    }
+  }
+
+  private fun doContainsMessagePayload(payload: String): Boolean? =
+    queue?.containsMessage { message -> message is TestMessage && message.payload == payload }
+}
