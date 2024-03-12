@@ -9,6 +9,7 @@ dependencies {
   implementation "com.google.apis:google-api-services-appengine:v1-rev92-1.25.0"
   implementation "com.google.apis:google-api-services-storage"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
+  implementation "com.jcraft:jsch"
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
@@ -27,7 +28,7 @@ dependencies {
   implementation "org.apache.commons:commons-compress:1.21"
   implementation "org.codehaus.groovy:groovy"
   implementation "org.codehaus.groovy:groovy-json"
-  implementation "org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r"
+  implementation "org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:5.13.1.202206130422-r"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.cloud:spring-cloud-context"
