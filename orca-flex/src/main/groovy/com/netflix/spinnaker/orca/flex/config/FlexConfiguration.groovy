@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.flex.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.flex.FlexService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
@@ -59,6 +60,7 @@ class FlexConfiguration {
       .setEndpoint(flexEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setLog(new RetrofitSlf4jLog(FlexService))
       .setConverter(new JacksonConverter(mapper))
       .build()
