@@ -14,7 +14,7 @@ ext {
     gcp              : "25.3.0",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
-    // spring boot 2.5.15 specifies logback 1.2.12.  Pin to 1.2.13 to resolve
+    // spring boot 2.6.15 specifies logback 1.2.12.  Pin to 1.2.13 to resolve
     // CVE-2023-6378 and CVE-2023-6481 until spring boot 3.1.7 which brings in
     // 1.4.14.  See https://logback.qos.ch/news.html#1.3.12.
     logback          : "1.2.13",
@@ -28,12 +28,12 @@ ext {
     spectator        : "1.0.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
-    springBoot       : "2.5.15",
-    springCloud      : "2020.0.6",
+    springBoot       : "2.6.15",
+    springCloud      : "2021.0.8",
     springfoxSwagger : "3.0.0",
     swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects.
 
-    // Spring boot 2.5.15 and 2.6.15 bring in 9.0.75.  2.7.18
+    // Spring boot 2.6.15 bring in 9.0.75.  2.7.18
     // brings in 9.0.83, which fixes all CVEs to date (20-feb-24).
     //
     // See https://tomcat.apache.org/security-9.html for latest security fixes.
@@ -181,7 +181,7 @@ dependencies {
     // pf4j:3.10.0 brings in slf4j-api:2.0.6 which is not compatible with logback 1.2.x.
     // And the upgraded logback version(1.3.8) is becoming incompatible with SpringBoot's LogbackLoggingSystem:
     // java.lang.NoClassDefFoundError at LogbackLoggingSystem.java:293
-    // Hence pinning slf4j-api at 1.7.36 which spring boot 2.5.15 brings in.
+    // Hence pinning slf4j-api at 1.7.36 which spring boot 2.6.15 brings in.
     api("org.slf4j:slf4j-api"){
       version {
         strictly("1.7.36")

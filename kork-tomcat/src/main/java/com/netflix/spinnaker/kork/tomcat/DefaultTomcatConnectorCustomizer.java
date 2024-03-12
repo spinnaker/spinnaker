@@ -52,10 +52,6 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
   public void customize(Connector connector) {
     this.applySSLSettings(connector);
     this.applyRelaxedURIProperties(connector);
-    if (tomcatConfigurationProperties.getRejectIllegalHeader() != null) {
-      ((AbstractHttp11Protocol<?>) connector.getProtocolHandler())
-          .setRejectIllegalHeader(tomcatConfigurationProperties.getRejectIllegalHeader());
-    }
   }
 
   Ssl copySslConfigurationWithClientAuth(TomcatServletWebServerFactory tomcat) {

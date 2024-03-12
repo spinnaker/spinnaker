@@ -46,6 +46,11 @@ class TomcatConfiguration {
   TomcatConnectorCustomizer defaultTomcatConnectorCustomizer(
       TomcatConfigurationProperties tomcatConfigurationProperties,
       SslExtensionConfigurationProperties sslExtensionConfigurationProperties) {
+    if (tomcatConfigurationProperties.getRejectIllegalHeader() != null) {
+      System.setProperty(
+          "server.tomcat.reject-illegal-header",
+          tomcatConfigurationProperties.getRejectIllegalHeader().toString());
+    }
     return new DefaultTomcatConnectorCustomizer(
         tomcatConfigurationProperties, sslExtensionConfigurationProperties);
   }

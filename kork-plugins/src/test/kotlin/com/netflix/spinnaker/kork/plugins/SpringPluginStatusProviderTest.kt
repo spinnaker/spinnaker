@@ -47,6 +47,7 @@ class SpringPluginStatusProviderTest : JUnit5Minutests {
       subject.onApplicationEvent(
         ApplicationEnvironmentPreparedEvent(
           mockk(relaxed = true),
+          mockk(relaxed = true),
           arrayOf(),
           environment
         )
