@@ -18,7 +18,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Main.class)
-@TestPropertySource(properties = {"spring.application.name = igor"})
+@TestPropertySource(
+    properties = {
+      "spring.application.name = igor",
+      "spring.mvc.pathmatch.matching-strategy = ANT_PATH_MATCHER"
+    })
 public class ArtifactExtractorTest {
 
   @Autowired private ArtifactExtractor artifactExtractor;

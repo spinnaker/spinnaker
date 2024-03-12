@@ -39,7 +39,9 @@ import java.security.Security
 )
 class Main extends SpringBootServletInitializer {
 
-  static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "igor").build()
+  static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "igor")
+    .property("spring.mvc.pathmatch.matching-strategy","ANT_PATH_MATCHER")
+    .build()
 
   static {
     /**
