@@ -43,12 +43,6 @@ class RoscoAWSConfiguration {
   @Autowired
   AWSBakeHandler awsBakeHandler
 
-  @Bean
-  @ConfigurationProperties('aws.bakery-defaults')
-  AWSBakeryDefaults awsBakeryDefaults(@Value('${aws.bakery-defaults.default-virtualization-type:hvm}') BakeRequest.VmType defaultVirtualizationType) {
-    new AWSBakeryDefaults(defaultVirtualizationType: defaultVirtualizationType)
-  }
-
   static class AWSBakeryDefaults {
     String awsAccessKey
     String awsSecretKey

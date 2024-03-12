@@ -43,18 +43,6 @@ class RoscoGoogleConfiguration {
   @Autowired
   GCEBakeHandler gceBakeHandler
 
-  @Bean
-  @ConfigurationProperties('google.gce.bakery-defaults')
-  GCEBakeryDefaults deprecatedGCEBakeryDefaults() {
-    new GCEBakeryDefaults()
-  }
-
-  @Bean
-  @ConfigurationProperties('google.bakery-defaults')
-  GCEBakeryDefaults gceBakeryDefaults() {
-    new GCEBakeryDefaults()
-  }
-
   @AutoClone(style = AutoCloneStyle.SIMPLE)
   @ToString(includeNames = true)
   static class GCEBakeryDefaults {
@@ -86,12 +74,6 @@ class RoscoGoogleConfiguration {
   @PostConstruct
   void init() {
     cloudProviderBakeHandlerRegistry.register(BakeRequest.CloudProviderType.gce, gceBakeHandler)
-  }
-
-  @Bean
-  @ConfigurationProperties("google")
-  GoogleConfigurationProperties googleConfigurationProperties() {
-    new GoogleConfigurationProperties()
   }
 
   static class GoogleConfigurationProperties {

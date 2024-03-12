@@ -42,12 +42,6 @@ class RoscoDockerConfiguration {
   @Autowired
   DockerBakeHandler dockerBakeHandler
 
-  @Bean
-  @ConfigurationProperties('docker.bakery-defaults')
-  DockerBakeryDefaults dockerBakeryDefaults() {
-    new DockerBakeryDefaults()
-  }
-
   static class DockerBakeryDefaults {
     String targetRepository
     String templateFile

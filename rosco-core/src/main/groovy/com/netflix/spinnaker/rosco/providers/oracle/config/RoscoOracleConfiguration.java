@@ -15,8 +15,6 @@ import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRe
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -40,17 +38,5 @@ public class RoscoOracleConfiguration {
   @PostConstruct
   void init() {
     cloudProviderBakeHandlerRegistry.register(BakeRequest.CloudProviderType.oracle, ociBakeHandler);
-  }
-
-  @Bean
-  @ConfigurationProperties("oracle.bakery-defaults")
-  public OracleBakeryDefaults oracleBakeryDefaults() {
-    return new OracleBakeryDefaults();
-  }
-
-  @Bean
-  @ConfigurationProperties("oracle")
-  public OracleConfigurationProperties oracleConfigurationProperties() {
-    return new OracleConfigurationProperties();
   }
 }

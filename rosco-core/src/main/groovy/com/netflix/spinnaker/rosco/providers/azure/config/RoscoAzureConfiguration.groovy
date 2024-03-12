@@ -40,12 +40,6 @@ class RoscoAzureConfiguration {
   @Autowired
   AzureBakeHandler azureBakeHandler
 
-  @Bean
-  @ConfigurationProperties('azure.bakery-defaults')
-  AzureBakeryDefaults azureBakeryDefaults() {
-    new AzureBakeryDefaults()
-  }
-
   @PostConstruct
   void init() {
     cloudProviderBakeHandlerRegistry.register(BakeRequest.CloudProviderType.azure, azureBakeHandler)
@@ -65,12 +59,6 @@ class RoscoAzureConfiguration {
 
   static class AzureBaseImage {
     AzureOperatingSystemSettings baseImage
-  }
-
-  @Bean
-  @ConfigurationProperties('azure')
-  AzureConfigurationProperties azureConfigurationProperties() {
-    new AzureConfigurationProperties()
   }
 
   static class AzureConfigurationProperties {
