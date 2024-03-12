@@ -79,6 +79,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 class GateConfig extends RedisHttpSessionConfiguration {
 
   private ServiceClientProvider serviceClientProvider
+  private ConfigureRedisAction configureRedisAction
 
   @Value('${server.session.timeout-in-seconds:3600}')
   void setSessionTimeout(int maxInactiveIntervalInSeconds) {
@@ -88,6 +89,10 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @Autowired
   void setServiceClientProvider(ServiceClientProvider serviceClientProvider) {
     this.serviceClientProvider = serviceClientProvider
+  }
+
+  void setConfigureRedisAction(ConfigureRedisAction configureRedisAction){
+      this.configureRedisAction = configureRedisAction;
   }
 
   @Autowired

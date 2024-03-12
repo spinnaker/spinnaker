@@ -18,15 +18,20 @@ package com.netflix.spinnaker.gate.config
 
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import org.springframework.context.ApplicationContext
 import org.springframework.security.config.annotation.ObjectPostProcessor
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.util.matcher.AnyRequestMatcher
+import org.springframework.context.support.GenericApplicationContext
 import spock.lang.Specification
 
 import java.util.stream.Collectors
 
 class AuthConfigTest extends Specification {
+
+  private GenericApplicationContext context = new GenericApplicationContext()
+
   @SuppressWarnings("GroovyAccessibility")
   def "test webhooks are unauthenticated by default"() {
     given:
@@ -44,7 +49,7 @@ class AuthConfigTest extends Specification {
     def httpSecurity = new HttpSecurity(
       Mock(ObjectPostProcessor),
       Mock(AuthenticationManagerBuilder),
-      [:]
+      getSharedObjects()
     )
 
     when:
@@ -79,7 +84,7 @@ class AuthConfigTest extends Specification {
     def httpSecurity = new HttpSecurity(
       Mock(ObjectPostProcessor),
       Mock(AuthenticationManagerBuilder),
-      [:]
+      getSharedObjects()
     )
 
     when:
@@ -94,5 +99,12 @@ class AuthConfigTest extends Specification {
       })
       .collect(Collectors.toList())
     filtered.size() == 1
+  }
+
+  private HashMap<Class<?>, Object> getSharedObjects(){
+    HashMap map = new HashMap<Class<?>, Object>()
+    context.refresh()
+    map.put(ApplicationContext.class, context)
+    return map;
   }
 }

@@ -30,6 +30,13 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.context.annotation.Bean
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import org.springframework.context.annotation.Primary
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
+import org.springframework.session.data.redis.config.annotation.SpringSessionRedisConnectionFactory
+import redis.clients.jedis.JedisPool
 
 class GatePluginsFixture : PluginsTckFixture, GateTestService() {
 
@@ -75,4 +82,22 @@ class GatePluginsFixture : PluginsTckFixture, GateTestService() {
 abstract class GateTestService
 
 @TestConfiguration
-internal open class PluginTestConfiguration
+internal open class PluginTestConfiguration {
+  @Bean(destroyMethod = "destroy")
+  fun embeddedRedis(): EmbeddedRedis {
+    return EmbeddedRedis.embed().also { redis -> redis.jedis.connect() }.also { redis -> redis.jedis.ping() }
+  }
+
+  @Bean
+  @Primary
+  @SpringSessionRedisConnectionFactory
+  fun jedisConnectionFactory(embeddedRedis: EmbeddedRedis): JedisConnectionFactory {
+    return JedisConnectionFactory(RedisStandaloneConfiguration(embeddedRedis.host, embeddedRedis.port))
+  }
+
+  @Bean
+  @Primary
+  fun jedis(embeddedRedis: EmbeddedRedis): JedisPool {
+    return embeddedRedis.getPool();
+  }
+}
