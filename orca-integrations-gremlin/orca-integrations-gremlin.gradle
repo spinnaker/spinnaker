@@ -6,6 +6,7 @@ dependencies {
   implementation(project(":orca-retrofit"))
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.slf4j:slf4j-api")
+  implementation("io.spinnaker.kork:kork-retrofit")
 
   testImplementation(project(":orca-core-tck"))
 }

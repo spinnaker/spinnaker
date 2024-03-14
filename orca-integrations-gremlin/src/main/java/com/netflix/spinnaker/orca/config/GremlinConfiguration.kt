@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.config
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.gremlin.GremlinConverter
 import com.netflix.spinnaker.orca.gremlin.GremlinService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -47,6 +48,7 @@ class GremlinConfiguration {
       .setEndpoint(gremlinEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(RestAdapter.LogLevel.BASIC)
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setLog(RetrofitSlf4jLog(GremlinService::class.java))
       .setConverter(GremlinConverter(mapper))
       .build()
