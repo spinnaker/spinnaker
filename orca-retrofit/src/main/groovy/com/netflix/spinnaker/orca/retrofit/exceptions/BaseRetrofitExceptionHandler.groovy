@@ -24,6 +24,10 @@ import static java.net.HttpURLConnection.*
 
 abstract class BaseRetrofitExceptionHandler implements ExceptionHandler {
   boolean shouldRetry(Exception e, String kind, Integer responseCode) {
+    return shouldRetry(e, kind, null, responseCode)
+  }
+
+  boolean shouldRetry(Exception e, String kind, String httpMethod, Integer responseCode) {
     if (isMalformedRequest(kind, e.getMessage())) {
       return false
     }
@@ -33,7 +37,11 @@ abstract class BaseRetrofitExceptionHandler implements ExceptionHandler {
       return true
     }
 
-    return isIdempotentRequest(e) && (isNetworkError(kind) || isGatewayErrorCode(kind, responseCode) || isThrottle(kind, responseCode))
+    if(httpMethod == null) {
+      httpMethod = findHttpMethodAnnotation(e)
+    }
+
+    return isIdempotentRequest(httpMethod) && (isNetworkError(kind) || isGatewayErrorCode(kind, responseCode) || isThrottle(kind, responseCode))
   }
 
   private boolean isGatewayErrorCode(String kind, Integer responseCode) {
@@ -55,8 +63,8 @@ abstract class BaseRetrofitExceptionHandler implements ExceptionHandler {
     return "UNEXPECTED".equals(kind) && exceptionMessage?.contains("Path parameter")
   }
 
-  private static boolean isIdempotentRequest(Exception e) {
-    findHttpMethodAnnotation(e) in ["GET", "HEAD", "DELETE", "PUT"]
+  private static boolean isIdempotentRequest(String httpMethod) {
+    httpMethod in ["GET", "HEAD", "DELETE", "PUT"]
   }
 
   private static String findHttpMethodAnnotation(Exception exception) {

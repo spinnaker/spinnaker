@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.retrofit.exceptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
@@ -33,10 +35,18 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import okhttp3.OkHttpClient;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.SocketPolicy;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.HttpStatus;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Client;
@@ -45,9 +55,16 @@ import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 import retrofit.converter.JacksonConverter;
 import retrofit.mime.TypedString;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 class SpinnakerServerExceptionHandlerTest {
-  private static final String URL = "https://some-url";
+  private static Retrofit2Service retrofit2Service;
+
+  private static final MockWebServer mockWebServer = new MockWebServer();
+
+  private static final String URL = mockWebServer.url("https://some-url").toString();
 
   private static final String TASK_NAME = "task name";
 
@@ -135,6 +152,35 @@ class SpinnakerServerExceptionHandlerTest {
   SpinnakerServerExceptionHandler spinnakerServerExceptionHandler =
       new SpinnakerServerExceptionHandler();
 
+  @BeforeAll
+  static void setupOnce() {
+    retrofit2Service =
+        new Retrofit.Builder()
+            .baseUrl(mockWebServer.url("/"))
+            .client(
+                new OkHttpClient.Builder()
+                    .callTimeout(1, TimeUnit.SECONDS)
+                    .connectTimeout(1, TimeUnit.SECONDS)
+                    .build())
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+            .create(Retrofit2Service.class);
+  }
+
+  @AfterAll
+  static void shutdownOnce() throws Exception {
+    mockWebServer.shutdown();
+  }
+
+  interface Retrofit2Service {
+    @retrofit2.http.GET("/retrofit2")
+    Call<String> getRetrofit2();
+
+    @retrofit2.http.POST("/retrofit2")
+    Call<String> postRetrofit2();
+  }
+
   @ParameterizedTest(name = "{index} => onlyHandlesSpinnakerServerExceptionAndSubclasses {0}")
   @MethodSource("exceptionsForHandlesTest")
   void onlyHandlesSpinnakerServerExceptionAndSubclasses(Exception ex, boolean supported) {
@@ -153,10 +199,69 @@ class SpinnakerServerExceptionHandlerTest {
   }
 
   @ParameterizedTest(name = "{index} => testRetryable {0}")
-  @MethodSource("exceptionsForRetryTest")
+  @MethodSource({"exceptionsForRetryTest", "retrofit2Exceptions"})
   void testRetryable(SpinnakerServerException ex, boolean expectedRetryable) {
     ExceptionHandler.Response response = spinnakerServerExceptionHandler.handle(TASK_NAME, ex);
     assertThat(response.isShouldRetry()).isEqualTo(expectedRetryable);
+  }
+
+  private static Stream<Arguments> retrofit2Exceptions() {
+    String responseBody = "{\"test\":\"test\"}";
+
+    // HTTP 503 is always retryable
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setResponseCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .setBody(responseBody));
+    SpinnakerServerException retryable =
+        catchThrowableOfType(
+            () -> retrofit2Service.getRetrofit2().execute(), SpinnakerServerException.class);
+
+    // not retryable because POST is not idempotent
+    mockWebServer.enqueue(
+        new MockResponse().setResponseCode(HttpStatus.BAD_REQUEST.value()).setBody(responseBody));
+    SpinnakerServerException notRetryable =
+        catchThrowableOfType(
+            () -> retrofit2Service.postRetrofit2().execute(), SpinnakerServerException.class);
+
+    // not retryable despite idempotent method because response code not within 429, 502, 503, 504
+    mockWebServer.enqueue(
+        new MockResponse().setResponseCode(HttpStatus.UNAUTHORIZED.value()).setBody(responseBody));
+    SpinnakerServerException notRetryableIdempotent =
+        catchThrowableOfType(
+            () -> retrofit2Service.getRetrofit2().execute(), SpinnakerServerException.class);
+
+    // idempotent network errors are retryable
+    mockWebServer.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE));
+    SpinnakerServerException idempotentNetworkException =
+        catchThrowableOfType(
+            () -> retrofit2Service.getRetrofit2().execute(), SpinnakerNetworkException.class);
+
+    // throttling is retryable if idempotent
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setResponseCode(HttpStatus.TOO_MANY_REQUESTS.value())
+            .setBody(responseBody));
+    SpinnakerServerException throttledIdempotent =
+        catchThrowableOfType(
+            () -> retrofit2Service.getRetrofit2().execute(), SpinnakerServerException.class);
+
+    // throttling is not retryable if not idempotent
+    mockWebServer.enqueue(
+        new MockResponse()
+            .setResponseCode(HttpStatus.TOO_MANY_REQUESTS.value())
+            .setBody(responseBody));
+    SpinnakerServerException throttledNonIdempotent =
+        catchThrowableOfType(
+            () -> retrofit2Service.postRetrofit2().execute(), SpinnakerServerException.class);
+
+    return Stream.of(
+        Arguments.of(retryable, true),
+        Arguments.of(notRetryable, false),
+        Arguments.of(notRetryableIdempotent, false),
+        Arguments.of(idempotentNetworkException, true),
+        Arguments.of(throttledIdempotent, true),
+        Arguments.of(throttledNonIdempotent, false));
   }
 
   private static Stream<Arguments> exceptionsForRetryTest() throws Exception {
@@ -220,7 +325,7 @@ class SpinnakerServerExceptionHandlerTest {
   }
 
   @ParameterizedTest(name = "{index} => verifyResponseDetails {0}")
-  @MethodSource("exceptionsForResponseDetailsTest")
+  @MethodSource({"exceptionsForResponseDetailsTest", "nonRetryableRetrofit2Exceptions"})
   void verifyResponseDetails(SpinnakerHttpException spinnakerHttpException) {
     ExceptionHandler.Response response =
         spinnakerServerExceptionHandler.handle(TASK_NAME, spinnakerHttpException);
@@ -229,6 +334,7 @@ class SpinnakerServerExceptionHandlerTest {
     // expected.  This duplicates some logic in SpinnakerServerExceptionHandler,
     // but at least it helps detect future changes.
     Map<String, Object> responseBody = spinnakerHttpException.getResponseBody();
+    String httpMethod = spinnakerHttpException.getHttpMethod();
     String error = null;
     List<String> errors = null;
 
@@ -237,6 +343,10 @@ class SpinnakerServerExceptionHandlerTest {
             .put("kind", "HTTP")
             .put("url", spinnakerHttpException.getUrl())
             .put("status", spinnakerHttpException.getResponseCode());
+
+    if (httpMethod != null) {
+      builder.put("method", httpMethod);
+    }
 
     if (responseBody == null) {
       error = spinnakerHttpException.getMessage();
@@ -283,6 +393,12 @@ class SpinnakerServerExceptionHandlerTest {
             makeRetrofitError(responseWithErrorAndErrors),
             makeRetrofitError(responseWithErrorAndErrorsAndMessages))
         .map(SpinnakerServerExceptionHandlerTest::makeSpinnakerHttpException);
+  }
+
+  private static Stream<SpinnakerHttpException> nonRetryableRetrofit2Exceptions() {
+    return retrofit2Exceptions()
+        .filter(args -> args.get()[1].equals(false))
+        .map(args -> ((SpinnakerHttpException) args.get()[0]));
   }
 
   private void compareResponse(
