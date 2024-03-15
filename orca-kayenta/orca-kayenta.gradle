@@ -27,6 +27,7 @@ dependencies {
   implementation("com.netflix.frigga:frigga")
   implementation("io.spinnaker.kork:kork-moniker")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("io.spinnaker.kork:kork-retrofit")
 
   testImplementation(project(":orca-test-kotlin"))
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
