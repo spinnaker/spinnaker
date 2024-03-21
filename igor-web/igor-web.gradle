@@ -12,15 +12,6 @@ dependencies {
     implementation project(":igor-monitor-artifactory")
     implementation project(":igor-monitor-plugins")
     implementation project(":igor-monitor-travis")
-    implementation "io.spinnaker.kork:kork-retrofit"
-
-    implementation platform("io.spinnaker.kork:kork-bom:$korkVersion")
-    compileOnly "org.projectlombok:lombok"
-    annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
-    annotationProcessor "org.projectlombok:lombok"
-    testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
-    testAnnotationProcessor "org.projectlombok:lombok"
-    implementation "io.spinnaker.kork:kork-retrofit"
 
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-web"
@@ -86,8 +77,6 @@ dependencies {
     implementation "javax.inject:javax.inject:1"
     implementation "javax.validation:validation-api"
 
-    implementation "io.spinnaker.kork:kork-retrofit"
-
     runtimeOnly "io.spinnaker.kork:kork-runtime"
 
     testImplementation "com.squareup.okhttp:mockwebserver"
@@ -97,6 +86,5 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "org.assertj:assertj-core"
 
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-    testImplementation "com.github.tomakehurst:wiremock-jre8:2.22.0"
+    testImplementation "com.github.tomakehurst:wiremock-jre8"
 }
