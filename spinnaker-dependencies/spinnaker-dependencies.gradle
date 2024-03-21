@@ -189,21 +189,17 @@ dependencies {
     }
     api("org.pf4j:pf4j-update:2.3.0")
 
-    // snakeyaml 1.29 fails to parse yaml (including some k8s manifests), so
-    // stick with 1.27 since that's what spring boot 2.4.13 uses.
-    // https://github.com/spring-projects/spring-boot/issues/30159#issuecomment-1125969155
-    // has details, including that snakeyaml 1.28 doesn't suffer from this bug.
-    // We could remove this specification altogether, and move to 1.28 along
-    // with spring boot 2.5, but I'd rather pin it here to avoid hitting the bug
-    // when we upgrade to spring boot 2.6.x.  It's safe to upgrade beyond 1.29
-    // with spring boot >= 2.6.12.  See
-    // https://github.com/spring-projects/spring-boot/issues/32228#issue-136185850.0.
-    // making it strict as some of the modules have it resolved to higher versions (ex: kork-secrets-gcp to 1.30)
-    api("org.yaml:snakeyaml") {
-      version {
-        strictly "1.27"
-      }
-    }
+    // Spring boot 2.6.15 brings in snakeyaml 1.29, which fails to parse yaml (including some
+    // k8s manifests).  See https://github.com/spring-projects/spring-boot/issues/30159#issuecomment-1125969155.
+    // It's safe to upgrade beyond 1.29 with spring boot >= 2.6.12 (see
+    // https://github.com/spring-projects/spring-boot/issues/32228#issue-136185850.0). However,
+    // snakeyaml 1.32 has a feature to restrict the size of incoming data to 3
+    // MB by default, and spring boot versions < 3.0.7 are not equipped to
+    // modify this limit.  Use 1.31 in order to avoid file size limitation till
+    // upgrade >= 3.0.7 and to resolve CVE-2022-25857 and CVE-2022-38749.  See
+    // https://bitbucket.org/snakeyaml/snakeyaml/issues/547/restrict-the-size-of-incoming-data
+    // and https://bitbucket.org/snakeyaml/snakeyaml/pull-requests/22.
+    api("org.yaml:snakeyaml:1.31")
     api("org.springdoc:springdoc-openapi-webmvc-core:${versions.openapi}")
     api("org.springdoc:springdoc-openapi-kotlin:${versions.openapi}")
     api("org.springframework.boot:spring-boot-configuration-processor:${versions.springBoot}")
