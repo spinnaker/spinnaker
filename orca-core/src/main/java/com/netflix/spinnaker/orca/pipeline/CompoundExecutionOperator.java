@@ -141,15 +141,15 @@ public class CompoundExecutionOperator {
 
   private PipelineExecution updatePreconditionStageExpression(
       Map restartDetails, PipelineExecution execution) {
-    List<Map> preconditionList = getPreconditionsFromStage(restartDetails);
-    if (preconditionList.isEmpty()) {
+    Map<String, List<Map>> preconditionMap = getPreconditionsFromStage(restartDetails);
+    if (preconditionMap.isEmpty()) {
       return execution;
     }
 
     for (StageExecution stage : execution.getStages()) {
       if (stage.getType() != null && stage.getType().equalsIgnoreCase("checkPreconditions")) {
         if (stage.getContext().get("preconditions") != null) {
-          stage.getContext().replace("preconditions", preconditionList);
+          stage.getContext().replace("preconditions", preconditionMap.get(stage.getRefId()));
           repository.storeStage(stage);
           log.info("Updated preconditions for CheckPreconditions stage");
         }
@@ -158,8 +158,8 @@ public class CompoundExecutionOperator {
     return execution;
   }
 
-  private List<Map> getPreconditionsFromStage(Map restartDetails) {
-    List<Map> preconditionList = new ArrayList();
+  private Map<String, List<Map>> getPreconditionsFromStage(Map restartDetails) {
+    Map<String, List<Map>> preconditionMap = new HashMap<>();
     Map pipelineConfigMap = new HashMap(restartDetails);
 
     List<String> keysToRetain = new ArrayList();
@@ -173,12 +173,13 @@ public class CompoundExecutionOperator {
       List<Map> pipelineStageList = pipelineStageMap.get(keysToRetain.get(0));
       for (Map stageMap : pipelineStageList) {
         if (stageMap.get("type").toString().equalsIgnoreCase("checkPreconditions")) {
-          preconditionList = (List<Map>) stageMap.get("preconditions");
+          preconditionMap.put(
+              (String) stageMap.get("refId"), (List<Map>) stageMap.get("preconditions"));
           log.info("Retrieved preconditions for CheckPreconditions stage");
         }
       }
     }
-    return preconditionList;
+    return preconditionMap;
   }
 
   private PipelineExecution doInternal(
