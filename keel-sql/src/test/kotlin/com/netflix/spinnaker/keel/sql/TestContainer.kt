@@ -10,7 +10,7 @@ internal val testDatabase by lazy {
 }
 
 internal val mySQLContainer = MySQLContainerProvider()
-  .newInstance("5.7.34")
+  .newInstance("8.0.36")
   .withDatabaseName("keel")
   .withUsername("keel_service")
   .withPassword("whatever")

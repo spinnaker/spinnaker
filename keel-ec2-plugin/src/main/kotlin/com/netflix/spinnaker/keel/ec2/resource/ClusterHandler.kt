@@ -316,7 +316,7 @@ class ClusterHandler(
       )
     }
 
-    val base = serverGroups.values.maxBy { it.capacity.desired ?: it.capacity.max }
+    val base = serverGroups.values.maxByOrNull { it.capacity.desired ?: it.capacity.max }
       ?: throw ExportError("Unable to determine largest server group: $serverGroups")
 
     if (base.image == null) {

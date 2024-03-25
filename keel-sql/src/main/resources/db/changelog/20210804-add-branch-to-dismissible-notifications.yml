@@ -3,8 +3,6 @@ databaseChangeLog:
       id: dismissible-notification-branch-type
       author: rhorev
       changes:
-        - alterTable:
-            tableName: dismissible_notification
         - sql:
             sql: |
               alter table dismissible_notification

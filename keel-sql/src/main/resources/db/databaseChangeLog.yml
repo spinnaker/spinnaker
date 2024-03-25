@@ -66,9 +66,6 @@ databaseChangeLog:
     file: changelog/20200106-rename-artifact-status.yml
     relativeToChangelogFile: true
 - include:
-    file: changelog/20200107-default-promotion-status.yml
-    relativeToChangelogFile: true
-- include:
     file: changelog/20200106-tie-artifacts-to-delivery-configs.yml
     relativeToChangelogFile: true
 - include:

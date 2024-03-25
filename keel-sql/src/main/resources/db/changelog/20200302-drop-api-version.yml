@@ -17,7 +17,7 @@ databaseChangeLog:
         tableName: resource
         columnName: api_version
     rollback:
-      - createColumn:
+      - addColumn:
           tableName: resource
           column:
             name: api_version

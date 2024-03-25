@@ -4,7 +4,7 @@ apply plugin: "kotlin-allopen"
 
 compileKotlin {
   kotlinOptions {
-    languageVersion = "1.4"
+    languageVersion = "1.5"
     jvmTarget = "11"
     // see https://kotlinlang.org/docs/java-to-kotlin-interop.html#compatibility-mode-for-default-methods
     freeCompilerArgs += "-Xjvm-default=enable"
@@ -13,7 +13,7 @@ compileKotlin {
 
 compileTestKotlin {
   kotlinOptions {
-    languageVersion = "1.4"
+    languageVersion = "1.5"
     jvmTarget = "11"
     freeCompilerArgs += "-Xjvm-default=enable"
   }

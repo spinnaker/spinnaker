@@ -14,18 +14,13 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.ContextHierarchy
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 
 @SpringBootTest(
+  classes = [KeelApplication::class, TestConfiguration::class],
   webEnvironment = MOCK
-)
-@ContextHierarchy(
-  ContextConfiguration(classes = [KeelApplication::class]),
-  ContextConfiguration(classes = [TestConfiguration::class])
 )
 internal class DeliveryConfigDeletionTests
 @Autowired constructor(

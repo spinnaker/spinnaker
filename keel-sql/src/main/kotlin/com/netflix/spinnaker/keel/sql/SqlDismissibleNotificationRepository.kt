@@ -62,7 +62,7 @@ class SqlDismissibleNotificationRepository(
         .where(DISMISSIBLE_NOTIFICATION.APPLICATION.eq(application))
         .apply {
           if (onlyActive) {
-            and(DISMISSIBLE_NOTIFICATION.IS_ACTIVE.eq(1))
+            and(DISMISSIBLE_NOTIFICATION.IS_ACTIVE)
           }
           if (levels.isNotEmpty()) {
             and(DISMISSIBLE_NOTIFICATION.LEVEL.`in`(*levels.map { it.name }.toTypedArray()))

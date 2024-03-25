@@ -12,5 +12,5 @@ dependencies {
   implementation("dev.minutest:minutest")
   implementation("io.strikt:strikt-jvm")
 
-  runtime("org.jetbrains.kotlin:kotlin-reflect")
+  implementation("org.jetbrains.kotlin:kotlin-reflect")
 }

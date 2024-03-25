@@ -39,7 +39,7 @@ allprojects {
       annotationProcessor(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-      implementation(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+      implementation(enforcedPlatform("io.spinnaker.kork:kork-bom:${korkVersion}"))
       implementation("org.slf4j:slf4j-api")
 
       testImplementation("org.junit.platform:junit-platform-runner")
