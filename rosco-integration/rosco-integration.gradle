@@ -1,0 +1,25 @@
+dependencies {
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "org.assertj:assertj-core"
+  implementation "org.junit.jupiter:junit-jupiter-api"
+  implementation "org.slf4j:slf4j-api"
+  implementation "org.testcontainers:testcontainers"
+  implementation "org.testcontainers:junit-jupiter"
+  runtimeOnly "ch.qos.logback:logback-classic"
+  runtimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
+
+test.configure {
+  def fullDockerImageName = System.getenv('FULL_DOCKER_IMAGE_NAME')
+  onlyIf("there is a docker image to test") {
+    fullDockerImageName != null && fullDockerImageName.trim() != ''
+  }
+}
+
+test {
+  // So stdout and stderr from the just-built container are available in CI
+  testLogging.showStandardStreams = true
+
+  // Run the tests when the docker image changes
+  inputs.property 'fullDockerImageName', System.getenv('FULL_DOCKER_IMAGE_NAME')
+}

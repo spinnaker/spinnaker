@@ -67,5 +67,6 @@ RUN for plugin in $PACKER_PLUGINS ; do \
   fi; \
 done
 
-CMD ["/opt/rosco/bin/rosco"]
+HEALTHCHECK CMD curl http://localhost:8087/health | grep UP || exit 1
 
+CMD ["/opt/rosco/bin/rosco"]

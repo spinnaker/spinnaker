@@ -8,7 +8,11 @@
 
 rootProject.name = 'rosco'
 
-include 'rosco-bom', 'rosco-core', 'rosco-web', 'rosco-manifests'
+include 'rosco-bom',
+  'rosco-core',
+  'rosco-integration',
+  'rosco-manifests',
+  'rosco-web'
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
