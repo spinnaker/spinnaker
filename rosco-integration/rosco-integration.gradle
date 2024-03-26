@@ -1,12 +1,12 @@
 dependencies {
-  implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation "org.assertj:assertj-core"
-  implementation "org.junit.jupiter:junit-jupiter-api"
-  implementation "org.slf4j:slf4j-api"
-  implementation "org.testcontainers:testcontainers"
-  implementation "org.testcontainers:junit-jupiter"
-  runtimeOnly "ch.qos.logback:logback-classic"
-  runtimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.slf4j:slf4j-api"
+  testImplementation "org.testcontainers:testcontainers"
+  testImplementation "org.testcontainers:junit-jupiter"
+  testRuntimeOnly "ch.qos.logback:logback-classic"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
 
 test.configure {
