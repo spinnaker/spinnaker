@@ -28,7 +28,6 @@ import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
-import com.netflix.spinnaker.gate.config.PostConnectionConfiguringJedisConnectionFactory.ConnectionPostProcessor
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
 import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
@@ -124,13 +123,6 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @Bean
   @Primary
   ConfigureRedisAction springBootConfigureRedisAction() {
-    return ConfigureRedisAction.NO_OP
-  }
-
-  @Bean
-  @ConnectionPostProcessor
-  @ConditionalOnProperty("redis.configuration.secure")
-  ConfigureRedisAction connectionPostProcessorConfigureRedisAction() {
     return ConfigureRedisAction.NO_OP
   }
 
