@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.mine.MineService
@@ -27,12 +28,10 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import javax.annotation.Nonnull
 
 import static org.springframework.http.HttpStatus.CONFLICT
-import static retrofit.RetrofitError.Kind.HTTP
 
 @Slf4j
 @Component
@@ -79,8 +78,8 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage {
         def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, reason)
         log.info("Canceled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id}): ${reason}")
         return cancelCanaryResults
-      } catch (RetrofitError e) {
-        if (e.kind == HTTP && e.response.status == CONFLICT.value()) {
+      } catch (SpinnakerHttpException e) {
+        if (e.responseCode == CONFLICT.value()) {
           log.info("Canary (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id}) has already ended")
           return [:]
         } else {

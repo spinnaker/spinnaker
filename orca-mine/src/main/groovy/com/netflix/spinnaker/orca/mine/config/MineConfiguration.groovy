@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.mine.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
@@ -64,6 +65,7 @@ class MineConfiguration {
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setLog(new RetrofitSlf4jLog(MineService))
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setConverter(new JacksonConverter(objectMapper))
       .build()
       .create(MineService)

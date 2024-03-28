@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.orca.mine.MineService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import javax.annotation.Nonnull
 
@@ -49,7 +49,7 @@ class DisableCanaryTask implements CloudProviderAware, Task {
           unhealthy : true
         ]).build()
       }
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       log.error("Exception occurred while getting canary status with id {} from mine, continuing with disable",
         stage.context.canary.id, e)
     }

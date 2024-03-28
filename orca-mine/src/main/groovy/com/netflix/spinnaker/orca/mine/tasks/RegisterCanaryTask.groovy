@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -25,7 +29,6 @@ import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 import retrofit.client.Response
 
 import javax.annotation.Nonnull
@@ -59,19 +62,33 @@ class RegisterCanaryTask implements Task {
       if (response.status == 200 && response.body.mimeType().startsWith('text/plain')) {
         canaryId = response.body.in().text
       }
-    } catch (RetrofitError re) {
+    } catch (SpinnakerHttpException re) {
       def response = [:]
       try {
-        response = re.getBodyAs(Map) as Map
+        def responseBody = re.responseBody
+        response = responseBody!=null ? responseBody : response
       } catch (Exception e) {
         response.error = e.message
       }
 
-      response.status = re.response?.status
-      response.errorKind = re.kind
+      response.status = re.responseCode
+      response.errorKind = "HTTP"
 
       throw new IllegalStateException(
         "Unable to register canary (executionId: ${stage.execution.id}, stageId: ${stage.id} canary: ${c}), response: ${response}"
+      )
+    } catch(SpinnakerServerException e){
+      def response = [:]
+      response.status = null
+      if (e instanceof SpinnakerNetworkException){
+        response.errorKind = "NETWORK"
+      } else if(e instanceof SpinnakerConversionException) {
+        response.errorKind = "CONVERSION"
+      } else {
+        response.errorKind = "UNEXPECTED"
+      }
+      throw new IllegalStateException(
+          "Unable to register canary (executionId: ${stage.execution.id}, stageId: ${stage.id} canary: ${c}), response: ${response}"
       )
     }
 

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import java.util.concurrent.TimeUnit
@@ -28,7 +29,6 @@ import com.netflix.spinnaker.orca.mine.MineService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Component
 @Slf4j
@@ -51,7 +51,7 @@ class MonitorAcaTaskTask implements CloudProviderAware, OverridableTimeoutRetrya
       outputs << [
           canary: canary
       ]
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       log.error("Exception occurred while getting canary with id ${context.canary.id} from mine service", e)
       return TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build()
     }
