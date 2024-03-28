@@ -25,6 +25,7 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
+  testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation 'org.mockito:mockito-inline:4.8.0'
   testImplementation 'org.assertj:assertj-core:3.23.1'
 
