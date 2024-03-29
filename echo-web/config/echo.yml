@@ -12,8 +12,8 @@ front50:
 
 services:
   fiat:
-    enabled: ${services.fiat.enabled:false}
-    baseUrl: ${services.fiat.baseUrl:http://localhost:8089}
+    enabled: false
+    baseUrl: http://localhost:7003
 
 igor:
   enabled: ${services.igor.enabled:false}
@@ -62,7 +62,9 @@ resilience4j.circuitbreaker:
 # This profile is used in sharded deployments for an Echo that handles only
 # scheduled tasks.
 spring:
-  profiles: scheduler
+  config:
+    activate:
+      on-profile: scheduler
 
 scheduler:
   enabled: true
@@ -71,7 +73,9 @@ scheduler:
 # This profile is used in sharded deployments for an Echo that handles all
 # operations other than scheduled tasks.
 spring:
-  profiles: worker
+  config:
+    activate:
+      on-profile: worker
 
 scheduler:
   enabled: false

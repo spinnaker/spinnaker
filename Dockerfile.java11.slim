@@ -5,4 +5,5 @@ RUN adduser --system --uid 10111 --group spinnaker
 COPY echo-web/build/install/echo /opt/echo
 RUN mkdir -p /opt/echo/plugins && chown -R spinnaker:nogroup /opt/echo/plugins
 USER spinnaker
+HEALTHCHECK CMD curl http://localhost:8089/health | grep UP || exit 1
 CMD ["/opt/echo/bin/echo"]
