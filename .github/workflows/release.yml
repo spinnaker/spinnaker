@@ -62,7 +62,7 @@ jobs:
           ./gradlew --info publishToNexus closeAndReleaseNexusStagingRepository
       - name: Create release
         if: steps.release_info.outputs.SKIP_RELEASE == 'false'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body: |
             ${{ steps.release_info.outputs.CHANGELOG }}
