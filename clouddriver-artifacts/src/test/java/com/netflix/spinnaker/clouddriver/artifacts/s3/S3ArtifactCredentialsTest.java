@@ -25,6 +25,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -98,8 +101,12 @@ class S3ArtifactCredentialsTest {
     localstack.start();
     amazonS3 =
         AmazonS3ClientBuilder.standard()
-            .withEndpointConfiguration(localstack.getEndpointConfiguration(S3))
-            .withCredentials(localstack.getDefaultCredentialsProvider())
+            .withEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration(
+                    localstack.getEndpoint().toString(), localstack.getRegion()))
+            .withCredentials(
+                new AWSStaticCredentialsProvider(
+                    new BasicAWSCredentials(localstack.getAccessKey(), localstack.getSecretKey())))
             .withRequestHandlers(
                 new S3ArtifactCredentials.S3ArtifactRequestHandler(account.getName()))
             .build();
