@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
+import com.netflix.spinnaker.orca.clouddriver.config.RollbackConfigurationProperties
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
@@ -42,6 +43,15 @@ class ExplicitRollbackSpec extends Specification {
   def captureSourceServerGroupCapacityStage = new CaptureSourceServerGroupCapacityStage()
   def applySourceServerGroupCapacityStage = new ApplySourceServerGroupCapacityStage()
   def waitStage = new WaitStage()
+
+  def explicitRollback = new RollbackConfigurationProperties.ExplicitRollback(
+      timeout: 20
+  )
+  def rollbackConfigurationProperties = new RollbackConfigurationProperties(
+      explicitRollback: explicitRollback
+
+  )
+
   CloudDriverService cloudDriverService = Mock()
 
   def stage = stage {
@@ -61,7 +71,8 @@ class ExplicitRollbackSpec extends Specification {
     captureSourceServerGroupCapacityStage: captureSourceServerGroupCapacityStage,
     applySourceServerGroupCapacityStage: applySourceServerGroupCapacityStage,
     waitStage: waitStage,
-    cloudDriverService: cloudDriverService
+    cloudDriverService: cloudDriverService,
+    rollbackConfigurationProperties: rollbackConfigurationProperties
   )
 
   def setup() {
@@ -213,4 +224,5 @@ class ExplicitRollbackSpec extends Specification {
     1 * cloudDriverService.getTargetServerGroup(_, rollbackServerGroupName, _) >> { throw new Exception(":(") }
     thrown(SpinnakerException)
   }
+
 }

@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
+import com.netflix.spinnaker.orca.clouddriver.config.RollbackConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup.Capacity;
@@ -52,7 +53,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -92,13 +92,13 @@ public class DetermineRollbackCandidatesTask implements CloudProviderAware, Retr
       RetrySupport retrySupport,
       CloudDriverService cloudDriverService,
       FeaturesService featuresService,
-      @Value("${rollback.timeout.enabled:false}") boolean dynamicRollbackTimeoutEnabled) {
+      RollbackConfigurationProperties rollbackConfigurationProperties) {
     this.retrySupport = retrySupport;
     this.cloudDriverService = cloudDriverService;
     this.previousImageRollbackSupport =
         new PreviousImageRollbackSupport(
             objectMapper, cloudDriverService, featuresService, retrySupport);
-    this.dynamicRollbackTimeoutEnabled = dynamicRollbackTimeoutEnabled;
+    this.dynamicRollbackTimeoutEnabled = rollbackConfigurationProperties.isDynamicRollbackEnabled();
   }
 
   @Override
