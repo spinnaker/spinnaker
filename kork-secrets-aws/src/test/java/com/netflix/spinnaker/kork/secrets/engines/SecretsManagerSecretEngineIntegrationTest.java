@@ -18,6 +18,9 @@ package com.netflix.spinnaker.kork.secrets.engines;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
@@ -60,8 +63,11 @@ public class SecretsManagerSecretEngineIntegrationTest {
     AWSSecretsManager client =
         AWSSecretsManagerClientBuilder.standard()
             .withEndpointConfiguration(
-                container.getEndpointConfiguration(LocalStackContainer.Service.SECRETSMANAGER))
-            .withCredentials(container.getDefaultCredentialsProvider())
+                new AwsClientBuilder.EndpointConfiguration(
+                    container.getEndpoint().toString(), container.getRegion()))
+            .withCredentials(
+                new AWSStaticCredentialsProvider(
+                    new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
             .build();
 
     UserSecretMetadata metadata =
@@ -121,8 +127,11 @@ public class SecretsManagerSecretEngineIntegrationTest {
       return (params) ->
           AWSSecretsManagerClientBuilder.standard()
               .withEndpointConfiguration(
-                  container.getEndpointConfiguration(LocalStackContainer.Service.SECRETSMANAGER))
-              .withCredentials(container.getDefaultCredentialsProvider())
+                  new AwsClientBuilder.EndpointConfiguration(
+                      container.getEndpoint().toString(), container.getRegion()))
+              .withCredentials(
+                  new AWSStaticCredentialsProvider(
+                      new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
               .build();
     }
 
