@@ -16,18 +16,29 @@
 
 package com.netflix.spinnaker.gate.config;
 
-import com.netflix.spinnaker.gate.config.PostConnectionConfiguringJedisConnectionFactory.ConnectionPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 
 @Configuration
-@ConditionalOnProperty("redis.configuration.secure")
-public class RedisConfigSecure {
+public class RedisActionConfig {
+
+  /**
+   * Always disable the ConfigureRedisAction that Spring Boot uses internally. Instead we use one
+   * qualified with @ConnectionPostProcessor. See {@link
+   * PostConnectionConfiguringJedisConnectionFactory}.
+   */
+  @Bean
+  @Primary
+  public ConfigureRedisAction springBootConfigureRedisAction() {
+    return ConfigureRedisAction.NO_OP;
+  }
 
   @Bean
-  @ConnectionPostProcessor
+  @ConditionalOnProperty("redis.configuration.secure")
+  @PostConnectionConfiguringJedisConnectionFactory.ConnectionPostProcessor
   public ConfigureRedisAction connectionPostProcessorConfigureRedisAction() {
     return ConfigureRedisAction.NO_OP;
   }
