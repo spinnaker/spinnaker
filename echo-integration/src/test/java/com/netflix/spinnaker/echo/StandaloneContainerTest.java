@@ -97,8 +97,6 @@ class StandaloneContainerTest {
 
     DockerImageName dockerImageName = DockerImageName.parse(fullDockerImageName);
 
-    // Include the file system bind for /tmp since echo uses spring cloud config
-    // which writes to it.
     echoContainer =
         new GenericContainer(dockerImageName)
             .withNetwork(network)
