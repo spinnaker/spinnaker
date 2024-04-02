@@ -55,7 +55,6 @@ dependencies {
    // 2.16.0 is subject to CVE-2021-45105.  2.17.0 is subject to CVE-2021-44832, so use >= 2.17.1.
   api(platform("org.apache.logging.log4j:log4j-bom:2.20.0"))
 
-  api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.5.2"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))

@@ -39,14 +39,14 @@ dependencies {
 
 compileKotlin {
   kotlinOptions {
-    languageVersion = "1.5"
+    languageVersion = "1.6"
     jvmTarget = "11"
   }
 }
 
 compileTestKotlin {
   kotlinOptions {
-    languageVersion = "1.5"
+    languageVersion = "1.6"
     jvmTarget = "11"
   }
 }
