@@ -1,9 +1,10 @@
 FROM alpine:3.16
 LABEL maintainer="sig-platform@spinnaker.io"
-RUN apk --no-cache add --update bash openjdk17-jre
+RUN apk --no-cache add --update bash curl openjdk17-jre
 RUN addgroup -S -g 10111 spinnaker
 RUN adduser -S -G spinnaker -u 10111 spinnaker
 COPY front50-web/build/install/front50 /opt/front50
 RUN mkdir -p /opt/front50/plugins && chown -R spinnaker:nogroup /opt/front50/plugins
 USER spinnaker
+HEALTHCHECK CMD curl http://localhost:8080/health | grep UP || exit 1
 CMD ["/opt/front50/bin/front50"]
