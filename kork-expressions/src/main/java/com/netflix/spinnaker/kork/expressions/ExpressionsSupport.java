@@ -27,6 +27,7 @@ import com.netflix.spinnaker.kork.expressions.allowlist.FilteredPropertyAccessor
 import com.netflix.spinnaker.kork.expressions.allowlist.MapPropertyAccessor;
 import com.netflix.spinnaker.kork.expressions.allowlist.ReturnTypeRestrictor;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
+import com.netflix.spinnaker.kork.expressions.functions.ArtifactStoreFunctions;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,7 +97,9 @@ public class ExpressionsSupport {
     expressionFunctionProviders =
         new ArrayList<>(
             Arrays.asList(
-                new JsonExpressionFunctionProvider(), new StringExpressionFunctionProvider()));
+                new ArtifactStoreFunctions(),
+                new JsonExpressionFunctionProvider(),
+                new StringExpressionFunctionProvider()));
 
     if (extraExpressionFunctionProviders != null) {
       expressionFunctionProviders.addAll(extraExpressionFunctionProviders);
@@ -166,6 +169,7 @@ public class ExpressionsSupport {
     evaluationContext.setTypeLocator(new AllowListTypeLocator());
     evaluationContext.setTypeConverter(
         new ArtifactUriToReferenceConverter(ArtifactStore.getInstance()));
+
     evaluationContext.setMethodResolvers(
         Collections.singletonList(new FilteredMethodResolver(returnTypeRestrictor)));
     evaluationContext.setPropertyAccessors(

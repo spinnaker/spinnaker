@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.expressions;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -32,7 +31,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.common.TemplateParserContext;
@@ -107,29 +111,36 @@ public class ExpressionsSupportTest {
     assertThat(evaluated).isEqualTo("{\"json_file\":\"${#toJson(#doNotEval(file_json))}\"}");
   }
 
-  @Test
-  public void artifactReferenceInSpEL() {
+  @ParameterizedTest
+  @MethodSource("artifactReferenceArgs")
+  public void artifactReferenceInSpEL(String reference, String expected, String expr) {
     MockArtifactStore artifactStore = new MockArtifactStore();
     ArtifactStore.setInstance(artifactStore);
     ExpressionProperties expressionProperties = new ExpressionProperties();
-    String expectedValue = "Hello world";
-    artifactStore.cache.put("ref://app/sha", expectedValue);
-    String expr = "${#fromBase64(\"ref://app/sha\")}";
+    artifactStore.cache.put("ref://app/sha", reference);
     Map<String, Object> testContext =
-        Collections.singletonMap(
-            "artifactReference", Collections.singletonMap("artifactReference", expr));
+        Collections.singletonMap("artifact", Artifact.builder().reference("ref://app/sha"));
 
     ExpressionsSupport expressionsSupport = new ExpressionsSupport(null, expressionProperties);
 
     StandardEvaluationContext evaluationContext =
-        expressionsSupport.buildEvaluationContext(
-            new ExpressionTransformTest.Pipeline(new ExpressionTransformTest.Trigger(123)), true);
+        expressionsSupport.buildEvaluationContext(testContext, true);
 
     String evaluated =
         new ExpressionTransform(parserContext, parser, Function.identity())
             .transformString(expr, evaluationContext, new ExpressionEvaluationSummary());
 
-    assertThat(evaluated).isEqualTo(expectedValue);
+    assertThat(evaluated).isEqualTo(expected);
+  }
+
+  @SneakyThrows
+  public static Stream<Arguments> artifactReferenceArgs() {
+    return Stream.of(
+        Arguments.of("Hello world", "Hello world", "${#fromBase64(\"ref://app/sha\")}"),
+        Arguments.of(
+            "Hello world",
+            Base64.getEncoder().encodeToString("Hello world".getBytes()),
+            "${#fetchReference(artifact.reference)}"));
   }
 
   @Test
