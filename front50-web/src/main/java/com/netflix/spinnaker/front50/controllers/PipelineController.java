@@ -249,13 +249,12 @@ public class PipelineController {
     pipeline.setName(pipeline.getName().trim());
     pipeline = ensureCronTriggersHaveIdentifier(pipeline);
 
-    if (Strings.isNullOrEmpty(pipeline.getId())) {
+    if (Strings.isNullOrEmpty(pipeline.getId())
+        || (boolean) pipeline.getAny().getOrDefault("regenerateCronTriggerIds", false)) {
       // ensure that cron triggers are assigned a unique identifier for new pipelines
-      List<Trigger> triggers = pipeline.getTriggers();
-      triggers.stream()
+      pipeline.getTriggers().stream()
           .filter(it -> "cron".equals(it.getType()))
           .forEach(it -> it.put("id", UUID.randomUUID().toString()));
-      pipeline.setTriggers(triggers);
     }
 
     return pipelineDAO.create(pipeline.getId(), pipeline);
@@ -417,8 +416,7 @@ public class PipelineController {
 
   private static Pipeline ensureCronTriggersHaveIdentifier(Pipeline pipeline) {
     // ensure that all cron triggers have an assigned identifier
-    List<Trigger> triggers = pipeline.getTriggers();
-    triggers.stream()
+    pipeline.getTriggers().stream()
         .filter(it -> "cron".equalsIgnoreCase(it.getType()))
         .forEach(
             it -> {
@@ -429,7 +427,6 @@ public class PipelineController {
 
               it.put("id", triggerId);
             });
-    pipeline.setTriggers(triggers);
 
     return pipeline;
   }
