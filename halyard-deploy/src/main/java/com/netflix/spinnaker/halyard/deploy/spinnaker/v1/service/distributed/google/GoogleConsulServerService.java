@@ -30,6 +30,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @EqualsAndHashCode(callSuper = true)
@@ -37,7 +38,7 @@ import org.springframework.stereotype.Component;
 @Data
 public class GoogleConsulServerService extends ConsulServerService
     implements GoogleDistributedService<ConsulApi> {
-  @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+  @Lazy @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
   public String getDefaultInstanceType() {

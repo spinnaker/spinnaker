@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @EqualsAndHashCode(callSuper = true)
@@ -38,7 +39,7 @@ public class GoogleOrcaService extends OrcaService
   final boolean requiredToBootstrap = false;
   final boolean stateful = true;
 
-  @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+  @Lazy @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
   public List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {

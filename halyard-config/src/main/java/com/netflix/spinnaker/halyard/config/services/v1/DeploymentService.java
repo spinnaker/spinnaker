@@ -29,6 +29,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,7 +44,7 @@ public class DeploymentService {
 
   @Autowired private HalconfigParser halconfigParser;
 
-  @Autowired private PersistentStorageService storageService;
+  @Lazy @Autowired private PersistentStorageService storageService;
 
   public void setDeploymentConfiguration(
       String deploymentName, DeploymentConfiguration deploymentConfiguration) {

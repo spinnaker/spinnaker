@@ -30,6 +30,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 
@@ -41,7 +42,7 @@ public class GoogleRedisBootstrapService extends RedisBootstrapService
   final DeployPriority deployPriority = new DeployPriority(8);
   final boolean requiredToBootstrap = true;
 
-  @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+  @Lazy @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
   public List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {

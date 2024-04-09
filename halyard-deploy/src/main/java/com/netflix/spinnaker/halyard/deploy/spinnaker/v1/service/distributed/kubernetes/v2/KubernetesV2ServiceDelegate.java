@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,5 +42,5 @@ public class KubernetesV2ServiceDelegate {
 
   @Autowired @Getter ObjectMapper objectMapper;
 
-  @Autowired @Getter KubernetesV2MonitoringDaemonService monitoringDaemonService;
+  @Lazy @Autowired @Getter KubernetesV2MonitoringDaemonService monitoringDaemonService;
 }

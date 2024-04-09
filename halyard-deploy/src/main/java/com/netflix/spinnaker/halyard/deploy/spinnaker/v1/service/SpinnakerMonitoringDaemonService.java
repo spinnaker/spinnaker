@@ -47,8 +47,6 @@ public abstract class SpinnakerMonitoringDaemonService
 
   @Autowired MetricRegistryProfileFactoryBuilder metricRegistryProfileFactoryBuilder;
 
-  @Autowired List<SpinnakerService> services;
-
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.SPINNAKER_MONITORING_DAEMON;

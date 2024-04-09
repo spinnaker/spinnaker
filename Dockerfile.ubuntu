@@ -30,4 +30,6 @@ RUN adduser --system --uid 1000 --group spinnaker
 COPY halyard-web/build/install/halyard /opt/halyard
 USER spinnaker
 
+HEALTHCHECK CMD curl http://localhost:8064/health | grep UP || exit 1
+
 CMD ["/opt/halyard/bin/halyard"]

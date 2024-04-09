@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @EqualsAndHashCode(callSuper = true)
@@ -37,7 +38,7 @@ public class GoogleDeckService extends DeckService
   final DeployPriority deployPriority = new DeployPriority(4);
   final boolean requiredToBootstrap = false;
 
-  @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+  @Lazy @Delegate @Autowired GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
   public List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
