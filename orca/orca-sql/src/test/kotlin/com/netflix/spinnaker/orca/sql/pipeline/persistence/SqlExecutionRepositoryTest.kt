@@ -33,7 +33,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import com.nhaarman.mockito_kotlin.atLeastOnce
 import com.nhaarman.mockito_kotlin.doReturn
@@ -606,7 +606,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
           executionCompressionPropertiesEnabled, // arbitrary
           false,
           mockedAbstractRoutingDataSource,
-          mockedExecutionUpdateTimeRepository,
+          mockedReplicationLagAwareRepository,
           NoopRegistry()
         )
 
@@ -634,7 +634,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
           executionCompressionPropertiesEnabled, // arbitrary
           false,
           mockedAbstractRoutingDataSource,
-          mockedExecutionUpdateTimeRepository,
+          mockedReplicationLagAwareRepository,
           NoopRegistry()
         )
 
@@ -666,7 +666,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
       compressionType = CompressionType.ZLIB
     }
     val mockDataSource = mock<DataSource>()
-    val mockedExecutionUpdateTimeRepository = mock<ExecutionUpdateTimeRepository>()
+    val mockedReplicationLagAwareRepository = mock<ReplicationLagAwareRepository>()
 
     val sqlExecutionRepository =
       SqlExecutionRepository(
@@ -683,7 +683,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesEnabled,
         false,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository,
+        mockedReplicationLagAwareRepository,
         NoopRegistry()
       )
 
@@ -706,7 +706,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesDisabled,
         false,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository,
+        mockedReplicationLagAwareRepository,
         NoopRegistry()
       )
 
@@ -732,7 +732,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesReadOnly,
         false,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository,
+        mockedReplicationLagAwareRepository,
         NoopRegistry()
       )
 
@@ -751,7 +751,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesDisabled,
         true,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository,
+        mockedReplicationLagAwareRepository,
         NoopRegistry()
       )
 
@@ -770,7 +770,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         executionCompressionPropertiesEnabled,
         true,
         mockDataSource,
-        mockedExecutionUpdateTimeRepository,
+        mockedReplicationLagAwareRepository,
         NoopRegistry()
       )
 

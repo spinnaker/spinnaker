@@ -52,8 +52,8 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.NoopReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
 import de.huxhorn.sulky.ulid.SpinULID
@@ -136,7 +136,7 @@ class SqlExecutionRepository(
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
   private val dataSource: DataSource,
-  private val executionUpdateTimeRepository: ExecutionUpdateTimeRepository,
+  private val replicationLagAwareRepository: ReplicationLagAwareRepository,
   private val registry: Registry
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
@@ -1126,7 +1126,7 @@ class SqlExecutionRepository(
           compressionProperties.isWriteEnabled()
         )
       }
-      executionUpdateTimeRepository.putPipelineExecutionUpdate(executionId, Instant.ofEpochMilli(updatedAt))
+      replicationLagAwareRepository.putPipelineExecutionUpdate(executionId, Instant.ofEpochMilli(updatedAt))
 
       storeCorrelationIdInternal(ctx, execution)
 
@@ -1192,7 +1192,7 @@ class SqlExecutionRepository(
     )
 
     upsert(ctx, stageTable, insertPairs, updatePairs, stage.id, compressionProperties.isWriteEnabled())
-    executionUpdateTimeRepository.putStageExecutionUpdate(stageId, Instant.ofEpochMilli(updatedAt))
+    replicationLagAwareRepository.putStageExecutionUpdate(stageId, Instant.ofEpochMilli(updatedAt))
 
     // This method is called from [storeInternal] as well. We don't want to notify multiple times for the same
     // overall persist operation.
@@ -1456,21 +1456,21 @@ class SqlExecutionRepository(
           return select.fetchExecution()
         }
       }
-      // If an execution is missing from the ExecutionUpdateTimeRepository, retrieve
+      // If an execution is missing from the ReplicationLagAwareRepository, retrieve
       // the execution using the default pool. If successful, also repopulate the
-      // ExecutionUpdateTimeRepository with the update timestamps
-      ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY -> {
+      // ReplicationLagAwareRepository with the execution metadata
+      ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY -> {
         registry.counter(readPoolRetrieveFailedId).increment()
         val pipelineExecution = withPool(poolName) {
           val select = ctx.selectExecution(type).where(id.toWhereCondition())
           select.fetchExecution()
         } ?: return null
-        executionUpdateTimeRepository.putPipelineExecutionUpdate(
+        replicationLagAwareRepository.putPipelineExecutionUpdate(
           pipelineExecution.id,
           Instant.ofEpochMilli(pipelineExecution.updatedAt)
         )
         pipelineExecution.stages.forEach {
-          executionUpdateTimeRepository.putStageExecutionUpdate(it.id, Instant.ofEpochMilli(it.updatedAt))
+          replicationLagAwareRepository.putStageExecutionUpdate(it.id, Instant.ofEpochMilli(it.updatedAt))
         }
         return pipelineExecution
       }
@@ -1599,7 +1599,7 @@ class SqlExecutionRepository(
     fetchExecutions().firstOrNull()
 
   private fun SelectForUpdateStep<out Record>.fetchExecutions(requireLatestVersion: Boolean) =
-    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled, requireLatestVersion, executionUpdateTimeRepository).map(fetch().intoResultSet(), jooq)
+    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled, requireLatestVersion, replicationLagAwareRepository).map(fetch().intoResultSet(), jooq)
 
   private fun SelectForUpdateStep<out Record>.fetchExecution(requireLatestVersion: Boolean) =
     fetchExecutions(requireLatestVersion)
@@ -1652,7 +1652,7 @@ class SqlExecutionRepository(
   }
 
   private fun readPoolStrictConsistencyEnforced(): Boolean {
-    return readPoolName != poolName && executionUpdateTimeRepository !is NoopExecutionUpdateTimeRepository
+    return readPoolName != poolName && replicationLagAwareRepository !is NoopReplicationLagAwareRepository
   }
 
   class SyntheticStageRequired : IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")

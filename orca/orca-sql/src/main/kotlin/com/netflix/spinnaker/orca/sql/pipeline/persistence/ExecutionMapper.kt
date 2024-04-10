@@ -23,8 +23,8 @@ import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.NoopReplicationLagAwareRepository
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.slf4j.LoggerFactory
@@ -39,11 +39,10 @@ import java.time.Instant
  * in this mapper as well.
  *
  * Optionally, the mapper can accept the requireLatestVersion and
- * executionUpdateTimeRepository parameters, which work together as a unit.
+ * replicationLagAwareRepository parameters, which work together as a unit.
  * If requireLatestVersion is true, the mapper will verify that all executions
- * and compressed executions are newer than the update timestamp provided by
- * the executionUpdateTimeRepository. If any part of the ResultSet fails the
- * requirements, the mapper will return an empty list of executions
+ * and compressed executions comply with the requirements set by replicationLagAwareRepository.
+ * If any part of the ResultSet fails to meet the requirements, the mapper returns an empty list of executions
  */
 class ExecutionMapper(
   private val mapper: ObjectMapper,
@@ -51,10 +50,10 @@ class ExecutionMapper(
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
   private val requireLatestVersion: Boolean,
-  private val executionUpdateTimeRepository: ExecutionUpdateTimeRepository
+  private val replicationLagAwareRepository: ReplicationLagAwareRepository
 ) {
   constructor(mapper: ObjectMapper, stageBatchSize: Int, executionCompressionProperties: ExecutionCompressionProperties, pipelineRefEnabled: Boolean) :
-    this(mapper, stageBatchSize, executionCompressionProperties, pipelineRefEnabled, false, NoopExecutionUpdateTimeRepository())
+    this(mapper, stageBatchSize, executionCompressionProperties, pipelineRefEnabled, false, NoopReplicationLagAwareRepository())
   private val log = LoggerFactory.getLogger(javaClass)
 
   /**
@@ -124,8 +123,8 @@ class ExecutionMapper(
     while (rs.next()) {
       if (requireLatestVersion) {
         val executionId = rs.getString("id")
-        val oldestAllowedUpdate = executionUpdateTimeRepository.getPipelineExecutionUpdate(executionId)
-          ?: return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY)
+        val oldestAllowedUpdate = replicationLagAwareRepository.getPipelineExecutionUpdate(executionId)
+          ?: return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
         if (!isUpToDateVersion(rs, oldestAllowedUpdate)) {
           return ExecutionMapperResult(mutableListOf(),ExecutionMapperResultCode.INVALID_VERSION)
         }
@@ -155,8 +154,8 @@ class ExecutionMapper(
     if (results.isNotEmpty()) {
       val type = results[0].type
 
-      var invalidVersionFound = false
-      var missingFromUpdateTimeRepositoryFound = false
+      var invalidVersion = false
+      var missingFromReplicationLagRepository = false
       results.chunked(stageBatchSize) { executions ->
         val executionIds: List<String> = executions.map {
           if (legacyMap.containsKey(it.id)) {
@@ -170,13 +169,13 @@ class ExecutionMapper(
           while (stageResultSet.next()) {
             if (requireLatestVersion) {
               val stageId = stageResultSet.getString("id")
-              val oldestAllowedUpdate = executionUpdateTimeRepository.getStageExecutionUpdate(stageId)
+              val oldestAllowedUpdate = replicationLagAwareRepository.getStageExecutionUpdate(stageId)
               if (oldestAllowedUpdate == null) {
-                missingFromUpdateTimeRepositoryFound = true
+                missingFromReplicationLagRepository = true
                 return@chunked
               }
               if (!isUpToDateVersion(stageResultSet, oldestAllowedUpdate)) {
-                invalidVersionFound = true
+                invalidVersion = true
                 return@chunked
               }
             }
@@ -189,13 +188,13 @@ class ExecutionMapper(
         }
       }
 
-      // A result where the execution is missing from the ExecutionUpdateTimeRepository has a higher
-      // precedence than a result where the version is invalid since MISSING_FROM_UPDATE_TIME_REPOSITORY
+      // A result where the execution is missing from the ReplicationLagAwareRepository has a higher
+      // precedence than a result where the version is invalid since MISSING_FROM_REPLICATION_LAG_REPOSITORY
       // is a more specific case of INVALID_VERSION
-      if (missingFromUpdateTimeRepositoryFound) {
-        return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY)
+      if (missingFromReplicationLagRepository) {
+        return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
       }
-      if (invalidVersionFound) {
+      if (invalidVersion) {
         return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.INVALID_VERSION)
       }
     }

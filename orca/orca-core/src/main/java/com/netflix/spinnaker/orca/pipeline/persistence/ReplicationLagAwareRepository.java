@@ -20,10 +20,11 @@ import java.time.Instant;
 import javax.annotation.Nullable;
 
 /**
- * An ExecutionUpdateTimeRepository is responsible for persisting the latest update time for a
- * particular execution under an execution ID key
+ * Responsible for persisting pipeline and stage execution metadata to enforce strict consistency
+ * when using a pipeline execution repository that has replication lag, such as a SQL backend with
+ * read replication
  */
-public interface ExecutionUpdateTimeRepository {
+public interface ReplicationLagAwareRepository {
   /**
    * Updates the repository with the latest update time for the pipeline execution
    *

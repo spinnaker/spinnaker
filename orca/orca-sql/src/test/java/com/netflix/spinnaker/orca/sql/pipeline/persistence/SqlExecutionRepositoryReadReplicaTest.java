@@ -33,7 +33,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository;
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository;
 import de.huxhorn.sulky.ulid.ULID;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -86,7 +86,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
   @MockBean OkHttpClientProvider okHttpClientProvider;
   @SpyBean ExecutionCompressionProperties executionCompressionProperties;
-  @MockBean ExecutionUpdateTimeRepository executionUpdateTimeRepository;
+  @MockBean ReplicationLagAwareRepository replicationLagAwareRepository;
   @MockBean Clock clock;
   @Autowired DataSourceConnectionProvider dataSourceConnectionProvider;
   @Autowired ObjectMapper mapper;
@@ -166,7 +166,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
     // when readPoolUpdatedAt > expected pipeline execution update
     // i.e. the read pool is up-to-date and contains a more recent execution than what we need
     doReturn(Instant.ofEpochMilli(ThreadLocalRandom.current().nextLong(0L, readPoolUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getPipelineExecutionUpdate(pipelineId);
     PipelineExecution execution =
         executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
@@ -178,7 +178,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
     // when readPoolUpdatedAt == expected pipeline execution update
     // i.e. the read pool is up-to-date
     doReturn(Instant.ofEpochMilli(readPoolUpdatedAt))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getPipelineExecutionUpdate(pipelineId);
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
@@ -191,7 +191,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
     doReturn(
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current().nextLong(readPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getPipelineExecutionUpdate(pipelineId);
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
@@ -233,7 +233,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
     doReturn(
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getPipelineExecutionUpdate(pipelineId);
     PipelineExecution execution =
         executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
@@ -249,7 +249,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current()
                     .nextLong(readPoolCompressedUpdatedAt + 1, readPoolUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getPipelineExecutionUpdate(pipelineId);
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
@@ -262,7 +262,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
     doReturn(
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current().nextLong(readPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getPipelineExecutionUpdate(pipelineId);
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
@@ -302,17 +302,17 @@ public class SqlExecutionRepositoryReadReplicaTest {
     doReturn(
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getPipelineExecutionUpdate(pipelineId);
     doReturn(
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current().nextLong(0L, firstStageReadPoolUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getStageExecutionUpdate(firstStageReadPool.getId());
     doReturn(
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current().nextLong(0L, secondStageReadPoolUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getStageExecutionUpdate(secondStageReadPool.getId());
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
@@ -337,18 +337,18 @@ public class SqlExecutionRepositoryReadReplicaTest {
     doReturn(
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getPipelineExecutionUpdate(pipelineId);
     doReturn(
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current().nextLong(0L, firstStageReadPoolUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getStageExecutionUpdate(firstStageReadPool.getId());
     doReturn(
             Instant.ofEpochMilli(
                 ThreadLocalRandom.current()
                     .nextLong(secondStageReadPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
-        .when(executionUpdateTimeRepository)
+        .when(replicationLagAwareRepository)
         .getStageExecutionUpdate(secondStageReadPool.getId());
     execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
     assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionMapperResultCode.INVALID_VERSION
-import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY
+import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionMapperResultCode.NOT_FOUND
 
 /**
@@ -34,7 +34,7 @@ data class ExecutionMapperResult(
 /**
  * Defines result codes for an [ExecutionMapperResult].
  *
- * [NOT_FOUND], [INVALID_VERSION], and [MISSING_FROM_UPDATE_TIME_REPOSITORY] are all
+ * [NOT_FOUND], [INVALID_VERSION], and [MISSING_FROM_REPLICATION_LAG_REPOSITORY] are all
  * possible reasons why an ExecutionMapper will return an empty collection of PipelineExecutions.
  * The caller of [ExecutionMapper.map] can use information in order to perform additional
  * operations after receiving an empty collection of PipelineExecutions.
@@ -59,9 +59,9 @@ enum class ExecutionMapperResultCode {
 
   /**
    * When requireLatestVersion is true and one or more execution IDs are missing from the
-   * ExecutionUpdateTimeRepository. This is a more specific case of [INVALID_VERSION]
+   * ReplicationLagAwareRepository. This is a more specific case of [INVALID_VERSION]
    * since we will never be able to determine whether the version of an execution is valid if it
-   * is missing from the ExecutionUpdateTimeRepository
+   * is missing from the ReplicationLagAwareRepository
    */
-  MISSING_FROM_UPDATE_TIME_REPOSITORY
+  MISSING_FROM_REPLICATION_LAG_REPOSITORY
 }

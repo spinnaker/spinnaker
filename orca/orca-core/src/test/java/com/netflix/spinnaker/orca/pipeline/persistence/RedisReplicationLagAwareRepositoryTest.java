@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import com.netflix.spinnaker.orca.config.RedisExecutionUpdateTimeRepositoryProperties;
+import com.netflix.spinnaker.orca.config.RedisReplicationLagAwareRepositoryProperties;
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration;
 import de.huxhorn.sulky.ulid.ULID;
 import java.time.Instant;
@@ -29,18 +29,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(classes = {EmbeddedRedisConfiguration.class})
-public class RedisExecutionUpdateTimeRepositoryTest {
+public class RedisReplicationLagAwareRepositoryTest {
   @Autowired RedisClientDelegate redisClientDelegate;
 
-  RedisExecutionUpdateTimeRepository redisExecutionUpdateTimeRepository;
+  RedisReplicationLagAwareRepository redisReplicationLagAwareRepository;
 
   ULID ulidGenerator = new ULID();
 
   @BeforeEach
   void setup() {
-    redisExecutionUpdateTimeRepository =
-        new RedisExecutionUpdateTimeRepository(
-            redisClientDelegate, new RedisExecutionUpdateTimeRepositoryProperties());
+    redisReplicationLagAwareRepository =
+        new RedisReplicationLagAwareRepository(
+            redisClientDelegate, new RedisReplicationLagAwareRepositoryProperties());
   }
 
   @Test
@@ -51,17 +51,17 @@ public class RedisExecutionUpdateTimeRepositoryTest {
     Instant newLatestUpdate = Instant.ofEpochMilli(20000);
 
     // when
-    redisExecutionUpdateTimeRepository.putPipelineExecutionUpdate(id, latestUpdate);
+    redisReplicationLagAwareRepository.putPipelineExecutionUpdate(id, latestUpdate);
 
     // then
-    Instant actualLatestUpdate = redisExecutionUpdateTimeRepository.getPipelineExecutionUpdate(id);
+    Instant actualLatestUpdate = redisReplicationLagAwareRepository.getPipelineExecutionUpdate(id);
     assertThat(latestUpdate).isEqualTo(actualLatestUpdate);
 
     // when
-    redisExecutionUpdateTimeRepository.putPipelineExecutionUpdate(id, newLatestUpdate);
+    redisReplicationLagAwareRepository.putPipelineExecutionUpdate(id, newLatestUpdate);
 
     // then
-    actualLatestUpdate = redisExecutionUpdateTimeRepository.getPipelineExecutionUpdate(id);
+    actualLatestUpdate = redisReplicationLagAwareRepository.getPipelineExecutionUpdate(id);
     assertThat(newLatestUpdate).isEqualTo(actualLatestUpdate);
   }
 
@@ -69,12 +69,12 @@ public class RedisExecutionUpdateTimeRepositoryTest {
   void testPipelineExecutionTTLChangesAfterPut() throws InterruptedException {
     // given
     String id = ulidGenerator.nextULID();
-    redisExecutionUpdateTimeRepository.putPipelineExecutionUpdate(id, Instant.now());
+    redisReplicationLagAwareRepository.putPipelineExecutionUpdate(id, Instant.now());
     Long currentExpiry = getPipelineExecutionExpiryMillis(id);
 
     // when
     Thread.sleep(50);
-    redisExecutionUpdateTimeRepository.putPipelineExecutionUpdate(id, Instant.now());
+    redisReplicationLagAwareRepository.putPipelineExecutionUpdate(id, Instant.now());
 
     // then
     Long newExpiry = getPipelineExecutionExpiryMillis(id);
@@ -89,15 +89,15 @@ public class RedisExecutionUpdateTimeRepositoryTest {
     Instant newLatestUpdate = Instant.ofEpochMilli(20000);
 
     // when
-    redisExecutionUpdateTimeRepository.putStageExecutionUpdate(id, latestUpdate);
-    Instant actualLatestUpdate = redisExecutionUpdateTimeRepository.getStageExecutionUpdate(id);
+    redisReplicationLagAwareRepository.putStageExecutionUpdate(id, latestUpdate);
+    Instant actualLatestUpdate = redisReplicationLagAwareRepository.getStageExecutionUpdate(id);
 
     // then
     assertThat(latestUpdate).isEqualTo(actualLatestUpdate);
 
     // when
-    redisExecutionUpdateTimeRepository.putStageExecutionUpdate(id, newLatestUpdate);
-    actualLatestUpdate = redisExecutionUpdateTimeRepository.getStageExecutionUpdate(id);
+    redisReplicationLagAwareRepository.putStageExecutionUpdate(id, newLatestUpdate);
+    actualLatestUpdate = redisReplicationLagAwareRepository.getStageExecutionUpdate(id);
     assertThat(newLatestUpdate).isEqualTo(actualLatestUpdate);
   }
 
@@ -105,12 +105,12 @@ public class RedisExecutionUpdateTimeRepositoryTest {
   void testStageExecutionTTLChangesAfterPut() throws InterruptedException {
     // given
     String id = ulidGenerator.nextULID();
-    redisExecutionUpdateTimeRepository.putStageExecutionUpdate(id, Instant.now());
+    redisReplicationLagAwareRepository.putStageExecutionUpdate(id, Instant.now());
     Long currentExpiry = getStageExecutionExpiryMillis(id);
 
     // when
     Thread.sleep(50);
-    redisExecutionUpdateTimeRepository.putStageExecutionUpdate(id, Instant.now());
+    redisReplicationLagAwareRepository.putStageExecutionUpdate(id, Instant.now());
 
     // then
     Long newExpiry = getStageExecutionExpiryMillis(id);
@@ -120,21 +120,21 @@ public class RedisExecutionUpdateTimeRepositoryTest {
   @Test
   void testGetUnknownPipelineExecutionId() {
     Instant actualLatestUpdate =
-        redisExecutionUpdateTimeRepository.getPipelineExecutionUpdate("doesNotExist");
+        redisReplicationLagAwareRepository.getPipelineExecutionUpdate("doesNotExist");
     assertThat(actualLatestUpdate).isNull();
   }
 
   @Test
   void testGetUnknownStageExecutionId() {
     Instant actualLatestUpdate =
-        redisExecutionUpdateTimeRepository.getStageExecutionUpdate("doesNotExist");
+        redisReplicationLagAwareRepository.getStageExecutionUpdate("doesNotExist");
     assertThat(actualLatestUpdate).isNull();
   }
 
   private Long getPipelineExecutionExpiryMillis(String id) {
     return redisClientDelegate.withCommandsClient(
         c -> {
-          Long ttl = c.pttl(redisExecutionUpdateTimeRepository.getPipelineExecutionKey(id));
+          Long ttl = c.pttl(redisReplicationLagAwareRepository.getPipelineExecutionKey(id));
           return Instant.now().toEpochMilli() + ttl;
         });
   }
@@ -142,7 +142,7 @@ public class RedisExecutionUpdateTimeRepositoryTest {
   private Long getStageExecutionExpiryMillis(String id) {
     return redisClientDelegate.withCommandsClient(
         c -> {
-          Long ttl = c.pttl(redisExecutionUpdateTimeRepository.getStageExecutionKey(id));
+          Long ttl = c.pttl(redisReplicationLagAwareRepository.getStageExecutionKey(id));
           return Instant.now().toEpochMilli() + ttl;
         });
   }

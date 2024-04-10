@@ -25,7 +25,7 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.NoopReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import com.nhaarman.mockito_kotlin.mock
@@ -63,7 +63,7 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
       compressionProperties = ExecutionCompressionProperties(),
       pipelineRefEnabled = false,
       dataSource = mock(),
-      executionUpdateTimeRepository = NoopExecutionUpdateTimeRepository(),
+      replicationLagAwareRepository = NoopReplicationLagAwareRepository(),
       registry = NoopRegistry()
     )
 

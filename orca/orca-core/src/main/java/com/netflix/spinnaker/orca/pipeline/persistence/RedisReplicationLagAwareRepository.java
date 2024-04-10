@@ -17,16 +17,16 @@ package com.netflix.spinnaker.orca.pipeline.persistence;
 
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import com.netflix.spinnaker.orca.config.RedisExecutionUpdateTimeRepositoryProperties;
+import com.netflix.spinnaker.orca.config.RedisReplicationLagAwareRepositoryProperties;
 import java.time.Instant;
 import javax.annotation.Nullable;
 
 /**
- * A Redis-backed repository to store the latest update times for pipeline executions. The key
+ * A Redis-backed repository to store execution metadata to enforce strict consistency. The key
  * schema looks like:
  *
  * <p><code>
- * "prefix:[execution update key]:[execution id]": {
+ * "prefix:[execution key]:[execution id]": {
  * "latestUpdate": [update timestamp of the execution in milliseconds since the epoch]
  * }
  * </code>
@@ -34,26 +34,26 @@ import javax.annotation.Nullable;
  * <p>E.g. for a pipeline execution:
  *
  * <p><code>
- * "spinnaker:orca:pipelineExecutionUpdate:AB1AB1AB1AB1AB1AB1AB1AB1AB": {
+ * "spinnaker:orca:pipelineExecution:AB1AB1AB1AB1AB1AB1AB1AB1AB": {
  * "latestUpdate": 123450
  * }
  * </code>
  *
  * <p>The entries in this repository have a TTL that gets refreshed after each put operation
  */
-public class RedisExecutionUpdateTimeRepository implements ExecutionUpdateTimeRepository {
+public class RedisReplicationLagAwareRepository implements ReplicationLagAwareRepository {
   private final RedisClientDelegate redisClientDelegate;
   private static final String KEY_PREFIX = "spinnaker:orca";
-  private static final String KEY_PIPELINE_EXECUTION = "pipelineExecutionUpdate";
-  private static final String KEY_STAGE_EXECUTION = "stageExecutionUpdate";
+  private static final String KEY_PIPELINE_EXECUTION = "pipelineExecution";
+  private static final String KEY_STAGE_EXECUTION = "stageExecution";
   private static final String KEY_LATEST_UPDATE = "latestUpdate";
   private final Integer TTL;
   private final String pipelineExecutionKeyPrefix;
   private final String stageExecutionKeyPrefix;
 
-  public RedisExecutionUpdateTimeRepository(
+  public RedisReplicationLagAwareRepository(
       RedisClientDelegate redisClientDelegate,
-      RedisExecutionUpdateTimeRepositoryProperties properties) {
+      RedisReplicationLagAwareRepositoryProperties properties) {
     this.redisClientDelegate = redisClientDelegate;
     TTL = properties.getTTL();
     pipelineExecutionKeyPrefix = String.format("%s:%s", KEY_PREFIX, KEY_PIPELINE_EXECUTION);

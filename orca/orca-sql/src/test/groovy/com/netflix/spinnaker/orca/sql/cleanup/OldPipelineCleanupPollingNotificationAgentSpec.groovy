@@ -21,7 +21,7 @@ import com.netflix.spinnaker.config.OldPipelineCleanupAgentConfigurationProperti
 import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.NoopReplicationLagAwareRepository
 
 import javax.sql.DataSource
 import java.time.Clock
@@ -95,7 +95,7 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
         new ExecutionCompressionProperties(),
         false,
         Mock(DataSource),
-        new NoopExecutionUpdateTimeRepository(),
+        new NoopReplicationLagAwareRepository(),
         new NoopRegistry()
     )
   }

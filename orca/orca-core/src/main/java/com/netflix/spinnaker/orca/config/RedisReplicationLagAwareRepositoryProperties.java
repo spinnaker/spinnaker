@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.orca.config;
 
+import com.netflix.spinnaker.orca.pipeline.persistence.RedisReplicationLagAwareRepository;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/**
- * Defines properties to configure the {@link
- * com.netflix.spinnaker.orca.pipeline.persistence.RedisExecutionUpdateTimeRepository}
- */
+/** Defines properties to configure the {@link RedisReplicationLagAwareRepository} */
 @Data
-@ConfigurationProperties("execution-repository.sql.read-replica.execution-update-time-repository")
-public class RedisExecutionUpdateTimeRepositoryProperties {
+@ConfigurationProperties("execution-repository.sql.read-replica.replication-lag-aware-repository")
+public class RedisReplicationLagAwareRepositoryProperties {
   /**
    * TTL for entries stored in the repository. Defaults to 86400 seconds = 1 day. This is sufficient
    * in most cases because the TTL gets refreshed after each update to an execution and there won't

@@ -36,11 +36,10 @@ import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.config.JedisConfiguration
 import com.netflix.spinnaker.orca.config.RedisConfiguration
-import com.netflix.spinnaker.orca.config.RedisExecutionUpdateTimeRepositoryProperties
+import com.netflix.spinnaker.orca.config.RedisReplicationLagAwareRepositoryProperties
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopExecutionUpdateTimeRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.RedisExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.RedisReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.TestConfig
 import com.netflix.spinnaker.orca.q.migration.ExecutionTypeDeserializer
@@ -122,14 +121,14 @@ class SqlTestConfig {
 
   @Bean
   fun sqlExecutionRepository(
-    dsl: DSLContext,
-    mapper: ObjectMapper,
-    registry: Registry,
-    properties: SqlProperties,
-    orcaSqlProperties: OrcaSqlProperties,
-    compressionProperties: ExecutionCompressionProperties,
-    dataSource: DataSource,
-    executionUpdateTimeRepository: ExecutionUpdateTimeRepository
+          dsl: DSLContext,
+          mapper: ObjectMapper,
+          registry: Registry,
+          properties: SqlProperties,
+          orcaSqlProperties: OrcaSqlProperties,
+          compressionProperties: ExecutionCompressionProperties,
+          dataSource: DataSource,
+          replicationLagAwareRepository: ReplicationLagAwareRepository
   ) = SqlExecutionRepository(
     orcaSqlProperties.partitionName,
     dsl,
@@ -141,7 +140,7 @@ class SqlTestConfig {
     compressionProperties = compressionProperties,
     pipelineRefEnabled = false,
     dataSource = dataSource,
-    executionUpdateTimeRepository = executionUpdateTimeRepository,
+    replicationLagAwareRepository = replicationLagAwareRepository,
     registry = registry
   )
 
@@ -178,10 +177,10 @@ class SqlTestConfig {
 
   @Bean
   fun executionUpdateTimeRepository(redisClientSelector: RedisClientSelector) =
-    RedisExecutionUpdateTimeRepository(
-      redisClientSelector.primary("default"),
-      RedisExecutionUpdateTimeRepositoryProperties()
-    )
+          RedisReplicationLagAwareRepository(
+                  redisClientSelector.primary("default"),
+            RedisReplicationLagAwareRepositoryProperties()
+          )
 }
 
 @ExtendWith(SpringExtension::class)

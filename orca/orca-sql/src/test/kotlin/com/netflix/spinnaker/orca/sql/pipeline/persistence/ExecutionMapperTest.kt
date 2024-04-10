@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionUpdateTimeRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -170,7 +170,7 @@ class ExecutionMapperTest : JUnit5Minutests {
         compressionProperties = compressionProperties,
         pipelineRefEnabled = false,
         requireLatestVersion = true,
-        executionUpdateTimeRepository = mock<ExecutionUpdateTimeRepository>()
+        replicationLagAwareRepository = mock<ReplicationLagAwareRepository>()
       )
       val mockedResultSet = mock<ResultSet>()
 
@@ -260,14 +260,14 @@ class ExecutionMapperTest : JUnit5Minutests {
       }
 
       context("when requireLatestVersion is true") {
-        val executionUpdateTimeRepository = mock<ExecutionUpdateTimeRepository>()
+        val replicationLagAwareRepository = mock<ReplicationLagAwareRepository>()
         val mapper = ExecutionMapper(
           mapper = objectMapper,
           stageBatchSize = 200,
           compressionProperties = compressionProperties,
           pipelineRefEnabled = false,
           requireLatestVersion = true,
-          executionUpdateTimeRepository = executionUpdateTimeRepository
+          replicationLagAwareRepository = replicationLagAwareRepository
         )
 
         test("return NOT_FOUND when given an empty ResultSet") {
@@ -283,7 +283,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
           doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
           doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
-          doReturn(updatedAt).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+          doReturn(updatedAt).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
 
           // Mocked stage execution calls
           doReturn(true, false).`when`(stageExecutionResultSet).next()
@@ -291,14 +291,14 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(stageExecution.id).`when`(stageExecutionResultSet).getString("id")
           doReturn(updatedAt.toEpochMilli()).`when`(stageExecutionResultSet).getLong("updated_at")
           doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
-          doReturn(updatedAt).`when`(executionUpdateTimeRepository).getStageExecutionUpdate(stageExecution.id)
+          doReturn(updatedAt).`when`(replicationLagAwareRepository).getStageExecutionUpdate(stageExecution.id)
 
           val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions.size).isEqualTo(1)
           assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.SUCCESS)
         }
 
-        test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when a pipeline execution id is missing from the ExecutionUpdateTimeRepository") {
+        test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when a pipeline execution id is missing from the ReplicationLagAwareRepository") {
           // Mocked pipeline execution calls
           doReturn(true, false).`when`(pipelineExecutionResultSet).next()
           doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
@@ -306,21 +306,21 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
 
           // when
-          doReturn(null).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+          doReturn(null).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
 
           // then
           val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
-          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY)
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
         }
 
-        test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when a stage execution id is missing from the ExecutionUpdateTimeRepository") {
+        test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when a stage execution id is missing from the ReplicationLagAwareRepository") {
           // Mocked pipeline execution calls
           doReturn(true, false).`when`(pipelineExecutionResultSet).next()
           doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
           doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
           doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
-          doReturn(updatedAt).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+          doReturn(updatedAt).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
 
           // Mocked stage execution calls
           doReturn(true, false).`when`(stageExecutionResultSet).next()
@@ -330,12 +330,12 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
 
           // when
-          doReturn(null).`when`(executionUpdateTimeRepository).getStageExecutionUpdate(stageExecution.id)
+          doReturn(null).`when`(replicationLagAwareRepository).getStageExecutionUpdate(stageExecution.id)
 
           // then
           val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
-          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.MISSING_FROM_UPDATE_TIME_REPOSITORY)
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
         }
 
         test("return INVALID_VERSION when a pipeline execution is too old") {
@@ -346,7 +346,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
 
           // when
-          doReturn(updatedAt.plusMillis(500L)).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+          doReturn(updatedAt.plusMillis(500L)).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
 
           // then
           val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
@@ -360,7 +360,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
           doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
           doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
-          doReturn(updatedAt).`when`(executionUpdateTimeRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+          doReturn(updatedAt).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
 
           // Mocked stage execution calls
           doReturn(true, false).`when`(stageExecutionResultSet).next()
@@ -370,7 +370,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
 
           // when
-          doReturn(updatedAt.plusMillis(500L)).`when`(executionUpdateTimeRepository).getStageExecutionUpdate(stageExecution.id)
+          doReturn(updatedAt.plusMillis(500L)).`when`(replicationLagAwareRepository).getStageExecutionUpdate(stageExecution.id)
 
           // then
           val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)

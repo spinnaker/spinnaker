@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.pipeline.persistence;
 
 import java.time.Instant;
 
-/** A default no-op implementation of ExecutionUpdateTimeRepository */
-public class NoopExecutionUpdateTimeRepository implements ExecutionUpdateTimeRepository {
+/** A default no-op implementation of {@link ReplicationLagAwareRepository} */
+public class NoopReplicationLagAwareRepository implements ReplicationLagAwareRepository {
 
   /**
    * No-op
