@@ -71,7 +71,7 @@ class GoogleInstance implements GoogleLabeledResource {
 
   @JsonIgnore
   View getView() {
-    new View()
+    new View(this)
   }
 
   @Canonical
@@ -80,27 +80,50 @@ class GoogleInstance implements GoogleLabeledResource {
     final String providerType = GoogleCloudProvider.ID
     final String cloudProvider = GoogleCloudProvider.ID
 
-    String name = GoogleInstance.this.name
-    String gceId = GoogleInstance.this.gceId
-    String instanceId = GoogleInstance.this.name
-    String instanceType = GoogleInstance.this.instanceType
-    String cpuPlatform = GoogleInstance.this.cpuPlatform
-    Long launchTime = GoogleInstance.this.launchTime
-    String zone = GoogleInstance.this.zone
-    String region = GoogleInstance.this.region
-    Map placement = ["availabilityZone": GoogleInstance.this.zone]
-    List<NetworkInterface> networkInterfaces = GoogleInstance.this.networkInterfaces
-    Metadata metadata = GoogleInstance.this.metadata
-    List<? extends GenericJson> disks = GoogleInstance.this.disks
-    List<ServiceAccount> serviceAccounts = GoogleInstance.this.serviceAccounts
-    String selfLink = GoogleInstance.this.selfLink
-    String serverGroup = GoogleInstance.this.serverGroup
-    Tags tags = GoogleInstance.this.tags
-    Map<String, String> labels = GoogleInstance.this.labels
-    ConsulNode consulNode = GoogleInstance.this.consulNode
+    String name
+    String gceId
+    String instanceId
+    String instanceType
+    String cpuPlatform
+    Long launchTime
+    String zone
+    String region
+    Map placement
+    List<NetworkInterface> networkInterfaces
+    Metadata metadata
+    List<? extends GenericJson> disks
+    List<ServiceAccount> serviceAccounts
+    String selfLink
+    String serverGroup
+    Tags tags
+    Map<String, String> labels
+    ConsulNode consulNode
+    List<String> securityGroups
+
+    View(GoogleInstance googleInstance){
+      name = googleInstance.name
+      gceId = googleInstance.gceId
+      instanceId = googleInstance.name
+      instanceType = googleInstance.instanceType
+      cpuPlatform = googleInstance.cpuPlatform
+      launchTime = googleInstance.launchTime
+      zone = googleInstance.zone
+      region = googleInstance.region
+      placement = ["availabilityZone": googleInstance.zone]
+      networkInterfaces = googleInstance.networkInterfaces
+      metadata = googleInstance.metadata
+      disks = googleInstance.disks
+      serviceAccounts = googleInstance.serviceAccounts
+      selfLink = googleInstance.selfLink
+      serverGroup = googleInstance.serverGroup
+      tags = googleInstance.tags
+      labels = googleInstance.labels
+      consulNode = googleInstance.consulNode
+      securityGroups = googleInstance.securityGroups
+    }
 
     List<Map<String, String>> getSecurityGroups() {
-      GoogleInstance.this.securityGroups.collect {
+      securityGroups.collect {
         ["groupName": it, "groupId": it]
       }
     }

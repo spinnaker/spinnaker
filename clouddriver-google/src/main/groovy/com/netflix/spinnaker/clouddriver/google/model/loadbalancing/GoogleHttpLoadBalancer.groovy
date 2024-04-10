@@ -58,27 +58,45 @@ class GoogleHttpLoadBalancer extends GoogleLoadBalancer {
 
   @JsonIgnore
   GoogleLoadBalancerView getView() {
-    new View()
+    new View(this)
   }
 
   @Canonical
   class View extends GoogleLoadBalancerView {
-    GoogleLoadBalancerType loadBalancerType = GoogleHttpLoadBalancer.this.type
-    GoogleLoadBalancingScheme loadBalancingScheme = GoogleHttpLoadBalancer.this.loadBalancingScheme
+    GoogleLoadBalancerType loadBalancerType
+    GoogleLoadBalancingScheme loadBalancingScheme
 
-    String name = GoogleHttpLoadBalancer.this.name
-    String account = GoogleHttpLoadBalancer.this.account
-    String region = GoogleHttpLoadBalancer.this.region
-    Long createdTime = GoogleHttpLoadBalancer.this.createdTime
-    String ipAddress = GoogleHttpLoadBalancer.this.ipAddress
-    String ipProtocol = GoogleHttpLoadBalancer.this.ipProtocol
-    String portRange = GoogleHttpLoadBalancer.this.portRange
+    String name
+    String account
+    String region
+    Long createdTime
+    String ipAddress
+    String ipProtocol
+    String portRange
 
-    GoogleBackendService defaultService = GoogleHttpLoadBalancer.this.defaultService
-    List<GoogleHostRule> hostRules = GoogleHttpLoadBalancer.this.hostRules
-    String certificate = GoogleHttpLoadBalancer.this.certificate
-    String urlMapName = GoogleHttpLoadBalancer.this.urlMapName
+    GoogleBackendService defaultService
+    List<GoogleHostRule> hostRules
+    String certificate
+    String urlMapName
 
-    Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
+    Set<LoadBalancerServerGroup> serverGroups
+
+    View(GoogleHttpLoadBalancer googleHttpLoadBalancer){
+      loadBalancerType = googleHttpLoadBalancer.type
+      loadBalancingScheme = googleHttpLoadBalancer.loadBalancingScheme
+      name = googleHttpLoadBalancer.name
+      account = googleHttpLoadBalancer.account
+      region = googleHttpLoadBalancer.region
+      createdTime = googleHttpLoadBalancer.createdTime
+      ipAddress = googleHttpLoadBalancer.ipAddress
+      ipProtocol = googleHttpLoadBalancer.ipProtocol
+      portRange = googleHttpLoadBalancer.portRange
+      defaultService = googleHttpLoadBalancer.defaultService
+      hostRules = googleHttpLoadBalancer.hostRules
+      certificate = googleHttpLoadBalancer.certificate
+      urlMapName = googleHttpLoadBalancer.urlMapName
+      serverGroups = new HashSet<>()
+    }
+
   }
 }

@@ -31,23 +31,38 @@ class GoogleTcpLoadBalancer extends GoogleLoadBalancer {
 
   @JsonIgnore
   GoogleLoadBalancerView getView() {
-    new View()
+    new View(this)
   }
 
   class View extends GoogleLoadBalancerView {
-    GoogleLoadBalancerType loadBalancerType = GoogleTcpLoadBalancer.this.type
-    GoogleLoadBalancingScheme loadBalancingScheme = GoogleTcpLoadBalancer.this.loadBalancingScheme
+    GoogleLoadBalancerType loadBalancerType
+    GoogleLoadBalancingScheme loadBalancingScheme
 
-    String name = GoogleTcpLoadBalancer.this.name
-    String account = GoogleTcpLoadBalancer.this.account
-    String region = GoogleTcpLoadBalancer.this.region
-    Long createdTime = GoogleTcpLoadBalancer.this.createdTime
-    String ipAddress = GoogleTcpLoadBalancer.this.ipAddress
-    String ipProtocol = GoogleTcpLoadBalancer.this.ipProtocol
-    String portRange = GoogleTcpLoadBalancer.this.portRange
+    String name
+    String account
+    String region
+    Long createdTime
+    String ipAddress
+    String ipProtocol
+    String portRange
 
-    GoogleBackendService backendService = GoogleTcpLoadBalancer.this.backendService
+    GoogleBackendService backendService
 
-    Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
+    Set<LoadBalancerServerGroup> serverGroups
+
+    View(GoogleTcpLoadBalancer googleTcpLoadBalancer){
+      loadBalancerType = googleTcpLoadBalancer.type
+      loadBalancingScheme = googleTcpLoadBalancer.loadBalancingScheme
+      name = googleTcpLoadBalancer.name
+      account = googleTcpLoadBalancer.account
+      region = googleTcpLoadBalancer.region
+      createdTime = googleTcpLoadBalancer.createdTime
+      ipAddress = googleTcpLoadBalancer.ipAddress
+      ipProtocol = googleTcpLoadBalancer.ipProtocol
+      portRange = googleTcpLoadBalancer.portRange
+      backendService = googleTcpLoadBalancer.backendService
+      serverGroups = new HashSet<>()
+    }
+
   }
 }

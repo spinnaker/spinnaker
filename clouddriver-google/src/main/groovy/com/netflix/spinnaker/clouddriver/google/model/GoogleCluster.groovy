@@ -33,20 +33,26 @@ class GoogleCluster {
 
   @JsonIgnore
   View getView() {
-    new View()
+    new View(this)
   }
 
   @Canonical
   class View implements Cluster {
 
-    View() {}
+    View(GoogleCluster googleCluster) {
+      name = googleCluster.name
+      accountName = googleCluster.accountName
+
+      serverGroups = [] as Set
+      loadBalancers = [] as Set
+    }
 
     final String type = GoogleCloudProvider.ID
 
-    String name = GoogleCluster.this.name
-    String accountName = GoogleCluster.this.accountName
+    String name
+    String accountName
 
-    Set<GoogleServerGroup.View> serverGroups = [] as Set
-    Set<GoogleLoadBalancerView> loadBalancers = [] as Set
+    Set<GoogleServerGroup.View> serverGroups
+    Set<GoogleLoadBalancerView> loadBalancers
   }
 }

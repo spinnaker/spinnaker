@@ -57,7 +57,7 @@ class GoogleHealthCheck {
 
   @JsonIgnore
   View getView() {
-    new View()
+    new View(this)
   }
 
   /**
@@ -98,18 +98,34 @@ class GoogleHealthCheck {
 
   @Canonical
   class View implements Serializable {
-    String name = GoogleHealthCheck.this.name
-    HealthCheckType healthCheckType = GoogleHealthCheck.this.healthCheckType
-    int interval = GoogleHealthCheck.this.checkIntervalSec
-    int timeout = GoogleHealthCheck.this.timeoutSec
-    int unhealthyThreshold = GoogleHealthCheck.this.unhealthyThreshold
-    int healthyThreshold = GoogleHealthCheck.this.healthyThreshold
-    int port = GoogleHealthCheck.this.port
-    String requestPath = GoogleHealthCheck.this.requestPath
-    String selfLink = GoogleHealthCheck.this.selfLink
-    String kind = GoogleHealthCheck.this.kind
-    String target = GoogleHealthCheck.this.target
-    String region = GoogleHealthCheck.this.region
+    String name
+    HealthCheckType healthCheckType
+    int interval
+    int timeout
+    int unhealthyThreshold
+    int healthyThreshold
+    int port
+    String requestPath
+    String selfLink
+    String kind
+    String target
+    String region
+
+    View(GoogleHealthCheck googleHealthCheck){
+      name = googleHealthCheck.name
+      healthCheckType = googleHealthCheck.healthCheckType
+      interval = googleHealthCheck.checkIntervalSec
+      timeout = googleHealthCheck.timeoutSec
+      unhealthyThreshold = googleHealthCheck.unhealthyThreshold
+      healthyThreshold = googleHealthCheck.healthyThreshold
+      port = googleHealthCheck.port
+      requestPath = googleHealthCheck.requestPath
+      selfLink = googleHealthCheck.selfLink
+      kind = googleHealthCheck.kind
+      target = googleHealthCheck.target
+      region = googleHealthCheck.region
+    }
+
   }
 
   static enum HealthCheckType {

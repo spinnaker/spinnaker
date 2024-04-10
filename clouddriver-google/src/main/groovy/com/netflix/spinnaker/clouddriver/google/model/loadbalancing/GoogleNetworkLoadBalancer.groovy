@@ -35,26 +35,43 @@ class GoogleNetworkLoadBalancer extends GoogleLoadBalancer {
 
   @JsonIgnore
   GoogleLoadBalancerView getView() {
-    new View()
+    new View(this)
   }
 
   class View extends GoogleLoadBalancerView {
-    GoogleLoadBalancerType loadBalancerType = GoogleNetworkLoadBalancer.this.type
-    GoogleLoadBalancingScheme loadBalancingScheme = GoogleNetworkLoadBalancer.this.loadBalancingScheme
+    GoogleLoadBalancerType loadBalancerType
+    GoogleLoadBalancingScheme loadBalancingScheme
 
-    String name = GoogleNetworkLoadBalancer.this.name
-    String account = GoogleNetworkLoadBalancer.this.account
-    String region = GoogleNetworkLoadBalancer.this.region
-    Long createdTime = GoogleNetworkLoadBalancer.this.createdTime
-    String ipAddress = GoogleNetworkLoadBalancer.this.ipAddress
-    String ipProtocol = GoogleNetworkLoadBalancer.this.ipProtocol
-    String portRange = GoogleNetworkLoadBalancer.this.portRange
+    String name
+    String account
+    String region
+    Long createdTime
+    String ipAddress
+    String ipProtocol
+    String portRange
 
-    String targetPool =  GoogleNetworkLoadBalancer.this.targetPool
-    String sessionAffinity = GoogleNetworkLoadBalancer.this.sessionAffinity
+    String targetPool
+    String sessionAffinity
 
-    GoogleHealthCheck.View healthCheck = GoogleNetworkLoadBalancer.this.healthCheck?.view
+    GoogleHealthCheck.View healthCheck
 
-    Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
+    Set<LoadBalancerServerGroup> serverGroups
+
+    View(GoogleNetworkLoadBalancer googleNetworkLoadBalancer){
+      loadBalancerType = googleNetworkLoadBalancer.type
+      loadBalancingScheme = googleNetworkLoadBalancer.loadBalancingScheme
+      name = googleNetworkLoadBalancer.name
+      account = googleNetworkLoadBalancer.account
+      region = googleNetworkLoadBalancer.region
+      createdTime = googleNetworkLoadBalancer.createdTime
+      ipAddress = googleNetworkLoadBalancer.ipAddress
+      ipProtocol = googleNetworkLoadBalancer.ipProtocol
+      portRange = googleNetworkLoadBalancer.portRange
+      targetPool =  googleNetworkLoadBalancer.targetPool
+      sessionAffinity = googleNetworkLoadBalancer.sessionAffinity
+      healthCheck = googleNetworkLoadBalancer.healthCheck?.view
+      serverGroups = new HashSet<>()
+    }
+
   }
 }

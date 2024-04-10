@@ -27,19 +27,26 @@ class GoogleApplication {
   String name
 
   View getView() {
-    new View()
+    new View(this)
   }
 
   @Canonical
   class View implements Application {
-    String name = GoogleApplication.this.name
-    Map<String, String> attributes = [:]
+    String name
+    Map<String, String> attributes
 
     /**
      * Account name -> cluster names
      */
-    Map<String, Set<String>> clusterNames = [:].withDefault {[] as Set}
+    Map<String, Set<String>> clusterNames
 
     List<Map<String, String>> instances
+
+    View(GoogleApplication googleApplication){
+      name = googleApplication.name
+      attributes = [:]
+      clusterNames = [:].withDefault {[] as Set}
+      instances = [[:] as Map<String,String>]
+    }
   }
 }

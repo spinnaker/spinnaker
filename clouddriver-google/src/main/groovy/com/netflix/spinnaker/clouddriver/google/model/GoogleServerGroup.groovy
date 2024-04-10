@@ -88,7 +88,7 @@ class GoogleServerGroup implements GoogleLabeledResource {
 
   @JsonIgnore
   View getView() {
-    new View()
+    new View(this)
   }
 
   @Override
@@ -103,35 +103,67 @@ class GoogleServerGroup implements GoogleLabeledResource {
     final String type = GoogleCloudProvider.ID
     final String cloudProvider = GoogleCloudProvider.ID
 
-    String name = GoogleServerGroup.this.name
-    String region = GoogleServerGroup.this.region
-    Boolean regional = GoogleServerGroup.this.regional
-    String zone = GoogleServerGroup.this.zone
-    Set<String> zones = GoogleServerGroup.this.zones
-    Set<GoogleInstance.View> instances = GoogleServerGroup.this.instances.collect { it?.view }
-    Map<String, Object> asg = GoogleServerGroup.this.asg
-    Map<String, Object> launchConfig = GoogleServerGroup.this.launchConfig
-    Map<String, Integer> namedPorts = GoogleServerGroup.this.namedPorts
-    Set<String> securityGroups = GoogleServerGroup.this.securityGroups
-    Map buildInfo = GoogleServerGroup.this.buildInfo
-    Boolean disabled = GoogleServerGroup.this.disabled
-    String networkName = GoogleServerGroup.this.networkName
-    Boolean canIpForward = GoogleServerGroup.this.canIpForward
-    Boolean enableSecureBoot = GoogleServerGroup.this.enableSecureBoot
-    Boolean enableVtpm = GoogleServerGroup.this.enableVtpm
-    Boolean enableIntegrityMonitoring = GoogleServerGroup.this.enableIntegrityMonitoring
-    Set<String> instanceTemplateTags = GoogleServerGroup.this.instanceTemplateTags
-    Set<ServiceAccount> instanceTemplateServiceAccounts = GoogleServerGroup.this.instanceTemplateServiceAccounts
-    Map<String, String> instanceTemplateLabels = GoogleServerGroup.this.instanceTemplateLabels
-    String selfLink = GoogleServerGroup.this.selfLink
-    Boolean discovery = GoogleServerGroup.this.discovery
-    InstanceGroupManagerActionsSummary currentActions = GoogleServerGroup.this.currentActions
-    GoogleAutoscalingPolicy autoscalingPolicy = GoogleServerGroup.this.autoscalingPolicy
-    StatefulPolicy statefulPolicy = GoogleServerGroup.this.statefulPolicy
-    List<String> autoscalingMessages = GoogleServerGroup.this.autoscalingMessages
-    InstanceGroupManagerAutoHealingPolicy autoHealingPolicy = GoogleServerGroup.this.autoHealingPolicy
-    GoogleDistributionPolicy distributionPolicy = GoogleServerGroup.this.distributionPolicy
-    Boolean selectZones = GoogleServerGroup.this.selectZones
+    String name
+    String region
+    Boolean regional
+    String zone
+    Set<String> zones
+    Set<GoogleInstance.View> instances
+    Map<String, Object> asg
+    Map<String, Object> launchConfig
+    Map<String, Integer> namedPorts
+    Set<String> securityGroups
+    Map buildInfo
+    Boolean disabled
+    String networkName
+    Boolean canIpForward
+    Boolean enableSecureBoot
+    Boolean enableVtpm
+    Boolean enableIntegrityMonitoring
+    Set<String> instanceTemplateTags
+    Set<ServiceAccount> instanceTemplateServiceAccounts
+    Map<String, String> instanceTemplateLabels
+    String selfLink
+    Boolean discovery
+    InstanceGroupManagerActionsSummary currentActions
+    GoogleAutoscalingPolicy autoscalingPolicy
+    StatefulPolicy statefulPolicy
+    List<String> autoscalingMessages
+    InstanceGroupManagerAutoHealingPolicy autoHealingPolicy
+    GoogleDistributionPolicy distributionPolicy
+    Boolean selectZones
+
+    View(GoogleServerGroup googleServerGroup){
+      name = googleServerGroup.name
+      region = googleServerGroup.region
+      regional = googleServerGroup.regional
+      zone = googleServerGroup.zone
+      zones = googleServerGroup.zones
+      instances = googleServerGroup.instances.collect { it?.view }
+      asg = googleServerGroup.asg
+      launchConfig = googleServerGroup.launchConfig
+      namedPorts = googleServerGroup.namedPorts
+      securityGroups = googleServerGroup.securityGroups
+      buildInfo = googleServerGroup.buildInfo
+      disabled = googleServerGroup.disabled
+      networkName = googleServerGroup.networkName
+      canIpForward = googleServerGroup.canIpForward
+      enableSecureBoot = googleServerGroup.enableSecureBoot
+      enableVtpm = googleServerGroup.enableVtpm
+      enableIntegrityMonitoring = googleServerGroup.enableIntegrityMonitoring
+      instanceTemplateTags = googleServerGroup.instanceTemplateTags
+      instanceTemplateServiceAccounts = googleServerGroup.instanceTemplateServiceAccounts
+      instanceTemplateLabels = googleServerGroup.instanceTemplateLabels
+      selfLink = googleServerGroup.selfLink
+      discovery = googleServerGroup.discovery
+      currentActions = googleServerGroup.currentActions
+      autoscalingPolicy = googleServerGroup.autoscalingPolicy
+      statefulPolicy = googleServerGroup.statefulPolicy
+      autoscalingMessages = googleServerGroup.autoscalingMessages
+      autoHealingPolicy = googleServerGroup.autoHealingPolicy
+      distributionPolicy = googleServerGroup.distributionPolicy
+      selectZones = googleServerGroup.selectZones
+    }
 
     @Override
     Moniker getMoniker() {

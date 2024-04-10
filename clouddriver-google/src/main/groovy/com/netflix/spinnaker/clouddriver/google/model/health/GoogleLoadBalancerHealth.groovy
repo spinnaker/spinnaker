@@ -74,14 +74,18 @@ class GoogleLoadBalancerHealth {
 
   @JsonIgnore
   View getView() {
-    new View()
+    new View(this)
   }
 
   class View extends GoogleHealth implements Health {
     final Type type = Type.LoadBalancer
     final HealthClass healthClass = null
 
-    List<LBHealthSummary> loadBalancers = GoogleLoadBalancerHealth.this.lbHealthSummaries
+    List<LBHealthSummary> loadBalancers
+
+    View(GoogleLoadBalancerHealth googleLoadBalancerHealth){
+      loadBalancers = googleLoadBalancerHealth.lbHealthSummaries
+    }
 
     HealthState getState() {
       GoogleLoadBalancerHealth.this.status?.toHeathState()

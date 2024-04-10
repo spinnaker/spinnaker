@@ -32,24 +32,40 @@ class GoogleSslLoadBalancer extends GoogleLoadBalancer {
 
   @JsonIgnore
   GoogleLoadBalancerView getView() {
-    new View()
+    new View(this)
   }
 
   class View extends GoogleLoadBalancerView {
-    GoogleLoadBalancerType loadBalancerType = GoogleSslLoadBalancer.this.type
-    GoogleLoadBalancingScheme loadBalancingScheme = GoogleSslLoadBalancer.this.loadBalancingScheme
+    GoogleLoadBalancerType loadBalancerType
+    GoogleLoadBalancingScheme loadBalancingScheme
 
-    String name = GoogleSslLoadBalancer.this.name
-    String account = GoogleSslLoadBalancer.this.account
-    String region = GoogleSslLoadBalancer.this.region
-    Long createdTime = GoogleSslLoadBalancer.this.createdTime
-    String ipAddress = GoogleSslLoadBalancer.this.ipAddress
-    String ipProtocol = GoogleSslLoadBalancer.this.ipProtocol
-    String portRange = GoogleSslLoadBalancer.this.portRange
+    String name
+    String account
+    String region
+    Long createdTime
+    String ipAddress
+    String ipProtocol
+    String portRange
 
-    String certificate = GoogleSslLoadBalancer.this.certificate
-    GoogleBackendService backendService = GoogleSslLoadBalancer.this.backendService
+    String certificate
+    GoogleBackendService backendService
 
-    Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
+    Set<LoadBalancerServerGroup> serverGroups
+
+    View(GoogleSslLoadBalancer googleSslLoadBalancer){
+      loadBalancerType = googleSslLoadBalancer.type
+      loadBalancingScheme = googleSslLoadBalancer.loadBalancingScheme
+      name = googleSslLoadBalancer.name
+      account = googleSslLoadBalancer.account
+      region = googleSslLoadBalancer.region
+      createdTime = googleSslLoadBalancer.createdTime
+      ipAddress = googleSslLoadBalancer.ipAddress
+      ipProtocol = googleSslLoadBalancer.ipProtocol
+      portRange = googleSslLoadBalancer.portRange
+      certificate = googleSslLoadBalancer.certificate
+      backendService = googleSslLoadBalancer.backendService
+      serverGroups = new HashSet<>()
+    }
+
   }
 }

@@ -34,26 +34,44 @@ class GoogleInternalLoadBalancer extends GoogleLoadBalancer {
 
   @JsonIgnore
   GoogleLoadBalancerView getView() {
-    new View()
+    new View(this)
   }
 
   class View extends GoogleLoadBalancerView {
-    GoogleLoadBalancerType loadBalancerType = GoogleInternalLoadBalancer.this.type
-    GoogleLoadBalancingScheme loadBalancingScheme = GoogleInternalLoadBalancer.this.loadBalancingScheme
+    GoogleLoadBalancerType loadBalancerType
+    GoogleLoadBalancingScheme loadBalancingScheme
 
-    String name = GoogleInternalLoadBalancer.this.name
-    String account = GoogleInternalLoadBalancer.this.account
-    String region = GoogleInternalLoadBalancer.this.region
-    Long createdTime = GoogleInternalLoadBalancer.this.createdTime
-    String ipAddress = GoogleInternalLoadBalancer.this.ipAddress
-    String ipProtocol = GoogleInternalLoadBalancer.this.ipProtocol
-    String portRange = GoogleInternalLoadBalancer.this.portRange
+    String name
+    String account
+    String region
+    Long createdTime
+    String ipAddress
+    String ipProtocol
+    String portRange
 
-    List<String> ports = GoogleInternalLoadBalancer.this.ports
-    String network = GoogleInternalLoadBalancer.this.network
-    String subnet = GoogleInternalLoadBalancer.this.subnet
-    GoogleBackendService backendService = GoogleInternalLoadBalancer.this.backendService
+    List<String> ports
+    String network
+    String subnet
+    GoogleBackendService backendService
 
-    Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
+    Set<LoadBalancerServerGroup> serverGroups
+
+    View(GoogleInternalLoadBalancer googleInternalLoadBalancer){
+      loadBalancerType = googleInternalLoadBalancer.type
+      loadBalancingScheme = googleInternalLoadBalancer.loadBalancingScheme
+      name = googleInternalLoadBalancer.name
+      account = googleInternalLoadBalancer.account
+      region = googleInternalLoadBalancer.region
+      createdTime = googleInternalLoadBalancer.createdTime
+      ipAddress = googleInternalLoadBalancer.ipAddress
+      ipProtocol = googleInternalLoadBalancer.ipProtocol
+      portRange = googleInternalLoadBalancer.portRange
+      ports = googleInternalLoadBalancer.ports
+      network = googleInternalLoadBalancer.network
+      subnet = googleInternalLoadBalancer.subnet
+      backendService = googleInternalLoadBalancer.backendService
+      serverGroups = new HashSet<>()
+    }
+
   }
 }
