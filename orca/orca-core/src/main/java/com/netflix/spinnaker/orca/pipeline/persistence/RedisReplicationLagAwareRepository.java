@@ -22,11 +22,15 @@ import java.time.Instant;
 import javax.annotation.Nullable;
 
 /**
- * A Redis-backed repository to store execution metadata to enforce strict consistency. The key
- * schema looks like:
+ * A Redis-backed repository to store execution metadata to enforce strict consistency. The schema
+ * looks like:
  *
  * <p><code>
- * "prefix:[execution key]:[execution id]": {
+ * "prefix:pipelineExecution:[execution id]": {
+ * "latestUpdate": [update timestamp of the execution in milliseconds since the epoch],
+ * "numStages": [number of stages that belong to the pipeline execution]
+ * }
+ * "prefix:stageExecution:[execution id]": {
  * "latestUpdate": [update timestamp of the execution in milliseconds since the epoch]
  * }
  * </code>
@@ -35,7 +39,8 @@ import javax.annotation.Nullable;
  *
  * <p><code>
  * "spinnaker:orca:pipelineExecution:AB1AB1AB1AB1AB1AB1AB1AB1AB": {
- * "latestUpdate": 123450
+ * "latestUpdate": 123450,
+ * "numStages": 5
  * }
  * </code>
  *
@@ -47,6 +52,7 @@ public class RedisReplicationLagAwareRepository implements ReplicationLagAwareRe
   private static final String KEY_PIPELINE_EXECUTION = "pipelineExecution";
   private static final String KEY_STAGE_EXECUTION = "stageExecution";
   private static final String KEY_LATEST_UPDATE = "latestUpdate";
+  private static final String KEY_NUM_STAGES = "numStages";
   private final Integer TTL;
   private final String pipelineExecutionKeyPrefix;
   private final String stageExecutionKeyPrefix;
@@ -96,6 +102,43 @@ public class RedisReplicationLagAwareRepository implements ReplicationLagAwareRe
             return null;
           }
           return Instant.ofEpochMilli(Long.parseLong(latestUpdate));
+        });
+  }
+
+  /**
+   * Updates the repository with the number of stages for the pipeline execution and updates the TTL
+   *
+   * @param id Pipeline execution ID
+   * @param numStages Number of stages that belong to the execution
+   */
+  @Override
+  public void putPipelineExecutionNumStages(String id, Integer numStages) {
+    String key = getPipelineExecutionKey(id);
+    redisClientDelegate.withCommandsClient(
+        c -> {
+          c.hset(key, KEY_NUM_STAGES, String.valueOf(numStages));
+          c.expire(key, TTL);
+        });
+  }
+
+  /**
+   * Retrieves the number of stages that belong to the pipeline execution given by the execution id,
+   * or null if the information does not exist
+   *
+   * @param id Pipeline execution ID
+   * @return Number of stages that belong to the pipeline execution
+   */
+  @Nullable
+  @Override
+  public Integer getPipelineExecutionNumStages(String id) {
+    String key = getPipelineExecutionKey(id);
+    return redisClientDelegate.withCommandsClient(
+        c -> {
+          String numStages = c.hget(key, KEY_NUM_STAGES);
+          if (numStages == null) {
+            return null;
+          }
+          return Integer.parseInt(numStages);
         });
   }
 

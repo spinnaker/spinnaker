@@ -219,7 +219,14 @@ class SqlExecutionRepository(
 
   override fun removeStage(execution: PipelineExecution, stageId: String) {
     validateHandledPartitionOrThrow(execution)
-
+    // removeStage can be called multiple times in succession, making execution.stages.size an inaccurate
+    // indicator of the actual number of stages that belong to an execution. Therefore, query the repository instead
+    val numStages = replicationLagAwareRepository.getPipelineExecutionNumStages(execution.id)
+    if (numStages != null) {
+      replicationLagAwareRepository.putPipelineExecutionNumStages(execution.id, numStages-1)
+    } else {
+      replicationLagAwareRepository.putPipelineExecutionNumStages(execution.id, execution.stages.size-1)
+    }
     withPool(poolName) {
       jooq.delete(execution.type.stagesTableName)
         .where(stageId.toWhereCondition()).execute()
@@ -229,6 +236,15 @@ class SqlExecutionRepository(
   override fun addStage(stage: StageExecution) {
     if (stage.syntheticStageOwner == null || stage.parentStageId == null) {
       throw SyntheticStageRequired()
+    }
+    // addStage can be called multiple times in succession, making stage.execution.stages.size an inaccurate
+    // indicator of the actual number of stages that belong to an execution. Therefore, query the repository instead
+    val pipelineExecutionId = stage.execution.id
+    val numStages = replicationLagAwareRepository.getPipelineExecutionNumStages(pipelineExecutionId)
+    if (numStages != null) {
+      replicationLagAwareRepository.putPipelineExecutionNumStages(pipelineExecutionId, numStages+1)
+    } else {
+      replicationLagAwareRepository.putPipelineExecutionNumStages(pipelineExecutionId, stage.execution.stages.size+1)
     }
     storeStage(stage)
   }
@@ -1147,6 +1163,7 @@ class SqlExecutionRepository(
             }.execute()
         }
 
+        replicationLagAwareRepository.putPipelineExecutionNumStages(executionId, stages.size)
         stages.forEach { storeStageInternal(ctx, it, executionId) }
       }
     } finally {
@@ -1468,6 +1485,10 @@ class SqlExecutionRepository(
         replicationLagAwareRepository.putPipelineExecutionUpdate(
           pipelineExecution.id,
           Instant.ofEpochMilli(pipelineExecution.updatedAt)
+        )
+        replicationLagAwareRepository.putPipelineExecutionNumStages(
+          pipelineExecution.id,
+          pipelineExecution.stages.size
         )
         pipelineExecution.stages.forEach {
           replicationLagAwareRepository.putStageExecutionUpdate(it.id, Instant.ofEpochMilli(it.updatedAt))

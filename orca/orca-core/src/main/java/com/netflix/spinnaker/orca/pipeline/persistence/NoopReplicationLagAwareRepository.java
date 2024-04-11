@@ -44,6 +44,26 @@ public class NoopReplicationLagAwareRepository implements ReplicationLagAwareRep
   /**
    * No-op
    *
+   * @param id Pipeline execution ID
+   * @param numStages Number of stages that belong to the execution
+   */
+  @Override
+  public void putPipelineExecutionNumStages(String id, Integer numStages) {}
+
+  /**
+   * No-op
+   *
+   * @param id Pipeline execution ID
+   * @return 0
+   */
+  @Override
+  public Integer getPipelineExecutionNumStages(String id) {
+    return 0;
+  }
+
+  /**
+   * No-op
+   *
    * @param id Stage execution ID
    * @param latestUpdate Latest update timestamp of the stage execution
    */

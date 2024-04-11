@@ -183,6 +183,20 @@ class ExecutionMapper(
           }
         }
 
+        if (requireLatestVersion) {
+          executions.forEach { execution ->
+            val expectedNumberOfStages = replicationLagAwareRepository.getPipelineExecutionNumStages(execution.id)
+            if (expectedNumberOfStages == null) {
+              missingFromReplicationLagRepository = true
+              return@chunked
+            }
+            if (execution.stages.size != expectedNumberOfStages) {
+              invalidVersion = true
+              return@chunked
+            }
+          }
+        }
+
         executions.forEach { execution ->
           execution.stages.sortBy { it.refId }
         }

@@ -44,6 +44,24 @@ public interface ReplicationLagAwareRepository {
   Instant getPipelineExecutionUpdate(String id);
 
   /**
+   * Updates the repository with the number of stages that belong to the pipeline execution
+   *
+   * @param id Pipeline execution ID
+   * @param numStages Number of stages that belong to the execution
+   */
+  void putPipelineExecutionNumStages(String id, Integer numStages);
+
+  /**
+   * Retrieves the number of stages that belong to the pipeline execution given by the execution id,
+   * or null if the information does not exist
+   *
+   * @param id Pipeline execution ID
+   * @return Number of stages that belong to the pipeline execution
+   */
+  @Nullable
+  Integer getPipelineExecutionNumStages(String id);
+
+  /**
    * Updates the repository with the latest update time for the stage execution
    *
    * @param id Stage execution ID

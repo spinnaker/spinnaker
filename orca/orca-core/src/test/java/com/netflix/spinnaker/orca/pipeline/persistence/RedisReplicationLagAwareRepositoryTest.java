@@ -49,20 +49,28 @@ public class RedisReplicationLagAwareRepositoryTest {
     String id = ulidGenerator.nextULID();
     Instant latestUpdate = Instant.ofEpochMilli(10000);
     Instant newLatestUpdate = Instant.ofEpochMilli(20000);
+    Integer numStages = 5;
+    Integer newNumStages = 8;
 
-    // when
+    // put initial values
     redisReplicationLagAwareRepository.putPipelineExecutionUpdate(id, latestUpdate);
+    redisReplicationLagAwareRepository.putPipelineExecutionNumStages(id, numStages);
 
     // then
     Instant actualLatestUpdate = redisReplicationLagAwareRepository.getPipelineExecutionUpdate(id);
     assertThat(latestUpdate).isEqualTo(actualLatestUpdate);
+    Integer actualNumStages = redisReplicationLagAwareRepository.getPipelineExecutionNumStages(id);
+    assertThat(actualNumStages).isEqualTo(numStages);
 
-    // when
+    // update values
     redisReplicationLagAwareRepository.putPipelineExecutionUpdate(id, newLatestUpdate);
+    redisReplicationLagAwareRepository.putPipelineExecutionNumStages(id, newNumStages);
 
     // then
     actualLatestUpdate = redisReplicationLagAwareRepository.getPipelineExecutionUpdate(id);
     assertThat(newLatestUpdate).isEqualTo(actualLatestUpdate);
+    actualNumStages = redisReplicationLagAwareRepository.getPipelineExecutionNumStages(id);
+    assertThat(actualNumStages).isEqualTo(newNumStages);
   }
 
   @Test

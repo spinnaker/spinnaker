@@ -284,6 +284,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
           doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
           doReturn(updatedAt).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+          doReturn(1).`when`(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineExecutionId)
 
           // Mocked stage execution calls
           doReturn(true, false).`when`(stageExecutionResultSet).next()
@@ -298,7 +299,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.SUCCESS)
         }
 
-        test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when a pipeline execution id is missing from the ReplicationLagAwareRepository") {
+        test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when a pipeline execution update is missing from the ReplicationLagAwareRepository") {
           // Mocked pipeline execution calls
           doReturn(true, false).`when`(pipelineExecutionResultSet).next()
           doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
@@ -314,6 +315,31 @@ class ExecutionMapperTest : JUnit5Minutests {
           assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
         }
 
+        test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when the number of pipeline execution stages are missing from the ReplicationLagAwareRepository") {
+          // Mocked pipeline execution calls
+          doReturn(true, false).`when`(pipelineExecutionResultSet).next()
+          doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
+          doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
+          doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
+          doReturn(updatedAt).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+
+          // Mocked stage execution calls
+          doReturn(true, false).`when`(stageExecutionResultSet).next()
+          doReturn(pipelineExecutionId).`when`(stageExecutionResultSet).getString("execution_id")
+          doReturn(stageExecution.id).`when`(stageExecutionResultSet).getString("id")
+          doReturn(updatedAt.toEpochMilli()).`when`(stageExecutionResultSet).getLong("updated_at")
+          doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
+          doReturn(updatedAt).`when`(replicationLagAwareRepository).getStageExecutionUpdate(stageExecution.id)
+
+          // when
+          doReturn(null).`when`(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineExecutionId)
+
+          // then
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions).isEmpty()
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
+        }
+
         test("return MISSING_FROM_UPDATE_TIME_REPOSITORY when a stage execution id is missing from the ReplicationLagAwareRepository") {
           // Mocked pipeline execution calls
           doReturn(true, false).`when`(pipelineExecutionResultSet).next()
@@ -321,6 +347,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
           doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
           doReturn(updatedAt).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+          doReturn(1).`when`(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineExecutionId)
 
           // Mocked stage execution calls
           doReturn(true, false).`when`(stageExecutionResultSet).next()
@@ -354,6 +381,30 @@ class ExecutionMapperTest : JUnit5Minutests {
           assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.INVALID_VERSION)
         }
 
+        test("return INVALID_VERSION when the number of retrieved stages does not match the number of stages in the ReplicationLagAwareRepository") {
+          // Mocked pipeline execution calls
+          doReturn(true, false).`when`(pipelineExecutionResultSet).next()
+          doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
+          doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
+          doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
+          doReturn(updatedAt).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+
+          // Mocked stage execution calls
+          doReturn(true, false).`when`(stageExecutionResultSet).next()
+          doReturn(pipelineExecutionId).`when`(stageExecutionResultSet).getString("execution_id")
+          doReturn(stageExecution.id).`when`(stageExecutionResultSet).getString("id")
+          doReturn(updatedAt.toEpochMilli()).`when`(stageExecutionResultSet).getLong("updated_at")
+          doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
+          doReturn(updatedAt).`when`(replicationLagAwareRepository).getStageExecutionUpdate(stageExecution.id)
+
+          // when
+          doReturn(2).`when`(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineExecutionId)
+
+          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          assertThat(pipelineExecutions).isEmpty()
+          assertThat(resultCode).isEqualTo(ExecutionMapperResultCode.INVALID_VERSION)
+        }
+
         test("return INVALID_VERSION when a stage execution is too old") {
           // Mocked pipeline execution calls
           doReturn(true, false).`when`(pipelineExecutionResultSet).next()
@@ -361,6 +412,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(pipelineExecutionString).`when`(pipelineExecutionResultSet).getString("body")
           doReturn(pipelineExecutionId).`when`(pipelineExecutionResultSet).getString("id")
           doReturn(updatedAt).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
+          doReturn(1).`when`(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineExecutionId)
 
           // Mocked stage execution calls
           doReturn(true, false).`when`(stageExecutionResultSet).next()

@@ -162,6 +162,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
     defaultPoolPipelineExecution.setName("defaultPoolPipelineExecution");
     readPoolPipelineExecution.setName("readPoolPipelineExecution");
     initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+    doReturn(0).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
 
     // when readPoolUpdatedAt > expected pipeline execution update
     // i.e. the read pool is up-to-date and contains a more recent execution than what we need
@@ -227,6 +228,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
     readPoolPipelineExecution.setName("readPoolPipelineExecution");
     initDBWithCompressedExecution(
         pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+    doReturn(0).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
 
     // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update
     // i.e. both the pipeline and compressed pipeline execution tables are up-to-date
@@ -295,6 +297,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
             firstStageReadPoolUpdatedAt,
             secondStageReadPool,
             secondStageReadPoolUpdatedAt));
+    doReturn(2).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
 
     // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update and
     // firstStageReadPoolUpdatedAt > secondStageReadPoolUpdatedAt > expected stage execution updates
