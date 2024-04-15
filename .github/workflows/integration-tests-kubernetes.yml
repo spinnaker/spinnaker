@@ -49,7 +49,7 @@ jobs:
           distribution: 'zulu'
       - name: Cache on push
         if: github.event_name == 'push'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle
           key: ${{ runner.os }}-cd-it-${{ github.sha }}
@@ -58,7 +58,7 @@ jobs:
             ${{ runner.os }}-cd-it-${{ github.event.before }}
       - name: Cache on pull_request
         if: github.event_name == 'pull_request'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle
           key: ${{ runner.os }}-cd-it-${{ github.event.pull_request.head.sha }}
