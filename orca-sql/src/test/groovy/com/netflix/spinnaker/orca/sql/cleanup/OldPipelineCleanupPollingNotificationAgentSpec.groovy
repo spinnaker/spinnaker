@@ -100,7 +100,7 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
     def allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
 
     then:
-    allExecutions.size() == 10
+    allExecutions.size() == 12
 
     when:
     cleanupAgent.tick()
@@ -125,7 +125,7 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
     def allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
 
     then:
-    allExecutions.size() == 10
+    allExecutions.size() == 12
 
     when:
     cleanupAgent.tick()

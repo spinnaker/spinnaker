@@ -244,6 +244,21 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         assertThat(actualPipelineExecution).isEqualTo(pipelineExecution)
       }
     }
+
+    context("retrievePipelinesForApplication") {
+      val pipelineExecution1 = PipelineExecutionImpl(ExecutionType.PIPELINE, "application-1")
+      val pipelineExecution2 = PipelineExecutionImpl(ExecutionType.PIPELINE, "application-2")
+
+      test("correctly use where clause") {
+        // Store pipelines in two different applications
+        sqlExecutionRepository.store(pipelineExecution1)
+        sqlExecutionRepository.store(pipelineExecution2)
+
+        val observable = sqlExecutionRepository.retrievePipelinesForApplication("application-2")
+        val executions = observable.toList().toBlocking().single()
+        assertThat(executions.map(PipelineExecution::getApplication).single()).isEqualTo("application-2")
+      }
+    }
   }
 
   private inner class Fixture {

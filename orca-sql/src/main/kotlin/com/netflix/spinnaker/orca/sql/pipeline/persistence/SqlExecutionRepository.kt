@@ -1119,12 +1119,16 @@ class SqlExecutionRepository(
         type,
         conditions = {
           if (cursor == null) {
-            it.where("1=1")
+            if (where == null) {
+              it.where("1=1")
+            } else {
+              where(it)
+            }
           } else {
             if (where == null) {
-              it.where(field("id").gt(cursor))
+              it.where(field("id").lt(cursor))
             } else {
-              where(it).and(field("id").gt(cursor))
+              where(it).and(field("id").lt(cursor))
             }
           }
         },
