@@ -152,7 +152,7 @@ jobs:
       - name: Pause before dependency bump
         run: sleep 900
       - name: Trigger dependency bump workflow
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
           event-type: bump-dependencies
