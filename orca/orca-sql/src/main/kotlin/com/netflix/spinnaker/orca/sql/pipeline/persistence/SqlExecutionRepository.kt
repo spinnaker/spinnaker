@@ -1453,7 +1453,7 @@ class SqlExecutionRepository(
         readPoolRetryContext.executeSupplier {
           numberOfReadPoolQueries += 1
           val select = ctx.selectExecution(type).where(id.toWhereCondition())
-          select.fetchExecution(true)
+          select.fetchExecutions(true)
         }
       }
     } catch (e: Exception) {
@@ -1628,9 +1628,6 @@ class SqlExecutionRepository(
 
   private fun SelectForUpdateStep<out Record>.fetchExecutions(requireLatestVersion: Boolean) =
     ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled, requireLatestVersion, replicationLagAwareRepository).map(fetch().intoResultSet(), jooq)
-
-  private fun SelectForUpdateStep<out Record>.fetchExecution(requireLatestVersion: Boolean) =
-    fetchExecutions(requireLatestVersion)
 
   private fun fetchExecutions(nextPage: (Int, String?) -> Iterable<PipelineExecution>) =
     object : Iterable<PipelineExecution> {
