@@ -34,7 +34,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import javax.annotation.Nonnull
 import javax.annotation.Nullable
@@ -198,11 +197,7 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
     if (appName == null || front50Service == null) {
       return false
     }
-    try {
-      return front50Service.get(appName) != null
-    } catch (RetrofitError e) {
-      throw e
-    }
+    return front50Service.get(appName) != null
   }
 
   /**

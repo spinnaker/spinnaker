@@ -34,7 +34,6 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Slf4j
 @Component
@@ -122,23 +121,7 @@ class GetCommitsTask implements DiffTask {
       }
 
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build()
-    } catch (RetrofitError e) {
-      if (e.kind == RetrofitError.Kind.UNEXPECTED) {
-        // give up on internal errors
-        return giveUpOnException(repoInfo, sourceInfo, targetInfo, e)
-      } else if (e.response?.status == 404) {
-        // just give up on 404
-        return handle404(repoInfo, sourceInfo, targetInfo, e)
-      } else { // retry on other status codes
-        return retryOnException("retrofit error (${e.message})", repoInfo, sourceInfo, targetInfo, retriesRemaining, e)
-      }
     } catch (SpinnakerHttpException e) {
-      // Some retrofit objects (e.g. cloudDriverService) use
-      // SpinnakerRetrofitErrorHandler and so throw Spinnaker*Exception
-      // exceptions, while other retrofit objects throw RetrofitErrors.  One day
-      // perhaps everything will use SpinnakerRetrofitErrorHandler.  Until then,
-      // duplicate the logic for handling RetrofitError also for
-      // Spinnaker*Exception.
       if (e.getResponseCode() == 404) {
         // just give up on 404
         return handle404(repoInfo, sourceInfo, targetInfo, e)
@@ -147,7 +130,6 @@ class GetCommitsTask implements DiffTask {
       }
     } catch (SpinnakerServerException e) {
       // give up on internal errors.  Note that this includes network errors
-      // which the above RetrofitError handling swallows.
       return giveUpOnException(repoInfo, sourceInfo, targetInfo, e)
     } catch (Exception f) { // retry on everything else
       return retryOnException("unexpected exception", repoInfo, sourceInfo, targetInfo, retriesRemaining, f)

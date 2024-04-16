@@ -30,4 +30,5 @@ dependencies {
   testImplementation("org.spockframework:spock-unitils")
   testImplementation("org.codehaus.groovy:groovy-json")
   testImplementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
+  testImplementation("io.spinnaker.kork:kork-retrofit")
 }

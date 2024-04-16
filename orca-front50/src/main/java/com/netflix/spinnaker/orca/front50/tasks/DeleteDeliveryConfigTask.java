@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -14,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class DeleteDeliveryConfigTask implements Task {
@@ -62,10 +62,9 @@ public class DeleteDeliveryConfigTask implements Task {
     try {
       DeliveryConfig deliveryConfig = front50Service.getDeliveryConfig(id);
       return Optional.of(deliveryConfig);
-    } catch (RetrofitError e) {
+    } catch (SpinnakerHttpException e) {
       // ignore an unknown (404) or unauthorized (403, 401)
-      if (e.getResponse() != null
-          && Arrays.asList(404, 403, 401).contains(e.getResponse().getStatus())) {
+      if (Arrays.asList(404, 403, 401).contains(e.getResponseCode())) {
         return Optional.empty();
       } else {
         throw e;

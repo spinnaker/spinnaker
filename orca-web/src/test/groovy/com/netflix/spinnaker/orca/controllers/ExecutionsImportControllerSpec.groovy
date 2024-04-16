@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
@@ -97,7 +98,7 @@ class ExecutionsImportControllerSpec extends Specification {
 
     then:
     noExceptionThrown()
-    1 * front50Service.get('testapp') >> { throw RetrofitError.unexpectedError('http://test.front50.com', new RuntimeException())}
+    1 * front50Service.get('testapp') >> { throw new SpinnakerServerException(RetrofitError.unexpectedError('http://test.front50.com', new RuntimeException()))}
     1 * executionRepository.retrieve(ExecutionType.PIPELINE, executionId) >> { throw new ExecutionNotFoundException('No execution')}
     1 * executionRepository.store(execution)
     0 * _

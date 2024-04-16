@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -16,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class UpsertDeliveryConfigTask implements Task {
@@ -65,9 +65,8 @@ public class UpsertDeliveryConfigTask implements Task {
     try {
       front50Service.getDeliveryConfig(id);
       return true;
-    } catch (RetrofitError e) {
-      if (e.getResponse() != null
-          && Arrays.asList(404, 403, 401).contains(e.getResponse().getStatus())) {
+    } catch (SpinnakerHttpException e) {
+      if (Arrays.asList(404, 403, 401).contains(e.getResponseCode())) {
         return false;
       } else {
         throw e;

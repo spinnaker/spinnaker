@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.events.ExecutionEvent
 import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -78,6 +79,7 @@ class Front50Configuration {
       .setLogLevel(retrofitLogLevel)
       .setLog(new RetrofitSlf4jLog(Front50Service))
       .setConverter(new JacksonConverter(mapper))
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()
       .create(Front50Service)
   }

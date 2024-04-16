@@ -26,6 +26,8 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.config.PollerConfigurationProperties;
@@ -49,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Slf4j
 @Component
@@ -277,10 +278,12 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   private Optional<Application> getApplication(String applicationName) {
     try {
       return Optional.of(front50Service.get(applicationName));
-    } catch (RetrofitError e) {
-      if (e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
         return Optional.empty();
       }
+      throw new SystemException(format("Failed to retrieve application '%s'", applicationName), e);
+    } catch (SpinnakerServerException e) {
       throw new SystemException(format("Failed to retrieve application '%s'", applicationName), e);
     }
   }

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers;
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
@@ -37,7 +39,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import retrofit.RetrofitError;
 
 @RestController
 @RequestMapping("/admin/executions")
@@ -70,10 +71,12 @@ public class ExecutionsImportController {
     try {
       application = front50Service.get(execution.getApplication());
       log.info("Importing application with name: {}", application.name);
-    } catch (RetrofitError e) {
-      if (e.getKind() == RetrofitError.Kind.HTTP && e.getResponse().getStatus() != 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() != 404) {
         log.warn("Exception received while retrieving application from front50", e);
       }
+    } catch (SpinnakerServerException e) {
+      // ignore the exception
     }
 
     if (application == null) {

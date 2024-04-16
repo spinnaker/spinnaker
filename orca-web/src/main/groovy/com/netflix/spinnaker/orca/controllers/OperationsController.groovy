@@ -46,7 +46,6 @@ import groovy.util.logging.Slf4j
 import javassist.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import retrofit.RetrofitError
 import retrofit.http.Query
 
 import javax.servlet.http.HttpServletResponse
@@ -145,8 +144,8 @@ class OperationsController {
       Map pipelineConfig = AuthenticatedRequest.allowAnonymous({ front50Service.getPipeline(pipelineConfigId) })
       pipelineConfig.trigger = trigger
       return pipelineConfig
-    } catch (RetrofitError e) {
-      if (e.response?.status == HTTP_NOT_FOUND) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == HTTP_NOT_FOUND) {
         throw new NotFoundException("Pipeline config $pipelineConfigId not found")
       }
       throw e

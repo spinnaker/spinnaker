@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.front50.pipeline;
 
 import static java.lang.String.format;
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import com.netflix.spinnaker.orca.front50.Front50Service;
@@ -30,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class EnabledPipelineValidator implements PipelineValidator {
@@ -73,7 +73,7 @@ public class EnabledPipelineValidator implements PipelineValidator {
         }
 
         return;
-      } catch (RetrofitError ignored) {
+      } catch (SpinnakerServerException ignored) {
         // treat a failure to fetch pipeline config history as non-fatal and fallback to the
         // previous behavior
         // (handles the fast property case where the supplied pipeline config id does _not_

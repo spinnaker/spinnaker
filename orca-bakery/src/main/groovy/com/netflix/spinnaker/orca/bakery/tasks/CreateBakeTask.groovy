@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -41,7 +42,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 
 import static com.netflix.spinnaker.kork.web.selector.v2.SelectableService.*
@@ -86,7 +86,7 @@ class CreateBakeTask implements RetryableTask {
           stage.context.user = user
         }
       }
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       // ignore exception, we will just use the owner passed to us
       if (!e.message.contains("404")) {
         log.warn("Error retrieving application {} from front50, ignoring.", stage.execution.application, e)

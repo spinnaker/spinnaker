@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class JobUtils implements CloudProviderAware {
@@ -93,10 +92,6 @@ public class JobUtils implements CloudProviderAware {
     if (appName == null || front50Service == null) {
       return false;
     }
-    try {
-      return front50Service.get(appName) != null;
-    } catch (RetrofitError e) {
-      throw e;
-    }
+    return front50Service.get(appName) != null;
   }
 }

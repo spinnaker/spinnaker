@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.loader
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException
 import retrofit.RetrofitError
@@ -47,10 +48,10 @@ class Front50SchemeLoaderSpec extends Specification {
 
     then:
     front50Service.getPipelineTemplate("myTemplateId") >> {
-      throw RetrofitError.networkError("http://front50/no-exist", new IOException("resource not found"))
+      throw new SpinnakerNetworkException(RetrofitError.networkError("http://front50/no-exist", new IOException("resource not found")))
     }
     def e = thrown(TemplateLoaderException)
-    e.cause instanceof RetrofitError
+    e.cause instanceof SpinnakerNetworkException
   }
 
   void 'should load simple pipeline template'() {

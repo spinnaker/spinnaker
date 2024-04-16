@@ -17,13 +17,13 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import retrofit.RetrofitError
 import rx.schedulers.Schedulers
 
 @RestController
@@ -49,8 +49,8 @@ class ProjectController {
     try {
       def project = front50Service.getProject(projectId)
       pipelineConfigIds = project.config.pipelineConfigs*.pipelineConfigId
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         return []
       }
 

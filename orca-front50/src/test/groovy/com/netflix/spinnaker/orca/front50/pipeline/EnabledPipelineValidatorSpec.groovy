@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.pipeline
 
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator.PipelineValidationFailed
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
@@ -181,12 +182,12 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def notFoundError() {
-    RetrofitError.httpError(
+    new SpinnakerHttpException(RetrofitError.httpError(
       "http://localhost",
       new Response("http://localhost", HTTP_NOT_FOUND, "Not Found", [], null),
       null,
       null
-    )
+    ))
   }
 
 }
