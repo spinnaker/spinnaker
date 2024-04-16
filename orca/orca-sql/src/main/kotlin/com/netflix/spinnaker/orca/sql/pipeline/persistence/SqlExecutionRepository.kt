@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Preconditions
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
@@ -1453,7 +1454,7 @@ class SqlExecutionRepository(
         readPoolRetryContext.executeSupplier {
           numberOfReadPoolQueries += 1
           val select = ctx.selectExecution(type).where(id.toWhereCondition())
-          select.fetchExecutions(true)
+          select.fetchLatestExecutions()
         }
       }
     } catch (e: Exception) {
@@ -1626,8 +1627,16 @@ class SqlExecutionRepository(
   private fun SelectForUpdateStep<out Record>.fetchExecution() =
     fetchExecutions().firstOrNull()
 
-  private fun SelectForUpdateStep<out Record>.fetchExecutions(requireLatestVersion: Boolean) =
-    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled, requireLatestVersion, replicationLagAwareRepository).map(fetch().intoResultSet(), jooq)
+  private fun SelectForUpdateStep<out Record>.fetchLatestExecutions(): ExecutionMapperResult {
+    Preconditions.checkState(replicationLagAwareRepository.isPresent())
+    return ExecutionMapper(
+      mapper,
+      stageReadSize,
+      compressionProperties,
+      pipelineRefEnabled,
+      replicationLagAwareRepository
+    ).map(fetch().intoResultSet(), jooq)
+  }
 
   private fun fetchExecutions(nextPage: (Int, String?) -> Iterable<PipelineExecution>) =
     object : Iterable<PipelineExecution> {

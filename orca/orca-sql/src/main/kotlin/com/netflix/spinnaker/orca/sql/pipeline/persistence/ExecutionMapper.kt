@@ -38,9 +38,8 @@ import java.util.Optional
  * When retrieving an Execution from SQL, we lazily load its stages on-demand
  * in this mapper as well.
  *
- * Optionally, the mapper can accept the requireLatestVersion and
- * replicationLagAwareRepository parameters, which work together as a unit.
- * If requireLatestVersion is true, the mapper will verify that all executions
+ * The mapper accepts an optional replicationLagAwareRepository parameter.
+ * If present, the mapper verifies that all executions
  * and compressed executions comply with the requirements set by replicationLagAwareRepository.
  * If any part of the ResultSet fails to meet the requirements, the mapper returns an empty list of executions
  */
@@ -49,11 +48,10 @@ class ExecutionMapper(
   private val stageBatchSize: Int,
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
-  private val requireLatestVersion: Boolean,
   private val replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>
 ) {
   constructor(mapper: ObjectMapper, stageBatchSize: Int, executionCompressionProperties: ExecutionCompressionProperties, pipelineRefEnabled: Boolean) :
-    this(mapper, stageBatchSize, executionCompressionProperties, pipelineRefEnabled, false, Optional.empty())
+    this(mapper, stageBatchSize, executionCompressionProperties, pipelineRefEnabled, Optional.empty())
   private val log = LoggerFactory.getLogger(javaClass)
 
   /**
@@ -121,7 +119,7 @@ class ExecutionMapper(
     val legacyMap = mutableMapOf<String, String>()
 
     while (rs.next()) {
-      if (requireLatestVersion) {
+      if (replicationLagAwareRepository.isPresent()) {
         val executionId = rs.getString("id")
         val oldestAllowedUpdate = replicationLagAwareRepository.get().getPipelineExecutionUpdate(executionId)
           ?: return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
@@ -167,7 +165,7 @@ class ExecutionMapper(
 
         context.selectExecutionStages(type, executionIds, compressionProperties).let { stageResultSet ->
           while (stageResultSet.next()) {
-            if (requireLatestVersion) {
+            if (replicationLagAwareRepository.isPresent()) {
               val stageId = stageResultSet.getString("id")
               val oldestAllowedUpdate = replicationLagAwareRepository.get().getStageExecutionUpdate(stageId)
               if (oldestAllowedUpdate == null) {
@@ -183,7 +181,7 @@ class ExecutionMapper(
           }
         }
 
-        if (requireLatestVersion) {
+        if (replicationLagAwareRepository.isPresent()) {
           executions.forEach { execution ->
             val expectedNumberOfStages = replicationLagAwareRepository.get().getPipelineExecutionNumStages(execution.id)
             if (expectedNumberOfStages == null) {

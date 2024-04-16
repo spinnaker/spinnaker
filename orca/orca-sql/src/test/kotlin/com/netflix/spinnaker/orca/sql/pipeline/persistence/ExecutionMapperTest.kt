@@ -170,7 +170,6 @@ class ExecutionMapperTest : JUnit5Minutests {
         stageBatchSize = 200,
         compressionProperties = compressionProperties,
         pipelineRefEnabled = false,
-        requireLatestVersion = true,
         replicationLagAwareRepository = Optional.of(mock<ReplicationLagAwareRepository>())
       )
       val mockedResultSet = mock<ResultSet>()
@@ -226,7 +225,7 @@ class ExecutionMapperTest : JUnit5Minutests {
         mockedContext.selectExecutionStages(ExecutionType.PIPELINE, listOf(pipelineExecutionId), compressionProperties)
       } returns stageExecutionResultSet
 
-      context("when requireLatestVersion is false") {
+      context("when replicationLagAwareRepository is not present") {
         val mapper = ExecutionMapper(
           mapper = objectMapper,
           stageBatchSize = 200,
@@ -260,14 +259,13 @@ class ExecutionMapperTest : JUnit5Minutests {
         }
       }
 
-      context("when requireLatestVersion is true") {
+      context("when replicationLagAwareRepository is present") {
         val replicationLagAwareRepository = mock<ReplicationLagAwareRepository>()
         val mapper = ExecutionMapper(
           mapper = objectMapper,
           stageBatchSize = 200,
           compressionProperties = compressionProperties,
           pipelineRefEnabled = false,
-          requireLatestVersion = true,
           replicationLagAwareRepository = Optional.of(replicationLagAwareRepository)
         )
 
