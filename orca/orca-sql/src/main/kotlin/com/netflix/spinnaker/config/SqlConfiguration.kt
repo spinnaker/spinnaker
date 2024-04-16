@@ -35,7 +35,6 @@ import com.netflix.spinnaker.orca.pipeline.model.support.CustomTriggerDeserializ
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.RedisReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
@@ -95,7 +94,7 @@ class SqlConfiguration {
     compressionProperties: ExecutionCompressionProperties,
     pipelineRefProperties: PipelineRefProperties,
     dataSource: DataSource,
-    replicationLagAwareRepository: ReplicationLagAwareRepository
+    replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -127,7 +126,7 @@ class SqlConfiguration {
     compressionProperties: ExecutionCompressionProperties,
     pipelineRefProperties: PipelineRefProperties,
     dataSource: DataSource,
-    replicationLagAwareRepository: ReplicationLagAwareRepository
+    replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -210,9 +209,4 @@ class SqlConfiguration {
       redisClientSelector.primary("default"),
       RedisReplicationLagAwareRepositoryProperties()
     )
-
-  @ConditionalOnProperty("execution-repository.sql.enabled")
-  @ConditionalOnMissingBean(ReplicationLagAwareRepository::class)
-  @Bean
-  fun noopReplicationLagAwareRepository() = NoopReplicationLagAwareRepository()
 }

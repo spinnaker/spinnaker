@@ -46,9 +46,10 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
 import org.testcontainers.DockerClientFactory
 import java.lang.System.currentTimeMillis
-import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
+import java.util.Optional
 import javax.sql.DataSource
 
 class SqlExecutionRepositoryTest : JUnit5Minutests {
@@ -666,7 +667,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
       compressionType = CompressionType.ZLIB
     }
     val mockDataSource = mock<DataSource>()
-    val mockedReplicationLagAwareRepository = mock<ReplicationLagAwareRepository>()
+    val mockedReplicationLagAwareRepository = Optional.of(mock<ReplicationLagAwareRepository>())
 
     val sqlExecutionRepository =
       SqlExecutionRepository(

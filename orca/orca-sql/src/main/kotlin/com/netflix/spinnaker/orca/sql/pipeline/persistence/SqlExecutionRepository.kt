@@ -53,7 +53,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
 import de.huxhorn.sulky.ulid.SpinULID
@@ -90,6 +89,7 @@ import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.time.Instant
+import java.util.Optional
 import java.util.stream.Collectors.toList
 import javax.sql.DataSource
 import kotlin.collections.Collection
@@ -136,7 +136,7 @@ class SqlExecutionRepository(
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
   private val dataSource: DataSource,
-  private val replicationLagAwareRepository: ReplicationLagAwareRepository,
+  private val replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>,
   private val registry: Registry
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
@@ -221,11 +221,13 @@ class SqlExecutionRepository(
     validateHandledPartitionOrThrow(execution)
     // removeStage can be called multiple times in succession, making execution.stages.size an inaccurate
     // indicator of the actual number of stages that belong to an execution. Therefore, query the repository instead
-    val numStages = replicationLagAwareRepository.getPipelineExecutionNumStages(execution.id)
-    if (numStages != null) {
-      replicationLagAwareRepository.putPipelineExecutionNumStages(execution.id, numStages-1)
-    } else {
-      replicationLagAwareRepository.putPipelineExecutionNumStages(execution.id, execution.stages.size-1)
+    replicationLagAwareRepository.ifPresent { it ->
+      val numStages = it.getPipelineExecutionNumStages(execution.id)
+      if (numStages != null) {
+        it.putPipelineExecutionNumStages(execution.id, numStages - 1)
+      } else {
+        it.putPipelineExecutionNumStages(execution.id, execution.stages.size - 1)
+      }
     }
     withPool(poolName) {
       jooq.delete(execution.type.stagesTableName)
@@ -240,11 +242,13 @@ class SqlExecutionRepository(
     // addStage can be called multiple times in succession, making stage.execution.stages.size an inaccurate
     // indicator of the actual number of stages that belong to an execution. Therefore, query the repository instead
     val pipelineExecutionId = stage.execution.id
-    val numStages = replicationLagAwareRepository.getPipelineExecutionNumStages(pipelineExecutionId)
-    if (numStages != null) {
-      replicationLagAwareRepository.putPipelineExecutionNumStages(pipelineExecutionId, numStages+1)
-    } else {
-      replicationLagAwareRepository.putPipelineExecutionNumStages(pipelineExecutionId, stage.execution.stages.size+1)
+    replicationLagAwareRepository.ifPresent { it ->
+      val numStages = it.getPipelineExecutionNumStages(pipelineExecutionId)
+      if (numStages != null) {
+        it.putPipelineExecutionNumStages(pipelineExecutionId, numStages + 1)
+      } else {
+        it.putPipelineExecutionNumStages(pipelineExecutionId, stage.execution.stages.size + 1)
+      }
     }
     storeStage(stage)
   }
@@ -1142,7 +1146,7 @@ class SqlExecutionRepository(
           compressionProperties.isWriteEnabled()
         )
       }
-      replicationLagAwareRepository.putPipelineExecutionUpdate(executionId, Instant.ofEpochMilli(updatedAt))
+      replicationLagAwareRepository.ifPresent { it -> it.putPipelineExecutionUpdate(executionId, Instant.ofEpochMilli(updatedAt)) }
 
       storeCorrelationIdInternal(ctx, execution)
 
@@ -1163,7 +1167,7 @@ class SqlExecutionRepository(
             }.execute()
         }
 
-        replicationLagAwareRepository.putPipelineExecutionNumStages(executionId, stages.size)
+        replicationLagAwareRepository.ifPresent { it -> it.putPipelineExecutionNumStages(executionId, stages.size) }
         stages.forEach { storeStageInternal(ctx, it, executionId) }
       }
     } finally {
@@ -1209,7 +1213,7 @@ class SqlExecutionRepository(
     )
 
     upsert(ctx, stageTable, insertPairs, updatePairs, stage.id, compressionProperties.isWriteEnabled())
-    replicationLagAwareRepository.putStageExecutionUpdate(stageId, Instant.ofEpochMilli(updatedAt))
+    replicationLagAwareRepository.ifPresent { it -> it.putStageExecutionUpdate(stageId, Instant.ofEpochMilli(updatedAt)) }
 
     // This method is called from [storeInternal] as well. We don't want to notify multiple times for the same
     // overall persist operation.
@@ -1482,16 +1486,19 @@ class SqlExecutionRepository(
           val select = ctx.selectExecution(type).where(id.toWhereCondition())
           select.fetchExecution()
         } ?: return null
-        replicationLagAwareRepository.putPipelineExecutionUpdate(
-          pipelineExecution.id,
-          Instant.ofEpochMilli(pipelineExecution.updatedAt)
-        )
-        replicationLagAwareRepository.putPipelineExecutionNumStages(
-          pipelineExecution.id,
-          pipelineExecution.stages.size
-        )
-        pipelineExecution.stages.forEach {
-          replicationLagAwareRepository.putStageExecutionUpdate(it.id, Instant.ofEpochMilli(it.updatedAt))
+
+        replicationLagAwareRepository.ifPresent { replLagAwareRepo ->
+          replLagAwareRepo.putPipelineExecutionUpdate(
+            pipelineExecution.id,
+            Instant.ofEpochMilli(pipelineExecution.updatedAt)
+          )
+          replLagAwareRepo.putPipelineExecutionNumStages(
+            pipelineExecution.id,
+            pipelineExecution.stages.size
+          )
+          pipelineExecution.stages.forEach {
+            replLagAwareRepo.putStageExecutionUpdate(it.id, Instant.ofEpochMilli(it.updatedAt))
+          }
         }
         return pipelineExecution
       }
@@ -1673,7 +1680,7 @@ class SqlExecutionRepository(
   }
 
   private fun readPoolStrictConsistencyEnforced(): Boolean {
-    return readPoolName != poolName && replicationLagAwareRepository !is NoopReplicationLagAwareRepository
+    return readPoolName != poolName && replicationLagAwareRepository.isPresent()
   }
 
   class SyntheticStageRequired : IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")

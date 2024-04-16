@@ -25,7 +25,6 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import com.nhaarman.mockito_kotlin.mock
@@ -48,6 +47,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.util.Optional
 
 class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
   data class Fixture(val optimizeExecution: Boolean) {
@@ -63,7 +63,7 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
       compressionProperties = ExecutionCompressionProperties(),
       pipelineRefEnabled = false,
       dataSource = mock(),
-      replicationLagAwareRepository = NoopReplicationLagAwareRepository(),
+      replicationLagAwareRepository = Optional.empty(),
       registry = NoopRegistry()
     )
 

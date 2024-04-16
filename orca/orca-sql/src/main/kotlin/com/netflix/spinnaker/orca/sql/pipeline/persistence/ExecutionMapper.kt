@@ -24,13 +24,13 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopReplicationLagAwareRepository
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
 import java.sql.ResultSet
 import java.time.Instant
+import java.util.Optional
 
 /**
  * Converts a SQL [ResultSet] into an Execution.
@@ -50,10 +50,10 @@ class ExecutionMapper(
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
   private val requireLatestVersion: Boolean,
-  private val replicationLagAwareRepository: ReplicationLagAwareRepository
+  private val replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>
 ) {
   constructor(mapper: ObjectMapper, stageBatchSize: Int, executionCompressionProperties: ExecutionCompressionProperties, pipelineRefEnabled: Boolean) :
-    this(mapper, stageBatchSize, executionCompressionProperties, pipelineRefEnabled, false, NoopReplicationLagAwareRepository())
+    this(mapper, stageBatchSize, executionCompressionProperties, pipelineRefEnabled, false, Optional.empty())
   private val log = LoggerFactory.getLogger(javaClass)
 
   /**
@@ -123,7 +123,7 @@ class ExecutionMapper(
     while (rs.next()) {
       if (requireLatestVersion) {
         val executionId = rs.getString("id")
-        val oldestAllowedUpdate = replicationLagAwareRepository.getPipelineExecutionUpdate(executionId)
+        val oldestAllowedUpdate = replicationLagAwareRepository.get().getPipelineExecutionUpdate(executionId)
           ?: return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
         if (!isUpToDateVersion(rs, oldestAllowedUpdate)) {
           return ExecutionMapperResult(mutableListOf(),ExecutionMapperResultCode.INVALID_VERSION)
@@ -169,7 +169,7 @@ class ExecutionMapper(
           while (stageResultSet.next()) {
             if (requireLatestVersion) {
               val stageId = stageResultSet.getString("id")
-              val oldestAllowedUpdate = replicationLagAwareRepository.getStageExecutionUpdate(stageId)
+              val oldestAllowedUpdate = replicationLagAwareRepository.get().getStageExecutionUpdate(stageId)
               if (oldestAllowedUpdate == null) {
                 missingFromReplicationLagRepository = true
                 return@chunked
@@ -185,7 +185,7 @@ class ExecutionMapper(
 
         if (requireLatestVersion) {
           executions.forEach { execution ->
-            val expectedNumberOfStages = replicationLagAwareRepository.getPipelineExecutionNumStages(execution.id)
+            val expectedNumberOfStages = replicationLagAwareRepository.get().getPipelineExecutionNumStages(execution.id)
             if (expectedNumberOfStages == null) {
               missingFromReplicationLagRepository = true
               return@chunked

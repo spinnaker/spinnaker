@@ -128,7 +128,7 @@ class SqlTestConfig {
           orcaSqlProperties: OrcaSqlProperties,
           compressionProperties: ExecutionCompressionProperties,
           dataSource: DataSource,
-          replicationLagAwareRepository: ReplicationLagAwareRepository
+          replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>
   ) = SqlExecutionRepository(
     orcaSqlProperties.partitionName,
     dsl,

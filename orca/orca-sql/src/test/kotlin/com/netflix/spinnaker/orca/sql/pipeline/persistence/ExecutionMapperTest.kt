@@ -49,6 +49,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.sql.ResultSet
 import java.time.Instant
+import java.util.Optional
 import java.util.zip.DeflaterOutputStream
 
 class ExecutionMapperTest : JUnit5Minutests {
@@ -170,7 +171,7 @@ class ExecutionMapperTest : JUnit5Minutests {
         compressionProperties = compressionProperties,
         pipelineRefEnabled = false,
         requireLatestVersion = true,
-        replicationLagAwareRepository = mock<ReplicationLagAwareRepository>()
+        replicationLagAwareRepository = Optional.of(mock<ReplicationLagAwareRepository>())
       )
       val mockedResultSet = mock<ResultSet>()
 
@@ -267,7 +268,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           compressionProperties = compressionProperties,
           pipelineRefEnabled = false,
           requireLatestVersion = true,
-          replicationLagAwareRepository = replicationLagAwareRepository
+          replicationLagAwareRepository = Optional.of(replicationLagAwareRepository)
         )
 
         test("return NOT_FOUND when given an empty ResultSet") {

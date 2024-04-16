@@ -35,7 +35,6 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.NoopReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineExecutionRepositoryTck
 import org.jooq.impl.DSL
 import rx.schedulers.Schedulers
@@ -115,7 +114,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
             new ExecutionCompressionProperties(enabled: compression),
             false,
             Mock(DataSource),
-            new NoopReplicationLagAwareRepository(),
+            Optional.empty(),
             new NoopRegistry()
         ),
         "namespace")
