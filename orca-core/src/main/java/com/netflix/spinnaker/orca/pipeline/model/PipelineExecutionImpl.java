@@ -46,7 +46,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class PipelineExecutionImpl implements PipelineExecution, Serializable {
 
   public static final DefaultTrigger NO_TRIGGER = new DefaultTrigger("none");
@@ -379,6 +381,72 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
 
   public @Nullable String getPartition() {
     return this.partition;
+  }
+
+  @JsonIgnore private Long size = null;
+
+  @Override
+  public Optional<Long> getSize() {
+    return Optional.ofNullable(this.size);
+  }
+
+  @Override
+  public void setSize(long size) {
+    this.size = size;
+  }
+
+  @JsonIgnore
+  @Override
+  public Optional<Long> getTotalSize() {
+    // Calculate the total size of the execution.  Since this is called from
+    // multiple places, don't assume any of the info is present.
+    //
+    // If any of the info is missing, return null rather than potentially
+    // misleading / too small information.
+    Optional<Long> thisSize = this.getSize();
+    if (thisSize.isEmpty()) {
+      log.debug(
+          "getTotalSize: application {}, pipeline name: {}, pipeline config id {}, pipeline execution id {}, no size",
+          this.getApplication(),
+          this.getName(),
+          this.getPipelineConfigId(),
+          this.getId());
+      return Optional.empty();
+    }
+
+    // See if any stage is missing info
+    for (StageExecution stage : this.getStages()) {
+      if (stage.getSize().isEmpty()) {
+        log.debug(
+            "getTotalSize: application {}, pipeline name: {}, pipeline config id {}, pipeline execution id {}, stage name: {}, stage id: {}, no size",
+            this.getApplication(),
+            this.getName(),
+            this.getPipelineConfigId(),
+            this.getId(),
+            stage.getName(),
+            stage.getId());
+        return Optional.empty();
+      }
+    }
+
+    long totalSize =
+        thisSize.get()
+            + this.getStages().stream()
+                .mapToLong(
+                    (StageExecution stage) -> {
+                      return stage.getSize().get();
+                    })
+                .sum();
+
+    log.debug(
+        "getTotalSize: application {}, pipeline name: {}, pipeline config id {}, pipeline execution id {}, total execution size: {}",
+        this.getApplication(),
+        this.getName(),
+        this.getPipelineConfigId(),
+        this.getId(),
+        totalSize);
+
+    return Optional.of(totalSize);
   }
 
   @Nullable

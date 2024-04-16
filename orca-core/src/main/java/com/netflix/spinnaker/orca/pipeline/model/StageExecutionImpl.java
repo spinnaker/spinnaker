@@ -324,6 +324,18 @@ public class StageExecutionImpl implements StageExecution, Serializable {
 
   private LastModifiedDetails lastModified;
 
+  @JsonIgnore private Long size = null;
+
+  @Override
+  public Optional<Long> getSize() {
+    return Optional.ofNullable(this.size);
+  }
+
+  @Override
+  public void setSize(long size) {
+    this.size = size;
+  }
+
   @Nullable
   @Override
   public StageExecution.LastModifiedDetails getLastModified() {

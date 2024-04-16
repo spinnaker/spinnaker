@@ -36,6 +36,7 @@ import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.q.AttemptsAttribute
 import com.netflix.spinnaker.q.Queue
+import net.logstash.logback.argument.StructuredArguments.kv
 import java.time.Duration
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -64,6 +65,15 @@ class CompleteExecutionHandler(
         message.determineFinalStatus(execution) { status ->
           execution.updateStatus(status)
           repository.updateStatus(execution)
+          val executionContextSize = execution.getTotalSize()
+          if (executionContextSize.isPresent) {
+            log.info("completed pipeline execution size: {},{},{},{},{}",
+              kv("application", execution.application),
+              kv("pipelineName", execution.name),
+              kv("pipelineConfigId", execution.pipelineConfigId),
+              kv("pipelineExecutionId", execution.id),
+              kv("size", executionContextSize.get()))
+          }
           publisher.publishEvent(ExecutionComplete(this, execution))
 
           registry.counter(

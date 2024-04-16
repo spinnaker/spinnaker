@@ -128,6 +128,14 @@ public interface StageExecution {
 
   void setAdditionalMetricTags(Map<String, String> additionalMetricTags);
 
+  /**
+   * The size of the stage execution in units appropriate for the implementation (e.g.
+   * characters/bytes), if available.
+   */
+  Optional<Long> getSize();
+
+  void setSize(long size);
+
   // ------------- InternalStageExecution?
   // A lot of these methods are used in a single place somewhere in Orca. I don't know why we
   // decided to put a bunch

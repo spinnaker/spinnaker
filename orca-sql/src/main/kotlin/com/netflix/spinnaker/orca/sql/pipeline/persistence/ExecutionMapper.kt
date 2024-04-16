@@ -77,6 +77,7 @@ class ExecutionMapper(
         mapper.readValue<PipelineExecution>(body)
           .also {
             execution ->
+            execution.setSize(body.length.toLong())
             results.add(execution)
             execution.partition = rs.getString("partition")
 
@@ -120,12 +121,14 @@ class ExecutionMapper(
 
   private fun mapStage(rs: ResultSet, executions: Map<String, PipelineExecution>) {
     val executionId = rs.getString("execution_id")
+    val body = getDecompressedBody(rs)
     executions.getValue(executionId)
       .stages
       .add(
-        mapper.readValue<StageExecution>(getDecompressedBody(rs))
+        mapper.readValue<StageExecution>(body)
           .apply {
             execution = executions.getValue(executionId)
+            setSize(body.length.toLong())
           }
       )
   }

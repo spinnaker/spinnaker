@@ -789,6 +789,9 @@ class SqlExecutionRepository(
       val stageTableName = execution.type.stagesTableName
       val status = execution.status.toString()
       val body = mapper.writeValueAsString(execution)
+      val bodySize = body.length.toLong()
+      execution.setSize(bodySize)
+      log.debug("application ${execution.application}, pipeline name: ${execution.name}, pipeline config id ${execution.pipelineConfigId}, pipeline execution id ${execution.id}, execution size: ${bodySize}")
 
       val (executionId, legacyId) = mapLegacyId(ctx, tableName, execution.id, execution.startTime)
 
@@ -878,6 +881,10 @@ class SqlExecutionRepository(
     val stageTable = stage.execution.type.stagesTableName
     val table = stage.execution.type.tableName
     val body = mapper.writeValueAsString(stage)
+    val bodySize = body.length.toLong()
+    stage.setSize(bodySize)
+    log.debug("application ${stage.execution.application}, pipeline name: ${stage.execution.name}, pipeline config id ${stage.execution.pipelineConfigId}, pipeline execution id ${stage.execution.id}, stage name: ${stage.name}, stage id: ${stage.id}, size: ${bodySize}")
+
     val buildTime = stage.execution.buildTime
 
     val executionUlid = executionId ?: mapLegacyId(ctx, table, stage.execution.id, buildTime).first

@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -136,6 +137,20 @@ public interface PipelineExecution {
   String getPartition();
 
   void setPartition(String partition);
+
+  /**
+   * The size of the pipeline execution (not including stages) in units appropriate for the
+   * implementation (e.g. characters/bytes), if available.
+   */
+  Optional<Long> getSize();
+
+  void setSize(long size);
+
+  /**
+   * The total size of the pipeline execution including stages in units appropriate for the
+   * implementation (e.g. characters/bytes), if available.
+   */
+  Optional<Long> getTotalSize();
 
   // -------
 
