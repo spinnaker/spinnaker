@@ -67,9 +67,10 @@ class DependentPipelineExecutionListenerSpec extends Specification {
       it.status = status
       it.tasks = [Mock(TaskExecution)]
     }
+    pipeline.status = status
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getAllPipelines() >> [
+    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> [
       pipelineConfig, pipelineConfigWithRunAsUser
     ]
 
@@ -90,9 +91,10 @@ class DependentPipelineExecutionListenerSpec extends Specification {
       it.status = status
       it.tasks = [Mock(TaskExecution)]
     }
+    pipeline.status = status
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getAllPipelines() >> [
+    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> [
       pipelineConfig, pipelineConfigWithRunAsUser, v2MptPipelineConfig
     ]
     GroovyMock(V2Util, global: true)
@@ -115,9 +117,10 @@ class DependentPipelineExecutionListenerSpec extends Specification {
       it.status = ExecutionStatus.SUCCEEDED
       it.tasks = [Mock(TaskExecution)]
     }
+    pipeline.status = ExecutionStatus.SUCCEEDED
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getAllPipelines() >> [
+    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, "successful") >> [
       v2MptPipelineConfig, v2MptPipelineConfig
     ]
     GroovyMock(V2Util, global: true)
@@ -167,9 +170,10 @@ class DependentPipelineExecutionListenerSpec extends Specification {
       it.status = ExecutionStatus.SUCCEEDED
       it.tasks = [Mock(TaskExecution)]
     }
+    pipeline.status = ExecutionStatus.SUCCEEDED
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getAllPipelines() >> [
+    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, "successful") >> [
       pipelineConfig, pipelineConfig, pipelineConfig
     ]
 
@@ -223,24 +227,29 @@ class DependentPipelineExecutionListenerSpec extends Specification {
   }
 
   @Unroll
-  def "uses front50's getTriggeredPipelines endpoint when configured to do so (#status)"() {
+  def "uses front50's getTriggeredPipelines endpoint when configured to do so (#status / #useTriggeredByEndpoint)"() {
     given:
     def origValue = front50ConfigurationProperties.useTriggeredByEndpoint
-    front50ConfigurationProperties.setUseTriggeredByEndpoint(true)
+    front50ConfigurationProperties.setUseTriggeredByEndpoint(useTriggeredByEndpoint)
 
     // Set the execution status of the entire pipeline, since that's passed to front50
     pipeline.status = status
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> [
-      pipelineConfig, pipelineConfigWithRunAsUser
-    ]
+    if (useTriggeredByEndpoint) {
+      1 * front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> [
+        pipelineConfig, pipelineConfigWithRunAsUser
+      ]
+      0 * front50Service.getAllPipelines()
+    } else {
+      1 * front50Service.getAllPipelines() >> [ pipelineConfig, pipelineConfigWithRunAsUser ]
+      0 * front50Service.getTriggeredPipelines(_, _)
+    }
 
     when:
     listener.afterExecution(null, pipeline, null, true)
 
     then:
-    0 * front50Service.getAllPipelines()
     1 * dependentPipelineStarter.trigger(_, _, _, _, _, null)
     1 * dependentPipelineStarter.trigger(_, _, _, _, _, { PipelineExecution.AuthenticationDetails user -> user.user == "my_run_as_user" })
 
@@ -248,7 +257,11 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     front50ConfigurationProperties.setUseTriggeredByEndpoint(origValue)
 
     where:
-    status << [ExecutionStatus.SUCCEEDED, ExecutionStatus.TERMINAL]
+    status                    | useTriggeredByEndpoint
+    ExecutionStatus.SUCCEEDED | true
+    ExecutionStatus.TERMINAL  | true
+    ExecutionStatus.SUCCEEDED | false
+    ExecutionStatus.TERMINAL  | false
   }
 
   private static Map buildTemplatedPipelineConfig() {

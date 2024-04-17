@@ -32,5 +32,5 @@ public class Front50ConfigurationProperties {
    *
    * <p>When true: GET /pipelines/triggeredBy/{pipelineId}/{status} When false: GET /pipelines
    */
-  boolean useTriggeredByEndpoint;
+  boolean useTriggeredByEndpoint = true;
 }
