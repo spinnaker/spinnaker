@@ -31,4 +31,7 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.security:spring-security-test"
+  testImplementation "io.spinnaker.kork:kork-core"
 }

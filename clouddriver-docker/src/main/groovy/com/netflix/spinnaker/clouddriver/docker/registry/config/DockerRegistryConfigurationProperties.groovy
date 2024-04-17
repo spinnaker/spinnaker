@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry.config
 
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 
@@ -68,6 +69,8 @@ class DockerRegistryConfigurationProperties {
     String catalogFile
     // Allow filter the repositories by a regular expression
     String repositoriesRegex
+    // Permissions for using this account
+    Permissions.Builder permissions = new Permissions.Builder()
   }
 
   List<ManagedAccount> accounts = []

@@ -108,6 +108,7 @@ public class DockerRegistryConfiguration {
                 .insecureRegistry(a.getInsecureRegistry())
                 .repositories(a.getRepositories())
                 .skip(a.getSkip())
+                .permissions(a.getPermissions().build())
                 .dockerOkClientProvider(dockerOkClientProvider)
                 .build(),
         dockerRegistryCredentialsRepository);

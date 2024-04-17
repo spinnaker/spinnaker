@@ -24,6 +24,8 @@ import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistry
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.access.prepost.PostFilter
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -39,6 +41,7 @@ class DockerRegistryImageLookupController {
   AccountCredentialsProvider accountCredentialsProvider
 
   @RequestMapping(value = "/tags", method = RequestMethod.GET)
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   List<String> getTags(@RequestParam('account') String account, @RequestParam('repository') String repository) {
     def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials(account)
     if (!credentials) {
@@ -62,6 +65,7 @@ class DockerRegistryImageLookupController {
   }
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
+  @PostFilter("hasPermission(filterObject['account'], 'ACCOUNT', 'READ')")
   List<Map> find(LookupOptions lookupOptions) {
     def account = lookupOptions.account ?: ""
 
