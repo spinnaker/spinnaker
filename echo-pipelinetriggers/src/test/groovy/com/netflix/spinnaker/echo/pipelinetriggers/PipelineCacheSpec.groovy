@@ -27,6 +27,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BaseTriggerEven
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
+import spock.lang.Unroll
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -70,7 +71,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     def pipeline = Pipeline.builder().application('application').name('Pipeline').id('P1').build()
 
     def initialLoad = []
-    front50.getPipelines() >> initialLoad >> { throw unavailable() } >> [pipelineMap]
+    front50.getPipelines(true, true, supportedTriggers) >> initialLoad >> { throw unavailable() } >> [pipelineMap]
     pipelineCache.start()
 
     expect: 'null pipelines when we have not polled yet'
@@ -95,16 +96,25 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     pipelineCache.getPipelines() == [pipeline]
   }
 
-  def "filters front50 pipelines when configured to do so"() {
+  @Unroll
+  def "filters front50 pipelines when configured to do so (#filterFront50Pipelines)"() {
     given:
-    pipelineCacheConfigurationProperties.filterFront50Pipelines = true
+    pipelineCacheConfigurationProperties.filterFront50Pipelines = filterFront50Pipelines
 
     when:
     pipelineCache.start()
     pipelineCache.pollPipelineConfigs()
 
     then:
-    1 * front50.getPipelines(true, true, supportedTriggers) >> [] // arbitrary return value
+    if (filterFront50Pipelines) {
+      1 * front50.getPipelines(true, true, supportedTriggers) >> [] // arbitrary return value
+    } else {
+      1 * front50.getPipelines() >> [] // arbitrary return value
+    }
+    0 * front50._
+
+    where:
+    filterFront50Pipelines << [true, false]
   }
 
   def "getPipelineById calls front50's getPipeline endpoint"() {

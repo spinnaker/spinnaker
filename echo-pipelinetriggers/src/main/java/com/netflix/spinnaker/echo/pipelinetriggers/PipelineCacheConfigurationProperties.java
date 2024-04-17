@@ -29,5 +29,5 @@ public class PipelineCacheConfigurationProperties {
    * If false, query front50 for all pipelines. If true, query front50 for only enabled pipelines
    * with enabled triggers with types that echo requires.
    */
-  private boolean filterFront50Pipelines;
+  private boolean filterFront50Pipelines = true;
 }
