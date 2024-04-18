@@ -64,25 +64,9 @@ install_helm3() {
   mv /usr/local/bin/helm /usr/local/bin/helm3
 }
 
-install_aws_cli2() {
-  if [ "$ARCH" = "amd64" ]; then
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
-  elif [ "$ARCH" = "arm64" ]; then
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
-    curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_arm64/session-manager-plugin.deb" -o "session-manager-plugin.deb"
-  fi
-  unzip awscliv2.zip
-  ./aws/install
-  rm -rf awscliv2.zip ./aws
-  dpkg -i session-manager-plugin.deb
-  rm session-manager-plugin.deb
-}
-
 create_temp_dir
 install_packer
 install_helm3
 install_helm
-install_aws_cli2
 remove_temp_dir
 install --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/rosco
