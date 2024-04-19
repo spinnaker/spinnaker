@@ -1,4 +1,8 @@
 databaseChangeLog:
+- removeChangeSetProperty:
+    change: addColumn
+    dbms: postgresql
+    remove: afterColumn
 - changeSet:
     id: create-cats-resource-table-v1
     author: afeldman
