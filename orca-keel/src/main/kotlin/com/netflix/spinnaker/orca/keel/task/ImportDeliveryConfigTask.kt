@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.keel.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
@@ -182,7 +183,8 @@ constructor(
    * Handle (potentially) retryable failures by looking at the HTTP status code. A few 4xx errors
    * are handled as special cases to provide more friendly error messages to the UI.
    */
-  private fun handleRetryableFailures(httpException: SpinnakerHttpException, context: ImportDeliveryConfigContext): TaskResult{
+  @VisibleForTesting
+  fun handleRetryableFailures(httpException: SpinnakerHttpException, context: ImportDeliveryConfigContext): TaskResult{
     return when {
       httpException.responseCode in 400..499 -> {
         val responseBody = httpException.responseBody

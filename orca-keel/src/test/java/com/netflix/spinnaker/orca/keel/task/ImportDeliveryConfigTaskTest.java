@@ -35,6 +35,7 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.orca.KeelService;
@@ -62,7 +63,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 import retrofit.RestAdapter;
-import retrofit.RetrofitError;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
@@ -143,7 +143,7 @@ public class ImportDeliveryConfigTaskTest {
    * This test is a positive case which verifies if the task returns {@link
    * ImportDeliveryConfigTask.SpringHttpError} on 4xx http error. Here the error body is mocked with
    * timestamps in supported Time Units, which will be parsed to exact same timestamp in the
-   * method @see {@link ImportDeliveryConfigTask#handleRetryableFailures(RetrofitError,
+   * method @see {@link ImportDeliveryConfigTask#handleRetryableFailures(SpinnakerHttpException,
    * ImportDeliveryConfigTask.ImportDeliveryConfigContext)} and results in successful assertions of
    * all the fields.
    *
@@ -176,7 +176,7 @@ public class ImportDeliveryConfigTaskTest {
    * This test is a negative case which verifies if the task returns {@link
    * ImportDeliveryConfigTask.SpringHttpError} on 4xx http error. Here the error body is mocked with
    * timestamp in Time Units that are unsupported, which WILL NOT be parsed to exact timestamp in
-   * the method @see {@link ImportDeliveryConfigTask#handleRetryableFailures(RetrofitError,
+   * the method @see {@link ImportDeliveryConfigTask#handleRetryableFailures(SpinnakerHttpException,
    * ImportDeliveryConfigTask.ImportDeliveryConfigContext)} and results in will contain incorrect
    * timestamp.
    *
