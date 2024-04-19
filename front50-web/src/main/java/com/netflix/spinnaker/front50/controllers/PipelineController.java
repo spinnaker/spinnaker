@@ -247,7 +247,7 @@ public class PipelineController {
     validatePipeline(pipeline, staleCheck);
 
     pipeline.setName(pipeline.getName().trim());
-    pipeline = ensureCronTriggersHaveIdentifier(pipeline);
+    ensureCronTriggersHaveIdentifier(pipeline);
 
     if (Strings.isNullOrEmpty(pipeline.getId())
         || (boolean) pipeline.getAny().getOrDefault("regenerateCronTriggerIds", false)) {
@@ -306,7 +306,7 @@ public class PipelineController {
 
     pipeline.setName(pipeline.getName().trim());
     pipeline.setLastModified(System.currentTimeMillis());
-    pipeline = ensureCronTriggersHaveIdentifier(pipeline);
+    ensureCronTriggersHaveIdentifier(pipeline);
 
     pipelineDAO.update(id, pipeline);
 
@@ -414,20 +414,16 @@ public class PipelineController {
     checkForDuplicatePipeline(application, name, null);
   }
 
-  private static Pipeline ensureCronTriggersHaveIdentifier(Pipeline pipeline) {
+  /**
+   * Ensure that cron triggers have an identifier
+   *
+   * @param pipeline examine/modify triggers in this pipeline
+   */
+  private static void ensureCronTriggersHaveIdentifier(Pipeline pipeline) {
     // ensure that all cron triggers have an assigned identifier
     pipeline.getTriggers().stream()
         .filter(it -> "cron".equalsIgnoreCase(it.getType()))
-        .forEach(
-            it -> {
-              String triggerId = (String) it.get("id");
-              if (triggerId == null || triggerId.isEmpty()) {
-                triggerId = UUID.randomUUID().toString();
-              }
-
-              it.put("id", triggerId);
-            });
-
-    return pipeline;
+        .filter(it -> Strings.isNullOrEmpty((String) it.get("id")))
+        .forEach(it -> it.put("id", UUID.randomUUID().toString()));
   }
 }
