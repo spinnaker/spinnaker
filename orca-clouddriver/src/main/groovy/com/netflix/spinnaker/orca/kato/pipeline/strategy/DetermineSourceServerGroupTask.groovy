@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
-
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import java.util.concurrent.TimeUnit
 
@@ -96,7 +95,7 @@ class DetermineSourceServerGroupTask implements RetryableTask {
       consecutiveNotFound: isNotFound ? (stage.context.consecutiveNotFound ?: 0) + 1 : 0
     ]
 
-    if (lastException instanceof RetrofitError && lastException.response?.status == HTTP_FORBIDDEN) {
+    if (lastException instanceof SpinnakerHttpException && lastException.responseCode == HTTP_FORBIDDEN) {
       // short-circuit on a 403 and allow the `RetrofitExceptionHandler` to handle and propagate any error messages
       throw lastException;
     }
