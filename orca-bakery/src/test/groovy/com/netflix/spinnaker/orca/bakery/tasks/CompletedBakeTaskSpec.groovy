@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.selector.v2.SelectableService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.bakery.BakerySelector
@@ -39,12 +40,12 @@ class CompletedBakeTaskSpec extends Specification {
 
   @Shared PipelineExecutionImpl pipeline = pipeline()
 
-  @Shared notFoundError = RetrofitError.httpError(
+  @Shared notFoundError = new SpinnakerHttpException(RetrofitError.httpError(
     null,
     new Response("http://bakery", HTTP_NOT_FOUND, "Not Found", [], null),
     null,
     null
-  )
+  ))
 
   def "finds the AMI and artifact created by a bake"() {
     given:
@@ -105,7 +106,7 @@ class CompletedBakeTaskSpec extends Specification {
 
     then:
     1 * task.bakerySelector.select(_) >> selectedBakeryService
-    thrown(RetrofitError)
+    thrown(SpinnakerHttpException)
 
     where:
     region = "us-west-1"
