@@ -142,6 +142,9 @@ export class PipelineConfigService {
   private static groupStagesByRequisiteStageRefIds(pipeline: IPipeline) {
     return pipeline.stages.reduce((acc, obj) => {
       const parent = obj['refId'];
+      if (obj['requisiteStageRefIds'] === undefined) {
+        obj['requisiteStageRefIds'] = [];
+      }
       obj.requisiteStageRefIds.forEach((child) => {
         const values = acc.get(child);
         if (values && values.length) {
