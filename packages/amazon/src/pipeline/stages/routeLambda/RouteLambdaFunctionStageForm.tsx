@@ -19,7 +19,6 @@ import {
   TextInput,
   useData,
 } from '@spinnaker/core';
-import { NumberConcurrencyInput } from '@spinnaker/core/dist/presentation/forms/inputs/NumberConcurrencyInput';
 
 import { TriggerEventsForm } from './TriggerEventsForm';
 import { DeploymentStrategyForm } from './components';
@@ -123,7 +122,7 @@ export function RouteLambdaFunctionStageForm(props: IFormikStageConfigInjectedPr
           values.deploymentStrategy === '$WEIGHTED' ? (
             <NumberInput {...props} min={0} max={0} />
           ) : (
-            <NumberConcurrencyInput {...props} min={0} max={3000} />
+            <NumberInput {...props} min={0} max={3000} />
           )
         }
         required={false}

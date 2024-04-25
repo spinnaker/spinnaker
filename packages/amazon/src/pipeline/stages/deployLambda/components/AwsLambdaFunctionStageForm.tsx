@@ -15,7 +15,6 @@ import {
   TetheredCreatable,
   TextInput,
 } from '@spinnaker/core';
-import { NumberConcurrencyInput } from '@spinnaker/core/dist/presentation/forms/inputs/NumberConcurrencyInput';
 
 import { BasicSettingsForm, ExecutionRoleForm, LambdaAtEdgeForm, NetworkForm, TriggerEventsForm } from './index';
 
@@ -96,7 +95,7 @@ export function AwsLambdaFunctionStageForm(props: IFormikStageConfigInjectedProp
         help={
           <HelpField content="The total number of current executions of your Lambda function that can be instantiated at any time." />
         }
-        input={(props) => <NumberConcurrencyInput {...props} min={0} max={3000} />}
+        input={(props) => <NumberInput {...props} min={0} max={3000} />}
       />
       <FormikFormField
         name="memorySize"

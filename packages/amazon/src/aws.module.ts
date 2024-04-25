@@ -26,22 +26,26 @@ import { AWS_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import amazonLogo from './logo/amazon.logo.svg';
 import { AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE } from './pipeline/stages/bake/awsBakeStage';
 import { AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE } from './pipeline/stages/cloneServerGroup/awsCloneServerGroupStage';
+import { AMAZON_PIPELINE_STAGES_LAMBDA_DELETE } from './pipeline/stages/deleteLambda';
 import { CLOUD_FORMATION_CHANGE_SET_INFO } from './pipeline/stages/deployCloudFormation/CloudFormationChangeSetInfo';
 import { CLOUDFORMATION_TEMPLATE_ENTRY } from './pipeline/stages/deployCloudFormation/cloudFormationTemplateEntry.component';
 import { DEPLOY_CLOUDFORMATION_STACK_STAGE } from './pipeline/stages/deployCloudFormation/deployCloudFormationStackStage';
 import { AWS_EVALUATE_CLOUD_FORMATION_CHANGE_SET_EXECUTION_SERVICE } from './pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
+import { AMAZON_PIPELINE_STAGES_LAMBDA_DEPLOY } from './pipeline/stages/deployLambda';
 import { AMAZON_PIPELINE_STAGES_DESTROYASG_AWSDESTROYASGSTAGE } from './pipeline/stages/destroyAsg/awsDestroyAsgStage';
 import { AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE } from './pipeline/stages/disableAsg/awsDisableAsgStage';
 import { AMAZON_PIPELINE_STAGES_DISABLECLUSTER_AWSDISABLECLUSTERSTAGE } from './pipeline/stages/disableCluster/awsDisableClusterStage';
 import { AMAZON_PIPELINE_STAGES_ENABLEASG_AWSENABLEASGSTAGE } from './pipeline/stages/enableAsg/awsEnableAsgStage';
 import { AMAZON_PIPELINE_STAGES_FINDAMI_AWSFINDAMISTAGE } from './pipeline/stages/findAmi/awsFindAmiStage';
 import { AMAZON_PIPELINE_STAGES_FINDIMAGEFROMTAGS_AWSFINDIMAGEFROMTAGSSTAGE } from './pipeline/stages/findImageFromTags/awsFindImageFromTagsStage';
+import { AMAZON_PIPELINE_STAGES_LAMBDA_INVOKE } from './pipeline/stages/invokeLambda';
 import { AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE } from './pipeline/stages/modifyScalingProcess/modifyScalingProcessStage';
 import { AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE } from './pipeline/stages/resizeAsg/awsResizeAsgStage';
 import { AMAZON_PIPELINE_STAGES_ROLLBACKCLUSTER_AWSROLLBACKCLUSTERSTAGE } from './pipeline/stages/rollbackCluster/awsRollbackClusterStage';
 import { AMAZON_PIPELINE_STAGES_SCALEDOWNCLUSTER_AWSSCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/awsScaleDownClusterStage';
 import { AMAZON_PIPELINE_STAGES_SHRINKCLUSTER_AWSSHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/awsShrinkClusterStage';
 import { AMAZON_PIPELINE_STAGES_TAGIMAGE_AWSTAGIMAGESTAGE } from './pipeline/stages/tagImage/awsTagImageStage';
+import { AMAZON_PIPELINE_STAGES_LAMBDA_UPDATE } from './pipeline/stages/updateCodeLambda';
 import { AWS_REACT_MODULE } from './reactShims/aws.react.module';
 import { AMAZON_SEARCH_SEARCHRESULTFORMATTER } from './search/searchResultFormatter';
 import { AWS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
@@ -114,6 +118,10 @@ module(AMAZON_MODULE, [
   INSTANCE_SECURITY_GROUPS_COMPONENT,
   INSTANCE_DNS_COMPONENT,
   AMAZON_INSTANCE_INFORMATION_COMPONENT,
+  AMAZON_PIPELINE_STAGES_LAMBDA_DELETE,
+  AMAZON_PIPELINE_STAGES_LAMBDA_DEPLOY,
+  AMAZON_PIPELINE_STAGES_LAMBDA_INVOKE,
+  AMAZON_PIPELINE_STAGES_LAMBDA_UPDATE,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('aws', {
     name: 'Amazon',
