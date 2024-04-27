@@ -30,6 +30,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.telemetry.caffeine.CaffeineStatsCounter;
 import com.netflix.spinnaker.security.AccessControlled;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.UserPermissionEvaluator;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,7 +49,6 @@ import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -58,7 +58,7 @@ import org.springframework.util.backoff.ExponentialBackOff;
 
 @Component
 @Slf4j
-public class FiatPermissionEvaluator implements PermissionEvaluator {
+public class FiatPermissionEvaluator implements UserPermissionEvaluator {
   private static final ThreadLocal<AuthorizationFailure> authorizationFailure = new ThreadLocal<>();
 
   private final Registry registry;
@@ -215,6 +215,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return permissionsCache.getIfPresent(username) != null;
   }
 
+  @Override
   public boolean hasPermission(
       String username, Serializable resourceName, String resourceType, Object authorization) {
     if (!fiatStatus.isEnabled()) {
