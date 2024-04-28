@@ -23,13 +23,11 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreGetter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.UserPermissionEvaluator;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -42,14 +40,14 @@ import software.amazon.awssdk.services.s3.model.Tag;
 @Log4j2
 public class S3ArtifactStoreGetter implements ArtifactStoreGetter {
   private final S3Client s3Client;
-  private final PermissionEvaluator permissionEvaluator;
+  private final UserPermissionEvaluator userPermissionEvaluator;
   private final String bucket;
 
   public S3ArtifactStoreGetter(
-      S3Client s3Client, PermissionEvaluator permissionEvaluator, String bucket) {
+      S3Client s3Client, UserPermissionEvaluator userPermissionEvaluator, String bucket) {
     this.s3Client = s3Client;
     this.bucket = bucket;
-    this.permissionEvaluator = permissionEvaluator;
+    this.userPermissionEvaluator = userPermissionEvaluator;
   }
 
   /**
@@ -99,11 +97,11 @@ public class S3ArtifactStoreGetter implements ArtifactStoreGetter {
             .filter(t -> t.key().equals(ENFORCE_PERMS_KEY))
             .findFirst()
             .orElse(null);
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
     if (tag == null
-        || (permissionEvaluator != null
-            && !permissionEvaluator.hasPermission(auth, tag.value(), "application", "READ"))) {
+        || (userPermissionEvaluator != null
+            && !userPermissionEvaluator.hasPermission(
+                userId, tag.value(), "application", "READ"))) {
       log.error(
           "Could not authenticate to retrieve artifact user={} applicationOfStoredArtifact={}",
           userId,

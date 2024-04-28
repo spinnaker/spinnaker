@@ -20,7 +20,6 @@ import static com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactSt
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,9 +28,9 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.UserPermissionEvaluator;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.access.PermissionEvaluator;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -46,16 +45,11 @@ public class S3ArtifactStoreGetterTest {
   public void testGetAuthenticatedWithUser() {
     // Verify that having a user set is sufficient to authenticate against that
     // user.
-    //
-    // Currently, S3ArtifactStoreGetter.hasAuthorization uses
-    // SecurityContextHolder.getContext().getAuthentication().  In this test
-    // that's null.  In orca at least, there are some calls to
-    // get/hasAuthorization where this is also true, but there is a user
-    // available in AuthenticatedRequest.
 
     // given:
     String application = "my-application";
-    AuthenticatedRequest.set(Header.USER, "my-user");
+    String user = "my-user";
+    AuthenticatedRequest.set(Header.USER, user);
 
     S3Client client = mock(S3Client.class);
 
@@ -72,20 +66,16 @@ public class S3ArtifactStoreGetterTest {
     when(client.getObjectTagging(any(GetObjectTaggingRequest.class)))
         .thenReturn(getObjectTaggingResponse);
 
-    PermissionEvaluator permissionEvaluator = mock(PermissionEvaluator.class);
+    UserPermissionEvaluator userPermissionEvaluator = mock(UserPermissionEvaluator.class);
 
-    // FIXME: The current behavior is to call permissionEvaluator.hasPermission
-    // with a null Authentication object.  The correct behavior is to
-    // authenticate against AuthenticatedRequest.getSpinnakerUser().
-    //
     // It's arbitrary whether to give permission or not (i.e. return true or
     // false).  Choose true since there are then no exceptions to deal with.
-    when(permissionEvaluator.hasPermission(
-            isNull(), eq(application), eq("application"), eq("READ")))
+    when(userPermissionEvaluator.hasPermission(
+            eq(user), eq(application), eq("application"), eq("READ")))
         .thenReturn(true);
 
     S3ArtifactStoreGetter artifactStoreGetter =
-        new S3ArtifactStoreGetter(client, permissionEvaluator, "my-bucket");
+        new S3ArtifactStoreGetter(client, userPermissionEvaluator, "my-bucket");
 
     ArtifactReferenceURI uri = mock(ArtifactReferenceURI.class);
 
@@ -95,9 +85,7 @@ public class S3ArtifactStoreGetterTest {
     // then
     assertThat(artifact).isNotNull();
 
-    // FIXME: Again, the correct behavior is to authenticate against
-    // AuthenticatedRequest.getSpinnakerUser().
-    verify(permissionEvaluator)
-        .hasPermission(isNull(), eq(application), eq("application"), eq("READ"));
+    verify(userPermissionEvaluator)
+        .hasPermission(eq(user), eq(application), eq("application"), eq("READ"));
   }
 }

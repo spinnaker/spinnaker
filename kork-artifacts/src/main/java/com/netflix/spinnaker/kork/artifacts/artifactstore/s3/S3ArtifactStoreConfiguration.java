@@ -19,6 +19,7 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigura
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreGetter;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreStorer;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURIBuilder;
+import com.netflix.spinnaker.security.UserPermissionEvaluator;
 import java.net.URI;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
@@ -27,7 +28,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.PermissionEvaluator;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -57,18 +57,18 @@ public class S3ArtifactStoreConfiguration {
 
   @Bean
   public ArtifactStoreGetter artifactStoreGetter(
-      Optional<PermissionEvaluator> permissionEvaluator,
+      Optional<UserPermissionEvaluator> userPermissionEvaluator,
       ArtifactStoreConfigurationProperties properties,
       @Qualifier("artifactS3Client") S3Client s3Client) {
 
-    if (permissionEvaluator.isEmpty()) {
+    if (userPermissionEvaluator.isEmpty()) {
       log.warn(
-          "PermissionEvaluator is not present. This means anyone will be able to access any artifact in the store.");
+          "UserPermissionEvaluator is not present. This means anyone will be able to access any artifact in the store.");
     }
 
     String bucket = properties.getS3().getBucket();
 
-    return new S3ArtifactStoreGetter(s3Client, permissionEvaluator.orElse(null), bucket);
+    return new S3ArtifactStoreGetter(s3Client, userPermissionEvaluator.orElse(null), bucket);
   }
 
   @Bean
