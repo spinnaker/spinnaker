@@ -21,7 +21,6 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import retrofit.RequestInterceptor
-import retrofit.RetrofitError
 import retrofit.client.OkClient
 import spock.lang.Specification
 import spock.lang.Subject

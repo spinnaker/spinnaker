@@ -36,7 +36,6 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Component
 @Slf4j
