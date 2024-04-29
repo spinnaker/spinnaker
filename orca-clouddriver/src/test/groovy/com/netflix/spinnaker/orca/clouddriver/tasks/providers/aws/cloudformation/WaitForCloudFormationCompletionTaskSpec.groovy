@@ -177,7 +177,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
     def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
-    def error500 = RetrofitError.httpError("url", new Response("url", 500, "reason", [], null), null, null)
+    def error500 = new SpinnakerHttpException(RetrofitError.httpError("url", new Response("url", 500, "reason", [], null), null, null))
 
     when:
     def result = waitForCloudFormationCompletionTask.execute(stage)
@@ -185,7 +185,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     then:
     1 * oortService.getCloudFormationStack('stackId') >> { throw error500 }
     RuntimeException ex = thrown()
-    ex.message == "500 reason"
+    ex.message == "Status: 500, URL: url, Message: reason"
     result == null
   }
 
