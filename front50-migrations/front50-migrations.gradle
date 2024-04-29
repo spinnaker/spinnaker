@@ -24,4 +24,5 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-autoconfigure"
 
   testImplementation project(":front50-test")
+  testImplementation "org.spockframework:spock-spring"
 }
