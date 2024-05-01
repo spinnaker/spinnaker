@@ -22,7 +22,7 @@ jobs:
         go-version-file: go.mod
         cache: false
     - name: Ensure code formatting and style is consistent
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v4
       with:
         version: v1.45.2
 
