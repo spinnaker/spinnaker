@@ -39,6 +39,19 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
         run: ./gradlew build --stacktrace ${{ steps.build_variables.outputs.REPO }}-web:installDist
+      - name: Build local slim container image for testing
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.slim
+          load: true
+          platforms: local
+          tags: |
+            "${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-unvalidated"
+      - name: Test local slim container image
+        env:
+          FULL_DOCKER_IMAGE_NAME: "${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}-unvalidated"
+        run: ./gradlew ${{ steps.build_variables.outputs.REPO }}-integration:test
       - name: Login to GAR
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
