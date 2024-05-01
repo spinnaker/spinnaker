@@ -52,7 +52,6 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import com.netflix.spinnaker.orca.q.DummyTask;
 import com.netflix.spinnaker.orca.q.RunTask;
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
 import com.netflix.spinnaker.q.Queue;
 import java.time.Clock;
@@ -75,7 +74,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
-import retrofit.mime.TypedByteArray;
 import retrofit.mime.TypedString;
 
 /**
@@ -146,14 +144,13 @@ class RunTaskHandlerExceptionHandlerTest {
           new TypedString(
               "{ message: \"arbitrary message\", error: \"error property\", errors: [\"error one\", \"error two\"], messages: [\"message one\", \"message two\"] }"));
 
-  private RetrofitExceptionHandler retrofitExceptionHandler = new RetrofitExceptionHandler();
   private SpinnakerServerExceptionHandler spinnakerServerExceptionHandler =
       new SpinnakerServerExceptionHandler();
   private DefaultExceptionHandler defaultExceptionHandler = new DefaultExceptionHandler();
 
-  /** Put RetrofitExceptionHandler first since its bean is marked as highest precedence */
+  /** Put SpinnakerServerExceptionHandler first since its bean is marked as highest precedence */
   private List<ExceptionHandler> exceptionHandlers =
-      List.of(retrofitExceptionHandler, spinnakerServerExceptionHandler, defaultExceptionHandler);
+      List.of(spinnakerServerExceptionHandler, defaultExceptionHandler);
 
   private Queue queue = mock(Queue.class);
 
@@ -249,57 +246,6 @@ class RunTaskHandlerExceptionHandlerTest {
         .thenReturn(pipeline);
   }
 
-  @ParameterizedTest(name = "{index} => taskThrowsRetrofitErrorNoRetry {0}")
-  @MethodSource("nonRetryableRetrofitErrors")
-  void taskThrowsRetrofitErrorNoRetry(RetrofitError retrofitError) {
-    // given an arbitrary RetrofitError that RetrofitExceptionHandler doesn't consider retryable
-    doThrow(retrofitError).when(dummyTask).execute(any());
-
-    // when
-    runTaskHandler.handle(runTaskMessage);
-
-    // verify that the exception wasn't retried
-    verify(queue, never()).push(eq(runTaskMessage), any());
-
-    // verify that exception handling has populated the stage context as
-    // expected.  This duplicates some logic in RetrofitExceptionHandler, but at
-    // least it helps detect future changes.
-    Map<String, Object> responseBody = (Map<String, Object>) retrofitError.getBodyAs(Map.class);
-    Response response = retrofitError.getResponse();
-    String responseBodyString = new String(((TypedByteArray) response.getBody()).getBytes());
-    String error = (String) responseBody.getOrDefault("error", response.getReason());
-    List<String> errors =
-        (List<String>)
-            responseBody.getOrDefault("errors", responseBody.getOrDefault("messages", List.of()));
-    String message = (String) responseBody.get("message");
-    if (errors.isEmpty() && (message != null)) {
-      errors = List.of(message);
-    }
-
-    ImmutableMap.Builder<String, Object> builder =
-        ImmutableMap.<String, Object>builder()
-            .put("responseBody", responseBodyString)
-            .put("kind", RetrofitError.Kind.HTTP)
-            .put("error", error)
-            .put("errors", errors)
-            .put("url", response.getUrl())
-            .put("status", response.getStatus());
-
-    Object exception = responseBody.get("exception");
-    if (exception != null) {
-      builder.put("rootException", exception);
-    }
-
-    Map<String, Object> responseDetails = builder.build();
-
-    ExceptionHandler.Response expectedResponse =
-        new ExceptionHandler.Response(
-            "RetrofitError", "unspecified", responseDetails, false /* shouldRetry */);
-
-    compareResponse(
-        expectedResponse, (ExceptionHandler.Response) stageExecution.getContext().get("exception"));
-  }
-
   private static Stream<RetrofitError> nonRetryableRetrofitErrors() {
     return Stream.of(
         makeRetrofitError(response),
@@ -308,56 +254,6 @@ class RunTaskHandlerExceptionHandlerTest {
         makeRetrofitError(responseWithErrors),
         makeRetrofitError(responseWithErrorAndErrors),
         makeRetrofitError(responseWithErrorAndErrorsAndMessages));
-  }
-
-  @Test
-  void taskThrowsRetrofitErrorRetryable() {
-    // given an arbitrary RetrofitError that RetrofitExceptionHandler considers retryable
-    RetrofitError retrofitError = makeRetrofitError(response503);
-    doThrow(retrofitError).when(dummyTask).execute(any());
-
-    // when
-    runTaskHandler.handle(runTaskMessage);
-
-    // verify that the exception was retried
-    verify(queue).push(eq(runTaskMessage), any());
-
-    // On retry, expect no exception info in the context
-    assertThat(stageExecution.getContext().get("exception")).isNull();
-  }
-
-  @Test
-  void taskThrowsRetrofitErrorNonJsonResponse() {
-    // given an arbitrary RetrofitError that RetrofitExceptionHandler doesn't consider retryable
-    Response response =
-        new Response(URL, 500, "arbitrary reason", List.of(), new TypedString("non-json response"));
-    RetrofitError retrofitError = makeRetrofitError(response);
-    doThrow(retrofitError).when(dummyTask).execute(any());
-
-    // when
-    runTaskHandler.handle(runTaskMessage);
-
-    // verify that the exception wasn't retried
-    verify(queue, never()).push(eq(runTaskMessage), any());
-
-    // verify that exception handling has populated the stage context as
-    // expected.  This duplicates some logic in RetrofitExceptionHandler, but at
-    // least it helps detect future changes.
-    Map<String, Object> responseDetails =
-        Map.of(
-            "error", response.getReason(),
-            "errors", List.of(),
-            "responseBody", "non-json response",
-            "kind", RetrofitError.Kind.HTTP,
-            "url", response.getUrl(),
-            "status", response.getStatus());
-
-    ExceptionHandler.Response expectedResponse =
-        new ExceptionHandler.Response(
-            "RetrofitError", "unspecified", responseDetails, false /* shouldRetry */);
-
-    compareResponse(
-        expectedResponse, (ExceptionHandler.Response) stageExecution.getContext().get("exception"));
   }
 
   @ParameterizedTest(name = "{index} => taskThrowsSpinnakerHttpExceptionNoRetry {0}")
@@ -454,8 +350,8 @@ class RunTaskHandlerExceptionHandlerTest {
     // verify that exception handling has populated the stage context as
     // expected.  There's no implementation for this yet in
     // SpinnakerServerExceptionHandler since SpinnakerHttpException can't handle
-    // non-json responses yet.  The expected details here matches the current
-    // behavior of RetrofitExceptionHandler.
+    // non-json responses yet.  The expected details here match the behavior of
+    // RetrofitExceptionHandler, when it existed.
     Map<String, Object> responseDetails =
         Map.of(
             "error", spinnakerHttpException.getReason(),

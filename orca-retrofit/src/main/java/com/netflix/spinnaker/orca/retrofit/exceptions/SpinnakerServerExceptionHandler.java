@@ -79,7 +79,7 @@ public class SpinnakerServerExceptionHandler extends BaseRetrofitExceptionHandle
 
         Object exceptionProperty = body.get("exception");
         if (exceptionProperty != null) {
-          // Mirror what RetrofitExceptionHandler does.
+          // Mirror what RetrofitExceptionHandler did.
           responseDetails.put("rootException", exceptionProperty);
         } else {
           // If there's no explicit exception property, include the stack trace in
@@ -91,7 +91,7 @@ public class SpinnakerServerExceptionHandler extends BaseRetrofitExceptionHandle
               "stackTrace", Throwables.getStackTraceAsString(spinnakerHttpException));
         }
 
-        // RetrofitExceptionHandler includes the entire response body as a string.
+        // RetrofitExceptionHandler included the entire response body as a string.
         // This seems a bit much, as, in theory, SpinnakerHttpException extracts
         // all the relevant information already.  As well, the response could be
         // huge so it's likely not a good idea to try to include all of it.  As
@@ -116,9 +116,8 @@ public class SpinnakerServerExceptionHandler extends BaseRetrofitExceptionHandle
     }
 
     // Although Spinnaker*Exception has a retryable property that other parts of
-    // spinnaker use, ignore it here for compatibility with
-    // RetrofitExceptionHandler, specifically because that doesn't retry (most)
-    // POST requests which could be dangerous.
+    // spinnaker use, ignore it here because that would retry (most) POST
+    // requests which could be dangerous.
     return new ExceptionHandler.Response(
         ex.getClass().getSimpleName(),
         taskName,

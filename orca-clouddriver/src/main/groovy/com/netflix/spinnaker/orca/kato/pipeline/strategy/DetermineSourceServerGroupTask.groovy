@@ -96,7 +96,7 @@ class DetermineSourceServerGroupTask implements RetryableTask {
     ]
 
     if (lastException instanceof SpinnakerHttpException && lastException.responseCode == HTTP_FORBIDDEN) {
-      // short-circuit on a 403 and allow the `RetrofitExceptionHandler` to handle and propagate any error messages
+      // short-circuit on a 403 and allow the ExceptionHandler to handle and propagate any error messages
       throw lastException;
     }
 

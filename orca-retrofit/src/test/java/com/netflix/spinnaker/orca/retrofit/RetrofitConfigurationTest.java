@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler;
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
 import java.util.List;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -63,20 +62,15 @@ class RetrofitConfigurationTest {
               List<ExceptionHandler> exceptionHandlers =
                   allExceptionHandlers.getExceptionHandlers();
 
-              assertThat(exceptionHandlers).hasSize(3);
+              assertThat(exceptionHandlers).hasSize(2);
 
-              Integer retrofitExceptionHandlerIndex = null;
               Integer spinnakerServerExceptionHandlerIndex = null;
               Integer defaultExceptionHandlerIndex = null;
 
               // Figure out where each handler is in the list
               for (ExceptionHandler exceptionHandler : exceptionHandlers) {
                 int thisIndex = exceptionHandlers.indexOf(exceptionHandler);
-                if (exceptionHandler instanceof RetrofitExceptionHandler) {
-                  // Make sure there's exactly one RetrofitExceptionHandler
-                  assertThat(retrofitExceptionHandlerIndex).isNull();
-                  retrofitExceptionHandlerIndex = thisIndex;
-                } else if (exceptionHandler instanceof SpinnakerServerExceptionHandler) {
+                if (exceptionHandler instanceof SpinnakerServerExceptionHandler) {
                   // Make sure there's exactly one SpinnakerServerExceptionHandler
                   assertThat(spinnakerServerExceptionHandlerIndex).isNull();
                   spinnakerServerExceptionHandlerIndex = thisIndex;
@@ -90,13 +84,8 @@ class RetrofitConfigurationTest {
               }
 
               // Make sure we found each handler
-              assertThat(retrofitExceptionHandlerIndex).isNotNull();
               assertThat(spinnakerServerExceptionHandlerIndex).isNotNull();
               assertThat(defaultExceptionHandlerIndex).isNotNull();
-
-              // Verify that the position of RetrofitExceptionHandler is before
-              // DefaultExceptionHandler
-              assertThat(retrofitExceptionHandlerIndex).isLessThan(defaultExceptionHandlerIndex);
 
               // Verify that the position of SpinnakerServerExceptionHandler is before
               // DefaultExceptionHandler

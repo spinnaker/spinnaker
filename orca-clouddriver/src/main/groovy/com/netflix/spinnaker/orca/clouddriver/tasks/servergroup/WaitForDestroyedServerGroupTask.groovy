@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
 import com.netflix.spinnaker.orca.clouddriver.utils.ClusterDescriptor
 import com.netflix.spinnaker.orca.clouddriver.utils.ServerGroupDescriptor
-import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
