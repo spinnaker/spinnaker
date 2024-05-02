@@ -309,7 +309,9 @@ resilience4j.retry:
 ---
 
 spring:
-  profiles: prod
+  config:
+    activate:
+      on-profile: prod
 
 # example https configuration for client auth to services:
 #default:
@@ -347,7 +349,9 @@ spring:
 # local profile is activated by default when running the application - override values here for local development
 #  for production, set spring.profiles.active to select the appropriate profile for your environment
 spring:
-  profiles: local
+  config:
+    activate:
+      on-profile: local
 
 # an AWSCredentialsProvider that obtains session credentials via SSH through a bastion instance (useful for local development):
 #bastion:
@@ -360,7 +364,9 @@ spring:
 # This profile is used in HA deployments for a clouddriver that handles read-only requests from
 # other services
 spring:
-  profiles: ro
+  config:
+    activate:
+      on-profile: ro
 
 redis:
   connection: ${services.redisRo.baseUrl:${services.redis.baseUrl}}
@@ -372,7 +378,9 @@ caching:
 # This profile is used in HA deployments for a clouddriver that handles mutating requests from
 # other services, but does not run caching agents
 spring:
-  profiles: rw
+  config:
+    activate:
+      on-profile: rw
 
 caching:
   writeEnabled: false

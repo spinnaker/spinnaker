@@ -16,6 +16,7 @@ RUN apk update \
   && apk --no-cache add --update \
     bash \
     ca-certificates \
+    curl \
     wget \
     openjdk17 \
     git \
@@ -64,5 +65,5 @@ COPY clouddriver-web/build/install/clouddriver /opt/clouddriver
 RUN mkdir -p /opt/clouddriver/plugins && chown -R spinnaker:nogroup /opt/clouddriver/plugins
 
 USER spinnaker
-
+HEALTHCHECK CMD curl --fail http://localhost:7002/health
 CMD ["/opt/clouddriver/bin/clouddriver"]
