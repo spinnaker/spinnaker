@@ -8,10 +8,19 @@ import { OrchestratedItemTransformer } from '../orchestratedItem/orchestratedIte
 export class TaskReader {
   private static activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
-  public static getTasks(applicationName: string, statuses: string[] = []): PromiseLike<ITask[]> {
+  public static getTasks(
+    applicationName: string,
+    statuses: string[] = [],
+    limitPerPage: number = null,
+    page: number = null,
+  ): PromiseLike<ITask[]> {
     return REST('/applications')
       .path(applicationName, 'tasks')
-      .query({ statuses: statuses.join(',') })
+      .query({
+        statuses: statuses.join(','),
+        limit: limitPerPage,
+        page: page,
+      })
       .get()
       .then((tasks: ITask[]) => {
         tasks.forEach((task) => this.setTaskProperties(task));
