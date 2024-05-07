@@ -19,6 +19,7 @@ export function InvokeLambdaOperation(props: IFormikStageConfigInjectedProps) {
     ArtifactTypePatterns.BITBUCKET_FILE,
     ArtifactTypePatterns.CUSTOM_OBJECT,
     ArtifactTypePatterns.EMBEDDED_BASE64,
+    ArtifactTypePatterns.REMOTE_BASE64,
     ArtifactTypePatterns.GCS_OBJECT,
     ArtifactTypePatterns.GITHUB_FILE,
     ArtifactTypePatterns.GITLAB_FILE,
