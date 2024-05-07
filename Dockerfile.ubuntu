@@ -1,8 +1,9 @@
 FROM ubuntu:bionic
 LABEL maintainer="sig-platform@spinnaker.io"
-RUN apt-get update && apt-get -y install openjdk-17-jre-headless wget
+RUN apt-get update && apt-get -y install curl openjdk-17-jre-headless wget
 RUN adduser --system --uid 10111 --group spinnaker
 COPY orca-web/build/install/orca /opt/orca
 RUN mkdir -p /opt/orca/plugins && chown -R spinnaker:nogroup /opt/orca/plugins
 USER spinnaker
+HEALTHCHECK CMD curl --fail http://localhost:8083/health
 CMD ["/opt/orca/bin/orca"]
