@@ -41,7 +41,6 @@ dependencies {
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"
   implementation "org.codehaus.groovy:groovy"
-  implementation "org.springframework.boot:spring-boot-starter-test"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "cglib:cglib-nodep"
@@ -49,6 +48,7 @@ dependencies {
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
 
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework:spring-test"
