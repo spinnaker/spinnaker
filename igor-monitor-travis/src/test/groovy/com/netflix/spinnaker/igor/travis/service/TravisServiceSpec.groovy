@@ -351,10 +351,10 @@ class TravisServiceSpec extends Specification {
         service.accessToken = accessToken
 
         when:
-        def genericBuilds = service.getBuilds("my/slug")
+        def genericBuilds = service.getBuilds("my/slug/master")
 
         then:
-        1 * client.v3builds("token someToken", "my/slug", TRAVIS_BUILD_RESULT_LIMIT,
+        1 * client.v3builds("token someToken", "my/slug", "master", "push,api", TRAVIS_BUILD_RESULT_LIMIT,
             legacyLogFetching ? null : "build.log_complete") >> new V3Builds([builds: [build]])
         (isLogCompleteFlag ? 0 : 1) * travisCache.getJobLog("travis-ci", 2) >> (isLogCached ? "log" : null)
         (!isLogCompleteFlag && !isLogCached ? 1 : 0) * client.jobLog("token someToken", 2) >> v3log

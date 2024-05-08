@@ -266,7 +266,7 @@ public class TravisService implements BuildOperations, BuildProperties {
                 getAccessToken(),
                 repoSlug,
                 branch,
-                "push",
+                "push,api",
                 buildResultLimit,
                 addLogCompleteIfApplicable());
         break;
