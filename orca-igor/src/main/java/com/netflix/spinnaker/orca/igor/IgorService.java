@@ -84,7 +84,7 @@ public interface IgorService {
       @Path("buildNumber") Integer buildNumber,
       @Path("fileName") String fileName,
       @Path("master") String master,
-      @Query(value = "job") String job);
+      @Query(encodeValue = false, value = "job") String job);
 
   @GET("/{repoType}/{projectKey}/{repositorySlug}/compareCommits")
   List compareCommits(
@@ -105,7 +105,7 @@ public interface IgorService {
       @Path("buildNumber") Integer buildNumber,
       @Query("propertyFile") String propertyFile,
       @Path("master") String master,
-      @Query(value = "job") String job);
+      @Query(value = "job", encodeValue = false) String job);
 
   @POST("/gcb/builds/create/{account}")
   GoogleCloudBuild createGoogleCloudBuild(
