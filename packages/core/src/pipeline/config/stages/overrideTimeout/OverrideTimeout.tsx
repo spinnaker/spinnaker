@@ -1,4 +1,4 @@
-import { get } from 'lodash';
+import { get, isNumber } from 'lodash';
 import { Duration } from 'luxon';
 import React from 'react';
 
@@ -10,7 +10,7 @@ const { useEffect, useState } = React;
 
 export interface IOverrideTimeoutConfigProps {
   stageConfig: IStageConfig;
-  stageTimeoutMs: number;
+  stageTimeoutMs: number | any;
   updateStageField: (changes: Partial<IStage>) => void;
 }
 
@@ -41,8 +41,13 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
   }, [props.stageTimeoutMs]);
 
   const stageChanged = () => {
-    if (props.stageTimeoutMs !== undefined) {
+    if (props.stageTimeoutMs !== undefined && !isExpression) {
       enableTimeout();
+    } else if (props.stageTimeoutMs !== undefined && isExpression) {
+      setOverrideTimeout(true);
+      props.updateStageField({
+        stageTimeoutMs: props.stageTimeoutMs || null,
+      });
     } else {
       clearTimeout();
     }
@@ -74,6 +79,10 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
   };
 
   const isConfigurable = !!get(props.stageConfig, 'supportsCustomTimeout');
+  const isExpression =
+    props.stageTimeoutMs !== undefined && props.stageTimeoutMs !== null && !isNumber(props.stageTimeoutMs)
+      ? props.stageTimeoutMs.includes('${')
+      : false;
 
   if (isConfigurable) {
     return (
@@ -94,7 +103,7 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
             </div>
           </div>
         </div>
-        {overrideTimeout && (
+        {overrideTimeout && !isExpression && (
           <div>
             <div className="form-group form-inline">
               <div className="col-md-9 col-md-offset-1 checkbox-padding">
@@ -119,6 +128,17 @@ export const OverrideTimeout = (props: IOverrideTimeoutConfigProps) => {
                   value={minutes}
                 />{' '}
                 minutes to complete
+              </div>
+            </div>
+          </div>
+        )}
+        {overrideTimeout && isExpression && (
+          <div className="form-group">
+            <div className="col-md-9 col-md-offset-1">
+              <div className="sm-control-field">
+                <span>
+                  Resolved at runtime from expression: <code>{props.stageTimeoutMs}</code>
+                </span>
               </div>
             </div>
           </div>

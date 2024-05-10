@@ -54,6 +54,10 @@ export interface ICustomValidator extends IStageOrTriggerValidator, IValidatorCo
   [k: string]: any;
 }
 
+function isNumberOrSpel(valInput: any) {
+  return (isNumber(valInput) && valInput > 0) || (typeof valInput === 'string' && valInput.includes('${'));
+}
+
 export class PipelineConfigValidator {
   private static validators: Map<string, IStageOrTriggerValidator> = new Map();
   private static validationStream: Subject<IPipelineValidationResults> = new Subject();
@@ -151,7 +155,7 @@ export class PipelineConfigValidator {
         );
       }
 
-      if (stage.stageTimeoutMs !== undefined && !(isNumber(stage.stageTimeoutMs) && stage.stageTimeoutMs > 0)) {
+      if (stage.stageTimeoutMs !== undefined && !isNumberOrSpel(stage.stageTimeoutMs)) {
         stageValidations.set(stage, [
           ...(stageValidations.get(stage) || []),
           'Stage is configured to fail after a specific amount of time, but no time is set.',
