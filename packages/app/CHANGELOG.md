@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.8.0](https://github.com/spinnaker/deck/compare/deck-app@2.7.0...deck-app@2.8.0) (2024-05-10)
+
+
+
+# 3.17.0 (2024-04-16)
+
+
+### Features
+
+* **cdevents-notification:** CDEvents notification to produce CDEvents ([#9997](https://github.com/spinnaker/deck/issues/9997)) ([fc96adb](https://github.com/spinnaker/deck/commit/fc96adb17b5051f655e1d651b28c8eb0efd7e11e))
+
+
+
+
+
 # [2.7.0](https://github.com/spinnaker/deck/compare/deck-app@2.6.0...deck-app@2.7.0) (2023-12-07)
 
 
