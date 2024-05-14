@@ -19,6 +19,7 @@ export interface ICanarySettings {
   atlasGraphBaseUrl: string;
   templatesEnabled: boolean;
   manualAnalysisEnabled: boolean;
+  disableConfigEdit: boolean;
   legacySiteLocalFieldsEnabled: boolean; // legacy fields for backwards-compat with old systems, no long term support planned
 }
 
