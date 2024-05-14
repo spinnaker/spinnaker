@@ -72,6 +72,21 @@ class FunctionalSpec extends Specification {
 
   ConfigurableApplicationContext ctx
 
+  static Properties origProperties;
+
+  void setupSpec() {
+    origProperties = System.getProperties();
+    Properties copy = new Properties();
+    copy.putAll(origProperties);
+    System.setProperties(copy);
+  }
+
+  def cleanupSpec() {
+    if (origProperties != null) {
+      System.setProperties(origProperties)
+    }
+  }
+
   void setup() {
     applicationService = Mock(ApplicationService)
     orcaServiceSelector = Mock(OrcaServiceSelector)
