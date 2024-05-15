@@ -56,13 +56,21 @@ class ClusterControllerSpec extends Specification {
         getApplication("app") >> app2
       }
 
-      clusterController.applicationProviders = [appProvider1, appProvider2]
+      def app3 = Stub(Application) {
+        getName() >> "app"
+        getClusterNames() >> ["stage": ["we-need-all-clusters-to-be-returned"] as Set]
+      }
+      def appProvider3 = Stub(ApplicationProvider) {
+        getApplication("app") >> app3
+      }
+
+      clusterController.applicationProviders = [appProvider1, appProvider2, appProvider3]
 
     when:
       def result = clusterController.listByAccount("app")
 
     then:
-      result == [test: ["foo", "bar"] as Set, prod: ["baz"] as Set]
+      result == [test: ["foo", "bar"] as Set, prod: ["baz"] as Set, stage: ["we-need-all-clusters-to-be-returned"] as Set]
   }
 
   void "should throw exception when looking for specific cluster that doesnt exist"() {

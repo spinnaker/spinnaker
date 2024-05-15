@@ -79,23 +79,14 @@ class ClusterController {
       .sorted(Comparator.comparing({ Application it -> it.getName().toLowerCase() }))
       .collect(Collectors.toList())
 
-    Map<String, Set<String>> clusterNames = Map.of()
-    def lastApp = null
-    for (app in apps) {
-      if (!lastApp) {
-        clusterNames = app.getClusterNames()
-      } else {
-        clusterNames = mergeClusters(lastApp, app)
-      }
-      lastApp = app
-    }
+    Map<String, Set<String>> clusterNames = mergeClusters(apps)
     return clusterNames
   }
 
-  private Map<String, Set<String>> mergeClusters(Application a, Application b) {
+  private Map<String, Set<String>> mergeClusters(List<Application> a) {
     Map<String, Set<String>> map = new HashMap<>()
 
-    Stream.of(a, b)
+    a.stream()
       .flatMap({ it.getClusterNames().entrySet().stream() })
       .forEach({ entry ->
         map.computeIfAbsent(entry.getKey(), { new HashSet<>() }).addAll(entry.getValue())
