@@ -57,6 +57,8 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -103,17 +105,24 @@ public class SqlExecutionRepositoryReadReplicaTest {
   private final long readPoolCompressedUpdatedAt = 3000L;
   private final long firstStageReadPoolUpdatedAt = 5000L;
   private final long secondStageReadPoolUpdatedAt = 2000L;
-
-  // Set up initial metric values
-  private long retrieveSucceededCount = 0;
-  private long retrieveFailedCount = 0;
-  private long retrieveTotalAttemptsCount = 0;
+  private final String pipelineId = ID_GENERATOR.nextULID();
+  private final PipelineExecution defaultPoolPipelineExecution =
+      new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
+  private final PipelineExecution readPoolPipelineExecution =
+      new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
 
   @DynamicPropertySource
   static void registerSQLProperties(DynamicPropertyRegistry registry) {
     registry.add("sql.connectionPools.default.jdbcUrl", () -> primaryInstanceUrl);
     registry.add("sql.migration.jdbcUrl", () -> primaryInstanceUrl);
     registry.add("sql.connectionPools.read.jdbcUrl", () -> readReplicaUrl);
+  }
+
+  @BeforeEach
+  void configureExecutions() {
+    // Set some fields in the PipelineExecutions to differentiate them from each other
+    defaultPoolPipelineExecution.setName("defaultPoolPipelineExecution");
+    readPoolPipelineExecution.setName("readPoolPipelineExecution");
   }
 
   @AfterEach
@@ -144,234 +153,255 @@ public class SqlExecutionRepositoryReadReplicaTest {
     SqlTestUtil.cleanupDb(readReplica.context);
   }
 
-  /**
-   * Retrieve a pipeline execution from the read pool if it is up-to-date. Otherwise, use the
-   * default pool. If the latest version of a pipeline execution is not required
-   * (requireLatestVersion = false), then retrieve the execution from the read pool
-   */
   @Test
-  void testRetrieveRequireLatestVersion() throws SQLException, IOException {
-    // given
-    // Set up tables
-    String pipelineId = ID_GENERATOR.nextULID();
-    PipelineExecution defaultPoolPipelineExecution =
-        new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
-    PipelineExecution readPoolPipelineExecution =
-        new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
-    // Set some fields in the PipelineExecutions to differentiate them from each other
-    defaultPoolPipelineExecution.setName("defaultPoolPipelineExecution");
-    readPoolPipelineExecution.setName("readPoolPipelineExecution");
+  void useReadPoolWhenConsistencyIsNotRequired() throws SQLException, IOException {
     initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
-    doReturn(0).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
-
-    // when readPoolUpdatedAt > expected pipeline execution update
-    // i.e. the read pool is up-to-date and contains a more recent execution than what we need
-    doReturn(Instant.ofEpochMilli(ThreadLocalRandom.current().nextLong(0L, readPoolUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getPipelineExecutionUpdate(pipelineId);
     PipelineExecution execution =
-        executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
-    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
-    retrieveSucceededCount++;
-    retrieveTotalAttemptsCount++;
-    verifyMetricValues();
-
-    // when readPoolUpdatedAt == expected pipeline execution update
-    // i.e. the read pool is up-to-date
-    doReturn(Instant.ofEpochMilli(readPoolUpdatedAt))
-        .when(replicationLagAwareRepository)
-        .getPipelineExecutionUpdate(pipelineId);
-    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
-    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
-    retrieveSucceededCount++;
-    retrieveTotalAttemptsCount++;
-    verifyMetricValues();
-
-    // when readPoolUpdatedAt < expected pipeline execution update
-    // i.e. the read pool is not up-to-date
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current().nextLong(readPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getPipelineExecutionUpdate(pipelineId);
-    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
-    assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
-    retrieveFailedCount++;
-    retrieveTotalAttemptsCount++;
-    verifyMetricValues();
-
-    // when requireLatestVersion = false
-    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
+        executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
     assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
   }
 
-  /**
-   * Retrieve a pipeline execution from the read pool if the executions table and the compressed
-   * executions tables for pipelines and stages are up-to-date. Otherwise, use the default pool. If
-   * the latest version of a pipeline execution is not required (requireLatestVersion = false), then
-   * retrieve the execution from the read pool
-   */
-  @Test
-  void testRetrieveCompressedExecutionRequireLatestVersion() throws SQLException, IOException {
-    doReturn(true).when(executionCompressionProperties).getEnabled();
+  @Nested
+  class TestRetrieveUncompressedExecutions {
+    @BeforeEach
+    void setUpTables() throws SQLException, IOException {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+      doReturn(0).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
+    }
 
-    // given
-    // Set up tables
-    // Pipeline executions
-    String pipelineId = ID_GENERATOR.nextULID();
-    PipelineExecution defaultPoolPipelineExecution =
+    @Test
+    void readPoolIsMoreRecentThanExpected() {
+      // given readPoolUpdatedAt > expected pipeline execution update
+      // i.e. the read pool is up-to-date and contains a more recent execution than what we need
+      doReturn(Instant.ofEpochMilli(ThreadLocalRandom.current().nextLong(0L, readPoolUpdatedAt)))
+          .when(replicationLagAwareRepository)
+          .getPipelineExecutionUpdate(pipelineId);
+
+      PipelineExecution execution =
+          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+      assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+      validateReadPoolMetricsOnSuccess();
+    }
+
+    @Test
+    void readPoolIsUpToDate() {
+      // given readPoolUpdateAt == expected pipeline execution update
+      // i.e. the read pool is up-to-date
+      doReturn(Instant.ofEpochMilli(readPoolUpdatedAt))
+          .when(replicationLagAwareRepository)
+          .getPipelineExecutionUpdate(pipelineId);
+
+      PipelineExecution execution =
+          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+      assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+      validateReadPoolMetricsOnSuccess();
+    }
+
+    @Test
+    void readPoolIsNotUpToDate() {
+      // given readPoolUpdatedAt < expected pipeline execution update
+      // i.e. the read pool is not up-to-date
+      doReturn(
+              Instant.ofEpochMilli(
+                  ThreadLocalRandom.current()
+                      .nextLong(readPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
+          .when(replicationLagAwareRepository)
+          .getPipelineExecutionUpdate(pipelineId);
+
+      PipelineExecution execution =
+          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+      assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+      validateReadPoolMetricsOnFailure();
+    }
+  }
+
+  @Nested
+  class TestRetrieveCompressedExecutions {
+    private final String pipelineId = ID_GENERATOR.nextULID();
+    private final PipelineExecution defaultPoolPipelineExecution =
         new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
-    PipelineExecution readPoolPipelineExecution =
+    private final PipelineExecution readPoolPipelineExecution =
         new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
-    // Set some fields in the PipelineExecutions to differentiate them from each other
-    defaultPoolPipelineExecution.setName("defaultPoolPipelineExecution");
-    readPoolPipelineExecution.setName("readPoolPipelineExecution");
-    initDBWithCompressedExecution(
-        pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
-    doReturn(0).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
 
-    // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update
-    // i.e. both the pipeline and compressed pipeline execution tables are up-to-date
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getPipelineExecutionUpdate(pipelineId);
-    PipelineExecution execution =
-        executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
-    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
-    retrieveSucceededCount++;
-    retrieveTotalAttemptsCount++;
-    verifyMetricValues();
+    @BeforeEach
+    void setUpTables() throws SQLException, IOException {
+      doReturn(true).when(executionCompressionProperties).getEnabled();
 
-    // when readPoolUpdatedAt > expected pipeline execution update > readPoolCompressedUpdatedAt
-    // i.e. the pipeline execution table is up-to-date but the compressed pipeline execution table
-    // is not
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current()
-                    .nextLong(readPoolCompressedUpdatedAt + 1, readPoolUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getPipelineExecutionUpdate(pipelineId);
-    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
-    assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
-    retrieveFailedCount++;
-    retrieveTotalAttemptsCount++;
-    verifyMetricValues();
+      initDBWithCompressedExecution(
+          pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+      doReturn(0).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
+    }
 
-    // when expected pipeline execution update > readPoolUpdatedAt > readPoolCompressedUpdatedAt
-    // i.e. neither the pipeline nor the compressed pipeline execution tables are up-to-date
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current().nextLong(readPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getPipelineExecutionUpdate(pipelineId);
-    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
-    assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
-    retrieveFailedCount++;
-    retrieveTotalAttemptsCount++;
-    verifyMetricValues();
+    @Test
+    void readPoolIsUpToDate() {
+      // given readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update
+      // i.e. both the pipeline and compressed pipeline execution tables are up-to-date
+      doReturn(
+              Instant.ofEpochMilli(
+                  ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
+          .when(replicationLagAwareRepository)
+          .getPipelineExecutionUpdate(pipelineId);
 
-    // given
-    // Set up stages
-    // Stage executions
-    StageExecution firstStageDefaultPool =
-        new StageExecutionImpl(
-            defaultPoolPipelineExecution, "test", "stage 1 default", new HashMap<>());
-    StageExecution secondStageDefaultPool =
-        new StageExecutionImpl(
-            defaultPoolPipelineExecution, "test", "stage 2 default", new HashMap<>());
-    StageExecution firstStageReadPool =
-        new StageExecutionImpl(readPoolPipelineExecution, "test", "stage 1 read", new HashMap<>());
-    StageExecution secondStageReadPool =
-        new StageExecutionImpl(readPoolPipelineExecution, "test", "stage 2 read", new HashMap<>());
-    initDBWithStages(
-        pipelineId,
-        Map.of(
-            firstStageDefaultPool,
-            defaultPoolUpdatedAt,
-            secondStageDefaultPool,
-            defaultPoolUpdatedAt),
-        Map.of(
-            firstStageReadPool,
-            firstStageReadPoolUpdatedAt,
-            secondStageReadPool,
-            secondStageReadPoolUpdatedAt));
-    doReturn(2).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
+      PipelineExecution execution =
+          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
 
-    // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update and
-    // firstStageReadPoolUpdatedAt > secondStageReadPoolUpdatedAt > expected stage execution updates
-    // i.e. all pipeline and stage execution tables are up-to-date
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getPipelineExecutionUpdate(pipelineId);
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current().nextLong(0L, firstStageReadPoolUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getStageExecutionUpdate(firstStageReadPool.getId());
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current().nextLong(0L, secondStageReadPoolUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getStageExecutionUpdate(secondStageReadPool.getId());
-    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
-    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
-    List<String> expectedStageNames = new ArrayList<>();
-    expectedStageNames.add(firstStageReadPool.getName());
-    expectedStageNames.add(secondStageReadPool.getName());
-    Collections.sort(expectedStageNames);
-    List<String> actualStageNames =
-        execution.getStages().stream()
-            .map(StageExecution::getName)
-            .sorted()
-            .collect(Collectors.toList());
-    assertThat(actualStageNames).isEqualTo(expectedStageNames);
-    retrieveSucceededCount++;
-    retrieveTotalAttemptsCount++;
-    verifyMetricValues();
+      assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+      validateReadPoolMetricsOnSuccess();
+    }
 
-    // when readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update
-    // and firstStageReadPoolUpdatedAt > expected first stage execution update
-    // and expected second stage execution update > secondStageReadPoolUpdatedAt
-    // i.e. all executions in the read replica are up-to-date except for secondStageReadPool
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getPipelineExecutionUpdate(pipelineId);
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current().nextLong(0L, firstStageReadPoolUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getStageExecutionUpdate(firstStageReadPool.getId());
-    doReturn(
-            Instant.ofEpochMilli(
-                ThreadLocalRandom.current()
-                    .nextLong(secondStageReadPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
-        .when(replicationLagAwareRepository)
-        .getStageExecutionUpdate(secondStageReadPool.getId());
-    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
-    assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
-    expectedStageNames = new ArrayList<>();
-    expectedStageNames.add(firstStageDefaultPool.getName());
-    expectedStageNames.add(secondStageDefaultPool.getName());
-    Collections.sort(expectedStageNames);
-    actualStageNames =
-        execution.getStages().stream()
-            .map(StageExecution::getName)
-            .sorted()
-            .collect(Collectors.toList());
-    assertThat(actualStageNames).isEqualTo(expectedStageNames);
-    retrieveFailedCount++;
-    retrieveTotalAttemptsCount++;
-    verifyMetricValues();
+    @Test
+    void readPoolCompressedExecutionIsNotUpToDate() {
+      // given readPoolUpdatedAt > expected pipeline execution update > readPoolCompressedUpdatedAt
+      // i.e. the pipeline execution table is up-to-date but the compressed pipeline execution table
+      // is not
+      doReturn(
+              Instant.ofEpochMilli(
+                  ThreadLocalRandom.current()
+                      .nextLong(readPoolCompressedUpdatedAt + 1, readPoolUpdatedAt)))
+          .when(replicationLagAwareRepository)
+          .getPipelineExecutionUpdate(pipelineId);
 
-    // when requireLatestVersion = false
-    execution = executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
-    assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+      PipelineExecution execution =
+          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+      assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+      validateReadPoolMetricsOnFailure();
+    }
+
+    @Test
+    void readPoolNoExecutionsAreUpToDate() {
+      // when expected pipeline execution update > readPoolUpdatedAt > readPoolCompressedUpdatedAt
+      // i.e. neither the pipeline nor the compressed pipeline execution tables are up-to-date
+      doReturn(
+              Instant.ofEpochMilli(
+                  ThreadLocalRandom.current()
+                      .nextLong(readPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
+          .when(replicationLagAwareRepository)
+          .getPipelineExecutionUpdate(pipelineId);
+
+      PipelineExecution execution =
+          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+      assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+      validateReadPoolMetricsOnFailure();
+    }
+
+    @Nested
+    class TestRetrieveCompressedExecutionsWithStages {
+      private final StageExecution firstStageDefaultPool =
+          new StageExecutionImpl(
+              defaultPoolPipelineExecution, "test", "stage 1 default", new HashMap<>());
+      private final StageExecution secondStageDefaultPool =
+          new StageExecutionImpl(
+              defaultPoolPipelineExecution, "test", "stage 2 default", new HashMap<>());
+      private final StageExecution firstStageReadPool =
+          new StageExecutionImpl(
+              readPoolPipelineExecution, "test", "stage 1 read", new HashMap<>());
+      private final StageExecution secondStageReadPool =
+          new StageExecutionImpl(
+              readPoolPipelineExecution, "test", "stage 2 read", new HashMap<>());
+
+      @BeforeEach
+      void setUpStageTables() throws SQLException, IOException {
+        initDBWithStages(
+            pipelineId,
+            Map.of(
+                firstStageDefaultPool,
+                defaultPoolUpdatedAt,
+                secondStageDefaultPool,
+                defaultPoolUpdatedAt),
+            Map.of(
+                firstStageReadPool,
+                firstStageReadPoolUpdatedAt,
+                secondStageReadPool,
+                secondStageReadPoolUpdatedAt));
+        doReturn(2).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
+      }
+
+      @Test
+      void readPoolIsUpToDate() {
+        // given readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution
+        // update and
+        // firstStageReadPoolUpdatedAt > secondStageReadPoolUpdatedAt > expected stage execution
+        // updates
+        // i.e. all pipeline and stage execution tables are up-to-date
+        doReturn(
+                Instant.ofEpochMilli(
+                    ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
+            .when(replicationLagAwareRepository)
+            .getPipelineExecutionUpdate(pipelineId);
+        doReturn(
+                Instant.ofEpochMilli(
+                    ThreadLocalRandom.current().nextLong(0L, firstStageReadPoolUpdatedAt)))
+            .when(replicationLagAwareRepository)
+            .getStageExecutionUpdate(firstStageReadPool.getId());
+        doReturn(
+                Instant.ofEpochMilli(
+                    ThreadLocalRandom.current().nextLong(0L, secondStageReadPoolUpdatedAt)))
+            .when(replicationLagAwareRepository)
+            .getStageExecutionUpdate(secondStageReadPool.getId());
+
+        PipelineExecution execution =
+            executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+        assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+        List<String> expectedStageNames = new ArrayList<>();
+        expectedStageNames.add(firstStageReadPool.getName());
+        expectedStageNames.add(secondStageReadPool.getName());
+        Collections.sort(expectedStageNames);
+        List<String> actualStageNames =
+            execution.getStages().stream()
+                .map(StageExecution::getName)
+                .sorted()
+                .collect(Collectors.toList());
+        assertThat(actualStageNames).isEqualTo(expectedStageNames);
+        validateReadPoolMetricsOnSuccess();
+      }
+
+      @Test
+      void readPoolStageExecutionIsNotUpToDate() {
+        // given readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution
+        // update
+        // and firstStageReadPoolUpdatedAt > expected first stage execution update
+        // and expected second stage execution update > secondStageReadPoolUpdatedAt
+        // i.e. all executions in the read replica are up-to-date except for secondStageReadPool
+        doReturn(
+                Instant.ofEpochMilli(
+                    ThreadLocalRandom.current().nextLong(0L, readPoolCompressedUpdatedAt)))
+            .when(replicationLagAwareRepository)
+            .getPipelineExecutionUpdate(pipelineId);
+        doReturn(
+                Instant.ofEpochMilli(
+                    ThreadLocalRandom.current().nextLong(0L, firstStageReadPoolUpdatedAt)))
+            .when(replicationLagAwareRepository)
+            .getStageExecutionUpdate(firstStageReadPool.getId());
+        doReturn(
+                Instant.ofEpochMilli(
+                    ThreadLocalRandom.current()
+                        .nextLong(secondStageReadPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
+            .when(replicationLagAwareRepository)
+            .getStageExecutionUpdate(secondStageReadPool.getId());
+
+        PipelineExecution execution =
+            executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+        assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+        List<String> expectedStageNames = new ArrayList<>();
+        expectedStageNames.add(firstStageDefaultPool.getName());
+        expectedStageNames.add(secondStageDefaultPool.getName());
+        Collections.sort(expectedStageNames);
+        List<String> actualStageNames =
+            execution.getStages().stream()
+                .map(StageExecution::getName)
+                .sorted()
+                .collect(Collectors.toList());
+        assertThat(actualStageNames).isEqualTo(expectedStageNames);
+        validateReadPoolMetricsOnFailure();
+      }
+    }
   }
 
   // Initialize the DB with a pipeline execution
@@ -553,17 +583,28 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
   }
 
-  /** Verifies that the values of certain metrics are as expected */
-  void verifyMetricValues() {
+  void validateReadPoolMetricsOnSuccess() {
     assertThat(
             registry
                 .counter("executionRepository.sql.readPool.retrieveSucceeded", "numAttempts", "1")
                 .count())
-        .isEqualTo(retrieveSucceededCount);
+        .isEqualTo(1);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveFailed").count())
-        .isEqualTo(retrieveFailedCount);
+        .isEqualTo(0);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
-        .isEqualTo(retrieveTotalAttemptsCount);
+        .isEqualTo(1);
+  }
+
+  void validateReadPoolMetricsOnFailure() {
+    assertThat(
+            registry
+                .counter("executionRepository.sql.readPool.retrieveSucceeded", "numAttempts", "1")
+                .count())
+        .isEqualTo(0);
+    assertThat(registry.counter("executionRepository.sql.readPool.retrieveFailed").count())
+        .isEqualTo(1);
+    assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
+        .isEqualTo(1);
   }
 
   @TestConfiguration
