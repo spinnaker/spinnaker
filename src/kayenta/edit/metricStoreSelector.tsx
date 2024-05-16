@@ -1,4 +1,5 @@
 import * as Creators from 'kayenta/actions/creators';
+import { CanarySettings } from 'kayenta/canary.settings';
 import { KayentaAccountType } from 'kayenta/domain';
 import { DISABLE_EDIT_CONFIG, DisableableSelect } from 'kayenta/layout/disableable';
 import FormRow from 'kayenta/layout/formRow';
@@ -31,6 +32,7 @@ const MetricStoreSelector = ({
         value={selectedStore || ''}
         onChange={select}
         className="form-control input-sm"
+        disabled={CanarySettings.disableConfigEdit}
         disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       >
         {stores.map((s) => (

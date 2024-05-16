@@ -1,4 +1,5 @@
 import * as Creators from 'kayenta/actions/creators';
+import { CanarySettings } from 'kayenta/canary.settings';
 import { DISABLE_EDIT_CONFIG, DisableableInput, DisableableReactSelect } from 'kayenta/layout/disableable';
 import FormRow from 'kayenta/layout/formRow';
 import { ICanaryState } from 'kayenta/reducers';
@@ -41,6 +42,7 @@ function JudgeSelect({
             options={judgeOptions}
             clearable={false}
             onChange={handleJudgeSelect}
+            disabled={CanarySettings.disableConfigEdit}
             disabledStateKeys={[DISABLE_EDIT_CONFIG]}
           />
         </FormRow>

@@ -1,4 +1,5 @@
 import { UISref } from '@uirouter/react';
+import { CanarySettings } from 'kayenta/canary.settings';
 import { get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -25,7 +26,8 @@ function CopyConfigButton({ disabled }: ICopyConfigButtonStateProps) {
 
 function mapStateToProps(state: ICanaryState) {
   return {
-    disabled: get(state.selectedConfig, 'config.isNew') || state.app.disableConfigEdit,
+    disabled:
+      get(state.selectedConfig, 'config.isNew') || state.app.disableConfigEdit || CanarySettings.disableConfigEdit,
   };
 }
 

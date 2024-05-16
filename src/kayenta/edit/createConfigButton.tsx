@@ -1,4 +1,5 @@
 import { UISref } from '@uirouter/react';
+import { CanarySettings } from 'kayenta/canary.settings';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
@@ -26,7 +27,7 @@ function CreateConfigButton({ disabled }: ICreateConfigButtonStateProps) {
 
 function mapStateToProps(state: ICanaryState): ICreateConfigButtonStateProps {
   return {
-    disabled: state.selectedConfig.config && state.selectedConfig.config.isNew,
+    disabled: (state.selectedConfig.config && state.selectedConfig.config.isNew) || CanarySettings.disableConfigEdit,
   };
 }
 

@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import * as Creators from 'kayenta/actions/creators';
+import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
 import { ITableColumn, NativeTable } from 'kayenta/layout/table';
@@ -97,15 +98,30 @@ function MetricList({
       getContent: (metric) => (
         <div className="horizontal pull-right metrics-action-buttons">
           <button className="link" data-id={metric.id} onClick={editMetric}>
-            {disableEdit ? 'View' : 'Edit'}
+            {disableEdit || CanarySettings.disableConfigEdit ? 'View' : 'Edit'}
           </button>
-          <button className="link" data-id={metric.id} disabled={disableEdit} onClick={openChangeMetricGroupModal}>
+          <button
+            className="link"
+            data-id={metric.id}
+            disabled={disableEdit || CanarySettings.disableConfigEdit}
+            onClick={openChangeMetricGroupModal}
+          >
             Move Group
           </button>
-          <button className="link" data-id={metric.id} disabled={disableEdit} onClick={() => copyMetric(metric)}>
+          <button
+            className="link"
+            data-id={metric.id}
+            disabled={disableEdit || CanarySettings.disableConfigEdit}
+            onClick={() => copyMetric(metric)}
+          >
             Copy
           </button>
-          <button className="link" data-id={metric.id} disabled={disableEdit} onClick={removeMetric}>
+          <button
+            className="link"
+            data-id={metric.id}
+            disabled={disableEdit || CanarySettings.disableConfigEdit}
+            onClick={removeMetric}
+          >
             Delete
           </button>
         </div>
@@ -129,6 +145,7 @@ function MetricList({
         data-default={groupList[0]}
         data-metric-store={metricStore}
         onClick={addMetric}
+        disabled={CanarySettings.disableConfigEdit}
         disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       >
         Add Metric
@@ -151,7 +168,7 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
       (m) => m.id === state.selectedConfig.changeMetricGroup.metric,
     ),
     metricStore: state.selectedConfig.selectedStore,
-    disableEdit: state.app.disableConfigEdit,
+    disableEdit: state.app.disableConfigEdit || CanarySettings.disableConfigEdit,
   };
 }
 

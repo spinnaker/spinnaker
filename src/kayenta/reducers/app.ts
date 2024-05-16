@@ -45,7 +45,7 @@ const configJsonModalTabState = handleActions(
   ConfigJsonModalTabState.Edit,
 );
 
-const disableConfigEdit = handleActions<boolean>({}, CanarySettings.disableConfigEdit ?? false);
+const disableConfigEdit = handleActions<boolean>({}, false);
 
 export const app: Reducer<IAppState> = combineReducers<IAppState>({
   executionsCount,

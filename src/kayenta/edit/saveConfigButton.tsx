@@ -1,3 +1,4 @@
+import { CanarySettings } from 'kayenta/canary.settings';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
@@ -37,7 +38,7 @@ function SaveConfigButton({
       <SubmitButton
         label="Save Changes"
         onClick={saveConfig}
-        isDisabled={disable}
+        isDisabled={disable || CanarySettings.disableConfigEdit}
         submitting={saveConfigState === AsyncRequestState.Requesting}
       />
     );
@@ -45,7 +46,7 @@ function SaveConfigButton({
 }
 
 function mapStateToProps(state: ICanaryState): ISaveButtonStateProps {
-  const disable = !!state.selectedConfig.validationErrors.length;
+  const disable = !!state.selectedConfig.validationErrors.length || CanarySettings.disableConfigEdit;
   return {
     saveConfigState: state.selectedConfig.save.state,
     inSyncWithServer: state.selectedConfig.isInSyncWithServer,

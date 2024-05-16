@@ -1,4 +1,5 @@
 import * as Creators from 'kayenta/actions/creators';
+import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryFilterTemplateValidationMessages } from 'kayenta/edit/filterTemplatesValidation';
 import {
   DISABLE_EDIT_CONFIG,
@@ -95,6 +96,7 @@ export class FilterTemplateSelector extends React.Component<IFilterTemplateSelec
             <DisableableReactSelect
               value={selectedTemplateName}
               disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+              disabled={CanarySettings.disableConfigEdit}
               onChange={selectTemplate}
               options={this.getOptions()}
               optionRenderer={this.optionRenderer}
@@ -106,6 +108,7 @@ export class FilterTemplateSelector extends React.Component<IFilterTemplateSelec
             <FormRow label="Name" error={get(validation, 'errors.templateName.message')} inputOnly={true}>
               <DisableableInput
                 disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+                disabled={CanarySettings.disableConfigEdit}
                 onChange={editTemplateName}
                 value={editedTemplateName}
               />
@@ -119,6 +122,7 @@ export class FilterTemplateSelector extends React.Component<IFilterTemplateSelec
               <DisableableTextarea
                 className="template-editor-textarea"
                 disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+                disabled={CanarySettings.disableConfigEdit}
                 onChange={editTemplateValue}
                 value={editedTemplateValue}
               />

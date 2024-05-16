@@ -1,4 +1,5 @@
 import * as Creators from 'kayenta/actions/creators';
+import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryMetricEffectSizeConfig } from 'kayenta/domain';
 import FormRow from 'kayenta/layout/formRow';
 import RadioChoice from 'kayenta/layout/radioChoice';
@@ -114,6 +115,7 @@ export function EditMetricEffectSizes({
               step={isCles ? 0.01 : 1}
               onChange={(e) => updateSize(field, e.target.value)}
               value={isCles ? value : toPercent(value, field)}
+              disabled={CanarySettings.disableConfigEdit}
               disabledStateKeys={[DISABLE_EDIT_CONFIG]}
             />
             {!isCles && <div className="input-group-addon">%</div>}
@@ -169,7 +171,7 @@ function mapStateToProps(state: ICanaryState): IEditMetricEffectSizesProps {
   return {
     metricId: state.selectedConfig.editingMetric.id,
     direction: state.selectedConfig.editingMetric.analysisConfigurations?.canary?.direction ?? 'either',
-    disabled: state.app.disableConfigEdit,
+    disabled: state.app.disableConfigEdit || CanarySettings.disableConfigEdit,
     effectSizes: state.selectedConfig.editingMetric.analysisConfigurations?.canary?.effectSize ?? {},
   };
 }

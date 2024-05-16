@@ -1,7 +1,7 @@
 import 'brace/ext/searchbox';
 import 'brace/mode/json';
 import * as Creators from 'kayenta/actions/creators';
-import { DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
+import { CanarySettings } from 'kayenta/canary.settings';
 import Styleguide from 'kayenta/layout/styleguide';
 import { Tab, Tabs } from 'kayenta/layout/tabs';
 import { ICanaryState } from 'kayenta/reducers';
@@ -142,7 +142,7 @@ function mapStateToProps(state: ICanaryState): IConfigJsonStateProps {
     state.selectedConfig.json.configJson ||
     JsonUtils.makeSortedStringFromObject(omit(mapStateToConfig(state) || {}, 'id'));
 
-  const disabled = get(state, DISABLE_EDIT_CONFIG, false);
+  const disabled = state.app.disableConfigEdit || CanarySettings.disableConfigEdit;
 
   return {
     configJson,
