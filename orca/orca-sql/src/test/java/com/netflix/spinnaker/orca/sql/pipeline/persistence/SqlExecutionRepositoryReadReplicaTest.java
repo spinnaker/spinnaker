@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.sql.pipeline.persistence;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository;
 import de.huxhorn.sulky.ulid.ULID;
@@ -216,6 +218,17 @@ public class SqlExecutionRepositoryReadReplicaTest {
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
       validateReadPoolMetricsOnFailure();
     }
+
+    @Test
+    void executionDoesNotExist() {
+      String nonexistentId = ID_GENERATOR.nextULID();
+      assertThrows(
+          ExecutionNotFoundException.class,
+          () -> {
+            executionRepository.retrieve(ExecutionType.PIPELINE, nonexistentId, true);
+          });
+      validateReadPoolMetricsOnMissingExecution();
+    }
   }
 
   @Nested
@@ -287,6 +300,17 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
       validateReadPoolMetricsOnFailure();
+    }
+
+    @Test
+    void executionDoesNotExist() {
+      String nonexistentId = ID_GENERATOR.nextULID();
+      assertThrows(
+          ExecutionNotFoundException.class,
+          () -> {
+            executionRepository.retrieve(ExecutionType.PIPELINE, nonexistentId, true);
+          });
+      validateReadPoolMetricsOnMissingExecution();
     }
 
     @Nested
@@ -603,6 +627,18 @@ public class SqlExecutionRepositoryReadReplicaTest {
         .isEqualTo(0);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveFailed").count())
         .isEqualTo(1);
+    assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
+        .isEqualTo(1);
+  }
+
+  void validateReadPoolMetricsOnMissingExecution() {
+    assertThat(
+            registry
+                .counter("executionRepository.sql.readPool.retrieveSucceeded", "numAttempts", "1")
+                .count())
+        .isEqualTo(0);
+    assertThat(registry.counter("executionRepository.sql.readPool.retrieveFailed").count())
+        .isEqualTo(0);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
         .isEqualTo(1);
   }

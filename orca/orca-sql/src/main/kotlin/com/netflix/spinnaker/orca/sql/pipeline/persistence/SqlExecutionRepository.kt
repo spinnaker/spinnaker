@@ -1471,7 +1471,19 @@ class SqlExecutionRepository(
         )).increment()
         return pipelineExecutions.first()
       }
-      ExecutionMapperResultCode.NOT_FOUND, ExecutionMapperResultCode.INVALID_VERSION -> {
+      ExecutionMapperResultCode.NOT_FOUND -> {
+        withPool(poolName) {
+          val select = ctx.selectExecution(type).where(id.toWhereCondition())
+          val execution = select.fetchExecution()
+          // To avoid skewing the metric, only executions that exist in the default pool but not in the read pool
+          // should count toward the read pool retrieval failed metric
+          if (execution != null) {
+            registry.counter(readPoolRetrieveFailedId).increment()
+          }
+          return execution
+        }
+      }
+      ExecutionMapperResultCode.INVALID_VERSION -> {
         registry.counter(readPoolRetrieveFailedId).increment()
         withPool(poolName) {
           val select = ctx.selectExecution(type).where(id.toWhereCondition())
