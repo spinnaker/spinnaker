@@ -258,6 +258,58 @@ final class DeployManifestStageTest {
   }
 
   @Test
+  @DisplayName(
+      "blue/green deployment should trigger old manifest disable if it not all replicas are available")
+  void rolloutBlueGreenStrategyDuringScalingDisablesOldManifest() {
+    givenManifestIsNotStableDueToScaling();
+    when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
+        .thenReturn(
+            ImmutableList.of(
+                ManifestCoordinates.builder()
+                    .name("my-rs-v000")
+                    .kind("replicaSet")
+                    .namespace(NAMESAPCE)
+                    .build(),
+                ManifestCoordinates.builder()
+                    .name("my-rs-v001")
+                    .kind("replicaSet")
+                    .namespace(NAMESAPCE)
+                    .build()));
+    Map<String, Object> context =
+        getContext(
+            DeployManifestContext.builder()
+                .trafficManagement(
+                    DeployManifestContext.TrafficManagement.builder()
+                        .enabled(true)
+                        .options(
+                            DeployManifestContext.TrafficManagement.Options.builder()
+                                .strategy(ManifestStrategyType.BLUE_GREEN)
+                                .build())
+                        .build())
+                .build());
+    StageExecutionImpl stage =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(ExecutionType.PIPELINE, APPLICATION),
+            DeployManifestStage.PIPELINE_CONFIG_TYPE,
+            context);
+    assertThat(getAfterStages(stage))
+        .extracting(StageExecution::getType)
+        .containsExactly(DisableManifestStage.PIPELINE_CONFIG_TYPE);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("account"))
+        .containsExactly(ACCOUNT);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("app"))
+        .containsExactly(APPLICATION);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("location"))
+        .containsExactly(NAMESAPCE);
+    assertThat(getAfterStages(stage))
+        .extracting(s -> s.getContext().get("manifestName"))
+        .containsExactly("replicaSet my-rs-v000");
+  }
+
+  @Test
   void rolloutStrategyHighlander() {
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
         .thenReturn(
@@ -377,6 +429,15 @@ final class DeployManifestStageTest {
 
     var manifest =
         Manifest.builder()
+            .manifest(
+                ImmutableMap.of(
+                    "status",
+                    ImmutableMap.of(
+                        "availableReplicas", 3.0,
+                        "fullyLabeledReplicas", 3.0,
+                        "observedGeneration", 1.0,
+                        "readyReplicas", 3.0,
+                        "replicas", 3.0)))
             .status(
                 Manifest.Status.builder()
                     .stable(Manifest.Condition.emptyTrue())
@@ -390,6 +451,37 @@ final class DeployManifestStageTest {
   private void givenManifestIsNotStable() {
     var manifest =
         Manifest.builder()
+            .manifest(
+                ImmutableMap.of(
+                    "status",
+                    ImmutableMap.of(
+                        "availableReplicas", 0.0,
+                        "fullyLabeledReplicas", 0.0,
+                        "observedGeneration", 1.0,
+                        "readyReplicas", 0.0,
+                        "replicas", 3.0)))
+            .status(
+                Manifest.Status.builder()
+                    .stable(Manifest.Condition.emptyFalse())
+                    .failed(Manifest.Condition.emptyFalse())
+                    .build())
+            .build();
+
+    givenManifestIs(manifest);
+  }
+
+  private void givenManifestIsNotStableDueToScaling() {
+    var manifest =
+        Manifest.builder()
+            .manifest(
+                ImmutableMap.of(
+                    "status",
+                    ImmutableMap.of(
+                        "availableReplicas", 2.0,
+                        "fullyLabeledReplicas", 2.0,
+                        "observedGeneration", 1.0,
+                        "readyReplicas", 2.0,
+                        "replicas", 3.0)))
             .status(
                 Manifest.Status.builder()
                     .stable(Manifest.Condition.emptyFalse())

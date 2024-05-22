@@ -257,6 +257,16 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
     boolean previousDeploymentNeitherStableNorFailed(String account, String location, String name) {
       var oldManifest = this.oortService.getManifest(account, location, name, false);
 
+      Map<String, Double> statusSpec =
+          (Map<String, Double>) oldManifest.getManifest().getOrDefault("status", emptyMap());
+      if (statusSpec.containsKey("readyReplicas") && statusSpec.containsKey("availableReplicas")) {
+        var readyReplicas = statusSpec.get("readyReplicas");
+        var availableReplicas = statusSpec.get("availableReplicas");
+        if (readyReplicas > 0 && availableReplicas > 0) {
+          return false;
+        }
+      }
+
       var status = oldManifest.getStatus();
       var notStable = !status.getStable().isState();
       var notFailed = !status.getFailed().isState();
