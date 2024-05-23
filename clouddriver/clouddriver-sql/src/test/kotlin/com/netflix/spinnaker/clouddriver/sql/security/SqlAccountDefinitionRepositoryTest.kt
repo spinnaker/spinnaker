@@ -53,13 +53,11 @@ class SqlAccountDefinitionRepositoryTest : JUnit5Minutests {
 
       // then
       accountOneDefinitions = accountDefinitionRepository.listByType("testTypeOne")
-      assertThat(accountOneDefinitions.size).isEqualTo(1) // FIXME: the right answer is 0 here
+      assertThat(accountOneDefinitions.size).isEqualTo(0)
 
       val accountTwoDefinitions = accountDefinitionRepository.listByType("testTypeTwo")
-      // FIXME: the right answer is 1 here, and the account definition needs to be an instance of TestAccountTwo
-      // assertThat(accountTwoDefinitions.size).isEqualTo(1)
-      // assertThat(accountTwoDefinitions[0]).isInstanceOf(TestAccountTwo::class.java)
-      assertThat(accountTwoDefinitions.size).isEqualTo(0)
+      assertThat(accountTwoDefinitions.size).isEqualTo(1)
+      assertThat(accountTwoDefinitions[0]).isInstanceOf(TestAccountTwo::class.java)
     }
 
     test("overwrite fields when upserting a new account with the same name as an existing account") {
@@ -74,13 +72,11 @@ class SqlAccountDefinitionRepositoryTest : JUnit5Minutests {
 
       // when
       accountOneDefinitions = accountDefinitionRepository.listByType("testTypeOne")
-      assertThat(accountOneDefinitions.size).isEqualTo(1) // FIXME: the right answer is 0 here
+      assertThat(accountOneDefinitions.size).isEqualTo(0)
 
       val accountTwoDefinitions = accountDefinitionRepository.listByType("testTypeTwo")
-      // FIXME: the right answer is 1 here, and the account definition needs to be an instance of TestAccountTwo
-      //assertThat(accountTwoDefinitions.size).isEqualTo(1)
-      //assertThat(accountTwoDefinitions[0]).isInstanceOf(TestAccountTwo::class.java)
-      assertThat(accountTwoDefinitions.size).isEqualTo(0)
+      assertThat(accountTwoDefinitions.size).isEqualTo(1)
+      assertThat(accountTwoDefinitions[0]).isInstanceOf(TestAccountTwo::class.java)
     }
   }
 
