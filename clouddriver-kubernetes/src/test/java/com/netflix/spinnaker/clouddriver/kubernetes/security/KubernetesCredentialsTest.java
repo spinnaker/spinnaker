@@ -93,7 +93,7 @@ final class KubernetesCredentialsTest {
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     Registry registry = new DefaultRegistry();
     KubernetesCredentials credentials = getCredentials(registry, jobExecutor);
-    credentials.deploy(getManifest(), task, OP_NAME);
+    credentials.deploy(getManifest(), task, OP_NAME, new KubernetesSelectorList());
 
     ImmutableList<Timer> timers = registry.timers().collect(toImmutableList());
     assertThat(timers).hasSize(1);
@@ -371,7 +371,8 @@ final class KubernetesCredentialsTest {
     KubernetesManifest manifest = getManifest();
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
-    when(jobExecutor.create(credentials, manifest, task, OP_NAME))
+    KubernetesSelectorList selectorList = new KubernetesSelectorList();
+    when(jobExecutor.create(credentials, manifest, task, OP_NAME, selectorList))
         .thenThrow(new KubectlException("Create failed: Error from server (AlreadyExists)"));
     when(jobExecutor.replace(credentials, manifest, task, OP_NAME)).thenReturn(manifest);
 
@@ -384,9 +385,11 @@ final class KubernetesCredentialsTest {
     KubernetesManifest manifest = getManifest();
     KubectlJobExecutor jobExecutor = mock(KubectlJobExecutor.class);
     KubernetesCredentials credentials = getCredentials(new NoopRegistry(), jobExecutor);
+    KubernetesSelectorList selectorList = new KubernetesSelectorList();
     when(jobExecutor.replace(credentials, manifest, task, OP_NAME))
         .thenThrow(new KubectlNotFoundException("Not found"));
-    when(jobExecutor.create(credentials, manifest, task, OP_NAME)).thenReturn(manifest);
+    when(jobExecutor.create(credentials, manifest, task, OP_NAME, selectorList))
+        .thenReturn(manifest);
 
     KubernetesManifest result = credentials.createOrReplace(getManifest(), task, OP_NAME);
     assertThat(result).isEqualTo(manifest);

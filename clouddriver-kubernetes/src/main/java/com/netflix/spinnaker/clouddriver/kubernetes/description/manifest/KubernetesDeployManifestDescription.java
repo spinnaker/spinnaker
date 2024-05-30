@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.List;
@@ -41,6 +42,14 @@ public class KubernetesDeployManifestDescription extends KubernetesAtomicOperati
   private boolean enableTraffic = true;
   private List<String> services;
   private Strategy strategy;
+  private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
+
+  /**
+   * If false, and using (non-empty) label selectors, fail if a deploy manifest operation doesn't
+   * deploy anything. If a particular deploy manifest stage intentionally specifies label selectors
+   * that none of the resources satisfy, set this to true to allow the stage to succeed.
+   */
+  private boolean allowNothingSelected = false;
 
   public boolean isBlueGreen() {
     return Strategy.RED_BLACK.equals(this.strategy) || Strategy.BLUE_GREEN.equals(this.strategy);

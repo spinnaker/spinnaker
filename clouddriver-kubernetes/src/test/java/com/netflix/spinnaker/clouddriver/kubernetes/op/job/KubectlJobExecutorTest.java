@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.op.job;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,6 +50,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesPodMet
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.ManifestFetcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelector;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
@@ -61,6 +64,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -569,7 +573,8 @@ final class KubectlJobExecutorTest {
                 "src/test/resources/com/netflix/spinnaker/clouddriver/kubernetes/op/job/mock-kubectl-stdin-command.sh"),
             inputManifest,
             new InMemoryTaskRepository().create("starting", "starting"),
-            "starting");
+            "starting",
+            new KubernetesSelectorList());
 
     // even after retries occur, the inputStream should not empty. This is verified by
     // checking the stdout generated from the script
@@ -607,11 +612,139 @@ final class KubectlJobExecutorTest {
                         "src/test/resources/com/netflix/spinnaker/clouddriver/kubernetes/op/job/mock-kubectl-stdin-command.sh"),
                     inputManifest,
                     new InMemoryTaskRepository().create("starting", "starting"),
-                    "starting"));
+                    "starting",
+                    new KubernetesSelectorList()));
 
     assertThat(thrown.getMessage()).contains("Deploy failed for manifest: job my-job");
     // verify that the final error contained stdin data
     assertThat(thrown.getMessage()).contains(new Gson().toJson(inputManifest));
+  }
+
+  @Test
+  void testDeployNoObjectsPassedToApplyNoLabelSelectors() {
+    // given
+    when(jobExecutor.runJob(any(JobRequest.class)))
+        .thenReturn(
+            JobResult.<String>builder()
+                .result(Result.FAILURE)
+                .output("")
+                .error("error: no objects passed to apply")
+                .build());
+
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
+            jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
+
+    KubernetesManifest manifest = new KubernetesManifest();
+    manifest.putAll(
+        Map.of(
+            "kind",
+            "Job", // arbitrary kind
+            "metadata",
+            Map.of("name", "my-name")));
+
+    KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
+    assertThat(labelSelectors.isEmpty()).isTrue();
+
+    // With no label selectors, expect deploy to throw a KubectlException because kubectl has failed
+    // (i.e. returned a non-zero exit code).
+    assertThatThrownBy(
+            () ->
+                kubectlJobExecutor.deploy(
+                    mockKubernetesCredentials(),
+                    manifest,
+                    new InMemoryTaskRepository().create("task", "task"),
+                    "operation",
+                    labelSelectors))
+        .isInstanceOf(KubectlJobExecutor.KubectlException.class)
+        .hasMessageContaining("Deploy failed for manifest:");
+  }
+
+  @Test
+  void testDeployNoObjectsPassedToApplyWithLabelSelectors() {
+    // given
+    when(jobExecutor.runJob(any(JobRequest.class)))
+        .thenReturn(
+            JobResult.<String>builder()
+                .result(Result.FAILURE)
+                .output("")
+                .error("error: no objects passed to apply")
+                .build());
+
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
+            jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
+
+    KubernetesManifest manifest = new KubernetesManifest();
+    manifest.putAll(
+        Map.of(
+            "kind",
+            "Job", // arbitrary kind
+            "metadata",
+            Map.of("name", "my-name")));
+
+    KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
+    KubernetesSelector selector =
+        new KubernetesSelector(KubernetesSelector.Kind.EQUALS, "some-key", List.of("some-value"));
+    labelSelectors.addSelector(selector);
+    assertThat(labelSelectors.isNotEmpty()).isTrue();
+
+    // With a label selectors, expect deploy to return null with the expectation
+    // that higher level code (e.g. KubernetesDeployManifestOperation) raises an
+    // exception if none of the deploy calls it makes result in kubectl actually
+    // deploying a manifest.
+    KubernetesManifest returnedManifest =
+        kubectlJobExecutor.deploy(
+            mockKubernetesCredentials(),
+            manifest,
+            new InMemoryTaskRepository().create("task", "task"),
+            "operation",
+            labelSelectors);
+    assertThat(returnedManifest).isNull();
+  }
+
+  @Test
+  void testCreateNoObjectsPassedToCreateWithLabelSelectors() {
+    // given
+    when(jobExecutor.runJob(any(JobRequest.class)))
+        .thenReturn(
+            JobResult.<String>builder()
+                .result(Result.FAILURE)
+                .output("")
+                .error("error: no objects passed to create")
+                .build());
+
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
+            jobExecutor, kubernetesConfigurationProperties, new SimpleMeterRegistry());
+
+    KubernetesManifest manifest = new KubernetesManifest();
+    manifest.putAll(
+        Map.of(
+            "kind",
+            "Job", // arbitrary kind
+            "metadata",
+            Map.of("name", "my-name")));
+
+    KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
+    KubernetesSelector selector =
+        new KubernetesSelector(KubernetesSelector.Kind.EQUALS, "some-key", List.of("some-value"));
+    labelSelectors.addSelector(selector);
+    assertThat(labelSelectors.isNotEmpty()).isTrue();
+
+    // With a label selectors, expect create to return null with the
+    // expectation that higher level code
+    // (e.g. KubernetesDeployManifestOperation) raises an exception if none of
+    // the deploy calls it makes result in kubectl actually deploying a
+    // manifest.
+    KubernetesManifest returnedManifest =
+        kubectlJobExecutor.create(
+            mockKubernetesCredentials(),
+            manifest,
+            new InMemoryTaskRepository().create("task", "task"),
+            "operation",
+            labelSelectors);
+    assertThat(returnedManifest).isNull();
   }
 
   /** Returns a mock KubernetesCredentials object */

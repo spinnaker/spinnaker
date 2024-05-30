@@ -24,6 +24,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Strings;
@@ -51,13 +54,19 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.manifest.KubernetesDeployManifestOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelector;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
+import io.kubernetes.client.openapi.models.V1DeleteOptions;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 final class KubernetesDeployManifestOperationTest {
   private static final String DEFAULT_NAMESPACE = "default-namespace";
@@ -337,7 +346,115 @@ final class KubernetesDeployManifestOperationTest {
     deploy(deployManifestDescription);
   }
 
+  @ParameterizedTest(
+      name = "{index} ==> deployWhenNothingDeploys: useLabelSelector {0}, allowNothingSelected {1}")
+  @CsvSource({"false,false", "false,true", "true,false", "true,true"})
+  void deployWhenNothingDeploys(boolean useLabelSelector, boolean allowNothingSelected) {
+    // Testing the label selector logic is tough.  Pass true to
+    // baseDeployDescription so KubernetesCredentials.deploy return returns
+    // null.  That's what happens when kubectl apply doesn't actually apply
+    // anything.  That happens when the label selector doesn't match any of the
+    // input manifests.
+    //
+    // Since we depend on kubectl's logic to do the filtering, really all
+    // we need to test here is that we throw an exception if kubectl never
+    // deploys anything.
+
+    // The manifest to deploy is arbitrary.
+    KubernetesDeployManifestDescription deployManifestDescription =
+        baseDeployDescription("deploy/configmaps-with-selectors.yaml", true);
+    deployManifestDescription.setAllowNothingSelected(allowNothingSelected);
+
+    KubernetesSelectorList selectorList = deployManifestDescription.getLabelSelectors();
+    if (useLabelSelector) {
+      // Because we're mocking the return value KubernetesCredentials.deploy (to
+      // null), the actual contents of the label selector list is arbitrary as
+      // long as there is at least one selector.
+      selectorList.addSelector(
+          new KubernetesSelector(
+              KubernetesSelector.Kind.EQUALS, "sample-configmap-selector", List.of("one")));
+    }
+
+    // With a label selector, and therefore no KubernetesManifest objects returned from, expect an
+    // exception that nothing has been deployed if allowNothingSelected is false.
+    if (useLabelSelector && !allowNothingSelected) {
+      assertThatThrownBy(() -> deploy(deployManifestDescription))
+          .hasMessage(
+              "nothing deployed to account "
+                  + ACCOUNT
+                  + " with label selector(s) "
+                  + selectorList.toString());
+    } else {
+      // Without a label selector (or if allowNothingSelected is true), we'd
+      // normally expect a KubectlException because kubectl fails, except we're
+      // using a mock KubernetesCredentials class, so KubectlJobExecutor isn't
+      // involved, and so expect no manifests.
+      OperationResult result = deploy(deployManifestDescription);
+      assertThat(result.getManifests()).isEmpty();
+    }
+
+    // Although we're really only responsible for verifying that
+    // KubernetesDeployManifestOperation calls the appropriate method on the
+    // relevant KubernetesHandler, since we're testing with real handler objects
+    // and not mocks, let's verify that the appropriate method on
+    // KubernetesCredentials gets called.
+    KubernetesCredentials credentials = deployManifestDescription.getCredentials().getCredentials();
+
+    // two calls because there are two objects in deploy/configmaps-with-selectors.yaml
+    verify(credentials, times(2))
+        .deploy(any(KubernetesManifest.class), any(Task.class), anyString(), eq(selectorList));
+  }
+
+  @Test
+  void replaceStrategyWithLabelSelector() {
+    // The manifest to deploy is arbitrary, as long as it has a
+    // strategy.spinnaker.io/replace: "true" annotation.  It's helpful that
+    // there are multiple manifests with the replace strategy one coming last.
+    // That way we can more strongly assert that the earlier ones didn't get
+    // deployed.
+    KubernetesDeployManifestDescription deployManifestDescription =
+        baseDeployDescription("deploy/replace-strategy.yaml");
+
+    KubernetesSelectorList selectorList = deployManifestDescription.getLabelSelectors();
+    selectorList.addSelector(
+        new KubernetesSelector(
+            KubernetesSelector.Kind.EQUALS, "sample-configmap-selector", List.of("one")));
+
+    assertThatThrownBy(() -> deploy(deployManifestDescription))
+        .hasMessage("label selectors not supported with replace strategy, not deploying");
+
+    // Make sure no methods to actually deploy anything got called.  Most direct
+    // would be to grab all the relevant KubernetesHandler objects from
+    // deployManifestDescription.  Trouble is, those aren't mocks.  So, go one
+    // level deeper to the KubernetesCredentials level where we do have mocks
+    // and couple the tests to implementation details of CanDeploy.deploy.
+    KubernetesCredentials credentials = deployManifestDescription.getCredentials().getCredentials();
+
+    verify(credentials, never())
+        .deploy(
+            any(KubernetesManifest.class),
+            any(Task.class),
+            anyString(),
+            any(KubernetesSelectorList.class));
+    verify(credentials, never())
+        .createOrReplace(any(KubernetesManifest.class), any(Task.class), anyString());
+    verify(credentials, never())
+        .delete(
+            any(KubernetesKind.class),
+            anyString(),
+            anyString(),
+            any(KubernetesSelectorList.class),
+            any(V1DeleteOptions.class),
+            any(Task.class),
+            anyString());
+  }
+
   private static KubernetesDeployManifestDescription baseDeployDescription(String manifest) {
+    return baseDeployDescription(manifest, false);
+  }
+
+  private static KubernetesDeployManifestDescription baseDeployDescription(
+      String manifest, boolean deployReturnsNull) {
     KubernetesDeployManifestDescription deployManifestDescription =
         new KubernetesDeployManifestDescription()
             .setManifests(
@@ -345,11 +462,12 @@ final class KubernetesDeployManifestOperationTest {
             .setMoniker(new Moniker())
             .setSource(KubernetesDeployManifestDescription.Source.text);
     deployManifestDescription.setAccount(ACCOUNT);
-    deployManifestDescription.setCredentials(getNamedAccountCredentials());
+    deployManifestDescription.setCredentials(getNamedAccountCredentials(deployReturnsNull));
     return deployManifestDescription;
   }
 
-  private static KubernetesNamedAccountCredentials getNamedAccountCredentials() {
+  private static KubernetesNamedAccountCredentials getNamedAccountCredentials(
+      boolean deployReturnsNull) {
     ManagedAccount managedAccount = new ManagedAccount();
     managedAccount.setName("my-account");
 
@@ -358,13 +476,13 @@ final class KubernetesDeployManifestOperationTest {
         .withAccount(managedAccount.getName())
         .setNamer(KubernetesManifest.class, new KubernetesManifestNamer());
 
-    KubernetesCredentials mockCredentials = getMockKubernetesCredentials();
+    KubernetesCredentials mockCredentials = getMockKubernetesCredentials(deployReturnsNull);
     KubernetesCredentials.Factory credentialFactory = mock(KubernetesCredentials.Factory.class);
     when(credentialFactory.build(managedAccount)).thenReturn(mockCredentials);
     return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
   }
 
-  private static KubernetesCredentials getMockKubernetesCredentials() {
+  private static KubernetesCredentials getMockKubernetesCredentials(boolean deployReturnsNull) {
     KubernetesCredentials credentialsMock = mock(KubernetesCredentials.class);
     when(credentialsMock.getKindProperties(any(KubernetesKind.class)))
         .thenAnswer(
@@ -392,18 +510,24 @@ final class KubernetesDeployManifestOperationTest {
             ManifestFetcher.getManifest(
                     KubernetesDeployManifestOperationTest.class, "deploy/service-no-selector.yml")
                 .get(0));
-    when(credentialsMock.deploy(any(KubernetesManifest.class), any(Task.class), anyString()))
-        .thenAnswer(
-            invocation -> {
-              // This simulates the fact that the Kubernetes API will add the default namespace if
-              // none is supplied on the manifest.
-              KubernetesManifest result =
-                  invocation.getArgument(0, KubernetesManifest.class).clone();
-              if (Strings.isNullOrEmpty(result.getNamespace())) {
-                result.setNamespace(DEFAULT_NAMESPACE);
-              }
-              return result;
-            });
+    if (!deployReturnsNull) {
+      when(credentialsMock.deploy(
+              any(KubernetesManifest.class),
+              any(Task.class),
+              anyString(),
+              any(KubernetesSelectorList.class)))
+          .thenAnswer(
+              invocation -> {
+                // This simulates the fact that the Kubernetes API will add the default namespace if
+                // none is supplied on the manifest.
+                KubernetesManifest result =
+                    invocation.getArgument(0, KubernetesManifest.class).clone();
+                if (Strings.isNullOrEmpty(result.getNamespace())) {
+                  result.setNamespace(DEFAULT_NAMESPACE);
+                }
+                return result;
+              });
+    }
     when(credentialsMock.getNamer()).thenReturn(NAMER);
     return credentialsMock;
   }

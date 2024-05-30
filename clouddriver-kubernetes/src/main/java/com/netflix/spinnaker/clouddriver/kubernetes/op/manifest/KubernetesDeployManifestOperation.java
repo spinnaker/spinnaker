@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.clouddriver.kubernetes.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -145,6 +146,19 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
     checkIfArtifactsBound(result);
 
+    KubernetesSelectorList labelSelectors = this.description.getLabelSelectors();
+
+    // kubectl replace doesn't support selectors, so fail if any manifest uses
+    // the replace strategy
+    if (labelSelectors.isNotEmpty()
+        && toDeploy.stream()
+            .map((holder) -> holder.getStrategy().getDeployStrategy())
+            .anyMatch(
+                (strategy) -> strategy == KubernetesManifestStrategy.DeployStrategy.REPLACE)) {
+      throw new IllegalArgumentException(
+          "label selectors not supported with replace strategy, not deploying");
+    }
+
     toDeploy.forEach(
         holder -> {
           KubernetesResourceProperties properties = findResourceProperties(holder.manifest);
@@ -163,7 +177,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
                   strategy.getDeployStrategy(),
                   strategy.getServerSideApplyStrategy(),
                   getTask(),
-                  OP_NAME));
+                  OP_NAME,
+                  labelSelectors));
 
           result.getCreatedArtifacts().add(holder.artifact);
           getTask()
@@ -175,6 +190,17 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
                       + accountName);
         });
 
+    // If a label selector was specified and nothing has been deployed, throw an
+    // exception to fail the task if configured to do so.
+    if (!description.isAllowNothingSelected()
+        && labelSelectors.isNotEmpty()
+        && result.getManifests().isEmpty()) {
+      throw new IllegalStateException(
+          "nothing deployed to account "
+              + accountName
+              + " with label selector(s) "
+              + labelSelectors.toString());
+    }
     result.removeSensitiveKeys(credentials.getResourcePropertyRegistry());
 
     getTask()

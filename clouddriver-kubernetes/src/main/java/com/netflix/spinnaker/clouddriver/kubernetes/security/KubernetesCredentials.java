@@ -562,12 +562,16 @@ public class KubernetesCredentials {
   }
 
   public KubernetesManifest deploy(
-      KubernetesManifest manifest, Task task, String opName, String... cmdArgs) {
+      KubernetesManifest manifest,
+      Task task,
+      String opName,
+      KubernetesSelectorList selectorList,
+      String... cmdArgs) {
     return runAndRecordMetrics(
         "deploy",
         manifest.getKind(),
         manifest.getNamespace(),
-        () -> jobExecutor.deploy(this, manifest, task, opName, cmdArgs));
+        () -> jobExecutor.deploy(this, manifest, task, opName, selectorList, cmdArgs));
   }
 
   private KubernetesManifest replace(KubernetesManifest manifest, Task task, String opName) {
@@ -582,16 +586,20 @@ public class KubernetesCredentials {
     try {
       return replace(manifest, task, opName);
     } catch (KubectlNotFoundException e) {
-      return create(manifest, task, opName);
+      // Although create supports label selectors, replace doesn't.  Assume that
+      // some higher-level logic prevents this operation in combination with
+      // label selectors.
+      return create(manifest, task, opName, new KubernetesSelectorList());
     }
   }
 
-  public KubernetesManifest create(KubernetesManifest manifest, Task task, String opName) {
+  public KubernetesManifest create(
+      KubernetesManifest manifest, Task task, String opName, KubernetesSelectorList selectorList) {
     return runAndRecordMetrics(
         "create",
         manifest.getKind(),
         manifest.getNamespace(),
-        () -> jobExecutor.create(this, manifest, task, opName));
+        () -> jobExecutor.create(this, manifest, task, opName, selectorList));
   }
 
   public List<Integer> historyRollout(KubernetesKind kind, String namespace, String name) {

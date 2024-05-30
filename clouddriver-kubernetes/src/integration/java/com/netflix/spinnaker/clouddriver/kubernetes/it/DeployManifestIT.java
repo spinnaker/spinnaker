@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.it;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -93,6 +94,48 @@ public class DeployManifestIT extends BaseTest {
         "1",
         readyPods,
         "Expected one ready pod for " + DEPLOYMENT_1_NAME + " deployment. Pods:\n" + pods);
+  }
+
+  @DisplayName(
+      ".\n===\n"
+          + "Given mutiple manifests\n"
+          + "  where only one satisfies the given label selector\n"
+          + "When sending deploy manifest request\n"
+          + "  And waiting on manifest stable\n"
+          + "Then only one manifest has been deployed\n===")
+  @Test
+  public void labelSelectors() throws IOException, InterruptedException {
+    // ------------------------- given --------------------------
+    String appName = "deploy-from-text";
+    List<Map<String, Object>> manifest =
+        KubeTestUtils.loadYaml("classpath:manifests/configmaps_with_selectors.yml")
+            .withValue("metadata.namespace", account1Ns)
+            .asList();
+    Map<String, Object> labelSelectors =
+        Map.of(
+            "selectors",
+            List.of(
+                Map.of(
+                    "kind", "EQUALS",
+                    "key", "sample-configmap-selector",
+                    "values", List.of("one"))));
+    System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
+
+    // ------------------------- when --------------------------
+    List<Map<String, Object>> body =
+        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
+            .withValue("deployManifest.labelSelectors", labelSelectors)
+            .withValue("deployManifest.account", ACCOUNT1_NAME)
+            .withValue("deployManifest.moniker.app", appName)
+            .withValue("deployManifest.manifests", manifest)
+            .asList();
+    KubeTestUtils.deployAndWaitStable(
+        baseUrl(), body, account1Ns, "configMap sample-config-map-with-selector-one-v000");
+
+    // ------------------------- then --------------------------
+    String configMaps =
+        kubeCluster.execKubectl("-n " + account1Ns + " get configmap -lselector-test=test -o name");
+    assertThat(configMaps).hasLineCount(1);
   }
 
   @DisplayName(

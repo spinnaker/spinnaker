@@ -66,6 +66,11 @@ import org.springframework.stereotype.Component;
 public class KubectlJobExecutor {
   private static final Logger log = LoggerFactory.getLogger(KubectlJobExecutor.class);
   private static final String NOT_FOUND_STRING = "(NotFound)";
+  private static final String NO_OBJECTS_PASSED_TO_STRING = "error: no objects passed to";
+  private static final String NO_OBJECTS_PASSED_TO_APPLY_STRING =
+      NO_OBJECTS_PASSED_TO_STRING + " apply";
+  private static final String NO_OBJECTS_PASSED_TO_CREATE_STRING =
+      NO_OBJECTS_PASSED_TO_STRING + " create";
   private static final String KUBECTL_COMMAND_OPTION_TOKEN = "--token=";
   private static final String KUBECTL_COMMAND_OPTION_KUBECONFIG = "--kubeconfig=";
   private static final String KUBECTL_COMMAND_OPTION_CONTEXT = "--context=";
@@ -522,11 +527,23 @@ public class KubectlJobExecutor {
     return status.getOutput();
   }
 
+  /**
+   * Invoke kubectl apply with the given manifest and (if present) label selectors.
+   *
+   * @param credentials k8s account credentials
+   * @param manifest the manifest to apply
+   * @param task the task performing this kubectl invocation
+   * @param opName the name of the operation performing this kubectl invocation
+   * @param labelSelectors label selectors
+   * @return the manifest parsed from stdout of the kubectl invocation, or null if a label selector
+   *     is present and kubectl returned "no objects passed to apply"
+   */
   public KubernetesManifest deploy(
       KubernetesCredentials credentials,
       KubernetesManifest manifest,
       Task task,
       String opName,
+      KubernetesSelectorList labelSelectors,
       String... cmdArgs) {
     log.info("Deploying manifest {}", manifest.getFullResourceName());
     List<String> command = kubectlAuthPrefix(credentials);
@@ -538,12 +555,22 @@ public class KubectlJobExecutor {
     command.add("json");
     command.add("-f");
     command.add("-");
+    addLabelSelectors(command, labelSelectors);
 
     JobResult<String> status = executeKubectlCommand(credentials, command, Optional.of(manifest));
 
     persistKubectlJobOutput(credentials, status, manifest.getFullResourceName(), task, opName);
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
+      // If the caller provided a label selector, kubectl returns "no objects
+      // passed to apply" if none of the given objects satisfy the selector.
+      // Instead of throwing an exception, leave it to higher level logic to
+      // decide how to behave.
+      if (labelSelectors.isNotEmpty()
+          && status.getError().contains(NO_OBJECTS_PASSED_TO_APPLY_STRING)) {
+        return null;
+      }
+
       throw new KubectlException(
           "Deploy failed for manifest: "
               + manifest.getFullResourceName()
@@ -554,6 +581,16 @@ public class KubectlJobExecutor {
     return getKubernetesManifestFromJobResult(status, manifest);
   }
 
+  /**
+   * Invoke kubectl replace with the given manifest. Note that kubectl replace doesn't support label
+   * selectors.
+   *
+   * @param credentials k8s account credentials
+   * @param manifest the manifest to replace
+   * @param task the task performing this kubectl invocation
+   * @param opName the name of the operation performing this kubectl invocation
+   * @return the manifest parsed from stdout of the kubectl invocation
+   */
   public KubernetesManifest replace(
       KubernetesCredentials credentials, KubernetesManifest manifest, Task task, String opName) {
     log.info("Replacing manifest {}", manifest.getFullResourceName());
@@ -588,8 +625,23 @@ public class KubectlJobExecutor {
     return getKubernetesManifestFromJobResult(status, manifest);
   }
 
+  /**
+   * Invoke kubectl create with the given manifest and (if present) label selectors.
+   *
+   * @param credentials k8s account credentials
+   * @param manifest the manifest to create
+   * @param task the task performing this kubectl invocation
+   * @param opName the name of the operation performing this kubectl invocation
+   * @param labelSelectors label selectors
+   * @return the manifest parsed from stdout of the kubectl invocation, or null if a label selector
+   *     is present and kubectl returned "no objects passed to create"
+   */
   public KubernetesManifest create(
-      KubernetesCredentials credentials, KubernetesManifest manifest, Task task, String opName) {
+      KubernetesCredentials credentials,
+      KubernetesManifest manifest,
+      Task task,
+      String opName,
+      KubernetesSelectorList labelSelectors) {
     log.info("Creating manifest {}", manifest.getFullResourceName());
     List<String> command = kubectlAuthPrefix(credentials);
 
@@ -599,12 +651,22 @@ public class KubectlJobExecutor {
     command.add("json");
     command.add("-f");
     command.add("-");
+    addLabelSelectors(command, labelSelectors);
 
     JobResult<String> status = executeKubectlCommand(credentials, command, Optional.of(manifest));
 
     persistKubectlJobOutput(credentials, status, manifest.getFullResourceName(), task, opName);
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
+      // If the caller provided a label selector, kubectl returns "no objects
+      // passed to create" if none of the given objects satisfy the selector.
+      // Instead of throwing an exception, leave it to higher level logic to
+      // decide how to behave.
+      if (labelSelectors.isNotEmpty()
+          && status.getError().contains(NO_OBJECTS_PASSED_TO_CREATE_STRING)) {
+        return null;
+      }
+
       throw new KubectlException(
           "Create failed for manifest: "
               + manifest.getFullResourceName()
@@ -676,10 +738,7 @@ public class KubectlJobExecutor {
     } else {
       command.add(kind.toString());
     }
-
-    if (labelSelectors != null && !labelSelectors.isEmpty()) {
-      command.add("-l=" + labelSelectors);
-    }
+    addLabelSelectors(command, labelSelectors);
 
     return command;
   }
@@ -1065,6 +1124,12 @@ public class KubectlJobExecutor {
           || credentials.isDebug()) {
         task.updateOutput(manifestName, taskName, status.getOutput(), status.getError());
       }
+    }
+  }
+
+  private void addLabelSelectors(List<String> command, KubernetesSelectorList labelSelectors) {
+    if (labelSelectors != null && !labelSelectors.isEmpty()) {
+      command.add("-l=" + labelSelectors);
     }
   }
 

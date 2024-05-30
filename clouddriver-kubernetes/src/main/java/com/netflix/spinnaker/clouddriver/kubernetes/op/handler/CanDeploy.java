@@ -35,11 +35,12 @@ public interface CanDeploy {
       KubernetesManifestStrategy.DeployStrategy deployStrategy,
       KubernetesManifestStrategy.ServerSideApplyStrategy serverSideApplyStrategy,
       Task task,
-      String opName) {
+      String opName,
+      KubernetesSelectorList labelSelectors) {
     // If the manifest has a generateName, we must apply with kubectl create as all other operations
     // require looking up a manifest by name, which will fail.
     if (manifest.hasGenerateName()) {
-      KubernetesManifest result = credentials.create(manifest, task, opName);
+      KubernetesManifest result = credentials.create(manifest, task, opName, labelSelectors);
       return new OperationResult().addManifest(result);
     }
 
@@ -51,13 +52,13 @@ public interface CanDeploy {
               manifest.getKind(),
               manifest.getNamespace(),
               manifest.getName(),
-              new KubernetesSelectorList(),
+              labelSelectors,
               new V1DeleteOptions(),
               task,
               opName);
         } catch (KubectlJobExecutor.KubectlException ignored) {
         }
-        deployedManifest = credentials.deploy(manifest, task, opName);
+        deployedManifest = credentials.deploy(manifest, task, opName, labelSelectors);
         break;
       case REPLACE:
         deployedManifest = credentials.createOrReplace(manifest, task, opName);
@@ -70,14 +71,23 @@ public interface CanDeploy {
           cmdArgs.add("--force-conflicts=true");
         }
         deployedManifest =
-            credentials.deploy(manifest, task, opName, cmdArgs.toArray(new String[cmdArgs.size()]));
+            credentials.deploy(
+                manifest,
+                task,
+                opName,
+                labelSelectors,
+                cmdArgs.toArray(new String[cmdArgs.size()]));
         break;
       case APPLY:
-        deployedManifest = credentials.deploy(manifest, task, opName);
+        deployedManifest = credentials.deploy(manifest, task, opName, labelSelectors);
         break;
       default:
         throw new AssertionError(String.format("Unknown deploy strategy: %s", deployStrategy));
     }
-    return new OperationResult().addManifest(deployedManifest);
+    OperationResult operationResult = new OperationResult();
+    if (deployedManifest != null) {
+      operationResult.addManifest(deployedManifest);
+    }
+    return operationResult;
   }
 }
