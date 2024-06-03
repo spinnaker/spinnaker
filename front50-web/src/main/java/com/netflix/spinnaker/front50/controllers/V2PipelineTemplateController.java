@@ -31,7 +31,7 @@ import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
-import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration;
+import com.netflix.spinnaker.front50.model.pipeline.V2TemplateConfiguration;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -186,22 +186,22 @@ public class V2PipelineTemplateController {
     List<String> dependentConfigIds = new ArrayList<>();
 
     String prefixedId = SPINNAKER_PREFIX + templateId;
+
     pipelineDAO.all().stream()
         .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals(TYPE_TEMPLATED))
         .forEach(
             templatedPipeline -> {
               String source;
               try {
-                TemplateConfiguration config =
-                    objectMapper.convertValue(
-                        templatedPipeline.getConfig(), TemplateConfiguration.class);
 
-                source = config.getPipeline().getTemplate().getSource();
+                V2TemplateConfiguration config =
+                    objectMapper.convertValue(templatedPipeline, V2TemplateConfiguration.class);
+                source = config.getTemplate().getReference();
               } catch (Exception e) {
                 return;
               }
 
-              if (source != null && source.equalsIgnoreCase(prefixedId)) {
+              if (source != null && source.startsWith(prefixedId)) {
                 dependentConfigIds.add(templatedPipeline.getId());
               }
             });
