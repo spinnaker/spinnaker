@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,102 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.clouddriver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.Map;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@Testcontainers
-class StandaloneContainerTest {
+public class BaseContainerTest {
 
-  private static final String REDIS_NETWORK_ALIAS = "redisHost";
+  private static final Logger logger = LoggerFactory.getLogger(BaseContainerTest.class);
 
-  private static final int REDIS_PORT = 6379;
+  protected final Network network = Network.newNetwork();
 
-  private static final Logger logger = LoggerFactory.getLogger(StandaloneContainerTest.class);
+  private static final int CLOUDDRIVER_PORT = 7002;
 
-  private static final Network network = Network.newNetwork();
+  protected GenericContainer<?> clouddriverContainer;
 
-  private static final GenericContainer redis =
-      new GenericContainer(DockerImageName.parse("library/redis:5-alpine"))
-          .withNetwork(network)
-          .withNetworkAliases(REDIS_NETWORK_ALIAS)
-          .withExposedPorts(REDIS_PORT);
-
-  private static GenericContainer clouddriverContainer;
+  private static DockerImageName dockerImageName;
 
   @BeforeAll
-  static void setupOnce() throws Exception {
+  static void setupInit() {
     String fullDockerImageName = System.getenv("FULL_DOCKER_IMAGE_NAME");
-
     // Skip the tests if there's no docker image.  This allows gradlew build to work.
     assumeTrue(fullDockerImageName != null);
-
-    redis.start();
-
-    DockerImageName dockerImageName = DockerImageName.parse(fullDockerImageName);
-
-    clouddriverContainer =
-        new GenericContainer(dockerImageName)
-            .withNetwork(network)
-            .withExposedPorts(7002)
-            .dependsOn(redis)
-            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(90)))
-            .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson());
-
-    Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(logger);
-    clouddriverContainer.start();
-    clouddriverContainer.followOutput(logConsumer);
-  }
-
-  private static String getSpringApplicationJson() throws JsonProcessingException {
-    String redisUrl = "redis://" + REDIS_NETWORK_ALIAS + ":" + REDIS_PORT;
-    logger.info("redisUrl: '{}'", redisUrl);
-    Map<String, String> properties =
-        Map.of("redis.connection", redisUrl, "services.fiat.baseUrl", "http://nowhere");
-    ObjectMapper mapper = new ObjectMapper();
-    return mapper.writeValueAsString(properties);
-  }
-
-  @AfterAll
-  static void cleanupOnce() {
-    if (clouddriverContainer != null) {
-      clouddriverContainer.stop();
-    }
-
-    if (redis != null) {
-      redis.stop();
-    }
+    dockerImageName = DockerImageName.parse(fullDockerImageName);
   }
 
   @BeforeEach
   void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
+    clouddriverContainer =
+        new GenericContainer(dockerImageName)
+            .withNetwork(network)
+            .withExposedPorts(CLOUDDRIVER_PORT)
+            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(120)));
   }
 
-  @Test
   void testHealthCheck() throws Exception {
     // hit an arbitrary endpoint
     HttpRequest request =
