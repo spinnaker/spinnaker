@@ -170,11 +170,7 @@ dependencies {
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
-    api("org.liquibase:liquibase-core"){
-       version {
-         strictly "4.24.0"
-       }
-    }
+    api("org.liquibase:liquibase-core:4.27.0")
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.10.0")
     // pf4j:3.10.0 brings in slf4j-api:2.0.6 which is not compatible with logback 1.2.x.
