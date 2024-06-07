@@ -82,6 +82,7 @@ databaseChangeLog:
         tableName: task_states
 
 - changeSet:
+    validCheckSum: 8:f0bfebd55de9168e38a8ef9c7217c610
     id: mysql-change-state-stauts-to-enum-type
     author: robzienert
     changes:
@@ -171,6 +172,7 @@ databaseChangeLog:
         tableName: task_results
 
 - changeSet:
+    validCheckSum: 8:d6f5eedc195011826620cc0355e8352d
     id: mysql-revert-change-state-stauts-to-enum-type
     author: afeldman
     changes:

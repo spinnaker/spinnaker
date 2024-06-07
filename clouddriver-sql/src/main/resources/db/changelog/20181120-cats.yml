@@ -216,6 +216,7 @@ databaseChangeLog:
         newDataType: varchar(255)
 
 - changeSet:
+    validCheckSum: 8:03b00d0af09f2e7081d187f246ea4d26
     id: application-index
     author: afeldman
     changes:

@@ -40,7 +40,7 @@ public class BaseContainerTest {
 
   protected final Network network = Network.newNetwork();
 
-  private static final int CLOUDDRIVER_PORT = 7002;
+  protected static final int CLOUDDRIVER_PORT = 7002;
 
   protected GenericContainer<?> clouddriverContainer;
 

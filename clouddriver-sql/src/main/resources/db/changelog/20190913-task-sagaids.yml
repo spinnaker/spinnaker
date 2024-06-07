@@ -4,6 +4,7 @@ databaseChangeLog:
       dbms: postgresql
       remove: afterColumn
   - changeSet:
+      validCheckSum: 8:91cfabe4a8fa0517124436ef9675708e
       id: add-task-sagaids-column
       author: robzienert
       changes:
@@ -19,6 +20,7 @@ databaseChangeLog:
             columnName: saga_ids
 
   - changeSet:
+      validCheckSum: 8:9601af668599fbc12e338b9b84c66f56
       id: mysql-update-state-enum-values
       author: robzienert
       changes:
