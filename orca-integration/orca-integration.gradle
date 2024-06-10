@@ -3,10 +3,15 @@ dependencies {
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.slf4j:slf4j-api"
+  testImplementation "org.testcontainers:mysql"
+  testImplementation "org.testcontainers:postgresql"
   testImplementation "org.testcontainers:testcontainers"
   testImplementation "org.testcontainers:junit-jupiter"
   testRuntimeOnly "ch.qos.logback:logback-classic"
+  testRuntimeOnly "mysql:mysql-connector-java"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "org.postgresql:postgresql"
+
 }
 
 test.configure {

@@ -18,97 +18,53 @@ package com.netflix.spinnaker.orca;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.Map;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
-class StandaloneContainerTest {
+class BaseContainerTest {
 
-  private static final String REDIS_NETWORK_ALIAS = "redisHost";
+  private static final Logger logger = LoggerFactory.getLogger(BaseContainerTest.class);
 
-  private static final int REDIS_PORT = 6379;
+  protected final Network network = Network.newNetwork();
 
-  private static final Logger logger = LoggerFactory.getLogger(StandaloneContainerTest.class);
+  private static final int ORCA_PORT = 8083;
 
-  private static final Network network = Network.newNetwork();
+  protected GenericContainer<?> orcaContainer;
 
-  private static final GenericContainer redis =
-      new GenericContainer(DockerImageName.parse("library/redis:5-alpine"))
-          .withNetwork(network)
-          .withNetworkAliases(REDIS_NETWORK_ALIAS)
-          .withExposedPorts(REDIS_PORT);
-
-  private static GenericContainer orcaContainer;
+  private static DockerImageName dockerImageName;
 
   @BeforeAll
-  static void setupOnce() throws Exception {
+  static void setupInit() {
     String fullDockerImageName = System.getenv("FULL_DOCKER_IMAGE_NAME");
-
     // Skip the tests if there's no docker image.  This allows gradlew build to work.
     assumeTrue(fullDockerImageName != null);
-
-    redis.start();
-
-    DockerImageName dockerImageName = DockerImageName.parse(fullDockerImageName);
-
-    orcaContainer =
-        new GenericContainer(dockerImageName)
-            .withNetwork(network)
-            .withExposedPorts(8083)
-            .dependsOn(redis)
-            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(90)))
-            .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson());
-
-    Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(logger);
-    orcaContainer.start();
-    orcaContainer.followOutput(logConsumer);
-  }
-
-  private static String getSpringApplicationJson() throws JsonProcessingException {
-    String redisUrl = "redis://" + REDIS_NETWORK_ALIAS + ":" + REDIS_PORT;
-    logger.info("redisUrl: '{}'", redisUrl);
-    Map<String, String> properties =
-        Map.of("redis.connection", redisUrl, "services.fiat.baseUrl", "http://nowhere");
-    ObjectMapper mapper = new ObjectMapper();
-    return mapper.writeValueAsString(properties);
-  }
-
-  @AfterAll
-  static void cleanupOnce() {
-    if (orcaContainer != null) {
-      orcaContainer.stop();
-    }
-
-    if (redis != null) {
-      redis.stop();
-    }
+    dockerImageName = DockerImageName.parse(fullDockerImageName);
   }
 
   @BeforeEach
-  void init(TestInfo testInfo) {
+  void init(TestInfo testInfo) throws Exception {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
+    orcaContainer =
+        new GenericContainer(dockerImageName)
+            .withNetwork(network)
+            .withExposedPorts(ORCA_PORT)
+            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(120)));
   }
 
-  @Test
   void testHealthCheck() throws Exception {
     // hit an arbitrary endpoint
     HttpRequest request =
