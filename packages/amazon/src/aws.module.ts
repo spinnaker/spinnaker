@@ -42,6 +42,7 @@ import { AMAZON_PIPELINE_STAGES_LAMBDA_INVOKE } from './pipeline/stages/invokeLa
 import { AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE } from './pipeline/stages/modifyScalingProcess/modifyScalingProcessStage';
 import { AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE } from './pipeline/stages/resizeAsg/awsResizeAsgStage';
 import { AMAZON_PIPELINE_STAGES_ROLLBACKCLUSTER_AWSROLLBACKCLUSTERSTAGE } from './pipeline/stages/rollbackCluster/awsRollbackClusterStage';
+import { AMAZON_PIPELINE_STAGES_LAMBDA_ROUTE } from './pipeline/stages/routeLambda';
 import { AMAZON_PIPELINE_STAGES_SCALEDOWNCLUSTER_AWSSCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/awsScaleDownClusterStage';
 import { AMAZON_PIPELINE_STAGES_SHRINKCLUSTER_AWSSHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/awsShrinkClusterStage';
 import { AMAZON_PIPELINE_STAGES_TAGIMAGE_AWSTAGIMAGESTAGE } from './pipeline/stages/tagImage/awsTagImageStage';
@@ -122,6 +123,7 @@ module(AMAZON_MODULE, [
   AMAZON_PIPELINE_STAGES_LAMBDA_DEPLOY,
   AMAZON_PIPELINE_STAGES_LAMBDA_INVOKE,
   AMAZON_PIPELINE_STAGES_LAMBDA_UPDATE,
+  AMAZON_PIPELINE_STAGES_LAMBDA_ROUTE,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('aws', {
     name: 'Amazon',
