@@ -33,6 +33,7 @@ import com.netflix.spinnaker.front50.jackson.mixins.TimestampedMixins;
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.GcsStorageService;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
+import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -58,8 +59,10 @@ public class GcsConfig {
 
   private static final Logger log = LoggerFactory.getLogger(GcsConfig.class);
 
-  private static final String DATA_FILENAME = "specification.json";
-  private static final String APPLICATION_PERMISSION_DATA_FILENAME = "permission.json";
+  private static final String DATA_FILENAME =
+      ObjectType.APPLICATION.getDefaultMetadataFilename(true);
+  private static final String APPLICATION_PERMISSION_DATA_FILENAME =
+      ObjectType.APPLICATION_PERMISSION.getDefaultMetadataFilename(true);
 
   @Bean
   public GcsStorageService defaultGoogleCloudStorageService(

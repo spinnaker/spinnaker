@@ -64,6 +64,7 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
 import strikt.assertions.startsWith
+import strikt.assertions.endsWith
 
 class GcsStorageServiceTest {
 
@@ -71,7 +72,7 @@ class GcsStorageServiceTest {
     private const val BUCKET_NAME = "myBucket"
     private const val BUCKET_LOCATION = "bucketLocation"
     private const val BASE_PATH = "my/base/path"
-    private const val DATA_FILENAME = "my-file.txt"
+    private val DATA_FILENAME = ObjectType.APPLICATION.getDefaultMetadataFilename(true);
   }
 
   private lateinit var gcs: Storage
@@ -230,6 +231,7 @@ class GcsStorageServiceTest {
 
     expectThat(blob).isNotNull()
     expectThat(blob!!.contentType).isEqualTo("application/json")
+    expectThat(blob.name).endsWith("/$DATA_FILENAME")
   }
 
   @Test
@@ -255,10 +257,12 @@ class GcsStorageServiceTest {
     storageService.storeObject(ObjectType.APPLICATION, "app1", Application())
     storageService.storeObject(ObjectType.APPLICATION, "app2", Application())
     storageService.storeObject(ObjectType.APPLICATION, "app3", Application())
-
+    storageService.storeObject(ObjectType.APPLICATION_PERMISSION,"app3",Application.Permission())
     val keys = storageService.listObjectKeys(ObjectType.APPLICATION)
+    val keysWithPermissions = storageService.listObjectKeys(ObjectType.APPLICATION_PERMISSION)
 
     expectThat(keys).containsKeys("app1", "app2", "app3")
+    expectThat(keysWithPermissions).containsKeys("app3")
   }
 
   @Test
@@ -269,6 +273,8 @@ class GcsStorageServiceTest {
     storageService.storeObject(ObjectType.APPLICATION, "app3", Application())
     storageService.storeObject(ObjectType.DELIVERY, "delivery", Delivery())
     storageService.storeObject(ObjectType.PIPELINE, "pipeline", Pipeline())
+    storageService.storeObject(ObjectType.APPLICATION_PERMISSION,"app4",Application.Permission())
+
 
     val keys = storageService.listObjectKeys(ObjectType.APPLICATION)
 
@@ -294,14 +300,19 @@ class GcsStorageServiceTest {
 
     clock.setEpochMilli(111L)
     storageService.storeObject(ObjectType.APPLICATION, "plumpstuff", Application().apply { name = "version1" })
+    storageService.storeObject(ObjectType.APPLICATION_PERMISSION, "plumpstuff", Application.Permission().apply { name = "versionPerm1" })
+
     clock.setEpochMilli(222L)
     storageService.storeObject(ObjectType.APPLICATION, "plumpstuff", Application().apply { name = "version2" })
+    storageService.storeObject(ObjectType.APPLICATION_PERMISSION, "plumpstuff", Application.Permission().apply { name = "versionPerm2" })
     clock.setEpochMilli(333L)
     storageService.storeObject(ObjectType.APPLICATION, "plumpstuff", Application().apply { name = "version3" })
+    storageService.storeObject(ObjectType.APPLICATION_PERMISSION, "plumpstuff", Application.Permission().apply { name = "versionPerm3" })
 
     val versions: List<Application> =
       storageService.listObjectVersions<Application>(ObjectType.APPLICATION, "plumpstuff", 100).toList()
-
+    val permVersions: List<Application.Permission> =
+      storageService.listObjectVersions<Application.Permission>(ObjectType.APPLICATION_PERMISSION, "plumpstuff", 100).toList()
     expectThat(versions).hasSize(3)
     expectThat(versions[0].name).isEqualToIgnoringCase("version3")
     expectThat(versions[0].updateTs).isEqualTo("333")
@@ -309,12 +320,22 @@ class GcsStorageServiceTest {
     expectThat(versions[1].updateTs).isEqualTo("222")
     expectThat(versions[2].name).isEqualToIgnoringCase("version1")
     expectThat(versions[2].updateTs).isEqualTo("111")
+
+    expectThat(permVersions).hasSize(3)
+    expectThat(permVersions[0].name).isEqualToIgnoringCase("versionPerm3")
+    expectThat(permVersions[0].lastModified).isEqualTo(333)
+    expectThat(permVersions[1].name).isEqualToIgnoringCase("versionPerm2")
+    expectThat(permVersions[1].lastModified).isEqualTo(222)
+    expectThat(permVersions[2].name).isEqualToIgnoringCase("versionPerm1")
+    expectThat(permVersions[2].lastModified).isEqualTo(111)
   }
 
   @Test
   fun `listObjectVersions ignores similar filenames`() {
 
     writeFile("$BASE_PATH/${ObjectType.APPLICATION.group}/plumpstuff/$DATA_FILENAME", """{ "name": "the good one" }""")
+    writeFile("$BASE_PATH/${ObjectType.APPLICATION.group}/plumpstuff/" +
+      ObjectType.APPLICATION_PERMISSION.getDefaultMetadataFilename(true), """{ "name": "the good one but permissions file" }""")
     writeFile("$BASE_PATH/${ObjectType.APPLICATION.group}/plumpstuff/unknownFilename.txt", """{}""")
     writeFile("$BASE_PATH${ObjectType.APPLICATION.group}/plumpstuff/$DATA_FILENAME", """{}""")
     writeFile("$BASE_PATH/${ObjectType.APPLICATION.group}plumpstuff/$DATA_FILENAME", """{}""")
@@ -333,6 +354,7 @@ class GcsStorageServiceTest {
     storageService.storeObject(ObjectType.APPLICATION, "app1", Application().apply { name = "app1v1" })
     storageService.storeObject(ObjectType.APPLICATION, "app1", Application().apply { name = "app1v2" })
     storageService.storeObject(ObjectType.APPLICATION, "app1", Application().apply { name = "app1v3" })
+    storageService.storeObject(ObjectType.APPLICATION_PERMISSION, "app1", Application.Permission().apply { name = "perm1" })
     storageService.storeObject(ObjectType.APPLICATION, "app2", Application().apply { name = "app2" })
     storageService.storeObject(ObjectType.APPLICATION, "app3", Application().apply { name = "app3" })
     storageService.storeObject(ObjectType.PIPELINE, "app1", Application().apply { name = "app1" })

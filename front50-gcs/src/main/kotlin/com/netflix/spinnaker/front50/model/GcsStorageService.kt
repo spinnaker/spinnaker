@@ -127,12 +127,15 @@ class GcsStorageService(
 
     try {
       val rootDirectory = daoRoot(objectType)
+
       storage.list(bucketName, BlobListOption.prefix("$rootDirectory/"))
         .iterateAll()
         .forEach { blob ->
-          val objectKey = getObjectKey(blob, rootDirectory)
-          if (objectKey != null) {
-            results.put(objectKey, blob.updateTime)
+          if (blob.name.endsWith("/"+ objectType.getDefaultMetadataFilename(true))) {
+            val objectKey = getObjectKey(blob, rootDirectory, objectType.getDefaultMetadataFilename(true))
+            if (objectKey != null) {
+              results.put(objectKey, blob.updateTime)
+            }
           }
         }
     } catch (e: Exception) {
@@ -142,11 +145,11 @@ class GcsStorageService(
     return results.build()
   }
 
-  private fun getObjectKey(blob: Blob, rootDirectory: String): String? {
+  private fun getObjectKey(blob: Blob, rootDirectory: String, defaultMetadataKey: String): String? {
     val name = blob.name
-    return if (!name.startsWith("$rootDirectory/") || !name.endsWith("/$dataFilename")) {
+    return if (!name.startsWith("$rootDirectory/") || !name.endsWith("/$defaultMetadataKey")) {
       null
-    } else name.substring(rootDirectory.length + 1, name.length - dataFilename.length - 1)
+    } else name.substring(rootDirectory.length + 1, name.length - defaultMetadataKey.length - 1)
   }
 
   override fun <T : Timestamped> listObjectVersions(
@@ -280,7 +283,7 @@ class GcsStorageService(
   }
 
   private fun pathForKey(objectType: ObjectType, key: String): String {
-    return "${daoRoot(objectType)}/$key/$dataFilename"
+    return "${daoRoot(objectType)}/$key/"+ objectType.getDefaultMetadataFilename(true)
   }
 
   private fun lastModifiedBlobId(objectType: ObjectType): BlobId {
