@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.artifacts;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor;
 import java.util.ArrayList;
@@ -91,7 +92,8 @@ public class ArtifactExtractor {
     return jinjaTemplateService.getTemplate(messageFormat, templateType);
   }
 
-  private boolean parseCustomFormat(Object customFormat) {
+  @VisibleForTesting
+  boolean parseCustomFormat(Object customFormat) {
     if (customFormat == null) {
       return false;
     }
