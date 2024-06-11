@@ -24,8 +24,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           java-version: |
-            17
             11
+            17
           distribution: 'zulu'
           cache: 'gradle'
       - name: Assemble release info
@@ -52,14 +52,14 @@ jobs:
           ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
         run: |
-          ./gradlew --info build ${{ steps.build_variables.outputs.REPO }}-web:installDist publishToNexus closeAndReleaseNexusStagingRepository
+          ./gradlew -PenableCrossCompilerPlugin=true --info build ${{ steps.build_variables.outputs.REPO }}-web:installDist publishToNexus closeAndReleaseNexusStagingRepository
       - name: Publish apt packages to Google Artifact Registry
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.release_info.outputs.RELEASE_VERSION }}
           ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: true
           GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
         run: |
-          ./gradlew --info publish
+          ./gradlew -PenableCrossCompilerPlugin=true --info publish
       - name: Login to Google Cloud
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
