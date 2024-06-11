@@ -715,7 +715,7 @@ abstract class PipelineControllerTck extends Specification {
 
     and:
     // the pipeline with the id didn't make it in either
-    pipelineDAO.all(true).size == 0
+    pipelineDAO.all(true).size() == 0
   }
 
   def "should optimally refresh the cache after updates and deletes"() {
@@ -781,7 +781,7 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     // verify that the cache has two items to make sure the test is working as expected
-    allItems.size == 2
+    allItems.size() == 2
 
     when:
     // remove the id from one of the pipelines.
