@@ -1,10 +1,8 @@
 databaseChangeLog:
   - changeSet:
+      validCheckSum: 8:10687930e669629d8c370cd5a2348585
       id: create-deleted-executions-table
       author: mvulfson
-      validCheckSum:
-        # Original changeset checksum
-        - 8:847dd443c55dcb0a47a9576b891ad5ef
       changes:
         - createTable:
             tableName: deleted_executions

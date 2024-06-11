@@ -41,7 +41,7 @@ class BaseContainerTest {
 
   protected final Network network = Network.newNetwork();
 
-  private static final int ORCA_PORT = 8083;
+  protected static final int ORCA_PORT = 8083;
 
   protected GenericContainer<?> orcaContainer;
 

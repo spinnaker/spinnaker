@@ -1,5 +1,6 @@
 databaseChangeLog:
 - changeSet:
+   validCheckSum: 8:a927aca379a0eecf2a6eecdee281be9f
    id: modify-status-column-enum
    author: afeldman
    changes:
