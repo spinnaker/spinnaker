@@ -46,17 +46,6 @@ subprojects {
      useJUnitPlatform()
     }
 
-    tasks.withType(JavaCompile).configureEach {
-      javaCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(11)
-      }
-    }
-    tasks.withType(Test).configureEach {
-      javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(17)
-      }
-    }
-
     tasks.withType(JavaExec) {
       if (System.getProperty('DEBUG', 'false') == 'true') {
         jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8189'

@@ -5,4 +5,4 @@ RUN apk add --update \
 LABEL maintainer="sig-platform@spinnaker.io"
 ENV GRADLE_USER_HOME /workspace/.gradle
 ENV GRADLE_OPTS -Xmx4g
-CMD ./gradlew --no-daemon echo-web:installDist -x test
+CMD ./gradlew -PenableCrossCompilerPlugin=true --no-daemon echo-web:installDist -x test
