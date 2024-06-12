@@ -19,16 +19,21 @@ package com.netflix.spinnaker.gate.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 
 class RedisConfigTest {
 
+  EmbeddedRedis redis = embeddedRedis();
+  String conn = "redis.connection=redis://" + redis.getHost() + ":" + redis.getPort();
+
   @Test
   public void testCircularDependenciesException() {
     ApplicationContextRunner applicationContextRunner =
         new ApplicationContextRunner()
+            .withPropertyValues(conn)
             .withUserConfiguration(RedisConfig.class, RedisActionConfig.class)
             .withBean(PostConnectionConfiguringJedisConnectionFactory.class);
     assertDoesNotThrow(
@@ -43,11 +48,19 @@ class RedisConfigTest {
         new ApplicationContextRunner()
             .withUserConfiguration(RedisConfig.class, RedisActionConfig.class)
             .withBean(PostConnectionConfiguringJedisConnectionFactory.class)
-            .withPropertyValues("redis.configuration.secure", "true");
+            .withPropertyValues("redis.configuration.secure", "true")
+            .withPropertyValues(conn);
 
     assertDoesNotThrow(
         () ->
             applicationContextRunner.run(
                 ctx -> assertThat(ctx).getBeans(ConfigureRedisAction.class).hasSize(2)));
+  }
+
+  EmbeddedRedis embeddedRedis() {
+    EmbeddedRedis redis = EmbeddedRedis.embed();
+    redis.getJedis().connect();
+    redis.getJedis().ping();
+    return redis;
   }
 }

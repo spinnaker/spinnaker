@@ -49,6 +49,9 @@ dependencies {
 
   implementation "com.graphql-java-kickstart:graphql-spring-boot-starter:7.0.1"
   implementation "com.graphql-java-kickstart:graphql-java-tools:6.0.2"
+  implementation ("com.graphql-java:graphql-java:14.0") { // To avoid version bump with spring boot 2.7.x upgrade.
+      force = true					   // Unpin it after adoption of spring-boot-starter-graphql
+   }
 
   implementation "io.springfox:springfox-swagger2"
 
