@@ -1,6 +1,6 @@
 dependencies {
   testImplementation "com.fasterxml.jackson.core:jackson-databind"
-  testImplementation "mysql:mysql-connector-java"
+  testImplementation "com.mysql:mysql-connector-j"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.postgresql:postgresql"

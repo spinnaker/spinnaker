@@ -70,7 +70,7 @@ dependencies {
   integrationImplementation "org.testcontainers:testcontainers"
   integrationImplementation "org.testcontainers:mysql"
   integrationImplementation "org.testcontainers:junit-jupiter"
-  integrationImplementation "mysql:mysql-connector-java"
+  integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation ("io.rest-assured:rest-assured:4.0.0") {
     // Exclude groovy pulled in by rest-assured, so we use kork's version
     exclude group: "org.codehaus.groovy", module: "groovy"

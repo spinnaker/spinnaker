@@ -53,7 +53,7 @@ dependencies {
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework:spring-test"
   integrationImplementation "org.testcontainers:mysql"
-  integrationImplementation "mysql:mysql-connector-java"
+  integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation sourceSets.test.output
   integrationImplementation sourceSets.main.output
   integrationImplementation ("io.rest-assured:rest-assured:4.0.0") {

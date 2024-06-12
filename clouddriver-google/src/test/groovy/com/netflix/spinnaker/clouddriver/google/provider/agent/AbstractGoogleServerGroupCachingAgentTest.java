@@ -787,9 +787,10 @@ class AbstractGoogleServerGroupCachingAgentTest {
       assertThat(convertedCustomMetric.getMetric()).isEqualTo(inputCustomMetric.getMetric());
       assertThat(convertedCustomMetric.getUtilizationTarget())
           .isEqualTo(inputCustomMetric.getUtilizationTarget());
-      assertThat(convertedCustomMetric.getUtilizationTargetType())
-          .extracting(
-              enumValue -> Optional.ofNullable(enumValue).map(Object::toString).orElse(null))
+      assertThat(
+              Optional.ofNullable(convertedCustomMetric.getUtilizationTargetType())
+                  .map(Object::toString)
+                  .orElse(null))
           .isEqualTo(inputCustomMetric.getUtilizationTargetType());
     }
   }

@@ -59,6 +59,6 @@ dependencies {
   testImplementation "org.springframework:spring-test"
   testImplementation "org.testcontainers:mysql"
   testImplementation "org.testcontainers:postgresql"
-  testImplementation "mysql:mysql-connector-java"
+  testImplementation "com.mysql:mysql-connector-j"
   testImplementation "org.postgresql:postgresql"
 }
