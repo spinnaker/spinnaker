@@ -20,8 +20,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           java-version: |
-            17
             11
+            17
           distribution: 'zulu'
           cache: 'gradle'
       - name: Set up QEMU
@@ -52,14 +52,14 @@ jobs:
           ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
         run: |
-          ./gradlew --info build ${{ steps.build_variables.outputs.REPO }}-web:installDist publishToNexus closeAndReleaseNexusStagingRepository
+          ./gradlew -PenableCrossCompilerPlugin=true --info build ${{ steps.build_variables.outputs.REPO }}-web:installDist publishToNexus closeAndReleaseNexusStagingRepository
       - name: Publish apt packages to Google Artifact Registry
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.release_info.outputs.RELEASE_VERSION }}
           ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: true
           GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
         run: |
-          ./gradlew --info publish
+          ./gradlew -PenableCrossCompilerPlugin=true --info publish
       - name: Tar Packer templates for upload to GCS
         # Note, Halyard expects packer.tar.gz but doesn't actually gunzip it.
         # Thus we must create a non-gzipped tar archive.

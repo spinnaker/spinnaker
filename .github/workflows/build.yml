@@ -26,8 +26,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           java-version: |
-            17
             11
+            17
           distribution: 'zulu'
           cache: 'gradle'
       - name: Prepare build variables
@@ -38,7 +38,7 @@ jobs:
       - name: Build
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
-        run: ./gradlew build --stacktrace ${{ steps.build_variables.outputs.REPO }}-web:installDist
+        run: ./gradlew -PenableCrossCompilerPlugin=true build --stacktrace ${{ steps.build_variables.outputs.REPO }}-web:installDist
       - name: Build local slim container image for testing
         uses: docker/build-push-action@v5
         with:
