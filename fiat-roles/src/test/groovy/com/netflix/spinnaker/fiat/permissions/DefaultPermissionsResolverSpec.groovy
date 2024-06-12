@@ -340,10 +340,10 @@ class DefaultPermissionsResolverSpec extends Specification {
     ]
 
     when:
-    applicationProvider.getAllRestricted("user1", HashSet.of(role1), false) >> [testApp1].toSet()
-    applicationProvider.getAllRestricted("user2", HashSet.of(role1, role2), false) >> [testApp2].toSet()
-    applicationProvider.getAllRestricted("user3", HashSet.of(role1, roleAdmin), true) >> [testAppAdmin].toSet()
-    applicationProvider.getAllRestricted("abc@managed-service-accounts", HashSet.of(role1), false) >> [testApp1].toSet()
+    applicationProvider.getAllRestricted("user1", Set.of(role1), false) >> [testApp1].toSet()
+    applicationProvider.getAllRestricted("user2", Set.of(role1, role2), false) >> [testApp2].toSet()
+    applicationProvider.getAllRestricted("user3", Set.of(role1, roleAdmin), true) >> [testAppAdmin].toSet()
+    applicationProvider.getAllRestricted("abc@managed-service-accounts", Set.of(role1), false) >> [testApp1].toSet()
     def result = resolver.resolveResources(userToRoles)
 
     then:

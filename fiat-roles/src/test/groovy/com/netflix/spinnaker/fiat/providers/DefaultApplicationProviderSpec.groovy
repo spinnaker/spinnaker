@@ -167,19 +167,19 @@ class DefaultApplicationProviderSpec extends Specification {
     setup:
     def front50Apps = [
             new Application().setName("front50App1")
-                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setDetails(Map.of("foo", "bar", "xyz", "pqr"))
                     .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
             new Application().setName("front50App2")
-                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setDetails(Map.of("foo", "bar", "xyz", "pqr"))
                     .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build())
     ]
 
     def clouddriverApps = [
             new Application().setName("clouddriverApp1")
-                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setDetails(Map.of("foo", "bar", "xyz", "pqr"))
                     .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
             new Application().setName("clouddriverApp2")
-                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setDetails(Map.of("foo", "bar", "xyz", "pqr"))
                     .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build())
     ]
 
@@ -224,22 +224,22 @@ class DefaultApplicationProviderSpec extends Specification {
     setup:
     def testApps = [
             new Application().setName("front50App1")
-                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setDetails(Map.of("foo", "bar", "xyz", "pqr"))
                     .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
             new Application().setName("front50App2")
-                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setDetails(Map.of("foo", "bar", "xyz", "pqr"))
                     .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build())
     ]
 
     Set<Application> expectedApps = [
             new Application().setName("front50App1")
-                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setDetails(Map.of("foo", "bar", "xyz", "pqr"))
                     .setPermissions(new Permissions.Builder()
                             .add(Authorization.READ, "role")
                             .add(Authorization.EXECUTE, "role")
                             .build()),
             new Application().setName("front50App2")
-                    .setDetails(HashMap.of("foo", "bar", "xyz", "pqr"))
+                    .setDetails(Map.of("foo", "bar", "xyz", "pqr"))
                     .setPermissions(new Permissions.Builder()
                             .add(Authorization.READ, "role")
                             .add(Authorization.EXECUTE, "role")
