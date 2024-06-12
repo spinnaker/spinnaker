@@ -30,7 +30,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-sql"
 
   if (!rootProject.hasProperty("excludeSqlDrivers")) {
-    runtimeOnly "mysql:mysql-connector-java"
+    runtimeOnly "com.mysql:mysql-connector-j"
   }
 
   implementation "org.springframework:spring-context-support"
