@@ -21,7 +21,7 @@ dependencies {
   testImplementation "dev.minutest:minutest"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
 
-  testImplementation "mysql:mysql-connector-java"
+  testImplementation "com.mysql:mysql-connector-j"
   testImplementation "org.testcontainers:mysql"
 
   testImplementation "org.testcontainers:postgresql"

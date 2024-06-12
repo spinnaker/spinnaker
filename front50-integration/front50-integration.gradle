@@ -7,7 +7,7 @@ dependencies {
   testImplementation "org.testcontainers:junit-jupiter"
   testImplementation "org.testcontainers:mysql"
   testRuntimeOnly "ch.qos.logback:logback-classic"
-  testRuntimeOnly "mysql:mysql-connector-java"
+  testRuntimeOnly "com.mysql:mysql-connector-j"
 }
 
 test.configure {
