@@ -25,5 +25,5 @@ dependencies {
   testImplementation("org.springframework:spring-test")
   testImplementation("org.springframework.boot:spring-boot-test")
 
-  testRuntimeOnly("mysql:mysql-connector-java")
+  testRuntimeOnly("com.mysql:mysql-connector-j")
 }

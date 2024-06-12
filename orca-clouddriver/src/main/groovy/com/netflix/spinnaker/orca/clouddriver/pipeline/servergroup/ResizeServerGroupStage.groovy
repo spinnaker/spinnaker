@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ModifyAwsScalingProcessStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupLinearStageSupport
@@ -37,7 +38,7 @@ import org.springframework.stereotype.Component
 @Component
 @Slf4j
 class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
-  public static final String TYPE = getType(ResizeServerGroupStage)
+  public static final String TYPE = StageDefinitionBuilder.getType(ResizeServerGroupStage)
 
   @Override
   protected void taskGraphInternal(StageExecution stage, TaskNode.Builder builder) {
