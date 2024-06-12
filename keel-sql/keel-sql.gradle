@@ -27,7 +27,7 @@ dependencies {
   implementation("com.zaxxer:HikariCP")
   implementation("org.liquibase:liquibase-core")
 
-  runtimeOnly("mysql:mysql-connector-java")
+  runtimeOnly("com.mysql:mysql-connector-j")
 
   testImplementation("io.spinnaker.kork:kork-sql-test")
   testImplementation("io.strikt:strikt-core")
@@ -41,7 +41,7 @@ dependencies {
   testImplementation("org.testcontainers:mysql:${testContainersVersion}")
 
   jooqGenerator(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
-  jooqGenerator("mysql:mysql-connector-java")
+  jooqGenerator("com.mysql:mysql-connector-j")
   jooqGenerator("org.jooq:jooq-meta-extensions")
   jooqGenerator("ch.qos.logback:logback-classic:1.2.3")
 
@@ -49,7 +49,7 @@ dependencies {
   liquibaseRuntime("org.liquibase:liquibase-core:4.24.0")
   liquibaseRuntime("ch.qos.logback:logback-classic:1.2.3")
   liquibaseRuntime("org.yaml:snakeyaml:1.31")
-  liquibaseRuntime("mysql:mysql-connector-java")
+  liquibaseRuntime("com.mysql:mysql-connector-j")
 }
 
 liquibaseUpdate {
