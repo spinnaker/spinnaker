@@ -1,3 +1,2 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.netflix.spinnaker.kork.tomcat.TomcatConfiguration
+
 

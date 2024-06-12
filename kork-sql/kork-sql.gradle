@@ -22,7 +22,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 
   testRuntimeOnly project(":kork-web")
-  testRuntimeOnly "mysql:mysql-connector-java"
+  testRuntimeOnly "com.mysql:mysql-connector-j"
 }
 
 detekt {

@@ -35,6 +35,7 @@ import org.jooq.impl.DefaultExecuteListenerProvider
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanCreationException
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.actuate.autoconfigure.metrics.jdbc.DataSourcePoolMetricsAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -55,7 +56,7 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 @Configuration
 @ConditionalOnProperty("sql.enabled")
 @EnableConfigurationProperties(SqlProperties::class)
-@EnableAutoConfiguration(exclude = [DataSourceAutoConfiguration::class])
+@EnableAutoConfiguration(exclude = [DataSourceAutoConfiguration::class, DataSourcePoolMetricsAutoConfiguration::class])
 @Import(HikariDataSourceConfiguration::class, DataSourcePoolMetadataProvidersConfiguration::class)
 class DefaultSqlConfiguration {
 

@@ -1,0 +1,2 @@
+com.netflix.spinnaker.kork.actuator.ActuatorEndpointsConfiguration
+com.netflix.spinnaker.kork.actuator.ResolvedEnvEndpointAutoConfiguration
