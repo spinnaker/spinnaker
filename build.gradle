@@ -69,6 +69,10 @@ subprojects {
     }
 
     test {
+      minHeapSize = "512m"
+      maxHeapSize = "2g"
+      maxParallelForks = 4
+
       testLogging {
         exceptionFormat = "full"
       }
