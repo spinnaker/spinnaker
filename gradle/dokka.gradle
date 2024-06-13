@@ -19,7 +19,7 @@ apply plugin: "org.jetbrains.dokka"
 dokkaHtml {
   dokkaSourceSets {
     configureEach {
-      jdkVersion.set(17)
+      jdkVersion.set(11)
     }
   }
 }
