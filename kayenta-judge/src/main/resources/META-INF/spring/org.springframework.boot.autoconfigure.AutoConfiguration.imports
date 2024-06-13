@@ -1,0 +1,2 @@
+com.netflix.kayenta.judge.config.NetflixJudgeConfiguration
+com.netflix.kayenta.judge.config.RemoteJudgeConfiguration
