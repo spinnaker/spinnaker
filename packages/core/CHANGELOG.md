@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.29.1](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.29.0...@spinnaker/core@0.29.1) (2024-06-10)
+
+
+### Bug Fixes
+
+* **redblack:** fixing redblack onchange values ([#10107](https://github.com/spinnaker/deck/issues/10107)) ([443408e](https://github.com/spinnaker/deck/commit/443408e7f6404b10d195b146f2f68fe926c2413a))
+
+
+
+
+
 # [0.29.0](https://github.com/spinnaker/deck/compare/@spinnaker/core@0.28.0...@spinnaker/core@0.29.0) (2024-05-10)
 
 

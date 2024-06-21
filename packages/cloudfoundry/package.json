@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/cloudfoundry",
   "license": "Apache-2.0",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "publishConfig": {
@@ -16,7 +16,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.29.0",
+    "@spinnaker/core": "^0.29.1",
     "@uirouter/react": "1.0.7",
     "@uirouter/react-hybrid": "1.0.2",
     "angular": "1.6.10",

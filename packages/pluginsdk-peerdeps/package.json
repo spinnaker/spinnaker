@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/pluginsdk-peerdeps",
   "description": "Provides package dependencies to plugin developers",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "license": "Apache-2.0",
   "publishConfig": {
     "access": "public"
@@ -21,7 +21,7 @@
     "@rollup/plugin-replace": "2.4.2",
     "@rollup/plugin-typescript": "8.2.1",
     "@rollup/plugin-url": "6.0.0",
-    "@spinnaker/core": "0.29.0",
+    "@spinnaker/core": "0.29.1",
     "@spinnaker/eslint-plugin": "3.0.1",
     "@spinnaker/pluginsdk": "*",
     "@spinnaker/presentation": "0.3.1",

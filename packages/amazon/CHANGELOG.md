@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.5](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.14.4...@spinnaker/amazon@0.14.5) (2024-06-10)
+
+
+### Bug Fixes
+
+* **lambda:** Export LambdaRoute stage on aws module ([#10116](https://github.com/spinnaker/deck/issues/10116)) ([1f6d2c1](https://github.com/spinnaker/deck/commit/1f6d2c1a69bfae5fd8b6bb9f5fbf0b7fb86930d3))
+
+
+
+
+
 ## [0.14.4](https://github.com/spinnaker/deck/compare/@spinnaker/amazon@0.14.3...@spinnaker/amazon@0.14.4) (2024-05-10)
 
 

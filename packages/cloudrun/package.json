@@ -1,7 +1,7 @@
 {
   "name": "@spinnaker/cloudrun",
   "license": "Apache-2.0",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "publishConfig": {
@@ -16,7 +16,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.29.0",
+    "@spinnaker/core": "^0.29.1",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/react": "1.0.7",
     "angular": "1.8.3",
