@@ -220,7 +220,6 @@ public abstract class AsgBuilder {
 
     // enable metrics and monitoring
     if (cfg.getEnabledMetrics() != null
-        && !cfg.getEnabledMetrics().isEmpty()
         && cfg.getInstanceMonitoring() != null
         && cfg.getInstanceMonitoring()) {
       task.updateStatus(taskPhase, "Enabling metrics collection for: " + asgName);

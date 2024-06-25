@@ -365,11 +365,26 @@ class AsgWithLaunchConfigurationBuilderSpec extends Specification {
             null                     | null                |  0
             []                       | null                |  0
             []                       | false               |  0
-            []                       | true                |  0
     ['GroupMinSize', 'GroupMaxSize'] | null                |  0
     ['GroupMinSize', 'GroupMaxSize'] | []                  |  0
     ['GroupMinSize', 'GroupMaxSize'] | false               |  0
     ['GroupMinSize', 'GroupMaxSize'] | true                |  1
+  }
+
+  void "enables metrics collection for all metrics when enabledMetrics is an empty list and instanceMonitoring is true"() {
+    setup:
+    def asgWithLcBuilder = new AsgWithLaunchConfigurationBuilder(lcBuilder, autoScaling, amazonEC2, asgLifecycleHookWorker)
+    asgConfig.enabledMetrics = []
+    asgConfig.instanceMonitoring = true
+
+    when:
+    asgWithLcBuilder.build(task, taskPhase, asgName, asgConfig)
+
+    then:
+    // According to
+    // https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_EnableMetricsCollection.html,
+    // specifying granularity with no metrics means all metrics.
+    1 * autoScaling.enableMetricsCollection({ (it.granularity == '1Minute') && (it.metrics == []) })
   }
 
   void "continues if serverGroup already exists, is reasonably the same and within safety window"() {
