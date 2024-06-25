@@ -59,12 +59,14 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
 
   private final UpsertGoogleAutoscalingPolicyDescription description
 
-  UpsertGoogleAutoscalingPolicyAtomicOperation(UpsertGoogleAutoscalingPolicyDescription description, @Autowired GoogleClusterProvider googleClusterProvider, @Autowired GoogleOperationPoller googleOperationPoller, @Autowired AtomicOperationsRegistry atomicOperationsRegistry, @Autowired OrchestrationProcessor orchestrationProcessor) {
+  UpsertGoogleAutoscalingPolicyAtomicOperation(UpsertGoogleAutoscalingPolicyDescription description, @Autowired GoogleClusterProvider googleClusterProvider, @Autowired GoogleOperationPoller googleOperationPoller, @Autowired AtomicOperationsRegistry atomicOperationsRegistry, @Autowired OrchestrationProcessor orchestrationProcessor, @Autowired Cache cacheView, @Autowired ObjectMapper objectMapper) {
     this.description = description
     this.googleClusterProvider = googleClusterProvider
     this.googleOperationPoller = googleOperationPoller
     this.atomicOperationsRegistry = atomicOperationsRegistry
     this.orchestrationProcessor = orchestrationProcessor
+    this.cacheView = cacheView
+    this.objectMapper = objectMapper
    }
 
   /**

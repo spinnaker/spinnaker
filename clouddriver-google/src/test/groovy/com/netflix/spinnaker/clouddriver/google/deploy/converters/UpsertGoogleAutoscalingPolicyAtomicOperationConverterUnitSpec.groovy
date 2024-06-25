@@ -43,6 +43,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationConverterUnitSpec extends Spec
     def mockCredentials = Mock(GoogleNamedAccountCredentials)
     credentialsRepository.getOne(_) >> mockCredentials
     converter.credentialsRepository = credentialsRepository
+    converter.objectMapper = mapper
   }
 
   void "upsertGoogleScalingPolicyDescription type returns UpsertGoogleScalingPolicyDescription and UpsertGoogleScalingPolicyAtomicOperation"() {
