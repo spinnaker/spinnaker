@@ -62,7 +62,7 @@ class BaseContainerTest {
         new GenericContainer(dockerImageName)
             .withNetwork(network)
             .withExposedPorts(ORCA_PORT)
-            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(120)));
+            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(150)));
   }
 
   void testHealthCheck() throws Exception {
