@@ -19,7 +19,6 @@ plugins {
 }
 
 apply from: "$rootDir/gradle/kotlin.gradle"
-apply from: "$rootDir/gradle/dokka.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 apply plugin: "java-library"
 
@@ -40,8 +39,6 @@ dependencies {
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
-
-  dokkaHtmlPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.4.32")
 
   sampleImplementation(sourceSets.main.runtimeClasspath)
 }
