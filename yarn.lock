@@ -3510,10 +3510,10 @@
   resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.549.tgz#e7246140825705e6d295c30010de4f71a78d1670"
   integrity sha512-8EDwICoaqOtWFYQHvSNrTNh0ksIEVp9i/GueClvHbrcSRxYOqPDxQcSs3RGihxahjlfXIi7zjqvK0aDvSYBo0w==
 
-"@spinnaker/kayenta@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-2.1.0.tgz#d2a3c02034ea38014ae1565724b2e4d7a36dd593"
-  integrity sha512-8HhcEFjjibPCGxzkKZ6KPIo0lBAFHa8GSEUILmp5AN2IkGIB98OKRCZ7bwg0LOg+BnW8g1a9TydZE2OkQA26Mg==
+"@spinnaker/kayenta@2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-2.3.0.tgz#0b40cc2d99373d84699b78d2bfcf7617d327c7d9"
+  integrity sha512-WbM+y4I5oxPP8QQs7aRMbNyUee8OrtTHi14/ot6wE42OHDM2Y1m3g0NPog/IBQvsen9CtCGTtfrUOMDx7gnhUQ==
   dependencies:
     "@uirouter/core" "6.0.4"
     "@uirouter/react" "1.0.2"
