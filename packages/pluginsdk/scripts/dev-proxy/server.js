@@ -26,6 +26,11 @@ const packageJson = JSON.parse(fs.readFileSync('package.json', 'UTF-8'));
 
 const DEV_PROXY_HOST = process.env.DEV_PROXY_HOST || (packageJson.devProxy && packageJson.devProxy.host);
 
+const DEV_PROXY_HTTP_PORT =
+  parseInt(process.env.DEV_PROXY_HTTP_PORT || (packageJson.devProxy && packageJson.devProxy.httpPort)) || 9000;
+const DEV_PROXY_HTTPS_PORT =
+  parseInt(process.env.DEV_PROXY_HTTPS_PORT || (packageJson.devProxy && packageJson.devProxy.httpsPort)) || 9443;
+
 if (!DEV_PROXY_HOST) {
   console.error();
   console.error();
@@ -94,7 +99,7 @@ app.use('/livereload.js', require('./livereload'));
 app.use('/', createProxyMiddleware({ target: DEV_PROXY_HOST, changeOrigin: true }));
 
 // http
-http.createServer(app).listen(9000);
+http.createServer(app).listen(DEV_PROXY_HTTP_PORT);
 
 // https
 https
@@ -105,7 +110,7 @@ https
     },
     app,
   )
-  .listen(9443);
+  .listen(DEV_PROXY_HTTPS_PORT);
 
-console.log(`Server started on http://localhost:9000/`);
-console.log(`Server started on https://localhost:9443/`);
+console.log(`Server started on http://localhost:${DEV_PROXY_HTTP_PORT}/`);
+console.log(`Server started on https://localhost:${DEV_PROXY_HTTPS_PORT}/`);
