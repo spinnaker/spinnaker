@@ -1,5 +1,5 @@
 plugins {
-  id("net.ltgt.errorprone") version "1.2.1"
+  id("net.ltgt.errorprone") version "4.0.0"
   id 'com.adarshr.test-logger' version '2.1.0'
 }
 
@@ -48,7 +48,7 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
-  errorprone("com.google.errorprone:error_prone_core:2.4.0")
+  errorprone("com.google.errorprone:error_prone_core:2.28.0")
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-artifacts")
   implementation project(":clouddriver-core")

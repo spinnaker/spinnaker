@@ -68,7 +68,7 @@ class DestroyCloudFoundryServiceAtomicOperationTest
     Object o = resultObjects.get(0);
     assertThat(o).isInstanceOf(ServiceInstanceResponse.class);
     ServiceInstanceResponse response = (ServiceInstanceResponse) o;
-    assertThat(response).isEqualToComparingFieldByFieldRecursively(serviceInstanceResponse);
+    assertThat(response).usingRecursiveComparison().isEqualTo(serviceInstanceResponse);
     assertThat(task.getHistory())
         .has(
             status(
@@ -107,7 +107,7 @@ class DestroyCloudFoundryServiceAtomicOperationTest
     Object o = resultObjects.get(0);
     assertThat(o).isInstanceOf(ServiceInstanceResponse.class);
     ServiceInstanceResponse response = (ServiceInstanceResponse) o;
-    assertThat(response).isEqualToComparingFieldByFieldRecursively(serviceInstanceResponse);
+    assertThat(response).usingRecursiveComparison().isEqualTo(serviceInstanceResponse);
     assertThat(task.getHistory())
         .has(
             status(
@@ -162,7 +162,7 @@ class DestroyCloudFoundryServiceAtomicOperationTest
     Object o = resultObjects.get(0);
     assertThat(o).isInstanceOf(ServiceInstanceResponse.class);
     ServiceInstanceResponse response = (ServiceInstanceResponse) o;
-    assertThat(response).isEqualToComparingFieldByFieldRecursively(serviceInstanceResponse);
+    assertThat(response).usingRecursiveComparison().isEqualTo(serviceInstanceResponse);
     assertThat(task.getHistory())
         .has(
             status(

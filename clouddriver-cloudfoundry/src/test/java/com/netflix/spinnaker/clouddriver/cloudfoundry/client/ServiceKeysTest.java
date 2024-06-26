@@ -114,7 +114,7 @@ class ServiceKeysTest {
     ServiceKeyResponse results =
         serviceKeys.createServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName);
 
-    assertThat(results).isEqualToComparingFieldByFieldRecursively(expectedResults);
+    assertThat(results).usingRecursiveComparison().isEqualTo(expectedResults);
     verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
     verify(serviceKeyService).createServiceKey(eq(requestBody));
   }

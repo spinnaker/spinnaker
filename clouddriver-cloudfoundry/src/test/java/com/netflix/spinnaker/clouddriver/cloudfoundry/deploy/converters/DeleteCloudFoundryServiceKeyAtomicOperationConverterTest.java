@@ -121,6 +121,6 @@ class DeleteCloudFoundryServiceKeyAtomicOperationConverterTest {
 
     DeleteCloudFoundryServiceKeyDescription result = converter.convertDescription(input);
 
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedResult);
+    assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
   }
 }

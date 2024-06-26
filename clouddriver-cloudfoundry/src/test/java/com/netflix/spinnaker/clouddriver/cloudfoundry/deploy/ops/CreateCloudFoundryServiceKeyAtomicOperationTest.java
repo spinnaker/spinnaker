@@ -80,7 +80,7 @@ class CreateCloudFoundryServiceKeyAtomicOperationTest
     Object o = resultObjects.get(0);
     assertThat(o).isInstanceOf(ServiceKeyResponse.class);
     ServiceKeyResponse response = (ServiceKeyResponse) o;
-    assertThat(response).isEqualToComparingFieldByFieldRecursively(serviceKeyResponse);
+    assertThat(response).usingRecursiveComparison().isEqualTo(serviceKeyResponse);
   }
 
   @Test

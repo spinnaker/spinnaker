@@ -751,8 +751,8 @@ class ServiceInstancesTest {
     verify(serviceInstanceService)
         .shareServiceInstanceToSpaceIds(serviceInstanceIdCaptor.capture(), shareToCaptor.capture());
     assertThat(serviceInstanceIdCaptor.getValue()).isEqualTo("service-instance-guid");
-    assertThat(shareToCaptor.getValue()).isEqualToComparingFieldByFieldRecursively(expectedBody);
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedResult);
+    assertThat(shareToCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedBody);
+    assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
   }
 
   @Test
@@ -830,8 +830,8 @@ class ServiceInstancesTest {
     verify(serviceInstanceService)
         .shareServiceInstanceToSpaceIds(serviceInstanceIdCaptor.capture(), shareToCaptor.capture());
     assertThat(serviceInstanceIdCaptor.getValue()).isEqualTo("service-instance-guid");
-    assertThat(shareToCaptor.getValue()).isEqualToComparingFieldByFieldRecursively(expectedBody);
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedResult);
+    assertThat(shareToCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedBody);
+    assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
   }
 
   @Test
@@ -895,7 +895,7 @@ class ServiceInstancesTest {
             "org > space", "service-instance-name", sharingToRegions);
 
     verify(serviceInstanceService, never()).shareServiceInstanceToSpaceIds(any(), any());
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedResult);
+    assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
   }
 
   @Test
@@ -1014,7 +1014,7 @@ class ServiceInstancesTest {
     ServiceInstanceResponse result =
         serviceInstances.unshareServiceInstance("service-instance-name", unshareFromRegions);
 
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedResult);
+    assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
     verify(serviceInstanceService)
         .unshareServiceInstanceFromSpaceId("service-instance-guid-1", "space-guid-1");
     verify(serviceInstanceService)
@@ -1054,7 +1054,7 @@ class ServiceInstancesTest {
             .status(SUCCEEDED.toString())
             .build();
 
-    assertThat(results).isEqualToComparingFieldByFieldRecursively(expected);
+    assertThat(results).usingRecursiveComparison().isEqualTo(expected);
   }
 
   @Test
@@ -1080,7 +1080,7 @@ class ServiceInstancesTest {
             .status(SUCCEEDED.toString())
             .build();
 
-    assertThat(results).isEqualToComparingFieldByFieldRecursively(expected);
+    assertThat(results).usingRecursiveComparison().isEqualTo(expected);
   }
 
   @Test
@@ -1100,7 +1100,7 @@ class ServiceInstancesTest {
             .build();
 
     assertThat(service).isNotNull();
-    assertThat(service).isEqualToComparingFieldByFieldRecursively(expected);
+    assertThat(service).usingRecursiveComparison().isEqualTo(expected);
   }
 
   @Test
@@ -1122,7 +1122,7 @@ class ServiceInstancesTest {
             .serviceInstanceName("up-service-instance-name")
             .status(SUCCEEDED.toString())
             .build();
-    assertThat(service).isEqualToComparingFieldByFieldRecursively(expected);
+    assertThat(service).usingRecursiveComparison().isEqualTo(expected);
   }
 
   @Test
@@ -1142,7 +1142,7 @@ class ServiceInstancesTest {
             .status(FAILED.toString())
             .lastOperationDescription("Custom description")
             .build();
-    assertThat(service).isEqualToComparingFieldByFieldRecursively(expected);
+    assertThat(service).usingRecursiveComparison().isEqualTo(expected);
   }
 
   @Test

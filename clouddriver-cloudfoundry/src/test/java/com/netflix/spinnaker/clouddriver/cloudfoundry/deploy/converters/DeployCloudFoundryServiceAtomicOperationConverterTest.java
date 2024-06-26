@@ -147,7 +147,8 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
             "parameters", "{\"foo\": \"bar\"}");
 
     assertThat(converter.convertManifest(input))
-        .isEqualToComparingFieldByFieldRecursively(
+        .usingRecursiveComparison()
+        .isEqualTo(
             new DeployCloudFoundryServiceDescription.ServiceAttributes()
                 .setService("my-service")
                 .setServiceInstanceName("my-service-instance-name")
@@ -214,7 +215,8 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
             "credentials_map", "{\"foo\": \"bar\"}");
 
     assertThat(converter.convertUserProvidedServiceManifest(input))
-        .isEqualToComparingFieldByFieldRecursively(
+        .usingRecursiveComparison()
+        .isEqualTo(
             new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
                 .setServiceInstanceName("my-service-instance-name")
                 .setSyslogDrainUrl("test-syslog-drain-url")
@@ -261,7 +263,8 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);
     assertThat(result.getServiceAttributes()).isNull();
     assertThat(result.getUserProvidedServiceAttributes())
-        .isEqualToComparingFieldByFieldRecursively(
+        .usingRecursiveComparison()
+        .isEqualTo(
             new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
                 .setServiceInstanceName("userProvidedServiceName")
                 .setSyslogDrainUrl("http://syslogDrainUrl.io")
@@ -306,7 +309,8 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);
     assertThat(result.getServiceAttributes()).isNull();
     assertThat(result.getUserProvidedServiceAttributes())
-        .isEqualToComparingFieldByFieldRecursively(
+        .usingRecursiveComparison()
+        .isEqualTo(
             new DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes()
                 .setServiceInstanceName("userProvidedServiceName-v001")
                 .setPreviousInstanceName("userProvidedServiceName-v000")
@@ -339,7 +343,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         new ObjectMapper()
             .convertValue(Collections.singletonMap("mapField", "key1: value1"), WithMap.class);
 
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap("key1", "value1"));
+    assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap("key1", "value1"));
   }
 
   @Test
@@ -349,7 +353,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
             .convertValue(
                 Collections.singletonMap("mapField", "{\"key1\": \"value1\"}}"), WithMap.class);
 
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap("key1", "value1"));
+    assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap("key1", "value1"));
   }
 
   @Test
@@ -360,7 +364,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
                 Collections.singletonMap("mapField", Collections.singletonMap("key1", "value1")),
                 WithMap.class);
 
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap("key1", "value1"));
+    assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap("key1", "value1"));
   }
 
   @Test
@@ -368,7 +372,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     final WithMap result =
         new ObjectMapper().convertValue(Collections.singletonMap("mapField", ""), WithMap.class);
 
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap());
+    assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap());
   }
 
   @Test
@@ -376,6 +380,6 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
     final WithMap result =
         new ObjectMapper().convertValue(Collections.singletonMap("mapField", null), WithMap.class);
 
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap());
+    assertThat(result).usingRecursiveComparison().isEqualTo(new WithMap());
   }
 }

@@ -63,7 +63,7 @@ class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryA
     Object o = resultObjects.get(0);
     assertThat(o).isInstanceOf(ServiceInstanceResponse.class);
     ServiceInstanceResponse response = (ServiceInstanceResponse) o;
-    assertThat(response).isEqualToComparingFieldByFieldRecursively(serviceInstanceResponse);
+    assertThat(response).usingRecursiveComparison().isEqualTo(serviceInstanceResponse);
     assertThat(task.getHistory())
         .has(
             status(
@@ -99,7 +99,7 @@ class DeployCloudFoundryServiceAtomicOperationTest extends AbstractCloudFoundryA
     Object o = resultObjects.get(0);
     assertThat(o).isInstanceOf(ServiceInstanceResponse.class);
     ServiceInstanceResponse response = (ServiceInstanceResponse) o;
-    assertThat(response).isEqualToComparingFieldByFieldRecursively(serviceInstanceResponse);
+    assertThat(response).usingRecursiveComparison().isEqualTo(serviceInstanceResponse);
     assertThat(task.getHistory())
         .has(status("Creating user-provided service instance 'some-up-service-name'"), atIndex(1))
         .has(status("Created user-provided service instance 'some-up-service-name'"), atIndex(2));

@@ -99,6 +99,6 @@ class CloudFoundrySpaceCachingAgentTest {
 
     CacheResult result = cloudFoundrySpaceCachingAgent.loadData(mockProviderCache);
 
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedCacheResult);
+    assertThat(result).usingRecursiveComparison().isEqualTo(expectedCacheResult);
   }
 }

@@ -176,7 +176,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
                     "some-command")));
 
     assertThat(converter.convertManifest(input))
-        .isEqualToComparingFieldByFieldRecursively(
+        .usingRecursiveComparison()
+        .isEqualTo(
             new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
                 .setInstances(7)
                 .setMemory("1G")
@@ -196,7 +197,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     final Map input = Map.of("applications", List.of(Map.of("buildpack", "buildpack1")));
 
     assertThat(converter.convertManifest(input))
-        .isEqualToComparingFieldByFieldRecursively(
+        .usingRecursiveComparison()
+        .isEqualTo(
             new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
                 .setInstances(1)
                 .setMemory("1024")
@@ -210,7 +212,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     final Map input = Map.of("applications", List.of(Map.of("buildpack", "")));
 
     assertThat(converter.convertManifest(input))
-        .isEqualToComparingFieldByFieldRecursively(
+        .usingRecursiveComparison()
+        .isEqualTo(
             new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
                 .setInstances(1)
                 .setMemory("1024")
@@ -224,7 +227,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     final Map input = Map.of("applications", List.of(Collections.EMPTY_MAP));
 
     assertThat(converter.convertManifest(input))
-        .isEqualToComparingFieldByFieldRecursively(
+        .usingRecursiveComparison()
+        .isEqualTo(
             new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
                 .setInstances(1)
                 .setMemory("1024")
@@ -277,7 +281,8 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
                         new ProcessRequest().setType("web").setInstances(2).setMemory("800M")))));
 
     assertThat(converter.convertManifest(input))
-        .isEqualToComparingFieldByFieldRecursively(
+        .usingRecursiveComparison()
+        .isEqualTo(
             new DeployCloudFoundryServerGroupDescription.ApplicationAttributes()
                 .setInstances(1)
                 .setMemory("1024")

@@ -44,8 +44,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           java-version: |
-            17
             11
+            17
           distribution: 'zulu'
       - name: Cache on push
         if: github.event_name == 'push'
@@ -67,4 +67,4 @@ jobs:
       - name: Kubernetes Provider Integration Tests
         run: |
           version=$(echo '${{ matrix.kubernetes-image }}' | grep -o 'v[0-9]*\.[0-9]*')
-          ./gradlew --build-cache :clouddriver-kubernetes:integrationTest -Pkubernetes-image=${{ matrix.kubernetes-image }} -Pkubectl-version=${{ matrix.kubectl-version }} -Pkubernetes-version=${version}
+          ./gradlew -PenableCrossCompilerPlugin=true --build-cache :clouddriver-kubernetes:integrationTest -Pkubernetes-image=${{ matrix.kubernetes-image }} -Pkubectl-version=${{ matrix.kubectl-version }} -Pkubernetes-version=${version}

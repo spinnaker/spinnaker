@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Map;
-import java.util.Optional;
 
 public class KubernetesManifestLabeler {
   private static final String SPINNAKER_LABEL = "spinnaker.io";
@@ -60,13 +59,7 @@ public class KubernetesManifestLabeler {
     Map<String, String> labels = manifest.getLabels();
     storeLabels(managedBySuffix, labels, moniker);
 
-    manifest
-        .getSpecTemplateLabels()
-        .flatMap(
-            l -> {
-              storeLabels(managedBySuffix, l, moniker);
-              return Optional.empty();
-            });
+    manifest.getSpecTemplateLabels().ifPresent(l -> storeLabels(managedBySuffix, l, moniker));
   }
 
   public static void storeLabels(

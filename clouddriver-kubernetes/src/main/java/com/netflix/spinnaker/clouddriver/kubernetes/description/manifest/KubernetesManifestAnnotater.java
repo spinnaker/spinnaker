@@ -133,26 +133,14 @@ public class KubernetesManifestAnnotater {
     Map<String, String> annotations = manifest.getAnnotations();
     storeAnnotations(annotations, moniker);
 
-    manifest
-        .getSpecTemplateAnnotations()
-        .flatMap(
-            a -> {
-              storeAnnotations(a, moniker);
-              return Optional.empty();
-            });
+    manifest.getSpecTemplateAnnotations().ifPresent(a -> storeAnnotations(a, moniker));
   }
 
   public static void annotateManifest(KubernetesManifest manifest, Artifact artifact) {
     Map<String, String> annotations = manifest.getAnnotations();
     storeAnnotations(annotations, artifact);
 
-    manifest
-        .getSpecTemplateAnnotations()
-        .flatMap(
-            a -> {
-              storeAnnotations(a, artifact);
-              return Optional.empty();
-            });
+    manifest.getSpecTemplateAnnotations().ifPresent(a -> storeAnnotations(a, artifact));
   }
 
   private static void storeAnnotations(Map<String, String> annotations, Moniker moniker) {
