@@ -6,13 +6,14 @@ import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
+import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ExpectedArtifactExpressionEvaluationPostProcessorSpec extends Specification implements RetrofitStubs {
   @Subject
-  def artifactPostProcessor = new ExpectedArtifactExpressionEvaluationPostProcessor(EchoObjectMapper.getInstance())
+  def artifactPostProcessor = new ExpectedArtifactExpressionEvaluationPostProcessor(EchoObjectMapper.getInstance(), new ExpressionProperties())
 
   @Shared
   def trigger = Trigger.builder()

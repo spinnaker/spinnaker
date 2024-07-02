@@ -13,6 +13,7 @@ import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,7 +35,8 @@ import retrofit.converter.JacksonConverter;
 @EnableConfigurationProperties({
   FiatClientConfigurationProperties.class,
   PipelineCacheConfigurationProperties.class,
-  QuietPeriodIndicatorConfigurationProperties.class
+  QuietPeriodIndicatorConfigurationProperties.class,
+  ExpressionProperties.class
 })
 public class PipelineTriggerConfiguration {
   private OkHttpClientProvider clientProvider;

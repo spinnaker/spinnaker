@@ -6,6 +6,7 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.kork.expressions.ExpressionTransform;
+import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.common.TemplateParserContext;
+import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
@@ -26,11 +28,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExpectedArtifactExpressionEvaluationPostProcessor implements PipelinePostProcessor {
   private final ObjectMapper mapper;
-  private final ExpressionParser parser = new SpelExpressionParser();
+  private final ExpressionParser parser;
   private final ParserContext parserContext = new TemplateParserContext("${", "}");
 
-  public ExpectedArtifactExpressionEvaluationPostProcessor(ObjectMapper mapper) {
+  public ExpectedArtifactExpressionEvaluationPostProcessor(
+      ObjectMapper mapper, ExpressionProperties expressionProperties) {
     this.mapper = mapper;
+    parser =
+        new SpelExpressionParser(
+            expressionProperties.getMaxExpressionLength() > 0
+                ? new SpelParserConfiguration(
+                    null, null, false, false, 0, expressionProperties.getMaxExpressionLength())
+                : new SpelParserConfiguration());
   }
 
   @Override
