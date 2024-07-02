@@ -35,6 +35,7 @@ import org.pf4j.PluginManager;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.common.TemplateParserContext;
+import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -130,8 +131,7 @@ public class PipelineExpressionEvaluator {
         PipelineExecution.AuthenticationDetails.class,
         PipelineExecution.PausedDetails.class
       };
-
-  private final ExpressionParser parser = new SpelExpressionParser();
+  private final ExpressionParser parser;
   private final ParserContext parserContext = new TemplateParserContext("${", "}");
   private final ExpressionsSupport support;
 
@@ -148,6 +148,12 @@ public class PipelineExpressionEvaluator {
             pluginManager,
             expressionProperties);
     initExecutionAwareFunctions(expressionFunctionProviders);
+    parser =
+        new SpelExpressionParser(
+            expressionProperties.getMaxExpressionLength() > 0
+                ? new SpelParserConfiguration(
+                    null, null, false, false, 0, expressionProperties.getMaxExpressionLength())
+                : new SpelParserConfiguration());
   }
 
   public Map<String, Object> evaluate(
