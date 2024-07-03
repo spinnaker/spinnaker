@@ -23,10 +23,15 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
+import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.assertj.core.api.Assertions.assertThat
@@ -174,8 +179,11 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         // separately, so do the same here to calculate expected sizes
         val beforeStages = pipelineExecution.stages.toList()
         pipelineExecution.stages.clear()
+        val beforeTrigger =  pipelineExecution.trigger
+        pipelineExecution.trigger = orcaObjectMapper.convertValue(pipelineExecution.trigger, Trigger::class.java)
         val beforePipelineString = orcaObjectMapper.writeValueAsString(pipelineExecution)
         pipelineExecution.stages.addAll(beforeStages)
+        pipelineExecution.trigger = beforeTrigger
         val beforePipelineExecutionSize = beforePipelineString.length.toLong()
         val beforeStageString = orcaObjectMapper.writeValueAsString(pipelineExecution.stages.single())
         val beforeStageSize = beforeStageString.length.toLong()
@@ -297,9 +305,279 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         assertThat(executions.map(PipelineExecution::getApplication).single()).isEqualTo("application-2")
       }
     }
+
+    context("upserting executions with pipelineRef") {
+
+      val testType = ExecutionType.PIPELINE
+      val testTable = testType.tableName
+      val testStagesTable = testType.stagesTableName
+      val testApplication = "test-application"
+
+      val parentExecutionPipeline = PipelineExecutionImpl(testType, testApplication)
+      val parentExecutionId = parentExecutionPipeline.id
+
+      val pipelineExecutionWithPipelineTrigger = PipelineExecutionImpl(testType, testApplication).also {
+        it.trigger = PipelineTrigger(parentExecution = parentExecutionPipeline)
+      }.apply { stage {} }
+      val pipelineIdWithPipelineTrigger = pipelineExecutionWithPipelineTrigger.id
+
+      val expectedExecutionWithPipelineRef = PipelineExecutionImpl(testType, testApplication).also {
+        it.id = pipelineExecutionWithPipelineTrigger.id
+        it.trigger = PipelineRefTrigger(parentExecutionId = parentExecutionId)
+      }
+
+      val pipelineExecutionWithoutTrigger = PipelineExecutionImpl(testType, testApplication).apply { stage {} }
+      val pipelineIdWithoutTrigger = pipelineExecutionWithoutTrigger.id
+
+      val pipelineExecutionWithDefaultTrigger = PipelineExecutionImpl(testType, testApplication).also {
+        it.trigger = DefaultTrigger(type = "default")
+      }.apply { stage {} }
+      val pipelineIdWithDefaultTrigger = pipelineExecutionWithDefaultTrigger.id
+      val expectedExecutionWithDefaultTrigger = PipelineExecutionImpl(testType, testApplication).also {
+        it.id = pipelineExecutionWithDefaultTrigger.id
+        it.trigger = DefaultTrigger(type = "default")
+      }
+
+      //store a pipeline execution that will act as parentExecution
+      before {
+        sqlExecutionRepositoryWithPipelineRefOnly.store(parentExecutionPipeline)
+      }
+
+      test("store execution with pipelineRef when PipelineExecution trigger is present, retrieve with full context") {
+        sqlExecutionRepositoryWithPipelineRefOnly.store(pipelineExecutionWithPipelineTrigger)
+        pipelineExecutionWithPipelineTrigger.trigger = PipelineTrigger(parentExecution = parentExecutionPipeline)
+
+        //make sure the execution has a pipelineRef in database
+        val expectedPipelineString = orcaObjectMapper.writeValueAsString(expectedExecutionWithPipelineRef)
+        val executions = database.context.select(listOf(field("id"), field("body")))
+          .from(testTable)
+          .where(field("id").eq(pipelineIdWithPipelineTrigger))
+          .fetch()
+        assertThat(executions).hasSize(1)
+        assertThat(executions.getValue(0, field("body"))).isEqualTo(expectedPipelineString)
+
+        //make sure the execution has full context on retrieve
+        val actualPipelineExecution = sqlExecutionRepositoryWithPipelineRefOnly.retrieve(testType, pipelineIdWithPipelineTrigger)
+        assertThat(actualPipelineExecution).isEqualTo(pipelineExecutionWithPipelineTrigger)
+      }
+
+      test("store execution without PipelineExecution trigger, retrieve with full context") {
+
+        val beforeStages = pipelineExecutionWithoutTrigger.stages.toList()
+        pipelineExecutionWithoutTrigger.stages.clear()
+        val beforeTrigger = pipelineExecutionWithoutTrigger.trigger
+        pipelineExecutionWithoutTrigger.trigger = orcaObjectMapper.convertValue(pipelineExecutionWithoutTrigger.trigger, Trigger::class.java)
+        val beforePipelineString = orcaObjectMapper.writeValueAsString(pipelineExecutionWithoutTrigger)
+        pipelineExecutionWithoutTrigger.stages.addAll(beforeStages)
+        pipelineExecutionWithoutTrigger.trigger = beforeTrigger
+        val beforeStageString = orcaObjectMapper.writeValueAsString(pipelineExecutionWithoutTrigger.stages.single())
+        val stageExecutionId = pipelineExecutionWithoutTrigger.stages.single().id
+
+        sqlExecutionRepositoryWithPipelineRefOnly.store(pipelineExecutionWithoutTrigger)
+
+        //validate pipeline execution is store properly in database
+        val executions = database.context.select(listOf(field("id"), field("body")))
+          .from(testTable)
+          .where(field("id").eq(pipelineIdWithoutTrigger))
+          .fetch()
+        assertThat(executions).hasSize(1)
+        assertThat(executions.getValue(0, field("body"))).isEqualTo(beforePipelineString)
+
+        //validate stage execution is store properly in database
+        val stageExecutions = database.context.select(listOf(field("id"), field("body")))
+          .from(testStagesTable)
+          .where(field("id").eq(stageExecutionId))
+          .fetch()
+        assertThat(stageExecutions).hasSize(1)
+        assertThat(stageExecutions.getValue(0, field("body"))).isEqualTo(beforeStageString)
+
+        //make sure the execution has full context on retrieve
+        val actualPipelineExecution = sqlExecutionRepositoryWithPipelineRefOnly.retrieve(testType, pipelineIdWithoutTrigger)
+        assertThat(actualPipelineExecution).isEqualTo(pipelineExecutionWithoutTrigger)
+      }
+
+      test("store execution with PipelineExecution trigger but pipelineRef is disabled, retrieve with full context") {
+
+        this.addCustomDeserializerWithFeatureFlagDisabled()
+
+        sqlExecutionRepositoryNoCompression.store(pipelineExecutionWithPipelineTrigger)
+
+        val beforeStages = pipelineExecutionWithPipelineTrigger.stages.toList()
+        pipelineExecutionWithPipelineTrigger.stages.clear()
+        val beforePipelineString = orcaObjectMapper.writeValueAsString(pipelineExecutionWithPipelineTrigger)
+        pipelineExecutionWithPipelineTrigger.stages.addAll(beforeStages)
+
+        //make sure the execution is not store with pipelineRef in database
+        val executions = database.context.select(listOf(field("id"), field("body")))
+          .from(testTable)
+          .where(field("id").eq(pipelineIdWithPipelineTrigger))
+          .fetch()
+        assertThat(executions).hasSize(1)
+        assertThat(executions.getValue(0, field("body"))).isEqualTo(beforePipelineString)
+
+        //make sure the execution has full context on retrieve
+        val actualPipelineExecution = sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineIdWithPipelineTrigger)
+        assertThat(actualPipelineExecution).isEqualTo(pipelineExecutionWithPipelineTrigger)
+        this.addCustomDeserializerWithFeatureFlagEnabled()
+      }
+
+      test("store execution with Default trigger, retrieve with full context") {
+        sqlExecutionRepositoryWithPipelineRefOnly.store(pipelineExecutionWithDefaultTrigger)
+
+        //make sure the execution is not store with pipelineRef in database
+        expectedExecutionWithDefaultTrigger.trigger = orcaObjectMapper.convertValue(expectedExecutionWithDefaultTrigger.trigger, Trigger::class.java)
+        val expectedPipelineString = orcaObjectMapper.writeValueAsString(expectedExecutionWithDefaultTrigger)
+        val executions = database.context.select(listOf(field("id"), field("body")))
+          .from(testTable)
+          .where(field("id").eq(pipelineIdWithDefaultTrigger))
+          .fetch()
+        assertThat(executions).hasSize(1)
+        assertThat(executions.getValue(0, field("body"))).isEqualTo(expectedPipelineString)
+
+        //make sure the execution has full context on retrieve
+        val actualPipelineExecution = sqlExecutionRepositoryWithPipelineRefOnly.retrieve(testType, pipelineIdWithDefaultTrigger)
+        assertThat(actualPipelineExecution).isEqualTo(pipelineExecutionWithDefaultTrigger)
+      }
+    }
+
+    context("pipelineRef can be deserialized if feature flag is disabled") {
+
+       val testType = ExecutionType.PIPELINE
+       val testTable = testType.tableName
+       val testApplication = "test-application"
+
+       val parentExecutionPipeline = PipelineExecutionImpl(testType, testApplication)
+       val parentExecutionId = parentExecutionPipeline.id
+
+       val pipelineExecutionWithPipelineTrigger = PipelineExecutionImpl(testType, testApplication).also {
+         it.trigger = PipelineTrigger(parentExecution = parentExecutionPipeline)
+       }.apply { stage {} }
+       val pipelineIdWithPipelineTrigger = pipelineExecutionWithPipelineTrigger.id
+
+       val expectedExecutionWithPipelineRef = PipelineExecutionImpl(testType, testApplication).also {
+         it.id = pipelineExecutionWithPipelineTrigger.id
+         it.trigger = PipelineRefTrigger(parentExecutionId = parentExecutionId)
+       }
+
+       before {
+         sqlExecutionRepositoryWithPipelineRefOnly.store(parentExecutionPipeline) //we ensure the parentExecution exist on database
+       }
+
+       test("store execution with pipelineRef disabled, for executions stored as pipelineRef it is still able to retrieve full context") {
+         //store a pipeline execution with pipelineRef first
+         sqlExecutionRepositoryWithPipelineRefOnly.store(pipelineExecutionWithPipelineTrigger)
+         //we restore the trigger to be a pipelineTrigger
+         pipelineExecutionWithPipelineTrigger.trigger = PipelineTrigger(parentExecution = parentExecutionPipeline)
+
+         //make sure the execution has a pipelineRef in database
+         val expectedPipelineString = orcaObjectMapper.writeValueAsString(expectedExecutionWithPipelineRef)
+         val executionsWithPipelineRef = database.context.select(listOf(field("id"), field("body")))
+           .from(testTable)
+           .where(field("id").eq(pipelineIdWithPipelineTrigger))
+           .fetch()
+         assertThat(executionsWithPipelineRef).hasSize(1)
+         assertThat(executionsWithPipelineRef.getValue(0, field("body"))).isEqualTo(expectedPipelineString)
+
+         //make sure the execution has full context on retrieve
+         val actualPipelineExecution = sqlExecutionRepositoryWithPipelineRefOnly.retrieve(testType, pipelineIdWithPipelineTrigger)
+         assertThat(actualPipelineExecution).isEqualTo(pipelineExecutionWithPipelineTrigger)
+
+         //create another pipeline with pipelineTriggger
+         val anotherPipelineExecution = PipelineExecutionImpl(testType, testApplication).also {
+           it.trigger = PipelineTrigger(parentExecution = PipelineExecutionImpl(ExecutionType.PIPELINE, testApplication))
+         }
+         val anotherPipelineExecutionId = anotherPipelineExecution.id
+
+         this.addCustomDeserializerWithFeatureFlagDisabled()
+
+         //store another execution with PipelineTrigger but pipelineRef is disabled
+         sqlExecutionRepositoryNoCompression.store(anotherPipelineExecution)
+         val expectedAnotherPipelineString = orcaObjectMapper.writeValueAsString(anotherPipelineExecution)
+
+         //make sure the execution is not store with pipelineRef in database
+         val executions = database.context.select(listOf(field("id"), field("body")))
+           .from(testTable)
+           .where(field("id").eq(anotherPipelineExecutionId))
+           .fetch()
+         assertThat(executions).hasSize(1)
+         assertThat(executions.getValue(0, field("body"))).isEqualTo(expectedAnotherPipelineString)
+
+         //make sure the execution has full context on retrieve
+         val actualAnotherPipelineExecution = sqlExecutionRepositoryNoCompression.retrieve(testType, anotherPipelineExecutionId)
+         assertThat(actualAnotherPipelineExecution).isEqualTo(anotherPipelineExecution)
+
+         //make sure the execution has full context on retrieve for a execution stored with pipelineRef
+         val previousPipelineExecution = sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineIdWithPipelineTrigger)
+         assertThat(previousPipelineExecution).isEqualTo(pipelineExecutionWithPipelineTrigger)
+
+         this.addCustomDeserializerWithFeatureFlagEnabled()
+       }
+    }
+
+    context("execution pipelineRef and execution body compression can work together") {
+
+      val testType = ExecutionType.PIPELINE
+      val testTable = testType.tableName
+      val testStagesTable = testType.stagesTableName
+      val testApplication = "test-application"
+
+      val parentExecutionPipeline = PipelineExecutionImpl(testType, testApplication)
+      val parentExecutionId = parentExecutionPipeline.id
+
+      val pipelineExecution = PipelineExecutionImpl(testType, testApplication).also {
+        it.trigger = PipelineTrigger(parentExecution = parentExecutionPipeline)
+      }
+      val pipelineId = pipelineExecution.id
+
+      val expectedExecutionWithPipelineRef = PipelineExecutionImpl(testType, testApplication).also {
+        it.id = pipelineExecution.id
+        it.trigger = PipelineRefTrigger(parentExecutionId = parentExecutionPipeline.id )
+      }
+
+      //store a pipeline execution that will act as parentExecution
+      before {
+        sqlExecutionRepositoryWithPipelineRefAndCompression.store(parentExecutionPipeline)
+      }
+
+      test("store execution with pipelineRef enabled and compressed enabled") {
+
+        sqlExecutionRepositoryWithPipelineRefAndCompression.store(pipelineExecution)
+        pipelineExecution.trigger = PipelineTrigger(parentExecution = parentExecutionPipeline)
+
+        val expectedExecutionPipelineString = orcaObjectMapper.writeValueAsString(expectedExecutionWithPipelineRef)
+
+        val testCompressedBody = sqlExecutionRepository.getCompressedBody(pipelineId, expectedExecutionPipelineString)
+
+        val compressedExecutions = database.context.select(listOf(field("id"), field("compressed_body")))
+          .from(testTable.compressedExecTable)
+          .where(field("id").eq(pipelineId))
+          .fetch()
+        assertThat(compressedExecutions).hasSize(1)
+        assertThat(compressedExecutions.getValue(0, field("compressed_body"))).isEqualTo(testCompressedBody)
+
+        val executions = database.context.select(listOf(field("id"), field("body")))
+          .from(testTable)
+          .where(field("id").eq(pipelineId))
+          .fetch()
+        assertThat(executions).hasSize(1)
+        assertThat(executions.getValue(0, field("body"))).asString().isEmpty()
+
+        //make sure the execution has full context on retrieve for execution with pipelineRef
+        val actualPipelineExecution = sqlExecutionRepositoryWithPipelineRefAndCompression.retrieve(testType, pipelineId)
+        assertThat(actualPipelineExecution).isEqualTo(pipelineExecution)
+      }
+    }
   }
 
   private inner class Fixture {
+
+    val deserializerEnabled = PipelineRefTriggerDeserializerSupplier(true)
+    val deserializerDisabled = PipelineRefTriggerDeserializerSupplier(false)
+
+    init {
+      TriggerDeserializer.customTriggerSuppliers.add(deserializerEnabled)
+    }
+
     val database = SqlTestUtil.initTcMysqlDatabase()!!
 
     val testRetryProprties = RetryProperties()
@@ -323,7 +601,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         "poolName",
         null,
         emptyList(),
-        executionCompressionPropertiesEnabled
+        executionCompressionPropertiesEnabled,
+        false
       )
 
     val executionCompressionPropertiesDisabled = ExecutionCompressionProperties().apply {
@@ -341,7 +620,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         "poolName",
         null,
         emptyList(),
-        executionCompressionPropertiesDisabled
+        executionCompressionPropertiesDisabled,
+        false
       )
 
     val executionCompressionPropertiesReadOnly = ExecutionCompressionProperties().apply {
@@ -362,8 +642,49 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         "poolName",
         null,
         emptyList(),
-        executionCompressionPropertiesReadOnly
+        executionCompressionPropertiesReadOnly,
+        false
       )
+
+    val sqlExecutionRepositoryWithPipelineRefOnly =
+      SqlExecutionRepository(
+        "test",
+        database.context,
+        orcaObjectMapper,
+        testRetryProprties,
+        10,
+        100,
+        "poolName",
+        null,
+        emptyList(),
+        executionCompressionPropertiesDisabled,
+        true
+      )
+
+    val sqlExecutionRepositoryWithPipelineRefAndCompression =
+      SqlExecutionRepository(
+        "test",
+        database.context,
+        orcaObjectMapper,
+        testRetryProprties,
+        10,
+        100,
+        "poolName",
+        null,
+        emptyList(),
+        executionCompressionPropertiesEnabled,
+        true
+      )
+
+    fun addCustomDeserializerWithFeatureFlagEnabled() {
+      TriggerDeserializer.customTriggerSuppliers.clear()
+      TriggerDeserializer.customTriggerSuppliers.add(deserializerEnabled)
+    }
+
+    fun addCustomDeserializerWithFeatureFlagDisabled() {
+      TriggerDeserializer.customTriggerSuppliers.clear()
+      TriggerDeserializer.customTriggerSuppliers.add(deserializerDisabled)
+    }
   }
 }
 

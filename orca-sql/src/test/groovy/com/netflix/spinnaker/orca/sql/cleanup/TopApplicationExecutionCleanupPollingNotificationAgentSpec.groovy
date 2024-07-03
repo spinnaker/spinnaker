@@ -82,7 +82,7 @@ abstract class TopApplicationExecutionCleanupPollingNotificationAgentSpec extend
 
   def setupSpec() {
     currentDatabase = getDatabase()
-    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null, [], new ExecutionCompressionProperties())
+    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null, [], new ExecutionCompressionProperties(), false)
   }
 
   def cleanup() {

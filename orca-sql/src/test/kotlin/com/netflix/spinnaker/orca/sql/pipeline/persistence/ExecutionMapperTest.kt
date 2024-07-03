@@ -18,15 +18,19 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.CompressionType
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
+import com.nhaarman.mockito_kotlin.*
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import org.assertj.core.api.Assertions.assertThat
+import org.jooq.DSLContext
+import org.mockito.Mockito
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.sql.ResultSet
 import java.util.zip.DeflaterOutputStream
-import org.assertj.core.api.Assertions.assertThat
+
 
 class ExecutionMapperTest : JUnit5Minutests {
 
@@ -35,7 +39,7 @@ class ExecutionMapperTest : JUnit5Minutests {
     context("handle body decompression") {
       val mapper = ExecutionMapper(mapper = ObjectMapper(), stageBatchSize = 200, ExecutionCompressionProperties().apply {
         enabled = true
-      })
+      }, false)
 
       val mockedResultSet = mock<ResultSet>()
 
@@ -59,6 +63,22 @@ class ExecutionMapperTest : JUnit5Minutests {
           .`when`(mockedResultSet).getString("compression_type")
         assertThat(mapper.getDecompressedBody(mockedResultSet)).isEqualTo("12345")
       }
+    }
+
+    context("handle PipelineRef conversion") {
+      val compressionProperties = ExecutionCompressionProperties().apply {
+        enabled = false
+      }
+      val mapper = ExecutionMapper(mapper = ObjectMapper(), stageBatchSize = 200, compressionProperties, true)
+      val mockedExecution = mock<PipelineExecution>()
+      val database: DSLContext = Mockito.mock(DSLContext::class.java, Mockito.RETURNS_DEEP_STUBS)
+
+      test("conversion ignored when trigger is not PipelineRef") {
+        doReturn(DefaultTrigger(type = "default")).`when`(mockedExecution).trigger
+        mapper.convertPipelineRefTrigger(mockedExecution, database)
+        verify(mockedExecution, times(1)).trigger
+      }
+
     }
   }
 }

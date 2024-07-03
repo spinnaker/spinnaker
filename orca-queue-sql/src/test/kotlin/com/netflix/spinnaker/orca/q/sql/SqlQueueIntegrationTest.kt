@@ -130,7 +130,8 @@ class SqlTestConfig {
     orcaSqlProperties.batchReadSize,
     orcaSqlProperties.stageReadSize,
     interlink = null,
-    compressionProperties = compressionProperties
+    compressionProperties = compressionProperties,
+    pipelineRefEnabled = false
   )
 
   @Bean

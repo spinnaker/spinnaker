@@ -20,10 +20,13 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.config.CompressionType
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import java.sql.ResultSet
 import org.jooq.DSLContext
+import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.name
 import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
 
@@ -36,7 +39,8 @@ import java.nio.charset.StandardCharsets
 class ExecutionMapper(
   private val mapper: ObjectMapper,
   private val stageBatchSize: Int,
-  private val compressionProperties: ExecutionCompressionProperties
+  private val compressionProperties: ExecutionCompressionProperties,
+  private val pipelineRefEnabled: Boolean
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -77,6 +81,7 @@ class ExecutionMapper(
         mapper.readValue<PipelineExecution>(body)
           .also {
             execution ->
+            convertPipelineRefTrigger(execution, context)
             execution.setSize(body.length.toLong())
             results.add(execution)
             execution.partition = rs.getString("partition")
@@ -131,5 +136,28 @@ class ExecutionMapper(
             setSize(body.length.toLong())
           }
       )
+  }
+
+  @VisibleForTesting
+  fun convertPipelineRefTrigger(execution: PipelineExecution, context: DSLContext) {
+    val trigger = execution.trigger
+    if (trigger is PipelineRefTrigger) {
+      val parentExecution = context
+        .selectExecution(execution.type, compressionProperties)
+        .where(field("id").eq(trigger.parentExecutionId))
+        .fetchExecutions(mapper, 200, compressionProperties, context, pipelineRefEnabled)
+        .firstOrNull()
+
+      if (parentExecution == null) {
+        // If someone deletes the parent execution, we'll be unable to load the full, valid child pipeline. Rather than
+        // throw an exception, we'll continue to load the execution with [PipelineRefTrigger] and let downstream
+        // consumers throw exceptions if they need to. We don't want to throw here as it would break pipeline list
+        // operations, etc.
+        log.warn("Attempted to load parent execution for '${execution.id}', but it no longer exists: ${trigger.parentExecutionId}")
+        return
+      }
+
+      execution.trigger = trigger.toPipelineTrigger(parentExecution)
+    }
   }
 }

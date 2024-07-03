@@ -3,6 +3,7 @@ apply from: "$rootDir/gradle/groovy.gradle"
 dependencies {
   api("org.spockframework:spock-core")
   implementation(project(":orca-core"))
+  compileOnly(project(":orca-sql"))
   implementation("junit:junit")
   implementation(project(":orca-test"))
   implementation(project(":orca-test-groovy"))

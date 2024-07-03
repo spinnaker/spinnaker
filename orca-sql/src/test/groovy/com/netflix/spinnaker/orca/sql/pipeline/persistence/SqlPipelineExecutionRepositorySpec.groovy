@@ -98,7 +98,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
   ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null) {
     return InstrumentedProxy.proxy(
         new DefaultRegistry(),
-        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink, [], new ExecutionCompressionProperties()),
+        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink, [], new ExecutionCompressionProperties(), false),
         "namespace")
   }
 

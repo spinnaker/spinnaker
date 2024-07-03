@@ -42,6 +42,12 @@ class TriggerDeserializer :
   override fun deserialize(parser: JsonParser, context: DeserializationContext): Trigger =
     parser.codec.readTree<JsonNode>(parser).run {
       return when {
+        looksLikeCustom() -> {
+          // Custom Trigger Supplier has priority
+          // chooses the first custom deserializer to keep behavior consistent
+          // with the rest of this conditional
+          customTriggerSuppliers.first { it.predicate.invoke(this) }.deserializer.invoke(this, parser)
+        }
         looksLikeDocker() -> DockerTrigger(
           get("type").textValue(),
           get("correlationId")?.textValue(),
@@ -163,11 +169,6 @@ class TriggerDeserializer :
           get("binaryUrl").textValue(),
           get("preferred").booleanValue()
         )
-        looksLikeCustom() -> {
-          // chooses the first custom deserializer to keep behavior consistent
-          // with the rest of this conditional
-          customTriggerSuppliers.first { it.predicate.invoke(this) }.deserializer.invoke(this)
-        }
         else -> DefaultTrigger(
           get("type")?.textValue() ?: "none",
           get("correlationId")?.textValue(),
@@ -180,7 +181,14 @@ class TriggerDeserializer :
           get("strategy")?.booleanValue() == true
         )
       }.apply {
-        mapValue<Any>(parser).forEach { (k, v) -> other[k] = v }
+
+        val otherFieldRule = customTriggerSuppliers.find { it.type == this.type }
+        if (otherFieldRule != null) {
+            other = mutableMapOf()
+          }
+          else  {
+            mapValue<Any>(parser).forEach { (k, v) -> other[k] = v }
+        }
         resolvedExpectedArtifacts = get("resolvedExpectedArtifacts")?.listValue(parser) ?: mutableListOf()
       }
     }
@@ -211,17 +219,4 @@ class TriggerDeserializer :
   private fun JsonNode.looksLikeCustom() =
     customTriggerSuppliers.any { it.predicate.invoke(this) }
 
-  private inline fun <reified E> JsonNode.listValue(parser: JsonParser): MutableList<E> =
-    this.map { parser.codec.treeToValue(it, E::class.java) }.toMutableList()
-
-  private inline fun <reified V> JsonNode.mapValue(parser: JsonParser): MutableMap<String, V> {
-    val m = mutableMapOf<String, V>()
-    this.fields().asSequence().forEach { entry ->
-      m[entry.key] = parser.codec.treeToValue(entry.value, V::class.java)
-    }
-    return m
-  }
-
-  private inline fun <reified T> JsonNode.parseValue(parser: JsonParser): T =
-    parser.codec.treeToValue(this, T::class.java)
 }
