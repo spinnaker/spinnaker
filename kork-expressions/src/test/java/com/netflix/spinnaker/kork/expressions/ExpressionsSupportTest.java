@@ -163,6 +163,30 @@ public class ExpressionsSupportTest {
     assertThat(evaluated).isEqualTo("00000000-0000-0000-0000-000000000000");
   }
 
+  @Test
+  public void testUnmodifiableMapToString() {
+    ExpressionProperties expressionProperties = new ExpressionProperties();
+
+    Map<String, Object> testContext = Collections.emptyMap();
+
+    // This fails under java 17 without something like
+    // --add-opens=java.base/java.util=ALL-UNNAMED as an argument ot the jvm.
+    String testInput = "${ {'foo': 'bar'}.toString() }";
+
+    ExpressionEvaluationSummary summary = new ExpressionEvaluationSummary();
+    String evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transformString(
+                testInput,
+                new ExpressionsSupport(null, expressionProperties)
+                    .buildEvaluationContext(testContext, true),
+                summary);
+
+    assertThat(summary.getExpressionResult()).isEmpty();
+    assertThat(summary.getFailureCount()).isEqualTo(0);
+    assertThat(evaluated).isEqualTo("{foo=bar}");
+  }
+
   public class MockArtifactStore extends ArtifactStore {
     public Map<String, String> cache = new HashMap<>();
 

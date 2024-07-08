@@ -28,6 +28,12 @@ allprojects {
 subprojects {
   group = "io.spinnaker.kork"
 
+  // This is required for some SpEL expressions to evaluate properly with java
+  // 17.  It works with java 11 as well, but isn't required there.
+  tasks.withType(Test).configureEach {
+    jvmArgs += '--add-opens=java.base/java.util=ALL-UNNAMED'
+  }
+
   if (it.name != "kork-bom" && it.name != "spinnaker-dependencies") {
     apply plugin: 'java-library'
     test {
