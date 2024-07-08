@@ -74,6 +74,23 @@ class PipelineExpressionEvaluatorSpec extends Specification {
     '${status == "SUCCEEDED"}'                  | false
   }
 
+  def "allows calling toString on an UnmodifiableMap"() {
+    given:
+    // This fails under java 17 without something like
+    // --add-opens=java.base/java.util=ALL-UNNAMED as an argument ot the jvm.
+    def source = [test: '${ {"foo": "bar"}.toString() }']
+    PipelineExpressionEvaluator evaluator = new PipelineExpressionEvaluator([], pluginManager, expressionProperties)
+
+    when:
+    ExpressionEvaluationSummary evaluationSummary = new ExpressionEvaluationSummary()
+    def result = evaluator.evaluate(source, [status: ExecutionStatus.TERMINAL], evaluationSummary, true)
+
+    then:
+    evaluationSummary.expressionResult.isEmpty()
+    evaluationSummary.failureCount == 0
+    result.test == '{foo=bar}'
+  }
+
   static ExpressionFunctionProvider buildExpressionFunctionProvider(String providerName) {
     new ExpressionFunctionProvider() {
       @Override

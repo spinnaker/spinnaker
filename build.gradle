@@ -42,6 +42,12 @@ subprojects {
     }
   }
 
+  // This is required for some SpEL expressions to evaluate properly with java
+  // 17.  It works with java 11 as well, but isn't required there.
+  tasks.withType(Test).configureEach {
+    jvmArgs += '--add-opens=java.base/java.util=ALL-UNNAMED'
+  }
+
   if (name != "orca-bom" && name != "orca-api") {
     apply plugin: "java-library"
 
