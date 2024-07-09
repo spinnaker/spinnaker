@@ -82,7 +82,10 @@ class UpsertAzureLoadBalancerDescriptionValidatorSpec extends Specification {
   UpsertAzureLoadBalancerDescriptionValidator validator
 
   void setupSpec() {
-    azureCredentials = new AzureCredentials(ACCOUNT_CLIENTID, ACCOUNT_TENANTID, ACCOUNT_APPKEY, SUBSCRIPTION_ID, DEFAULT_KEY_VAULT, DEFAULT_RESOURCE_GROUP, "", "", false)
+    // GroovyMock is necessary for AzureCredentials becuase it's a groovy class
+    // See https://stackoverflow.com/questions/34121999/mock-final-class-in-spock
+    azureCredentials = GroovyMock(AzureCredentials)
+    azureCredentials.appKey >> ACCOUNT_TENANTID
 
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentials = Mock(AzureNamedAccountCredentials)

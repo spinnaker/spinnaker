@@ -32,7 +32,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
   static AzureCredentials azureCredentials
 
   def setupSpec() {
-    azureCredentials = new AzureCredentials("", "", "", "", "", "", "", "", false)
+    azureCredentials = GroovyMock(AzureCredentials)
   }
   void setup() {
     description = createDescription(false)
