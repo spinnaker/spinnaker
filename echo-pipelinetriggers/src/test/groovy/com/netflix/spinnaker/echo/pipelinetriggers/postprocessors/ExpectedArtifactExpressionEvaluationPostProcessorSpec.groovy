@@ -76,4 +76,29 @@ class ExpectedArtifactExpressionEvaluationPostProcessorSpec extends Specificatio
     then:
     noExceptionThrown()
   }
+
+  def 'allows calling toString on an UnmodifiableMap'() {
+    given:
+    def artifact = ExpectedArtifact.builder()
+      .matchArtifact(
+        Artifact.builder()
+          // This fails under java 17 without something like
+          // --add-opens=java.base/java.util=ALL-UNNAMED as an argument to the jvm.
+          .name('${ {"foo": "bar"}.toString() }')
+          .version('77')
+          .type('maven/file')
+          .build())
+      .id('goodId')
+      .build()
+
+    def inputPipeline = createPipelineWith([artifact], trigger).withTrigger(trigger)
+
+    when:
+    def outputPipeline = artifactPostProcessor.processPipeline(inputPipeline)
+    def evaluatedArtifact = outputPipeline.expectedArtifacts[0].matchArtifact
+
+    then:
+    evaluatedArtifact.name == '{foo=bar}'
+    evaluatedArtifact.version == '77'
+  }
 }
