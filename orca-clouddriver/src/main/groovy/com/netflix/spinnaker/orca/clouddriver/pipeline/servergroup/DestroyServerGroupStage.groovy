@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware
@@ -33,7 +34,7 @@ import org.springframework.stereotype.Component
 @Component
 class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport implements ForceCacheRefreshAware {
   private static final Logger log = LoggerFactory.getLogger(DestroyServerGroupStage.class)
-  
+
   static final String PIPELINE_CONFIG_TYPE = "destroyServerGroup"
 
   private final DynamicConfigService dynamicConfigService
@@ -47,11 +48,11 @@ class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport implem
     boolean skipDisable = (boolean)context.getOrDefault("skipDisableBeforeDestroy", false)
 
     if (!skipDisable) {
-      // conditional opt-out for server groups where an explicit disable is unnecessary 
+      // conditional opt-out for server groups where an explicit disable is unnecessary
       // (ie. they do not register in service discovery or a load balancer)
       graph.add {
         it.name = "disableServerGroup"
-        it.type = getType(DisableServerGroupStage)
+        it.type = StageDefinitionBuilder.getType(DisableServerGroupStage)
         it.context.putAll(context)
       }
     } else {
