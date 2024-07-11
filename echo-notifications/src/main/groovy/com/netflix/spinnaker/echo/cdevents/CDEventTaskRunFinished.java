@@ -18,7 +18,7 @@ package com.netflix.spinnaker.echo.cdevents;
 
 import dev.cdevents.CDEvents;
 import dev.cdevents.constants.CDEventConstants;
-import dev.cdevents.events.TaskRunFinishedCDEvent;
+import dev.cdevents.events.TaskrunFinishedCDEvent;
 import io.cloudevents.CloudEvent;
 import java.net.URI;
 import lombok.Getter;
@@ -28,35 +28,38 @@ public class CDEventTaskRunFinished extends BaseCDEvent {
   @Getter private String subjectTaskName;
   @Getter private String subjectPipelineRunId;
   @Getter private String subjectError;
+  @Getter private Object customData;
 
   public CDEventTaskRunFinished(
       String executionId,
       String executionUrl,
       String executionName,
       String spinnakerUrl,
-      String status) {
+      String status,
+      Object customData) {
     super(spinnakerUrl, executionId, spinnakerUrl, executionUrl);
     this.subjectTaskName = executionName;
     this.subjectPipelineRunId = executionId;
     this.subjectError = status;
+    this.customData = customData;
   }
 
   @Override
   public CloudEvent createCDEvent() {
-    TaskRunFinishedCDEvent cdEvent = new TaskRunFinishedCDEvent();
+    TaskrunFinishedCDEvent cdEvent = new TaskrunFinishedCDEvent();
     cdEvent.setSource(URI.create(getSource()));
     cdEvent.setSubjectId(getSubjectId());
     cdEvent.setSubjectSource(URI.create(getSubjectSource()));
     cdEvent.setSubjectTaskName(getSubjectTaskName());
-    cdEvent.setSubjectUrl(URI.create(getSubjectUrl()));
+    cdEvent.setSubjectUrl(URI.create(getSubjectUrl()).toString());
     cdEvent.setSubjectErrors(getSubjectError());
     cdEvent.setSubjectPipelineRunId(getSubjectPipelineRunId());
     if ("complete".equals(getSubjectError())) {
-      cdEvent.setSubjectOutcome(CDEventConstants.Outcome.SUCCESS);
+      cdEvent.setSubjectOutcome(CDEventConstants.Outcome.SUCCESS.getOutcome());
     } else if ("failed".equals(getSubjectError())) {
-      cdEvent.setSubjectOutcome(CDEventConstants.Outcome.FAILURE);
+      cdEvent.setSubjectOutcome(CDEventConstants.Outcome.FAILURE.getOutcome());
     }
-
+    cdEvent.setCustomData(customData);
     return CDEvents.cdEventAsCloudEvent(cdEvent);
   }
 }

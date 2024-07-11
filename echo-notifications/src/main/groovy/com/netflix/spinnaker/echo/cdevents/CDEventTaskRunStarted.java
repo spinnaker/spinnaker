@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.echo.cdevents;
 
 import dev.cdevents.CDEvents;
-import dev.cdevents.events.TaskRunStartedCDEvent;
+import dev.cdevents.events.TaskrunStartedCDEvent;
 import io.cloudevents.CloudEvent;
 import java.net.URI;
 import lombok.Getter;
@@ -26,24 +26,31 @@ public class CDEventTaskRunStarted extends BaseCDEvent {
 
   @Getter private String subjectTaskName;
   @Getter private String subjectPipelineRunId;
+  @Getter private Object customData;
 
   public CDEventTaskRunStarted(
-      String executionId, String executionUrl, String executionName, String spinnakerUrl) {
+      String executionId,
+      String executionUrl,
+      String executionName,
+      String spinnakerUrl,
+      Object customData) {
     super(spinnakerUrl, executionId, spinnakerUrl, executionUrl);
     this.subjectTaskName = executionName;
     this.subjectPipelineRunId = executionId;
+    this.customData = customData;
   }
 
   @Override
   public CloudEvent createCDEvent() {
-    TaskRunStartedCDEvent cdEvent = new TaskRunStartedCDEvent();
+    TaskrunStartedCDEvent cdEvent = new TaskrunStartedCDEvent();
     cdEvent.setSource(URI.create(getSource()));
 
     cdEvent.setSubjectId(getSubjectId());
     cdEvent.setSubjectSource(URI.create(getSubjectSource()));
     cdEvent.setSubjectTaskName(getSubjectTaskName());
-    cdEvent.setSubjectUrl(URI.create(getSubjectUrl()));
+    cdEvent.setSubjectUrl(URI.create(getSubjectUrl()).toString());
     cdEvent.setSubjectPipelineRunId(getSubjectPipelineRunId());
+    cdEvent.setCustomData(customData);
 
     return CDEvents.cdEventAsCloudEvent(cdEvent);
   }

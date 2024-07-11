@@ -71,24 +71,32 @@ public class CDEventsBuilderService {
         Optional.ofNullable(preference)
             .map(p -> (String) p.get("cdEventsType"))
             .orElseThrow(() -> new FieldNotFoundException("notifications.cdEventsType"));
+
+    Object customData =
+        Optional.ofNullable(event.content)
+            .map(e -> (Map) e.get("context"))
+            .map(e -> e.get("customData"))
+            .orElse(new Object());
+
     log.info("Event type {} received to create CDEvent.", cdEventsType);
     // This map will be updated to add more event types that Spinnaker needs to send
     Map<String, BaseCDEvent> cdEventsMap =
         Map.of(
             CDEventTypes.PipelineRunQueuedEvent.getEventType(),
                 new CDEventPipelineRunQueued(
-                    executionId, executionUrl, executionName, spinnakerUrl),
+                    executionId, executionUrl, executionName, spinnakerUrl, customData),
             CDEventTypes.PipelineRunStartedEvent.getEventType(),
                 new CDEventPipelineRunStarted(
-                    executionId, executionUrl, executionName, spinnakerUrl),
+                    executionId, executionUrl, executionName, spinnakerUrl, customData),
             CDEventTypes.PipelineRunFinishedEvent.getEventType(),
                 new CDEventPipelineRunFinished(
-                    executionId, executionUrl, executionName, spinnakerUrl, status),
+                    executionId, executionUrl, executionName, spinnakerUrl, status, customData),
             CDEventTypes.TaskRunStartedEvent.getEventType(),
-                new CDEventTaskRunStarted(executionId, executionUrl, executionName, spinnakerUrl),
+                new CDEventTaskRunStarted(
+                    executionId, executionUrl, executionName, spinnakerUrl, customData),
             CDEventTypes.TaskRunFinishedEvent.getEventType(),
                 new CDEventTaskRunFinished(
-                    executionId, executionUrl, executionName, spinnakerUrl, status));
+                    executionId, executionUrl, executionName, spinnakerUrl, status, customData));
 
     BaseCDEvent cdEvent =
         cdEventsMap.keySet().stream()

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.echo.cdevents;
 
 import dev.cdevents.CDEvents;
 import dev.cdevents.constants.CDEventConstants;
-import dev.cdevents.events.PipelineRunFinishedCDEvent;
+import dev.cdevents.events.PipelinerunFinishedCDEvent;
 import io.cloudevents.CloudEvent;
 import java.net.URI;
 import lombok.Getter;
@@ -27,34 +27,37 @@ public class CDEventPipelineRunFinished extends BaseCDEvent {
 
   @Getter private String subjectPipelineName;
   @Getter private String subjectError;
+  @Getter private Object customData;
 
   public CDEventPipelineRunFinished(
       String executionId,
       String executionUrl,
       String executionName,
       String spinnakerUrl,
-      String status) {
+      String status,
+      Object customData) {
     super(spinnakerUrl, executionId, spinnakerUrl, executionUrl);
     this.subjectPipelineName = executionName;
     this.subjectError = status;
+    this.customData = customData;
   }
 
   @Override
   public CloudEvent createCDEvent() {
-    PipelineRunFinishedCDEvent cdEvent = new PipelineRunFinishedCDEvent();
+    PipelinerunFinishedCDEvent cdEvent = new PipelinerunFinishedCDEvent();
     cdEvent.setSource(URI.create(getSource()));
     cdEvent.setSubjectId(getSubjectId());
     cdEvent.setSubjectSource(URI.create(getSubjectSource()));
     cdEvent.setSubjectPipelineName(getSubjectPipelineName());
-    cdEvent.setSubjectUrl(URI.create(getSubjectUrl()));
+    cdEvent.setSubjectUrl(URI.create(getSubjectUrl()).toString());
     cdEvent.setSubjectErrors(getSubjectError());
 
     if ("complete".equals(getSubjectError())) {
-      cdEvent.setSubjectOutcome(CDEventConstants.Outcome.SUCCESS);
+      cdEvent.setSubjectOutcome(CDEventConstants.Outcome.SUCCESS.getOutcome());
     } else if ("failed".equals(getSubjectError())) {
-      cdEvent.setSubjectOutcome(CDEventConstants.Outcome.FAILURE);
+      cdEvent.setSubjectOutcome(CDEventConstants.Outcome.FAILURE.getOutcome());
     }
-
+    cdEvent.setCustomData(customData);
     return CDEvents.cdEventAsCloudEvent(cdEvent);
   }
 }
