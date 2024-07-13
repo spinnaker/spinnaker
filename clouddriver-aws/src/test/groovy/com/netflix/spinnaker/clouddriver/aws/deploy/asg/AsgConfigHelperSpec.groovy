@@ -234,23 +234,24 @@ class AsgConfigHelperSpec extends Specification {
 
     where:
     sourceDevice                                                                                                          || targetDevice
-    new BlockDeviceMapping().withDeviceName("Device1").withVirtualName("virtualName")                                     || new AmazonBlockDevice("Device1", "virtualName", null, null, null, null, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withIops(500))                                   || new AmazonBlockDevice("Device1", null, null, null, null, 500, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withDeleteOnTermination(true))                   || new AmazonBlockDevice("Device1", null, null, null, true, null, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeSize(1024))                            || new AmazonBlockDevice("Device1", null, 1024, null, null, null, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeType("volumeType"))                    || new AmazonBlockDevice("Device1", null, null, "volumeType", null, null, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snapshotId"))                    || new AmazonBlockDevice("Device1", null, null, null, null, null, "snapshotId", null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs())                                                 || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withVirtualName("virtualName")                                     || new AmazonBlockDevice("Device1", "virtualName", null, null, null, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withIops(500))                                   || new AmazonBlockDevice("Device1", null, null, null, null, 500, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withThroughput(250))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, 250, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withDeleteOnTermination(true))                   || new AmazonBlockDevice("Device1", null, null, null, true, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeSize(1024))                            || new AmazonBlockDevice("Device1", null, 1024, null, null, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeType("volumeType"))                    || new AmazonBlockDevice("Device1", null, null, "volumeType", null, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snapshotId"))                    || new AmazonBlockDevice("Device1", null, null, null, null, null, null, "snapshotId", null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs())                                                 || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null, null)
 
     // if snapshot is not provided, we should set encryption correctly
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withEncrypted(null))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withEncrypted(true))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, null, true)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withEncrypted(false))                            || new AmazonBlockDevice("Device1", null, null, null, null, null, null, false)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withEncrypted(null))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withEncrypted(true))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null, true)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withEncrypted(false))                            || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null, false)
 
     // if snapshot is provided, then we should use the snapshot's encryption value
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snap-123").withEncrypted(null))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snap-123", null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snap-123").withEncrypted(true))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snap-123", null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snap-123").withEncrypted(false)) || new AmazonBlockDevice("Device1", null, null, null, null, null, "snap-123", null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snap-123").withEncrypted(null))  || new AmazonBlockDevice("Device1", null, null, null, null, null, null, "snap-123", null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snap-123").withEncrypted(true))  || new AmazonBlockDevice("Device1", null, null, null, null, null, null, "snap-123", null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snap-123").withEncrypted(false)) || new AmazonBlockDevice("Device1", null, null, null, null, null, null, "snap-123", null)
   }
 
   @Unroll
@@ -260,23 +261,24 @@ class AsgConfigHelperSpec extends Specification {
 
     where:
     sourceDevice                                                                                                                                                 || targetDevice
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withVirtualName("virtualName")                                                              || new AmazonBlockDevice("Device1", "virtualName", null, null, null, null, null, null)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withIops(500))                                   || new AmazonBlockDevice("Device1", null, null, null, null, 500, null, null)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withDeleteOnTermination(true))                   || new AmazonBlockDevice("Device1", null, null, null, true, null, null, null)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withVolumeSize(1024))                            || new AmazonBlockDevice("Device1", null, 1024, null, null, null, null, null)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withVolumeType("volumeType"))                    || new AmazonBlockDevice("Device1", null, null, "volumeType", null, null, null, null)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snapshotId"))                    || new AmazonBlockDevice("Device1", null, null, null, null, null, "snapshotId", null)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice())                                                 || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withVirtualName("virtualName")                                                              || new AmazonBlockDevice("Device1", "virtualName", null, null, null, null, null, null, null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withIops(500))                                   || new AmazonBlockDevice("Device1", null, null, null, null, 500, null, null, null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withThroughput(250))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, 250, null, null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withDeleteOnTermination(true))                   || new AmazonBlockDevice("Device1", null, null, null, true, null, null, null, null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withVolumeSize(1024))                            || new AmazonBlockDevice("Device1", null, 1024, null, null, null, null, null, null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withVolumeType("volumeType"))                    || new AmazonBlockDevice("Device1", null, null, "volumeType", null, null, null, null, null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snapshotId"))                    || new AmazonBlockDevice("Device1", null, null, null, null, null, null, "snapshotId", null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice())                                                 || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null, null)
 
     // if snapshot is not provided, we should set encryption correctly
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withEncrypted(null))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withEncrypted(true))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, null, true)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withEncrypted(false))                            || new AmazonBlockDevice("Device1", null, null, null, null, null, null, false)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withEncrypted(null))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null, null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withEncrypted(true))                             || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null, true)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withEncrypted(false))                            || new AmazonBlockDevice("Device1", null, null, null, null, null, null, null, false)
 
     // if snapshot is provided, then we should use the snapshot's encryption value
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snap-123").withEncrypted(null))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snap-123", null)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snap-123").withEncrypted(true))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snap-123", null)
-    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snap-123").withEncrypted(false)) || new AmazonBlockDevice("Device1", null, null, null, null, null, "snap-123", null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snap-123").withEncrypted(null))  || new AmazonBlockDevice("Device1", null, null, null, null, null, null, "snap-123", null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snap-123").withEncrypted(true))  || new AmazonBlockDevice("Device1", null, null, null, null, null, null, "snap-123", null)
+    new LaunchTemplateBlockDeviceMapping().withDeviceName("Device1").withEbs(new LaunchTemplateEbsBlockDevice().withSnapshotId("snap-123").withEncrypted(false)) || new AmazonBlockDevice("Device1", null, null, null, null, null, null, "snap-123", null)
   }
 
   @Unroll

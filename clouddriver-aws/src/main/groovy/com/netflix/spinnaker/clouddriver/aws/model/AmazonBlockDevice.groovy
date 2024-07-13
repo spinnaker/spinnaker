@@ -68,6 +68,11 @@ class AmazonBlockDevice {
   Integer iops
 
   /**
+   * The throughput for the volume
+   */
+  Integer throughput
+
+  /**
    * The snapshot id to mount as the EBS volume
    */
   String snapshotId
@@ -88,6 +93,7 @@ class AmazonBlockDevice {
     virtualName = builder.virtualName
     size = builder.size
     volumeType = builder.volumeType
+    throughput = builder.throughput
     deleteOnTermination = builder.deleteOnTermination
     iops = builder.iops
     snapshotId = builder.snapshotId
@@ -102,6 +108,7 @@ class AmazonBlockDevice {
     String volumeType
     Boolean deleteOnTermination
     Integer iops
+    Integer throughput
     String snapshotId
     Boolean encrypted
     String kmsKeyId
@@ -136,6 +143,10 @@ class AmazonBlockDevice {
       return this
     }
 
+    Builder throughput(Integer throughput) {
+      this.throughput = throughput
+      return this
+    }
     Builder snapshotId(String snapshotId) {
       this.snapshotId = snapshotId
       return this

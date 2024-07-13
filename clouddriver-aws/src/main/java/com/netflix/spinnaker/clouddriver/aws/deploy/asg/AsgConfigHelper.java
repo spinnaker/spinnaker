@@ -348,6 +348,7 @@ public class AsgConfigHelper {
               if (bdm.getEbs() != null) {
                 final Ebs ebs = bdm.getEbs();
                 amzBd.setIops(ebs.getIops());
+                amzBd.setThroughput(ebs.getThroughput());
                 amzBd.setDeleteOnTermination(ebs.getDeleteOnTermination());
                 amzBd.setSize(ebs.getVolumeSize());
                 amzBd.setVolumeType(ebs.getVolumeType());
@@ -421,6 +422,7 @@ public class AsgConfigHelper {
               if (ltBdm.getEbs() != null) {
                 final LaunchTemplateEbsBlockDevice ebs = ltBdm.getEbs();
                 amzBd.setIops(ebs.getIops());
+                amzBd.setThroughput(ebs.getThroughput());
                 amzBd.setDeleteOnTermination(ebs.getDeleteOnTermination());
                 amzBd.setSize(ebs.getVolumeSize());
                 amzBd.setVolumeType(ebs.getVolumeType());

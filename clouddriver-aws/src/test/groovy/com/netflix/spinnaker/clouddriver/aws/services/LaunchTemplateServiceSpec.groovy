@@ -106,6 +106,19 @@ class LaunchTemplateServiceSpec extends Specification {
   }
 
   @Unroll
+  void 'matches throughput'() {
+    when:
+    def result = launchTemplateService.getLaunchTemplateEbsBlockDeviceRequest(blockDevice)
+
+    then:
+    result.getThroughput() == blockDevice.getThroughput()
+
+    where:
+    blockDevice                            | _
+    new AmazonBlockDevice(throughput: 250) | _
+  }
+
+  @Unroll
   void 'should generate volume tags'() {
     given:
     launchTemplateService = new LaunchTemplateService(

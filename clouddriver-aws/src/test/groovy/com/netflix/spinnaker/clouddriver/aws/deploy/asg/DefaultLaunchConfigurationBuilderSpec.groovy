@@ -18,11 +18,15 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.asg
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
+import com.amazonaws.services.autoscaling.model.Ebs
+import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.DefaultUserDataTokenizer
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProviderAggregator
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataOverride
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -456,6 +460,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
         assert ebs.volumeType == 'io1'
         assert ebs.deleteOnTermination == false
         assert ebs.iops == 100
+        assert ebs.throughput == 250
         assert ebs.volumeSize == 125
         assert ebs.encrypted == true
       }
@@ -475,8 +480,33 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
       .suffix('20150515')
       .blockDevices([
         new AmazonBlockDevice(deviceName: '/dev/sdb', virtualName: 'ephemeral1'),
-        new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125, iops: 100, deleteOnTermination: false, volumeType: 'io1', snapshotId: 's-69', encrypted: true)])
+        new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125, iops: 100, throughput: 250, deleteOnTermination: false, volumeType: 'io1', snapshotId: 's-69', encrypted: true)])
       .securityGroups(securityGroups)
       .build()
+  }
+
+  void "buildSettingsFromLaunchConfiguration handles ebs throughput"() {
+    given:
+    AccountCredentials<?> account = Mock(AccountCredentials)
+    String launchConfigurationName = 'source-launch-config'
+    LaunchConfiguration launchConfiguration = new LaunchConfiguration()
+    launchConfiguration.setLaunchConfigurationName(launchConfigurationName)
+    int throughput = 250
+    Ebs ebs = new Ebs()
+    ebs.setThroughput(throughput)
+    BlockDeviceMapping blockDeviceMapping = new BlockDeviceMapping()
+    blockDeviceMapping.setEbs(ebs)
+    launchConfiguration.setBlockDeviceMappings([blockDeviceMapping])
+    launchConfiguration.setEbsOptimized(false) // arbitrary, must not be null
+    when:
+    LaunchConfigurationBuilder.LaunchConfigurationSettings result = builder.buildSettingsFromLaunchConfiguration(account,'region', launchConfigurationName)
+
+    then:
+    1 * asgService.getLaunchConfiguration(launchConfigurationName) >> launchConfiguration
+    1 * account.name >> 'account-name'
+    1 * account.environment >> 'environment'
+    1 * account.accountType >> 'account-type'
+    result.blockDevices.size() == 1
+    result.blockDevices[0].throughput == throughput
   }
 }

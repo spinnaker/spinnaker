@@ -569,6 +569,10 @@ public class LaunchTemplateService {
       blockDeviceRequest.setIops(blockDevice.getIops());
     }
 
+    if (blockDevice.getThroughput() != null) {
+      blockDeviceRequest.setThroughput(blockDevice.getThroughput());
+    }
+
     if (blockDevice.getSnapshotId() != null) {
       blockDeviceRequest.setSnapshotId(blockDevice.getSnapshotId());
     }

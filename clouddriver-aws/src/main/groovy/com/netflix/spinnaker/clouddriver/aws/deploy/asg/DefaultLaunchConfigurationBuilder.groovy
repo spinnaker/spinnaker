@@ -86,6 +86,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
           volumeType: mapping.ebs.volumeType,
           deleteOnTermination: mapping.ebs.deleteOnTermination,
           iops: mapping.ebs.iops,
+          throughput: mapping.ebs.throughput,
           snapshotId: mapping.ebs.snapshotId,
           encrypted: mapping.ebs.encrypted)
       } else {
@@ -255,6 +256,9 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
             }
             if (iops) {
               ebs.withIops(iops)
+            }
+            if (throughput) {
+              ebs.withThroughput(throughput)
             }
             if (snapshotId) {
               ebs.withSnapshotId(snapshotId)
