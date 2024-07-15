@@ -9,12 +9,7 @@ dependencies {
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation "org.assertj:assertj-core"
+  testImplementation("io.spinnaker.kork:kork-jedis-test")
 
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-}
-
-test {
-  useJUnitPlatform {
-    includeEngines "jupiter"
-  }
 }
