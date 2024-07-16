@@ -95,9 +95,13 @@ public class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
                 })
             .collect(Collectors.toList());
 
-    V1Pod mostRecentPod = typedPods.get(typedPods.size() - 1);
-    jobStatus.setMostRecentPodName(
-        mostRecentPod.getMetadata() != null ? mostRecentPod.getMetadata().getName() : "");
+    // Handle an edge case where a Job may not have any pods, for example
+    // if a webhook explicitly denies the creation of a pod
+    if (typedPods.size() != 0) {
+      V1Pod mostRecentPod = typedPods.get(typedPods.size() - 1);
+      jobStatus.setMostRecentPodName(
+          mostRecentPod.getMetadata() != null ? mostRecentPod.getMetadata().getName() : "");
+    }
 
     jobStatus.setPods(
         typedPods.stream().map(KubernetesJobStatus.PodStatus::new).collect(Collectors.toList()));

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.provider.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -143,6 +144,28 @@ class KubernetesJobProviderTest {
     assertThat(jobStatus.getReason()).isEqualTo("DeadlineExceeded");
 
     assertNull(jobStatus.getFailureDetails());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void testCollectJobWithoutPod(boolean detailedPodStatus) {
+    // setup
+    KubernetesManifest testManifest =
+        Yaml.loadAs(getResource("base-with-completions.yml"), KubernetesManifest.class);
+    doReturn(
+            KubernetesManifestContainer.builder()
+                .account("mock_account")
+                .name("a")
+                .manifest(testManifest)
+                .build())
+        .when(mockManifestProvider)
+        .getManifest(anyString(), anyString(), anyString(), anyBoolean());
+    doReturn(ImmutableList.of()).when(mockCredentials).list(any(), isNull(), any());
+
+    KubernetesJobProvider kubernetesJobProvider =
+        new KubernetesJobProvider(credentialsProvider, mockManifestProvider, detailedPodStatus);
+
+    assertDoesNotThrow(() -> kubernetesJobProvider.collectJob("mock_account", "location", "id"));
   }
 
   private String getResource(String name) {
