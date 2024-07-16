@@ -32,6 +32,13 @@ class PipelineRefTriggerDeserializerSupplier(
 
   override val predicate: (node: JsonNode) -> Boolean
     get() = { node ->
+      // We need to deserialize always PipelineRef because
+      // 1. There is a single object mapper use for serialize/deserialize in
+      //    multiple places (OperationsController, ExecutionLauncher, SqlExecutionRepository)
+      // 2. Insert executions with trigger works properly but update an existing execution fails because
+      //    SqlExecutionRepository gets execution from database (deserialize) and we convert PipelineRef in its
+      //    In-memory representation. This makes the SqlExecutionRepository to try to store again all execution
+      //    context. We need to deserialize again to transform into PipelineRef properly.
       if (pipelineRefEnabled) {
         node.looksLikePipeline() || node.isPipelineRefTrigger() //if pipelineRef enabled we deserialize PipelineTrigger as PipelineRefTrigger
       } else {

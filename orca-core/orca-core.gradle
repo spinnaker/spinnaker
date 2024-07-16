@@ -62,6 +62,7 @@ dependencies {
 
   testImplementation(project(":orca-test"))
   testImplementation(project(":orca-test-groovy"))
+  testImplementation(project(":orca-sql"))
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")

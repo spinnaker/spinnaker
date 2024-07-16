@@ -27,7 +27,12 @@ import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties;
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger;
+import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier;
+import com.netflix.spinnaker.orca.sql.pipeline.persistence.PipelineRefTrigger;
 import com.netflix.spinnaker.orca.test.YamlFileApplicationContextInitializer;
 import java.time.Clock;
 import java.util.Map;
@@ -330,6 +335,120 @@ public class ExecutionLauncherTest extends YamlFileApplicationContextInitializer
     verify(executionRunner).start(pipelineExecution);
     // verify that accounts are not set in the pipeline execution
     assertThat(pipelineExecution.getAuthentication().getAllowedAccounts()).isEqualTo(Set.of());
+  }
+
+  @DisplayName(
+      "ExecutionLauncher can start a new execution when a customerTriggerSupplier is provided")
+  @Test
+  public void testPipelineRefCanBeDeserializeWhenEnabled() throws Exception {
+    // create the orcaObjectMapper to be able to deserialize triggers
+    ObjectMapper orcaMapper = OrcaObjectMapper.getInstance();
+    // add the Custom Trigger Deserializer for PipelineRef
+    TriggerDeserializer.Companion.getCustomTriggerSuppliers().clear();
+    TriggerDeserializer.Companion.getCustomTriggerSuppliers()
+        .add(new PipelineRefTriggerDeserializerSupplier(true));
+    // setup
+    executionLauncher =
+        new ExecutionLauncher(
+            orcaMapper,
+            executionRepository,
+            executionRunner,
+            clock,
+            applicationEventPublisher,
+            pipelineValidator,
+            registry,
+            executionConfigurationProperties);
+
+    // when
+    // childPipeline pipeline type should be able to run
+    PipelineExecution pipelineExecution =
+        executionLauncher.start(
+            ExecutionType.PIPELINE, getConfigJson("ad-hoc/pipeline-with-pipeline-trigger.json"));
+
+    // then
+    // verify that the execution runner attempted to start the execution as expected
+    verify(executionRunner).start(pipelineExecution);
+    // verify that the PipelineTrigger is deserialized as PipelineRef
+    assertThat(pipelineExecution.getTrigger()).isInstanceOf(PipelineRefTrigger.class);
+    // verify that no errors were thrown such as the explicitly disabled ones
+    verify(executionRepository, never()).updateStatus(any(), anyString(), any());
+    verify(executionRepository, never()).cancel(any(), anyString(), anyString(), anyString());
+  }
+
+  @DisplayName(
+      "ExecutionLauncher can start a new execution and the state of the trigger does not change when a customerTriggerSupplier is provided")
+  @Test
+  public void testPipelineTriggerIsNotDeserializedIntoPipelineRefWhenDisabled() throws Exception {
+    // create the orcaObjectMapper to be able to deserialize triggers
+    ObjectMapper orcaMapper = OrcaObjectMapper.getInstance();
+    // add the Custom Trigger Deserializer for PipelineRef
+    TriggerDeserializer.Companion.getCustomTriggerSuppliers().clear();
+    TriggerDeserializer.Companion.getCustomTriggerSuppliers()
+        .add(new PipelineRefTriggerDeserializerSupplier(false));
+    // setup
+    executionLauncher =
+        new ExecutionLauncher(
+            orcaMapper,
+            executionRepository,
+            executionRunner,
+            clock,
+            applicationEventPublisher,
+            pipelineValidator,
+            registry,
+            executionConfigurationProperties);
+
+    // when
+    // childPipeline pipeline type should be able to run
+    PipelineExecution pipelineExecution =
+        executionLauncher.start(
+            ExecutionType.PIPELINE, getConfigJson("ad-hoc/pipeline-with-pipeline-trigger.json"));
+
+    // then
+    // verify that the execution runner attempted to start the execution as expected
+    verify(executionRunner).start(pipelineExecution);
+    // verify that the execution has PipelineTrigger
+    assertThat(pipelineExecution.getTrigger()).isInstanceOf(PipelineTrigger.class);
+    // verify that no errors were thrown such as the explicitly disabled ones
+    verify(executionRepository, never()).updateStatus(any(), anyString(), any());
+    verify(executionRepository, never()).cancel(any(), anyString(), anyString(), anyString());
+  }
+
+  @DisplayName(
+      "ExecutionLauncher can start a new execution and process special triggers when a customerTriggerSupplier is provided")
+  @Test
+  public void testPipelineRefTriggerCanBeDeserializedEvenDisabled() throws Exception {
+    // create the orcaObjectMapper to be able to deserialize triggers
+    ObjectMapper orcaMapper = OrcaObjectMapper.getInstance();
+    // add the Custom Trigger Deserializer for PipelineRef
+    TriggerDeserializer.Companion.getCustomTriggerSuppliers().clear();
+    TriggerDeserializer.Companion.getCustomTriggerSuppliers()
+        .add(new PipelineRefTriggerDeserializerSupplier(false));
+    // setup
+    executionLauncher =
+        new ExecutionLauncher(
+            orcaMapper,
+            executionRepository,
+            executionRunner,
+            clock,
+            applicationEventPublisher,
+            pipelineValidator,
+            registry,
+            executionConfigurationProperties);
+
+    // when
+    // childPipeline pipeline type should be able to run
+    PipelineExecution pipelineExecution =
+        executionLauncher.start(
+            ExecutionType.PIPELINE, getConfigJson("ad-hoc/pipeline-with-pipelineRef-trigger.json"));
+
+    // then
+    // verify that the execution runner attempted to start the execution as expected
+    verify(executionRunner).start(pipelineExecution);
+    // verify that the PipelineTrigger is deserialized as PipelineRef
+    assertThat(pipelineExecution.getTrigger()).isInstanceOf(PipelineRefTrigger.class);
+    // verify that no errors were thrown such as the explicitly disabled ones
+    verify(executionRepository, never()).updateStatus(any(), anyString(), any());
+    verify(executionRepository, never()).cancel(any(), anyString(), anyString(), anyString());
   }
 
   private Map<String, Object> getConfigJson(String resource) throws Exception {
