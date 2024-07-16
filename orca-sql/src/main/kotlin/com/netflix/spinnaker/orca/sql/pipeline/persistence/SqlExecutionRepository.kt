@@ -667,7 +667,10 @@ class SqlExecutionRepository(
         .join(
           jooq.selectExecutions(
           PIPELINE,
-          listOf(field("id")),
+          fields = if (compressionProperties.enabled)
+            listOf(field("id")) + field("compressed_body") + field("compression_type")
+          else
+            listOf(field("id")),
           conditions = {
             var conditions = it.where(
             field("config_id").`in`(*pipelineConfigIds.toTypedArray())

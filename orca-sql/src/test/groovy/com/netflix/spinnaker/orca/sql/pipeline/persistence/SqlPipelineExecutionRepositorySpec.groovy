@@ -95,10 +95,10 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     return createExecutionRepository("test")
   }
 
-  ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null) {
+  ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null, boolean compression = false) {
     return InstrumentedProxy.proxy(
         new DefaultRegistry(),
-        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink, [], new ExecutionCompressionProperties(), false),
+        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink, [], new ExecutionCompressionProperties(enabled: compression), false),
         "namespace")
   }
 
@@ -583,15 +583,16 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
 
   def "can retrieve pipelines by configIds between build time boundaries"() {
     given:
+    ExecutionRepository repo = createExecutionRepository("test", null, compressionEnabled)
     (storeLimit + 1).times { i ->
-      repository.store(pipeline {
+      repo.store(pipeline {
         application = "spinnaker"
         pipelineConfigId = "foo1"
         name = "Execution #${i + 1}"
         buildTime = i + 1
       })
 
-      repository.store(pipeline {
+      repo.store(pipeline {
         application = "spinnaker"
         pipelineConfigId = "foo2"
         name = "Execution #${i + 1}"
@@ -600,7 +601,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     }
 
     when:
-    def results = repository
+    def results = repo
       .retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
       ["foo1", "foo2"],
       0L,
@@ -614,21 +615,23 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     }
 
     where:
-    storeLimit = 6
-    retrieveLimit = 10
+    storeLimit  |  retrieveLimit | compressionEnabled
+    6           | 10             | false
+    6           | 10             | true
   }
 
   def "can retrieve ALL pipelines by configIds between build time boundaries"() {
     given:
+    ExecutionRepository repo = createExecutionRepository("test", null, compressionEnabled)
     (storeLimit + 1).times { i ->
-      repository.store(pipeline {
+      repo.store(pipeline {
         application = "spinnaker"
         pipelineConfigId = "foo1"
         name = "Execution #${i + 1}"
         buildTime = i + 1
       })
 
-      repository.store(pipeline {
+      repo.store(pipeline {
         application = "spinnaker"
         pipelineConfigId = "foo2"
         name = "Execution #${i + 1}"
@@ -637,14 +640,14 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     }
 
     when:
-    List<PipelineExecution> forwardResults = repository
+    List<PipelineExecution> forwardResults = repo
       .retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
       ["foo1", "foo2"],
       0L,
       5L,
       new ExecutionCriteria().setPageSize(1).setSortType(BUILD_TIME_ASC)
     )
-    List<PipelineExecution> backwardsResults = repository
+    List<PipelineExecution> backwardsResults = repo
       .retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
       ["foo1", "foo2"],
       0L,
@@ -660,18 +663,28 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
 
 
     where:
-    storeLimit = 6
+    storeLimit  | compressionEnabled
+    6           | false
+    6           | true
   }
 
   def "doesn't fail on empty configIds"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository("test", null, compressionEnabled)
+
     expect:
-    repository
+    repo
       .retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
       [],
       0L,
       5L,
       new ExecutionCriteria().setPageSize(1).setSortType(BUILD_TIME_ASC)
     ).size() == 0
+
+    where:
+    compressionEnabled | _
+    false              | _
+    true               | _
   }
 }
 
