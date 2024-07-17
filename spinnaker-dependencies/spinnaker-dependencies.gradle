@@ -55,6 +55,7 @@ dependencies {
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
+  api(platform("org.junit:junit-bom:5.9.0")) // untill spring boot >= 3.0.0
   api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
