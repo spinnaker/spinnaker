@@ -79,7 +79,7 @@ final class HelmTemplateUtilsTest {
   private ArtifactStoreConfigurationProperties artifactStoreConfig;
 
   @BeforeEach
-  private void init(TestInfo testInfo) {
+  void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
     artifactDownloader = mock(ArtifactDownloader.class);

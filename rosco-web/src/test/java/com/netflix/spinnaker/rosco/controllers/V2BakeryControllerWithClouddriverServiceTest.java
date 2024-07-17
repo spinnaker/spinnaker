@@ -95,7 +95,7 @@ class V2BakeryControllerWithClouddriverServiceTest {
   }
 
   @BeforeEach
-  private void init(TestInfo testInfo) {
+  void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
     webAppMockMvc =

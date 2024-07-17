@@ -64,7 +64,7 @@ class V2BakeryControllerTest {
   private HelmBakeManifestRequest bakeManifestRequest;
 
   @BeforeEach
-  private void init(TestInfo testInfo) {
+  void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
     webAppMockMvc = webAppContextSetup(webApplicationContext).build();
