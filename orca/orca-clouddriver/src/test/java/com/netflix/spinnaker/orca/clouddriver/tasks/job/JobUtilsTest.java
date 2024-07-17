@@ -59,7 +59,6 @@ class JobUtilsTest {
         new StageExecutionImpl(
             new PipelineExecutionImpl(ExecutionType.PIPELINE, APPLICATION), "test", context);
 
-    // FIXME: this throws an exception casting the moniker to Moniker
     assertThatCode(() -> jobUtils.cancelWait(stage)).doesNotThrowAnyException();
 
     verify(katoRestService).cancelJob(APPLICATION, ACCOUNT, "default", "job my-job");
