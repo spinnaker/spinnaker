@@ -84,7 +84,7 @@ public class ResponseHeaderInterceptorTest {
   private MockMvc mockMvc;
 
   @BeforeEach
-  private void setup() {
+  void setup() {
     AuthenticatedRequest.clear();
   }
 
@@ -100,7 +100,7 @@ public class ResponseHeaderInterceptorTest {
     @Autowired private WebApplicationContext webApplicationContext;
 
     @BeforeEach
-    private void setup() {
+    void setup() {
       mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
@@ -171,7 +171,7 @@ public class ResponseHeaderInterceptorTest {
     @Autowired private WebApplicationContext webApplicationContext;
 
     @BeforeEach
-    private void setup() {
+    void setup() {
       mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
@@ -211,7 +211,7 @@ public class ResponseHeaderInterceptorTest {
     @Autowired private WebApplicationContext webApplicationContext;
 
     @BeforeEach
-    private void setup() {
+    void setup() {
       mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
