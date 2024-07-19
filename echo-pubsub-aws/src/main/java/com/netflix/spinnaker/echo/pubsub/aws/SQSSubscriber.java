@@ -31,6 +31,7 @@ import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PubsubMessageHandler;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.echo.pubsub.utils.NodeIdentity;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.pubsub.aws.PubSubUtils;
 import java.io.IOException;
@@ -211,7 +212,8 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
     }
   }
 
-  private String unmarshalMessageBody(String messageBody) {
+  @VisibleForTesting
+  String unmarshalMessageBody(String messageBody) {
     String messagePayload = messageBody;
     try {
       NotificationMessageWrapper wrapper =
