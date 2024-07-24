@@ -831,6 +831,32 @@ class TaskControllerSpec extends Specification {
     'nO'                      | false                  | 200
   }
 
+  @Unroll
+  void "GET /pipelines passes requireUpToDateVersion query param (#requireUpToDateVersionStr) when executionIds is specified"() {
+    given:
+    def executionId = "some-execution-id"
+
+    when:
+    mockMvc.perform(get("/pipelines")
+                    .queryParam('executionIds', [executionId].join(','))
+                    .queryParam('requireUpToDateVersion', requireUpToDateVersionStr))
+      .andDo(print())
+      .andExpect(status().is(statusCode))
+
+    then:
+    ((statusCode == 200) ? 1 : 0) * executionRepository.retrieve(ExecutionType.PIPELINE, executionId, requireUpToDateVersion)
+    0 * executionRepository._
+
+    where:
+    requireUpToDateVersionStr | requireUpToDateVersion | statusCode
+    ''                        | false                  | 200
+    'trUe'                    | true                   | 200
+    'fAlse'                   | false                  | 200
+    'olishdg'                 | false                  | 400
+    'yES'                     | true                   | 200
+    'nO'                      | false                  | 200
+  }
+
   void 'checkObjectMatchesSubset matches identical strings'() {
     when:
     boolean result = TaskController.checkObjectMatchesSubset("this is a test", "this is a test")

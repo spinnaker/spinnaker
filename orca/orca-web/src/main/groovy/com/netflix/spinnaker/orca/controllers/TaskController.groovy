@@ -216,6 +216,8 @@ class TaskController {
  * specified
  * @param expand (optional) Expands each execution object in the resulting list. If this value is missing,
  * it is defaulted to true.
+ * @param requireUpToDateVersion (optional) whether to fetch the up-to-date version of the specified execution(s).  Only
+ * used when executionIds is specified.
  * @return
  */
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
@@ -225,7 +227,8 @@ class TaskController {
     @RequestParam(value = "executionIds", required = false) String executionIds,
     @RequestParam(value = "limit", required = false) Integer limit,
     @RequestParam(value = "statuses", required = false) String statuses,
-    @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
+    @RequestParam(value = "expand", defaultValue = "true") boolean expand,
+    @RequestParam(defaultValue = "false") boolean requireUpToDateVersion) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     limit = limit ?: 1
     ExecutionCriteria executionCriteria = new ExecutionCriteria(
@@ -246,7 +249,7 @@ class TaskController {
 
       List<PipelineExecution> executions = rx.Observable.from(ids.collect {
         try {
-          executionRepository.retrieve(PIPELINE, it, false)
+          executionRepository.retrieve(PIPELINE, it, requireUpToDateVersion)
         } catch (ExecutionNotFoundException e) {
           null
         }
