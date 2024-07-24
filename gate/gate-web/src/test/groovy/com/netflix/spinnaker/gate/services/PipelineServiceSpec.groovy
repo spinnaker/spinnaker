@@ -24,10 +24,11 @@ import spock.lang.Unroll
 
 class PipelineServiceSpec extends Specification {
 
+  OrcaServiceSelector orcaServiceSelector = Mock(OrcaServiceSelector)
+  OrcaService orcaService = Mock(OrcaService)
+
   void 'startPipeline should add notifications to existing notifications'() {
     given:
-    OrcaServiceSelector orcaServiceSelector = Mock(OrcaServiceSelector)
-    OrcaService orcaService = Mock(OrcaService)
     def service = new PipelineService(
       applicationService: Mock(ApplicationService) {
         1 * getPipelineConfigForApplication('app', 'p-id') >> [
@@ -47,8 +48,6 @@ class PipelineServiceSpec extends Specification {
   @Unroll
   void 'startPipeline should set notifications to those on trigger'() {
     given:
-    OrcaServiceSelector orcaServiceSelector = Mock(OrcaServiceSelector)
-    OrcaService orcaService = Mock(OrcaService)
     def service = new PipelineService(
       applicationService: Mock(ApplicationService) {
         1 * getPipelineConfigForApplication('app', 'p-id') >> [
@@ -81,8 +80,6 @@ class PipelineServiceSpec extends Specification {
   @Unroll
   void 'startPipeline should throw exceptions if required parameters are not supplied'() {
     given:
-    OrcaServiceSelector orcaServiceSelector = Mock(OrcaServiceSelector)
-    OrcaService orcaService = Mock(OrcaService)
     def service = new PipelineService(
       applicationService: Mock(ApplicationService) {
         1 * getPipelineConfigForApplication('app', 'p-id') >> [
