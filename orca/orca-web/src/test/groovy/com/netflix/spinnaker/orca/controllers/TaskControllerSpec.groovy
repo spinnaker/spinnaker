@@ -56,6 +56,7 @@ import static java.time.ZoneOffset.UTC
 import static java.time.temporal.ChronoUnit.DAYS
 import static java.time.temporal.ChronoUnit.HOURS
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 class TaskControllerSpec extends Specification {
@@ -75,6 +76,7 @@ class TaskControllerSpec extends Specification {
   ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
 
   void setup() {
+    println specificationContext.currentIteration.displayName
     mockMvc = MockMvcBuilders.standaloneSetup(
         new TaskController(
             front50Service,
@@ -802,6 +804,31 @@ class TaskControllerSpec extends Specification {
     0 * front50Service._
 
     results.id == ['test-2', 'test-3']
+  }
+
+  @Unroll
+  void "GET /pipelines/id passes requireUpToDateVersion query param (#requireUpToDateVersionStr)"() {
+    given:
+    def executionId = "some-execution-id"
+
+    when:
+    mockMvc.perform(get("/pipelines/${executionId}")
+                    .queryParam('requireUpToDateVersion', requireUpToDateVersionStr))
+      .andDo(print())
+      .andExpect(status().is(statusCode))
+
+    then:
+    ((statusCode == 200) ? 1 : 0) * executionRepository.retrieve(ExecutionType.PIPELINE, executionId, requireUpToDateVersion)
+    0 * executionRepository._
+
+    where:
+    requireUpToDateVersionStr | requireUpToDateVersion | statusCode
+    ''                        | false                  | 200
+    'trUe'                    | true                   | 200
+    'fAlse'                   | false                  | 200
+    'olishdg'                 | false                  | 400
+    'yES'                     | true                   | 200
+    'nO'                      | false                  | 200
   }
 
   void 'checkObjectMatchesSubset matches identical strings'() {

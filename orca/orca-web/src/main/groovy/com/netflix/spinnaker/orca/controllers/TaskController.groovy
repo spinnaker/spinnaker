@@ -562,10 +562,16 @@ class TaskController {
     return result
   }
 
+  /**
+   * Retrieve a pipeline execution by id
+   * @param id the id of the execution to retrieve
+   * @param requireUpToDateVersion (optional) whether to fetch the up-to-date version of the execution
+   */
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
-  PipelineExecution getPipeline(@PathVariable String id) {
-    executionRepository.retrieve(PIPELINE, id, false)
+  PipelineExecution getPipeline(@PathVariable String id,
+                                @RequestParam(defaultValue = "false") boolean requireUpToDateVersion) {
+    executionRepository.retrieve(PIPELINE, id, requireUpToDateVersion)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
