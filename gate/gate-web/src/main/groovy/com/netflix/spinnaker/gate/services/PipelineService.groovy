@@ -166,8 +166,13 @@ class PipelineService {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().startPipeline(pipelineConfig, user))
   }
 
-  Map getPipeline(String id) {
-    Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(id))
+  /**
+   * Retrieve a pipeline execution by id
+   * @param id the id of the execution to retrieve
+   * @param requireUpToDateVersion whether to fetch the up-to-date version of the execution
+   */
+  Map getPipeline(String id, boolean requireUpToDateVersion) {
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(id, requireUpToDateVersion))
   }
 
   void cancelPipeline(String id, String reason, boolean force) {

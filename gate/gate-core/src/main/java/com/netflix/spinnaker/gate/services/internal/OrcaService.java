@@ -94,7 +94,8 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @GET("pipelines/{id}")
-  Call<Map> getPipeline(@Path("id") String id);
+  Call<Map> getPipeline(
+      @Path("id") String id, @Query("requireUpToDateVersion") boolean requireUpToDateVersion);
 
   @Headers("Accept: application/json")
   @PUT("pipelines/{id}/cancel")

@@ -111,4 +111,26 @@ class PipelineServiceSpec extends Specification {
     [parameters: [param1: 0]]     || false
     [parameters: [param1: 'a']]   || false
   }
+
+  @Unroll
+  void "getPipeline passes requireUpToDateVersion to orca (#requireUpToDateVersion)"() {
+    given:
+    def executionId = "some-execution-id"
+    def service = new PipelineService(
+      applicationService: Mock(ApplicationService),
+      orcaServiceSelector: orcaServiceSelector
+    )
+
+    when:
+    service.getPipeline(executionId, requireUpToDateVersion)
+
+    then:
+    1 * orcaServiceSelector.select() >> { orcaService }
+    1 * orcaService.getPipeline(executionId, requireUpToDateVersion) >> Calls.response([:])
+    0 * orcaServiceSelector._
+    0 * orcaService._
+
+    where:
+    requireUpToDateVersion << [false, true]
+  }
 }

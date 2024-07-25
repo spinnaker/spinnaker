@@ -182,11 +182,17 @@ class PipelineController {
     pipelineService.move(renameCommand)
   }
 
+  /**
+   * Retrieve a pipeline execution by id
+   * @param id the id of the execution to retrieve
+   * @param requireUpToDateVersion (optional) whether to fetch the up-to-date version of the execution
+   */
   @Operation(summary = "Retrieve a pipeline execution")
   @GetMapping("{id}")
-  Map getPipeline(@PathVariable("id") String id) {
+  Map getPipeline(@PathVariable("id") String id,
+                  @RequestParam(defaultValue = "false") boolean requireUpToDateVersion) {
     try {
-      pipelineService.getPipeline(id)
+      pipelineService.getPipeline(id, requireUpToDateVersion)
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         throw new NotFoundException("Pipeline not found (id: ${id})")
@@ -254,7 +260,7 @@ class PipelineController {
   @Operation(summary = "Restart a stage execution")
   @PutMapping("/{id}/stages/{stageId}/restart")
   Map restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
-    Map pipelineMap = getPipeline(id)
+    Map pipelineMap = getPipeline(id, false)
 
     String pipelineName = pipelineMap.get("name");
     String application = pipelineMap.get("application");
