@@ -79,24 +79,25 @@ public interface ExecutionRepository {
   /**
    * In ExecutionRepository implementations with replication lag, the caller can specify whether
    * they require the latest version of the PipelineExecution in the repository. Set
-   * requireLatestVersion according to the needs of the application as there are tradeoffs.
-   * Repository implementations without replication lag will behave as if requireLatestVersion =
+   * requireUpToDateVersion according to the needs of the application as there are tradeoffs.
+   * Repository implementations without replication lag will behave as if requireUpToDateVersion =
    * true
    *
-   * <p>Specifying requireLatestVersion = true provides strict consistency but comes with the cost
-   * of higher database load and a slower query. Specifying requireLatestVersion = false reduces
-   * database load and provides a faster query, but the returned PipelineExecution may not be the
-   * latest version.
+   * <p>Specifying requireUpToDateVersion = true provides strict consistency but comes with the cost
+   * of higher database load and a slower query. Specifying requireUpToDateVersion = false reduces
+   * database load and provides a faster query, but the returned PipelineExecution may not be up to
+   * date with the latest changes on the primary database.
    *
    * @param type Execution type
    * @param id Execution id
-   * @param requireLatestVersion Whether this operation needs to fetch the latest PipelineExecution
+   * @param requireUpToDateVersion Whether this operation needs to fetch an up-to-date
+   *     PipelineExecution
    * @return A PipelineExecution that satisfies the given parameters
    * @throws ExecutionNotFoundException
    */
   @Nonnull
   PipelineExecution retrieve(
-      @Nonnull ExecutionType type, @Nonnull String id, boolean requireLatestVersion)
+      @Nonnull ExecutionType type, @Nonnull String id, boolean requireUpToDateVersion)
       throws ExecutionNotFoundException;
 
   @Nonnull

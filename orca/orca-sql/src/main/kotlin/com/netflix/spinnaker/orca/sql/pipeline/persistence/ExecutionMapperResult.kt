@@ -52,13 +52,13 @@ enum class ExecutionMapperResultCode {
   NOT_FOUND,
 
   /**
-   * When requireLatestVersion is true and one or more executions fail to satisfy the version
+   * When requireUpToDateVersion is true and one or more executions fail to satisfy the version
    * requirements in [ExecutionMapper.isUpToDateVersion]
    */
   INVALID_VERSION,
 
   /**
-   * When requireLatestVersion is true and one or more execution IDs are missing from the
+   * When requireUpToDateVersion is true and one or more execution IDs are missing from the
    * ReplicationLagAwareRepository. This is a more specific case of [INVALID_VERSION]
    * since we will never be able to determine whether the version of an execution is valid if it
    * is missing from the ReplicationLagAwareRepository

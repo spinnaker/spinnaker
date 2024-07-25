@@ -352,8 +352,8 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
   @Override
   public @Nonnull PipelineExecution retrieve(
-      @Nonnull ExecutionType type, @Nonnull String id, boolean requireLatestVersion) {
-    // There is no read replica and therefore no replication lag, so the latest version
+      @Nonnull ExecutionType type, @Nonnull String id, boolean requireUpToDateVersion) {
+    // There is no read replica and therefore no replication lag, so an up-to-date version
     // is always available
     return retrieve(type, id);
   }

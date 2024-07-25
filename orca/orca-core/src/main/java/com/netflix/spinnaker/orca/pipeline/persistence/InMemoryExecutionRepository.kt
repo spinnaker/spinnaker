@@ -156,8 +156,8 @@ class InMemoryExecutionRepository : ExecutionRepository {
     return storageFor(type)[id] ?: throw ExecutionNotFoundException("No $type found for $id")
   }
 
-  override fun retrieve(type: ExecutionType, id: String, requireLatestVersion: Boolean): PipelineExecution {
-    // There is no read replica and therefore no replication lag, so the latest version
+  override fun retrieve(type: ExecutionType, id: String, requireUpToDateVersion: Boolean): PipelineExecution {
+    // There is no read replica and therefore no replication lag, so an up-to-date version
     // is always available
     return retrieve(type, id)
   }

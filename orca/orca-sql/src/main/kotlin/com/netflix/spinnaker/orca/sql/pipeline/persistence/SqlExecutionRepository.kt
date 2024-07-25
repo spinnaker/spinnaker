@@ -464,9 +464,9 @@ class SqlExecutionRepository(
     selectExecution(jooq, type, id)
       ?: throw ExecutionNotFoundException("No $type found for $id")
 
-  override fun retrieve(type: ExecutionType, id: String, requireLatestVersion: Boolean) =
-    selectExecution(jooq, type, id, requireLatestVersion)
-      ?: throw ExecutionNotFoundException("No $type found for $id with requireLatestVersion: $requireLatestVersion")
+  override fun retrieve(type: ExecutionType, id: String, requireUpToDateVersion: Boolean) =
+    selectExecution(jooq, type, id, requireUpToDateVersion)
+      ?: throw ExecutionNotFoundException("No $type found for $id with requireUpToDateVersion: $requireUpToDateVersion")
 
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> =
     Observable.from(
@@ -1426,12 +1426,12 @@ class SqlExecutionRepository(
     ctx: DSLContext,
     type: ExecutionType,
     id: String,
-    requireLatestVersion: Boolean
+    requireUpToDateVersion: Boolean
   ): PipelineExecution? {
     // Avoid collecting the readPoolRetrieve class of metrics here because it will
     // skew the number of times that retrieving using the read pool succeeded
     // on the first try
-    if (!requireLatestVersion) {
+    if (!requireUpToDateVersion) {
       withPool(readPoolName) {
         val select = ctx.selectExecution(type).where(id.toWhereCondition())
         return select.fetchExecution()
@@ -1439,7 +1439,7 @@ class SqlExecutionRepository(
     }
     // If the read pool configuration does not enforce strict consistency, then
     // retrieve the execution from the default pool which does. This ensures that
-    // the retrieved execution is up-to-date
+    // the retrieved execution is up-to-date.
     if (!readPoolStrictConsistencyEnforced()) {
       withPool(poolName) {
         val select = ctx.selectExecution(type).where(id.toWhereCondition())
