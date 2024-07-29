@@ -61,13 +61,23 @@ import org.yaml.snakeyaml.scanner.ScannerException;
 @Slf4j
 @Component
 public class HalconfigParser {
-  @Autowired StrictObjectMapper objectMapper;
+  private final StrictObjectMapper objectMapper;
 
-  @Autowired HalconfigDirectoryStructure halconfigDirectoryStructure;
+  private final HalconfigDirectoryStructure halconfigDirectoryStructure;
 
-  @Autowired ApplicationContext applicationContext;
+  private final ApplicationContext applicationContext;
 
   private boolean useBackup = false;
+
+  @Autowired
+  public HalconfigParser(
+      StrictObjectMapper objectMapper,
+      HalconfigDirectoryStructure halconfigDirectoryStructure,
+      ApplicationContext applicationContext) {
+    this.objectMapper = objectMapper;
+    this.halconfigDirectoryStructure = halconfigDirectoryStructure;
+    this.applicationContext = applicationContext;
+  }
 
   private Yaml getYamlParser() {
     return applicationContext.getBean(Yaml.class);

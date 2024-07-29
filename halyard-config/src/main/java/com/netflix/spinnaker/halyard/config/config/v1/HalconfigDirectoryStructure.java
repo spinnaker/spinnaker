@@ -23,11 +23,11 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class HalconfigDirectoryStructure {
   private static ThreadLocal<String> directoryOverride = new ThreadLocal<>();
 
@@ -35,7 +35,7 @@ public class HalconfigDirectoryStructure {
     directoryOverride.set(directory);
   }
 
-  @Autowired @Setter String halconfigDirectory;
+  private final String halconfigDirectory;
 
   public String getHalconfigDirectory() {
     String directory = directoryOverride.get();

@@ -29,12 +29,18 @@ import java.nio.charset.StandardCharsets
 
 class HalconfigParserMocker extends Specification {
   HalconfigParser mockHalconfigParser(String config) {
-    def parserStub = new HalconfigParser()
     ApplicationContext applicationContext = Stub(ApplicationContext.class)
     applicationContext.getBean(Yaml.class) >> new Yaml(new SafeConstructor())
-    parserStub.objectMapper = new StrictObjectMapper()
-    parserStub.applicationContext = applicationContext
-    parserStub.halconfigDirectoryStructure = new HalconfigDirectoryStructure();
+
+    // HalconfigDirectoryStructure needs a non-null halconfigDirectory for
+    // Paths.get(getHalconfigDirectory()) to work properly.  The directory
+    // doesn't actually need to exist though.  So, instead of
+    //
+    // String halconfigDirectory = Files.createTempDirectory("halyard-test")
+    //
+    // let's use an arbitrary string
+    String halconfigDirectory = "halyard-test"
+    def parserStub = new HalconfigParser(new StrictObjectMapper(), new HalconfigDirectoryStructure(halconfigDirectory), applicationContext)
 
     def stream = new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8))
     Halconfig halconfig = parserStub.parseHalconfig(stream)

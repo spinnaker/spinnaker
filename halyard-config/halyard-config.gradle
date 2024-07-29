@@ -48,6 +48,7 @@ dependencies {
   testImplementation 'org.junit.jupiter:junit-jupiter-api'
   testImplementation 'org.spockframework:spock-core'
   testImplementation 'org.springframework:spring-test'
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
   testImplementation 'org.codehaus.groovy:groovy'
   testRuntimeOnly 'net.bytebuddy:byte-buddy'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'

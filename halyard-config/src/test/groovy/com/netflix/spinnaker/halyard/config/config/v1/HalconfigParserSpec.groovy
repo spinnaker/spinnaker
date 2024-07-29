@@ -34,9 +34,7 @@ class HalconfigParserSpec extends Specification {
   void setup() {
     ApplicationContext applicationContext = Stub(ApplicationContext.class)
     applicationContext.getBean(Yaml.class) >> new Yaml(new SafeConstructor())
-    parser = new HalconfigParser()
-    parser.applicationContext = applicationContext
-    parser.objectMapper = new StrictObjectMapper()
+    parser = new HalconfigParser(new StrictObjectMapper(), null /* halconfigDirectoyStructure */, applicationContext)
   }
 
   void "Accept minimal config"() {
