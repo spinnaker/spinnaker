@@ -38,7 +38,7 @@ jobs:
           ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
         run: ./gradlew build --stacktrace ${{ steps.build_variables.outputs.REPO }}-web:installDist
       - name: Build local slim container image for testing
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile.slim
@@ -62,7 +62,7 @@ jobs:
       - name: Build and publish slim container image
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile.slim
@@ -76,7 +76,7 @@ jobs:
       - name: Build and publish ubuntu container image
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile.ubuntu
