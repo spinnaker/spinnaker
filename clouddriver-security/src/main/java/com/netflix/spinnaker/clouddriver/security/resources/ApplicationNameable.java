@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.security.resources;
 
-import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription;
+import com.netflix.spinnaker.orchestration.OperationDescription;
 import java.util.Collection;
 
 /** Denotes an operation description operates on one or more specific application resources. */

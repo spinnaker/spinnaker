@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.core
 
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
-import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription
+import com.netflix.spinnaker.orchestration.OperationDescription
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 

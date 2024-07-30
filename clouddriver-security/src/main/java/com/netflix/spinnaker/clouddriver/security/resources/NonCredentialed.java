@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.security.resources;
 
-import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription;
+import com.netflix.spinnaker.orchestration.OperationDescription;
 
 /**
  * Marker interface indicating that a description does not have account-level credentials specified.

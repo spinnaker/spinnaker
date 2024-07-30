@@ -175,6 +175,60 @@ final class KubernetesDeployManifestOperationTest {
   }
 
   @Test
+  void appliesSpecTemplateLabelsWhenSkipSpecTemplateLabelsFalse() {
+    // When skipSpecTemplateLabels is false, defaults to the standard flow,
+    // where applyMoniker() applies the Kubernetes and Moniker labels to both the
+    // manifest's metadata.labels and the spec.template.metadata.labels.
+    KubernetesDeployManifestDescription description =
+        baseDeployDescription("deploy/replicaset-no-namespace.yml")
+            .setSkipSpecTemplateLabels(false);
+    OperationResult result = deploy(description);
+
+    KubernetesManifest manifest = Iterables.getOnlyElement(result.getManifests());
+    KubernetesCredentials credentials = description.getCredentials().getCredentials();
+
+    // Verifying that the getNamer() method is called only once
+    // (credentials.getNamer().applyMoniker()).
+    verify(credentials, times(1)).getNamer();
+    // Assert that the Kubernetes labels are also applied to the spec template labels. The test
+    // manifest only has "app: nginx" within it's spec.template.metadata.labels.
+    assertThat(manifest.getSpecTemplateLabels()).isPresent();
+    manifest
+        .getSpecTemplateLabels()
+        .ifPresent(
+            l ->
+                assertThat(l)
+                    .contains(
+                        entry("app", "nginx"), entry("app.kubernetes.io/managed-by", "spinnaker")));
+    // Verify that the Kubernetes and Moniker labels are applied to the metadata labels.
+    assertThat(manifest.getLabels()).contains(entry("app.kubernetes.io/managed-by", "spinnaker"));
+  }
+
+  @Test
+  void doesNotApplySpecTemplateLabelsWhenSkipSpecTemplateLabelsTrue() {
+    // When skipSpecTemplateLabels is true, applyMoniker() skips applying
+    // the Kubernetes and Moniker labels to the manifest's spec.template.metadata.labels.
+    KubernetesDeployManifestDescription description =
+        baseDeployDescription("deploy/replicaset-no-namespace.yml").setSkipSpecTemplateLabels(true);
+    OperationResult result = deploy(description);
+
+    KubernetesManifest manifest = Iterables.getOnlyElement(result.getManifests());
+    KubernetesCredentials credentials = description.getCredentials().getCredentials();
+
+    // Verifying that the getNamer() method is called only once
+    // (credentials.getNamer().applyMoniker()).
+    verify(credentials, times(1)).getNamer();
+    // Assert that the spec template labels only has the "app: nginx" from the manifest and that no
+    // other labels were applied.
+    assertThat(manifest.getSpecTemplateLabels()).isPresent();
+    manifest
+        .getSpecTemplateLabels()
+        .ifPresent(l -> assertThat(l).containsExactly(entry("app", "nginx")));
+    // Verify that the Kubernetes and Moniker labels are still applied to the metadata labels.
+    assertThat(manifest.getLabels()).contains(entry("app.kubernetes.io/managed-by", "spinnaker"));
+  }
+
+  @Test
   void deploysWithArtifactBindingDisabled() {
     KubernetesDeployManifestDescription description =
         baseDeployDescription("deploy/replicaset-configmap.yml");

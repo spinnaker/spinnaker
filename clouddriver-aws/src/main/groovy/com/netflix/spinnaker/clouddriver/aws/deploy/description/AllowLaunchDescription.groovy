@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription
+import com.netflix.spinnaker.orchestration.OperationDescription
 
 class AllowLaunchDescription extends AbstractAmazonCredentialsDescription {
   String targetAccount

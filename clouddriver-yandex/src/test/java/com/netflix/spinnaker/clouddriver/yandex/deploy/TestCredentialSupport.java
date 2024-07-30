@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.yandex.deploy;
 
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
+import com.netflix.spinnaker.orchestration.OperationDescription;
 import java.util.Map;
 import javax.annotation.Nullable;
 

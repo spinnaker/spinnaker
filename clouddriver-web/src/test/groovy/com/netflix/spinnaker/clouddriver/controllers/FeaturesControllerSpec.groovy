@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.converters.UpsertEntityTa
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
-import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription
+import com.netflix.spinnaker.orchestration.OperationDescription
 import org.springframework.stereotype.Component
 import spock.lang.Specification
 

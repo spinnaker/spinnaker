@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DefaultDescriptionAuthorizer
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
+import com.netflix.spinnaker.orchestration.OperationDescription
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

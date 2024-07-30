@@ -12,6 +12,7 @@ dependencies {
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-moniker"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.orchestration;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import com.netflix.spinnaker.orchestration.OperationDescription;
 import java.util.Map;
 import javax.annotation.Nullable;
 

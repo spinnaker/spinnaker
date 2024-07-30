@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.deploy;
 
-import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription;
+import com.netflix.spinnaker.orchestration.OperationDescription;
 import org.springframework.validation.Errors;
 
 public class DefaultDescriptionAuthorizer implements DescriptionAuthorizer {

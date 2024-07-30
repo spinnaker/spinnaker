@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.security.resources;
 
-import com.netflix.spinnaker.clouddriver.orchestration.OperationDescription;
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
+import com.netflix.spinnaker.orchestration.OperationDescription;
 
 /** Denotes an operation description operates on a specific account. */
 public interface AccountNameable extends OperationDescription {
