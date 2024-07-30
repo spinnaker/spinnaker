@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.moniker;
 
+import com.netflix.spinnaker.orchestration.OperationDescription;
+
 /**
  * A "Namer" takes some type "T" (e.g. a server group) and allows you to either
  *
@@ -28,6 +30,19 @@ package com.netflix.spinnaker.moniker;
  */
 public interface Namer<T> {
   void applyMoniker(T obj, Moniker moniker);
+
+  /**
+   * Sets a moniker on the given object with additional context provided by the description. This
+   * default implementation ignores the provided {@code description} and simply delegates to the
+   * {@link #applyMoniker(Object, Moniker)} method.
+   *
+   * @param obj the object to which the moniker will be applied
+   * @param moniker the moniker to apply
+   * @param description a description that provides additional context for the operation
+   */
+  default void applyMoniker(T obj, Moniker moniker, OperationDescription description) {
+    applyMoniker(obj, moniker);
+  }
 
   Moniker deriveMoniker(T obj);
 }
