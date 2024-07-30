@@ -89,7 +89,7 @@ public class CreateServerGroupSpec extends AwsBaseSpec {
   private AmazonEC2 mockEc2 = mock(AmazonEC2.class);
 
   @BeforeEach
-  private void init(TestInfo testInfo) {
+  void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
     // mock EC2 responses
