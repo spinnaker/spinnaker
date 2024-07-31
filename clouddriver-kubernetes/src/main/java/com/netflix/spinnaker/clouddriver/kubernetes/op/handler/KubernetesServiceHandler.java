@@ -160,7 +160,7 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
 
     for (Map.Entry<String, String> label : podLabels.entrySet()) {
       String labelKey = podLabelKey(namespace, label);
-      enterManifest(entries, labelKey, KubernetesCacheDataConverter.convertToManifest(replicaSet));
+      enterManifest(entries, labelKey, replicaSet);
     }
   }
 
