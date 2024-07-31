@@ -71,48 +71,67 @@ public class LdapUserRolesProvider extends BaseUserRolesProvider {
   @Override
   protected List<Role> loadRolesForUser(ExternalUser user) {
     String userId = user.getId();
-
+    Set<String> userDns = new HashSet<>();
+    String[] params;
+    Set<String> userRolesPerDn;
+    Set<String> userRoles = new HashSet<>();
     log.debug("loadRoles for user " + userId);
     if (StringUtils.isEmpty(configProps.getGroupSearchBase())) {
       return new ArrayList<>();
     }
 
-    String fullUserDn = getUserFullDn(userId);
+    // handle multiple DNs in Ldap for single user
+    if (!isSingleDnToUserId(userId)) {
+      Map<String, String> userToDnMap = getUserDNs(List.of(userId));
+      userDns = new HashSet<>(userToDnMap.keySet());
+      log.debug("userDns : {} for the user : {}", userDns, userId);
+    } else {
+      String fullUserDn = getUserFullDn(userId);
+      if (fullUserDn != null) {
+        userDns = Set.of(fullUserDn);
+      }
+    }
 
-    if (fullUserDn == null) {
+    if (userDns.isEmpty()) {
       // Likely a service account
-      log.debug("fullUserDn is null for {}", userId);
+      log.debug("userDn is empty for {}", userId);
       return new ArrayList<>();
     }
 
-    String[] params = new String[] {fullUserDn, userId};
+    for (String userDn : userDns) {
+      params = new String[] {userDn, userId};
 
-    if (log.isDebugEnabled()) {
-      log.debug(
-          new StringBuilder("Searching for groups using ")
-              .append("\ngroupSearchBase: ")
-              .append(configProps.getGroupSearchBase())
-              .append("\ngroupSearchFilter: ")
-              .append(configProps.getGroupSearchFilter())
-              .append("\nparams: ")
-              .append(StringUtils.join(params, " :: "))
-              .append("\ngroupRoleAttributes: ")
-              .append(configProps.getGroupRoleAttributes())
-              .toString());
+      if (log.isDebugEnabled()) {
+        log.debug(
+            new StringBuilder("Searching for groups using ")
+                .append("\ngroupSearchBase: ")
+                .append(configProps.getGroupSearchBase())
+                .append("\ngroupSearchFilter: ")
+                .append(configProps.getGroupSearchFilter())
+                .append("\nparams: ")
+                .append(StringUtils.join(params, " :: "))
+                .append("\ngroupRoleAttributes: ")
+                .append(configProps.getGroupRoleAttributes())
+                .toString());
+      }
+
+      // Copied from org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator.
+      userRolesPerDn =
+          ldapTemplate.searchForSingleAttributeValues(
+              configProps.getGroupSearchBase(),
+              configProps.getGroupSearchFilter(),
+              params,
+              configProps.getGroupRoleAttributes());
+      userRoles.addAll(userRolesPerDn);
     }
-
-    // Copied from org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator.
-    Set<String> userRoles =
-        ldapTemplate.searchForSingleAttributeValues(
-            configProps.getGroupSearchBase(),
-            configProps.getGroupSearchFilter(),
-            params,
-            configProps.getGroupRoleAttributes());
-
     log.debug("Got roles for user " + userId + ": " + userRoles);
     return userRoles.stream()
         .map(role -> new Role(role).setSource(Role.Source.LDAP))
         .collect(Collectors.toList());
+  }
+
+  private boolean isSingleDnToUserId(String userId) {
+    return getPartialUserDn(userId) != null;
   }
 
   /** Mapper for mapping user ids to their groups */
@@ -248,21 +267,9 @@ public class LdapUserRolesProvider extends BaseUserRolesProvider {
     DistinguishedName root = new DistinguishedName(rootDn);
     log.debug("Root DN: " + root.toString());
 
-    String[] formatArgs = new String[] {LdapEncoder.nameEncode(userId)};
-
-    String partialUserDn;
-    if (!StringUtils.isEmpty(configProps.getUserSearchFilter())) {
-      try {
-        DirContextOperations res =
-            ldapTemplate.searchForSingleEntry(
-                configProps.getUserSearchBase(), configProps.getUserSearchFilter(), formatArgs);
-        partialUserDn = res.getDn().toString();
-      } catch (IncorrectResultSizeDataAccessException e) {
-        log.error("Unable to find a single user entry for {}", userId, e);
-        return null;
-      }
-    } else {
-      partialUserDn = configProps.getUserDnPattern().format(formatArgs);
+    String partialUserDn = getPartialUserDn(userId);
+    if (partialUserDn == null) {
+      return null;
     }
 
     DistinguishedName user = new DistinguishedName(partialUserDn);
@@ -276,6 +283,26 @@ public class LdapUserRolesProvider extends BaseUserRolesProvider {
       log.error("Could not assemble full userDn", ine);
     }
     return null;
+  }
+
+  @VisibleForTesting
+  String getPartialUserDn(String userId) {
+    String[] formatArgs = new String[] {LdapEncoder.nameEncode(userId)};
+    String partialUserDn;
+    if (!StringUtils.isEmpty(configProps.getUserSearchFilter())) {
+      try {
+        DirContextOperations res =
+            ldapTemplate.searchForSingleEntry(
+                configProps.getUserSearchBase(), configProps.getUserSearchFilter(), formatArgs);
+        partialUserDn = res.getDn().toString();
+      } catch (IncorrectResultSizeDataAccessException e) {
+        log.warn("Unable to find a single user entry for {}", userId, e);
+        return null;
+      }
+    } else {
+      partialUserDn = configProps.getUserDnPattern().format(formatArgs);
+    }
+    return partialUserDn;
   }
 
   /**

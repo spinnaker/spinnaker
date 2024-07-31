@@ -23,31 +23,38 @@ import org.apache.commons.lang3.tuple.Pair
 import org.springframework.dao.IncorrectResultSizeDataAccessException
 import org.springframework.ldap.control.PagedResultsDirContextProcessor
 import org.springframework.security.ldap.SpringSecurityLdapTemplate
-import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
 import javax.naming.directory.SearchControls
 
 class LdapUserRolesProviderTest extends Specification {
 
-  @Shared
-  @Subject
-  def provider = new LdapUserRolesProvider()
-
   @Unroll
   void "loadRoles should return no roles for serviceAccounts when userSearchFilter present"() {
     given:
-    def user = new ExternalUser(id: 'foo', externalRoles: [new Role(name: 'bar')])
+    def id = 'foo'
+    def user = new ExternalUser(id: id, externalRoles: [new Role(name: 'bar')])
 
     def configProps = baseConfigProps()
     configProps.groupSearchBase = groupSearchBase
     configProps.userSearchFilter = "notEmpty"
 
+    def provider = Spy(LdapUserRolesProvider){
+      1 * setConfigProps(configProps)
+      1 * setLdapTemplate(_ as SpringSecurityLdapTemplate)
+      1 * loadRoles(user)
+      1 * loadRolesForUser(user)
+      (0..2) * getPartialUserDn(id) >> "notEmpty"
+      (0..1) * getUserDNs([id])
+      (0..1) * getUserFullDn(id) >> null
+      0 * _
+    }
     provider.configProps = configProps
     provider.ldapTemplate = Mock(SpringSecurityLdapTemplate) {
-      _ * searchForSingleEntry(*_) >> { throw new IncorrectResultSizeDataAccessException(1) }
+      (0..1) * searchForSingleEntry(*_) >> { throw new IncorrectResultSizeDataAccessException(1) }
+      (0..1) * search(*_)
+      0 * _
     }
 
     when:
@@ -66,15 +73,28 @@ class LdapUserRolesProviderTest extends Specification {
   @Unroll
   void "loadRoles should return no roles for serviceAccouts when userSearchFilter absent"() {
     given:
-    def user = new ExternalUser(id: 'foo', externalRoles: [new Role(name: 'bar')])
+    def id = 'id'
+    def user = new ExternalUser(id: id, externalRoles: [new Role(name: 'bar')])
 
     def configProps = baseConfigProps()
     configProps.groupSearchBase = groupSearchBase
+
+    def provider = Spy(LdapUserRolesProvider){
+      1 * setConfigProps(configProps)
+      1 * setLdapTemplate(_ as SpringSecurityLdapTemplate)
+      1 * loadRoles(user)
+      1 * loadRolesForUser(user)
+      (0..2) * getPartialUserDn(id) >> "notEmpty"
+      (0..1) * getUserDNs([id])
+      (0..1) * getUserFullDn(id) >> null
+      0 * _
+    }
 
     provider.configProps = configProps
     provider.ldapTemplate = Mock(SpringSecurityLdapTemplate) {
       (0..1) * searchForSingleEntry(*_) >> { throw new IncorrectResultSizeDataAccessException(1) }
       (0..1) * searchForSingleAttributeValues(*_) >> new HashSet<>()
+      0 * _
     }
 
     when:
@@ -97,7 +117,9 @@ class LdapUserRolesProviderTest extends Specification {
 
     def configProps = baseConfigProps()
     def provider = Spy(LdapUserRolesProvider){
-      loadRoles(_ as ExternalUser) >>> [[role1], [role2]]
+     2 * loadRoles(_ as ExternalUser) >>> [[role1], [role2]]
+     1 * setConfigProps(configProps)
+     0 * _
     }
     provider.setConfigProps(configProps)
 
@@ -107,6 +129,8 @@ class LdapUserRolesProviderTest extends Specification {
 
     then:
     roles == [user1: [], user2: []]
+    1 * provider.multiLoadRoles(users)
+    1 * provider.loadRolesForUsers(users)
 
     when:
     configProps.groupSearchBase = "notEmpty"
@@ -114,6 +138,8 @@ class LdapUserRolesProviderTest extends Specification {
 
     then:
     roles == [user1: [role1], user2: [role2]]
+    1 * provider.multiLoadRoles(users)
+    1 * provider.loadRolesForUsers(users)
   }
 
   void "multiLoadRoles should use groupUserAttributes when groupUserAttributes is not empty"() {
@@ -127,7 +153,9 @@ class LdapUserRolesProviderTest extends Specification {
             .setGroupSearchBase("ou=groups")
             .setGroupUserAttributes("member")
     def provider = Spy(LdapUserRolesProvider){
-      2 * loadRoles(_) >>> [[role1], [role2]]
+      2 * loadRoles(_ as ExternalUser) >>> [[role1], [role2]]
+      1 * setConfigProps(configProps)
+      0 * _
     }
     provider.setConfigProps(configProps)
 
@@ -136,6 +164,8 @@ class LdapUserRolesProviderTest extends Specification {
     def roles = provider.multiLoadRoles(users)
 
     then: "should use loadRoles"
+    1 * provider.multiLoadRoles(users)
+    1 * provider.loadRolesForUsers(users)
     roles == [user1: [role1], user2: [role2]]
 
     when: "users count is greater than thresholdToUseGroupMembership and enableDnBasedMultiLoad is false"
@@ -146,14 +176,16 @@ class LdapUserRolesProviderTest extends Specification {
               [Pair.of("user2", role2)],
               [Pair.of("unknown", role2)]
       ]
+      0 * _
     }
     roles = provider.multiLoadRoles(users)
 
     then: "should compile user DNs locally and query memberships for all groups to load roles"
     roles == [user1: [role1], user2: [role2]]
     users.each {0 * provider.getUserFullDn(it.id) }
-    0 * provider.doMultiLoadRoles(_)
-    0 * provider.doMultiLoadRolesPaginated(_)
+    1 * provider.setLdapTemplate(_ as SpringSecurityLdapTemplate)
+    1 * provider.multiLoadRoles(users)
+    1 * provider.loadRolesForUsers(users)
 
     when: "thresholdToUseGroupMembership is breached, userSearchFilter is empty and enableDnBasedMultiLoad is true"
     // Test to make sure that when the thresholdToUseGroupMembership is breached:
@@ -168,14 +200,19 @@ class LdapUserRolesProviderTest extends Specification {
               [Pair.of("uid=user2,ou=users,dc=springframework,dc=org", role2)],
               [Pair.of("unknown", role2)]
       ]
+      0 * _
     }
     roles = provider.multiLoadRoles(users)
 
     then: "should compile user DNs locally and query memberships for all groups to load roles"
     roles == [user1: [role1], user2: [role2]]
     users.each {1 * provider.getUserFullDn(it.id) }
+    1 * provider.multiLoadRoles(users)
+    1 * provider.setLdapTemplate(_ as SpringSecurityLdapTemplate)
     1 * provider.doMultiLoadRoles(_)
-    0 * provider.doMultiLoadRolesPaginated(_)
+    1 * provider.getUserDNs(_ as Collection<String>)
+    1 * provider.loadRolesForUsers(users)
+    2 * provider.getPartialUserDn(_ as String)
 
     when: "thresholdToUseGroupMembership is breached and userSearchFilter is set"
     // Test to make sure that when the thresholdToUseGroupMembership is breached:
@@ -199,9 +236,11 @@ class LdapUserRolesProviderTest extends Specification {
 
     then: "should fetch user DNs from LDAP and query memberships for all groups to load roles"
     roles == ["user1@foo.com": [role1], "user2@foo.com": [role2]]
-    0 * provider.getUserFullDn(_)
+    1 * provider.multiLoadRoles(_ as Collection<ExternalUser>)
+    1 * provider.setLdapTemplate(_ as SpringSecurityLdapTemplate)
     1 * provider.doMultiLoadRoles(_)
-    0 * provider.doMultiLoadRolesPaginated(_)
+    1 * provider.getUserDNs(_ as Collection<String>)
+    1 * provider.loadRolesForUsers(_ as Collection<ExternalUser>)
   }
 
   void "multiLoadRoles should use pagination when enabled"() {
@@ -211,7 +250,11 @@ class LdapUserRolesProviderTest extends Specification {
     def role2 = new Role("group2")
 
     def configProps = baseConfigProps()
-    provider = Spy(provider)
+    def provider = Spy(LdapUserRolesProvider){
+      1 * setLdapTemplate(_ as SpringSecurityLdapTemplate)
+      1 * setConfigProps(_ as LdapConfig.ConfigProps)
+      0 * _
+    }
     provider.setConfigProps(configProps)
 
     when: "pagination is enabled"
@@ -244,6 +287,7 @@ class LdapUserRolesProviderTest extends Specification {
                 [Pair.of("${it.id}@foo.com" as String, role1),
                  Pair.of("${it.id}@foo.com" as String, role2)]
               }]
+      0 * _
     }
     def spiedProcessor = Spy(new PagedResultsDirContextProcessor(5, null))
     1 * provider.getPagedResultsDirContextProcessor(_) >> spiedProcessor
@@ -253,23 +297,29 @@ class LdapUserRolesProviderTest extends Specification {
 
     then: "should fetch ldap roles using pagination"
     roles == users.collectEntries { ["${it.id}" as String, [role1, role2]] }
-    0 * provider.doMultiLoadRoles(_)
-    1 * provider.doMultiLoadRolesPaginated(_)
+    1 * provider.multiLoadRoles(users)
+    1 * provider.doMultiLoadRolesPaginated(_ as Collection<String>)
+    1 * provider.loadRolesForUsers(_ as Collection<ExternalUser>)
+    1 * provider.getUserDNs(_ as Collection<String>)
   }
 
   void "multiLoadRoles should merge roles when multiple DNs exist for a user id"(){
     given:
-    def users = [externalUser("user1")]
+    def id = 'user1'
+    def ids = [id] as Set
+    def users = [externalUser(id)]
     def role1 = new Role("group1")
     def role2 = new Role("group2")
     def role3 = new Role("group3")
 
     def configProps = baseConfigProps()
     def provider = Spy(LdapUserRolesProvider){
-      getUserDNs(_ as Collection<String>) >> ['uid=dn1,ou=users,dc=springframework,dc=org': 'user1',
-                                              'uid=dn2,ou=users,dc=springframework,dc=org': 'user1']
-      doMultiLoadRoles(_ as Collection<String>) >> ['uid=dn1,ou=users,dc=springframework,dc=org' : [role1,role2],
-                                                    'uid=dn2,ou=users,dc=springframework,dc=org': [role3] ]
+      1 * getUserDNs(ids) >> ['uid=dn1,ou=users,dc=springframework,dc=org': id,
+                              'uid=dn2,ou=users,dc=springframework,dc=org': id]
+      1 * doMultiLoadRoles(_) >> ['uid=dn1,ou=users,dc=springframework,dc=org' : [role1,role2],
+                                  'uid=dn2,ou=users,dc=springframework,dc=org': [role3] ]
+      1 * setConfigProps(configProps)
+      0 * _
     }
     provider.setConfigProps(configProps)
 
@@ -282,8 +332,45 @@ class LdapUserRolesProviderTest extends Specification {
 
     then:
     roles == [user1: [role1, role2, role3]]
+    1 * provider.multiLoadRoles(users)
+    1 * provider.loadRolesForUsers(users)
   }
 
+  @Unroll
+  void "loadRolesForUser should merge roles when multiple DNs exist for a user id"() {
+    given:
+    def id = 'user1'
+    def user = externalUser(id)
+    def role1 = new Role("group1").setSource(Role.Source.LDAP)
+    def role2 = new Role("group2").setSource(Role.Source.LDAP)
+
+    def configProps = baseConfigProps()
+
+    def provider = Spy(LdapUserRolesProvider) {
+      1 * setConfigProps(configProps)
+      1 * setLdapTemplate(_ as SpringSecurityLdapTemplate)
+      1 * loadRolesForUser(user)
+      1 * getPartialUserDn(id)
+      1 * getUserDNs(_ as Collection<String>) >> [ 'uid=dn1,ou=users,dc=springframework,dc=org' : 'user1',
+                                               'uid=dn2,ou=users,dc=springframework,dc=org' : 'user1']
+      0 * _
+    }
+    provider.ldapTemplate = Mock(SpringSecurityLdapTemplate) {
+      1 * searchForSingleEntry(*_) >> { throw new IncorrectResultSizeDataAccessException(1) } // due to multiple DNs
+      1 * searchForSingleAttributeValues(_, _, ['uid=dn1,ou=users,dc=springframework,dc=org','user1'], _) >> ['group1']
+      1 * searchForSingleAttributeValues(_, _, ['uid=dn2,ou=users,dc=springframework,dc=org','user1'], _) >> ['group2']
+      0 * _
+    }
+    provider.setConfigProps(configProps)
+
+    when:
+    configProps.groupSearchBase = "notEmpty"
+    configProps.userSearchFilter = "notEmpty"
+    def roles = provider.loadRolesForUser(user)
+
+    then:
+    roles.sort() == [role1, role2].sort()
+  }
 
   private static ExternalUser externalUser(String id) {
     return new ExternalUser().setId(id)
