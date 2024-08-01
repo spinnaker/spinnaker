@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.orca.controllers;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -64,18 +63,6 @@ class TaskControllerWebTest {
 
   private static final String TEST_STAGE_ID = "stageId";
 
-  private static final String ERROR_MESSAGE_EXECUTION_ID_READ =
-      "Failed to evaluate expression 'hasPermission(this.getPipeline(#executionId)?.application, 'APPLICATION', 'READ')'";
-
-  private static final String ERROR_MESSAGE_ID_READ =
-      "Failed to evaluate expression 'hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')'";
-
-  private static final String ERROR_MESSAGE_ID_WRITE =
-      "Failed to evaluate expression 'hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')'";
-
-  private static final String ERROR_MESSAGE_ID_EXECUTE =
-      "Failed to evaluate expression 'hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')'";
-
   @Autowired private WebApplicationContext webApplicationContext;
 
   @MockBean private ExecutionRepository executionRepository;
@@ -101,12 +88,7 @@ class TaskControllerWebTest {
                 .queryParam("executionId", TEST_EXECUTION_ID)
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_EXECUTION_ID_READ))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be ok
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -120,12 +102,7 @@ class TaskControllerWebTest {
             delete("/pipelines/" + TEST_EXECUTION_ID)
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_ID_WRITE))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be ok
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -138,12 +115,7 @@ class TaskControllerWebTest {
             put("/pipelines/" + TEST_EXECUTION_ID + "/cancel")
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_ID_EXECUTE))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be accepted
+        .andExpect(status().isAccepted());
   }
 
   @Test
@@ -156,12 +128,7 @@ class TaskControllerWebTest {
             put("/pipelines/" + TEST_EXECUTION_ID + "/pause")
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_ID_EXECUTE))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be accepted
+        .andExpect(status().isAccepted());
   }
 
   @Test
@@ -174,12 +141,7 @@ class TaskControllerWebTest {
             put("/pipelines/" + TEST_EXECUTION_ID + "/resume")
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_ID_EXECUTE))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be accepted
+        .andExpect(status().isAccepted());
   }
 
   @Test
@@ -213,12 +175,7 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString())
                 .content("{}"))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_ID_EXECUTE))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be ok
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -233,12 +190,7 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString())
                 .content("{}"))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_ID_EXECUTE))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be ok
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -252,12 +204,7 @@ class TaskControllerWebTest {
                 .queryParam("expression", "")
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_ID_READ))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be ok
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -274,12 +221,7 @@ class TaskControllerWebTest {
                 .queryParam("expression", "")
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_ID_READ))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be ok
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -294,11 +236,6 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString())
                 .content("[]"))
         .andDo(print())
-        .andExpect(
-            result ->
-                assertThat(result.getResolvedException())
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage(ERROR_MESSAGE_ID_READ))
-        .andExpect(status().isBadRequest()); // FIXME: this needs to be ok
+        .andExpect(status().isOk());
   }
 }

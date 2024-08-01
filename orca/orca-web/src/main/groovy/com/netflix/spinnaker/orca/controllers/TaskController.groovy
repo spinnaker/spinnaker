@@ -285,7 +285,7 @@ class TaskController {
    * @param limit (optional) The maximum number of nested pipeline executions to return for failing stages. The default value is 1.
    * @return List of one or more failed stage summaries.
    */
-  @PreAuthorize("hasPermission(this.getPipeline(#executionId)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getApplication(#executionId), 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/failedStages", method = RequestMethod.GET)
   List<FailedStageExecution> getFailedStagesForPipelineExecution(
     @RequestParam(value = "executionId") String executionId,
@@ -577,7 +577,7 @@ class TaskController {
     executionRepository.retrieve(PIPELINE, id, requireUpToDateVersion)
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String id) {
     executionRepository.retrieve(PIPELINE, id).with {
@@ -590,7 +590,7 @@ class TaskController {
     }
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(
@@ -599,14 +599,14 @@ class TaskController {
     executionOperator.cancel(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/pause", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void pause(@PathVariable String id) {
     executionOperator.pause(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/resume", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void resume(@PathVariable String id) {
@@ -629,7 +629,7 @@ class TaskController {
     []
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   PipelineExecution updatePipelineStage(
     @PathVariable String id,
@@ -657,14 +657,14 @@ class TaskController {
     }
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
   PipelineExecution retryPipelineStage(
     @PathVariable String id, @PathVariable String stageId, @RequestBody Map restartDetails) {
     return executionOperator.restartStage(id, stageId, restartDetails)
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}/evaluateExpression", method = RequestMethod.GET)
   Map evaluateExpressionForExecution(@PathVariable("id") String id,
                                      @RequestParam("expression")
@@ -683,7 +683,7 @@ class TaskController {
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}/{stageId}/evaluateExpression", method = RequestMethod.GET)
   Map evaluateExpressionForExecutionAtStage(@PathVariable("id") String id,
                                             @PathVariable("stageId") String stageId,
@@ -703,7 +703,7 @@ class TaskController {
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'READ')")
   @PostMapping("/pipelines/{id}/evaluateVariables")
   Map evaluateVariables(@PathVariable("id") String id,
                         @RequestParam(value = "requisiteStageRefIds", defaultValue = "") String requisiteStageRefIds,
@@ -1166,6 +1166,16 @@ class TaskController {
         log.error("shutting down the executor service failed", e)
       }
     }
+  }
+
+  /**
+   * Return the application for a pipeline execution id, or null if there's no
+   * execution with the given id. Public so it's available to SpEL expressions.
+   */
+  public String getApplication(String id) {
+    // use false for requireUpToDateVersion since we don't expect the
+    // application for a given execution to change.
+    return getPipeline(id, false /* requireUpToDateVersion */)?.application;
   }
 
   @InheritConstructors
