@@ -24,6 +24,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandler;
@@ -119,7 +120,8 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
     }
   }
 
-  private void initializeQueue() {
+  @VisibleForTesting
+  void initializeQueue() {
     String queueUrl =
         PubSubUtils.ensureQueueExists(
             amazonSQS, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds());
@@ -134,7 +136,8 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
             .build();
   }
 
-  private void listenForMessages() {
+  @VisibleForTesting
+  void listenForMessages() {
     while (isEnabled.get()) {
       ReceiveMessageResult receiveMessageResult =
           amazonSQS.receiveMessage(
