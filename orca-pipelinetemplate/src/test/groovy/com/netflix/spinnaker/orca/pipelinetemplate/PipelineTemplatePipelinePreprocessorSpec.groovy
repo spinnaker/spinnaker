@@ -37,12 +37,11 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinitio
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter
-import org.unitils.reflectionassert.ReflectionComparatorMode
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals
+import static org.assertj.core.api.Assertions.assertThat
 
 class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
@@ -186,7 +185,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       triggers: [],
       expectedArtifacts: []
     ]
-    assertReflectionEquals(expected, result, ReflectionComparatorMode.IGNORE_DEFAULTS)
+    assertThat(expected).usingRecursiveComparison().ignoringActualNullFields().isEqualTo(result)
   }
 
   def 'should render jackson mapping exceptions'() {

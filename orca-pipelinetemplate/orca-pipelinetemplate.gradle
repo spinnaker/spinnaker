@@ -27,7 +27,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
 
   testImplementation("org.slf4j:slf4j-simple")
-  testImplementation("org.spockframework:spock-unitils")
+  testImplementation("org.assertj:assertj-core")
   testImplementation("org.codehaus.groovy:groovy-json")
   testImplementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
   testImplementation("io.spinnaker.kork:kork-retrofit")

@@ -38,13 +38,12 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter
 import org.springframework.core.io.Resource
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver
-import org.unitils.reflectionassert.ReflectionComparatorMode
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals
+import static org.assertj.core.api.Assertions.assertThat
 
 class V1SchemaIntegrationSpec extends Specification {
 
@@ -89,7 +88,7 @@ class V1SchemaIntegrationSpec extends Specification {
     def result = subject.process(integration.toRequest())
 
     then:
-    assertReflectionEquals(expected, result, ReflectionComparatorMode.IGNORE_DEFAULTS)
+    assertThat(expected).usingRecursiveComparison().ignoringActualNullFields().isEqualTo(result)
 
     where:
     integration << new IntegrationTestDataProvider().provide()
