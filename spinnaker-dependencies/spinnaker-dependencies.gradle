@@ -64,7 +64,7 @@ dependencies {
   api(platform("software.amazon.awssdk:bom:${versions.awsv2}"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))
-  api(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
+  api(platform("org.spockframework:spock-bom:2.2-groovy-3.0"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:3.21.0"))
   api(platform("org.testcontainers:testcontainers-bom:1.19.8"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
