@@ -30,4 +30,5 @@ dependencies {
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
   testImplementation(project(":orca-test"))
+  testRuntimeOnly("net.bytebuddy:byte-buddy")
 }

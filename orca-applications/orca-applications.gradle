@@ -29,4 +29,5 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
 
   testImplementation(project(":orca-test-groovy"))
+  testRuntimeOnly("net.bytebuddy:byte-buddy")
 }

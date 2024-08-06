@@ -38,6 +38,7 @@ dependencies {
   testImplementation(project(":orca-test-groovy"))
   testImplementation(project(":orca-pipelinetemplate"))
   testImplementation("com.github.ben-manes.caffeine:guava")
+  testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
 
 sourceSets {

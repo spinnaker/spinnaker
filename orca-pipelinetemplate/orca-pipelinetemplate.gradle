@@ -31,4 +31,5 @@ dependencies {
   testImplementation("org.codehaus.groovy:groovy-json")
   testImplementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
   testImplementation("io.spinnaker.kork:kork-retrofit")
+  testRuntimeOnly("net.bytebuddy:byte-buddy")
 }

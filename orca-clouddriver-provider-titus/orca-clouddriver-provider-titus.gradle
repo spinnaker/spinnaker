@@ -29,4 +29,5 @@ dependencies {
   testImplementation(project(":orca-test-groovy"))
 
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly("net.bytebuddy:byte-buddy")
 }

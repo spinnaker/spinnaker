@@ -31,6 +31,7 @@ dependencies {
   implementation("io.spinnaker.kork:kork-retrofit")
 
   testImplementation("com.squareup.retrofit:retrofit-mock")
+  testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
 
 tasks.withType(Javadoc) {

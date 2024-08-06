@@ -29,6 +29,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation("org.assertj:assertj-core")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
 
 sourceSets {

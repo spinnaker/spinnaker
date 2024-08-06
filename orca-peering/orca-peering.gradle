@@ -25,4 +25,5 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
 
   testImplementation(project(":orca-test-groovy"))
+  testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
