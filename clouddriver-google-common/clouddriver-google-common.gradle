@@ -16,4 +16,5 @@ dependencies {
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "net.bytebuddy:byte-buddy"
 }

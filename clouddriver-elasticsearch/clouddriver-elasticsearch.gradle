@@ -20,5 +20,6 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
+  testRuntimeOnly "net.bytebuddy:byte-buddy"
 
 }
