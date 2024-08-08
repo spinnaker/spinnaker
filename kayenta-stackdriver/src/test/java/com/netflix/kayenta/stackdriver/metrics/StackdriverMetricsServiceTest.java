@@ -25,6 +25,7 @@ import com.netflix.spectator.api.DefaultRegistry;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -150,5 +151,122 @@ public class StackdriverMetricsServiceTest {
     List<Map> metadata = stackdriverMetricsService.getMetadata(ACCOUNT, "");
 
     assertThat(metadata).containsOnly(exampleMetricDescriptor);
+  }
+
+  @Test
+  void handlesEmptyResponse() throws IOException {
+    GoogleNamedAccountCredentials stackdriverCredentialsMock =
+        mock(GoogleNamedAccountCredentials.class);
+    when(accountCredentialsRepoMock.getRequiredOne(ACCOUNT)).thenReturn(stackdriverCredentialsMock);
+
+    Monitoring monitoringMock = mock(Monitoring.class, Mockito.RETURNS_DEEP_STUBS);
+    when(stackdriverCredentialsMock.getMonitoring()).thenReturn(monitoringMock);
+
+    Monitoring.Projects.TimeSeries.List timeSeriesListMock =
+        mock(Monitoring.Projects.TimeSeries.List.class);
+    when(monitoringMock
+            .projects()
+            .timeSeries()
+            .list(anyString())
+            .setAggregationAlignmentPeriod(anyString())
+            .setAggregationCrossSeriesReducer(anyString())
+            .setAggregationPerSeriesAligner(anyString())
+            .setFilter(anyString())
+            .setIntervalStartTime(anyString())
+            .setIntervalEndTime(anyString()))
+        .thenReturn(timeSeriesListMock);
+
+    ListTimeSeriesResponse responseMock = mock(ListTimeSeriesResponse.class);
+    when(timeSeriesListMock.execute()).thenReturn(responseMock);
+
+    // Return an empty list for time series
+    when(responseMock.getTimeSeries()).thenReturn(Collections.emptyList());
+
+    CanaryConfig canaryConfig = new CanaryConfig();
+    CanaryMetricConfig canaryMetricConfig =
+        CanaryMetricConfig.builder()
+            .name("metricConfig")
+            .query(
+                StackdriverCanaryMetricSetQueryConfig.builder()
+                    .resourceType("global")
+                    .metricType("instance")
+                    .build())
+            .build();
+
+    StackdriverCanaryScope canaryScope = new StackdriverCanaryScope();
+    canaryScope.setStart(Instant.EPOCH).setEnd(Instant.EPOCH.plusSeconds(1)).setStep(1l);
+    canaryScope.setProject("my-project");
+    List<MetricSet> queriedMetrics =
+        stackdriverMetricsService.queryMetrics(
+            ACCOUNT, canaryConfig, canaryMetricConfig, canaryScope);
+
+    // Verify that an empty metric set is returned
+    assertThat(queriedMetrics).hasSize(1);
+    assertThat(queriedMetrics.get(0).getValues()).isEmpty();
+  }
+
+  @Test
+  void handlesInvalidMetricType() throws IOException {
+    GoogleNamedAccountCredentials stackdriverCredentialsMock =
+        mock(GoogleNamedAccountCredentials.class);
+    when(accountCredentialsRepoMock.getRequiredOne(ACCOUNT)).thenReturn(stackdriverCredentialsMock);
+
+    Monitoring monitoringMock = mock(Monitoring.class, Mockito.RETURNS_DEEP_STUBS);
+    when(stackdriverCredentialsMock.getMonitoring()).thenReturn(monitoringMock);
+
+    Monitoring.Projects.TimeSeries.List timeSeriesListMock =
+        mock(Monitoring.Projects.TimeSeries.List.class);
+    when(monitoringMock
+            .projects()
+            .timeSeries()
+            .list(anyString())
+            .setAggregationAlignmentPeriod(anyString())
+            .setAggregationCrossSeriesReducer(anyString())
+            .setAggregationPerSeriesAligner(anyString())
+            .setFilter(anyString())
+            .setIntervalStartTime(anyString())
+            .setIntervalEndTime(anyString()))
+        .thenReturn(timeSeriesListMock);
+
+    ListTimeSeriesResponse responseMock = mock(ListTimeSeriesResponse.class);
+    when(timeSeriesListMock.execute()).thenReturn(responseMock);
+
+    List<TimeSeries> timeSeriesListWithInvalidMetricType = new ArrayList<>();
+
+    // Create a time series with an invalid metric type
+    List<Point> points = new ArrayList<>();
+    points.add(
+        new Point()
+            .setValue(new TypedValue().setDoubleValue(3.14))
+            .setInterval(
+                new TimeInterval()
+                    .setStartTime("1970-01-01T00:00:00.00Z")
+                    .setEndTime("1970-01-01T00:00:01.00Z")));
+    TimeSeries timeSeriesWithInvalidMetricType =
+        new TimeSeries().setValueType("STRING").setPoints(points);
+    timeSeriesListWithInvalidMetricType.add(timeSeriesWithInvalidMetricType);
+
+    when(responseMock.getTimeSeries()).thenReturn(timeSeriesListWithInvalidMetricType);
+
+    CanaryConfig canaryConfig = new CanaryConfig();
+    CanaryMetricConfig canaryMetricConfig =
+        CanaryMetricConfig.builder()
+            .name("metricConfig")
+            .query(
+                StackdriverCanaryMetricSetQueryConfig.builder()
+                    .resourceType("global")
+                    .metricType("instance")
+                    .build())
+            .build();
+
+    StackdriverCanaryScope canaryScope = new StackdriverCanaryScope();
+    canaryScope.setStart(Instant.EPOCH).setEnd(Instant.EPOCH.plusSeconds(1)).setStep(1l);
+    canaryScope.setProject("my-project");
+    List<MetricSet> queriedMetrics =
+        stackdriverMetricsService.queryMetrics(
+            ACCOUNT, canaryConfig, canaryMetricConfig, canaryScope);
+
+    // Verify that the values are extracted as Double
+    assertThat(queriedMetrics.get(0).getValues()).contains(3.14);
   }
 }
