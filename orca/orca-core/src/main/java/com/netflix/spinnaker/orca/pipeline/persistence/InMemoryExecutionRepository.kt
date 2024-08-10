@@ -170,6 +170,10 @@ class InMemoryExecutionRepository : ExecutionRepository {
     return Observable.from(storageFor(type).values)
   }
 
+  override fun getApplication(id: String): String {
+    return retrieve(PIPELINE, id).getApplication()
+  }
+
   override fun store(execution: PipelineExecution) {
     storageFor(execution.type).run {
       if (!containsKey(execution.id)) {

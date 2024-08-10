@@ -1173,9 +1173,11 @@ class TaskController {
    * execution with the given id. Public so it's available to SpEL expressions.
    */
   public String getApplication(String id) {
-    // use false for requireUpToDateVersion since we don't expect the
-    // application for a given execution to change.
-    return getPipeline(id, false /* requireUpToDateVersion */)?.application;
+    try {
+      return executionRepository.getApplication(id)
+    } catch (ExecutionNotFoundException e) {
+      return null
+    }
   }
 
   @InheritConstructors

@@ -97,7 +97,7 @@ class TaskControllerWebTest {
         .andExpect(status().isOk());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, true);
@@ -118,7 +118,7 @@ class TaskControllerWebTest {
         .andExpect(status().isOk());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
@@ -139,7 +139,7 @@ class TaskControllerWebTest {
         .andExpect(status().isAccepted());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository)
@@ -162,7 +162,7 @@ class TaskControllerWebTest {
         .andExpect(status().isAccepted());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
@@ -184,7 +184,7 @@ class TaskControllerWebTest {
         .andExpect(status().isAccepted());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository)
@@ -232,7 +232,7 @@ class TaskControllerWebTest {
         .andExpect(status().isOk());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository, times(2)).retrieve(PIPELINE, TEST_EXECUTION_ID);
@@ -256,7 +256,7 @@ class TaskControllerWebTest {
         .andExpect(status().isOk());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
@@ -279,7 +279,7 @@ class TaskControllerWebTest {
         .andExpect(status().isOk());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
@@ -303,7 +303,7 @@ class TaskControllerWebTest {
         .andExpect(status().isOk());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
@@ -325,7 +325,7 @@ class TaskControllerWebTest {
         .andExpect(status().isOk());
 
     // verify PreAuthorize behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
     verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);

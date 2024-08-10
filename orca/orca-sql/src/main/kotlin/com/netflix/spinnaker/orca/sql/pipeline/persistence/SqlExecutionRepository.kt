@@ -479,6 +479,26 @@ class SqlExecutionRepository(
     return retrieve(type, criteria, null)
   }
 
+  override fun getApplication(id: String): String {
+    return getApplication(jooq, id)
+      ?: throw ExecutionNotFoundException("No $PIPELINE found for $id")
+  }
+
+  /**
+   * @return The application of a pipeline execution, or null if it doesn't exist
+   */
+  private fun getApplication(
+    ctx: DSLContext,
+    id: String
+  ): String? {
+    withPool(readPoolName) {
+      return ctx
+               .select(field("application")).from(PIPELINE.tableName)
+               .where(id.toWhereCondition())
+               .fetchOne(field("application"), String::class.java)
+    }
+  }
+
   private fun retrieve(type: ExecutionType, criteria: ExecutionCriteria, partition: String?): Observable<PipelineExecution> {
     withPool(readPoolName) {
       val select = jooq.selectExecutions(

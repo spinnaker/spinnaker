@@ -164,6 +164,10 @@ class DualExecutionRepository(
     return select(type, id).retrieve(type, id, requireUpToDateVersion)
   }
 
+  override fun getApplication(id: String): String {
+    return select(PIPELINE, id).getApplication(id)
+  }
+
   override fun delete(type: ExecutionType, id: String) {
     return select(type, id).delete(type, id)
   }

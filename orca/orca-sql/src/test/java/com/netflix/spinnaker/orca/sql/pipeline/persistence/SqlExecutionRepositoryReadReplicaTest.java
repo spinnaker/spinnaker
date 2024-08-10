@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.sql.pipeline.persistence;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
@@ -62,6 +63,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -95,6 +97,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
   @Autowired DataSourceConnectionProvider dataSourceConnectionProvider;
   @Autowired ObjectMapper mapper;
   @Autowired DefaultRegistry registry;
+
+  private static final String TEST_APP = "myapp";
   private static final String primaryInstanceUrl = SqlTestUtil.tcJdbcUrl;
   private static final String readReplicaUrl = SqlTestUtil.tcJdbcUrl + "replica";
   private static SqlTestUtil.TestDatabase primaryInstance =
@@ -109,9 +113,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
   private final long secondStageReadPoolUpdatedAt = 2000L;
   private final String pipelineId = ID_GENERATOR.nextULID();
   private final PipelineExecution defaultPoolPipelineExecution =
-      new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
+      new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, TEST_APP);
   private final PipelineExecution readPoolPipelineExecution =
-      new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
+      new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, TEST_APP);
 
   @DynamicPropertySource
   static void registerSQLProperties(DynamicPropertyRegistry registry) {
@@ -121,7 +125,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
   }
 
   @BeforeEach
-  void configureExecutions() {
+  void init(TestInfo testInfo) {
+    System.out.println("--------------- Test " + testInfo.getDisplayName());
+
     // Set some fields in the PipelineExecutions to differentiate them from each other
     defaultPoolPipelineExecution.setName("defaultPoolPipelineExecution");
     readPoolPipelineExecution.setName("readPoolPipelineExecution");
@@ -161,6 +167,20 @@ public class SqlExecutionRepositoryReadReplicaTest {
     PipelineExecution execution =
         executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
     assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
+  }
+
+  @Test
+  void getApplication() throws SQLException, IOException {
+    initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+    String application = executionRepository.getApplication(pipelineId);
+    assertThat(application).isEqualTo(readPoolPipelineExecution.getApplication());
+  }
+
+  @Test
+  void getApplicationNotFound() throws SQLException, IOException {
+    String nonexistentId = ID_GENERATOR.nextULID();
+    assertThatThrownBy(() -> executionRepository.getApplication(nonexistentId))
+        .isInstanceOf(ExecutionNotFoundException.class);
   }
 
   @Nested

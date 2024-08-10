@@ -109,6 +109,15 @@ public interface ExecutionRepository {
   Observable<PipelineExecution> retrieve(
       @Nonnull ExecutionType type, @Nonnull ExecutionCriteria criteria);
 
+  /**
+   * Retrieve the application of a pipeline execution. An execution's application is considered
+   * immutable, so if a read replica is available, it's acceptable to use it without waiting for an
+   * up-to-date version.
+   *
+   * @param id the id of the execution
+   */
+  String getApplication(@Nonnull String id) throws ExecutionNotFoundException;
+
   @Nonnull
   Observable<PipelineExecution> retrievePipelinesForApplication(@Nonnull String application);
 
