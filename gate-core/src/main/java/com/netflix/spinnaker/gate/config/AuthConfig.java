@@ -76,6 +76,16 @@ public class AuthConfig {
         .authorizeRequests(
             registry -> {
               registry
+                  // https://github.com/spring-projects/spring-security/issues/11055#issuecomment-1098061598 suggests
+                  //
+                  // filterSecurityInterceptorOncePerRequest(false)
+                  //
+                  // until spring boot 3.0.  Since
+                  //
+                  // .antMatchers("/error").permitAll()
+                  //
+                  // permits unauthorized access to /error, filterSecurityInterceptorOncePerRequest
+                  // isn't relevant.
                   .antMatchers("/error")
                   .permitAll()
                   .antMatchers("/favicon.ico")
