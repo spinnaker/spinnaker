@@ -18,6 +18,12 @@
 package com.netflix.spinnaker.orca.controllers;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -89,6 +95,13 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
         .andExpect(status().isOk());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, true);
+    verifyNoMoreInteractions(executionRepository);
   }
 
   @Test
@@ -103,6 +116,14 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
         .andExpect(status().isOk());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
+    verify(executionRepository).delete(PIPELINE, TEST_EXECUTION_ID);
+    verifyNoMoreInteractions(executionRepository);
   }
 
   @Test
@@ -116,6 +137,16 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
         .andExpect(status().isAccepted());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository)
+        .cancel(PIPELINE, TEST_EXECUTION_ID, "anonymousUser", null /* reason */);
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
+    verify(executionRepository).handlesPartition(isNull());
+    verifyNoMoreInteractions(executionRepository);
   }
 
   @Test
@@ -129,6 +160,15 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
         .andExpect(status().isAccepted());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
+    verify(executionRepository).pause(PIPELINE, TEST_EXECUTION_ID, "anonymousUser");
+    verify(executionRepository).handlesPartition(isNull());
+    verifyNoMoreInteractions(executionRepository);
   }
 
   @Test
@@ -142,6 +182,16 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
         .andExpect(status().isAccepted());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository)
+        .resume(PIPELINE, TEST_EXECUTION_ID, "anonymousUser", false /* ignoreCurrentStatus */);
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
+    verify(executionRepository).handlesPartition(isNull());
+    verifyNoMoreInteractions(executionRepository);
   }
 
   @Test
@@ -150,6 +200,8 @@ class TaskControllerWebTest {
         .perform(get("/pipelines/running").characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
         .andExpect(status().isGone());
+
+    verifyNoInteractions(executionRepository);
   }
 
   @Test
@@ -158,6 +210,8 @@ class TaskControllerWebTest {
         .perform(get("/pipelines/waiting").characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
         .andExpect(status().isGone());
+
+    verifyNoInteractions(executionRepository);
   }
 
   @Test
@@ -176,6 +230,15 @@ class TaskControllerWebTest {
                 .content("{}"))
         .andDo(print())
         .andExpect(status().isOk());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository, times(2)).retrieve(PIPELINE, TEST_EXECUTION_ID);
+    verify(executionRepository).storeStage(any(StageExecution.class));
+    verify(executionRepository).handlesPartition(isNull());
+    verifyNoMoreInteractions(executionRepository);
   }
 
   @Test
@@ -191,6 +254,15 @@ class TaskControllerWebTest {
                 .content("{}"))
         .andDo(print())
         .andExpect(status().isOk());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
+    verify(executionRepository).handlesPartition(isNull());
+    verify(executionRepository).restartStage(TEST_EXECUTION_ID, TEST_STAGE_ID);
+    verifyNoMoreInteractions(executionRepository);
   }
 
   @Test
@@ -205,6 +277,13 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
         .andExpect(status().isOk());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
+    verifyNoMoreInteractions(executionRepository);
   }
 
   @Test
@@ -222,6 +301,13 @@ class TaskControllerWebTest {
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
         .andExpect(status().isOk());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
+    verifyNoMoreInteractions(executionRepository);
   }
 
   @Test
@@ -237,5 +323,12 @@ class TaskControllerWebTest {
                 .content("[]"))
         .andDo(print())
         .andExpect(status().isOk());
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, false);
+
+    // verify implementation behavior
+    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID);
+    verifyNoMoreInteractions(executionRepository);
   }
 }
