@@ -131,7 +131,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
     // Set some fields in the PipelineExecutions to differentiate them from each other
     defaultPoolPipelineExecution.setName("defaultPoolPipelineExecution");
+    defaultPoolPipelineExecution.setApplication("defaultPoolPipelineExecutionApp");
     readPoolPipelineExecution.setName("readPoolPipelineExecution");
+    readPoolPipelineExecution.setApplication("readPoolPipelineExecutionApp");
   }
 
   @AfterEach
