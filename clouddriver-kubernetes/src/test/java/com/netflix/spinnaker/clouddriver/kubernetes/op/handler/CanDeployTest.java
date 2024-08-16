@@ -267,4 +267,30 @@ final class CanDeployTest {
     verify(credentials).deploy(manifest, task, OP_NAME, selectorList);
     assertThat(result.getManifests()).isEmpty();
   }
+
+  @Test
+  void nullManifestWithGenerateName() {
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
+    KubernetesManifest manifest =
+        ManifestFetcher.getManifest("candeploy/deployment-generate-name.yml");
+    assertThat(manifest.getGenerateName()).isNotBlank();
+
+    KubernetesSelectorList selectorList = new KubernetesSelectorList();
+    when(credentials.create(manifest, task, OP_NAME, selectorList)).thenReturn(null);
+
+    // DeployStrategy.APPLY and ServerSideApplyStrategy.DEFAULT are arbitrary
+    // too since they're ignored for manifests with generateName.
+    OperationResult result =
+        handler.deploy(
+            credentials,
+            manifest,
+            DeployStrategy.APPLY,
+            ServerSideApplyStrategy.DEFAULT,
+            task,
+            OP_NAME,
+            selectorList);
+
+    verify(credentials).create(manifest, task, OP_NAME, selectorList);
+    assertThat(result.getManifests()).isEmpty();
+  }
 }

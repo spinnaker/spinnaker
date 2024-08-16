@@ -41,7 +41,11 @@ public interface CanDeploy {
     // require looking up a manifest by name, which will fail.
     if (manifest.hasGenerateName()) {
       KubernetesManifest result = credentials.create(manifest, task, opName, labelSelectors);
-      return new OperationResult().addManifest(result);
+      OperationResult operationResult = new OperationResult();
+      if (result != null) {
+        operationResult.addManifest(result);
+      }
+      return operationResult;
     }
 
     KubernetesManifest deployedManifest;
