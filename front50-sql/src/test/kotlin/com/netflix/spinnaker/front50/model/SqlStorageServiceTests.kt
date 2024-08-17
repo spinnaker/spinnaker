@@ -30,6 +30,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import java.time.Clock
 import org.jooq.SQLDialect
+import org.jooq.exception.DataAccessException
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
@@ -193,6 +194,37 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
           expectThrows<NotFoundException> {
             sqlStorageService.loadObject<Pipeline>(ObjectType.PIPELINE, "id-pipeline001")
           }
+        }
+
+        test("bulk create pipelines atomically") {
+          // verify that pipelines can be bulk created
+          val pipelines = (1..500).map { idx ->
+            Pipeline().apply {
+              id = "pipeline${idx}"
+              name = "pipeline${idx}"
+              lastModified = 100 + idx.toLong()
+              lastModifiedBy = "test"
+              setApplication("application")
+            }
+          }
+
+          // set lastModifiedBy of one of the pipelines to null in order to force an error
+          // and make sure no pipelines are added since additions are done in a single transaction
+          pipelines[250].lastModifiedBy = null
+          expectThrows<DataAccessException> {
+            sqlStorageService.storeObjects(ObjectType.PIPELINE,pipelines)
+            expectThat(
+              jooq.selectCount().from("pipelines").fetchOne(0, Int::class.java)
+            ).isEqualTo(0)
+          }
+
+          // Reset lastModifiedBy to ensure successful bulk creation
+          pipelines[250].lastModifiedBy = "test"
+          sqlStorageService.storeObjects(ObjectType.PIPELINE,pipelines)
+
+          val storedPipelines = sqlStorageService.loadObjects<Pipeline>(ObjectType.PIPELINE, pipelines.map { it.id });
+          expectThat(storedPipelines.size).isEqualTo(500);
+          expectThat(storedPipelines.map { it.id }).isEqualTo(pipelines.map { it.id })
         }
 
         var lastModifiedMs : Long = 100

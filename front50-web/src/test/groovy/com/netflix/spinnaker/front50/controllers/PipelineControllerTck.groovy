@@ -18,10 +18,13 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.Front50SqlProperties
-import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.front50.ServiceAccountsService
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
+import com.netflix.spinnaker.front50.config.controllers.PipelineControllerConfig
+import com.netflix.spinnaker.front50.jackson.Front50ApiModule
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
@@ -29,12 +32,13 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import org.hamcrest.Matchers
 import org.springframework.beans.factory.ObjectProvider
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.web.util.UriComponentsBuilder
 
+import java.nio.charset.StandardCharsets
 import java.time.Clock
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
@@ -53,6 +57,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -71,23 +76,40 @@ abstract class PipelineControllerTck extends Specification {
   ServiceAccountsService serviceAccountsService
   StorageServiceConfigurationProperties.PerObjectType pipelineDAOConfigProperties =
     new StorageServiceConfigurationProperties().getPipeline()
+  FiatPermissionEvaluator fiatPermissionEvaluator
+  AuthorizationSupport authorizationSupport
+  ObjectMapper objectMapper
+  PipelineControllerConfig pipelineControllerConfig
 
   void setup() {
     println "--------------- Test " + specificationContext.currentIteration.name
 
+    this.objectMapper = new ObjectMapper()
+    this.objectMapper.registerModule(new Front50ApiModule())
+
     this.pipelineDAO = Spy(createPipelineDAO())
     this.serviceAccountsService = Mock(ServiceAccountsService)
+    this.pipelineControllerConfig = new PipelineControllerConfig()
+    this.fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
+    this.authorizationSupport = Spy(new AuthorizationSupport(fiatPermissionEvaluator))
+
+    MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
+    mappingJackson2HttpMessageConverter.setObjectMapper(objectMapper)
 
     mockMvc = MockMvcBuilders
       .standaloneSetup(
         new PipelineController(
           pipelineDAO,
-          new ObjectMapper(),
+          objectMapper,
           Optional.of(serviceAccountsService),
           Collections.emptyList(),
-          Optional.empty()
+          Optional.empty(),
+          pipelineControllerConfig,
+          fiatPermissionEvaluator,
+          authorizationSupport
         )
       )
+      .setMessageConverters(mappingJackson2HttpMessageConverter)
       .setControllerAdvice(
         new GenericExceptionHandlers(
           new ExceptionMessageDecorator(Mock(ObjectProvider))
@@ -109,7 +131,7 @@ abstract class PipelineControllerTck extends Specification {
       .perform(
         post("/pipelines")
           .contentType(MediaType.APPLICATION_JSON)
-          .content(new ObjectMapper().writeValueAsString(command))
+          .content(objectMapper.writeValueAsString(command))
       )
       .andReturn()
       .response
@@ -152,7 +174,7 @@ abstract class PipelineControllerTck extends Specification {
     when:
     pipeline.name = "Updated Name"
     def response = mockMvc.perform(put("/pipelines/${pipeline.id}").contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString(pipeline))).andReturn().response
+      .content(objectMapper.writeValueAsString(pipeline))).andReturn().response
 
     then:
     response.status == OK
@@ -172,7 +194,7 @@ abstract class PipelineControllerTck extends Specification {
 
     when:
     def response = mockMvc.perform(put("/pipelines/${pipeline1.id}").contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString(pipeline1))).andReturn().response
+      .content(objectMapper.writeValueAsString(pipeline1))).andReturn().response
 
     then:
     response.status == BAD_REQUEST
@@ -180,7 +202,7 @@ abstract class PipelineControllerTck extends Specification {
 
     when:
     response = mockMvc.perform(put("/pipelines/${pipeline2.id}").contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString(pipeline1))).andReturn().response
+      .content(objectMapper.writeValueAsString(pipeline1))).andReturn().response
 
     then:
     response.status == BAD_REQUEST
@@ -209,7 +231,7 @@ abstract class PipelineControllerTck extends Specification {
 
     when:
     def response = mockMvc.perform(post('/pipelines').
-      contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(pipeline)))
+      contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(pipeline)))
       .andReturn().response
 
     def updatedPipeline = pipelineDAO.findById(
@@ -247,7 +269,7 @@ abstract class PipelineControllerTck extends Specification {
 
     when:
     def response = mockMvc.perform(post('/pipelines').
-      contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(pipeline)))
+      contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(pipeline)))
       .andReturn().response
 
     def updatedPipeline = pipelineDAO.findById(
@@ -307,12 +329,165 @@ abstract class PipelineControllerTck extends Specification {
     when:
     def response = mockMvc.perform(post('/pipelines')
       .contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString([name: "pipeline1", application: "test"])))
+      .content(objectMapper.writeValueAsString([name: "pipeline1", application: "test"])))
       .andReturn().response
 
     then:
     response.status == BAD_REQUEST
     response.errorMessage == "A pipeline with name pipeline1 already exists in application test"
+  }
+
+  void 'should not refresh cache when checking for duplicates when saving'() {
+    given:
+    def pipeline = [name: "My Pipeline", application: "test"]
+    pipelineControllerConfig.save.refreshCacheOnDuplicatesCheck = false
+
+    when:
+    def response = mockMvc.perform(post('/pipelines')
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(objectMapper.writeValueAsString(pipeline)))
+      .andReturn()
+      .response
+
+    then:
+    response.status == OK
+    1 * pipelineDAO.getPipelinesByApplication("test", false)
+
+    when:
+    pipeline.name = "My Second Pipeline"
+    pipelineControllerConfig.save.refreshCacheOnDuplicatesCheck = true
+    response = mockMvc.perform(post('/pipelines')
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(objectMapper.writeValueAsString(pipeline)))
+      .andReturn()
+      .response
+
+    then:
+    response.status == OK
+    1 * pipelineDAO.getPipelinesByApplication("test", true)
+  }
+
+  def "should perform batch update"() {
+    given:
+    def pipelines = [
+      new Pipeline([name: "My Pipeline1", application: "test1", id: "id1", triggers: []]),
+      new Pipeline([name: "My Pipeline2", application: "test1", id: "id2", triggers: []]),
+      new Pipeline([name: "My Pipeline3", application: "test2", id: "id3", triggers: []]),
+      new Pipeline([name: "My Pipeline4", application: "test2", id: "id4", triggers: []])
+    ]
+
+    when:
+    def response = mockMvc.perform(post('/pipelines/batchUpdate')
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(objectMapper.writeValueAsString(pipelines)))
+      .andReturn()
+      .response
+
+    then:
+    response.status == OK
+    1 * fiatPermissionEvaluator.hasPermission(_, "test1", "APPLICATION", "WRITE") >> true
+    1 * fiatPermissionEvaluator.hasPermission(_, "test2", "APPLICATION", "WRITE") >> true
+    1 * pipelineDAO.bulkImport(pipelines) >> null
+    new JsonSlurper().parseText(response.getContentAsString()) == [
+      successful_pipelines_count: 4,
+      successful_pipelines      : ["My Pipeline1", "My Pipeline2", "My Pipeline3", "My Pipeline4"],
+      failed_pipelines_count    : 0,
+      failed_pipelines          : []
+    ]
+  }
+
+  def "should perform batch updates with failures"() {
+    given:
+    def pipelines = [
+      new Pipeline([name: "Successful Pipeline 1", application: "test_app", id: "id1", triggers: []]),
+      new Pipeline([id: "id2", triggers: []]),
+      new Pipeline([name: "Failed Pipeline 3", application: "test_app_without_permission", id: "id3", triggers: []]),
+      new Pipeline([name: "Failed Pipeline 4", application: "test_app", id: "id4", triggers: []]),
+      new Pipeline([name: "Failed Pipeline 5", application: "test_app", id: "id1", triggers: []]),
+      [name: "Failed Pipeline 6", application: "test_app", id: "id6", triggers: [:]],
+      new Pipeline([name: "Failed Pipeline 7", application: "test_app", id: "id7",
+                    triggers: [[runAsUser: "not_accessible"]]])
+    ]
+
+    // Success case
+    when:
+    def response = mockMvc.perform(post('/pipelines/batchUpdate')
+      .contentType(MediaType.APPLICATION_JSON)
+      .characterEncoding(StandardCharsets.UTF_8.toString())
+      .content(objectMapper.writeValueAsString(pipelines)))
+      .andDo(print())
+      .andReturn()
+      .response
+
+    then:
+    1 * pipelineDAO.all(false) >> [
+      [name: "Failed Pipeline 4", application: "test_app", id: "existing_pipeline_id"] as Pipeline
+    ]
+    1 * fiatPermissionEvaluator.hasPermission(_, "test_app", "APPLICATION", "WRITE") >> true
+    1 * fiatPermissionEvaluator.hasPermission(_, "test_app_without_permission", "APPLICATION", "WRITE") >> false
+    1 * pipelineDAO.bulkImport(pipelines[0..0]) >> null
+    1 * authorizationSupport.hasRunAsUserPermission(pipelines[6]) >> false
+    response.status == OK
+    new JsonSlurper().parseText(response.getContentAsString()) == [
+      successful_pipelines_count: 1,
+      successful_pipelines: ["Successful Pipeline 1"],
+      failed_pipelines_count    : 6,
+      failed_pipelines          : [
+        [
+          id          : "id6",
+          name        : "Failed Pipeline 6",
+          application : "test_app",
+          triggers    : [:],
+          errorMsg    : "Failed to deserialize the pipeline json into a valid pipeline: " +
+            "java.lang.IllegalArgumentException: Cannot deserialize value of type " +
+            "`java.util.ArrayList<com.netflix.spinnaker.front50.api.model.pipeline.Trigger>` " +
+            "from Object value (token `JsonToken.START_OBJECT`)\n at [Source: UNKNOWN; byte offset: #UNKNOWN] " +
+            "(through reference chain: com.netflix.spinnaker.front50.api.model.pipeline.Pipeline[\"triggers\"])"
+        ],
+        [
+          id          : "id7",
+          name        : "Failed Pipeline 7",
+          application : "test_app",
+          schema      : "1",
+          triggers: [[runAsUser: "not_accessible"]],
+          errorMsg    : "Validation of runAsUser permissions for pipeline Failed Pipeline 7 " +
+            "in the application test_app failed."
+        ],
+        [
+          id        : "id2",
+          schema    : "1",
+          triggers  : [],
+          errorMsg  : "Encountered the following error when validating pipeline null in the application null: " +
+            "A pipeline requires name and application fields"
+        ],
+        [
+          id          : "id3",
+          name        : "Failed Pipeline 3",
+          application : "test_app_without_permission",
+          schema      : "1",
+          triggers    : [],
+          errorMsg    : "User anonymous does not have WRITE permission " +
+            "to save the pipeline Failed Pipeline 3 in the application test_app_without_permission."
+        ],
+        [
+          id          : "id4",
+          name        : "Failed Pipeline 4",
+          application : "test_app",
+          schema      : "1",
+          triggers    : [],
+          errorMsg    : "A pipeline with name Failed Pipeline 4 already exists in the application test_app"
+        ],
+        [
+          id          : "id1",
+          name        : "Failed Pipeline 5",
+          application : "test_app",
+          schema      : "1",
+          triggers    : [],
+          errorMsg    : "Duplicate pipeline id id1 found when processing pipeline Failed Pipeline 5 " +
+            "in the application test_app"
+        ]
+      ]
+    ]
   }
 
   @Unroll
@@ -340,7 +515,7 @@ abstract class PipelineControllerTck extends Specification {
     def postResponse = mockMvc.perform(
       post("/pipelines")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(new ObjectMapper().writeValueAsString(pipelineData))
+        .content(objectMapper.writeValueAsString(pipelineData))
       )
       .andReturn()
       .response
@@ -447,7 +622,7 @@ abstract class PipelineControllerTck extends Specification {
           if (it % 2 == 0) {
             mockMvc.perform(post('/pipelines')
               .contentType(MediaType.APPLICATION_JSON)
-              .content(new ObjectMapper().writeValueAsString([
+              .content(objectMapper.writeValueAsString([
                 name: "My Pipeline" + it,
                 application: "test" + it,
                 id: "id" + it,
@@ -743,7 +918,7 @@ abstract class PipelineControllerTck extends Specification {
     // Update Pipeline 2
     mockMvc.perform(put('/pipelines/id2')
       .contentType(MediaType.APPLICATION_JSON)
-      .content(new ObjectMapper().writeValueAsString(pipelines[1])))
+      .content(objectMapper.writeValueAsString(pipelines[1])))
       .andExpect(status().isOk())
     response = mockMvc.perform(get('/pipelines/test'))
 
@@ -811,7 +986,7 @@ class SqlPipelineControllerTck extends PipelineControllerTck {
     def registry = new NoopRegistry()
 
     def storageService = new SqlStorageService(
-      new ObjectMapper(),
+      objectMapper,
       registry,
       currentDatabase.context,
       Clock.systemDefaultZone(),
@@ -830,6 +1005,9 @@ class SqlPipelineControllerTck extends PipelineControllerTck {
       pipelineDAOConfigProperties,
       new NoopRegistry(),
       CircuitBreakerRegistry.ofDefaults())
+
+    // refreshing to initialize the cache with empty set
+    pipelineDAO.all(true)
 
     return pipelineDAO
   }

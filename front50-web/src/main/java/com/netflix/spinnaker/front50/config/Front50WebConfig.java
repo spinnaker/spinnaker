@@ -24,6 +24,7 @@ import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.front50.ItemDAOHealthIndicator;
 import com.netflix.spinnaker.front50.api.validator.PipelineValidator;
+import com.netflix.spinnaker.front50.config.controllers.PipelineControllerConfig;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.delivery.DeliveryRepository;
@@ -58,7 +59,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @EnableFiatAutoConfig
 @EnableScheduling
 @Import({PluginsAutoConfiguration.class})
-@EnableConfigurationProperties(StorageServiceConfigurationProperties.class)
+@EnableConfigurationProperties({
+  StorageServiceConfigurationProperties.class,
+  PipelineControllerConfig.class
+})
 public class Front50WebConfig extends WebMvcConfigurerAdapter {
 
   @Autowired private Registry registry;
