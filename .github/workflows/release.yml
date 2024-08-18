@@ -17,6 +17,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # Given a tag, determine what branch we are on, so we can bump dependencies (or not)
+      - name: Get Branch
+        run: |
+          BRANCHES=$(git branch -r --contains ${{ github.ref }})
+          echo "BRANCHES is '${BRANCHES}'"
+          # Check for no branches explicitly...Otherwise echo adds a newline so wc thinks there's
+          # one branch.  And echo -n makes it appear that there's one less branch than there
+          # actually is.
+          if [ -z "$BRANCHES" ]; then
+            echo "exactly one branch required to release front50, but there are none"
+            exit 1
+          fi
+          NUM_BRANCHES=$(($(echo "$BRANCHES" | wc -l)))
+          echo "NUM_BRANCHES is '${NUM_BRANCHES}'"
+          if [ $NUM_BRANCHES -ne 1 ]; then
+            echo "exactly one branch required to release front50, but there are $NUM_BRANCHES ($BRANCHES)"
+            exit 1
+          fi
+          BRANCH=$(echo $BRANCHES | xargs)
+          echo "exactly one branch ($BRANCH)"
+          echo BRANCH="$BRANCH" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -147,8 +168,14 @@ jobs:
           tag_name: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Pause before dependency bump
+        # The only dependency to bump is halyard, which only consumes from
+        # master since it has a different versioning scheme.
+        if: env.BRANCH == 'origin/master'
         run: sleep 900
       - name: Trigger dependency bump workflow
+        # The only dependency to bump is halyard, which only consumes from
+        # master since it has a different versioning scheme.
+        if: env.BRANCH == 'origin/master'
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.SPINNAKER_GITHUB_TOKEN }}
