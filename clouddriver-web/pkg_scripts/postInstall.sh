@@ -34,8 +34,8 @@ install_awscli2() {
   ./aws/install
   rm -rf ./awscliv2.zip ./aws
 
-  curl "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_amd64" -O aws-iam-authenticator
-  chmod +x ./aws-iam-authenticator \
+  curl "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_amd64" -o aws-iam-authenticator
+  chmod +x ./aws-iam-authenticator
   mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
 }
 
