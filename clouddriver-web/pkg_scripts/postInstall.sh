@@ -29,12 +29,24 @@ install_kubectl() {
 }
 
 install_awscli2() {
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VERSION}.zip" -o "awscliv2.zip"
-  unzip awscliv2.zip
-  ./aws/install
-  rm -rf ./awscliv2.zip ./aws
+  if [ -d "/usr/local/aws-cli/v2/${AWS_CLI_VERSION}" ]; then
+    echo "awscli2 ${AWS_CLI_VERSION} is already installed"
+  else
+    echo "Installing awscli2 ${AWS_CLI_VERSION}"
+    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VERSION}.zip" -o "awscliv2.zip"
 
-  curl "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_amd64" -o aws-iam-authenticator
+    # This shouldn't usually exist unless the installation failed previously
+    if [ -d "./aws" ]; then
+      rm -rf ./aws
+    fi
+
+    unzip awscliv2.zip
+    ./aws/install --update
+    rm -rf ./awscliv2.zip ./aws
+  fi
+
+  echo "Installing aws-iam-authenticator ${AWS_AIM_AUTHENTICATOR_VERSION}"
+  curl -s "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_AIM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_AIM_AUTHENTICATOR_VERSION}_linux_amd64" -o aws-iam-authenticator
   chmod +x ./aws-iam-authenticator
   mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
 }
