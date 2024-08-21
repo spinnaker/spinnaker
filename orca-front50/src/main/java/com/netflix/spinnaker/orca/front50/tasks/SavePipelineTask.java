@@ -15,7 +15,10 @@
  */
 package com.netflix.spinnaker.orca.front50.tasks;
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -25,6 +28,7 @@ import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import com.netflix.spinnaker.orca.front50.pipeline.SavePipelineStage;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +40,7 @@ import retrofit.client.Response;
 @Component
 public class SavePipelineTask implements RetryableTask {
 
-  private Logger log = LoggerFactory.getLogger(getClass());
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
   SavePipelineTask(
@@ -60,62 +64,90 @@ public class SavePipelineTask implements RetryableTask {
           "Front50 is not enabled, no way to save pipeline. Fix this by setting front50.enabled: true");
     }
 
-    if (!stage.getContext().containsKey("pipeline")) {
-      throw new IllegalArgumentException("pipeline context must be provided");
-    }
+    Map<String, Object> pipeline = new HashMap<>();
+    List<Map<String, Object>> pipelines = new ArrayList<>();
 
-    Map<String, Object> pipeline;
-    if (!(stage.getContext().get("pipeline") instanceof String)) {
-      pipeline = (Map<String, Object>) stage.getContext().get("pipeline");
-    } else {
-      pipeline = (Map<String, Object>) stage.decodeBase64("/pipeline", Map.class);
-    }
+    boolean isSavingMultiplePipelines =
+        (boolean) stage.getContext().getOrDefault("isSavingMultiplePipelines", false);
 
-    if (!pipeline.containsKey("index")) {
-      Map<String, Object> existingPipeline = fetchExistingPipeline(pipeline);
-      if (existingPipeline != null) {
-        pipeline.put("index", existingPipeline.get("index"));
-      }
-    }
-    String serviceAccount = (String) stage.getContext().get("pipeline.serviceAccount");
-    if (serviceAccount != null) {
-      updateServiceAccount(pipeline, serviceAccount);
-    }
-    final Boolean isSavingMultiplePipelines =
-        (Boolean)
-            Optional.ofNullable(stage.getContext().get("isSavingMultiplePipelines")).orElse(false);
-    final Boolean staleCheck =
+    boolean isBulkSavingPipelines =
+        (boolean) stage.getContext().getOrDefault("isBulkSavingPipelines", false);
+
+    boolean staleCheck =
         (Boolean) Optional.ofNullable(stage.getContext().get("staleCheck")).orElse(false);
-    if (stage.getContext().get("pipeline.id") != null
-        && pipeline.get("id") == null
-        && !isSavingMultiplePipelines) {
-      pipeline.put("id", stage.getContext().get("pipeline.id"));
 
-      // We need to tell front50 to regenerate cron trigger id's
-      pipeline.put("regenerateCronTriggerIds", true);
+    if (isBulkSavingPipelines) {
+      if (!stage.getContext().containsKey("pipelines")) {
+        throw new IllegalArgumentException(
+            "pipelines context must be provided when saving multiple pipelines");
+      }
+      pipelines = (List<Map<String, Object>>) stage.decodeBase64("/pipelines", List.class);
+      log.info(
+          "Bulk saving the following pipelines: {}",
+          pipelines.stream().map(p -> p.get("name")).collect(Collectors.toList()));
+    } else {
+      if (!stage.getContext().containsKey("pipeline")) {
+        throw new IllegalArgumentException(
+            "pipeline context must be provided when saving a single pipeline");
+      }
+      if (!(stage.getContext().get("pipeline") instanceof String)) {
+        pipeline = (Map<String, Object>) stage.getContext().get("pipeline");
+      } else {
+        pipeline = (Map<String, Object>) stage.decodeBase64("/pipeline", Map.class);
+      }
+      pipelines.add(pipeline);
+      log.info("Saving single pipeline {}", pipeline.get("name"));
     }
 
-    pipelineModelMutators.stream()
-        .filter(m -> m.supports(pipeline))
-        .forEach(m -> m.mutate(pipeline));
+    // Preprocess pipelines before saving
+    for (Map<String, Object> pipe : pipelines) {
+      if (!pipe.containsKey("index")) {
+        Map<String, Object> existingPipeline = fetchExistingPipeline(pipe);
+        if (existingPipeline != null) {
+          pipe.put("index", existingPipeline.get("index"));
+        }
+      }
 
-    Response response = front50Service.savePipeline(pipeline, staleCheck);
+      String serviceAccount = (String) stage.getContext().get("pipeline.serviceAccount");
+      if (serviceAccount != null) {
+        updateServiceAccount(pipe, serviceAccount);
+      }
+
+      if (stage.getContext().get("pipeline.id") != null
+          && pipe.get("id") == null
+          && !isSavingMultiplePipelines) {
+        pipe.put("id", stage.getContext().get("pipeline.id"));
+
+        // We need to tell front50 to regenerate cron trigger id's
+        pipe.put("regenerateCronTriggerIds", true);
+      }
+
+      pipelineModelMutators.stream().filter(m -> m.supports(pipe)).forEach(m -> m.mutate(pipe));
+    }
+
+    Response response;
+    if (isBulkSavingPipelines) {
+      response = front50Service.savePipelines(pipelines, staleCheck);
+    } else {
+      response = front50Service.savePipeline(pipeline, staleCheck);
+    }
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "savepipeline");
-    outputs.put("application", pipeline.get("application"));
-    outputs.put("pipeline.name", pipeline.get("name"));
+    outputs.put("application", stage.getContext().get("application"));
 
+    Map<String, Object> saveResult = new HashMap<>();
     try {
-      Map<String, Object> savedPipeline =
-          (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
-      outputs.put("pipeline.id", savedPipeline.get("id"));
+      saveResult = (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
     } catch (Exception e) {
-      log.error("Unable to deserialize saved pipeline, reason: ", e.getMessage());
+      log.error("Unable to deserialize save pipeline(s) result, reason: ", e);
+    }
 
-      if (pipeline.containsKey("id")) {
-        outputs.put("pipeline.id", pipeline.get("id"));
-      }
+    if (isBulkSavingPipelines) {
+      outputs.put("bulksave", saveResult);
+    } else {
+      outputs.put("pipeline.name", pipeline.get("name"));
+      outputs.put("pipeline.id", saveResult.getOrDefault("id", pipeline.getOrDefault("id", "")));
     }
 
     final ExecutionStatus status;
@@ -161,14 +193,16 @@ public class SavePipelineTask implements RetryableTask {
   }
 
   private Map<String, Object> fetchExistingPipeline(Map<String, Object> newPipeline) {
-    String applicationName = (String) newPipeline.get("application");
     String newPipelineID = (String) newPipeline.get("id");
-    if (!StringUtils.isEmpty(newPipelineID)) {
-      return front50Service.getPipelines(applicationName).stream()
-          .filter(m -> m.containsKey("id"))
-          .filter(m -> m.get("id").equals(newPipelineID))
-          .findFirst()
-          .orElse(null);
+    if (StringUtils.isNotEmpty(newPipelineID)) {
+      try {
+        return front50Service.getPipeline(newPipelineID);
+      } catch (SpinnakerHttpException e) {
+        // Return a null if pipeline with expected id not found
+        if (e.getResponseCode() == HTTP_NOT_FOUND) {
+          log.debug("Existing pipeline with id {} not found. Returning null.", newPipelineID);
+        }
+      }
     }
     return null;
   }

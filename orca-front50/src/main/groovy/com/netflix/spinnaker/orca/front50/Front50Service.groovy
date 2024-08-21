@@ -74,6 +74,9 @@ interface Front50Service {
   @POST("/pipelines")
   Response savePipeline(@Body Map pipeline, @Query("staleCheck") boolean staleCheck)
 
+  @POST("/pipelines/batchUpdate")
+  Response savePipelines(@Body List<Map<String, Object>> pipelines, @Query("staleCheck") boolean staleCheck)
+
   @PUT("/pipelines/{pipelineId}")
   Response updatePipeline(@Path("pipelineId") String pipelineId, @Body Map pipeline)
 

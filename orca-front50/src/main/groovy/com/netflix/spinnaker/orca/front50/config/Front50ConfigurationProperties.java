@@ -33,4 +33,15 @@ public class Front50ConfigurationProperties {
    * <p>When true: GET /pipelines/triggeredBy/{pipelineId}/{status} When false: GET /pipelines
    */
   boolean useTriggeredByEndpoint = true;
+
+  OkHttpConfigurationProperties okhttp = new OkHttpConfigurationProperties();
+
+  @Data
+  public static class OkHttpConfigurationProperties {
+    int readTimeoutMs = 10000;
+
+    int writeTimeoutMs = 10000;
+
+    int connectTimeoutMs = 10000;
+  }
 }

@@ -17,12 +17,16 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableMap
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import groovy.json.JsonOutput
 import retrofit.client.Response
+import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -42,10 +46,12 @@ class SavePipelineTaskSpec extends Specification {
     def pipeline = [
       application: 'orca',
       name: 'my pipeline',
+      id: 'my id',
       stages: []
     ]
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", [
-      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
+      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes),
+      application: 'orca'
     ])
 
     when:
@@ -61,7 +67,8 @@ class SavePipelineTaskSpec extends Specification {
     result.context == ImmutableMap.copyOf([
       'notification.type': 'savepipeline',
       'application': 'orca',
-      'pipeline.name': 'my pipeline'
+      'pipeline.name': 'my pipeline',
+      'pipeline.id': 'my id'
     ])
   }
 
@@ -84,7 +91,7 @@ class SavePipelineTaskSpec extends Specification {
     ]
 
     when:
-    front50Service.getPipelines(_) >> [existingPipeline]
+    front50Service.getPipeline(_ as String) >> existingPipeline
     front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       receivedIndex = newPipeline.get("index")
       new Response('http://front50', 200, 'OK', [], null)
@@ -215,5 +222,124 @@ class SavePipelineTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.FAILED_CONTINUE
+  }
+
+  def "should save multiple pipelines"() {
+    given:
+    def pipelines = [
+        [
+            application: 'test_app1',
+            name: 'pipeline1',
+            id: "id1",
+            index: 1
+        ],
+        [
+            application: 'test_app1',
+            name: 'pipeline2',
+            id: "id2",
+            index: 2
+        ],
+        [
+            application: 'test_app2',
+            name: 'pipeline1',
+            id: "id3",
+            index: 1
+        ],
+        [
+            application: 'test_ap2',
+            name: 'pipeline2',
+            id: "id4",
+            index: 2
+        ]
+    ]
+    def stage = new StageExecutionImpl(
+        new PipelineExecutionImpl(ExecutionType.ORCHESTRATION, "bulk_save_app"),
+        "savePipeline",
+        [
+            application: "bulk_save_app",
+            pipelines: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipelines).bytes),
+            isBulkSavingPipelines: true
+        ]
+    )
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * front50Service.savePipelines(pipelines, _) >> {
+      new Response('http://front50',
+          200,
+          'OK',
+          [],
+          new TypedString(new JsonOutput().toJson(
+              [
+                  successful_pipelines_count: 4,
+                  successful_pipelines: ["pipeline1", "pipeline2", "pipeline3", "pipeline4"],
+                  failed_pipelines_count: 0,
+                  failed_pipelines: []
+              ]
+          ))
+      )
+    }
+    result == TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context([
+            "notification.type": "savepipeline",
+            application: "bulk_save_app",
+            bulksave: [
+                successful_pipelines_count: 4,
+                successful_pipelines: ["pipeline1", "pipeline2", "pipeline3", "pipeline4"],
+                failed_pipelines_count: 0,
+                failed_pipelines: []
+            ]])
+        .build()
+  }
+
+  def "should fail save multiple pipelines if no pipelines provided"() {
+    given:
+    def stage = new StageExecutionImpl(
+        new PipelineExecutionImpl(ExecutionType.ORCHESTRATION, "bulk_save_app"),
+        "savePipeline",
+        [
+            application          : "bulk_save_app",
+            isBulkSavingPipelines: true
+        ]
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    def error = thrown(IllegalArgumentException)
+    error.getMessage() == "pipelines context must be provided when saving multiple pipelines"
+  }
+
+  def "should fail task when front 50 save pipelines call fails"() {
+    given:
+    def pipelines = [
+        [
+            application: 'test_app1',
+            name: 'pipeline1',
+            id: "id1",
+            index: 1
+        ]
+    ]
+    def stage = new StageExecutionImpl(
+        new PipelineExecutionImpl(ExecutionType.ORCHESTRATION, "bulk_save_app"),
+        "savePipeline",
+        [
+            application          : "bulk_save_app",
+            isBulkSavingPipelines: true,
+            pipelines: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipelines).bytes)
+        ]
+    )
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * front50Service.savePipelines(pipelines, _) >> {
+      new Response('http://front50', 500, 'OK', [], null)
+    }
+    result.status == ExecutionStatus.TERMINAL
   }
 }
