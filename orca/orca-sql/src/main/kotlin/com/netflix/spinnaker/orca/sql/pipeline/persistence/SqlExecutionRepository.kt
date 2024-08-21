@@ -1448,94 +1448,8 @@ class SqlExecutionRepository(
     id: String,
     requireUpToDateVersion: Boolean
   ): PipelineExecution? {
-    // Avoid collecting the readPoolRetrieve class of metrics here because it will
-    // skew the number of times that retrieving using the read pool succeeded
-    // on the first try
-    if (!requireUpToDateVersion) {
-      withPool(readPoolName) {
-        val select = ctx.selectExecution(type).where(id.toWhereCondition())
-        return select.fetchExecution()
-      }
-    }
-    // If the read pool configuration does not enforce strict consistency, then
-    // retrieve the execution from the default pool which does. This ensures that
-    // the retrieved execution is up-to-date.
-    if (!readPoolStrictConsistencyEnforced()) {
-      withPool(poolName) {
-        val select = ctx.selectExecution(type).where(id.toWhereCondition())
-        return select.fetchExecution()
-      }
-    }
-    // Attempt to find an up-to-date execution from the read pool
-    val readPoolRetryContext = readPoolRetryRegistry.retry("$type-$id-read-pool")
-    var numberOfReadPoolQueries = 0L
-    val (pipelineExecutions, resultCode) = try {
-      withPool(readPoolName) {
-        readPoolRetryContext.executeSupplier {
-          numberOfReadPoolQueries += 1
-          val select = ctx.selectExecution(type).where(id.toWhereCondition())
-          select.fetchLatestExecutions()
-        }
-      }
-    } catch (e: Exception) {
-      // Swallow the exception and set the result code to NOT_FOUND to let the code fall back to the default pool
-      log.error("Encountered an exception when fetching executionType: $type, id: $id from the read pool", e)
-      ExecutionMapperResult(listOf(), ExecutionMapperResultCode.NOT_FOUND)
-    }
-    registry.counter(readPoolRetrieveTotalId).increment()
-    // Determine the result and perform additional tasks if necessary
-    when (resultCode) {
-      ExecutionMapperResultCode.SUCCESS -> {
-        registry.counter(readPoolRetrieveSucceededId.withTag(
-          "numAttempts", numberOfReadPoolQueries.toString()
-        )).increment()
-        return pipelineExecutions.first()
-      }
-      ExecutionMapperResultCode.NOT_FOUND -> {
-        withPool(poolName) {
-          val select = ctx.selectExecution(type).where(id.toWhereCondition())
-          val execution = select.fetchExecution()
-          // To avoid skewing the metric, only executions that exist in the default pool but not in the read pool
-          // should count toward the read pool retrieval failed metric
-          if (execution != null) {
-            registry.counter(readPoolRetrieveFailedId).increment()
-          }
-          return execution
-        }
-      }
-      ExecutionMapperResultCode.INVALID_VERSION -> {
-        registry.counter(readPoolRetrieveFailedId).increment()
-        withPool(poolName) {
-          val select = ctx.selectExecution(type).where(id.toWhereCondition())
-          return select.fetchExecution()
-        }
-      }
-      // If an execution is missing from the ReplicationLagAwareRepository, retrieve
-      // the execution using the default pool. If successful, also repopulate the
-      // ReplicationLagAwareRepository with the execution metadata
-      ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY -> {
-        registry.counter(readPoolRetrieveFailedId).increment()
-        val pipelineExecution = withPool(poolName) {
-          val select = ctx.selectExecution(type).where(id.toWhereCondition())
-          select.fetchExecution()
-        } ?: return null
-
-        replicationLagAwareRepository.ifPresent { replLagAwareRepo ->
-          replLagAwareRepo.putPipelineExecutionUpdate(
-            pipelineExecution.id,
-            Instant.ofEpochMilli(pipelineExecution.updatedAt)
-          )
-          replLagAwareRepo.putPipelineExecutionNumStages(
-            pipelineExecution.id,
-            pipelineExecution.stages.size
-          )
-          pipelineExecution.stages.forEach {
-            replLagAwareRepo.putStageExecutionUpdate(it.id, Instant.ofEpochMilli(it.updatedAt))
-          }
-        }
-        return pipelineExecution
-      }
-    }
+    val select = ctx.selectExecution(type).where(id.toWhereCondition())
+    return select.fetchExecutionFromReadPool(requireUpToDateVersion)
   }
 
   private fun selectExecutions(
@@ -1652,6 +1566,107 @@ class SqlExecutionRepository(
         field("updated_at")
     )
   }
+
+  /**
+   * An implementation of fetchExecutions that accounts for replication lag in a database setup with a primary instance
+   * and one or more read replicas. If requireUpToDateVersion = true, attempt to fetch the executions from the read pool.
+   * If the resulting executions are not up-to-date with the executions in the primary instance, retry the query until
+   * the fetched executions are up-to-date. If this exhausts all retry attempts, retry the query using the default pool.
+   *
+   * @param requireUpToDateVersion: true if the issuer of the query requires an up-to-date version of the executions from the
+   * read pool
+   *
+   * @return a Collection of PipelineExecutions satisfying the query
+   */
+  private fun SelectForUpdateStep<out Record>.fetchExecutionsFromReadPool(requireUpToDateVersion: Boolean): Collection<PipelineExecution> {
+    // Avoid collecting the readPoolRetrieve class of metrics here because it will
+    // skew the number of times that retrieving using the read pool succeeded
+    // on the first try
+    if (!requireUpToDateVersion) {
+      withPool(readPoolName) {
+        return fetchExecutions()
+      }
+    }
+    // If the read pool configuration does not enforce strict consistency, then
+    // retrieve the execution from the default pool which does. This ensures that
+    // the retrieved execution is up-to-date.
+    if (!readPoolStrictConsistencyEnforced()) {
+      withPool(poolName) {
+        return fetchExecutions()
+      }
+    }
+    // Attempt to find an up-to-date execution from the read pool
+    val readPoolRetryContext = readPoolRetryRegistry.retry("read-pool")
+    var numberOfReadPoolQueries = 0L
+    val (pipelineExecutions, resultCode) = try {
+      withPool(readPoolName) {
+        readPoolRetryContext.executeSupplier {
+          numberOfReadPoolQueries += 1
+          fetchLatestExecutions()
+        }
+      }
+    } catch (e: Exception) {
+      // Swallow the exception and set the result code to NOT_FOUND to let the code fall back to the default pool
+      log.error("Encountered an exception when fetching executions from the read pool", e)
+      ExecutionMapperResult(listOf(), ExecutionMapperResultCode.NOT_FOUND)
+    }
+    registry.counter(readPoolRetrieveTotalId).increment()
+    // Determine the result and perform additional tasks if necessary
+    when (resultCode) {
+      ExecutionMapperResultCode.SUCCESS -> {
+        registry.counter(readPoolRetrieveSucceededId.withTag(
+          "numAttempts", numberOfReadPoolQueries.toString()
+        )).increment()
+        return pipelineExecutions
+      }
+      ExecutionMapperResultCode.NOT_FOUND -> {
+        withPool(poolName) {
+          val executions = fetchExecutions()
+          // To avoid skewing the metric, only executions that exist in the default pool but not in the read pool
+          // should count toward the read pool retrieval failed metric
+          if (executions.isNotEmpty()) {
+            registry.counter(readPoolRetrieveFailedId).increment()
+          }
+          return executions
+        }
+      }
+      ExecutionMapperResultCode.INVALID_VERSION -> {
+        registry.counter(readPoolRetrieveFailedId).increment()
+        withPool(poolName) {
+          return fetchExecutions()
+        }
+      }
+      // If an execution is missing from the ReplicationLagAwareRepository, retrieve
+      // the execution using the default pool. If successful, also repopulate the
+      // ReplicationLagAwareRepository with the execution metadata
+      ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY -> {
+        registry.counter(readPoolRetrieveFailedId).increment()
+        val executions = withPool(poolName) {
+          fetchExecutions()
+        }
+
+        replicationLagAwareRepository.ifPresent { replLagAwareRepo ->
+          executions.forEach { pipelineExecution ->
+            replLagAwareRepo.putPipelineExecutionUpdate(
+              pipelineExecution.id,
+              Instant.ofEpochMilli(pipelineExecution.updatedAt)
+            )
+            replLagAwareRepo.putPipelineExecutionNumStages(
+              pipelineExecution.id,
+              pipelineExecution.stages.size
+            )
+            pipelineExecution.stages.forEach {
+              replLagAwareRepo.putStageExecutionUpdate(it.id, Instant.ofEpochMilli(it.updatedAt))
+            }
+          }
+        }
+        return executions
+      }
+    }
+  }
+
+  private fun SelectForUpdateStep<out Record>.fetchExecutionFromReadPool(requireLatestVersion: Boolean) =
+    fetchExecutionsFromReadPool(requireLatestVersion).firstOrNull()
 
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
     ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq).executions
