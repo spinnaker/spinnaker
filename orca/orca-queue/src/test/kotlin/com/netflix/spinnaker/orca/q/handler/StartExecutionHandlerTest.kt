@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.events.ExecutionComplete
@@ -57,6 +56,7 @@ import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
+import rx.Observable.empty
 import rx.Observable.just
 
 object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
@@ -576,6 +576,109 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         }
       }
 
+    }
+
+    given("a pipeline with no running executions") {
+      val configId = UUID.randomUUID().toString()
+
+      and("a repository backend with replication lag") {
+        val pipeline = pipeline {
+          pipelineConfigId = configId
+          isLimitConcurrent = true
+          stage {
+            type = singleTaskStage.type
+          }
+        }
+        val startExecution = StartExecution(pipeline.type, pipeline.id, pipeline.application)
+
+        val runningPipeline = pipeline {
+          pipelineConfigId = configId
+          isLimitConcurrent = true
+          status = RUNNING
+          stage {
+            type = singleTaskStage.type
+            status = RUNNING
+          }
+        }
+
+        beforeGroup {
+          whenever(
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+          ) doReturn just(runningPipeline)
+
+          whenever(
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), eq(true))
+          ) doReturn empty()
+
+          whenever(
+            repository.retrieve(startExecution.executionType, startExecution.executionId, true)
+          ) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        and("the pipeline limits concurrent executions") {
+          beforeGroup {
+            pipeline.isLimitConcurrent = true
+            runningPipeline.isLimitConcurrent = true
+          }
+
+          on("receiving a StartExecution message") {
+            subject.handle(startExecution)
+          }
+
+          it("starts the new pipeline") {
+            // FIXME: The current implementation does not start the pipeline, despite having no running executions
+            // assertThat(pipeline.status).isEqualTo(RUNNING)
+            assertThat(pipeline.status).isEqualTo(NOT_STARTED)
+            verify(repository, never()).updateStatus(pipeline)
+            verify(queue, never()).push(isA<StartStage>())
+          }
+        }
+      }
+
+      and("a repository backend without replication lag") {
+        val pipeline = pipeline {
+          pipelineConfigId = configId
+          isLimitConcurrent = true
+          stage {
+            type = singleTaskStage.type
+          }
+        }
+        val startExecution = StartExecution(pipeline.type, pipeline.id, pipeline.application)
+
+        beforeGroup {
+          whenever(
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+          ) doReturn empty()
+
+          whenever(
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), any())
+          ) doReturn empty()
+
+          whenever(
+            repository.retrieve(eq(startExecution.executionType), eq(startExecution.executionId), any())
+          ) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        and("the pipeline limits concurrent executions") {
+          beforeGroup {
+            pipeline.isLimitConcurrent = true
+          }
+
+          on("receiving a StartExecution message") {
+            subject.handle(startExecution)
+          }
+
+          it("starts the new pipeline") {
+            assertThat(pipeline.status).isEqualTo(RUNNING)
+            verify(repository).updateStatus(pipeline)
+            verify(queue).push(isA<StartStage>())
+          }
+        }
+      }
     }
   }
 })
