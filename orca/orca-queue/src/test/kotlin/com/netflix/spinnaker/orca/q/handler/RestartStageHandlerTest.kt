@@ -480,7 +480,8 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       whenever(repository.retrievePipelinesForPipelineConfigId(
         pipeline.pipelineConfigId,
-        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.from(listOf(runningPipeline))
+        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING),
+        true)) doReturn Observable.from(listOf(runningPipeline))
     }
 
     afterGroup(::resetMocks)
@@ -527,7 +528,8 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
       whenever(repository.retrievePipelinesForPipelineConfigId(
         pipeline.pipelineConfigId,
-        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.from(listOf(runningPipeline))
+        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING),
+        true)) doReturn Observable.from(listOf(runningPipeline))
     }
 
     afterGroup(::resetMocks)

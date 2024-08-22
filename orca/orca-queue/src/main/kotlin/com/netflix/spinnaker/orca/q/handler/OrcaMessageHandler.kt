@@ -123,7 +123,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
           maxConcurrentExecutions > 0 -> {
             val criteria = ExecutionCriteria().setPageSize(maxConcurrentExecutions+MIN_PAGE_SIZE).setStatuses(RUNNING)
             repository
-              .retrievePipelinesForPipelineConfigId(configId, criteria)
+              .retrievePipelinesForPipelineConfigId(configId, criteria, true)
               .filter { it.id != id }
               .count()
               .toBlocking()
@@ -135,7 +135,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
       else -> {
         val criteria = ExecutionCriteria().setPageSize(MIN_PAGE_SIZE).setStatuses(RUNNING)
         repository
-          .retrievePipelinesForPipelineConfigId(configId, criteria)
+          .retrievePipelinesForPipelineConfigId(configId, criteria, true)
           .filter { it.id != id }
           .count()
           .toBlocking()

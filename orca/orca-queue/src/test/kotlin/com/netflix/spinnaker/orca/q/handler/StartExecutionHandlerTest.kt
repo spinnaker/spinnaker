@@ -335,7 +335,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           runningPipeline.isLimitConcurrent = true
 
           whenever(
-            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), any())
           ) doReturn just(runningPipeline)
 
           whenever(
@@ -370,7 +370,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           runningPipeline.isLimitConcurrent = false
 
           whenever(
-            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), any())
           ) doReturn just(runningPipeline)
 
           whenever(
@@ -398,7 +398,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           pipeline.status = NOT_STARTED
 
           whenever(
-            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), any())
           ) doReturn just(pipeline)
 
           whenever(
@@ -469,7 +469,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           pipeline.status = NOT_STARTED
 
           whenever(
-            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), any())
           ) doReturn just(pipeline)
 
           whenever(
@@ -495,7 +495,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           pipeline.status = NOT_STARTED
 
           whenever(
-            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), any())
           ) doReturn just(runningPipeline1)
 
           whenever(
@@ -521,7 +521,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           pipeline.status = NOT_STARTED
 
           whenever(
-            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), any())
           ) doReturn just(runningPipeline1,runningPipeline2)
 
           whenever(
@@ -547,7 +547,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           pipeline.status = NOT_STARTED
 
           whenever(
-            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), any())
           ) doReturn just(runningPipeline1,runningPipeline2,runningPipeline3)
 
           whenever(
@@ -628,11 +628,9 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           }
 
           it("starts the new pipeline") {
-            // FIXME: The current implementation does not start the pipeline, despite having no running executions
-            // assertThat(pipeline.status).isEqualTo(RUNNING)
-            assertThat(pipeline.status).isEqualTo(NOT_STARTED)
-            verify(repository, never()).updateStatus(pipeline)
-            verify(queue, never()).push(isA<StartStage>())
+            assertThat(pipeline.status).isEqualTo(RUNNING)
+            verify(repository).updateStatus(pipeline)
+            verify(queue).push(isA<StartStage>())
           }
         }
       }
