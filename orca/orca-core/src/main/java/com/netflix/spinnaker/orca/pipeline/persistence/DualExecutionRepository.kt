@@ -212,9 +212,17 @@ class DualExecutionRepository(
     pipelineConfigId: String,
     criteria: ExecutionCriteria
   ): Observable<PipelineExecution> {
+    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, false)
+  }
+
+  override fun retrievePipelinesForPipelineConfigId(
+    pipelineConfigId: String,
+    criteria: ExecutionCriteria,
+    requireUpToDateVersion: Boolean
+  ): Observable<PipelineExecution> {
     return Observable.merge(
-      primary.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria),
-      previous.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
+      primary.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, requireUpToDateVersion),
+      previous.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, requireUpToDateVersion)
     ).distinct { it.id }
   }
 

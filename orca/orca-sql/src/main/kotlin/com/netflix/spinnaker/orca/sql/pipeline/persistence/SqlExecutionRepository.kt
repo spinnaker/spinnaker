@@ -694,39 +694,45 @@ class SqlExecutionRepository(
     pipelineConfigId: String,
     criteria: ExecutionCriteria
   ): Observable<PipelineExecution> {
+    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, false)
+  }
+
+  override fun retrievePipelinesForPipelineConfigId(
+    pipelineConfigId: String,
+    criteria: ExecutionCriteria,
+    requireUpToDateVersion: Boolean
+  ): Observable<PipelineExecution> {
     // When not filtering by status, provide an index hint to ensure use of `pipeline_config_id_idx` which
     // fully satisfies the where clause and order by. Without, some lookups by config_id matching thousands
     // of executions triggered costly full table scans.
-    withPool(readPoolName) {
-      val select = if (criteria.statuses.isEmpty() || criteria.statuses.size == ExecutionStatus.values().size) {
-        jooq.selectExecutions(
-          PIPELINE,
-          usingIndex = "pipeline_config_id_idx",
-          conditions = {
-            it.where(field("config_id").eq(pipelineConfigId))
-              .statusIn(criteria.statuses)
-          },
-          seek = {
-            it.orderBy(field("id").desc()).limit(criteria.pageSize)
-          }
-        )
-      } else {
-        // When filtering by status, the above index hint isn't ideal. In this case, `pipeline_config_status_idx`
-        // appears to be used reliably without hinting.
-        jooq.selectExecutions(
-          PIPELINE,
-          conditions = {
-            it.where(field("config_id").eq(pipelineConfigId))
-              .statusIn(criteria.statuses)
-          },
-          seek = {
-            it.orderBy(field("id").desc()).limit(criteria.pageSize)
-          }
-        )
-      }
-
-      return Observable.from(select.fetchExecutions())
+    val select = if (criteria.statuses.isEmpty() || criteria.statuses.size == ExecutionStatus.values().size) {
+      jooq.selectExecutions(
+        PIPELINE,
+        usingIndex = "pipeline_config_id_idx",
+        conditions = {
+          it.where(field("config_id").eq(pipelineConfigId))
+            .statusIn(criteria.statuses)
+        },
+        seek = {
+          it.orderBy(field("id").desc()).limit(criteria.pageSize)
+        }
+      )
+    } else {
+      // When filtering by status, the above index hint isn't ideal. In this case, `pipeline_config_status_idx`
+      // appears to be used reliably without hinting.
+      jooq.selectExecutions(
+        PIPELINE,
+        conditions = {
+          it.where(field("config_id").eq(pipelineConfigId))
+            .statusIn(criteria.statuses)
+        },
+        seek = {
+          it.orderBy(field("id").desc()).limit(criteria.pageSize)
+        }
+      )
     }
+
+    return Observable.from(select.fetchExecutionsFromReadPool(requireUpToDateVersion))
   }
 
   override fun retrieveOrchestrationsForApplication(

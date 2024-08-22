@@ -125,6 +125,21 @@ public interface ExecutionRepository {
   Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
       @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria);
 
+  /**
+   * A replication lag-aware implementation of retrievePipelinesForPipelineConfigId
+   *
+   * @param pipelineConfigId Pipeline config ID
+   * @param criteria Search query filters
+   * @param requireUpToDateVersion Whether this operation needs to fetch an up-to-date pipeline
+   *     execution
+   * @return
+   */
+  @Nonnull
+  Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
+      @Nonnull String pipelineConfigId,
+      @Nonnull ExecutionCriteria criteria,
+      boolean requireUpToDateVersion);
+
   @Nonnull
   Collection<String> retrievePipelineConfigIdsForApplication(@Nonnull String application);
 

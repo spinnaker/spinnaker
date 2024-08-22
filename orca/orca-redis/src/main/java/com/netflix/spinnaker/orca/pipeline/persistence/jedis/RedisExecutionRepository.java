@@ -514,6 +514,16 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  public @Nonnull Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
+      @Nonnull String pipelineConfigId,
+      @Nonnull ExecutionCriteria criteria,
+      boolean requireLatestVersion) {
+    // There is no read replica and therefore no replication lag, so an up-to-date version
+    // is always available
+    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria);
+  }
+
+  @Override
   public @Nonnull List<String> retrievePipelineConfigIdsForApplication(
       @Nonnull String application) {
     // TODO: not implemented yet - this method, at present, is primarily meant for the

@@ -287,6 +287,16 @@ class InMemoryExecutionRepository : ExecutionRepository {
     )
   }
 
+  override fun retrievePipelinesForPipelineConfigId(
+    pipelineConfigId: String,
+    criteria: ExecutionCriteria,
+    requireUpToDateVersion: Boolean
+  ): Observable<PipelineExecution> {
+    // There is no read replica and therefore no replication lag, so an up-to-date version
+    // is always available
+    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
+  }
+
   override fun retrievePipelineConfigIdsForApplication(application: String): List<String> {
     return pipelines.values
       .filter { it.application == application }
