@@ -50,6 +50,8 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.Timeout
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -72,7 +74,26 @@ class GcsStorageServiceTest {
     private const val BUCKET_NAME = "myBucket"
     private const val BUCKET_LOCATION = "bucketLocation"
     private const val BASE_PATH = "my/base/path"
-    private val DATA_FILENAME = ObjectType.APPLICATION.getDefaultMetadataFilename(true);
+    private val DATA_FILENAME = "specification.json";
+    private val PERMISSION_DATA_FILENAME = "permission.json";
+
+    @JvmStatic
+    fun objectTypes() : List<Array<Any>> {
+      return listOf(
+        arrayOf(ObjectType.PROJECT.group, ObjectType.PROJECT, """{"name": "APP NAME","email": "sample@example.com"}"""),
+        arrayOf(ObjectType.PIPELINE.group,ObjectType.PIPELINE, """{"name": "APP NAME","email": "sample@example.com"}"""),
+        arrayOf(ObjectType.STRATEGY.group,ObjectType.STRATEGY, """{"name": "APP NAME","email": "sample@example.com"}"""),
+        arrayOf(ObjectType.PIPELINE_TEMPLATE.group,ObjectType.PIPELINE_TEMPLATE, """{"name": "APP NAME","email": "sample@example.com"}"""),
+        arrayOf(ObjectType.NOTIFICATION.group,ObjectType.NOTIFICATION, """{"name": "APP NAME","email": "sample@example.com"}"""),
+        arrayOf(ObjectType.SERVICE_ACCOUNT.group,ObjectType.SERVICE_ACCOUNT, """{"name": "ServiceAccount","memberOf": ["myApp-prod","myApp-qa"]}"""),
+        arrayOf(ObjectType.APPLICATION.group,ObjectType.APPLICATION, """{"name": "APP NAME","email": "sample@example.com"}"""),
+        arrayOf(ObjectType.SNAPSHOT.group,ObjectType.SNAPSHOT, """{"application": "APP NAME","account": "someAccount"}"""),
+        arrayOf(ObjectType.ENTITY_TAGS.group,ObjectType.ENTITY_TAGS, """{"idPattern": "entityType__entityId__account__region"}"""),
+        arrayOf(ObjectType.DELIVERY.group,ObjectType.DELIVERY, """{"application": "APP NAME"}"""),
+        arrayOf(ObjectType.PLUGIN_INFO.group,ObjectType.PLUGIN_INFO, """{"description": "APP NAME","provider": "github"}"""),
+        arrayOf(ObjectType.PLUGIN_VERSIONS.group,ObjectType.PLUGIN_VERSIONS, """{"serverGroupName": "myapp","location": "us-west-2"}""")
+      )
+    }
   }
 
   private lateinit var gcs: Storage
@@ -159,23 +180,35 @@ class GcsStorageServiceTest {
   }
 
   @Test
-  fun `loadObject fetches previously stored data`() {
+  fun `loadObject fetches previously stored data - ApplicationPermissions`() {
 
-    val path = "$BASE_PATH/${ObjectType.APPLICATION.group}/plumpstuff/$DATA_FILENAME"
+    val path = "$BASE_PATH/${ObjectType.APPLICATION_PERMISSION.group}/plumpstuff/$PERMISSION_DATA_FILENAME"
     writeFile(
       path,
       """
         {
           "name": "APP NAME",
-          "email": "sample@example.com"
+          "permissions": {}
         }
       """
     )
 
-    val application: Application = storageService.loadObject(ObjectType.APPLICATION, "plumpstuff")
+    val applicationPermission: Application.Permission = storageService.loadObject(ObjectType.APPLICATION_PERMISSION, "plumpstuff")
 
-    expectThat(application.name).isEqualTo("APP NAME")
-    expectThat(application.email).isEqualTo("sample@example.com")
+    expectThat(applicationPermission.name).isEqualTo("APP NAME")
+  }
+
+  @ParameterizedTest(name = "loadObject fetches previously stored data of {0}")
+  @MethodSource("objectTypes")
+  fun `loadObject fetches previously stored data - All Types`(group: String, objectType: ObjectType, content: String) {
+    val path = "$BASE_PATH/${objectType.group}/plumpstuff/$DATA_FILENAME"
+    writeFile(
+      path,
+      content
+    )
+    expectCatching {
+      val type: Any = storageService.loadObject(objectType, "plumpstuff")
+    }.isSuccess()
   }
 
   @Test

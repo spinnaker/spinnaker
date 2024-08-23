@@ -30,13 +30,25 @@ import com.netflix.spinnaker.front50.model.snapshot.Snapshot;
 import com.netflix.spinnaker.front50.model.tag.EntityTags;
 
 public enum ObjectType {
-  PROJECT(Project.class, "projects", "project-metadata.json"),
-  PIPELINE(Pipeline.class, "pipelines", "pipeline-metadata.json"),
-  STRATEGY(Pipeline.class, "pipeline-strategies", "pipeline-strategy-metadata.json"),
+  PROJECT(Project.class, "projects", "project-metadata.json", "specification.json"),
+  PIPELINE(Pipeline.class, "pipelines", "pipeline-metadata.json", "specification.json"),
+  STRATEGY(
+      Pipeline.class,
+      "pipeline-strategies",
+      "pipeline-strategy-metadata.json",
+      "specification.json"),
   PIPELINE_TEMPLATE(
-      PipelineTemplate.class, "pipeline-templates", "pipeline-template-metadata.json"),
-  NOTIFICATION(Notification.class, "notifications", "notification-metadata.json"),
-  SERVICE_ACCOUNT(ServiceAccount.class, "serviceAccounts", "serviceAccount-metadata.json"),
+      PipelineTemplate.class,
+      "pipeline-templates",
+      "pipeline-template-metadata.json",
+      "specification.json"),
+  NOTIFICATION(
+      Notification.class, "notifications", "notification-metadata.json", "specification.json"),
+  SERVICE_ACCOUNT(
+      ServiceAccount.class,
+      "serviceAccounts",
+      "serviceAccount-metadata.json",
+      "specification.json"),
 
   APPLICATION(Application.class, "applications", "application-metadata.json", "specification.json"),
   APPLICATION_PERMISSION(
@@ -44,12 +56,15 @@ public enum ObjectType {
       "applications",
       "application-permission.json",
       "permission.json"),
-  SNAPSHOT(Snapshot.class, "snapshots", "snapshot.json"),
-  ENTITY_TAGS(EntityTags.class, "tags", "entity-tags-metadata.json"),
-  DELIVERY(Delivery.class, "delivery", "delivery-metadata.json"),
-  PLUGIN_INFO(PluginInfo.class, "pluginInfo", "plugin-info-metadata.json"),
+  SNAPSHOT(Snapshot.class, "snapshots", "snapshot.json", "specification.json"),
+  ENTITY_TAGS(EntityTags.class, "tags", "entity-tags-metadata.json", "specification.json"),
+  DELIVERY(Delivery.class, "delivery", "delivery-metadata.json", "specification.json"),
+  PLUGIN_INFO(PluginInfo.class, "pluginInfo", "plugin-info-metadata.json", "specification.json"),
   PLUGIN_VERSIONS(
-      ServerGroupPluginVersions.class, "pluginVersions", "plugin-versions-metadata.json");
+      ServerGroupPluginVersions.class,
+      "pluginVersions",
+      "plugin-versions-metadata.json",
+      "specification.json");
 
   public final Class<? extends Timestamped> clazz;
   public final String group;
