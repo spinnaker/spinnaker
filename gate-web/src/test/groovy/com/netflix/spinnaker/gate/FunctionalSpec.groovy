@@ -22,6 +22,7 @@ import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
+import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.controllers.PipelineController
 import com.netflix.spinnaker.gate.services.*
@@ -39,7 +40,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import retrofit.RetrofitError
-import retrofit.RestAdapter;
+import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 import retrofit.mime.TypedInput
@@ -285,6 +286,11 @@ class FunctionalSpec extends Specification {
         dynamicConfigService,
         fiatClientConfigurationProperties
       )
+    }
+
+    @Bean
+    PipelineControllerConfigProperties pipelineControllerConfigProperties() {
+      new PipelineControllerConfigProperties();
     }
 
     @Override

@@ -108,7 +108,7 @@ public class TaskService {
     String taskId = ((String) createResult.get("ref")).split("/")[2];
     log.info("Create succeeded; polling task for completion: " + taskId);
 
-    LinkedHashMap<String, String> map = new LinkedHashMap<String, String>(1);
+    LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
     map.put("id", taskId);
     Map task = map;
     for (int i = 0; i < maxPolls; i++) {
@@ -122,7 +122,16 @@ public class TaskService {
           .contains((String) task.get("status"))) {
         return task;
       }
+      log.debug(
+          "Task {} not completed after checking {} times. Waiting {}ms before checking again",
+          taskId,
+          i + 1,
+          intervalMs);
     }
+    log.error(
+        "Task {} still not complete after exhausting {} max polls. Not checking anymore.",
+        taskId,
+        maxPolls);
 
     return task;
   }

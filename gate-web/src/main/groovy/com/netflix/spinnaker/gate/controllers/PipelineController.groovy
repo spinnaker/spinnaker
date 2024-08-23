@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
@@ -41,6 +42,8 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import retrofit.RetrofitError
 
+import java.nio.charset.StandardCharsets
+
 import static net.logstash.logback.argument.StructuredArguments.value
 
 @Slf4j
@@ -59,6 +62,9 @@ class PipelineController {
 
   @Autowired
   ObjectMapper objectMapper
+
+  @Autowired
+  PipelineControllerConfigProperties pipelineControllerConfigProperties
 
   @CompileDynamic
   @ApiOperation(value = "Delete a pipeline definition")
@@ -122,6 +128,46 @@ class PipelineController {
       throw new PipelineException(
         exception ?: "Pipeline save operation did not succeed: ${result.get("id", "unknown task id")} (status: ${resultStatus})"
       )
+    }
+  }
+
+  @CompileDynamic
+  @ApiOperation(value = "Save a list of pipelines")
+  @PostMapping('/bulksave')
+  Map bulksavePipeline(
+    @RequestParam(defaultValue = "bulk_save_placeholder_app")
+    @ApiParam(value = "Application in which to run the bulk save task",
+      defaultValue = "bulk_save_placeholder_app",
+      required = false) String application,
+    @RequestBody List<Map> pipelines) {
+    def operation = [
+      description: "Bulk save pipelines",
+      application: application,
+      job        : [
+        [
+          type                      : "savePipeline",
+          pipelines                 : Base64.encoder
+            .encodeToString(objectMapper.writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
+          user                      : AuthenticatedRequest.spinnakerUser.orElse("anonymous"),
+          isBulkSavingPipelines : true
+        ]
+      ]
+    ]
+
+    def result = taskService.createAndWaitForCompletion(operation,
+      pipelineControllerConfigProperties.getBulksave().getMaxPollsForTaskCompletion(),
+      pipelineControllerConfigProperties.getBulksave().getTaskCompletionCheckIntervalMs())
+    String resultStatus = result.get("status")
+
+    if (!"SUCCEEDED".equalsIgnoreCase(resultStatus)) {
+      String exception = result.variables.find { it.key == "exception" }?.value?.details?.errors?.getAt(0)
+      throw new PipelineException(
+        exception ?: "Pipeline bulk save operation did not succeed: ${result.get("id", "unknown task id")} " +
+          "(status: ${resultStatus})"
+      )
+    } else {
+      def retVal = result.variables.find { it.key == "bulksave"}?.value
+      return retVal
     }
   }
 

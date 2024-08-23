@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -28,18 +30,25 @@ import retrofit.client.Response
 import retrofit.converter.JacksonConverter
 import spock.lang.Specification
 
+import java.nio.charset.StandardCharsets
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
 class PipelineControllerSpec extends Specification {
 
+  def taskSerivce = Mock(TaskService)
+  def front50Service = Mock(Front50Service)
+  def pipelineControllerConfig = new PipelineControllerConfigProperties()
+  def mockMvc = MockMvcBuilders
+    .standaloneSetup(new PipelineController(objectMapper: new ObjectMapper(),
+      taskService: taskSerivce,
+      front50Service: front50Service,
+      pipelineControllerConfigProperties: pipelineControllerConfig))
+    .build()
+
   def "should update a pipeline"() {
     given:
-    def taskSerivce = Mock(TaskService)
-    def front50Service = Mock(Front50Service)
-    MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new PipelineController(objectMapper: new ObjectMapper(), taskService: taskSerivce, front50Service: front50Service)).build()
-
-    and:
     def pipeline = [
       id: "id",
       name: "test pipeline",
@@ -84,9 +93,6 @@ class PipelineControllerSpec extends Specification {
 
   def "should propagate pipeline template errors"() {
     given:
-    MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new PipelineController(objectMapper: new ObjectMapper())).build()
-
-    and:
     def pipeline = [
       type: 'templatedPipeline',
       config: [:]
@@ -117,5 +123,194 @@ class PipelineControllerSpec extends Specification {
     then:
     def e = thrown(RetrofitError)
     e.body == mockedHttpException
+  }
+
+  def "should bulk save pipelines"() {
+    given:
+    def pipelines = [
+      [
+        id: "pipeline1_id",
+        name: "test pipeline",
+        application: "application"
+      ],
+      [
+        id: "pipeline2_id",
+        name: "test pipeline",
+        application: "application2"
+      ]
+    ]
+    def createAndWaitResult = [
+      id: 'task-id',
+      application: 'bulk_save_placeholder_app',
+      status: 'SUCCEEDED',
+      variables: [
+        [
+          key: "isBulkSavingPipelines",
+          value: true
+        ],
+        [
+          key: "bulksave",
+          value: [
+            successful_pipelines_count: 2,
+            failed_pipelines_count: 0,
+            failed_pipelines_list: []
+          ]
+        ]
+      ]
+    ]
+
+    when:
+    def response = mockMvc
+      .perform(
+        post("/pipelines/bulksave")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(pipelines)))
+      .andReturn()
+      .response
+
+    then:
+    response.status == 200
+    1 * taskSerivce.createAndWaitForCompletion(
+      [
+        description: "Bulk save pipelines",
+        application: 'bulk_save_placeholder_app',
+        job: [
+          [
+            type                        : 'savePipeline',
+            pipelines                   : Base64.encoder
+              .encodeToString(new ObjectMapper().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
+            user                        : 'anonymous',
+            isBulkSavingPipelines       : true
+          ]
+        ]
+      ],
+      300,
+      2000
+    ) >> createAndWaitResult
+    new JsonSlurper().parseText(response.getContentAsString()) == [
+      "successful_pipelines_count": 2,
+      "failed_pipelines_count": 0,
+      "failed_pipelines_list": []
+    ]
+
+    // test with custom app
+    when:
+    response = mockMvc
+      .perform(
+        post("/pipelines/bulksave")
+          .param("application", "my_test_app")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(pipelines)))
+      .andReturn()
+      .response
+
+    then:
+    response.status == 200
+    1 * taskSerivce.createAndWaitForCompletion(
+      [
+        description: "Bulk save pipelines",
+        application: 'my_test_app',
+        job: [
+          [
+            type                        : 'savePipeline',
+            pipelines                   : Base64.encoder
+              .encodeToString(new ObjectMapper().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
+            user                        : 'anonymous',
+            isBulkSavingPipelines       : true
+          ]
+        ]
+      ],
+      300,
+      2000
+    ) >> createAndWaitResult
+
+    // Test with custom task completion configs
+    when:
+    pipelineControllerConfig.getBulksave().maxPollsForTaskCompletion = 10
+    pipelineControllerConfig.getBulksave().taskCompletionCheckIntervalMs = 200
+    response = mockMvc
+      .perform(
+        post("/pipelines/bulksave")
+          .param("application", "my_test_app")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(pipelines)))
+      .andReturn()
+      .response
+
+    then:
+    response.status == 200
+    1 * taskSerivce.createAndWaitForCompletion(
+      [
+        description: "Bulk save pipelines",
+        application: 'my_test_app',
+        job: [
+          [
+            type                        : 'savePipeline',
+            pipelines                   : Base64.encoder
+              .encodeToString(new ObjectMapper().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
+            user                        : 'anonymous',
+            isBulkSavingPipelines       : true
+          ]
+        ]
+      ],
+      10,
+      200
+    ) >> createAndWaitResult
+  }
+
+  def "bulk save raises exception on failure"() {
+    given:
+    def pipelines = [
+      [
+        id: "pipeline1_id",
+        name: "test pipeline",
+        application: "application"
+      ]
+    ]
+
+    when:
+    def response = mockMvc
+      .perform(
+        post("/pipelines/bulksave")
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(new ObjectMapper().writeValueAsString(pipelines)))
+      .andReturn()
+      .response
+
+    then:
+    1 * taskSerivce.createAndWaitForCompletion(
+      [
+        description: "Bulk save pipelines",
+        application: 'bulk_save_placeholder_app',
+        job: [
+          [
+            type                        : 'savePipeline',
+            pipelines                   : Base64.encoder
+              .encodeToString(new ObjectMapper().writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8)),
+            user                        : 'anonymous',
+            isBulkSavingPipelines       : true
+          ]
+        ]
+      ],
+      300,
+      2000
+    ) >> {
+      [
+        id: 'task-id',
+        application: 'bulk_save_placeholder_app',
+        status: 'TERMINAL',
+        variables:
+          [
+            [
+              key: "exception",
+              value: [ details: [ errors: ["error happened"]
+              ]
+              ]
+            ]
+          ]
+      ]
+    }
+    response.status == 400
+    response.contentAsString == ""
   }
 }
