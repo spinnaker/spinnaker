@@ -1,15 +1,15 @@
-FROM python:3.8-alpine3.16
+FROM python:3.8-alpine3.20
 LABEL maintainer="sig-platform@spinnaker.io"
 ARG TARGETARCH
 
 ENV KUBECTL_DEFAULT_RELEASE=1.22.17
 ENV KUBECTL_RELEASES="${KUBECTL_DEFAULT_RELEASE} 1.26.12 1.27.9 1.28.5 1.29.0"
-ENV AWS_CLI_VERSION=2.15.22
+ENV AWS_CLI_VERSION=2.15.57
 ENV AWS_AIM_AUTHENTICATOR_VERSION=0.6.14
 ENV GOOGLE_CLOUD_SDK_VERSION=476.0.0
 ENV ECR_TOKEN_VERSION=v1.0.2
 
-ENV PATH "$PATH:/usr/local/bin/:/opt/google-cloud-sdk/bin/:/usr/local/bin/aws-iam-authenticator"
+ENV PATH="$PATH:/usr/local/bin/:/opt/google-cloud-sdk/bin/:/usr/local/bin/aws-iam-authenticator"
 
 RUN apk update \
   && apk upgrade \
@@ -24,14 +24,7 @@ RUN apk update \
     unzip
 
 # AWS CLI 2
-RUN if [ "${TARGETARCH}" = "arm64" ]; then \
-    wget -nv -O "awscliv2.zip" "https://awscli.amazonaws.com/awscli-exe-linux-aarch64-${AWS_CLI_VERSION}.zip"; \
-  else \
-    wget -nv -O "awscliv2.zip" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VERSION}.zip"; \
-  fi && \
-  unzip awscliv2.zip && \
-  ./aws/install && \
-  rm -rf ./awscliv2.zip ./aws
+RUN apk add aws-cli=${AWS_CLI_VERSION}-r0
 
 # Google cloud SDK
 RUN [ $TARGETARCH == 'amd64' ] &&  export GCP_ARCH="x86_64" || export GCP_ARCH="arm"  \
