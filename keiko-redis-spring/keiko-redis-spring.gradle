@@ -11,5 +11,6 @@ dependencies {
   testImplementation "org.assertj:assertj-core"
   testImplementation("io.spinnaker.kork:kork-jedis-test")
 
+  testRuntimeOnly "ch.qos.logback:logback-classic"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

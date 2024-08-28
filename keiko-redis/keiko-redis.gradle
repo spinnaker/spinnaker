@@ -11,4 +11,5 @@ dependencies {
 
   testImplementation project(":keiko-tck")
   testImplementation "io.spinnaker.kork:kork-jedis-test"
+  testRuntimeOnly "ch.qos.logback:logback-classic"
 }
