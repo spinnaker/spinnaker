@@ -191,6 +191,35 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     @Test
+    void missingFromReplicationLagRepositoryExistsInBothPools() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+
+      doReturn(null).when(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineId);
+
+      PipelineExecution execution =
+          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+      // When there's no info in the replicationLagRepository, there's no way to
+      // verify whether the pipeline from the read pool is up to date, so expect
+      // the code to return the pipeline from the default pool.
+      assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+      validateReadPoolMetricsOnMissingFromReplicationLagRepository();
+    }
+
+    @Test
+    void missingFromReplicationLagRepositoryExistsInReadPoolOnly() throws Exception {
+      initDBWithExecution(pipelineId, null, readPoolPipelineExecution);
+
+      doReturn(null).when(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineId);
+
+      assertThatThrownBy(
+              () -> executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true))
+          .isInstanceOf(ExecutionNotFoundException.class);
+
+      validateReadPoolMetricsOnMissingFromReplicationLagRepository();
+    }
+
+    @Test
     void readPoolIsMoreRecentThanExpected() throws Exception {
       initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       // given readPoolUpdatedAt > expected pipeline execution update
@@ -489,17 +518,19 @@ public class SqlExecutionRepositoryReadReplicaTest {
       throws SQLException, IOException {
     String insertSql =
         "INSERT INTO pipelines (id, application, build_time, canceled, updated_at, body) VALUES (?, ?, ?, ?, ?, ?)";
-    // populate primary instance
-    try (Connection connection = primaryInstance.dataSource.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(insertSql)) {
-      String defaultPoolBody = mapper.writeValueAsString(defaultPoolPipelineExecution);
-      stmt.setString(1, pipelineId);
-      stmt.setString(2, defaultPoolPipelineExecution.getApplication());
-      stmt.setLong(3, Instant.now().toEpochMilli());
-      stmt.setBoolean(4, defaultPoolPipelineExecution.isCanceled());
-      stmt.setLong(5, defaultPoolUpdatedAt);
-      stmt.setString(6, defaultPoolBody);
-      stmt.executeUpdate();
+    if (defaultPoolPipelineExecution != null) {
+      // populate primary instance
+      try (Connection connection = primaryInstance.dataSource.getConnection();
+          PreparedStatement stmt = connection.prepareStatement(insertSql)) {
+        String defaultPoolBody = mapper.writeValueAsString(defaultPoolPipelineExecution);
+        stmt.setString(1, pipelineId);
+        stmt.setString(2, defaultPoolPipelineExecution.getApplication());
+        stmt.setLong(3, Instant.now().toEpochMilli());
+        stmt.setBoolean(4, defaultPoolPipelineExecution.isCanceled());
+        stmt.setLong(5, defaultPoolUpdatedAt);
+        stmt.setString(6, defaultPoolBody);
+        stmt.executeUpdate();
+      }
     }
 
     // populate read replica
@@ -716,6 +747,24 @@ public class SqlExecutionRepositoryReadReplicaTest {
                     ExecutionMapperResultCode.NOT_FOUND.toString())
                 .count())
         .isEqualTo(expectNotFoundMetric ? 1 : 0);
+    assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
+        .isEqualTo(1);
+  }
+
+  void validateReadPoolMetricsOnMissingFromReplicationLagRepository() {
+    assertThat(
+            registry
+                .counter("executionRepository.sql.readPool.retrieveSucceeded", "numAttempts", "1")
+                .count())
+        .isEqualTo(0);
+    assertThat(
+            registry
+                .counter(
+                    "executionRepository.sql.readPool.retrieveFailed",
+                    "result_code",
+                    ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY.toString())
+                .count())
+        .isEqualTo(1);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
         .isEqualTo(1);
   }
