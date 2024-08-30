@@ -177,7 +177,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
   }
 
   @Test
-  void getApplicationNotFound() throws SQLException, IOException {
+  void getApplicationNotFound() {
     String nonexistentId = ID_GENERATOR.nextULID();
     assertThatThrownBy(() -> executionRepository.getApplication(nonexistentId))
         .isInstanceOf(ExecutionNotFoundException.class);
@@ -186,13 +186,13 @@ public class SqlExecutionRepositoryReadReplicaTest {
   @Nested
   class TestRetrieveUncompressedExecutions {
     @BeforeEach
-    void setUpTables() throws SQLException, IOException {
-      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+    void setup() {
       doReturn(0).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
     }
 
     @Test
-    void readPoolIsMoreRecentThanExpected() {
+    void readPoolIsMoreRecentThanExpected() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       // given readPoolUpdatedAt > expected pipeline execution update
       // i.e. the read pool is up-to-date and contains a more recent execution than what we need
       doReturn(Instant.ofEpochMilli(ThreadLocalRandom.current().nextLong(0L, readPoolUpdatedAt)))
@@ -207,7 +207,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     @Test
-    void readPoolIsUpToDate() {
+    void readPoolIsUpToDate() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       // given readPoolUpdateAt == expected pipeline execution update
       // i.e. the read pool is up-to-date
       doReturn(Instant.ofEpochMilli(readPoolUpdatedAt))
@@ -222,7 +223,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     @Test
-    void readPoolIsNotUpToDate() {
+    void readPoolIsNotUpToDate() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       // given readPoolUpdatedAt < expected pipeline execution update
       // i.e. the read pool is not up-to-date
       doReturn(
@@ -241,13 +243,26 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
     @Test
     void executionDoesNotExist() {
+      // This exercises the case where the execution exists in neither the
+      // default pool nor the read pool.
       String nonexistentId = ID_GENERATOR.nextULID();
       assertThrows(
           ExecutionNotFoundException.class,
           () -> {
             executionRepository.retrieve(ExecutionType.PIPELINE, nonexistentId, true);
           });
-      validateReadPoolMetricsOnMissingExecution();
+      validateReadPoolMetricsOnMissingExecution(false);
+    }
+
+    @Test
+    void executionExistsInDefaultPoolButNotReadPool() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, null);
+
+      PipelineExecution execution =
+          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+      assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+      validateReadPoolMetricsOnMissingExecution(true);
     }
   }
 
@@ -260,16 +275,15 @@ public class SqlExecutionRepositoryReadReplicaTest {
         new PipelineExecutionImpl(ExecutionType.PIPELINE, pipelineId, "myapp");
 
     @BeforeEach
-    void setUpTables() throws SQLException, IOException {
+    void setup() {
       doReturn(true).when(executionCompressionProperties).getEnabled();
-
-      initDBWithCompressedExecution(
-          pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       doReturn(0).when(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineId);
     }
 
     @Test
-    void readPoolIsUpToDate() {
+    void readPoolIsUpToDate() throws Exception {
+      initDBWithCompressedExecution(
+          pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       // given readPoolUpdatedAt > readPoolCompressedUpdatedAt > expected pipeline execution update
       // i.e. both the pipeline and compressed pipeline execution tables are up-to-date
       doReturn(
@@ -286,7 +300,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     @Test
-    void readPoolCompressedExecutionIsNotUpToDate() {
+    void readPoolCompressedExecutionIsNotUpToDate() throws Exception {
+      initDBWithCompressedExecution(
+          pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       // given readPoolUpdatedAt > expected pipeline execution update > readPoolCompressedUpdatedAt
       // i.e. the pipeline execution table is up-to-date but the compressed pipeline execution table
       // is not
@@ -305,7 +321,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     @Test
-    void readPoolNoExecutionsAreUpToDate() {
+    void readPoolNoExecutionsAreUpToDate() throws Exception {
+      initDBWithCompressedExecution(
+          pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       // when expected pipeline execution update > readPoolUpdatedAt > readPoolCompressedUpdatedAt
       // i.e. neither the pipeline nor the compressed pipeline execution tables are up-to-date
       doReturn(
@@ -324,13 +342,26 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
     @Test
     void executionDoesNotExist() {
+      // This exercises the case where the execution exists in neither the
+      // default pool nor the read pool.
       String nonexistentId = ID_GENERATOR.nextULID();
       assertThrows(
           ExecutionNotFoundException.class,
           () -> {
             executionRepository.retrieve(ExecutionType.PIPELINE, nonexistentId, true);
           });
-      validateReadPoolMetricsOnMissingExecution();
+      validateReadPoolMetricsOnMissingExecution(false);
+    }
+
+    @Test
+    void executionExistsInDefaultPoolButNotReadPool() throws Exception {
+      initDBWithCompressedExecution(pipelineId, defaultPoolPipelineExecution, null);
+
+      PipelineExecution execution =
+          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+
+      assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
+      validateReadPoolMetricsOnMissingExecution(true);
     }
 
     @Nested
@@ -349,7 +380,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
               readPoolPipelineExecution, "test", "stage 2 read", new HashMap<>());
 
       @BeforeEach
-      void setUpStageTables() throws SQLException, IOException {
+      void setUpTables() throws SQLException, IOException {
+        initDBWithCompressedExecution(
+            pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
         initDBWithStages(
             pipelineId,
             Map.of(
@@ -470,16 +503,18 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     // populate read replica
-    try (Connection connection = readReplica.dataSource.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(insertSql)) {
-      String readPoolBody = mapper.writeValueAsString(readPoolPipelineExecution);
-      stmt.setString(1, pipelineId);
-      stmt.setString(2, readPoolPipelineExecution.getApplication());
-      stmt.setLong(3, Instant.now().toEpochMilli());
-      stmt.setBoolean(4, readPoolPipelineExecution.isCanceled());
-      stmt.setLong(5, readPoolUpdatedAt);
-      stmt.setString(6, readPoolBody);
-      stmt.executeUpdate();
+    if (readPoolPipelineExecution != null) {
+      try (Connection connection = readReplica.dataSource.getConnection();
+          PreparedStatement stmt = connection.prepareStatement(insertSql)) {
+        String readPoolBody = mapper.writeValueAsString(readPoolPipelineExecution);
+        stmt.setString(1, pipelineId);
+        stmt.setString(2, readPoolPipelineExecution.getApplication());
+        stmt.setLong(3, Instant.now().toEpochMilli());
+        stmt.setBoolean(4, readPoolPipelineExecution.isCanceled());
+        stmt.setLong(5, readPoolUpdatedAt);
+        stmt.setString(6, readPoolBody);
+        stmt.executeUpdate();
+      }
     }
   }
 
@@ -521,32 +556,34 @@ public class SqlExecutionRepositoryReadReplicaTest {
       compressedStmt.executeUpdate();
     }
 
-    // populate read replica
-    try (Connection connection = readReplica.dataSource.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(insertExecutionSql);
-        PreparedStatement compressedStmt =
-            connection.prepareStatement(insertCompressedExecutionSql)) {
-      // write regular execution
-      stmt.setString(1, pipelineId);
-      stmt.setString(2, readPoolPipelineExecution.getApplication());
-      stmt.setLong(3, Instant.now().toEpochMilli());
-      stmt.setBoolean(4, readPoolPipelineExecution.isCanceled());
-      stmt.setLong(5, readPoolUpdatedAt);
-      stmt.setString(6, "");
-      stmt.executeUpdate();
+    if (readPoolPipelineExecution != null) {
+      // populate read replica
+      try (Connection connection = readReplica.dataSource.getConnection();
+          PreparedStatement stmt = connection.prepareStatement(insertExecutionSql);
+          PreparedStatement compressedStmt =
+              connection.prepareStatement(insertCompressedExecutionSql)) {
+        // write regular execution
+        stmt.setString(1, pipelineId);
+        stmt.setString(2, readPoolPipelineExecution.getApplication());
+        stmt.setLong(3, Instant.now().toEpochMilli());
+        stmt.setBoolean(4, readPoolPipelineExecution.isCanceled());
+        stmt.setLong(5, readPoolUpdatedAt);
+        stmt.setString(6, "");
+        stmt.executeUpdate();
 
-      // write compressed execution
-      String body = mapper.writeValueAsString(readPoolPipelineExecution);
-      ByteArrayOutputStream compressedBodyStream = new ByteArrayOutputStream();
-      DeflaterOutputStream deflaterOutputStream =
-          new DeflaterOutputStream(compressedBodyStream, new Deflater());
-      deflaterOutputStream.write(body.getBytes(StandardCharsets.UTF_8));
-      deflaterOutputStream.close();
-      compressedStmt.setString(1, pipelineId);
-      compressedStmt.setBytes(2, compressedBodyStream.toByteArray());
-      compressedStmt.setString(3, CompressionType.ZLIB.toString());
-      compressedStmt.setLong(4, readPoolCompressedUpdatedAt);
-      compressedStmt.executeUpdate();
+        // write compressed execution
+        String body = mapper.writeValueAsString(readPoolPipelineExecution);
+        ByteArrayOutputStream compressedBodyStream = new ByteArrayOutputStream();
+        DeflaterOutputStream deflaterOutputStream =
+            new DeflaterOutputStream(compressedBodyStream, new Deflater());
+        deflaterOutputStream.write(body.getBytes(StandardCharsets.UTF_8));
+        deflaterOutputStream.close();
+        compressedStmt.setString(1, pipelineId);
+        compressedStmt.setBytes(2, compressedBodyStream.toByteArray());
+        compressedStmt.setString(3, CompressionType.ZLIB.toString());
+        compressedStmt.setLong(4, readPoolCompressedUpdatedAt);
+        compressedStmt.executeUpdate();
+      }
     }
   }
 
@@ -665,7 +702,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
         .isEqualTo(1);
   }
 
-  void validateReadPoolMetricsOnMissingExecution() {
+  void validateReadPoolMetricsOnMissingExecution(boolean expectNotFoundMetric) {
     assertThat(
             registry
                 .counter("executionRepository.sql.readPool.retrieveSucceeded", "numAttempts", "1")
@@ -678,7 +715,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
                     "result_code",
                     ExecutionMapperResultCode.NOT_FOUND.toString())
                 .count())
-        .isEqualTo(0);
+        .isEqualTo(expectNotFoundMetric ? 1 : 0);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
         .isEqualTo(1);
   }
