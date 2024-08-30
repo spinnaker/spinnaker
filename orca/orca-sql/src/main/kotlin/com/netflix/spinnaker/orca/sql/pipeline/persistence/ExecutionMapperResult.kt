@@ -36,6 +36,7 @@ data class ExecutionMapperResult(
  *
  * [NOT_FOUND], [INVALID_VERSION], and [MISSING_FROM_REPLICATION_LAG_REPOSITORY] are all
  * possible reasons why an ExecutionMapper will return an empty collection of PipelineExecutions.
+ * ExceptionMapper doesn't use [FAILURE], but it's helpful for e.g. exception handling.
  * The caller of [ExecutionMapper.map] can use information in order to perform additional
  * operations after receiving an empty collection of PipelineExecutions.
  */
@@ -63,5 +64,10 @@ enum class ExecutionMapperResultCode {
    * since we will never be able to determine whether the version of an execution is valid if it
    * is missing from the ReplicationLagAwareRepository
    */
-  MISSING_FROM_REPLICATION_LAG_REPOSITORY
+  MISSING_FROM_REPLICATION_LAG_REPOSITORY,
+
+  /**
+   * When there's an exception reading from the read pool
+   */
+  FAILURE
 }

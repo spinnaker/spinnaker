@@ -1614,9 +1614,9 @@ class SqlExecutionRepository(
         }
       }
     } catch (e: Exception) {
-      // Swallow the exception and set the result code to NOT_FOUND to let the code fall back to the default pool
+      // Swallow the exception and let code below process the failure by falling back to the default pool
       log.error("Encountered an exception when fetching executions from the read pool", e)
-      ExecutionMapperResult(listOf(), ExecutionMapperResultCode.NOT_FOUND)
+      ExecutionMapperResult(listOf(), ExecutionMapperResultCode.FAILURE)
     }
     registry.counter(readPoolRetrieveTotalId).increment()
     // Determine the result and perform additional tasks if necessary
@@ -1638,6 +1638,7 @@ class SqlExecutionRepository(
           return executions
         }
       }
+      ExecutionMapperResultCode.FAILURE,
       ExecutionMapperResultCode.INVALID_VERSION -> {
         registry.counter(readPoolRetrieveFailedId.withTag("result_code", resultCode.toString())).increment()
         withPool(poolName) {
