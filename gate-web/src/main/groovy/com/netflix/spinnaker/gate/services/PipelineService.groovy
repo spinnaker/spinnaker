@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.histogram.PercentileTimer
+import com.netflix.spectator.api.patterns.IntervalCounter;
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
@@ -26,6 +29,9 @@ import de.huxhorn.sulky.ulid.ULID
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.annotation.PostConstruct
+import java.util.concurrent.TimeUnit
 
 @Component
 @Slf4j
@@ -47,6 +53,27 @@ class PipelineService {
   ApplicationService applicationService
 
   private final RetrySupport retrySupport = new RetrySupport()
+
+  @Autowired
+  Registry registry
+
+  // Echo Event Metrics
+  private IntervalCounter echoEventsIntervalCounter;
+  private PercentileTimer echoEventsPercentileTimer;
+  private IntervalCounter echoEventsErrorIntervalCounter;
+
+  @PostConstruct
+  public void postConstruct() {
+    // Metrics for Echo Event handling.
+    final String idPrefix = "echo.events";
+
+    this.echoEventsIntervalCounter =
+      IntervalCounter.get(this.registry, this.registry.createId(idPrefix + ".count"));
+    this.echoEventsPercentileTimer =
+      PercentileTimer.get(this.registry, this.registry.createId(idPrefix + ".duration"));
+    this.echoEventsErrorIntervalCounter =
+      IntervalCounter.get(this.registry, this.registry.createId(idPrefix + ".error"));
+  }
 
   void deleteForApplication(String applicationName, String pipelineName) {
     front50Service.deletePipelineConfig(applicationName, pipelineName)
@@ -97,6 +124,9 @@ class PipelineService {
     parameters.put("eventId", eventId)
     parameters.put("executionId", executionId)
 
+    // Note that the Gate generated UUID is used as the event id and set it at the top level of the Map.
+    // This conforms to Event.java as used by Echo to deserialize the event upon receipt.
+    // This also prevents Echo from generating yet another UUID.
     Map eventMap = [
       content: [
         application     : application,
@@ -106,9 +136,29 @@ class PipelineService {
       ],
       details: [
         type: "manual"
-      ]
+      ],
+      eventId: eventId
     ]
-    echoService.postEvent(eventMap)
+
+    final long startTimeNanos = registry.clock().monotonicTime();
+
+    try {
+      echoService.postEvent(eventMap)
+    } catch (Exception e) {
+      echoEventsErrorIntervalCounter.increment();
+      log.error("Event processing failure: eventId={}, event={}", eventId, eventMap, e);
+      throw(e)
+    }
+
+    // Echo Event Metrics
+    final long durationInNanos = registry.clock().monotonicTime() - startTimeNanos;
+    echoEventsIntervalCounter.increment();
+    echoEventsPercentileTimer.record(durationInNanos, TimeUnit.NANOSECONDS);
+
+    log.debug(
+      "Event processing success: durationInNanos={}, eventId={}",
+      durationInNanos, eventId);
+
     return [
       eventId: eventId,
       ref    : String.format("/pipelines/%s", executionId)
