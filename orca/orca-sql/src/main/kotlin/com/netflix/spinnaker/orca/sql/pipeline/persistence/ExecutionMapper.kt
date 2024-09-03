@@ -106,7 +106,7 @@ class ExecutionMapper(
   /**
    * Maps a given ResultSet to a Collection<PipelineExecution> and returns the result
    * in an [ExecutionMapperResult]. If the collection is empty,
-   * [ExecutionMapperResultCode] communicates the reason and the caller can use this information
+   * [ReplicationLagAwareResultCode] communicates the reason and the caller can use this information
    * to perform additional processing as needed.
    *
    * Return an ExecutionMapperResult instead of throwing different exception classes because
@@ -122,9 +122,9 @@ class ExecutionMapper(
       if (replicationLagAwareRepository.isPresent()) {
         val executionId = rs.getString("id")
         val oldestAllowedUpdate = replicationLagAwareRepository.get().getPipelineExecutionUpdate(executionId)
-          ?: return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
+          ?: return ExecutionMapperResult(mutableListOf(), ReplicationLagAwareResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
         if (!isUpToDateVersion(rs, oldestAllowedUpdate)) {
-          return ExecutionMapperResult(mutableListOf(),ExecutionMapperResultCode.INVALID_VERSION)
+          return ExecutionMapperResult(mutableListOf(),ReplicationLagAwareResultCode.INVALID_VERSION)
         }
       }
       val body = getDecompressedBody(rs)
@@ -204,17 +204,17 @@ class ExecutionMapper(
       // precedence than a result where the version is invalid since MISSING_FROM_REPLICATION_LAG_REPOSITORY
       // is a more specific case of INVALID_VERSION
       if (missingFromReplicationLagRepository) {
-        return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
+        return ExecutionMapperResult(mutableListOf(), ReplicationLagAwareResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
       }
       if (invalidVersion) {
-        return ExecutionMapperResult(mutableListOf(), ExecutionMapperResultCode.INVALID_VERSION)
+        return ExecutionMapperResult(mutableListOf(), ReplicationLagAwareResultCode.INVALID_VERSION)
       }
     }
 
     return if (results.isNotEmpty()) {
-      ExecutionMapperResult(results, ExecutionMapperResultCode.SUCCESS)
+      ExecutionMapperResult(results, ReplicationLagAwareResultCode.SUCCESS)
     } else {
-      ExecutionMapperResult(results, ExecutionMapperResultCode.NOT_FOUND)
+      ExecutionMapperResult(results, ReplicationLagAwareResultCode.NOT_FOUND)
     }
   }
 

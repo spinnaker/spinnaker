@@ -195,8 +195,8 @@ class SqlExecutionRepository(
       .maxAttempts(retryProperties.maxRetries)
       .intervalFunction(retryInterval)
       .retryOnResult { result ->
-        result.resultCode == ExecutionMapperResultCode.NOT_FOUND ||
-          result.resultCode == ExecutionMapperResultCode.INVALID_VERSION
+        result.resultCode == ReplicationLagAwareResultCode.NOT_FOUND ||
+          result.resultCode == ReplicationLagAwareResultCode.INVALID_VERSION
       }
       .build()
     return RetryRegistry.of(retryConfig)
@@ -1617,18 +1617,18 @@ class SqlExecutionRepository(
     } catch (e: Exception) {
       // Swallow the exception and let code below process the failure by falling back to the default pool
       log.error("Encountered an exception when fetching executions from the read pool", e)
-      ExecutionMapperResult(listOf(), ExecutionMapperResultCode.FAILURE)
+      ExecutionMapperResult(listOf(), ReplicationLagAwareResultCode.FAILURE)
     }
     registry.counter(readPoolRetrieveTotalId).increment()
     // Determine the result and perform additional tasks if necessary
     when (resultCode) {
-      ExecutionMapperResultCode.SUCCESS -> {
+      ReplicationLagAwareResultCode.SUCCESS -> {
         registry.counter(readPoolRetrieveSucceededId.withTag(
           "numAttempts", numberOfReadPoolQueries.toString()
         )).increment()
         return pipelineExecutions
       }
-      ExecutionMapperResultCode.NOT_FOUND -> {
+      ReplicationLagAwareResultCode.NOT_FOUND -> {
         withPool(poolName) {
           val executions = fetchExecutions()
           // To avoid skewing the metric, only executions that exist in the default pool but not in the read pool
@@ -1639,8 +1639,8 @@ class SqlExecutionRepository(
           return executions
         }
       }
-      ExecutionMapperResultCode.FAILURE,
-      ExecutionMapperResultCode.INVALID_VERSION -> {
+      ReplicationLagAwareResultCode.FAILURE,
+      ReplicationLagAwareResultCode.INVALID_VERSION -> {
         registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(resultCode.toString()))).increment()
         withPool(poolName) {
           return fetchExecutions()
@@ -1649,7 +1649,7 @@ class SqlExecutionRepository(
       // If an execution is missing from the ReplicationLagAwareRepository, retrieve
       // the execution using the default pool. If successful, also repopulate the
       // ReplicationLagAwareRepository with the execution metadata
-      ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY -> {
+      ReplicationLagAwareResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY -> {
         registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(resultCode.toString()))).increment()
         val executions = withPool(poolName) {
           fetchExecutions()
