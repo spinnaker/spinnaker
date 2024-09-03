@@ -628,7 +628,9 @@ class SqlExecutionRepository(
     val finalResult: MutableList<String> = mutableListOf()
 
     withPool(readPoolName) {
-      val baseQuery = jooq.select(field("config_id"), field("id"))
+      val configIdField = field("config_id", String::class.java)
+      val idField = field("id", String::class.java)
+      val baseQuery = jooq.select(configIdField, idField)
         .from(table)
         .where(baseQueryPredicate)
         // ULIDs are ordered by time.  Assume id is a ULID since what gate's
@@ -639,8 +641,8 @@ class SqlExecutionRepository(
         // provided somehow, mapLegacyId in this class ensures id is a ULID.
         //
         // Order the result by id to retrieve the newest executions
-         .orderBy(field("config_id"), field("id"))
-         .fetch().intoGroups("config_id", "id")
+         .orderBy(configIdField, idField)
+         .fetch().intoGroups(configIdField, idField)
 
         baseQuery.forEach {
           val count = it.value.size
@@ -648,10 +650,10 @@ class SqlExecutionRepository(
             finalResult.addAll(it.value
               .stream()
               .skip((count - criteria.pageSize).toLong())
-              .collect(toList()) as List<String>
+              .collect(toList())
             )
           } else {
-            finalResult.addAll(it.value as List<String>)
+            finalResult.addAll(it.value)
           }
         }
     }
