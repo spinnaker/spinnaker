@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.AbortStage
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.CompleteExecution
@@ -78,7 +79,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       val message = AbortStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -107,7 +108,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       val message = AbortStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -161,7 +162,7 @@ object AbortStageHandlerTest : SubjectSpek<AbortStageHandler>({
       val message = AbortStage(pipeline.stageByRef("1<1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)

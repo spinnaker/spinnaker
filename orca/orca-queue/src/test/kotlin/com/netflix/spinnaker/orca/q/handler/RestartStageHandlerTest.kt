@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StageDefinitionBuildersProvider
 import com.netflix.spinnaker.orca.q.StartStage
@@ -123,7 +124,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
         beforeGroup {
-          whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -174,7 +175,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       beforeGroup {
         stageWithSyntheticBefore.plan(pipeline.stageByRef("2>1"))
 
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -303,7 +304,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
     val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
     beforeGroup {
-      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -376,7 +377,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
     val message = RestartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
     beforeGroup {
-      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -426,7 +427,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
     val message = RestartStage(pipeline.type, pipeline.id, "foo", syntheticStage.id, "fzlem@netflix.com")
 
     beforeGroup {
-      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -477,11 +478,11 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         application = "foo"
         status = RUNNING
       }
-      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       whenever(repository.retrievePipelinesForPipelineConfigId(
         pipeline.pipelineConfigId,
         ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING),
-        true)) doReturn Observable.from(listOf(runningPipeline))
+        ReadReplicaRequirement.UP_TO_DATE)) doReturn Observable.from(listOf(runningPipeline))
     }
 
     afterGroup(::resetMocks)
@@ -525,11 +526,11 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         application = "foo"
         status = RUNNING
       }
-      whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       whenever(repository.retrievePipelinesForPipelineConfigId(
         pipeline.pipelineConfigId,
         ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING),
-        true)) doReturn Observable.from(listOf(runningPipeline))
+        ReadReplicaRequirement.UP_TO_DATE)) doReturn Observable.from(listOf(runningPipeline))
     }
 
     afterGroup(::resetMocks)

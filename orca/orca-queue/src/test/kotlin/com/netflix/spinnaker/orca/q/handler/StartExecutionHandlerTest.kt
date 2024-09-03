@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
@@ -83,7 +84,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -123,7 +124,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -158,7 +159,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -195,7 +196,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -221,7 +222,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -254,7 +255,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -289,7 +290,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       val message = StartExecution(pipeline)
 
       beforeGroup {
-        whenever(repository.retrieve(message.executionType, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -339,7 +340,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId, true)
+            repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)
           ) doReturn pipeline
         }
 
@@ -374,7 +375,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId, true)
+            repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)
           ) doReturn pipeline
         }
 
@@ -402,7 +403,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(pipeline)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId, true)
+            repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)
           ) doReturn pipeline
         }
 
@@ -473,7 +474,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(pipeline)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId, true)
+            repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)
           ) doReturn pipeline
         }
 
@@ -499,7 +500,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline1)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId, true)
+            repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)
           ) doReturn pipeline
         }
 
@@ -525,7 +526,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline1,runningPipeline2)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId, true)
+            repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)
           ) doReturn pipeline
         }
 
@@ -551,7 +552,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline1,runningPipeline2,runningPipeline3)
 
           whenever(
-            repository.retrieve(message.executionType, message.executionId, true)
+            repository.retrieve(message.executionType, message.executionId, ReadReplicaRequirement.UP_TO_DATE)
           ) doReturn pipeline
         }
 
@@ -607,11 +608,11 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           ) doReturn just(runningPipeline)
 
           whenever(
-            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), eq(true))
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any(), eq(ReadReplicaRequirement.UP_TO_DATE))
           ) doReturn empty()
 
           whenever(
-            repository.retrieve(startExecution.executionType, startExecution.executionId, true)
+            repository.retrieve(startExecution.executionType, startExecution.executionId, ReadReplicaRequirement.UP_TO_DATE)
           ) doReturn pipeline
         }
 

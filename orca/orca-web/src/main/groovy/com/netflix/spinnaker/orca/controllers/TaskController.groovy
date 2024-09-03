@@ -42,6 +42,7 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.util.ExpressionUtils
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -249,7 +250,7 @@ class TaskController {
 
       List<PipelineExecution> executions = rx.Observable.from(ids.collect {
         try {
-          executionRepository.retrieve(PIPELINE, it, requireUpToDateVersion)
+          executionRepository.retrieve(PIPELINE, it, requireUpToDateVersion ? ReadReplicaRequirement.UP_TO_DATE : ReadReplicaRequirement.NONE)
         } catch (ExecutionNotFoundException e) {
           null
         }
@@ -360,7 +361,7 @@ class TaskController {
   private PipelineExecution getPipelineExecution(final String executionId) {
     final PipelineExecution pipelineExecution;
     try {
-      pipelineExecution = executionRepository.retrieve(PIPELINE, executionId, true)
+      pipelineExecution = executionRepository.retrieve(PIPELINE, executionId, ReadReplicaRequirement.UP_TO_DATE)
     }
     catch (ExecutionNotFoundException e) {
       log.info("No pipeline execution found for executionID: " + executionId)
@@ -574,7 +575,7 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
   PipelineExecution getPipeline(@PathVariable String id,
                                 @RequestParam(defaultValue = "false") boolean requireUpToDateVersion) {
-    executionRepository.retrieve(PIPELINE, id, requireUpToDateVersion)
+    executionRepository.retrieve(PIPELINE, id, requireUpToDateVersion ? ReadReplicaRequirement.UP_TO_DATE : ReadReplicaRequirement.NONE)
   }
 
   @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'WRITE')")

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.PauseStage
 import com.netflix.spinnaker.orca.q.buildBeforeStages
 import com.netflix.spinnaker.orca.q.singleTaskStage
@@ -67,7 +68,7 @@ object PauseStageHandlerTest : SubjectSpek<PauseStageHandler>({
     val message = PauseStage(PIPELINE, pipeline.id, "foo", pipeline.stages.first().id)
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)
@@ -102,7 +103,7 @@ object PauseStageHandlerTest : SubjectSpek<PauseStageHandler>({
     val message = PauseStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1<1").id)
 
     beforeGroup {
-      whenever(repository.retrieve(pipeline.type, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(pipeline.type, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
     }
 
     action("the handler receives a message") {

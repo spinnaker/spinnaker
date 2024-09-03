@@ -352,7 +352,9 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
   @Override
   public @Nonnull PipelineExecution retrieve(
-      @Nonnull ExecutionType type, @Nonnull String id, boolean requireUpToDateVersion) {
+      @Nonnull ExecutionType type,
+      @Nonnull String id,
+      ReadReplicaRequirement readReplicaRequirement) {
     // There is no read replica and therefore no replication lag, so an up-to-date version
     // is always available
     return retrieve(type, id);
@@ -517,7 +519,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   public @Nonnull Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
       @Nonnull String pipelineConfigId,
       @Nonnull ExecutionCriteria criteria,
-      boolean requireLatestVersion) {
+      ReadReplicaRequirement readReplicaRequirement) {
     // There is no read replica and therefore no replication lag, so an up-to-date version
     // is always available
     return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria);

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
@@ -87,7 +88,7 @@ class RestartStageHandler(
     }
 
     // We have a copy of the parent execution, not the live one. So we retrieve the live one.
-    val parentExecution = repository.retrieve(trigger.parentExecution.type, trigger.parentExecution.id, true)
+    val parentExecution = repository.retrieve(trigger.parentExecution.type, trigger.parentExecution.id, ReadReplicaRequirement.UP_TO_DATE)
 
     if (!parentExecution.status.isComplete()) {
       // only attempt to restart the parent pipeline if it's not running

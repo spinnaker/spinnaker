@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.util.ExpressionUtils
 import groovy.json.JsonSlurper
@@ -818,7 +819,7 @@ class TaskControllerSpec extends Specification {
       .andExpect(status().is(statusCode))
 
     then:
-    ((statusCode == 200) ? 1 : 0) * executionRepository.retrieve(ExecutionType.PIPELINE, executionId, requireUpToDateVersion)
+    ((statusCode == 200) ? 1 : 0) * executionRepository.retrieve(ExecutionType.PIPELINE, executionId, requireUpToDateVersion ? ReadReplicaRequirement.UP_TO_DATE : ReadReplicaRequirement.NONE)
     0 * executionRepository._
 
     where:
@@ -844,7 +845,7 @@ class TaskControllerSpec extends Specification {
       .andExpect(status().is(statusCode))
 
     then:
-    ((statusCode == 200) ? 1 : 0) * executionRepository.retrieve(ExecutionType.PIPELINE, executionId, requireUpToDateVersion)
+    ((statusCode == 200) ? 1 : 0) * executionRepository.retrieve(ExecutionType.PIPELINE, executionId, requireUpToDateVersion ? ReadReplicaRequirement.UP_TO_DATE : ReadReplicaRequirement.NONE)
     0 * executionRepository._
 
     where:

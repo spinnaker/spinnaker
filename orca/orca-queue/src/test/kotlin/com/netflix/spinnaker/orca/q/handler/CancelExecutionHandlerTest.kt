@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.RescheduleExecution
 import com.netflix.spinnaker.orca.q.ResumeStage
@@ -69,7 +70,7 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
       val message = CancelExecution(pipeline, "fzlem@netflix.com", "because")
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -113,7 +114,7 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
       val message = CancelExecution(pipeline, "fzlem@netflix.com", "because")
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)

@@ -36,6 +36,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement;
 import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository;
 import de.huxhorn.sulky.ulid.ULID;
 import java.io.ByteArrayOutputStream;
@@ -165,7 +166,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
   void useReadPoolWhenConsistencyIsNotRequired() throws SQLException, IOException {
     initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
     PipelineExecution execution =
-        executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, false);
+        executionRepository.retrieve(
+            ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.NONE);
     assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
   }
 
@@ -197,7 +199,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
       doReturn(null).when(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineId);
 
       PipelineExecution execution =
-          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+          executionRepository.retrieve(
+              ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
       // When there's no info in the replicationLagRepository, there's no way to
       // verify whether the pipeline from the read pool is up to date, so expect
@@ -213,7 +216,9 @@ public class SqlExecutionRepositoryReadReplicaTest {
       doReturn(null).when(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineId);
 
       assertThatThrownBy(
-              () -> executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true))
+              () ->
+                  executionRepository.retrieve(
+                      ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE))
           .isInstanceOf(ExecutionNotFoundException.class);
 
       validateReadPoolMetricsOnMissingFromReplicationLagRepository();
@@ -229,7 +234,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
           .getPipelineExecutionUpdate(pipelineId);
 
       PipelineExecution execution =
-          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+          executionRepository.retrieve(
+              ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
       assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
       validateReadPoolMetricsOnSuccess();
@@ -245,7 +251,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
           .getPipelineExecutionUpdate(pipelineId);
 
       PipelineExecution execution =
-          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+          executionRepository.retrieve(
+              ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
       assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
       validateReadPoolMetricsOnSuccess();
@@ -264,7 +271,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
           .getPipelineExecutionUpdate(pipelineId);
 
       PipelineExecution execution =
-          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+          executionRepository.retrieve(
+              ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
       validateReadPoolMetricsOnFailure("invalid_version");
@@ -278,7 +286,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
       assertThrows(
           ExecutionNotFoundException.class,
           () -> {
-            executionRepository.retrieve(ExecutionType.PIPELINE, nonexistentId, true);
+            executionRepository.retrieve(
+                ExecutionType.PIPELINE, nonexistentId, ReadReplicaRequirement.UP_TO_DATE);
           });
       validateReadPoolMetricsOnMissingExecution(false);
     }
@@ -288,7 +297,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
       initDBWithExecution(pipelineId, defaultPoolPipelineExecution, null);
 
       PipelineExecution execution =
-          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+          executionRepository.retrieve(
+              ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
       validateReadPoolMetricsOnMissingExecution(true);
@@ -322,7 +332,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
           .getPipelineExecutionUpdate(pipelineId);
 
       PipelineExecution execution =
-          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+          executionRepository.retrieve(
+              ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
       assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
       validateReadPoolMetricsOnSuccess();
@@ -343,7 +354,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
           .getPipelineExecutionUpdate(pipelineId);
 
       PipelineExecution execution =
-          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+          executionRepository.retrieve(
+              ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
       validateReadPoolMetricsOnFailure("invalid_version");
@@ -363,7 +375,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
           .getPipelineExecutionUpdate(pipelineId);
 
       PipelineExecution execution =
-          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+          executionRepository.retrieve(
+              ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
       validateReadPoolMetricsOnFailure("invalid_version");
@@ -377,7 +390,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
       assertThrows(
           ExecutionNotFoundException.class,
           () -> {
-            executionRepository.retrieve(ExecutionType.PIPELINE, nonexistentId, true);
+            executionRepository.retrieve(
+                ExecutionType.PIPELINE, nonexistentId, ReadReplicaRequirement.UP_TO_DATE);
           });
       validateReadPoolMetricsOnMissingExecution(false);
     }
@@ -387,7 +401,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
       initDBWithCompressedExecution(pipelineId, defaultPoolPipelineExecution, null);
 
       PipelineExecution execution =
-          executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+          executionRepository.retrieve(
+              ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
       validateReadPoolMetricsOnMissingExecution(true);
@@ -451,7 +466,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
             .getStageExecutionUpdate(secondStageReadPool.getId());
 
         PipelineExecution execution =
-            executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+            executionRepository.retrieve(
+                ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
         assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
         List<String> expectedStageNames = new ArrayList<>();
@@ -492,7 +508,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
             .getStageExecutionUpdate(secondStageReadPool.getId());
 
         PipelineExecution execution =
-            executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
+            executionRepository.retrieve(
+                ExecutionType.PIPELINE, pipelineId, ReadReplicaRequirement.UP_TO_DATE);
 
         assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
         List<String> expectedStageNames = new ArrayList<>();

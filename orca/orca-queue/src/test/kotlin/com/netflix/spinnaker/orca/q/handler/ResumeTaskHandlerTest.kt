@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.api.test.task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask
 import com.netflix.spinnaker.orca.q.ResumeTask
 import com.netflix.spinnaker.orca.q.RunTask
@@ -70,7 +71,7 @@ object ResumeTaskHandlerTest : SubjectSpek<ResumeTaskHandler>({
     val message = ResumeTask(pipeline.type, pipeline.id, pipeline.application, pipeline.stages.first().id, "1")
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)

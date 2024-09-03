@@ -160,8 +160,8 @@ class DualExecutionRepository(
     return select(type, id).retrieve(type, id)
   }
 
-  override fun retrieve(type: ExecutionType, id: String, requireUpToDateVersion: Boolean): PipelineExecution {
-    return select(type, id).retrieve(type, id, requireUpToDateVersion)
+  override fun retrieve(type: ExecutionType, id: String, readReplicaRequirement: ReadReplicaRequirement): PipelineExecution {
+    return select(type, id).retrieve(type, id, readReplicaRequirement)
   }
 
   override fun getApplication(id: String): String {
@@ -212,17 +212,17 @@ class DualExecutionRepository(
     pipelineConfigId: String,
     criteria: ExecutionCriteria
   ): Observable<PipelineExecution> {
-    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, false)
+    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, ReadReplicaRequirement.NONE)
   }
 
   override fun retrievePipelinesForPipelineConfigId(
     pipelineConfigId: String,
     criteria: ExecutionCriteria,
-    requireUpToDateVersion: Boolean
+    readReplicaRequirement: ReadReplicaRequirement
   ): Observable<PipelineExecution> {
     return Observable.merge(
-      primary.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, requireUpToDateVersion),
-      previous.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, requireUpToDateVersion)
+      primary.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, readReplicaRequirement),
+      previous.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, readReplicaRequirement)
     ).distinct { it.id }
   }
 

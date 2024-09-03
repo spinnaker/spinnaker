@@ -35,6 +35,7 @@ import com.netflix.spinnaker.orca.events.TaskComplete
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.orca.q.CompleteTask
@@ -101,7 +102,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         )
 
         beforeGroup {
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -165,7 +166,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         )
 
         beforeGroup {
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -225,7 +226,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
               tasks[2].status = SUCCEEDED
             }
 
-            whenever(repository.retrieve(PIPELINE, pipeline.id, true)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -277,7 +278,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       )
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -366,7 +367,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       )
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -406,7 +407,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       )
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)

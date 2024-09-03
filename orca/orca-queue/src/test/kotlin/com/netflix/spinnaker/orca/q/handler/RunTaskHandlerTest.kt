@@ -39,6 +39,7 @@ import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl.STAGE_TIMEOUT_OVERRIDE_KEY
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -139,7 +140,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
           whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -175,7 +176,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
           whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -203,7 +204,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
           whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -234,7 +235,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
           whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -278,7 +279,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
           whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -314,7 +315,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
           whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -342,7 +343,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
           whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -373,7 +374,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
           whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -419,7 +420,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         whenever(task.execute(any())) doReturn taskResult
         whenever(task.getDynamicBackoffPeriod(any(), any())) doReturn taskBackoffMs
         whenever(dynamicConfigService.getConfig(eq(Long::class.java), eq("tasks.global.backOffPeriod"), any())) doReturn 0L
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         setupRetriableLock(true, retriableLock)
       }
 
@@ -456,7 +457,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
             taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
             whenever(task.execute(any())) doReturn taskResult
-            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
             setupRetriableLock(true, retriableLock)
           }
 
@@ -483,7 +484,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             }
             tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
             whenever(task.execute(any())) doReturn taskResult
-            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
             setupRetriableLock(true, retriableLock)
           }
 
@@ -511,7 +512,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             }
             tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
             whenever(task.execute(any())) doReturn taskResult
-            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
             setupRetriableLock(true, retriableLock)
           }
 
@@ -562,7 +563,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
             taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doThrow RuntimeException("o noes") }
             whenever(task.execute(any())) doThrow RuntimeException("o noes")
-            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
             whenever(exceptionHandler.handles(any())) doReturn true
             whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
             setupRetriableLock(true, retriableLock)
@@ -608,7 +609,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
             tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
             whenever(task.execute(any())) doThrow RuntimeException("o noes")
-            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
             whenever(exceptionHandler.handles(any())) doReturn true
             whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
             setupRetriableLock(true, retriableLock)
@@ -639,7 +640,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
             tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
             whenever(task.execute(any())) doThrow RuntimeException("o noes")
-            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
             whenever(exceptionHandler.handles(any())) doReturn true
             whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
             setupRetriableLock(true, retriableLock)
@@ -675,7 +676,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           whenever(task.getDynamicBackoffPeriod(any(), any())) doReturn taskBackoffMs
           whenever(task.execute(any())) doThrow RuntimeException("o noes")
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(exceptionHandler.handles(any())) doReturn true
           whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
           setupRetriableLock(true, retriableLock)
@@ -710,7 +711,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       beforeGroup {
         tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
         taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         setupRetriableLock(true, retriableLock)
       }
 
@@ -759,7 +760,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       beforeGroup {
         tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
         taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         setupRetriableLock(true, retriableLock)
       }
 
@@ -806,7 +807,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       beforeGroup {
         tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
         taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         setupRetriableLock(true, retriableLock)
       }
 
@@ -846,7 +847,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           setupRetriableLock(true, retriableLock)
         }
@@ -886,7 +887,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           setupRetriableLock(true, retriableLock)
         }
@@ -921,7 +922,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           setupRetriableLock(true, retriableLock)
         }
@@ -963,7 +964,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           setupRetriableLock(true, retriableLock)
         }
@@ -1001,7 +1002,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           setupRetriableLock(true, retriableLock)
         }
@@ -1043,7 +1044,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           setupRetriableLock(true, retriableLock)
         }
@@ -1093,7 +1094,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           setupRetriableLock(true, retriableLock)
         }
@@ -1137,7 +1138,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           setupRetriableLock(true, retriableLock)
         }
@@ -1177,7 +1178,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           whenever(task.onTimeout(any())) doReturn TaskResult.ofStatus(FAILED_CONTINUE)
           setupRetriableLock(true, retriableLock)
@@ -1202,7 +1203,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           whenever(task.onTimeout(any())) doReturn TaskResult.ofStatus(TERMINAL)
           setupRetriableLock(true, retriableLock)
@@ -1226,7 +1227,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       given("the task returns succeeded") {
         beforeGroup {
           tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
           whenever(task.onTimeout(any())) doReturn TaskResult.ofStatus(SUCCEEDED)
           setupRetriableLock(true, retriableLock)
@@ -1276,7 +1277,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
               tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
               taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
               taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
-              whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+              whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
               whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
               setupRetriableLock(true, retriableLock)
             }
@@ -1314,7 +1315,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
                 tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
                 taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
                 taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
-                whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+                whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
                 whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
                 setupRetriableLock(true, retriableLock)
               }
@@ -1359,7 +1360,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
                 tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
                 taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
                 taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
-                whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+                whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
                 whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
                 setupRetriableLock(true, retriableLock)
               }
@@ -1396,7 +1397,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
               beforeGroup {
                 tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
-                whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+                whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
                 whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
                 setupRetriableLock(true, retriableLock)
               }
@@ -1437,7 +1438,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
               beforeGroup {
                 tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
-                whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+                whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
                 whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
                 setupRetriableLock(true, retriableLock)
               }
@@ -1480,7 +1481,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
               tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
               taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(timeoutOverrideTask, stage)) doReturn stage }
               taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(timeoutOverrideTask, stage, taskResult)) doReturn taskResult }
-              whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+              whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
               whenever(timeoutOverrideTask.timeout) doReturn timeout.toMillis()
               setupRetriableLock(true, retriableLock)
             }
@@ -1525,7 +1526,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           whenever(timeoutOverrideTask.execute(any())) doReturn taskResult
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(timeoutOverrideTask, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(timeoutOverrideTask, stage, taskResult)) doReturn taskResult }
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -1576,7 +1577,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
           taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
           whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -1624,7 +1625,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
             taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
             whenever(task.execute(any())) doReturn taskResult
-            whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
             setupRetriableLock(true, retriableLock)
           }
 
@@ -1681,7 +1682,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
         taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
         whenever(task.execute(any())) doReturn taskResult
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         setupRetriableLock(true, retriableLock)
       }
 
@@ -1724,7 +1725,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
         taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
         whenever(task.execute(any())) doReturn taskResult
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         setupRetriableLock(true, retriableLock)
       }
 
@@ -1769,7 +1770,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
         taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
         whenever(task.execute(any())) doReturn taskResult
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         setupRetriableLock(true, retriableLock)
       }
 
@@ -1803,7 +1804,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
     beforeGroup {
       tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
-      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       setupRetriableLock(true, retriableLock)
     }
 
@@ -1844,7 +1845,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
         taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(task, stage)) doReturn stage }
         taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(task, stage, taskResult)) doReturn taskResult }
-        whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         setupRetriableLock(true, retriableLock)
       }
 
@@ -1902,7 +1903,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           whenever(cloudProviderAwareTask.hasCredentials(any())) doReturn true
           whenever(cloudProviderAwareTask.getCredentials(any<StageExecution>())) doReturn "someAccount"
           whenever(dynamicConfigService.getConfig(eq(Long::class.java), eq("tasks.aws.someAccount.backOffPeriod"), any())) doReturn backOff.accountBackOffMs
-          whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           setupRetriableLock(true, retriableLock)
         }
 
@@ -1973,7 +1974,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
       taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(logMessageTask, stage)) doReturn stage }
       taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(logMessageTask, stage, taskResult)) doReturn taskResult }
-      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       setupRetriableLock(true, retriableLock)
     }
 

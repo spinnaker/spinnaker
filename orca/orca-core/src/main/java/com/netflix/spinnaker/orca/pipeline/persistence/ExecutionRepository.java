@@ -90,14 +90,16 @@ public interface ExecutionRepository {
    *
    * @param type Execution type
    * @param id Execution id
-   * @param requireUpToDateVersion Whether this operation needs to fetch an up-to-date
+   * @param readReplicaRequirement Whether this operation needs to fetch an up-to-date
    *     PipelineExecution
    * @return A PipelineExecution that satisfies the given parameters
    * @throws ExecutionNotFoundException
    */
   @Nonnull
   PipelineExecution retrieve(
-      @Nonnull ExecutionType type, @Nonnull String id, boolean requireUpToDateVersion)
+      @Nonnull ExecutionType type,
+      @Nonnull String id,
+      ReadReplicaRequirement readReplicaRequirement)
       throws ExecutionNotFoundException;
 
   @Nonnull
@@ -130,7 +132,7 @@ public interface ExecutionRepository {
    *
    * @param pipelineConfigId Pipeline config ID
    * @param criteria Search query filters
-   * @param requireUpToDateVersion Whether this operation needs to fetch an up-to-date pipeline
+   * @param readReplicaRequirement Whether this operation needs to fetch an up-to-date pipeline
    *     execution
    * @return
    */
@@ -138,7 +140,7 @@ public interface ExecutionRepository {
   Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
       @Nonnull String pipelineConfigId,
       @Nonnull ExecutionCriteria criteria,
-      boolean requireUpToDateVersion);
+      ReadReplicaRequirement readReplicaRequirement);
 
   @Nonnull
   Collection<String> retrievePipelineConfigIdsForApplication(@Nonnull String application);

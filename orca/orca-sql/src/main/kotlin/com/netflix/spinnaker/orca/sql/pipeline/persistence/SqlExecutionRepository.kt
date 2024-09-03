@@ -54,6 +54,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
@@ -465,9 +466,9 @@ class SqlExecutionRepository(
     selectExecution(jooq, type, id)
       ?: throw ExecutionNotFoundException("No $type found for $id")
 
-  override fun retrieve(type: ExecutionType, id: String, requireUpToDateVersion: Boolean) =
-    selectExecution(jooq, type, id, requireUpToDateVersion)
-      ?: throw ExecutionNotFoundException("No $type found for $id with requireUpToDateVersion: $requireUpToDateVersion")
+  override fun retrieve(type: ExecutionType, id: String, readReplicaRequirement: ReadReplicaRequirement) =
+    selectExecution(jooq, type, id, readReplicaRequirement)
+      ?: throw ExecutionNotFoundException("No $type found for $id with readReplicaRequirement: $readReplicaRequirement")
 
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> =
     Observable.from(
@@ -697,13 +698,13 @@ class SqlExecutionRepository(
     pipelineConfigId: String,
     criteria: ExecutionCriteria
   ): Observable<PipelineExecution> {
-    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, false)
+    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, ReadReplicaRequirement.NONE)
   }
 
   override fun retrievePipelinesForPipelineConfigId(
     pipelineConfigId: String,
     criteria: ExecutionCriteria,
-    requireUpToDateVersion: Boolean
+    readReplicaRequirement: ReadReplicaRequirement
   ): Observable<PipelineExecution> {
     // When not filtering by status, provide an index hint to ensure use of `pipeline_config_id_idx` which
     // fully satisfies the where clause and order by. Without, some lookups by config_id matching thousands
@@ -735,7 +736,7 @@ class SqlExecutionRepository(
       )
     }
 
-    return Observable.from(select.fetchExecutionsFromReadPool(requireUpToDateVersion))
+    return Observable.from(select.fetchExecutionsFromReadPool(readReplicaRequirement))
   }
 
   override fun retrieveOrchestrationsForApplication(
@@ -1455,10 +1456,10 @@ class SqlExecutionRepository(
     ctx: DSLContext,
     type: ExecutionType,
     id: String,
-    requireUpToDateVersion: Boolean
+    readReplicaRequirement: ReadReplicaRequirement
   ): PipelineExecution? {
     val select = ctx.selectExecution(type).where(id.toWhereCondition())
-    return select.fetchExecutionFromReadPool(requireUpToDateVersion)
+    return select.fetchExecutionFromReadPool(readReplicaRequirement)
   }
 
   private fun selectExecutions(
@@ -1578,20 +1579,19 @@ class SqlExecutionRepository(
 
   /**
    * An implementation of fetchExecutions that accounts for replication lag in a database setup with a primary instance
-   * and one or more read replicas. If requireUpToDateVersion = true, attempt to fetch the executions from the read pool.
+   * and one or more read replicas. If readReplicaRequirement is UP_TO_DATE, attempt to fetch the executions from the read pool.
    * If the resulting executions are not up-to-date with the executions in the primary instance, retry the query until
    * the fetched executions are up-to-date. If this exhausts all retry attempts, retry the query using the default pool.
    *
-   * @param requireUpToDateVersion: true if the issuer of the query requires an up-to-date version of the executions from the
-   * read pool
+   * @param readReplicaRequirement: the requirement that the issuer of the query has for executions from the read pool
    *
    * @return a Collection of PipelineExecutions satisfying the query
    */
-  private fun SelectForUpdateStep<out Record>.fetchExecutionsFromReadPool(requireUpToDateVersion: Boolean): Collection<PipelineExecution> {
+  private fun SelectForUpdateStep<out Record>.fetchExecutionsFromReadPool(readReplicaRequirement: ReadReplicaRequirement): Collection<PipelineExecution> {
     // Avoid collecting the readPoolRetrieve class of metrics here because it will
     // skew the number of times that retrieving using the read pool succeeded
     // on the first try
-    if (!requireUpToDateVersion) {
+    if (readReplicaRequirement == ReadReplicaRequirement.NONE) {
       withPool(readPoolName) {
         return fetchExecutions()
       }
@@ -1683,8 +1683,8 @@ class SqlExecutionRepository(
   private fun formatTag(tagValue: String) =
     CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_UNDERSCORE, tagValue)
 
-  private fun SelectForUpdateStep<out Record>.fetchExecutionFromReadPool(requireLatestVersion: Boolean) =
-    fetchExecutionsFromReadPool(requireLatestVersion).firstOrNull()
+  private fun SelectForUpdateStep<out Record>.fetchExecutionFromReadPool(readReplicaRequirement: ReadReplicaRequirement) =
+    fetchExecutionsFromReadPool(readReplicaRequirement).firstOrNull()
 
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
     ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq).executions

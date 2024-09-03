@@ -36,6 +36,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineExecutionRepositoryTck
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import org.jooq.impl.DSL
 import rx.schedulers.Schedulers
 import de.huxhorn.sulky.ulid.ULID
@@ -330,7 +331,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     repo.store(orig)
 
     when:
-    PipelineExecution e = repo.retrieve(PIPELINE, id, true)
+    PipelineExecution e = repo.retrieve(PIPELINE, id, ReadReplicaRequirement.UP_TO_DATE)
 
     then:
     e.id == id
@@ -347,7 +348,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     repo.store(orig)
 
     when:
-    PipelineExecution e = repo.retrieve(PIPELINE, id, true)
+    PipelineExecution e = repo.retrieve(PIPELINE, id, ReadReplicaRequirement.UP_TO_DATE)
 
     then:
     e.id == id

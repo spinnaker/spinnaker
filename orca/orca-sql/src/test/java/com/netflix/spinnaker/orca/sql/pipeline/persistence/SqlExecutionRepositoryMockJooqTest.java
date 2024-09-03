@@ -28,6 +28,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.ExecutionCompressionProperties;
 import com.netflix.spinnaker.kork.sql.config.RetryProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement;
 import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository;
 import java.sql.SQLException;
 import java.util.List;
@@ -124,7 +125,9 @@ public class SqlExecutionRepositoryMockJooqTest {
   @Test
   void testExceptionFromReadPool() {
     assertThatThrownBy(
-            () -> sqlExecutionRepository.retrieve(ExecutionType.PIPELINE, "any-pipeline-id", true))
+            () ->
+                sqlExecutionRepository.retrieve(
+                    ExecutionType.PIPELINE, "any-pipeline-id", ReadReplicaRequirement.UP_TO_DATE))
         .isInstanceOf(DataAccessException.class)
         .hasCause(sqlException);
     validateReadPoolMetricsOnFailure("failure");

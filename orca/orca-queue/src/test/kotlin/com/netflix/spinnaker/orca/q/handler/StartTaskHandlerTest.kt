@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.events.TaskComplete
 import com.netflix.spinnaker.orca.events.TaskStarted
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.CompleteTask
 import com.netflix.spinnaker.orca.q.DummyTask
@@ -89,7 +90,7 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
     val message = StartTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1")
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       whenever(environment.getProperty("tasks.dummyTask.enabled", Boolean::class.java, true)) doReturn true
     }
 
@@ -146,7 +147,7 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
     val message = StartTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1")
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doReturn pipeline
+      whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       whenever(environment.getProperty("tasks.dummyTask.enabled", Boolean::class.java, true)) doReturn false
     }
 
@@ -199,7 +200,7 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
     val message = StartTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1")
 
     beforeGroup {
-      whenever(repository.retrieve(PIPELINE, message.executionId, true)) doThrow NullPointerException()
+      whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doThrow NullPointerException()
     }
 
     afterGroup(::resetMocks)

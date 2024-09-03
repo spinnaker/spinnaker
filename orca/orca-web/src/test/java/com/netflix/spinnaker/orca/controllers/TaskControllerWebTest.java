@@ -44,6 +44,7 @@ import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement;
 import com.netflix.spinnaker.orca.q.pending.PendingExecutionService;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
@@ -100,7 +101,8 @@ class TaskControllerWebTest {
     verify(executionRepository).getApplication(TEST_EXECUTION_ID);
 
     // verify implementation behavior
-    verify(executionRepository).retrieve(PIPELINE, TEST_EXECUTION_ID, true);
+    verify(executionRepository)
+        .retrieve(PIPELINE, TEST_EXECUTION_ID, ReadReplicaRequirement.UP_TO_DATE);
     verifyNoMoreInteractions(executionRepository);
   }
 

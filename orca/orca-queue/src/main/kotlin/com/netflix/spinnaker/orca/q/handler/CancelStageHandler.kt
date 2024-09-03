@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.RescheduleExecution
@@ -97,7 +98,7 @@ class CancelStageHandler(
               if (stage.type.equals("pipeline", true) && stage.context.containsKey("executionId")) {
                 val childId = stage.context["executionId"] as? String
                 if (childId != null) {
-                  val child = repository.retrieve(PIPELINE, childId, true)
+                  val child = repository.retrieve(PIPELINE, childId, ReadReplicaRequirement.UP_TO_DATE)
                   queue.push(RescheduleExecution(child))
                 }
               }
