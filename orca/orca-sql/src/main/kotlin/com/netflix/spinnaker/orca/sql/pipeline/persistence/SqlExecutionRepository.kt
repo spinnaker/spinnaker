@@ -1596,10 +1596,10 @@ class SqlExecutionRepository(
         return fetchExecutions()
       }
     }
-    // If the read pool configuration does not enforce strict consistency, then
+    // If the read pool configuration does not satisfy the requirement, then
     // retrieve the execution from the default pool which does. This ensures that
     // the retrieved execution is up-to-date.
-    if (!readPoolStrictConsistencyEnforced()) {
+    if (!readPoolSatisfiesRequirement(readReplicaRequirement)) {
       withPool(poolName) {
         return fetchExecutions()
       }
@@ -1750,8 +1750,11 @@ class SqlExecutionRepository(
     }
   }
 
-  private fun readPoolStrictConsistencyEnforced(): Boolean {
-    return readPoolName != poolName && replicationLagAwareRepository.isPresent()
+  private fun readPoolSatisfiesRequirement(readReplicaRequirement: ReadReplicaRequirement): Boolean {
+    return when (readReplicaRequirement) {
+      ReadReplicaRequirement.NONE -> true
+      ReadReplicaRequirement.UP_TO_DATE -> readPoolName != poolName && replicationLagAwareRepository.isPresent()
+    }
   }
 
   class SyntheticStageRequired : IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")
