@@ -690,7 +690,7 @@ class SqlExecutionRepository(
         .fetch()
 
       log.debug("getting stage information for all the executions found so far")
-      return ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(baseQuery.intoResultSet(), jooq).executions
+      return ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(baseQuery.intoResultSet(), jooq)
     }
   }
 
@@ -1687,7 +1687,7 @@ class SqlExecutionRepository(
     fetchExecutionsFromReadPool(readReplicaRequirement).firstOrNull()
 
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
-    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq).executions
+    ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq)
 
   private fun SelectForUpdateStep<out Record>.fetchExecution() =
     fetchExecutions().firstOrNull()
@@ -1699,8 +1699,7 @@ class SqlExecutionRepository(
       stageReadSize,
       compressionProperties,
       pipelineRefEnabled,
-      replicationLagAwareRepository
-    ).map(fetch().intoResultSet(), jooq)
+    ).map(replicationLagAwareRepository.get(), fetch().intoResultSet(), jooq)
   }
 
   private fun fetchExecutions(nextPage: (Int, String?) -> Iterable<PipelineExecution>) =

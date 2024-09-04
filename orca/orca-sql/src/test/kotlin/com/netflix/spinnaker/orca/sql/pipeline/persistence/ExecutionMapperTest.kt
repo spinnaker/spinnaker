@@ -169,8 +169,7 @@ class ExecutionMapperTest : JUnit5Minutests {
         mapper = ObjectMapper(),
         stageBatchSize = 200,
         compressionProperties = compressionProperties,
-        pipelineRefEnabled = false,
-        replicationLagAwareRepository = Optional.of(mock<ReplicationLagAwareRepository>())
+        pipelineRefEnabled = false
       )
       val mockedResultSet = mock<ResultSet>()
 
@@ -233,14 +232,13 @@ class ExecutionMapperTest : JUnit5Minutests {
           false
         )
 
-        test("return NOT_FOUND when given an empty ResultSet") {
+        test("returns an empty collection when given an empty ResultSet") {
           doReturn(false).`when`(pipelineExecutionResultSet).next()
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val pipelineExecutions = mapper.map(pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
-          assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.NOT_FOUND)
         }
 
-        test("return SUCCESS when there are no errors") {
+        test("returns the expected pipeline(s) when there are no errors") {
           // Mocked pipeline execution calls
           doReturn(true, false).`when`(pipelineExecutionResultSet).next()
           doReturn(updatedAt.toEpochMilli()).`when`(pipelineExecutionResultSet).getLong("updated_at")
@@ -253,9 +251,8 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(updatedAt.toEpochMilli()).`when`(stageExecutionResultSet).getLong("updated_at")
           doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
 
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val pipelineExecutions = mapper.map(pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions.size).isEqualTo(1)
-          assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.SUCCESS)
         }
       }
 
@@ -265,13 +262,12 @@ class ExecutionMapperTest : JUnit5Minutests {
           mapper = objectMapper,
           stageBatchSize = 200,
           compressionProperties = compressionProperties,
-          pipelineRefEnabled = false,
-          replicationLagAwareRepository = Optional.of(replicationLagAwareRepository)
+          pipelineRefEnabled = false
         )
 
         test("return NOT_FOUND when given an empty ResultSet") {
           doReturn(false).`when`(pipelineExecutionResultSet).next()
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val (pipelineExecutions, resultCode) = mapper.map(replicationLagAwareRepository, pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
           assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.NOT_FOUND)
         }
@@ -293,7 +289,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(stageExecutionString).`when`(stageExecutionResultSet).getString("body")
           doReturn(updatedAt).`when`(replicationLagAwareRepository).getStageExecutionUpdate(stageExecution.id)
 
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val (pipelineExecutions, resultCode) = mapper.map(replicationLagAwareRepository, pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions.size).isEqualTo(1)
           assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.SUCCESS)
         }
@@ -309,7 +305,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(null).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
 
           // then
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val (pipelineExecutions, resultCode) = mapper.map(replicationLagAwareRepository, pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
           assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
         }
@@ -334,7 +330,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(null).`when`(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineExecutionId)
 
           // then
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val (pipelineExecutions, resultCode) = mapper.map(replicationLagAwareRepository, pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
           assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
         }
@@ -359,7 +355,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(null).`when`(replicationLagAwareRepository).getStageExecutionUpdate(stageExecution.id)
 
           // then
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val (pipelineExecutions, resultCode) = mapper.map(replicationLagAwareRepository, pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
           assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY)
         }
@@ -375,7 +371,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(updatedAt.plusMillis(500L)).`when`(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineExecutionId)
 
           // then
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val (pipelineExecutions, resultCode) = mapper.map(replicationLagAwareRepository, pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
           assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.INVALID_VERSION)
         }
@@ -399,7 +395,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           // when
           doReturn(2).`when`(replicationLagAwareRepository).getPipelineExecutionNumStages(pipelineExecutionId)
 
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val (pipelineExecutions, resultCode) = mapper.map(replicationLagAwareRepository, pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
           assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.INVALID_VERSION)
         }
@@ -424,7 +420,7 @@ class ExecutionMapperTest : JUnit5Minutests {
           doReturn(updatedAt.plusMillis(500L)).`when`(replicationLagAwareRepository).getStageExecutionUpdate(stageExecution.id)
 
           // then
-          val (pipelineExecutions, resultCode) = mapper.map(pipelineExecutionResultSet, mockedContext)
+          val (pipelineExecutions, resultCode) = mapper.map(replicationLagAwareRepository, pipelineExecutionResultSet, mockedContext)
           assertThat(pipelineExecutions).isEmpty()
           assertThat(resultCode).isEqualTo(ReplicationLagAwareResultCode.INVALID_VERSION)
         }

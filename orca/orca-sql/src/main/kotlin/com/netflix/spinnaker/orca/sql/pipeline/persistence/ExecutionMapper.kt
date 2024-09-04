@@ -48,10 +48,7 @@ class ExecutionMapper(
   private val stageBatchSize: Int,
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
-  private val replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>
 ) {
-  constructor(mapper: ObjectMapper, stageBatchSize: Int, executionCompressionProperties: ExecutionCompressionProperties, pipelineRefEnabled: Boolean) :
-    this(mapper, stageBatchSize, executionCompressionProperties, pipelineRefEnabled, Optional.empty())
   private val log = LoggerFactory.getLogger(javaClass)
 
   /**
@@ -113,7 +110,39 @@ class ExecutionMapper(
    * this function can return an empty collection as part of its normal behavior. In other words,
    * returning an empty collection is not considered "truly exceptional" or "unexpected" behavior.
    */
-  fun map(rs: ResultSet, context: DSLContext): ExecutionMapperResult {
+  fun map(replicationLagAwareRepository: ReplicationLagAwareRepository,
+          rs: ResultSet, context: DSLContext): ExecutionMapperResult {
+    return map(Optional.of(replicationLagAwareRepository), rs, context)
+  }
+
+  /**
+   * Maps a given ResultSet to a Collection<PipelineExecution> without any awareness of replication lag.
+   *
+   * Return an ExecutionMapperResult instead of throwing different exception classes because
+   * this function can return an empty collection as part of its normal behavior. In other words,
+   * returning an empty collection is not considered "truly exceptional" or "unexpected" behavior.
+   */
+  fun map(rs: ResultSet, context: DSLContext): Collection<PipelineExecution> {
+    val executionMapperResult = map(Optional.empty(), rs, context)
+    return when (executionMapperResult.resultCode) {
+      ReplicationLagAwareResultCode.SUCCESS,
+      ReplicationLagAwareResultCode.NOT_FOUND -> executionMapperResult.executions
+      else -> throw IllegalStateException("invalid result code for non-replication-lag-aware map: ${executionMapperResult.resultCode}")
+    }
+  }
+
+  /**
+   * Maps a given ResultSet to a Collection<PipelineExecution> and returns the result
+   * in an [ExecutionMapperResult]. If the collection is empty,
+   * [ReplicationLagAwareResultCode] communicates the reason and the caller can use this information
+   * to perform additional processing as needed.
+   *
+   * Return an ExecutionMapperResult instead of throwing different exception classes because
+   * this function can return an empty collection as part of its normal behavior. In other words,
+   * returning an empty collection is not considered "truly exceptional" or "unexpected" behavior.
+   */
+  private fun map(replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>,
+          rs: ResultSet, context: DSLContext): ExecutionMapperResult {
     val results = mutableListOf<PipelineExecution>()
     val executionMap = mutableMapOf<String, PipelineExecution>()
     val legacyMap = mutableMapOf<String, String>()
