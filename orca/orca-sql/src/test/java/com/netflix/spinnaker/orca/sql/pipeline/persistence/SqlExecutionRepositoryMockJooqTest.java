@@ -127,10 +127,11 @@ public class SqlExecutionRepositoryMockJooqTest {
             () -> sqlExecutionRepository.retrieve(ExecutionType.PIPELINE, "any-pipeline-id", true))
         .isInstanceOf(DataAccessException.class)
         .hasCause(sqlException);
-    validateReadPoolMetricsOnFailure(ExecutionMapperResultCode.FAILURE);
+    validateReadPoolMetricsOnFailure("failure");
   }
 
-  void validateReadPoolMetricsOnFailure(ExecutionMapperResultCode resultCode) {
+  /** Use a plain String for resultCode so it's easier to see behavior / metric tag changes. */
+  void validateReadPoolMetricsOnFailure(String resultCode) {
     assertThat(
             registry
                 .counter("executionRepository.sql.readPool.retrieveSucceeded", "numAttempts", "1")
@@ -139,9 +140,7 @@ public class SqlExecutionRepositoryMockJooqTest {
     assertThat(
             registry
                 .counter(
-                    "executionRepository.sql.readPool.retrieveFailed",
-                    "result_code",
-                    resultCode.toString())
+                    "executionRepository.sql.readPool.retrieveFailed", "result_code", resultCode)
                 .count())
         .isEqualTo(1);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())

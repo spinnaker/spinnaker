@@ -267,7 +267,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
           executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
-      validateReadPoolMetricsOnFailure(ExecutionMapperResultCode.INVALID_VERSION);
+      validateReadPoolMetricsOnFailure("invalid_version");
     }
 
     @Test
@@ -346,7 +346,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
           executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
-      validateReadPoolMetricsOnFailure(ExecutionMapperResultCode.INVALID_VERSION);
+      validateReadPoolMetricsOnFailure("invalid_version");
     }
 
     @Test
@@ -366,7 +366,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
           executionRepository.retrieve(ExecutionType.PIPELINE, pipelineId, true);
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
-      validateReadPoolMetricsOnFailure(ExecutionMapperResultCode.INVALID_VERSION);
+      validateReadPoolMetricsOnFailure("invalid_version");
     }
 
     @Test
@@ -505,7 +505,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
                 .sorted()
                 .collect(Collectors.toList());
         assertThat(actualStageNames).isEqualTo(expectedStageNames);
-        validateReadPoolMetricsOnFailure(ExecutionMapperResultCode.INVALID_VERSION);
+        validateReadPoolMetricsOnFailure("invalid_version");
       }
     }
   }
@@ -701,21 +701,30 @@ public class SqlExecutionRepositoryReadReplicaTest {
                 .counter("executionRepository.sql.readPool.retrieveSucceeded", "numAttempts", "1")
                 .count())
         .isEqualTo(1);
-    for (ExecutionMapperResultCode resultCode : ExecutionMapperResultCode.values()) {
-      assertThat(
-              registry
-                  .counter(
-                      "executionRepository.sql.readPool.retrieveFailed",
-                      "result_code",
-                      resultCode.toString())
-                  .count())
-          .isEqualTo(0);
-    }
+    List<String> resultCodes =
+        List.of(
+            "success",
+            "not_found",
+            "invalid_version",
+            "missing_from_replication_lag_repository",
+            "failure");
+    resultCodes.forEach(
+        resultCode -> {
+          assertThat(
+                  registry
+                      .counter(
+                          "executionRepository.sql.readPool.retrieveFailed",
+                          "result_code",
+                          resultCode)
+                      .count())
+              .isEqualTo(0);
+        });
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
         .isEqualTo(1);
   }
 
-  void validateReadPoolMetricsOnFailure(ExecutionMapperResultCode resultCode) {
+  /** Use a plain String for resultCode so it's easier to see behavior / metric tag changes. */
+  void validateReadPoolMetricsOnFailure(String resultCode) {
     assertThat(
             registry
                 .counter("executionRepository.sql.readPool.retrieveSucceeded", "numAttempts", "1")
@@ -724,9 +733,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
     assertThat(
             registry
                 .counter(
-                    "executionRepository.sql.readPool.retrieveFailed",
-                    "result_code",
-                    resultCode.toString())
+                    "executionRepository.sql.readPool.retrieveFailed", "result_code", resultCode)
                 .count())
         .isEqualTo(1);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
@@ -742,9 +749,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
     assertThat(
             registry
                 .counter(
-                    "executionRepository.sql.readPool.retrieveFailed",
-                    "result_code",
-                    ExecutionMapperResultCode.NOT_FOUND.toString())
+                    "executionRepository.sql.readPool.retrieveFailed", "result_code", "not_found")
                 .count())
         .isEqualTo(expectNotFoundMetric ? 1 : 0);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())
@@ -762,7 +767,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
                 .counter(
                     "executionRepository.sql.readPool.retrieveFailed",
                     "result_code",
-                    ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY.toString())
+                    "missing_from_replication_lag_repository")
                 .count())
         .isEqualTo(1);
     assertThat(registry.counter("executionRepository.sql.readPool.retrieveTotalAttempts").count())

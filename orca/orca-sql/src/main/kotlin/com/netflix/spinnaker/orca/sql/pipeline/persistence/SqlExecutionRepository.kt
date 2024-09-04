@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.CaseFormat
 import com.google.common.base.Preconditions
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
@@ -1633,14 +1634,14 @@ class SqlExecutionRepository(
           // To avoid skewing the metric, only executions that exist in the default pool but not in the read pool
           // should count toward the read pool retrieval failed metric
           if (executions.isNotEmpty()) {
-            registry.counter(readPoolRetrieveFailedId.withTag("result_code", resultCode.toString())).increment()
+            registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(resultCode.toString()))).increment()
           }
           return executions
         }
       }
       ExecutionMapperResultCode.FAILURE,
       ExecutionMapperResultCode.INVALID_VERSION -> {
-        registry.counter(readPoolRetrieveFailedId.withTag("result_code", resultCode.toString())).increment()
+        registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(resultCode.toString()))).increment()
         withPool(poolName) {
           return fetchExecutions()
         }
@@ -1649,7 +1650,7 @@ class SqlExecutionRepository(
       // the execution using the default pool. If successful, also repopulate the
       // ReplicationLagAwareRepository with the execution metadata
       ExecutionMapperResultCode.MISSING_FROM_REPLICATION_LAG_REPOSITORY -> {
-        registry.counter(readPoolRetrieveFailedId.withTag("result_code", resultCode.toString())).increment()
+        registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(resultCode.toString()))).increment()
         val executions = withPool(poolName) {
           fetchExecutions()
         }
@@ -1673,6 +1674,14 @@ class SqlExecutionRepository(
       }
     }
   }
+
+  /**
+   * Format metrics tag values in lower snake
+   *
+   * @param tagValue: unprocessed tag value, assume upper snake
+   */
+  private fun formatTag(tagValue: String) =
+    CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_UNDERSCORE, tagValue)
 
   private fun SelectForUpdateStep<out Record>.fetchExecutionFromReadPool(requireLatestVersion: Boolean) =
     fetchExecutionsFromReadPool(requireLatestVersion).firstOrNull()
