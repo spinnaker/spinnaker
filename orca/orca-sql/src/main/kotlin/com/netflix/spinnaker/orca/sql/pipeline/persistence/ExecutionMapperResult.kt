@@ -21,9 +21,21 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 /**
  * Defines the result of an [ExecutionMapper] when processing a ResultSet. This allows the
  * ExecutionMapper to communicate a more complex result when the returned
- * collection of PipelineExecutions is empty
+ * collection of PipelineExecutions is empty.  Use "data object" instead of
+ * "object" and remove toString overrides wth kotlin >= 1.7.20.
  */
-data class ExecutionMapperResult(
-  val executions: Collection<PipelineExecution>,
-  val resultCode: ReplicationLagAwareResultCode
-)
+sealed interface ExecutionMapperResult {
+  data class Success(val executions: Collection<PipelineExecution>) : ExecutionMapperResult
+  object NotFound: ExecutionMapperResult {
+    override fun toString(): String = "NotFound"
+  }
+  object InvalidVersion: ExecutionMapperResult {
+    override fun toString(): String = "InvalidVersion"
+  }
+  object MissingFromReplicationLagRepository: ExecutionMapperResult {
+    override fun toString(): String = "MissingFromReplicationLagRepository"
+  }
+  object Failure: ExecutionMapperResult {
+    override fun toString(): String = "Failure"
+  }
+}
