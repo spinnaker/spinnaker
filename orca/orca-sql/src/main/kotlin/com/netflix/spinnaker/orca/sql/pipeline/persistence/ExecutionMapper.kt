@@ -117,10 +117,6 @@ class ExecutionMapper(
 
   /**
    * Maps a given ResultSet to a Collection<PipelineExecution> without any awareness of replication lag.
-   *
-   * Return an ExecutionMapperResult instead of throwing different exception classes because
-   * this function can return an empty collection as part of its normal behavior. In other words,
-   * returning an empty collection is not considered "truly exceptional" or "unexpected" behavior.
    */
   fun map(rs: ResultSet, context: DSLContext): Collection<PipelineExecution> {
     return when (val executionMapperResult = map(Optional.empty(), rs, context)) {
