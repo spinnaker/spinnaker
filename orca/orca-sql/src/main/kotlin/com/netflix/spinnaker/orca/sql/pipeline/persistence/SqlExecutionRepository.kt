@@ -1619,8 +1619,6 @@ class SqlExecutionRepository(
       }
     }
 
-    val selectReplicationLagFields = select(listOf(oneField, field("updated_at"))).from(PIPELINE.tableName).where(id.toWhereCondition())
-
     // If the read pool configuration does not satisfy the requirement, then
     // retrieve the execution from the default pool which does. This ensures that
     // the retrieved execution is up-to-date.
@@ -1630,6 +1628,8 @@ class SqlExecutionRepository(
       }
     }
 
+    val selectReplicationLagFields = select(listOf(oneField, field("updated_at"))).from(PIPELINE.tableName).where(id.toWhereCondition())
+
     // Attempt to find an execution from the read pool that satisfies the requirement
     val readPoolFieldRetryContext = readPoolFieldRetryRegistry.retry("field-read-pool")
     var numberOfReadPoolQueries = 0L
@@ -1637,7 +1637,11 @@ class SqlExecutionRepository(
       withPool(readPoolName) {
         readPoolFieldRetryContext.executeSupplier {
           numberOfReadPoolQueries += 1
-          selectReplicationLagFields.fetchFieldFromReadPool(id, oneField, readReplicaRequirement)
+          if (readReplicaRequirement == ReadReplicaRequirement.PRESENT) {
+            selectOneField.fetchFieldFromReadPool(id, oneField, readReplicaRequirement)
+          } else {
+            selectReplicationLagFields.fetchFieldFromReadPool(id, oneField, readReplicaRequirement)
+          }
         }
       }
     } catch (e: Exception) {
