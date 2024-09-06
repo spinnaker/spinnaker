@@ -29,6 +29,7 @@ import com.netflix.spinnaker.config.ExecutionCompressionProperties;
 import com.netflix.spinnaker.config.SqlConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -135,6 +136,13 @@ public class SqlExecutionRepositoryReadReplicaTest {
     defaultPoolPipelineExecution.setApplication("defaultPoolPipelineExecutionApp");
     readPoolPipelineExecution.setName("readPoolPipelineExecution");
     readPoolPipelineExecution.setApplication("readPoolPipelineExecutionApp");
+
+    ExecutionStatus defaultPoolExecutionStatus = ExecutionStatus.RUNNING; // arbitrary
+    ExecutionStatus readPoolExecutionStatus =
+        ExecutionStatus.NOT_STARTED; // arbitrary, but different than the default pool
+    assertThat(defaultPoolExecutionStatus).isNotEqualTo(readPoolExecutionStatus);
+    defaultPoolPipelineExecution.setStatus(defaultPoolExecutionStatus);
+    readPoolPipelineExecution.setStatus(readPoolExecutionStatus);
   }
 
   @AfterEach
@@ -586,7 +594,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
       PipelineExecution readPoolPipelineExecution)
       throws SQLException, IOException {
     String insertSql =
-        "INSERT INTO pipelines (id, application, build_time, canceled, updated_at, body) VALUES (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO pipelines (id, application, status, build_time, canceled, updated_at, body) VALUES (?, ?, ?, ?, ?, ?, ?)";
     if (defaultPoolPipelineExecution != null) {
       // populate primary instance
       try (Connection connection = primaryInstance.dataSource.getConnection();
@@ -594,10 +602,11 @@ public class SqlExecutionRepositoryReadReplicaTest {
         String defaultPoolBody = mapper.writeValueAsString(defaultPoolPipelineExecution);
         stmt.setString(1, pipelineId);
         stmt.setString(2, defaultPoolPipelineExecution.getApplication());
-        stmt.setLong(3, Instant.now().toEpochMilli());
-        stmt.setBoolean(4, defaultPoolPipelineExecution.isCanceled());
-        stmt.setLong(5, defaultPoolUpdatedAt);
-        stmt.setString(6, defaultPoolBody);
+        stmt.setString(3, defaultPoolPipelineExecution.getStatus().toString());
+        stmt.setLong(4, Instant.now().toEpochMilli());
+        stmt.setBoolean(5, defaultPoolPipelineExecution.isCanceled());
+        stmt.setLong(6, defaultPoolUpdatedAt);
+        stmt.setString(7, defaultPoolBody);
         stmt.executeUpdate();
       }
     }
@@ -609,10 +618,11 @@ public class SqlExecutionRepositoryReadReplicaTest {
         String readPoolBody = mapper.writeValueAsString(readPoolPipelineExecution);
         stmt.setString(1, pipelineId);
         stmt.setString(2, readPoolPipelineExecution.getApplication());
-        stmt.setLong(3, Instant.now().toEpochMilli());
-        stmt.setBoolean(4, readPoolPipelineExecution.isCanceled());
-        stmt.setLong(5, readPoolUpdatedAt);
-        stmt.setString(6, readPoolBody);
+        stmt.setString(3, readPoolPipelineExecution.getStatus().toString());
+        stmt.setLong(4, Instant.now().toEpochMilli());
+        stmt.setBoolean(5, readPoolPipelineExecution.isCanceled());
+        stmt.setLong(6, readPoolUpdatedAt);
+        stmt.setString(7, readPoolBody);
         stmt.executeUpdate();
       }
     }
@@ -625,7 +635,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
       PipelineExecution readPoolPipelineExecution)
       throws SQLException, IOException {
     String insertExecutionSql =
-        "INSERT INTO pipelines (id, application, build_time, canceled, updated_at, body) VALUES (?, ?, ?, ?, ?, ?)";
+        "INSERT INTO pipelines (id, application, status, build_time, canceled, updated_at, body) VALUES (?, ?, ?, ?, ?, ?, ?)";
     String insertCompressedExecutionSql =
         "INSERT INTO pipelines_compressed_executions (id, compressed_body, compression_type, updated_at) VALUES (?, ?, ?, ?)";
     // populate primary instance
@@ -636,10 +646,11 @@ public class SqlExecutionRepositoryReadReplicaTest {
       // write regular execution
       stmt.setString(1, pipelineId);
       stmt.setString(2, defaultPoolPipelineExecution.getApplication());
-      stmt.setLong(3, Instant.now().toEpochMilli());
-      stmt.setBoolean(4, defaultPoolPipelineExecution.isCanceled());
-      stmt.setLong(5, defaultPoolUpdatedAt);
-      stmt.setString(6, "");
+      stmt.setString(3, defaultPoolPipelineExecution.getStatus().toString());
+      stmt.setLong(4, Instant.now().toEpochMilli());
+      stmt.setBoolean(5, defaultPoolPipelineExecution.isCanceled());
+      stmt.setLong(6, defaultPoolUpdatedAt);
+      stmt.setString(7, "");
       stmt.executeUpdate();
 
       // write compressed execution
@@ -665,10 +676,11 @@ public class SqlExecutionRepositoryReadReplicaTest {
         // write regular execution
         stmt.setString(1, pipelineId);
         stmt.setString(2, readPoolPipelineExecution.getApplication());
-        stmt.setLong(3, Instant.now().toEpochMilli());
-        stmt.setBoolean(4, readPoolPipelineExecution.isCanceled());
-        stmt.setLong(5, readPoolUpdatedAt);
-        stmt.setString(6, "");
+        stmt.setString(3, readPoolPipelineExecution.getStatus().toString());
+        stmt.setLong(4, Instant.now().toEpochMilli());
+        stmt.setBoolean(5, readPoolPipelineExecution.isCanceled());
+        stmt.setLong(6, readPoolUpdatedAt);
+        stmt.setString(7, "");
         stmt.executeUpdate();
 
         // write compressed execution
