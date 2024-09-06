@@ -177,7 +177,12 @@ public class SqlExecutionRepositoryReadReplicaTest {
   void getApplication() throws SQLException, IOException {
     initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
     String application = executionRepository.getApplication(pipelineId);
-    assertThat(application).isEqualTo(readPoolPipelineExecution.getApplication());
+
+    // Now that getApplication is replication-lag aware, even though the
+    // execution exists in the read pool, we get the execution from the default
+    // pool since we haven't mocked any info from the replication lag repository
+    // and can't confirm the execution is up to date.
+    assertThat(application).isEqualTo(defaultPoolPipelineExecution.getApplication());
   }
 
   @Test
@@ -219,16 +224,11 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
       String application = executionRepository.getApplication(pipelineId);
 
-      // FIXME: until getApplication is replication-lag-aware, the info comes
-      // from the read pool, even if it's potentially stale.
-      assertThat(application).isEqualTo(readPoolPipelineExecution.getApplication());
-
-      // // When there's no info in the replicationLagRepository, there's no way to
-      // // verify whether the pipeline from the read pool is up to date, so expect
-      // // the code to return the pipeline from the default pool.
-      // //
-      // assertThat(application).isEqualTo(defaultPoolPipelineExecution.getApplication());
-      // validateReadPoolMetricsOnMissingFromReplicationLagRepository();
+      // When there's no info in the replicationLagRepository, there's no way to
+      // verify whether the pipeline from the read pool is up to date, so expect
+      // the code to return the pipeline from the default pool.
+      assertThat(application).isEqualTo(defaultPoolPipelineExecution.getApplication());
+      validateReadPoolMetricsOnMissingFromReplicationLagRepository();
     }
 
     @Test
@@ -252,17 +252,10 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
       doReturn(null).when(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineId);
 
-      // FIXME: until getApplication is replication-lag-aware, the info comes
-      // from the read pool, even if it's potentially stale.
-      String application = executionRepository.getApplication(pipelineId);
-      assertThat(application).isEqualTo(readPoolPipelineExecution.getApplication());
+      assertThatThrownBy(() -> executionRepository.getApplication(pipelineId))
+          .isInstanceOf(ExecutionNotFoundException.class);
 
-      // assertThatThrownBy(
-      //         () ->
-      //             executionRepository.getApplication(pipelineId))
-      //     .isInstanceOf(ExecutionNotFoundException.class);
-      //
-      // validateReadPoolMetricsOnMissingFromReplicationLagRepository();
+      validateReadPoolMetricsOnMissingFromReplicationLagRepository();
     }
 
     @Test
@@ -295,8 +288,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
       assertThat(application).isEqualTo(readPoolPipelineExecution.getApplication());
 
-      // FIXME: until getApplication is replication-lag-aware, we don't get metrics
-      // validateReadPoolMetricsOnSuccess();
+      validateReadPoolMetricsOnSuccess();
     }
 
     @Test
@@ -328,8 +320,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
       String application = executionRepository.getApplication(pipelineId);
 
       assertThat(application).isEqualTo(readPoolPipelineExecution.getApplication());
-      // FIXME: until getApplication is replication-lag-aware, we don't get metrics
-      // validateReadPoolMetricsOnSuccess();
+      validateReadPoolMetricsOnSuccess();
     }
 
     @Test
@@ -366,12 +357,8 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
       String application = executionRepository.getApplication(pipelineId);
 
-      // FIXME: until getApplication is replication-lag-aware, the info comes
-      // from the read pool, even if it's potentially stale.
-      assertThat(application).isEqualTo(readPoolPipelineExecution.getApplication());
-
-      // assertThat(application).isEqualTo(defaultPoolPipelineExecution.getApplication());
-      // validateReadPoolMetricsOnFailure("invalid_version");
+      assertThat(application).isEqualTo(defaultPoolPipelineExecution.getApplication());
+      validateReadPoolMetricsOnFailure("invalid_version");
     }
 
     @Test
@@ -399,8 +386,7 @@ public class SqlExecutionRepositoryReadReplicaTest {
             executionRepository.getApplication(pipelineId);
           });
 
-      // FIXME: until getApplication is replication-lag-aware, we don't get metrics
-      // validateReadPoolMetricsOnMissingExecution(false);
+      validateReadPoolMetricsOnMissingExecution(false);
     }
 
     @Test
@@ -419,15 +405,10 @@ public class SqlExecutionRepositoryReadReplicaTest {
     void getApplicationExecutionExistsInDefaultPoolButNotReadPool() throws Exception {
       initDBWithExecution(pipelineId, defaultPoolPipelineExecution, null);
 
-      // FIXME: until getApplication is replication-lag-aware, if the execution
-      // isn't in the read pool, we get an exception.
-      assertThatThrownBy(() -> executionRepository.getApplication(pipelineId))
-          .isInstanceOf(ExecutionNotFoundException.class);
+      String application = executionRepository.getApplication(pipelineId);
 
-      // String application = executionRepository.getApplication(pipelineId);
-      //
-      // assertThat(application).isEqualTo(defaultPoolPipelineExecution.getApplication());
-      // validateReadPoolMetricsOnMissingExecution(true);
+      assertThat(application).isEqualTo(defaultPoolPipelineExecution.getApplication());
+      validateReadPoolMetricsOnMissingExecution(true);
     }
   }
 

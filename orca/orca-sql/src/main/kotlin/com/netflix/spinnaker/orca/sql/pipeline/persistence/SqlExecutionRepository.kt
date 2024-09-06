@@ -152,6 +152,7 @@ class SqlExecutionRepository(
   private val readPoolRetrieveFailedId = registry.createId("executionRepository.sql.readPool.retrieveFailed")
   private val readPoolRetrieveTotalId = registry.createId("executionRepository.sql.readPool.retrieveTotalAttempts")
   private val readPoolRetryRegistry = initializeReadPoolRetryRegistry(retryProperties)
+  private val readPoolFieldRetryRegistry = initializeReadPoolFieldRetryRegistry(retryProperties)
 
   init {
     // If there's no read pool configured, fall back to the default pool
@@ -198,6 +199,24 @@ class SqlExecutionRepository(
       .retryOnResult { executionMapperResult ->
         (executionMapperResult is ExecutionMapperResult.NotFound) ||
           (executionMapperResult is ExecutionMapperResult.InvalidVersion)
+      }
+      .build()
+    return RetryRegistry.of(retryConfig)
+  }
+
+  /**
+   * TODO: figure out a way to combine ExecutionMapperResult and ReplicationLagAwareFieldResult with a generic so this method can disappear
+   */
+  private fun initializeReadPoolFieldRetryRegistry(retryProperties: RetryProperties): RetryRegistry {
+    val exponentialMultiplier = 2.0
+    val jitter = 0.2
+    val retryInterval = IntervalFunction.ofExponentialRandomBackoff(retryProperties.backoffMs, exponentialMultiplier, jitter)
+    val retryConfig = RetryConfig.custom<ReplicationLagAwareFieldResult>()
+      .maxAttempts(retryProperties.maxRetries)
+      .intervalFunction(retryInterval)
+      .retryOnResult { replicationLagAwareFieldResult ->
+        (replicationLagAwareFieldResult is ReplicationLagAwareFieldResult.NotFound) ||
+          (replicationLagAwareFieldResult is ReplicationLagAwareFieldResult.InvalidVersion)
       }
       .build()
     return RetryRegistry.of(retryConfig)
@@ -493,12 +512,7 @@ class SqlExecutionRepository(
     ctx: DSLContext,
     id: String
   ): String? {
-    withPool(readPoolName) {
-      return ctx
-               .select(field("application")).from(PIPELINE.tableName)
-               .where(id.toWhereCondition())
-               .fetchOne(field("application"), String::class.java)
-    }
+    return ctx.fetchFieldFromReadPool(id, field("application", String::class.java), ReadReplicaRequirement.UP_TO_DATE);
   }
 
   private fun retrieve(type: ExecutionType, criteria: ExecutionCriteria, partition: String?): Observable<PipelineExecution> {
@@ -1578,6 +1592,89 @@ class SqlExecutionRepository(
   }
 
   /**
+   * Read a field from a pipeline execution, accounting for replication lag in a database setup with a primary instance
+   * and one or more read replicas, as specified by readReplicaRequirement. If the execution is not up-to-date with the primary instance, retry the query until
+   * the fetched execution is up-to-date. If this exhausts all retry attempts, retry the query using the default pool.
+   *
+   * @param id: the id of the execution from which to retrieve a field
+   * @param oneField: a field to retrieve
+   * @param readReplicaRequirement: the requirement that the issuer of the query has for executions from the read pool
+   *
+   * @return the given field from the given execution id, or null if the execution is not found
+   */
+  private fun DSLContext.fetchFieldFromReadPool(id: String, oneField: Field<String>, readReplicaRequirement: ReadReplicaRequirement): String? {
+
+    val selectOneField = select(oneField).from(PIPELINE.tableName).where(id.toWhereCondition())
+
+    // Avoid collecting the readPoolRetrieve class of metrics here because it will
+    // skew the number of times that retrieving using the read pool succeeded
+    // on the first try
+    if (readReplicaRequirement == ReadReplicaRequirement.NONE) {
+      withPool(readPoolName) {
+        return selectOneField.fetchOne(oneField)
+      }
+    }
+
+    val selectReplicationLagFields = select(listOf(oneField, field("updated_at"))).from(PIPELINE.tableName).where(id.toWhereCondition())
+
+    // If the read pool configuration does not satisfy the requirement, then
+    // retrieve the execution from the default pool which does. This ensures that
+    // the retrieved execution is up-to-date.
+    if (!readPoolSatisfiesRequirement(readReplicaRequirement)) {
+      withPool(poolName) {
+        return selectOneField.fetchOne(oneField)
+      }
+    }
+
+    // Attempt to find an execution from the read pool that satisfies the requirement
+    val readPoolFieldRetryContext = readPoolFieldRetryRegistry.retry("field-read-pool")
+    var numberOfReadPoolQueries = 0L
+    val replicationLagAwareFieldResult = try {
+      withPool(readPoolName) {
+        readPoolFieldRetryContext.executeSupplier {
+          numberOfReadPoolQueries += 1
+          selectReplicationLagFields.fetchFieldFromReadPool(id, oneField, readReplicaRequirement)
+        }
+      }
+    } catch (e: Exception) {
+      // Swallow the exception and let code below process the failure by falling back to the default pool
+      log.error("Encountered an exception when fetching ${oneField.name} from the read pool", e)
+      ReplicationLagAwareFieldResult.Failure
+    }
+
+    registry.counter(readPoolRetrieveTotalId).increment()
+
+    // Determine the result and perform additional tasks if necessary
+    when (replicationLagAwareFieldResult) {
+      is ReplicationLagAwareFieldResult.Success -> {
+        registry.counter(readPoolRetrieveSucceededId.withTag(
+          "numAttempts", numberOfReadPoolQueries.toString()
+        )).increment()
+        return replicationLagAwareFieldResult.result
+      }
+      is ReplicationLagAwareFieldResult.NotFound -> {
+        withPool(poolName) {
+          val defaultPoolResult = selectOneField.fetchOne(oneField)
+          // To avoid skewing the metric, only executions that exist in the default pool but not in the read pool
+          // should count toward the read pool retrieval failed metric
+          if (defaultPoolResult != null) {
+            registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(replicationLagAwareFieldResult.toString()))).increment()
+          }
+          return defaultPoolResult
+        }
+      }
+      is ReplicationLagAwareFieldResult.Failure,
+      is ReplicationLagAwareFieldResult.InvalidVersion,
+      is ReplicationLagAwareFieldResult.MissingFromReplicationLagRepository -> {
+        registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(replicationLagAwareFieldResult.toString()))).increment()
+        withPool(poolName) {
+          return selectOneField.fetchOne(oneField)
+        }
+      }
+    }
+  }
+
+  /**
    * An implementation of fetchExecutions that accounts for replication lag in a database setup with a primary instance
    * and one or more read replicas. If readReplicaRequirement is UP_TO_DATE, attempt to fetch the executions from the read pool.
    * If the resulting executions are not up-to-date with the executions in the primary instance, retry the query until
@@ -1707,6 +1804,37 @@ class SqlExecutionRepository(
       compressionProperties,
       pipelineRefEnabled,
     ).map(replicationLagAwareRepository.get(), fetch().intoResultSet(), jooq)
+  }
+
+  /**
+   * Fetch a field (and updated_at) from the read pool and assess whether the
+   * execution is up to date or not.  Assume that the database query returns 0
+   * or 1 row.  Additional rows are ignored.
+   *
+   * @param executionId: the id of the execution from which to fetch a field
+   * @param field: the field to fetch
+   * @param readReplicaRequirement: the requirement to satisfy
+   */
+  private fun SelectForUpdateStep<out Record>.fetchFieldFromReadPool(executionId: String, field: Field<String>, readReplicaRequirement: ReadReplicaRequirement): ReplicationLagAwareFieldResult {
+    val result = fetch()
+
+    when (readReplicaRequirement) {
+      ReadReplicaRequirement.NONE -> throw IllegalStateException("ReadReplicaRequirement.NONE is invalid in replication-lag-aware SelectForUpdateStep.fetchFieldFromReadPool")
+      ReadReplicaRequirement.UP_TO_DATE -> {
+        Preconditions.checkState(replicationLagAwareRepository.isPresent)
+
+        if (result.isEmpty()) {
+          return ReplicationLagAwareFieldResult.NotFound
+        }
+        val oldestAllowedUpdate = replicationLagAwareRepository.get().getPipelineExecutionUpdate(executionId)
+              ?: return ReplicationLagAwareFieldResult.MissingFromReplicationLagRepository
+        val updatedAt = result.getValue(0, field("updated_at", Long::class.java))
+        if (updatedAt < oldestAllowedUpdate.toEpochMilli()) {
+          return ReplicationLagAwareFieldResult.InvalidVersion
+        }
+        return ReplicationLagAwareFieldResult.Success(result.getValue(0, field))
+      }
+    }
   }
 
   private fun fetchExecutions(nextPage: (Int, String?) -> Iterable<PipelineExecution>) =
