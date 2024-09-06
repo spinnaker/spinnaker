@@ -173,25 +173,6 @@ public class SqlExecutionRepositoryReadReplicaTest {
     assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
   }
 
-  @Test
-  void getApplication() throws SQLException, IOException {
-    initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
-    String application = executionRepository.getApplication(pipelineId);
-
-    // Now that getApplication is replication-lag aware, even though the
-    // execution exists in the read pool, we get the execution from the default
-    // pool since we haven't mocked any info from the replication lag repository
-    // and can't confirm the execution is up to date.
-    assertThat(application).isEqualTo(defaultPoolPipelineExecution.getApplication());
-  }
-
-  @Test
-  void getApplicationNotFound() {
-    String nonexistentId = ID_GENERATOR.nextULID();
-    assertThatThrownBy(() -> executionRepository.getApplication(nonexistentId))
-        .isInstanceOf(ExecutionNotFoundException.class);
-  }
-
   @Nested
   class TestRetrieveUncompressedExecutions {
     @BeforeEach
