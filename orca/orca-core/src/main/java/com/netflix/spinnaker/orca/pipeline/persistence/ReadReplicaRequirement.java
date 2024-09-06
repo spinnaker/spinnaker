@@ -24,6 +24,9 @@ public enum ReadReplicaRequirement {
    */
   NONE,
 
+  /** Information from a read replica must be present, but not necessarily up to date. */
+  PRESENT,
+
   /** Information from a read replica must be up to date. */
   UP_TO_DATE
 }

@@ -512,7 +512,11 @@ class SqlExecutionRepository(
     ctx: DSLContext,
     id: String
   ): String? {
-    return ctx.fetchFieldFromReadPool(id, field("application", String::class.java), ReadReplicaRequirement.UP_TO_DATE);
+
+    // PRESENT is sufficient since the application property of a pipeline
+    // execution is considered immutable.  No need to wait for the execution to be
+    // up to date.
+    return ctx.fetchFieldFromReadPool(id, field("application", String::class.java), ReadReplicaRequirement.PRESENT);
   }
 
   private fun retrieve(type: ExecutionType, criteria: ExecutionCriteria, partition: String?): Observable<PipelineExecution> {
@@ -1680,11 +1684,14 @@ class SqlExecutionRepository(
    * If the resulting executions are not up-to-date with the executions in the primary instance, retry the query until
    * the fetched executions are up-to-date. If this exhausts all retry attempts, retry the query using the default pool.
    *
-   * @param readReplicaRequirement: the requirement that the issuer of the query has for executions from the read pool
+   * @param readReplicaRequirement: the requirement that the issuer of the query has for executions from the read pool.  PRESENT not supported.
    *
    * @return a Collection of PipelineExecutions satisfying the query
    */
   private fun SelectForUpdateStep<out Record>.fetchExecutionsFromReadPool(readReplicaRequirement: ReadReplicaRequirement): Collection<PipelineExecution> {
+    if (readReplicaRequirement == ReadReplicaRequirement.PRESENT) {
+       throw IllegalArgumentException("ReadReplicaRequirement.PRESENT not supported in fetchExecutionsFromReadPool")
+    }
     // Avoid collecting the readPoolRetrieve class of metrics here because it will
     // skew the number of times that retrieving using the read pool succeeded
     // on the first try
@@ -1820,6 +1827,12 @@ class SqlExecutionRepository(
 
     when (readReplicaRequirement) {
       ReadReplicaRequirement.NONE -> throw IllegalStateException("ReadReplicaRequirement.NONE is invalid in replication-lag-aware SelectForUpdateStep.fetchFieldFromReadPool")
+      ReadReplicaRequirement.PRESENT -> {
+        if (result.isEmpty()) {
+          return ReplicationLagAwareFieldResult.NotFound
+        }
+        return ReplicationLagAwareFieldResult.Success(result.getValue(0, field))
+      }
       ReadReplicaRequirement.UP_TO_DATE -> {
         Preconditions.checkState(replicationLagAwareRepository.isPresent)
 
@@ -1887,6 +1900,7 @@ class SqlExecutionRepository(
   private fun readPoolSatisfiesRequirement(readReplicaRequirement: ReadReplicaRequirement): Boolean {
     return when (readReplicaRequirement) {
       ReadReplicaRequirement.NONE -> true
+      ReadReplicaRequirement.PRESENT -> readPoolName != poolName
       ReadReplicaRequirement.UP_TO_DATE -> readPoolName != poolName && replicationLagAwareRepository.isPresent()
     }
   }
