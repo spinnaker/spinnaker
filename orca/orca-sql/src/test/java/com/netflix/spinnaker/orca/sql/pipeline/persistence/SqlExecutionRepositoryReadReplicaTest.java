@@ -232,6 +232,26 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     @Test
+    void getStatusMissingFromReplicationLagRepositoryExistsInBothPools() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+
+      doReturn(null).when(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineId);
+
+      String status = executionRepository.getStatus(pipelineId, ReadReplicaRequirement.UP_TO_DATE);
+
+      // When there's no info in the replicationLagRepository, there's no way to
+      // verify whether the pipeline from the read pool is up to date, so expect
+      // the code to return the pipeline from the default pool.
+      assertThat(status).isEqualTo(defaultPoolPipelineExecution.getStatus().toString());
+      validateReadPoolMetricsOnMissingFromReplicationLagRepository();
+
+      // With present, it doesn't matter that there's no info in the
+      // replicationLagRepository.  The info comes from the read pool.
+      status = executionRepository.getStatus(pipelineId, ReadReplicaRequirement.PRESENT);
+      assertThat(status).isEqualTo(readPoolPipelineExecution.getStatus().toString());
+    }
+
+    @Test
     void missingFromReplicationLagRepositoryExistsInReadPoolOnly() throws Exception {
       initDBWithExecution(pipelineId, null, readPoolPipelineExecution);
 
@@ -261,6 +281,24 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     @Test
+    void getStatusMissingFromReplicationLagRepositoryExistsInReadPoolOnly() throws Exception {
+      initDBWithExecution(pipelineId, null, readPoolPipelineExecution);
+
+      doReturn(null).when(replicationLagAwareRepository).getPipelineExecutionUpdate(pipelineId);
+
+      assertThatThrownBy(
+              () -> executionRepository.getStatus(pipelineId, ReadReplicaRequirement.UP_TO_DATE))
+          .isInstanceOf(ExecutionNotFoundException.class);
+
+      validateReadPoolMetricsOnMissingFromReplicationLagRepository();
+
+      // With present, it doesn't matter that there's no info in the
+      // replicationLagRepository.  The info comes from the read pool.
+      String status = executionRepository.getStatus(pipelineId, ReadReplicaRequirement.PRESENT);
+      assertThat(status).isEqualTo(readPoolPipelineExecution.getStatus().toString());
+    }
+
+    @Test
     void readPoolIsMoreRecentThanExpected() throws Exception {
       initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       // given readPoolUpdatedAt > expected pipeline execution update
@@ -275,6 +313,25 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
       assertThat(execution.getName()).isEqualTo(readPoolPipelineExecution.getName());
       validateReadPoolMetricsOnSuccess();
+    }
+
+    @Test
+    void getStatusReadPoolIsMoreRecentThanExpected() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+      // given readPoolUpdatedAt > expected pipeline execution update
+      // i.e. the read pool is up-to-date and contains a more recent execution than what we need
+      doReturn(Instant.ofEpochMilli(ThreadLocalRandom.current().nextLong(0L, readPoolUpdatedAt)))
+          .when(replicationLagAwareRepository)
+          .getPipelineExecutionUpdate(pipelineId);
+
+      String status = executionRepository.getStatus(pipelineId, ReadReplicaRequirement.UP_TO_DATE);
+
+      assertThat(status).isEqualTo(readPoolPipelineExecution.getStatus().toString());
+      validateReadPoolMetricsOnSuccess();
+
+      // Same result using present
+      status = executionRepository.getStatus(pipelineId, ReadReplicaRequirement.PRESENT);
+      assertThat(status).isEqualTo(readPoolPipelineExecution.getStatus().toString());
     }
 
     @Test
@@ -295,6 +352,25 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     @Test
+    void getStatusReadPoolIsUpToDate() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+      // given readPoolUpdateAt == expected pipeline execution update
+      // i.e. the read pool is up-to-date
+      doReturn(Instant.ofEpochMilli(readPoolUpdatedAt))
+          .when(replicationLagAwareRepository)
+          .getPipelineExecutionUpdate(pipelineId);
+
+      String status = executionRepository.getStatus(pipelineId, ReadReplicaRequirement.UP_TO_DATE);
+
+      assertThat(status).isEqualTo(readPoolPipelineExecution.getStatus().toString());
+      validateReadPoolMetricsOnSuccess();
+
+      // Same result using present
+      status = executionRepository.getStatus(pipelineId, ReadReplicaRequirement.PRESENT);
+      assertThat(status).isEqualTo(readPoolPipelineExecution.getStatus().toString());
+    }
+
+    @Test
     void readPoolIsNotUpToDate() throws Exception {
       initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
       // given readPoolUpdatedAt < expected pipeline execution update
@@ -312,6 +388,28 @@ public class SqlExecutionRepositoryReadReplicaTest {
 
       assertThat(execution.getName()).isEqualTo(defaultPoolPipelineExecution.getName());
       validateReadPoolMetricsOnFailure("invalid_version");
+    }
+
+    @Test
+    void getStatusReadPoolIsNotUpToDate() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, readPoolPipelineExecution);
+      // given readPoolUpdatedAt < expected pipeline execution update
+      // i.e. the read pool is not up-to-date
+      doReturn(
+              Instant.ofEpochMilli(
+                  ThreadLocalRandom.current()
+                      .nextLong(readPoolUpdatedAt + 1, defaultPoolUpdatedAt)))
+          .when(replicationLagAwareRepository)
+          .getPipelineExecutionUpdate(pipelineId);
+
+      String status = executionRepository.getStatus(pipelineId, ReadReplicaRequirement.UP_TO_DATE);
+
+      assertThat(status).isEqualTo(defaultPoolPipelineExecution.getStatus().toString());
+      validateReadPoolMetricsOnFailure("invalid_version");
+
+      // With present, it doesn't matter that the read replica is out of date.
+      status = executionRepository.getStatus(pipelineId, ReadReplicaRequirement.PRESENT);
+      assertThat(status).isEqualTo(readPoolPipelineExecution.getStatus().toString());
     }
 
     @Test
@@ -343,6 +441,21 @@ public class SqlExecutionRepositoryReadReplicaTest {
     }
 
     @Test
+    void getStatusExecutionDoesNotExist() {
+      // This exercises the case where the execution exists in neither the
+      // default pool nor the read pool.
+      String nonexistentId = ID_GENERATOR.nextULID();
+      assertThrows(
+          ExecutionNotFoundException.class,
+          () -> {
+            executionRepository.getStatus(
+                pipelineId, ReadReplicaRequirement.UP_TO_DATE /* arbitrary */);
+          });
+
+      validateReadPoolMetricsOnMissingExecution(false);
+    }
+
+    @Test
     void executionExistsInDefaultPoolButNotReadPool() throws Exception {
       initDBWithExecution(pipelineId, defaultPoolPipelineExecution, null);
 
@@ -361,6 +474,18 @@ public class SqlExecutionRepositoryReadReplicaTest {
       String application = executionRepository.getApplication(pipelineId);
 
       assertThat(application).isEqualTo(defaultPoolPipelineExecution.getApplication());
+      validateReadPoolMetricsOnMissingExecution(true);
+    }
+
+    @Test
+    void getStatusExecutionExistsInDefaultPoolButNotReadPool() throws Exception {
+      initDBWithExecution(pipelineId, defaultPoolPipelineExecution, null);
+
+      String status =
+          executionRepository.getStatus(
+              pipelineId, ReadReplicaRequirement.UP_TO_DATE /* anything but none */);
+
+      assertThat(status).isEqualTo(defaultPoolPipelineExecution.getStatus().toString());
       validateReadPoolMetricsOnMissingExecution(true);
     }
   }

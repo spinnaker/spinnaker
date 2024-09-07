@@ -578,6 +578,24 @@ class TaskController {
     executionRepository.retrieve(PIPELINE, id, requireUpToDateVersion ? ReadReplicaRequirement.UP_TO_DATE : ReadReplicaRequirement.NONE)
   }
 
+  /**
+   * Retrieve the status of a pipeline execution by id
+   * @param id the id of the execution for which to retrieve status
+   * @param readReplicaRequirementStr (optional) the requirement that the issuer of the
+   *   query has for the execution from the read pool (currently NONE, PRESENT, or
+   *   UP_TO_DATE are valid (case-insensitive)).  Defaults to UP_TO_DATE with the
+   *   expectation that most queries for status need up to date info.
+   */
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'READ')")
+  @RequestMapping(value = "/pipelines/{id}/status", method = RequestMethod.GET)
+  String getPipelineStatus(@PathVariable String id,
+                           @RequestParam(name = "readReplicaRequirement", defaultValue = "UP_TO_DATE") String readReplicaRequirementStr) {
+
+    // This throws an IllegalArgumentException if readReplicaRequirementStr is invalid
+    ReadReplicaRequirement readReplicaRequirement = ReadReplicaRequirement.valueOf(readReplicaRequirementStr.toUpperCase());
+    executionRepository.getStatus(id, readReplicaRequirement)
+  }
+
   @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String id) {

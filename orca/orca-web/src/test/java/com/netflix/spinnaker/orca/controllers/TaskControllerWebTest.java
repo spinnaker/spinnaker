@@ -18,7 +18,9 @@
 package com.netflix.spinnaker.orca.controllers;
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,6 +34,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -103,6 +106,81 @@ class TaskControllerWebTest {
     // verify implementation behavior
     verify(executionRepository)
         .retrieve(PIPELINE, TEST_EXECUTION_ID, ReadReplicaRequirement.UP_TO_DATE);
+    verifyNoMoreInteractions(executionRepository);
+  }
+
+  @Test
+  void testGetPipelineStatus() throws Exception {
+    ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED; // arbitrary
+    PipelineExecution execution = new PipelineExecutionImpl(ExecutionType.PIPELINE, "test");
+    execution.setStatus(executionStatus);
+    when(executionRepository.getStatus(eq(TEST_EXECUTION_ID), any(ReadReplicaRequirement.class)))
+        .thenReturn(executionStatus.toString());
+
+    webAppMockMvc
+        .perform(
+            get("/pipelines/" + TEST_EXECUTION_ID + "/status")
+                .queryParam("readReplicaRequirement", "up_to_date")
+                .characterEncoding(StandardCharsets.UTF_8.toString()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(content().string(executionStatus.toString()));
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
+
+    // verify implementation behavior
+    verify(executionRepository).getStatus(TEST_EXECUTION_ID, ReadReplicaRequirement.UP_TO_DATE);
+    verifyNoMoreInteractions(executionRepository);
+  }
+
+  @Test
+  void testGetPipelineStatusMissingReadReplicaRequirement() throws Exception {
+    ExecutionStatus executionStatus = ExecutionStatus.NOT_STARTED; // arbitrary
+    PipelineExecution execution = new PipelineExecutionImpl(ExecutionType.PIPELINE, "test");
+    execution.setStatus(executionStatus);
+    when(executionRepository.getStatus(eq(TEST_EXECUTION_ID), any(ReadReplicaRequirement.class)))
+        .thenReturn(executionStatus.toString());
+
+    webAppMockMvc
+        .perform(
+            get("/pipelines/" + TEST_EXECUTION_ID + "/status")
+                .characterEncoding(StandardCharsets.UTF_8.toString()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(content().string(executionStatus.toString()));
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
+
+    // verify implementation behavior -- the default readReplicaRequirement is UP_TO_DATE
+    verify(executionRepository).getStatus(TEST_EXECUTION_ID, ReadReplicaRequirement.UP_TO_DATE);
+    verifyNoMoreInteractions(executionRepository);
+  }
+
+  @Test
+  void testGetPipelineStatusInvalidReadReplicaRequirement() throws Exception {
+    String invalidReadReplicaRequirement = "this is invalid";
+    webAppMockMvc
+        .perform(
+            get("/pipelines/" + TEST_EXECUTION_ID + "/status")
+                .queryParam("readReplicaRequirement", invalidReadReplicaRequirement)
+                .characterEncoding(StandardCharsets.UTF_8.toString()))
+        .andDo(print())
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            result -> {
+              assertThat(result.getResolvedException())
+                  .isInstanceOf(IllegalArgumentException.class)
+                  .hasMessageContaining(
+                      "No enum constant com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement."
+                          + invalidReadReplicaRequirement.toUpperCase());
+            });
+
+    // verify PreAuthorize behavior
+    verify(executionRepository).getApplication(TEST_EXECUTION_ID);
+
+    // validation fails before any further interactions
     verifyNoMoreInteractions(executionRepository);
   }
 

@@ -168,6 +168,10 @@ class DualExecutionRepository(
     return select(PIPELINE, id).getApplication(id)
   }
 
+  override fun getStatus(id: String, readReplicaRequirement: ReadReplicaRequirement): String {
+    return select(PIPELINE, id).getStatus(id, readReplicaRequirement)
+  }
+
   override fun delete(type: ExecutionType, id: String) {
     return select(type, id).delete(type, id)
   }

@@ -120,6 +120,16 @@ public interface ExecutionRepository {
    */
   String getApplication(@Nonnull String id) throws ExecutionNotFoundException;
 
+  /**
+   * Retrieve the status of a pipeline execution.
+   *
+   * @param id the id of the execution
+   * @param readReplicaRequirement the requirement that the issuer of the query has for the
+   *     execution from the read pool
+   */
+  String getStatus(@Nonnull String id, ReadReplicaRequirement readReplicaRequirement)
+      throws ExecutionNotFoundException;
+
   @Nonnull
   Observable<PipelineExecution> retrievePipelinesForApplication(@Nonnull String application);
 

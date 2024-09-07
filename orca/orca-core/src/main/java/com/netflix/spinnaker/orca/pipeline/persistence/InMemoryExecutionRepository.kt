@@ -174,6 +174,10 @@ class InMemoryExecutionRepository : ExecutionRepository {
     return retrieve(PIPELINE, id).getApplication()
   }
 
+  override fun getStatus(id: String, readReplicaRequirement: ReadReplicaRequirement): String {
+    return retrieve(PIPELINE, id, readReplicaRequirement).getStatus().toString()
+  }
+
   override fun store(execution: PipelineExecution) {
     storageFor(execution.type).run {
       if (!containsKey(execution.id)) {

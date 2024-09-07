@@ -396,6 +396,13 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  public String getStatus(@Nonnull String id, ReadReplicaRequirement readReplicaRequirement)
+      throws ExecutionNotFoundException {
+    // This could be more efficient by querying for less data from redis.
+    return retrieve(PIPELINE, id).getStatus().toString();
+  }
+
+  @Override
   public void delete(@Nonnull ExecutionType type, @Nonnull String id) {
     RedisClientDelegate delegate = getRedisDelegate(type, id);
     deleteInternal(delegate, type, id);

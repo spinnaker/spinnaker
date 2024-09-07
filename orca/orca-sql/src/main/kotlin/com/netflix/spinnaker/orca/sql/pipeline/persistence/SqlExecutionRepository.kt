@@ -519,6 +519,10 @@ class SqlExecutionRepository(
     return ctx.fetchFieldFromReadPool(id, field("application", String::class.java), ReadReplicaRequirement.PRESENT);
   }
 
+  override fun getStatus(id: String, readReplicaRequirement: ReadReplicaRequirement): String {
+    return jooq.fetchFieldFromReadPool(id, field("status", String::class.java), readReplicaRequirement) ?: throw ExecutionNotFoundException("No $PIPELINE found for $id")
+  }
+
   private fun retrieve(type: ExecutionType, criteria: ExecutionCriteria, partition: String?): Observable<PipelineExecution> {
     withPool(readPoolName) {
       val select = jooq.selectExecutions(
