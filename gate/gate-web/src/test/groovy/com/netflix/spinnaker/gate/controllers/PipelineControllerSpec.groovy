@@ -40,6 +40,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 class PipelineControllerSpec extends Specification {
@@ -366,6 +367,44 @@ class PipelineControllerSpec extends Specification {
     'olishdg'                 | false                  | 400
     'yES'                     | true                   | 200
     'nO'                      | false                  | 200
+  }
+
+  @Unroll
+  void "GET /pipelines/id/status passes readReplicaRequirement query param (#readReplicaRequirement)"() {
+    given:
+    def executionId = "some-execution-id"
+    def executionStatus = "arbitrary status"
+
+    when:
+    mockMvc.perform(get("/pipelines/${executionId}/status")
+                    .queryParam('readReplicaRequirement', readReplicaRequirement))
+      .andDo(print())
+      .andExpect(status().isOk())
+      .andExpect(content().string(executionStatus))
+
+    then:
+    1 * pipelineService.getPipelineStatus(executionId, readReplicaRequirement) >> executionStatus
+    0 * pipelineService._
+
+    where:
+    readReplicaRequirement << ["NONE", "PRESENT", "up_to_date", "bogus"]
+  }
+
+  @Unroll
+  void "GET /pipelines/id/status has a default value for the readReplicaRequirement query param"() {
+    given:
+    def executionId = "some-execution-id"
+    def executionStatus = "arbitrary status"
+
+    when:
+    mockMvc.perform(get("/pipelines/${executionId}/status"))
+      .andDo(print())
+      .andExpect(status().isOk())
+      .andExpect(content().string(executionStatus))
+
+    then:
+    1 * pipelineService.getPipelineStatus(executionId, "UP_TO_DATE") >> executionStatus
+    0 * pipelineService._
   }
 
   static SpinnakerHttpException makeSpinnakerHttpException(int status, Map body) {

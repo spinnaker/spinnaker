@@ -200,6 +200,31 @@ class PipelineController {
     }
   }
 
+  /**
+   * Retrieve the status of a pipeline execution by id
+   * @param id the id of the execution to retrieve
+   * @param readReplicaRequirement the requirement that the issuer of the
+   *   query has for the execution from the read pool (currently NONE, PRESENT, or
+   *   UP_TO_DATE are valid (case-insensitive))
+   */
+  @Operation(summary = "Retrieve the status of a pipeline execution")
+  // produces = "text/plain" is necessary for the response to be a plain string.
+  // Without it, spring uses the first/default HttpMessageConverter.  Currently
+  // (7-sep-24), that converts the response to json which wraps it in quotes.
+  // And yes, when there's an exception, the response is json.
+  @GetMapping(path = "{id}/status", produces = "text/plain")
+  String getPipelineStatus(@PathVariable("id") String id,
+                           @RequestParam(defaultValue = "UP_TO_DATE") String readReplicaRequirement) {
+    try {
+      pipelineService.getPipelineStatus(id, readReplicaRequirement)
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
+        throw new NotFoundException("Pipeline not found (id: ${id})")
+      }
+      throw e;
+    }
+  }
+
   @CompileDynamic
   @Operation(summary = "Update a pipeline definition")
   @PutMapping("{id}")

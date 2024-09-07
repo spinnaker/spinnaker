@@ -18,6 +18,9 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -132,5 +135,33 @@ class PipelineServiceSpec extends Specification {
 
     where:
     requireUpToDateVersion << [false, true]
+  }
+
+  @Unroll
+  void "getPipelineStatus passes readReplicaRequirement to orca (#readReplicaRequirement)"() {
+    given:
+    def executionId = "some-execution-id"
+    def executionStatus = "arbitrary status"
+
+    ResponseBody responseBody = ResponseBody.create(MediaType.parse("text/plain"), executionStatus)
+    Response<ResponseBody> response = Response.success(responseBody)
+    def service = new PipelineService(
+      applicationService: Mock(ApplicationService),
+      orcaServiceSelector: orcaServiceSelector
+    )
+
+    when:
+    def actualStatus = service.getPipelineStatus(executionId, readReplicaRequirement)
+
+    then:
+    actualStatus == executionStatus
+
+    1 * orcaServiceSelector.select() >> { orcaService }
+    1 * orcaService.getPipelineStatus(executionId, readReplicaRequirement) >> Calls.response(response)
+    0 * orcaServiceSelector._
+    0 * orcaService._
+
+    where:
+    readReplicaRequirement << ["NONE", "PRESENT", "up_to_date", "bogus"]
   }
 }
