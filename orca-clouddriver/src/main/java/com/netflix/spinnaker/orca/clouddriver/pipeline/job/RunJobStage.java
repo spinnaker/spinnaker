@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.job;
 
 import static java.util.Collections.emptyMap;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
@@ -29,6 +30,8 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.MonitorJobTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion;
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes.Manifest;
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes.ManifestAnnotationExtractor;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
 import java.util.*;
@@ -83,9 +86,11 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
 
   @Override
   public void afterStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
+    Map<String, Object> executionLogs = getLogOutputFromManifestArtifact(stage);
     if (stage.getContext().getOrDefault("noOutput", "false").toString().equals("true")) {
       stage.setOutputs(emptyMap());
     }
+    stage.getContext().putAll(executionLogs);
   }
 
   @Override
@@ -154,5 +159,21 @@ public class RunJobStage implements StageDefinitionBuilder, CancellableStage {
                 runJobStageDecorators.stream()
                     .filter(it -> it.supports(cloudProvider))
                     .findFirst());
+  }
+
+  public Map<String, Object> getLogOutputFromManifestArtifact(StageExecution stage) {
+    Map<String, Object> outputs = new HashMap<>();
+    Map<String, Object> execution = new HashMap<>();
+    if (stage.getContext().containsKey("manifestArtifact")) {
+      List<Manifest> manifest =
+          objectMapper.convertValue(
+              stage.getContext().get("outputs.manifests"), new TypeReference<List<Manifest>>() {});
+      String logTemplate = ManifestAnnotationExtractor.logs(manifest.get(0));
+      if (logTemplate != null) {
+        execution.put("logs", logTemplate);
+        outputs.put("execution", execution);
+      }
+    }
+    return outputs;
   }
 }
