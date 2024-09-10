@@ -405,6 +405,9 @@ angular
                 spotMaxPrice = launchTemplateData.instanceMarketOptions?.spotOptions?.maxPrice;
                 command.instanceType = launchTemplateData.instanceType;
                 command.viewState.useSimpleInstanceTypeSelector = true;
+                if (launchTemplateData.userData) {
+                  command.base64UserData = launchTemplateData.userData;
+                }
               }
 
               if (serverGroup.mixedInstancesPolicy) {
