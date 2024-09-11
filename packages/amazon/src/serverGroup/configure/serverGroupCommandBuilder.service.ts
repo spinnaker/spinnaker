@@ -437,7 +437,8 @@ angular
                 command.viewState.useSimpleInstanceTypeSelector = isSimpleModeEnabled(command);
               }
 
-              const ipv6AddressCount = _.get(launchTemplateData, 'networkInterfaces[0]');
+              const networkInterfaces = _.get(launchTemplateData, 'networkInterfaces[0]');
+              const ipv6AddressCount = (networkInterfaces as INetworkInterface)?.ipv6AddressCount ?? 0;
 
               const asgSettings = AWSProviderSettings.serverGroups;
               const isTestEnv = serverGroup.accountDetails && serverGroup.accountDetails.environment === 'test';
