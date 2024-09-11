@@ -16,81 +16,85 @@
 
 package com.netflix.spinnaker.gate.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.services.ApplicationService;
+import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
 import com.netflix.spinnaker.gate.services.internal.EchoService;
-import com.squareup.okhttp.mockwebserver.Dispatcher;
-import com.squareup.okhttp.mockwebserver.MockResponse;
-import com.squareup.okhttp.mockwebserver.MockWebServer;
-import com.squareup.okhttp.mockwebserver.RecordedRequest;
-import groovy.util.logging.Slf4j;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 
-@ActiveProfiles("echo")
-@Slf4j
-@DirtiesContext
 @SpringBootTest(classes = {Main.class})
 @TestPropertySource("/application-echo.properties")
 class EchoServiceTest {
 
   @Autowired EchoService echoService;
 
-  private static MockWebServer echoServer;
-  private static MockWebServer clouddriverServer;
-  private static MockWebServer front50Server;
+  /**
+   * To prevent refreshing the applications cache, which involves calls to clouddriver and front50.
+   */
+  @MockBean ApplicationService applicationService;
+
+  /** To prevent calls to clouddriver */
+  @MockBean DefaultProviderLookupService defaultProviderLookupService;
+
+  /** See https://wiremock.org/docs/junit-jupiter/#advanced-usage---programmatic */
+  @RegisterExtension
+  static WireMockExtension wmEcho =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
+  @RegisterExtension
+  static WireMockExtension wmClouddriver =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
+  @RegisterExtension
+  static WireMockExtension wmFront50 =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
+  @DynamicPropertySource
+  static void registerUrls(DynamicPropertyRegistry registry) {
+    // Configure wiremock's random ports into gate
+    System.out.println("wiremock echo url: " + wmEcho.baseUrl());
+    System.out.println("wiremock clouddriver url: " + wmClouddriver.baseUrl());
+    System.out.println("wiremock front50 url: " + wmFront50.baseUrl());
+    registry.add("services.echo.base-url", wmEcho::baseUrl);
+    registry.add("services.clouddriver.base-url", wmClouddriver::baseUrl);
+    registry.add("services.front50.base-url", wmFront50::baseUrl);
+  }
 
   @BeforeAll
   static void setUp() throws IOException {
-    clouddriverServer = new MockWebServer();
-    clouddriverServer.start(7002);
-
-    Dispatcher clouddriverDispatcher =
-        new Dispatcher() {
-          @Override
-          public MockResponse dispatch(RecordedRequest request) {
-            return new MockResponse().setResponseCode(200);
-          }
-        };
-    clouddriverServer.setDispatcher(clouddriverDispatcher);
-
-    front50Server = new MockWebServer();
-    front50Server.start(8081);
-    Dispatcher front50Dispatcher =
-        new Dispatcher() {
-          @Override
-          public MockResponse dispatch(RecordedRequest request) {
-            return new MockResponse().setResponseCode(200);
-          }
-        };
-    front50Server.setDispatcher(front50Dispatcher);
-
-    echoServer = new MockWebServer();
-    echoServer.start(8089);
-  }
-
-  @AfterAll
-  static void tearDown() throws IOException {
-    echoServer.shutdown();
-    clouddriverServer.shutdown();
-    front50Server.shutdown();
+    wmClouddriver.stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200)));
+    wmFront50.stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200)));
   }
 
   @Test
-  void shouldNotOrderTheKeysWhenCallingEcho() throws InterruptedException {
+  void shouldNotOrderTheKeysWhenCallingEcho() throws Exception {
 
-    echoServer.enqueue(new MockResponse().setResponseCode(200));
+    // The response is arbitrary.  This test verifies the request body that gate
+    // sends to echo.
+    wmEcho.stubFor(
+        post("/webhooks/git/github").willReturn(aResponse().withStatus(200).withBody("{}")));
+
     Map<String, Object> body = new HashMap<>();
     body.put("ref", "refs/heads/main");
     body.put("before", "ca7376e4b730f1f2878760abaeaed6c039fc5414");
@@ -98,10 +102,12 @@ class EchoServiceTest {
     body.put("id", 105648914);
 
     echoService.webhooks("git", "github", body);
-    RecordedRequest recordedRequest = echoServer.takeRequest(2, TimeUnit.SECONDS);
-    String requestBody = recordedRequest.getBody().readUtf8();
-    assertThat(requestBody)
-        .isEqualTo(
-            "{\"ref\":\"refs/heads/main\",\"before\":\"ca7376e4b730f1f2878760abaeaed6c039fc5414\",\"after\":\"c2420ce6e341ef0042f2e12591bdbe9eec29a032\",\"id\":105648914}");
+
+    String expectedBody =
+        "{\"ref\":\"refs/heads/main\",\"before\":\"ca7376e4b730f1f2878760abaeaed6c039fc5414\",\"after\":\"c2420ce6e341ef0042f2e12591bdbe9eec29a032\",\"id\":105648914}";
+
+    wmEcho.verify(
+        postRequestedFor(urlPathEqualTo("/webhooks/git/github"))
+            .withRequestBody(equalTo(expectedBody)));
   }
 }

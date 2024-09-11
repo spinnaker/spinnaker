@@ -64,6 +64,7 @@ allprojects {
       exceptionFormat = 'full'
     }
     useJUnitPlatform()
+    maxHeapSize = "1g"
   }
 }
 
