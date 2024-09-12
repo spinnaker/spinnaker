@@ -73,7 +73,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 @Configuration
 @Slf4j
-@EnableConfigurationProperties([PipelineControllerConfigProperties.class])
+@EnableConfigurationProperties([PipelineControllerConfigProperties, ApplicationConfigurationProperties])
 @Import([PluginsAutoConfiguration, DeckPluginConfiguration, PluginWebConfiguration])
 class GateConfig {
 
