@@ -127,6 +127,7 @@ export interface ISpinnakerSettings {
     manifestBasePath: string;
     urls?: Partial<IManagedDeliveryURLs>;
   };
+  maxFetchHistoryOnEvaluateVariables?: number;
   maxPipelineAgeDays: number;
   newApplicationDefaults: INewApplicationDefaults;
   notifications: INotificationSettings;
@@ -175,6 +176,7 @@ SETTINGS.managedDelivery = SETTINGS.managedDelivery || {
   defaultManifest: 'spinnaker.yml',
   manifestBasePath: '.spinnaker',
 };
+SETTINGS.maxFetchHistoryOnEvaluateVariables = SETTINGS.maxFetchHistoryOnEvaluateVariables ?? 100;
 
 // A helper to make resetting settings to steady state after running tests easier
 const originalSettings: ISpinnakerSettings = cloneDeep(SETTINGS);

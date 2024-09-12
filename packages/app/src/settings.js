@@ -148,6 +148,7 @@ window.spinnakerSettings = {
     defaultManifest: 'spinnaker.yml',
     manifestBasePath: '.spinnaker',
   },
+  maxFetchHistoryOnEvaluateVariables: 100,
   maxPipelineAgeDays: 14,
   newApplicationDefaults: {
     chaosMonkey: false,

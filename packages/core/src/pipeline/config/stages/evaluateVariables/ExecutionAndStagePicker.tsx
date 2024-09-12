@@ -2,6 +2,7 @@ import { isEqual, keyBy } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
 
+import { SETTINGS } from '../../../../config';
 import type { IExecution, IPipeline, IStage } from '../../../../domain';
 import type { IStageForSpelPreview } from '../../../../presentation';
 import { FormField, ReactSelectInput, useData } from '../../../../presentation';
@@ -23,7 +24,10 @@ export function ExecutionAndStagePicker(props: IExecutionAndStagePickerProps) {
   const [showStageSelector, setShowStageSelector] = React.useState(false);
 
   const fetchExecutions = useData(
-    () => executionService.getExecutionsForConfigIds([pipeline.id], { limit: 100 }),
+    () =>
+      executionService.getExecutionsForConfigIds([pipeline.id], {
+        limit: SETTINGS.maxFetchHistoryOnEvaluateVariables,
+      }),
     [],
     [],
   );
