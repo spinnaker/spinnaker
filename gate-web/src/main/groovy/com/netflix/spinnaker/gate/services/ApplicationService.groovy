@@ -36,6 +36,7 @@ import retrofit.converter.ConversionException
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
 import java.util.stream.Collectors
@@ -57,14 +58,13 @@ class ApplicationService {
     ServiceConfiguration serviceConfiguration,
     ClouddriverServiceSelector clouddriverServiceSelector,
     Front50Service front50Service,
-    ExecutorService executorService,
     ApplicationConfigurationProperties applicationConfigurationProperties
   ){
     this.serviceConfiguration = serviceConfiguration
     this.clouddriverServiceSelector = clouddriverServiceSelector
     this.front50Service = front50Service
-    this.executorService = executorService
     this.applicationConfigurationProperties = applicationConfigurationProperties
+    this.executorService = Executors.newCachedThreadPool()
     this.allApplicationsCache = new AtomicReference<>([])
   }
 

@@ -32,8 +32,6 @@ import org.springframework.web.util.NestedServletException
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.util.concurrent.Executors
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
 class ApplicationControllerSpec extends Specification {
@@ -58,7 +56,6 @@ class ApplicationControllerSpec extends Specification {
       new ServiceConfiguration(),
       clouddriverSelector,
       front50Service,
-      Executors.newFixedThreadPool(1),
       new ApplicationConfigurationProperties()
     )
     server.start()

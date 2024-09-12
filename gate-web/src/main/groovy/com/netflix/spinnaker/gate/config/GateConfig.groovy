@@ -65,9 +65,6 @@ import org.springframework.util.CollectionUtils
 import org.springframework.web.client.RestTemplate
 import retrofit.Endpoint
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-
 import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
@@ -88,11 +85,6 @@ class GateConfig {
   @ConditionalOnMissingBean(RestTemplate)
   RestTemplate restTemplate() {
     new RestTemplate()
-  }
-
-  @Bean
-  ExecutorService executorService() {
-    Executors.newCachedThreadPool()
   }
 
   @Autowired

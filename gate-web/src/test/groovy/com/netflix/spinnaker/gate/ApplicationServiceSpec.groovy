@@ -29,8 +29,6 @@ import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.util.concurrent.Executors
-
 class ApplicationServiceSpec extends Specification {
   def clouddriver = Mock(ClouddriverService)
   def front50 = Mock(Front50Service)
@@ -48,7 +46,6 @@ class ApplicationServiceSpec extends Specification {
       config,
       clouddriverSelector,
       front50,
-      Executors.newFixedThreadPool(1),
       applicationConfigurationProperties
     )
     return service
@@ -240,7 +237,6 @@ class ApplicationServiceSpec extends Specification {
       config,
       clouddriverSelector,
       front50,
-      Executors.newFixedThreadPool(1),
       new ApplicationConfigurationProperties()
     )
 

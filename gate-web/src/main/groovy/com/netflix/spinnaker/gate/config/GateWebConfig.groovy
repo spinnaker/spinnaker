@@ -23,19 +23,22 @@ import com.netflix.spinnaker.gate.interceptors.ResponseHeaderInterceptor
 import com.netflix.spinnaker.gate.interceptors.ResponseHeaderInterceptorConfigurationProperties
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import com.netflix.spinnaker.kork.web.context.MdcCopyingAsyncTaskExecutor
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.task.AsyncTaskExecutor
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
@@ -63,6 +66,9 @@ public class GateWebConfig implements WebMvcConfigurer {
 
   @Autowired
   ResponseHeaderInterceptorConfigurationProperties responseHeaderInterceptorConfigurationProperties
+
+  @Autowired
+  AsyncTaskExecutor asyncTaskExecutor
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
@@ -130,5 +136,10 @@ public class GateWebConfig implements WebMvcConfigurer {
   @Override
   void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
     configurer.favorPathExtension(false)
+  }
+
+  @Override
+  void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+    configurer.setTaskExecutor(new MdcCopyingAsyncTaskExecutor(asyncTaskExecutor))
   }
 }
