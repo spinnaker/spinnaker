@@ -76,8 +76,3 @@ For now, you can look at the [all modules](https://github.com/spinnaker/deck/tre
 get an idea how we are customizing Deck internally. Expect a lot of this to change, though, as we figure out better, cleaner
 hooks and integration points. And we're happy to provide new integration points (or accept pull requests) following
 those existing conventions if you need an integration point that doesn't already exist.
-
-## Join Us
-
-Interested in sharing feedback on Spinnaker's UI or contributing to Deck?
-Please join us at the [Spinnaker UI SIG](https://github.com/spinnaker/governance/tree/master/sig-ui-ux)!
