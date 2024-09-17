@@ -57,6 +57,9 @@ databaseChangeLog:
     file: changelog/20201214-create-compressed-executions-table.yaml
     relativeToChangelogFile: true
 - include:
+    file: changelog/20240731-add-compression-type-column-mariadb.yaml
+    relativeToChangelogFile: true
+- include:
     file: changelog/20220427-add-compression-type-column-to-compressed-executions-tables-postgres.yaml
     relativeToChangelogFile: true
 - include:
