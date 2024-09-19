@@ -57,7 +57,8 @@ import retrofit.converter.JacksonConverter;
 })
 @EnableConfigurationProperties({
   CloudDriverConfigurationProperties.class,
-  PollerConfigurationProperties.class
+  PollerConfigurationProperties.class,
+  TaskConfigurationProperties.class
 })
 @Slf4j
 public class CloudDriverConfiguration {

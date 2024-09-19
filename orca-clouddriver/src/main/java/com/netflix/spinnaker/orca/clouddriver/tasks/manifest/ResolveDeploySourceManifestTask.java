@@ -22,9 +22,14 @@ import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties;
+import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties.ResolveDeploySourceManifestTaskConfig;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,12 +37,17 @@ import org.springframework.stereotype.Component;
 @NonnullByDefault
 public final class ResolveDeploySourceManifestTask implements Task {
   public static final String TASK_NAME = "resolveDeploySourceManifest";
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final ManifestEvaluator manifestEvaluator;
+  private final ResolveDeploySourceManifestTaskConfig configProperties;
 
   @Autowired
-  public ResolveDeploySourceManifestTask(ManifestEvaluator manifestEvaluator) {
+  public ResolveDeploySourceManifestTask(
+      ManifestEvaluator manifestEvaluator, TaskConfigurationProperties configProperties) {
     this.manifestEvaluator = manifestEvaluator;
+    this.configProperties = configProperties.getResolveDeploySourceManifestTask();
+    log.info("output keys to filter: {}", this.configProperties.getExcludeKeysFromOutputs());
   }
 
   @Nonnull
@@ -48,7 +58,16 @@ public final class ResolveDeploySourceManifestTask implements Task {
     DeployManifestContext context = stage.mapTo(DeployManifestContext.class);
     ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
     ImmutableMap<String, Object> outputs = getOutputs(result);
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
+
+    // exclude certain configured keys from being stored in the stage outputs
+    Map<String, Object> filteredOutputs =
+        filterContextOutputs(outputs, configProperties.getExcludeKeysFromOutputs());
+    log.info("context outputs will only contain: {} keys", filteredOutputs.keySet());
+
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context(outputs)
+        .outputs(filteredOutputs)
+        .build();
   }
 
   private ImmutableMap<String, Object> getOutputs(ManifestEvaluator.Result result) {

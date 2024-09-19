@@ -24,6 +24,8 @@ import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties;
+import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties.PromoteManifestKatoOutputsTaskConfig;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,7 +36,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -50,7 +51,15 @@ public class PromoteManifestKatoOutputsTask implements Task {
   private static final String CREATED_ARTIFACTS_KEY = "createdArtifacts";
   private static final String ARTIFACTS_KEY = "artifacts";
 
-  @Autowired ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
+  private final PromoteManifestKatoOutputsTaskConfig configProperties;
+
+  public PromoteManifestKatoOutputsTask(
+      ObjectMapper objectMapper, TaskConfigurationProperties configProperties) {
+    this.objectMapper = objectMapper;
+    this.configProperties = configProperties.getPromoteManifestKatoOutputsTask();
+    log.info("output keys to filter: {}", this.configProperties.getExcludeKeysFromOutputs());
+  }
 
   @Nonnull
   @Override
@@ -77,7 +86,15 @@ public class PromoteManifestKatoOutputsTask implements Task {
     addToOutputs(outputs, allResults, CREATED_ARTIFACTS_KEY, ARTIFACTS_KEY);
     convertKey(outputs, ARTIFACTS_KEY, artifactListType);
 
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
+    // exclude certain configured keys from being stored in the stage outputs
+    Map<String, Object> filteredOutputs =
+        filterContextOutputs(outputs, configProperties.getExcludeKeysFromOutputs());
+    log.info("context outputs will only contain: {} keys", filteredOutputs.keySet());
+
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context(outputs)
+        .outputs(filteredOutputs)
+        .build();
   }
 
   private void convertKey(Map<String, Object> outputs, String key, TypeReference tr) {

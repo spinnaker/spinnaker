@@ -96,7 +96,8 @@ import rx.schedulers.Schedulers;
 @EnableConfigurationProperties({
   TaskOverrideConfigurationProperties.class,
   ExecutionConfigurationProperties.class,
-  ExpressionProperties.class
+  ExpressionProperties.class,
+  TaskConfigurationProperties.class
 })
 public class OrcaConfiguration {
   @Bean

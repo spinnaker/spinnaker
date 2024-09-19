@@ -1,0 +1,1191 @@
+{
+  "deploy.account.name": "k8s-v2-account",
+  "outputs.createdArtifacts": [
+    {
+      "customKind": false,
+      "reference": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+      "metadata": {
+        "account": "k8s-v2-account"
+      },
+      "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+      "location": "test",
+      "type": "kubernetes/configMap",
+      "version": "v000"
+    },
+    {
+      "customKind": false,
+      "reference": "test",
+      "metadata": {
+        "account": "k8s-v2-account"
+      },
+      "name": "test",
+      "location": "",
+      "type": "kubernetes/namespace",
+      "version": ""
+    },
+    {
+      "customKind": false,
+      "reference": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+      "metadata": {
+        "account": "k8s-v2-account"
+      },
+      "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+      "location": "test",
+      "type": "kubernetes/deployment",
+      "version": ""
+    }
+  ],
+  "source": "text",
+  "stableManifests": [
+    {
+      "manifestName": "namespace test",
+      "location": ""
+    },
+    {
+      "manifestName": "configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+      "location": "test"
+    },
+    {
+      "manifestName": "deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+      "location": "test"
+    }
+  ],
+  "cloudProvider": "kubernetes",
+  "kato.result.expected": false,
+  "trafficManagement": {
+    "options": {
+      "enableTraffic": false
+    },
+    "enabled": false
+  },
+  "deploy.server.groups": {},
+  "kato.last.task.id": {
+    "id": "01FCM0V6ECYWSVCPC0V3QWR1QW"
+  },
+  "requiredArtifacts": [],
+  "artifacts": [
+    {
+      "customKind": false,
+      "reference": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+      "metadata": {
+        "account": "k8s-v2-account"
+      },
+      "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+      "location": "test",
+      "type": "kubernetes/configMap",
+      "version": "v000"
+    },
+    {
+      "customKind": false,
+      "reference": "test",
+      "metadata": {
+        "account": "k8s-v2-account"
+      },
+      "name": "test",
+      "location": "",
+      "type": "kubernetes/namespace",
+      "version": ""
+    },
+    {
+      "customKind": false,
+      "reference": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+      "metadata": {
+        "account": "k8s-v2-account"
+      },
+      "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+      "location": "test",
+      "type": "kubernetes/deployment",
+      "version": ""
+    }
+  ],
+  "kato.task.terminalRetryCount": 0,
+  "moniker": {
+    "app": "sfcdservicetestapp"
+  },
+  "kato.task.firstNotFoundRetry": -1,
+  "outputs.manifestNamesByNamespace": {
+    "": [
+      "namespace test"
+    ],
+    "test": [
+      "configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+      "deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc"
+    ]
+  },
+  "optionalArtifacts": [],
+  "outputs.boundArtifacts": [
+    {
+      "customKind": false,
+      "reference": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+      "metadata": {
+        "account": "k8s-v2-account"
+      },
+      "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+      "location": "test",
+      "type": "kubernetes/configMap",
+      "version": "v000"
+    }
+  ],
+  "manifests": [
+    {
+      "metadata": {
+        "name": "test"
+      },
+      "apiVersion": "v1",
+      "kind": "Namespace"
+    },
+    {
+      "metadata": {
+        "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+        "namespace": "test",
+        "labels": {
+          "helm.sh/chart": "nginx-0.0.2",
+          "app.kubernetes.io/managed-by": "Tiller",
+          "app.kubernetes.io/name": "sfcdtest",
+          "app.kubernetes.io/instance": "render-helm-output-manifest"
+        }
+      },
+      "apiVersion": "v1",
+      "data": {
+        "nginx.conf": "events",
+        "index.html": "<h1>Hello</h1> <p>Test Service Version 2.0</p>"
+      },
+      "kind": "ConfigMap"
+    },
+    {
+      "metadata": {
+        "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+        "namespace": "test",
+        "labels": {
+          "app.kubernetes.io/managed-by": "Tiller",
+          "app.kubernetes.io/name": "sfcdtest",
+          "app.kubernetes.io/instance": "render-helm-output-manifest"
+        }
+      },
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "spec": {
+        "template": {
+          "metadata": {
+            "annotations": {
+              "service": "sfcd-quality"
+            },
+            "labels": {
+              "app.kubernetes.io/name": "sfcdtest",
+              "app.kubernetes.io/instance": "render-helm-output-manifest"
+            }
+          },
+          "spec": {
+            "volumes": [
+              {
+                "configMap": {
+                  "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc"
+                },
+                "name": "wwwdata-volume"
+              }
+            ],
+            "containers": [
+              {
+                "image": "test-image-1",
+                "imagePullPolicy": "Always",
+                "name": "test",
+                "resources": {
+                  "requests": {
+                    "memory": "64Mi",
+                    "cpu": "500m"
+                  },
+                  "limits": {
+                    "memory": "128Mi",
+                    "cpu": "500m"
+                  }
+                },
+                "ports": [
+                  {
+                    "protocol": "TCP",
+                    "name": "https",
+                    "containerPort": 443
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "mountPath": "/usr/share/nginx/html",
+                    "name": "wwwdata-volume"
+                  }
+                ]
+              }
+            ],
+            "securityContext": {
+              "runAsUser": 7447,
+              "fsGroup": 7447,
+              "runAsNonRoot": true
+            }
+          }
+        },
+        "replicas": 3,
+        "selector": {
+          "matchLabels": {
+            "app.kubernetes.io/name": "sfcdtest",
+            "app.kubernetes.io/instance": "render-helm-output-manifest"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate"
+        }
+      }
+    }
+  ],
+  "messages": [],
+  "failedManifests": [],
+  "kato.tasks": [
+    {
+      "resultObjects": [
+        {
+          "createdArtifacts": [
+            {
+              "customKind": false,
+              "reference": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+              "metadata": {
+                "account": "k8s-v2-account"
+              },
+              "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+              "location": "test",
+              "type": "kubernetes/configMap",
+              "version": "v000"
+            },
+            {
+              "customKind": false,
+              "reference": "test",
+              "metadata": {
+                "account": "k8s-v2-account"
+              },
+              "name": "test",
+              "location": "",
+              "type": "kubernetes/namespace",
+              "version": ""
+            },
+            {
+              "customKind": false,
+              "reference": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+              "metadata": {
+                "account": "k8s-v2-account"
+              },
+              "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+              "location": "test",
+              "type": "kubernetes/deployment",
+              "version": ""
+            }
+          ],
+          "manifests": [
+            {
+              "metadata": {
+                "uid": "7ff137ec-97bc-4fb2-967b-eda32be6fafa",
+                "managedFields": [
+                  {
+                    "apiVersion": "v1",
+                    "fieldsV1": {
+                      "f:data": {
+                        "f:index.html": {},
+                        "f:nginx.conf": {},
+                        ".": {}
+                      },
+                      "f:metadata": {
+                        "f:annotations": {
+                          "f:artifact.spinnaker.io/version": {},
+                          "f:artifact.spinnaker.io/name": {},
+                          "f:moniker.spinnaker.io/cluster": {},
+                          "f:kubectl.kubernetes.io/last-applied-configuration": {},
+                          "f:artifact.spinnaker.io/type": {},
+                          "f:moniker.spinnaker.io/sequence": {},
+                          "f:moniker.spinnaker.io/application": {},
+                          "f:artifact.spinnaker.io/location": {},
+                          ".": {}
+                        },
+                        "f:labels": {
+                          "f:helm.sh/chart": {},
+                          "f:app.kubernetes.io/instance": {},
+                          "f:app.kubernetes.io/name": {},
+                          "f:moniker.spinnaker.io/sequence": {},
+                          ".": {},
+                          "f:app.kubernetes.io/managed-by": {}
+                        }
+                      }
+                    },
+                    "manager": "kubectl-client-side-apply",
+                    "time": "2021-08-08T23:16:16Z",
+                    "operation": "Update",
+                    "fieldsType": "FieldsV1"
+                  }
+                ],
+                "resourceVersion": "344741371",
+                "creationTimestamp": "2021-08-08T23:16:16Z",
+                "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+                "namespace": "test",
+                "annotations": {
+                  "artifact.spinnaker.io/version": "v000",
+                  "artifact.spinnaker.io/name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+                  "artifact.spinnaker.io/location": "test",
+                  "artifact.spinnaker.io/type": "kubernetes/configMap",
+                  "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"index.html\":\"\\u003ch1\\u003eHello\\u003c/h1\\u003e \\u003cp\\u003eTest Service Version 2.0\\u003c/p\\u003e\",\"nginx.conf\":\"events {\\n  worker_connections  1024;\\n}\\nhttp {\\n  server {\\n     listen 80 default_server;\\n      server_name _;\\n      return 301 https://$host$request_uri;\\n  }\\n  server {\\n    listen 443 ssl;\\n    ssl_protocols TLSv1.2 TLSv1.3;\\n    location / {\\n      return 200 \\\"===============================\\\\n\\\\n   This is your helm deploy 3.0!   \\\\n\\\\n===============================\\\\n\\\";\\n    }\\n  }\\n}\\n\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"test\",\"artifact.spinnaker.io/name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"artifact.spinnaker.io/type\":\"kubernetes/configMap\",\"artifact.spinnaker.io/version\":\"v000\",\"moniker.spinnaker.io/application\":\"sfcdservicetestapp\",\"moniker.spinnaker.io/cluster\":\"configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"moniker.spinnaker.io/sequence\":\"0\"},\"labels\":{\"app.kubernetes.io/instance\":\"render-helm-output-manifest\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"sfcdtest\",\"helm.sh/chart\":\"nginx-0.0.2\",\"moniker.spinnaker.io/sequence\":\"0\"},\"name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000\",\"namespace\":\"test\"}}\n",
+                  "moniker.spinnaker.io/cluster": "configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+                  "moniker.spinnaker.io/sequence": "0",
+                  "moniker.spinnaker.io/application": "sfcdservicetestapp"
+                },
+                "labels": {
+                  "helm.sh/chart": "nginx-0.0.2",
+                  "app.kubernetes.io/managed-by": "spinnaker",
+                  "app.kubernetes.io/name": "sfcdtest",
+                  "app.kubernetes.io/instance": "render-helm-output-manifest",
+                  "moniker.spinnaker.io/sequence": "0"
+                },
+                "selfLink": "/api/v1/namespaces/test/configmaps/render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000"
+              },
+              "apiVersion": "v1",
+              "data": {
+                "nginx.conf": "events",
+                "index.html": "<h1>Hello</h1> <p>Test Service Version 2.0</p>"
+              },
+              "kind": "ConfigMap"
+            },
+            {
+              "metadata": {
+                "uid": "ece1ef30-1bc4-11ea-9227-42010a3e0138",
+                "resourceVersion": "343481080",
+                "creationTimestamp": "2019-12-11T03:18:38Z",
+                "name": "test",
+                "annotations": {
+                  "artifact.spinnaker.io/version": "",
+                  "artifact.spinnaker.io/name": "test",
+                  "artifact.spinnaker.io/location": "",
+                  "artifact.spinnaker.io/type": "kubernetes/namespace",
+                  "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Namespace\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"\",\"artifact.spinnaker.io/name\":\"test\",\"artifact.spinnaker.io/type\":\"kubernetes/namespace\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"sfcdservicetestapp\",\"moniker.spinnaker.io/cluster\":\"namespace test\"},\"labels\":{\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"sfcdservicetestapp\"},\"name\":\"test\"}}\n",
+                  "moniker.spinnaker.io/cluster": "namespace test",
+                  "moniker.spinnaker.io/application": "sfcdservicetestapp"
+                },
+                "labels": {
+                  "app.kubernetes.io/managed-by": "spinnaker",
+                  "app.kubernetes.io/name": "sfcdservicetestapp"
+                },
+                "selfLink": "/api/v1/namespaces/test"
+              },
+              "apiVersion": "v1",
+              "kind": "Namespace",
+              "spec": {
+                "finalizers": [
+                  "kubernetes"
+                ]
+              },
+              "status": {
+                "phase": "Active"
+              }
+            },
+            {
+              "metadata": {
+                "generation": 1,
+                "uid": "914ec807-9ece-4029-8942-01631a192f57",
+                "managedFields": [
+                  {
+                    "apiVersion": "apps/v1",
+                    "fieldsV1": {
+                      "f:metadata": {
+                        "f:annotations": {
+                          "f:artifact.spinnaker.io/version": {},
+                          "f:artifact.spinnaker.io/name": {},
+                          "f:moniker.spinnaker.io/cluster": {},
+                          "f:kubectl.kubernetes.io/last-applied-configuration": {},
+                          "f:artifact.spinnaker.io/type": {},
+                          "f:moniker.spinnaker.io/application": {},
+                          "f:artifact.spinnaker.io/location": {},
+                          ".": {}
+                        },
+                        "f:labels": {
+                          "f:app.kubernetes.io/instance": {},
+                          "f:app.kubernetes.io/name": {},
+                          ".": {},
+                          "f:app.kubernetes.io/managed-by": {}
+                        }
+                      },
+                      "f:spec": {
+                        "f:template": {
+                          "f:metadata": {
+                            "f:annotations": {
+                              "f:artifact.spinnaker.io/version": {},
+                              "f:artifact.spinnaker.io/name": {},
+                              "f:moniker.spinnaker.io/cluster": {},
+                              "f:artifact.spinnaker.io/type": {},
+                              "f:moniker.spinnaker.io/application": {},
+                              "f:artifact.spinnaker.io/location": {},
+                              "f:service": {},
+                              ".": {}
+                            },
+                            "f:labels": {
+                              "f:app.kubernetes.io/instance": {},
+                              "f:app.kubernetes.io/name": {},
+                              ".": {},
+                              "f:app.kubernetes.io/managed-by": {}
+                            }
+                          },
+                          "f:spec": {
+                            "f:securityContext": {
+                              "f:fsGroup": {},
+                              "f:runAsNonRoot": {},
+                              ".": {},
+                              "f:runAsUser": {}
+                            },
+                            "f:restartPolicy": {},
+                            "f:schedulerName": {},
+                            "f:containers": {
+                              "k:{\"name\":\"sfcdtest\"}": {
+                                "f:imagePullPolicy": {},
+                                "f:volumeMounts": {
+                                  "k:{\"mountPath\":\"/usr/share/nginx/html\"}": {
+                                    "f:mountPath": {},
+                                    "f:name": {},
+                                    ".": {}
+                                  },
+                                  ".": {}
+                                },
+                                "f:terminationMessagePath": {},
+                                "f:terminationMessagePolicy": {},
+                                "f:image": {},
+                                "f:name": {},
+                                "f:ports": {
+                                  "k:{\"containerPort\":443,\"protocol\":\"TCP\"}": {
+                                    "f:protocol": {},
+                                    "f:containerPort": {},
+                                    "f:name": {},
+                                    ".": {}
+                                  },
+                                  ".": {}
+                                },
+                                ".": {},
+                                "f:resources": {
+                                  "f:limits": {
+                                    "f:memory": {},
+                                    "f:cpu": {},
+                                    ".": {}
+                                  },
+                                  "f:requests": {
+                                    "f:memory": {},
+                                    "f:cpu": {},
+                                    ".": {}
+                                  },
+                                  ".": {}
+                                }
+                              }
+                            },
+                            "f:dnsPolicy": {},
+                            "f:terminationGracePeriodSeconds": {},
+                            "f:volumes": {
+                              "k:{\"name\":\"wwwdata-volume\"}": {
+                                "f:configMap": {
+                                  "f:defaultMode": {},
+                                  "f:name": {},
+                                  ".": {}
+                                },
+                                "f:name": {},
+                                ".": {}
+                              },
+                              ".": {}
+                            }
+                          }
+                        },
+                        "f:strategy": {
+                          "f:rollingUpdate": {
+                            "f:maxSurge": {},
+                            "f:maxUnavailable": {},
+                            ".": {}
+                          },
+                          "f:type": {}
+                        },
+                        "f:selector": {
+                          "f:matchLabels": {
+                            "f:app.kubernetes.io/instance": {},
+                            "f:app.kubernetes.io/name": {},
+                            ".": {}
+                          }
+                        },
+                        "f:progressDeadlineSeconds": {},
+                        "f:replicas": {},
+                        "f:revisionHistoryLimit": {}
+                      }
+                    },
+                    "manager": "kubectl-client-side-apply",
+                    "time": "2021-08-08T23:16:17Z",
+                    "operation": "Update",
+                    "fieldsType": "FieldsV1"
+                  }
+                ],
+                "resourceVersion": "344741384",
+                "creationTimestamp": "2021-08-08T23:16:17Z",
+                "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+                "namespace": "test",
+                "annotations": {
+                  "artifact.spinnaker.io/version": "",
+                  "artifact.spinnaker.io/name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+                  "artifact.spinnaker.io/location": "test",
+                  "artifact.spinnaker.io/type": "kubernetes/deployment",
+                  "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"test\",\"artifact.spinnaker.io/name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"sfcdservicetestapp\",\"moniker.spinnaker.io/cluster\":\"deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\"},\"labels\":{\"app.kubernetes.io/instance\":\"render-helm-output-manifest\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"sfcdtest\"},\"name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"namespace\":\"test\"},\"spec\":{\"replicas\":3,\"selector\":{\"matchLabels\":{\"app.kubernetes.io/instance\":\"render-helm-output-manifest\",\"app.kubernetes.io/name\":\"sfcdtest\"}},\"strategy\":{\"type\":\"RollingUpdate\"},\"template\":{\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"test\",\"artifact.spinnaker.io/name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"sfcdservicetestapp\",\"moniker.spinnaker.io/cluster\":\"deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"service\":\"sfcd-quality\"},\"labels\":{\"app.kubernetes.io/instance\":\"render-helm-output-manifest\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"sfcdtest\"}},\"spec\":{\"containers\":[{\"image\":\"gcr.io/gsf-mgmt-devmvp-spinnaker/sfci/3pp/3pp/docker.io/nginxinc/nginx-unprivileged:1.18\",\"imagePullPolicy\":\"Always\",\"name\":\"sfcdtest\",\"ports\":[{\"containerPort\":443,\"name\":\"https\",\"protocol\":\"TCP\"}],\"resources\":{\"limits\":{\"cpu\":\"500m\",\"memory\":\"128Mi\"},\"requests\":{\"cpu\":\"500m\",\"memory\":\"64Mi\"}},\"volumeMounts\":[{\"mountPath\":\"/usr/share/nginx/html\",\"name\":\"wwwdata-volume\"}]}],\"securityContext\":{\"fsGroup\":7447,\"runAsNonRoot\":true,\"runAsUser\":7447},\"volumes\":[{\"configMap\":{\"name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000\"},\"name\":\"wwwdata-volume\"}]}}}}\n",
+                  "moniker.spinnaker.io/cluster": "deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+                  "moniker.spinnaker.io/application": "sfcdservicetestapp"
+                },
+                "labels": {
+                  "app.kubernetes.io/managed-by": "spinnaker",
+                  "app.kubernetes.io/name": "sfcdtest",
+                  "app.kubernetes.io/instance": "render-helm-output-manifest"
+                },
+                "selfLink": "/apis/apps/v1/namespaces/test/deployments/render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc"
+              },
+              "apiVersion": "apps/v1",
+              "kind": "Deployment",
+              "spec": {
+                "template": {
+                  "metadata": {
+                    "annotations": {
+                      "artifact.spinnaker.io/version": "",
+                      "artifact.spinnaker.io/name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+                      "service": "sfcd-quality",
+                      "artifact.spinnaker.io/location": "test",
+                      "artifact.spinnaker.io/type": "kubernetes/deployment",
+                      "moniker.spinnaker.io/cluster": "deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+                      "moniker.spinnaker.io/application": "sfcdservicetestapp"
+                    },
+                    "labels": {
+                      "app.kubernetes.io/managed-by": "spinnaker",
+                      "app.kubernetes.io/name": "sfcdtest",
+                      "app.kubernetes.io/instance": "render-helm-output-manifest"
+                    }
+                  },
+                  "spec": {
+                    "dnsPolicy": "ClusterFirst",
+                    "terminationGracePeriodSeconds": 30,
+                    "volumes": [
+                      {
+                        "configMap": {
+                          "defaultMode": 420,
+                          "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000"
+                        },
+                        "name": "wwwdata-volume"
+                      }
+                    ],
+                    "containers": [
+                      {
+                        "image": "test-image:1",
+                        "imagePullPolicy": "Always",
+                        "terminationMessagePolicy": "File",
+                        "terminationMessagePath": "/dev/termination-log",
+                        "name": "sfcdtest",
+                        "resources": {
+                          "requests": {
+                            "memory": "64Mi",
+                            "cpu": "500m"
+                          },
+                          "limits": {
+                            "memory": "128Mi",
+                            "cpu": "500m"
+                          }
+                        },
+                        "ports": [
+                          {
+                            "protocol": "TCP",
+                            "name": "https",
+                            "containerPort": 443
+                          }
+                        ],
+                        "volumeMounts": [
+                          {
+                            "mountPath": "/usr/share/nginx/html",
+                            "name": "wwwdata-volume"
+                          }
+                        ]
+                      }
+                    ],
+                    "securityContext": {
+                      "runAsUser": 7447,
+                      "fsGroup": 7447,
+                      "runAsNonRoot": true
+                    },
+                    "restartPolicy": "Always",
+                    "schedulerName": "default-scheduler"
+                  }
+                },
+                "replicas": 3,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                  "matchLabels": {
+                    "app.kubernetes.io/name": "sfcdtest",
+                    "app.kubernetes.io/instance": "render-helm-output-manifest"
+                  }
+                },
+                "strategy": {
+                  "type": "RollingUpdate",
+                  "rollingUpdate": {
+                    "maxSurge": "25%",
+                    "maxUnavailable": "25%"
+                  }
+                },
+                "progressDeadlineSeconds": 600
+              },
+              "status": {}
+            }
+          ],
+          "manifestNamesByNamespace": {
+            "": [
+              "namespace test"
+            ],
+            "test": [
+              "configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+              "deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc"
+            ]
+          },
+          "boundArtifacts": [
+            {
+              "customKind": false,
+              "reference": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+              "metadata": {
+                "account": "k8s-v2-account"
+              },
+              "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+              "location": "test",
+              "type": "kubernetes/configMap",
+              "version": "v000"
+            }
+          ]
+        }
+      ],
+      "id": "01FCM0TR15FKVECTE4TGFGCEJV",
+      "history": [
+        {
+          "phase": "ORCHESTRATION",
+          "status": "Initializing Orchestration Task"
+        },
+        {
+          "phase": "ORCHESTRATION",
+          "status": "Processing op: KubernetesDeployManifestOperation"
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Beginning deployment of manifest..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Sorting manifests by priority..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for configMap..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for namespace..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for deployment..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for configMap..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Deploy order is: namespace test, configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc, deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc"
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Binding artifacts in namespace test..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for namespace..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Bound artifacts: []..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for namespace..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Annotating manifest namespace test with artifact, relationships & moniker..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Binding artifacts in configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for configMap..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Bound artifacts: []..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for configMap..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Annotating manifest configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc with artifact, relationships & moniker..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Binding artifacts in deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for deployment..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Bound artifacts: [Artifact(type=kubernetes/configMap, customKind=false, name=render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc, version=v000, location=test, reference=render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000, metadata={account=k8s-v2-account}, artifactAccount=null, provenance=null, uuid=null)]..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for deployment..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Annotating manifest deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc with artifact, relationships & moniker..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Checking if all requested artifacts were bound..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for namespace..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Submitting manifest namespace test to kubernetes master..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for configMap..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Submitting manifest configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000 to kubernetes master..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Finding deployer for deployment..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Submitting manifest deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc to kubernetes master..."
+        },
+        {
+          "phase": "DEPLOY_KUBERNETES_MANIFEST",
+          "status": "Deploy manifest task completed successfully."
+        },
+        {
+          "phase": "ORCHESTRATION",
+          "status": "Orchestration completed."
+        },
+        {
+          "phase": "ORCHESTRATION",
+          "status": "Orchestration completed."
+        }
+      ],
+      "status": {
+        "retryable": false,
+        "completed": true,
+        "failed": false
+      }
+    },
+    {
+      "resultObjects": [
+        {
+          "createdArtifacts": [],
+          "manifestNamesByNamespace": {},
+          "boundArtifacts": []
+        }
+      ],
+      "id": "01FCM0V6ECYWSVCPC0V3QWR1QW",
+      "history": [
+        {
+          "phase": "ORCHESTRATION",
+          "status": "Initializing Orchestration Task"
+        },
+        {
+          "phase": "ORCHESTRATION",
+          "status": "Processing op: KubernetesCleanupArtifactsOperation"
+        },
+        {
+          "phase": "ORCHESTRATION",
+          "status": "Orchestration completed."
+        },
+        {
+          "phase": "ORCHESTRATION",
+          "status": "Orchestration completed."
+        }
+      ],
+      "status": {
+        "retryable": false,
+        "completed": true,
+        "failed": false
+      }
+    }
+  ],
+  "outputs.manifests": [
+    {
+      "metadata": {
+        "uid": "7ff137ec-97bc-4fb2-967b-eda32be6fafa",
+        "managedFields": [
+          {
+            "apiVersion": "v1",
+            "fieldsV1": {
+              "f:data": {
+                "f:index.html": {},
+                "f:nginx.conf": {},
+                ".": {}
+              },
+              "f:metadata": {
+                "f:annotations": {
+                  "f:artifact.spinnaker.io/version": {},
+                  "f:artifact.spinnaker.io/name": {},
+                  "f:moniker.spinnaker.io/cluster": {},
+                  "f:kubectl.kubernetes.io/last-applied-configuration": {},
+                  "f:artifact.spinnaker.io/type": {},
+                  "f:moniker.spinnaker.io/sequence": {},
+                  "f:moniker.spinnaker.io/application": {},
+                  "f:artifact.spinnaker.io/location": {},
+                  ".": {}
+                },
+                "f:labels": {
+                  "f:helm.sh/chart": {},
+                  "f:app.kubernetes.io/instance": {},
+                  "f:app.kubernetes.io/name": {},
+                  "f:moniker.spinnaker.io/sequence": {},
+                  ".": {},
+                  "f:app.kubernetes.io/managed-by": {}
+                }
+              }
+            },
+            "manager": "kubectl-client-side-apply",
+            "time": "2021-08-08T23:16:16Z",
+            "operation": "Update",
+            "fieldsType": "FieldsV1"
+          }
+        ],
+        "resourceVersion": "344741371",
+        "creationTimestamp": "2021-08-08T23:16:16Z",
+        "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000",
+        "namespace": "test",
+        "annotations": {
+          "artifact.spinnaker.io/version": "v000",
+          "artifact.spinnaker.io/name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+          "artifact.spinnaker.io/location": "test",
+          "artifact.spinnaker.io/type": "kubernetes/configMap",
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"index.html\":\"\\u003ch1\\u003eHello\\u003c/h1\\u003e \\u003cp\\u003eTest Service Version 2.0\\u003c/p\\u003e\",\"nginx.conf\":\"events {\\n  worker_connections  1024;\\n}\\nhttp {\\n  server {\\n     listen 80 default_server;\\n      server_name _;\\n      return 301 https://$host$request_uri;\\n  }\\n  server {\\n    listen 443 ssl;\\n    ssl_protocols TLSv1.2 TLSv1.3;\\n    location / {\\n      return 200 \\\"===============================\\\\n\\\\n   This is your helm deploy 3.0!   \\\\n\\\\n===============================\\\\n\\\";\\n    }\\n  }\\n}\\n\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"test\",\"artifact.spinnaker.io/name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"artifact.spinnaker.io/type\":\"kubernetes/configMap\",\"artifact.spinnaker.io/version\":\"v000\",\"moniker.spinnaker.io/application\":\"sfcdservicetestapp\",\"moniker.spinnaker.io/cluster\":\"configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"moniker.spinnaker.io/sequence\":\"0\"},\"labels\":{\"app.kubernetes.io/instance\":\"render-helm-output-manifest\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"sfcdtest\",\"helm.sh/chart\":\"nginx-0.0.2\",\"moniker.spinnaker.io/sequence\":\"0\"},\"name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000\",\"namespace\":\"test\"}}\n",
+          "moniker.spinnaker.io/cluster": "configMap render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+          "moniker.spinnaker.io/sequence": "0",
+          "moniker.spinnaker.io/application": "sfcdservicetestapp"
+        },
+        "labels": {
+          "helm.sh/chart": "nginx-0.0.2",
+          "app.kubernetes.io/managed-by": "spinnaker",
+          "app.kubernetes.io/name": "sfcdtest",
+          "app.kubernetes.io/instance": "render-helm-output-manifest",
+          "moniker.spinnaker.io/sequence": "0"
+        },
+        "selfLink": "/api/v1/namespaces/test/configmaps/render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000"
+      },
+      "apiVersion": "v1",
+      "data": {
+        "nginx.conf": "events",
+        "index.html": "<h1>Hello</h1> <p>Test Service Version 2.0</p>"
+      },
+      "kind": "ConfigMap"
+    },
+    {
+      "metadata": {
+        "uid": "ece1ef30-1bc4-11ea-9227-42010a3e0138",
+        "resourceVersion": "343481080",
+        "creationTimestamp": "2019-12-11T03:18:38Z",
+        "name": "test",
+        "annotations": {
+          "artifact.spinnaker.io/version": "",
+          "artifact.spinnaker.io/name": "test",
+          "artifact.spinnaker.io/location": "",
+          "artifact.spinnaker.io/type": "kubernetes/namespace",
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Namespace\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"\",\"artifact.spinnaker.io/name\":\"test\",\"artifact.spinnaker.io/type\":\"kubernetes/namespace\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"sfcdservicetestapp\",\"moniker.spinnaker.io/cluster\":\"namespace test\"},\"labels\":{\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"sfcdservicetestapp\"},\"name\":\"test\"}}\n",
+          "moniker.spinnaker.io/cluster": "namespace test",
+          "moniker.spinnaker.io/application": "sfcdservicetestapp"
+        },
+        "labels": {
+          "app.kubernetes.io/managed-by": "spinnaker",
+          "app.kubernetes.io/name": "sfcdservicetestapp"
+        },
+        "selfLink": "/api/v1/namespaces/test"
+      },
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "spec": {
+        "finalizers": [
+          "kubernetes"
+        ]
+      },
+      "status": {
+        "phase": "Active"
+      }
+    },
+    {
+      "metadata": {
+        "generation": 1,
+        "uid": "914ec807-9ece-4029-8942-01631a192f57",
+        "managedFields": [
+          {
+            "apiVersion": "apps/v1",
+            "fieldsV1": {
+              "f:metadata": {
+                "f:annotations": {
+                  "f:artifact.spinnaker.io/version": {},
+                  "f:artifact.spinnaker.io/name": {},
+                  "f:moniker.spinnaker.io/cluster": {},
+                  "f:kubectl.kubernetes.io/last-applied-configuration": {},
+                  "f:artifact.spinnaker.io/type": {},
+                  "f:moniker.spinnaker.io/application": {},
+                  "f:artifact.spinnaker.io/location": {},
+                  ".": {}
+                },
+                "f:labels": {
+                  "f:app.kubernetes.io/instance": {},
+                  "f:app.kubernetes.io/name": {},
+                  ".": {},
+                  "f:app.kubernetes.io/managed-by": {}
+                }
+              },
+              "f:spec": {
+                "f:template": {
+                  "f:metadata": {
+                    "f:annotations": {
+                      "f:artifact.spinnaker.io/version": {},
+                      "f:artifact.spinnaker.io/name": {},
+                      "f:moniker.spinnaker.io/cluster": {},
+                      "f:artifact.spinnaker.io/type": {},
+                      "f:moniker.spinnaker.io/application": {},
+                      "f:artifact.spinnaker.io/location": {},
+                      "f:service": {},
+                      ".": {}
+                    },
+                    "f:labels": {
+                      "f:app.kubernetes.io/instance": {},
+                      "f:app.kubernetes.io/name": {},
+                      ".": {},
+                      "f:app.kubernetes.io/managed-by": {}
+                    }
+                  },
+                  "f:spec": {
+                    "f:securityContext": {
+                      "f:fsGroup": {},
+                      "f:runAsNonRoot": {},
+                      ".": {},
+                      "f:runAsUser": {}
+                    },
+                    "f:restartPolicy": {},
+                    "f:schedulerName": {},
+                    "f:containers": {
+                      "k:{\"name\":\"sfcdtest\"}": {
+                        "f:imagePullPolicy": {},
+                        "f:volumeMounts": {
+                          "k:{\"mountPath\":\"/usr/share/nginx/html\"}": {
+                            "f:mountPath": {},
+                            "f:name": {},
+                            ".": {}
+                          },
+                          ".": {}
+                        },
+                        "f:terminationMessagePath": {},
+                        "f:terminationMessagePolicy": {},
+                        "f:image": {},
+                        "f:name": {},
+                        "f:ports": {
+                          "k:{\"containerPort\":443,\"protocol\":\"TCP\"}": {
+                            "f:protocol": {},
+                            "f:containerPort": {},
+                            "f:name": {},
+                            ".": {}
+                          },
+                          ".": {}
+                        },
+                        ".": {},
+                        "f:resources": {
+                          "f:limits": {
+                            "f:memory": {},
+                            "f:cpu": {},
+                            ".": {}
+                          },
+                          "f:requests": {
+                            "f:memory": {},
+                            "f:cpu": {},
+                            ".": {}
+                          },
+                          ".": {}
+                        }
+                      }
+                    },
+                    "f:dnsPolicy": {},
+                    "f:terminationGracePeriodSeconds": {},
+                    "f:volumes": {
+                      "k:{\"name\":\"wwwdata-volume\"}": {
+                        "f:configMap": {
+                          "f:defaultMode": {},
+                          "f:name": {},
+                          ".": {}
+                        },
+                        "f:name": {},
+                        ".": {}
+                      },
+                      ".": {}
+                    }
+                  }
+                },
+                "f:strategy": {
+                  "f:rollingUpdate": {
+                    "f:maxSurge": {},
+                    "f:maxUnavailable": {},
+                    ".": {}
+                  },
+                  "f:type": {}
+                },
+                "f:selector": {
+                  "f:matchLabels": {
+                    "f:app.kubernetes.io/instance": {},
+                    "f:app.kubernetes.io/name": {},
+                    ".": {}
+                  }
+                },
+                "f:progressDeadlineSeconds": {},
+                "f:replicas": {},
+                "f:revisionHistoryLimit": {}
+              }
+            },
+            "manager": "kubectl-client-side-apply",
+            "time": "2021-08-08T23:16:17Z",
+            "operation": "Update",
+            "fieldsType": "FieldsV1"
+          }
+        ],
+        "resourceVersion": "344741384",
+        "creationTimestamp": "2021-08-08T23:16:17Z",
+        "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+        "namespace": "test",
+        "annotations": {
+          "artifact.spinnaker.io/version": "",
+          "artifact.spinnaker.io/name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+          "artifact.spinnaker.io/location": "test",
+          "artifact.spinnaker.io/type": "kubernetes/deployment",
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"test\",\"artifact.spinnaker.io/name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"sfcdservicetestapp\",\"moniker.spinnaker.io/cluster\":\"deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\"},\"labels\":{\"app.kubernetes.io/instance\":\"render-helm-output-manifest\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"sfcdtest\"},\"name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"namespace\":\"test\"},\"spec\":{\"replicas\":3,\"selector\":{\"matchLabels\":{\"app.kubernetes.io/instance\":\"render-helm-output-manifest\",\"app.kubernetes.io/name\":\"sfcdtest\"}},\"strategy\":{\"type\":\"RollingUpdate\"},\"template\":{\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"test\",\"artifact.spinnaker.io/name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"sfcdservicetestapp\",\"moniker.spinnaker.io/cluster\":\"deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc\",\"service\":\"sfcd-quality\"},\"labels\":{\"app.kubernetes.io/instance\":\"render-helm-output-manifest\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"sfcdtest\"}},\"spec\":{\"containers\":[{\"image\":\"gcr.io/gsf-mgmt-devmvp-spinnaker/sfci/3pp/3pp/docker.io/nginxinc/nginx-unprivileged:1.18\",\"imagePullPolicy\":\"Always\",\"name\":\"sfcdtest\",\"ports\":[{\"containerPort\":443,\"name\":\"https\",\"protocol\":\"TCP\"}],\"resources\":{\"limits\":{\"cpu\":\"500m\",\"memory\":\"128Mi\"},\"requests\":{\"cpu\":\"500m\",\"memory\":\"64Mi\"}},\"volumeMounts\":[{\"mountPath\":\"/usr/share/nginx/html\",\"name\":\"wwwdata-volume\"}]}],\"securityContext\":{\"fsGroup\":7447,\"runAsNonRoot\":true,\"runAsUser\":7447},\"volumes\":[{\"configMap\":{\"name\":\"render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000\"},\"name\":\"wwwdata-volume\"}]}}}}\n",
+          "moniker.spinnaker.io/cluster": "deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+          "moniker.spinnaker.io/application": "sfcdservicetestapp"
+        },
+        "labels": {
+          "app.kubernetes.io/managed-by": "spinnaker",
+          "app.kubernetes.io/name": "sfcdtest",
+          "app.kubernetes.io/instance": "render-helm-output-manifest"
+        },
+        "selfLink": "/apis/apps/v1/namespaces/test/deployments/render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc"
+      },
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "spec": {
+        "template": {
+          "metadata": {
+            "annotations": {
+              "artifact.spinnaker.io/version": "",
+              "artifact.spinnaker.io/name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+              "service": "sfcd-quality",
+              "artifact.spinnaker.io/location": "test",
+              "artifact.spinnaker.io/type": "kubernetes/deployment",
+              "moniker.spinnaker.io/cluster": "deployment render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc",
+              "moniker.spinnaker.io/application": "sfcdservicetestapp"
+            },
+            "labels": {
+              "app.kubernetes.io/managed-by": "spinnaker",
+              "app.kubernetes.io/name": "sfcdtest",
+              "app.kubernetes.io/instance": "render-helm-output-manifest"
+            }
+          },
+          "spec": {
+            "dnsPolicy": "ClusterFirst",
+            "terminationGracePeriodSeconds": 30,
+            "volumes": [
+              {
+                "configMap": {
+                  "defaultMode": 420,
+                  "name": "render-helm-output-manifest-sfcdtest-01fcm0tny37w064h7g4tjnyxxc-v000"
+                },
+                "name": "wwwdata-volume"
+              }
+            ],
+            "containers": [
+              {
+                "image": "test-image:1",
+                "imagePullPolicy": "Always",
+                "terminationMessagePolicy": "File",
+                "terminationMessagePath": "/dev/termination-log",
+                "name": "sfcdtest",
+                "resources": {
+                  "requests": {
+                    "memory": "64Mi",
+                    "cpu": "500m"
+                  },
+                  "limits": {
+                    "memory": "128Mi",
+                    "cpu": "500m"
+                  }
+                },
+                "ports": [
+                  {
+                    "protocol": "TCP",
+                    "name": "https",
+                    "containerPort": 443
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "mountPath": "/usr/share/nginx/html",
+                    "name": "wwwdata-volume"
+                  }
+                ]
+              }
+            ],
+            "securityContext": {
+              "runAsUser": 7447,
+              "fsGroup": 7447,
+              "runAsNonRoot": true
+            },
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler"
+          }
+        },
+        "replicas": 3,
+        "revisionHistoryLimit": 10,
+        "selector": {
+          "matchLabels": {
+            "app.kubernetes.io/name": "sfcdtest",
+            "app.kubernetes.io/instance": "render-helm-output-manifest"
+          }
+        },
+        "strategy": {
+          "type": "RollingUpdate",
+          "rollingUpdate": {
+            "maxSurge": "25%",
+            "maxUnavailable": "25%"
+          }
+        },
+        "progressDeadlineSeconds": 600
+      },
+      "status": {}
+    }
+  ],
+  "kato.task.notFoundRetryCount": 0,
+  "account": "k8s-v2-account",
+  "skipExpressionEvaluation": false,
+  "kato.task.lastStatus": "SUCCEEDED"
+}

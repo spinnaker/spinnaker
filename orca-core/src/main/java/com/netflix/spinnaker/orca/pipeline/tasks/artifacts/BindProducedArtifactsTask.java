@@ -25,6 +25,8 @@ import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.config.TaskConfigurationProperties;
+import com.netflix.spinnaker.orca.config.TaskConfigurationProperties.BindProducedArtifactsTaskConfig;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.HashMap;
@@ -39,10 +41,20 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class BindProducedArtifactsTask implements Task {
   public static final String TASK_NAME = "bindProducedArtifacts";
+  private final ArtifactUtils artifactUtils;
+  private final ObjectMapper objectMapper;
+  private final BindProducedArtifactsTaskConfig configProperties;
 
-  @Autowired ArtifactUtils artifactUtils;
-
-  @Autowired ObjectMapper objectMapper;
+  @Autowired
+  public BindProducedArtifactsTask(
+      ArtifactUtils artifactUtils,
+      ObjectMapper objectMapper,
+      TaskConfigurationProperties configProperties) {
+    this.artifactUtils = artifactUtils;
+    this.objectMapper = objectMapper;
+    this.configProperties = configProperties.getBindProducedArtifactsTask();
+    log.info("output keys to filter: {}", this.configProperties.getExcludeKeysFromOutputs());
+  }
 
   @Nonnull
   @Override
@@ -66,6 +78,14 @@ public class BindProducedArtifactsTask implements Task {
     outputs.put("artifacts", resolveResult.getResolvedArtifacts());
     outputs.put("resolvedExpectedArtifacts", resolveResult.getResolvedExpectedArtifacts());
 
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
+    // exclude certain configured keys from being stored in the stage outputs
+    Map<String, Object> filteredOutputs =
+        filterContextOutputs(outputs, configProperties.getExcludeKeysFromOutputs());
+    log.info("context outputs will only contain: {} keys", filteredOutputs.keySet());
+
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context(outputs)
+        .outputs(filteredOutputs)
+        .build();
   }
 }

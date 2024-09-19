@@ -26,6 +26,8 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -89,6 +91,22 @@ public interface Task extends SpinnakerExtensionPoint {
     }
 
     return Collections.emptyList();
+  }
+
+  /**
+   * method to filter certain keys from a stage's "context.outputs" key. This takes in the
+   * context.outputs map as an input, as well as a collection of keys to be filtered from it. It
+   * then returns the outputs map sans the keys to filter.
+   *
+   * @param outputs Map of a stage context's "outputs"
+   * @param keysToFilter Collection of keys that need to be filtered from outputs
+   * @return filtered map of stage context's "outputs"
+   */
+  default Map<String, Object> filterContextOutputs(
+      Map<String, Object> outputs, Collection<String> keysToFilter) {
+    return outputs.entrySet().stream()
+        .filter(map -> !keysToFilter.contains(map.getKey()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   /** Allows backwards compatibility of a task's "type", even through class renames / refactors. */

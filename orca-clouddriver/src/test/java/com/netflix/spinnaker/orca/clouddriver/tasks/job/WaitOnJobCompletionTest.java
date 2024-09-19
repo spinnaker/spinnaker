@@ -33,7 +33,9 @@ import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService;
+import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.exception.JobFailedException;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
@@ -43,9 +45,17 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import okhttp3.MediaType;
+import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,8 +63,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
+import retrofit.mime.TypedInput;
 
 public final class WaitOnJobCompletionTest {
   private ObjectMapper objectMapper;
@@ -62,7 +72,7 @@ public final class WaitOnJobCompletionTest {
   private KatoRestService mockKatoRestService;
   private JobUtils mockJobUtils;
   private ExecutionRepository mockExecutionRepository;
-
+  private TaskConfigurationProperties configProperties;
   private Front50Service mockFront50Service;
   WaitOnJobCompletion task;
 
@@ -70,7 +80,10 @@ public final class WaitOnJobCompletionTest {
   public void setup() {
     objectMapper = new ObjectMapper();
     retrySupport = new RetrySupport();
-
+    configProperties = new TaskConfigurationProperties();
+    configProperties
+        .getWaitOnJobCompletionTask()
+        .setExcludeKeysFromOutputs(Set.of("completionDetails"));
     mockKatoRestService = mock(KatoRestService.class);
     mockJobUtils = mock(JobUtils.class);
     mockExecutionRepository = mock(ExecutionRepository.class);
@@ -83,6 +96,7 @@ public final class WaitOnJobCompletionTest {
             retrySupport,
             mockJobUtils,
             mockFront50Service,
+            configProperties,
             mockExecutionRepository);
   }
 
@@ -102,8 +116,8 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingContextApplication() {
-    Response mockResponse =
-        new Response(
+    retrofit.client.Response mockResponse =
+        new retrofit.client.Response(
             "test-url",
             200,
             "test-reason",
@@ -128,8 +142,8 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingContextMoniker() {
-    Response mockResponse =
-        new Response(
+    retrofit.client.Response mockResponse =
+        new retrofit.client.Response(
             "test-url",
             200,
             "test-reason",
@@ -153,8 +167,8 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingParsedName() {
-    Response mockResponse =
-        new Response(
+    retrofit.client.Response mockResponse =
+        new retrofit.client.Response(
             "test-url",
             200,
             "test-reason",
@@ -177,8 +191,8 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingExecutionApp() {
-    Response mockResponse =
-        new Response(
+    retrofit.client.Response mockResponse =
+        new retrofit.client.Response(
             "test-url",
             200,
             "test-reason",
@@ -208,8 +222,8 @@ public final class WaitOnJobCompletionTest {
     InputStream jobStatusInputStream =
         getResourceAsStream("clouddriver/tasks/job/successful-runjob-status.json");
 
-    Response mockResponse =
-        new Response(
+    retrofit.client.Response mockResponse =
+        new retrofit.client.Response(
             "test-url",
             200,
             "test-reason",
@@ -275,8 +289,8 @@ public final class WaitOnJobCompletionTest {
     InputStream jobStatusInputStream =
         getResourceAsStream("clouddriver/tasks/job/successful-runjob-status.json");
 
-    Response mockResponse =
-        new Response(
+    retrofit.client.Response mockResponse =
+        new retrofit.client.Response(
             "test-url",
             200,
             "test-reason",
@@ -331,8 +345,8 @@ public final class WaitOnJobCompletionTest {
     InputStream jobStatusInputStream =
         getResourceAsStream("clouddriver/tasks/job/failed-runjob-status.json");
 
-    Response mockResponse =
-        new Response(
+    retrofit.client.Response mockResponse =
+        new retrofit.client.Response(
             "test-url",
             200,
             "test-reason",
@@ -399,8 +413,8 @@ public final class WaitOnJobCompletionTest {
     InputStream jobStatusInputStream =
         getResourceAsStream("clouddriver/tasks/job/failed-runjob-status.json");
 
-    Response mockResponse =
-        new Response(
+    retrofit.client.Response mockResponse =
+        new retrofit.client.Response(
             "test-url",
             200,
             "test-reason",
@@ -471,8 +485,8 @@ public final class WaitOnJobCompletionTest {
     InputStream jobStatusInputStream =
         getResourceAsStream("clouddriver/tasks/job/failed-runjob-status.json");
 
-    Response mockResponse =
-        new Response(
+    retrofit.client.Response mockResponse =
+        new retrofit.client.Response(
             "test-url",
             200,
             "test-reason",
@@ -539,5 +553,94 @@ public final class WaitOnJobCompletionTest {
       Map<String, ?> context) {
     return new StageExecutionImpl(
         new PipelineExecutionImpl(ExecutionType.PIPELINE, null), "test", new HashMap<>(context));
+  }
+
+  @DisplayName(
+      "parameterized test to see how keys in the outputs object are filtered based on the inputs")
+  @ParameterizedTest(name = "{index} ==> keys to be excluded from outputs = {0}")
+  @ValueSource(strings = {"", "jobStatus,completionDetails"})
+  void testOutputFilter(String keysToFilter) throws IOException {
+    // setup
+    Set<String> expectedKeysToBeExcludedFromOutput = new HashSet<>();
+    if (!keysToFilter.equals("")) {
+      expectedKeysToBeExcludedFromOutput = new HashSet<>(Arrays.asList(keysToFilter.split(",")));
+    }
+
+    configProperties
+        .getWaitOnJobCompletionTask()
+        .setExcludeKeysFromOutputs(expectedKeysToBeExcludedFromOutput);
+
+    InputStream inputStream =
+        getResourceAsStream("clouddriver/tasks/job/successful-run-job-state.json");
+
+    // mocked response from clouddriver
+    Response response =
+        new Response.Builder()
+            .code(200)
+            .message("some message")
+            .request(new Request.Builder().url("http://url").build())
+            .protocol(Protocol.HTTP_1_0)
+            .body(
+                ResponseBody.create(
+                    MediaType.parse("application/json"), IOUtils.toByteArray(inputStream)))
+            .addHeader("content-type", "application/json")
+            .build();
+
+    retrofit.client.Response retrofitResponse =
+        new retrofit.client.Response(
+            "http://url",
+            200,
+            "",
+            Collections.emptyList(),
+            new TypedInput() {
+              @Override
+              public String mimeType() {
+                okhttp3.MediaType mediaType = response.body().contentType();
+                return mediaType == null ? null : mediaType.toString();
+              }
+
+              @Override
+              public long length() {
+                return response.body().contentLength();
+              }
+
+              @Override
+              public InputStream in() {
+                return response.body().byteStream();
+              }
+            });
+
+    when(mockKatoRestService.collectJob("testrep", "test-account", "test", "job testrep"))
+        .thenReturn(retrofitResponse);
+
+    when(mockKatoRestService.getFileContents(
+            "testrep", "test-account", "test", "job testrep", "testrep"))
+        .thenReturn(Map.of("some-key", "some-value"));
+
+    Map<String, Object> context =
+        getResource(objectMapper, "clouddriver/tasks/job/runjob-context-success.json", Map.class);
+    StageExecution stageExecution =
+        new StageExecutionImpl(
+            new PipelineExecutionImpl(ExecutionType.PIPELINE, "testrep"), "test", context);
+
+    // when
+    TaskResult result = task.execute(stageExecution);
+
+    // then
+    assertThat(result.getOutputs()).isNotEmpty();
+    assertThat(result.getContext()).isNotEmpty();
+
+    // the 'outputs' key should not contain the values present in the input i.e. in `keysToFilter`
+    Set<String> receivedOutputsKeySet = result.getOutputs().keySet();
+    for (String excludedKey : expectedKeysToBeExcludedFromOutput) {
+      assertThat(receivedOutputsKeySet.contains(excludedKey)).isFalse();
+    }
+
+    // ensuring that the 'context' key still has the values present in the input i.e. in
+    // `keysToFilter`
+    Set<String> receivedContextKeySet = result.getContext().keySet();
+    for (String excludedKey : expectedKeysToBeExcludedFromOutput) {
+      assertThat(receivedContextKeySet.contains(excludedKey)).isTrue();
+    }
   }
 }

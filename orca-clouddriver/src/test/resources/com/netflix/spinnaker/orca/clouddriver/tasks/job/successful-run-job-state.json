@@ -1,0 +1,564 @@
+{
+"provider": "kubernetes",
+"completionDetails": {
+"summary": "",
+"reason": "",
+"exitCode": "",
+"message": "",
+"signal": ""
+},
+"jobState": "Succeeded",
+"name": "testrep",
+"createdTime": 1628646000000,
+"location": "test",
+"pods": [
+{
+"containerExecutionDetails": [],
+"name": "testrep-lnk4x",
+"status": {
+"phase": "Succeeded",
+"podIP": "1.1.1.1",
+"containerStatuses": [
+{
+"image": "sha256:123",
+"imageID": "docker-pullable://some-repo:1",
+"restartCount": 0,
+"ready": false,
+"name": "testrepv2-l1",
+"started": false,
+"state": {
+"terminated": {
+"reason": "Completed",
+"exitCode": 0,
+"startedAt": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 24,
+"millisOfDay": 6024000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6024,
+"millis": 1628646024000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+},
+"containerID": "docker://456",
+"finishedAt": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 27,
+"millisOfDay": 6027000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6027,
+"millis": 1628646027000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+}
+}
+},
+"containerID": "docker://456",
+"lastState": {}
+}
+],
+"hostIP": "1.1.1.1",
+"startTime": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 1,
+"millisOfDay": 6001000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6001,
+"millis": 1628646001000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+},
+"qosClass": "Burstable",
+"conditions": [
+{
+"reason": "PodCompleted",
+"lastTransitionTime": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 23,
+"millisOfDay": 6023000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6023,
+"millis": 1628646023000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+},
+"type": "Initialized",
+"status": "True"
+},
+{
+"reason": "PodCompleted",
+"lastTransitionTime": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 27,
+"millisOfDay": 6027000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6027,
+"millis": 1628646027000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+},
+"type": "Ready",
+"status": "False"
+},
+{
+"reason": "PodCompleted",
+"lastTransitionTime": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 27,
+"millisOfDay": 6027000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6027,
+"millis": 1628646027000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+},
+"type": "ContainersReady",
+"status": "False"
+},
+{
+"lastTransitionTime": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 1,
+"millisOfDay": 6001000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6001,
+"millis": 1628646001000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+},
+"type": "PodScheduled",
+"status": "True"
+}
+],
+"initContainerStatuses": [
+{
+"image": "some-init-container-image:1",
+"imageID": "docker-pullable://some-init-container-repo/some-init-container-image:1",
+"restartCount": 0,
+"ready": true,
+"name": "init",
+"state": {
+"terminated": {
+"reason": "Completed",
+"exitCode": 0,
+"startedAt": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 2,
+"millisOfDay": 6002000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6002,
+"millis": 1628646002000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+},
+"containerID": "docker://789",
+"finishedAt": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 19,
+"millisOfDay": 6019000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6019,
+"millis": 1628646019000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+}
+}
+},
+"containerID": "docker://789",
+"lastState": {}
+},
+{
+"image": "init-container-2:1",
+"imageID": "docker-pullable://some-repo/init-container-2:1",
+"restartCount": 0,
+"ready": true,
+"name": "init2",
+"state": {
+"terminated": {
+"reason": "Completed",
+"exitCode": 0,
+"startedAt": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 20,
+"millisOfDay": 6020000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6020,
+"millis": 1628646020000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+},
+"containerID": "docker://012",
+"finishedAt": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 21,
+"millisOfDay": 6021000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6021,
+"millis": 1628646021000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+}
+}
+},
+"containerID": "docker://012",
+"lastState": {}
+},
+{
+"image": "init-container-3:1",
+"imageID": "docker-pullable://some-repo/init-container-3:1",
+"restartCount": 0,
+"ready": true,
+"name": "init-3",
+"state": {
+"terminated": {
+"reason": "Completed",
+"exitCode": 0,
+"startedAt": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 21,
+"millisOfDay": 6021000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6021,
+"millis": 1628646021000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+},
+"containerID": "docker://345",
+"finishedAt": {
+"dayOfYear": 223,
+"equalNow": false,
+"year": 2021,
+"weekyear": 2021,
+"chronology": {
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+}
+},
+"weekOfWeekyear": 32,
+"secondOfMinute": 23,
+"millisOfDay": 6023000,
+"monthOfYear": 8,
+"beforeNow": true,
+"dayOfWeek": 3,
+"minuteOfDay": 100,
+"dayOfMonth": 11,
+"era": 1,
+"zone": {
+"fixed": true,
+"id": "Etc/GMT"
+},
+"yearOfCentury": 21,
+"centuryOfEra": 20,
+"hourOfDay": 1,
+"secondOfDay": 6023,
+"millis": 1628646023000,
+"yearOfEra": 2021,
+"minuteOfHour": 40,
+"afterNow": false,
+"millisOfSecond": 0
+}
+}
+},
+"containerID": "docker://345",
+"lastState": {}
+}
+],
+"podIPs": [
+{
+"ip": "10.33.167.185"
+}
+]
+}
+}
+],
+"account": "test-account"
+}
