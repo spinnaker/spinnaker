@@ -351,7 +351,7 @@ class ApplicationService {
     return result
   }
 
-  static class Front50ApplicationListRetriever implements Callable<List<Map>> {
+  static class Front50ApplicationListRetriever extends MdcWrappedCallable<List<Map>> {
     private final Front50Service front50
     private final AtomicReference<List<Map>> allApplicationsCache
     private final Object principal
@@ -363,7 +363,7 @@ class ApplicationService {
     }
 
     @Override
-    List<Map> call() throws Exception {
+    List<Map> callWithMdc() throws Exception {
       try {
         AuthenticatedRequest.propagate({
           try {
@@ -383,7 +383,7 @@ class ApplicationService {
     }
   }
 
-  static class Front50ApplicationRetriever implements Callable<Map> {
+  static class Front50ApplicationRetriever extends MdcWrappedCallable<Map> {
     private final String name
     private final Front50Service front50
     private final AtomicReference<List<Map>> allApplicationsCache
@@ -399,7 +399,7 @@ class ApplicationService {
     }
 
     @Override
-    Map call() throws Exception {
+    Map callWithMdc() throws Exception {
       try {
         AuthenticatedRequest.propagate({
           try {
@@ -422,7 +422,7 @@ class ApplicationService {
     }
   }
 
-  static class ClouddriverApplicationListRetriever implements Callable<List<Map>> {
+  static class ClouddriverApplicationListRetriever extends MdcWrappedCallable<List<Map>> {
     private final ClouddriverService clouddriver
     private final Object principal
     private final AtomicReference<List<Map>> allApplicationsCache
@@ -438,7 +438,7 @@ class ApplicationService {
     }
 
     @Override
-    List<Map> call() throws Exception {
+    List<Map> callWithMdc() throws Exception {
       try {
         AuthenticatedRequest.propagate({
           try {
@@ -458,7 +458,7 @@ class ApplicationService {
     }
   }
 
-  static class ClouddriverApplicationRetriever implements Callable<Map> {
+  static class ClouddriverApplicationRetriever extends MdcWrappedCallable<Map> {
     private final String name
     private final ClouddriverService clouddriver
     private final Object principal
@@ -471,7 +471,7 @@ class ApplicationService {
     }
 
     @Override
-    Map call() throws Exception {
+    Map callWithMdc() throws Exception {
       try {
         AuthenticatedRequest.propagate({
           try {
