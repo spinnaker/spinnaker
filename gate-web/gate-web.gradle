@@ -37,7 +37,7 @@ dependencies {
   implementation "redis.clients:jedis"
 
   implementation "commons-io:commons-io"
-  implementation "org.codehaus.groovy:groovy-templates"
+  implementation "org.apache.groovy:groovy-templates"
   implementation "org.springframework.session:spring-session-data-redis"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "org.apache.commons:commons-lang3"
@@ -77,7 +77,7 @@ dependencies {
   testImplementation "com.unboundid:unboundid-ldapsdk"
   testImplementation "io.spinnaker.kork:kork-jedis-test"
   testImplementation "io.spinnaker.kork:kork-test"
-  testImplementation "org.codehaus.groovy:groovy-json"
+  testImplementation "org.apache.groovy:groovy-json"
   testRuntimeOnly "io.spinnaker.kork:kork-retrofit"
 
   // Add each included authz provider as a runtime dependency

@@ -34,7 +34,7 @@ allprojects {
       annotationProcessor "org.projectlombok:lombok"
       testAnnotationProcessor "org.projectlombok:lombok"
 
-      implementation "org.codehaus.groovy:groovy"
+      implementation "org.apache.groovy:groovy"
       implementation "net.logstash.logback:logstash-logback-encoder"
       implementation "org.jetbrains.kotlin:kotlin-reflect"
 

@@ -4,7 +4,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-security"
-  implementation "org.codehaus.groovy:groovy-json"
+  implementation "org.apache.groovy:groovy-json"
   implementation "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure"
   implementation "org.springframework.session:spring-session-core"
 }
