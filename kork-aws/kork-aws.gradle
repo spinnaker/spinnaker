@@ -24,7 +24,7 @@ dependencies {
   api "com.amazonaws:aws-java-sdk-core"
   api "com.amazonaws:aws-java-sdk-sns"
   api "com.amazonaws:aws-java-sdk-sqs"
-  api "org.codehaus.groovy:groovy"
+  api "org.apache.groovy:groovy"
   api "com.hubspot.jinjava:jinjava"
   api "com.jcraft:jsch.agentproxy.jsch"
   api "com.jcraft:jsch.agentproxy.connector-factory"

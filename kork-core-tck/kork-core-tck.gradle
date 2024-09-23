@@ -7,6 +7,6 @@ dependencies {
   implementation(project(":kork-core"))
   implementation(project(":kork-exceptions"))
 
-  implementation("org.codehaus.groovy:groovy")
+  implementation("org.apache.groovy:groovy")
   implementation("org.spockframework:spock-core")
 }
