@@ -19,7 +19,7 @@ dependencies {
   implementation project(":front50-core")
   implementation project(":front50-s3")
 
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "org.spockframework:spock-core"
   implementation "com.amazonaws:aws-java-sdk-s3"
 }

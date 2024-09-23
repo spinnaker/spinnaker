@@ -64,7 +64,7 @@ subprojects { project ->
       annotationProcessor("org.projectlombok:lombok")
       testAnnotationProcessor("org.projectlombok:lombok")
 
-      testImplementation("org.codehaus.groovy:groovy")
+      testImplementation("org.apache.groovy:groovy")
       testImplementation("org.spockframework:spock-core")
       testImplementation("org.springframework.boot:spring-boot-starter-test")
       testImplementation("org.spockframework:spock-spring")
