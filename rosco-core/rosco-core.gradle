@@ -1,7 +1,7 @@
 dependencies {
   api "io.spinnaker.kork:kork-artifacts"
   api "io.spinnaker.kork:kork-plugins"
-  api "org.codehaus.groovy:groovy"
+  api "org.apache.groovy:groovy"
 
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.kork:kork-jedis"
@@ -12,7 +12,7 @@ dependencies {
   implementation "com.squareup.retrofit2:retrofit"
   implementation "io.reactivex:rxjava"
   implementation "org.apache.commons:commons-exec"
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "redis.clients:jedis"
   testImplementation "org.spockframework:spock-core"
