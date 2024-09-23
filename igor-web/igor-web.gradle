@@ -30,7 +30,7 @@ dependencies {
     testImplementation "org.hamcrest:hamcrest-core"
     testRuntimeOnly "cglib:cglib-nodep"
     testRuntimeOnly "org.objenesis:objenesis"
-    implementation "org.codehaus.groovy:groovy"
+    implementation "org.apache.groovy:groovy"
 
     implementation "com.fasterxml.jackson.core:jackson-annotations"
     implementation "com.fasterxml.jackson.core:jackson-core"
@@ -81,8 +81,8 @@ dependencies {
 
     testImplementation "com.squareup.okhttp:mockwebserver"
     testImplementation "io.spinnaker.kork:kork-jedis-test"
-    testImplementation "org.codehaus.groovy:groovy-datetime"
-    testImplementation "org.codehaus.groovy:groovy-json"
+    testImplementation "org.apache.groovy:groovy-datetime"
+    testImplementation "org.apache.groovy:groovy-json"
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "org.assertj:assertj-core"
 

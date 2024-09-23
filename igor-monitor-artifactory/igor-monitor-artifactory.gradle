@@ -23,7 +23,10 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
-  implementation "org.jfrog.artifactory.client:artifactory-java-client-services:2.9.2"
+  implementation("org.jfrog.artifactory.client:artifactory-java-client-services:2.9.2") {
+    exclude group: "org.codehaus.groovy", module: "*"
+  }
+  implementation "org.apache.groovy:groovy"
 
   // TODO(rz): Get rid of this dependency!
   implementation "io.spinnaker.kork:kork-jedis"

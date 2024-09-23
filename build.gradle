@@ -52,7 +52,7 @@ subprojects {
       implementation "net.logstash.logback:logstash-logback-encoder"
 
       // TODO(rz): Why does Spock need groovy as implementation and not testImplementation to find tests?
-      implementation "org.codehaus.groovy:groovy"
+      implementation "org.apache.groovy:groovy"
       testImplementation "org.springframework.boot:spring-boot-starter-test"
       testImplementation "org.spockframework:spock-core"
       testImplementation "org.spockframework:spock-spring"
