@@ -20,7 +20,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
 
-  api("org.codehaus.groovy:groovy")
+  api("org.apache.groovy:groovy")
 
   implementation("io.spinnaker.fiat:fiat-api:$fiatVersion")
   implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
@@ -38,7 +38,7 @@ dependencies {
   testImplementation(project(":orca-test-groovy"))
   testImplementation(project(":orca-pipelinetemplate"))
   testImplementation("com.github.ben-manes.caffeine:guava")
-  testImplementation("org.codehaus.groovy:groovy-json")
+  testImplementation("org.apache.groovy:groovy-json")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
 

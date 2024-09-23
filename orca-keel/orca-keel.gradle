@@ -31,7 +31,7 @@ dependencies {
   testImplementation("io.mockk:mockk")
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("org.assertj:assertj-core")
-  testImplementation("org.codehaus.groovy:groovy")
+  testImplementation("org.apache.groovy:groovy")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")

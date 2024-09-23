@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import groovy.util.logging.Slf4j
+import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.client.Client
@@ -44,6 +45,10 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
 
   long backoffPeriod = 10000
   long timeout = 600000 // 10min
+
+  private Logger getLog() {
+    return log
+  }
 
   @Override
   TaskResult execute(StageExecution stage) {
@@ -76,7 +81,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
             taskIdMap.put(instanceHostName, ref.substring(1 + ref.lastIndexOf('/')))
             patchedInstanceIds << instanceId
           } catch (SpinnakerServerException e) {
-            log.warn("Error in Quip request: {}", e.message)
+            getLog().warn("Error in Quip request: {}", e.message)
           }
         }
       }

@@ -29,7 +29,7 @@ dependencies {
   implementation("com.squareup.okhttp3:okhttp")
   implementation("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
   testImplementation("org.springframework:spring-test")
-  testImplementation("org.codehaus.groovy:groovy-json")
+  testImplementation("org.apache.groovy:groovy-json")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 
   implementation("io.spinnaker.fiat:fiat-api:$fiatVersion")

@@ -51,7 +51,7 @@ class DetermineTerminationCandidatesTask implements Task {
         .orElseGet { serverGroupInstances*.instanceId }
     def terminationInstancePool = knownInstanceIds
     if (stage.context.termination?.instances) {
-      terminationInstancePool = knownInstanceIds.intersect(stage.context.termination?.instances)
+      terminationInstancePool = stage.context.termination?.instances.intersect(knownInstanceIds)
       if (stage.context.termination.order == 'given') {
         terminationInstancePool = terminationInstancePool.sort { stage.context.termination.instances.indexOf(it) }
       }

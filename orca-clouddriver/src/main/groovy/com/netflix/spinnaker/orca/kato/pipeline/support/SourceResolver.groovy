@@ -112,7 +112,7 @@ class SourceResolver {
     }
 
     def instanceSize = { ServerGroup asg -> asg.instances?.size() ?: 0 }
-    def created = { ServerGroup asg -> asg.createdTime ?: 0 }
+    def created = { ServerGroup asg -> asg.createdTime ?: 0L }
     if (stageData.useSourceCapacity) {
       regionalAsgs = regionalAsgs.sort { a1, a2 -> instanceSize(a1) <=> instanceSize(a2) ?: created(a2) <=> created(a1) }
     }

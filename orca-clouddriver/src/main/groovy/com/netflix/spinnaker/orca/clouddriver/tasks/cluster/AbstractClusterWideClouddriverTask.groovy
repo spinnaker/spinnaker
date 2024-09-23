@@ -263,7 +263,7 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
   }
 
   static boolean isActive(TargetServerGroup serverGroup) {
-    return serverGroup.disabled == false || serverGroup.instances.any { it.healthState == HealthState.Up }
+    return serverGroup.isDisabled() == false || serverGroup.instances.any { it.healthState == HealthState.Up }
   }
 
   static class IsActive implements Comparator<TargetServerGroup> {

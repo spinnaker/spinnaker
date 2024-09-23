@@ -19,7 +19,7 @@ apply from: "$rootDir/gradle/groovy.gradle"
 dependencies {
   api("com.squareup.retrofit:retrofit")
   api("com.squareup.retrofit:converter-jackson")
-  api("org.codehaus.groovy:groovy")
+  api("org.apache.groovy:groovy")
   api("io.spinnaker.kork:kork-web")
   api("com.jakewharton.retrofit:retrofit1-okhttp3-client")
 

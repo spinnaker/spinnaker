@@ -53,7 +53,7 @@ dependencies {
   implementation("javax.validation:validation-api")
   implementation("com.jayway.jsonpath:json-path")
   implementation("org.yaml:snakeyaml")
-  implementation("org.codehaus.groovy:groovy")
+  implementation("org.apache.groovy:groovy")
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.44.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.44.0")
 

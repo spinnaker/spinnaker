@@ -114,13 +114,13 @@ class V1SchemaIntegrationSpec extends Specification {
         }
 
         if (it.filename.endsWith('-config.yml')) {
-          test.configuration = objectMapper.convertValue(yaml.load(it.file.text), TemplateConfiguration)
+          test.configuration = objectMapper.convertValue(yaml.load(it.getFile().text), TemplateConfiguration)
         } else if (it.filename.endsWith('-expected.json')) {
-          test.expected = objectMapper.readValue(it.file, Map)
+          test.expected = objectMapper.readValue(it.getFile(), Map)
         } else if (it.filename.endsWith('-request.json')) {
-          test.request = objectMapper.readValue(it.file, Map)
+          test.request = objectMapper.readValue(it.getFile(), Map)
         } else {
-          test.template.add(objectMapper.convertValue(yaml.load(it.file.text), PipelineTemplate))
+          test.template.add(objectMapper.convertValue(yaml.load(it.getFile().text), PipelineTemplate))
         }
       }
 

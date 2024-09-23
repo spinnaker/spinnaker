@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
+import org.slf4j.Logger
 import retrofit.converter.JacksonConverter
 
 import java.util.concurrent.TimeUnit
@@ -65,6 +66,10 @@ class JarDiffsTask implements DiffTask {
   OortHelper oortHelper
 
   int platformPort = 8077
+
+  private Logger getLog() {
+    return log
+  }
 
   @Override
   public TaskResult execute(StageExecution stage) {
@@ -137,19 +142,19 @@ class JarDiffsTask implements DiffTask {
     int numberOfInstancesChecked = 0;
     instances.find { key, instanceInfo ->
       if (numberOfInstancesChecked++ >= 5) {
-        log.info("Unable to check jar list after 5 attempts, giving up!")
+        getLog().info("Unable to check jar list after 5 attempts, giving up!")
         return true
       }
 
       String hostName = instanceInfo.privateIpAddress ?: instanceInfo.hostName
-      log.debug("attempting to get a jar list from : ${key} (${hostName}:${platformPort})")
+      getLog().debug("attempting to get a jar list from : ${key} (${hostName}:${platformPort})")
       def instanceService = createInstanceService("http://${hostName}:${platformPort}")
       try {
         def instanceResponse = instanceService.getJars()
         jarMap = objectMapper.readValue(instanceResponse.body.in().text, Map)
         return true
       } catch(Exception e) {
-        log.debug("could not get a jar list from : ${key} (${hostName}:${platformPort}) - ${e.message}")
+        getLog().debug("could not get a jar list from : ${key} (${hostName}:${platformPort}) - ${e.message}")
         // swallow it so we can try the next instance
         return false
       }
