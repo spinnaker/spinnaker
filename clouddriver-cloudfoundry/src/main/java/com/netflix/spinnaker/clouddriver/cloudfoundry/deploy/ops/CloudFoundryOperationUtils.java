@@ -25,6 +25,8 @@ class CloudFoundryOperationUtils {
         return "is still starting";
       case CRASHED:
         return "crashed";
+      case STOPPING:
+        return "is in graceful shutdown - stopping";
       case RUNNING:
       case DOWN:
       default:

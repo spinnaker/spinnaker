@@ -26,6 +26,7 @@ public class ProcessStats {
     RUNNING,
     CRASHED,
     STARTING,
+    STOPPING,
     DOWN
   }
 }

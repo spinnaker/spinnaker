@@ -86,4 +86,27 @@ class StopCloudFoundryServerGroupAtomicOperationTest
         .isEqualTo(
             "Cloud Foundry API returned with error(s): Failed to stop 'myapp' which instead is running");
   }
+
+  @Test
+  void failedToStopStopping() {
+    OperationPoller poller = mock(OperationPoller.class);
+
+    //noinspection unchecked
+    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any()))
+        .thenReturn(ProcessStats.State.STOPPING);
+
+    StopCloudFoundryServerGroupAtomicOperation op =
+        new StopCloudFoundryServerGroupAtomicOperation(poller, desc);
+
+    Task task = runOperation(op);
+    List<Object> resultObjects = task.getResultObjects();
+    assertThat(resultObjects.size()).isEqualTo(1);
+    Object o = resultObjects.get(0);
+    assertThat(o).isInstanceOf(Map.class);
+    Object ex = ((Map) o).get("EXCEPTION");
+    assertThat(ex).isInstanceOf(CloudFoundryApiException.class);
+    assertThat(((CloudFoundryApiException) ex).getMessage())
+        .isEqualTo(
+            "Cloud Foundry API returned with error(s): Failed to stop 'myapp' which instead is in graceful shutdown - stopping");
+  }
 }
