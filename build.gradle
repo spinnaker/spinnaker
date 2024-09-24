@@ -73,7 +73,7 @@ subprojects {
       annotationProcessor "org.projectlombok:lombok"
       testAnnotationProcessor "org.projectlombok:lombok"
 
-      implementation "org.codehaus.groovy:groovy"
+      implementation "org.apache.groovy:groovy"
       implementation "com.github.ben-manes.caffeine:guava"
       implementation "com.netflix.spectator:spectator-api"
       implementation "org.slf4j:slf4j-api"

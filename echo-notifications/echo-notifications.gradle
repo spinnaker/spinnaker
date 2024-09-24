@@ -33,7 +33,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-freemarker"
   implementation "org.jsoup:jsoup:1.8.3"
   implementation "com.atlassian.commonmark:commonmark:0.9.0"
-  implementation "org.codehaus.groovy:groovy-json"
+  implementation "org.apache.groovy:groovy-json"
   implementation "io.cloudevents:cloudevents-http-basic:3.0.0"
   implementation "io.cloudevents:cloudevents-json-jackson:3.0.0"
   implementation ("dev.cdevents:cdevents-sdk-java:0.3.1")

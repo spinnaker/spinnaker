@@ -47,7 +47,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.assertj:assertj-core"
-  testImplementation "org.codehaus.groovy:groovy-json"
+  testImplementation "org.apache.groovy:groovy-json"
 
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

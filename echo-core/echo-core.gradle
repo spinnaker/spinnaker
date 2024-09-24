@@ -44,5 +44,5 @@ dependencies {
 
     testImplementation "org.spockframework:spock-spring"
     testImplementation "org.springframework:spring-test"
-    testImplementation "org.codehaus.groovy:groovy-json"
+    testImplementation "org.apache.groovy:groovy-json"
 }
