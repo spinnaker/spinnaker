@@ -4,6 +4,6 @@ subprojects {
   dependencies {
     implementation project(":clouddriver-api")
 
-    implementation "org.codehaus.groovy:groovy"
+    implementation "org.apache.groovy:groovy"
   }
 }

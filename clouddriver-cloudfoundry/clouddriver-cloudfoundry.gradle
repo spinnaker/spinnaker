@@ -18,7 +18,7 @@ dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-docker")
 
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
 
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "org.apache.commons:commons-lang3"

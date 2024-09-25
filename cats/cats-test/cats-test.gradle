@@ -2,7 +2,7 @@ tasks.compileGroovy.enabled = true
 
 dependencies {
   implementation project(":cats:cats-core")
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
 
   implementation "org.springframework.boot:spring-boot-starter-test"
   implementation "org.spockframework:spock-core"

@@ -130,7 +130,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
                 }
               }
 
-              if (task.status?.failed) {
+              if (task.status?.isFailed()) {
                 task.updateStatus(TASK_PHASE, "Orchestration completed with errors, see prior task logs.")
               } else {
                 task.updateStatus(TASK_PHASE, "Orchestration completed.")

@@ -51,7 +51,7 @@ class InMemoryTaskRepository implements TaskRepository {
   List<Task> list() {
     List<Task> tasks = new ArrayList<>();
     for (Task value : repository.values()) {
-      if (!value.getStatus().completed) {
+      if (!value.getStatus().isCompleted()) {
         tasks.add(value)
       }
     }

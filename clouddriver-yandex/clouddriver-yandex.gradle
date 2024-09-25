@@ -16,7 +16,7 @@ dependencies {
   }
   compileOnly "io.opencensus:opencensus-api"
   compileOnly "io.opencensus:opencensus-contrib-grpc-metrics"
-  implementation "org.codehaus.groovy:groovy-datetime"
+  implementation "org.apache.groovy:groovy-datetime"
   implementation "org.apache.commons:commons-lang3"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"

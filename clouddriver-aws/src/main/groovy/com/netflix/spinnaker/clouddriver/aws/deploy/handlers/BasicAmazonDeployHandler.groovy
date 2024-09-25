@@ -381,7 +381,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       )
 
       if (serverGroup) {
-        String subnetIdTag = serverGroup.asg.tags.find { it.key == SUBNET_ID_OVERRIDE_TAG }?.value
+        String subnetIdTag = serverGroup.asg.tags.find { it.key == BasicAmazonDeployHandler.SUBNET_ID_OVERRIDE_TAG }?.value
         if (subnetIdTag) {
           // source server group had subnet id overrides, propagate them forward
           description.subnetIds = subnetIdTag.split(",")

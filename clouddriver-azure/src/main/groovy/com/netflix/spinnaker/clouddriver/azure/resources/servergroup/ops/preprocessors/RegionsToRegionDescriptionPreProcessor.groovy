@@ -19,11 +19,17 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.prepro
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.EnableDisableDestroyAzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
 import groovy.util.logging.Slf4j
+import org.slf4j.Logger
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
 class RegionsToRegionDescriptionPreProcessor implements AtomicOperationDescriptionPreProcessor {
+
+  private Logger getLog() {
+    return log
+  }
+
   @Override
   boolean supports(Class descriptionClass) {
     return descriptionClass == EnableDisableDestroyAzureServerGroupDescription
@@ -36,7 +42,7 @@ class RegionsToRegionDescriptionPreProcessor implements AtomicOperationDescripti
         region = regions[0]
 
         if (regions.size() > 1) {
-          log.warn("EnableDisableDestroyAzureServerGroupDescription has regions size greater than 1: $regions")
+          getLog().warn("EnableDisableDestroyAzureServerGroupDescription has regions size greater than 1: $regions")
         }
       }
 

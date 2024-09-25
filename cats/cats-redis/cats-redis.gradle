@@ -3,7 +3,7 @@ dependencies {
 
   compileOnly "org.projectlombok:lombok"
 
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "io.spinnaker.kork:kork-jedis"
   implementation "com.github.ben-manes.caffeine:guava"

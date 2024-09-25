@@ -572,5 +572,9 @@ class DiscoverySupportUnitSpec extends Specification {
     ServerGroup.Capacity capacity
     ServerGroup.ImageSummary getImageSummary() {}
     ServerGroup.ImagesSummary getImagesSummary() {}
+
+    Boolean isDisabled() {
+      disabled
+    }
   }
 }

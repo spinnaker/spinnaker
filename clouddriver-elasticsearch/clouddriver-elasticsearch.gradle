@@ -10,7 +10,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
   implementation "com.squareup.retrofit:retrofit"
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "org.elasticsearch:elasticsearch"
   implementation "org.springframework.boot:spring-boot-starter-web"
 

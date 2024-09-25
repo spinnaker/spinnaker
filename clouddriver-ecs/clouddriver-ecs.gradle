@@ -40,7 +40,7 @@ dependencies {
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "cglib:cglib-nodep"
@@ -56,9 +56,7 @@ dependencies {
   integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation sourceSets.test.output
   integrationImplementation sourceSets.main.output
-  integrationImplementation ("io.rest-assured:rest-assured:4.0.0") {
-    exclude group: "org.codehaus.groovy", module: "groovy" // use kork's version
-  }
+  integrationImplementation "io.rest-assured:rest-assured"
 }
 
 task integrationTest(type: Test) {

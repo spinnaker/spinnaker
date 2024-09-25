@@ -62,7 +62,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   DisruptionBudget disruptionBudget
   TitusServerGroupResources resources = new TitusServerGroupResources()
   TitusServerGroupPlacement placement = new TitusServerGroupPlacement()
-  boolean disabled
+  Boolean disabled
   Efs efs
   String capacityGroup
   int retries

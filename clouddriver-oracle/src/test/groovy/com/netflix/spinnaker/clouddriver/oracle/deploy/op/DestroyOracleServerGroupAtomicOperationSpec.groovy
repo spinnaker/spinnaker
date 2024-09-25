@@ -21,7 +21,6 @@ import com.oracle.bmc.loadbalancer.model.*
 import com.oracle.bmc.loadbalancer.requests.UpdateBackendSetRequest
 import com.oracle.bmc.loadbalancer.responses.GetLoadBalancerResponse
 import com.oracle.bmc.loadbalancer.responses.UpdateBackendSetResponse
-import groovy.ui.SystemOutputInterceptor
 import spock.lang.Specification
 
 class DestroyOracleServerGroupAtomicOperationSpec extends Specification {
@@ -49,8 +48,8 @@ class DestroyOracleServerGroupAtomicOperationSpec extends Specification {
     1 * loadBalancerClient.getLoadBalancer(_) >> GetLoadBalancerResponse.builder().loadBalancer(
       LoadBalancer.builder().backendSets(['myBackendSet': BackendSet.builder().backends(
         backends.collect { Backend.builder().ipAddress(it).build() } ).build()]).build()).build()
-    1 * sgService.getServerGroup(_, _, "sg1") >> 
-      new OracleServerGroup(loadBalancerId: "ocid.lb.oc1..12345", backendSetName: 'myBackendSet', 
+    1 * sgService.getServerGroup(_, _, "sg1") >>
+      new OracleServerGroup(loadBalancerId: "ocid.lb.oc1..12345", backendSetName: 'myBackendSet',
         instances: srvGroup.collect {new OracleInstance(id: it, privateIp: it)} as Set)
     1 * sgService.destroyServerGroup(_, _, "sg1")
     1 * loadBalancerClient.updateBackendSet(_) >> { args ->

@@ -33,4 +33,8 @@ class SimpleServerGroup implements ServerGroup {
   Capacity capacity
   ImagesSummary imagesSummary
   ImageSummary imageSummary
+
+  Boolean isDisabled() {
+    disabled
+  }
 }

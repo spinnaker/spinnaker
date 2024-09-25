@@ -73,6 +73,10 @@ class OracleServerGroup {
         min: oracleServerGroup.targetSize, max: oracleServerGroup.targetSize)
     }
 
+    Boolean isDisabled(){
+      disabled
+    }
+
     @Override
     Long getCreatedTime() {
       launchConfig ? launchConfig.createdTime as Long : null

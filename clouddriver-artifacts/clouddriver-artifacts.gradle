@@ -48,7 +48,7 @@ dependencies {
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.ivy:ivy:2.4.0"
   implementation "org.apache.maven:maven-resolver-provider:3.5.4"
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
@@ -71,10 +71,7 @@ dependencies {
   integrationImplementation "org.testcontainers:mysql"
   integrationImplementation "org.testcontainers:junit-jupiter"
   integrationImplementation "com.mysql:mysql-connector-j"
-  integrationImplementation ("io.rest-assured:rest-assured:4.0.0") {
-    // Exclude groovy pulled in by rest-assured, so we use kork's version
-    exclude group: "org.codehaus.groovy", module: "groovy"
-  }
+  integrationImplementation "io.rest-assured:rest-assured"
 }
 
 task integrationTest(type: Test) {

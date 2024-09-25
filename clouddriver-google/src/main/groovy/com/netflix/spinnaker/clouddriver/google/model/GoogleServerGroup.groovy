@@ -165,6 +165,10 @@ class GoogleServerGroup implements GoogleLabeledResource {
       selectZones = googleServerGroup.selectZones
     }
 
+    Boolean isDisabled() {
+      disabled
+    }
+
     @Override
     Moniker getMoniker() {
       return NamerRegistry.lookup()

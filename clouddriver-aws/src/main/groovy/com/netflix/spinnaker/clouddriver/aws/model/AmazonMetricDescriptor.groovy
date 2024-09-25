@@ -20,9 +20,7 @@ import com.amazonaws.services.cloudwatch.model.Dimension
 import com.amazonaws.services.cloudwatch.model.Metric
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.clouddriver.model.CloudMetricDescriptor
-import groovy.transform.Immutable
 
-@Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class AmazonMetricDescriptor implements CloudMetricDescriptor {
   final String cloudProvider = 'aws'
@@ -30,6 +28,12 @@ class AmazonMetricDescriptor implements CloudMetricDescriptor {
   final String name
   final List<Dimension> dimensions
 
+  AmazonMetricDescriptor (String cloudProvider, String namespace, String name, List<Dimension> dimensions) {
+    this.cloudProvider = cloudProvider
+    this.namespace = namespace
+    this.name = name
+    this.dimensions = dimensions
+  }
   static AmazonMetricDescriptor from(Metric metric) {
     new AmazonMetricDescriptor('aws', metric.namespace, metric.metricName, metric.dimensions)
   }

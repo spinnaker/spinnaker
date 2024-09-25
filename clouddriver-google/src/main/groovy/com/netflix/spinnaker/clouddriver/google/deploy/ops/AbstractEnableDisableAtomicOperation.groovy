@@ -188,7 +188,7 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
           getTargetPool(compute, project, region, targetPoolLocalName),
           "target pool",
           task,
-          RETRY_ERROR_CODES,
+          AbstractEnableDisableAtomicOperation.RETRY_ERROR_CODES,
           [],
           [operation: "getTargetPool", action: "destroy", phase: phaseName, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
           registry
@@ -206,7 +206,7 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
             removeInstancesFromTargetPool(compute, project, region, targetPoolLocalName, targetPoolsRemoveInstanceRequest),
             "instances",
             task,
-            RETRY_ERROR_CODES,
+            AbstractEnableDisableAtomicOperation.RETRY_ERROR_CODES,
             [],
             [operation: "removeInstancesFromTargetPool", action: "deregister", phase: phaseName, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
             registry
@@ -351,7 +351,7 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
             addInstancesToTargetPool(compute, project, region, targetPoolLocalName, targetPoolsAddInstanceRequest),
             "instances",
             task,
-            RETRY_ERROR_CODES,
+            AbstractEnableDisableAtomicOperation.RETRY_ERROR_CODES,
             [],
             [operation: "addInstancesToTargetPool", action: "register", phase: phaseName, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
             registry

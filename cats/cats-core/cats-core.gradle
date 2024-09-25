@@ -3,7 +3,7 @@ dependencies {
 
   implementation "org.slf4j:slf4j-api"
   implementation "com.fasterxml.jackson.core:jackson-annotations"
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "com.google.guava:guava"
 
   testImplementation project(":cats:cats-test")

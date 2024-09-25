@@ -16,6 +16,10 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.exception;
 
 public class GoogleOperationException extends RuntimeException {
+  public GoogleOperationException() {
+    super();
+  }
+
   public GoogleOperationException(String message) {
     super(message);
   }

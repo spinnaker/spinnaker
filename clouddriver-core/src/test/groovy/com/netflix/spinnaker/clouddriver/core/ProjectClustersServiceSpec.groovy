@@ -492,7 +492,7 @@ class ProjectClustersServiceSpec extends Specification {
     String type = "test"
     String cloudProvider = "test"
     String region
-    boolean disabled
+    Boolean disabled
     Set<String> instances = []
     Set<String> loadBalancers
     Set<String> securityGroups

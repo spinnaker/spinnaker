@@ -113,7 +113,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     1 * taskRepository.create(_, _, taskKey) >> task
     1 * atomicOperation.operate(_) >> { throw exception }
     task.status.isFailed()
-    task.status.retryable == retryable
+    task.status.isRetryable() == retryable
 
     //Tasks without SagaIds (i.e., not a saga) are not retryable
     where:

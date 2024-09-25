@@ -36,4 +36,8 @@ class SimpleServerGroup implements ServerGroup {
   ServerGroup.Capacity capacity
   ServerGroup.ImageSummary imageSummary
   ServerGroup.ImagesSummary imagesSummary
+
+  Boolean isDisabled() {
+    disabled
+  }
 }

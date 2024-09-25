@@ -17,7 +17,7 @@ dependencies {
   }
   implementation "org.glassfish.jersey.core:jersey-client:2.22.1"
   implementation "org.glassfish.jersey.media:jersey-media-json-jackson:2.11"
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation 'org.apache.commons:commons-lang3'

@@ -24,7 +24,7 @@ dependencies {
   implementation 'com.aliyun:aliyun-java-sdk-ess:2.3.2'
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "org.apache.commons:commons-lang3"
 
   testImplementation "cglib:cglib-nodep"

@@ -48,7 +48,7 @@ dependencies {
   implementation "io.reactivex:rxjava"
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
@@ -71,9 +71,7 @@ dependencies {
   integrationImplementation "org.springframework:spring-test"
   integrationImplementation sourceSets.test.output
   integrationImplementation sourceSets.main.output
-  integrationImplementation ("io.rest-assured:rest-assured:4.0.0") {
-    exclude group: "org.codehaus.groovy", module: "groovy" // use kork's version
-  }
+  integrationImplementation "io.rest-assured:rest-assured"
 }
 
 task integrationTest(type: Test) {

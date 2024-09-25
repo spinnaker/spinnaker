@@ -56,7 +56,7 @@ dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-security")
 
-  implementation "org.codehaus.groovy:groovy"
+  implementation "org.apache.groovy:groovy"
 
   implementation "com.google.code.findbugs:jsr305"
   implementation "com.google.guava:guava"
@@ -99,7 +99,7 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-test"
-  testImplementation "org.codehaus.groovy:groovy-templates"
+  testImplementation "org.apache.groovy:groovy-templates"
 
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework.boot:spring-boot-starter-test"
@@ -107,10 +107,7 @@ dependencies {
   integrationImplementation "org.testcontainers:mysql"
   integrationImplementation "org.testcontainers:junit-jupiter"
   integrationImplementation "com.mysql:mysql-connector-j"
-  integrationImplementation ("io.rest-assured:rest-assured:4.0.0") {
-    // Exclude groovy pulled in by rest-assured, so we use kork's version
-    exclude group: "org.codehaus.groovy", module: "groovy"
-  }
+  integrationImplementation "io.rest-assured:rest-assured"
   integrationImplementation "org.yaml:snakeyaml"
 }
 

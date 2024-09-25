@@ -128,6 +128,10 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     String.format("%s-%s-%s", application, stack, detail)
   }
 
+  Boolean isDisabled() {
+    disabled
+  }
+
   @Override
   Set<String> getLoadBalancers() {
     if(this.appGatewayName != null) return Sets.newHashSet(this.appGatewayName)

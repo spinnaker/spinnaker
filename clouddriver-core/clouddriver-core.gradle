@@ -13,7 +13,7 @@ dependencies {
 
   // This is because some classes in this module use the Groovy @Immutable annotation,
   // which appears to require consumers to have core groovy on the classpath
-  api "org.codehaus.groovy:groovy"
+  api "org.apache.groovy:groovy"
 
   implementation "javax.inject:javax.inject:1"
   implementation "javax.validation:validation-api"
@@ -41,8 +41,8 @@ dependencies {
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "io.reactivex:rxjava"
   implementation "net.jodah:failsafe:1.0.4"
-  implementation "org.codehaus.groovy:groovy"
-  implementation "org.codehaus.groovy:groovy-templates"
+  implementation "org.apache.groovy:groovy"
+  implementation "org.apache.groovy:groovy-templates"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "redis.clients:jedis"
   implementation "org.jooq:jooq"
