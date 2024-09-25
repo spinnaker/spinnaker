@@ -94,6 +94,9 @@ dependencies {
     api("io.rest-assured:rest-assured:${versions.restassured}") {
       force = true
     }
+    api("io.rest-assured:rest-assured-common:${versions.restassured}") {
+      force = true
+    }
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:1.30.10") // TODO: Track update for CVE-2020-7692, reanalysis pending.
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev105-1.25.0")
