@@ -24,7 +24,7 @@ dependencies {
   implementation 'org.apache.commons:commons-lang3'
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'io.github.lognet:grpc-spring-boot-starter:2.4.4'
-  implementation 'org.codehaus.groovy:groovy'
+  implementation 'org.apache.groovy:groovy'
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-cloud-config-server"
   implementation "io.spinnaker.kork:kork-config"

@@ -15,7 +15,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   implementation 'org.aspectj:aspectjweaver'
   implementation 'org.yaml:snakeyaml:1.24'
-  implementation 'org.codehaus.groovy:groovy'
+  implementation 'org.apache.groovy:groovy'
   implementation 'com.beust:jcommander:1.81'
   implementation 'org.nibor.autolink:autolink:0.10.0'
 

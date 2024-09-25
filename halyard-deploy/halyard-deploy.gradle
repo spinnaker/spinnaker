@@ -23,7 +23,7 @@ dependencies {
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
   implementation 'io.fabric8:kubernetes-client'
   implementation 'redis.clients:jedis'
-  implementation 'org.codehaus.groovy:groovy'
+  implementation 'org.apache.groovy:groovy'
 
   implementation project(':halyard-config')
   implementation project(':halyard-core')
