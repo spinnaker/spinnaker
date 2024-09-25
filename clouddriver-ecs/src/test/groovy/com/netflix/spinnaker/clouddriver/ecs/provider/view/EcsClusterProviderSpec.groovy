@@ -47,6 +47,7 @@ class EcsClusterProviderSpec extends Specification {
     Set<String> clusterNames = new HashSet<>()
     Collection<CacheData> cacheData = new HashSet<>()
     Collection<Cluster> clustersResponse = new ArrayList<>()
+    Collection<String> ecsClustersIdentifiers = new ArrayList<>()
     clusterNames.add("example-app-test-Cluster-NSnYsTXmCfV2")
     clusterNames.add("TestCluster")
     clusterNames.add("spinnaker-deployment-cluster")
@@ -54,6 +55,7 @@ class EcsClusterProviderSpec extends Specification {
     for (int x = 0; x < numberOfClusters; x++) {
       String clusterKey = Keys.getClusterKey(ACCOUNT, REGION, clusterNames[x])
       Map<String, Object> attributes = new HashMap<>()
+      ecsClustersIdentifiers.add(Keys.getClusterKey(ACCOUNT, REGION, clusterNames[x]))
       attributes.put("account", ACCOUNT)
       attributes.put("region", REGION)
       attributes.put("clusterArn", "arn:aws:ecs:::cluster/" + clusterNames[x])
@@ -61,7 +63,8 @@ class EcsClusterProviderSpec extends Specification {
 
       cacheData.add(new DefaultCacheData(clusterKey, attributes, Collections.emptyMap()))
     }
-    cacheView.getAll(_) >> cacheData
+    cacheView.filterIdentifiers(_, _) >> ecsClustersIdentifiers
+    cacheView.getAll(_, ecsClustersIdentifiers) >> cacheData
 
     for (int x = 0; x < numberOfClusters; x++) {
       Cluster cluster = new Cluster()
@@ -102,12 +105,14 @@ class EcsClusterProviderSpec extends Specification {
     Set<String> clusterNames = new HashSet<>()
     Collection<CacheData> cacheData = new HashSet<>()
     Collection<Cluster> clustersResponse = new ArrayList<>()
+    Collection<String> ecsClustersIdentifiers = new ArrayList<>()
     clusterNames.add("example-app-test-Cluster-NSnYsTXmCfV2")
     clusterNames.add("TestCluster")
     clusterNames.add("spinnaker-deployment-cluster")
 
     for (int x = 0; x < 2; x++) {
       String clusterKey = Keys.getClusterKey(ACCOUNT, REGION, clusterNames[x])
+      ecsClustersIdentifiers.add(Keys.getClusterKey(ACCOUNT, REGION, clusterNames[x]))
       Map<String, Object> attributes = new HashMap<>()
       attributes.put("account", ACCOUNT)
       attributes.put("region", REGION)
@@ -126,8 +131,8 @@ class EcsClusterProviderSpec extends Specification {
 
     cacheData.add(new DefaultCacheData(clusterKey, attributes, Collections.emptyMap()))
 
-
-    cacheView.getAll(_) >> cacheData
+    cacheView.filterIdentifiers(_, _) >> ecsClustersIdentifiers
+    cacheView.getAll(_, ecsClustersIdentifiers) >> cacheData
 
     //Adding only two clusters in the response which belongs to the expected region.
     for (int x = 0; x < 2; x++) {

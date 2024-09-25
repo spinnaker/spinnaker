@@ -19,6 +19,9 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch
 import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
+import com.amazonaws.services.cloudwatch.model.Dimension
+import com.amazonaws.services.cloudwatch.model.MetricAlarm
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
@@ -38,13 +41,15 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
   AWSCredentialsProvider credentialsProvider
 
   @Subject
-  EcsCloudMetricAlarmCachingAgent agent = new EcsCloudMetricAlarmCachingAgent(CommonCachingAgent.netflixAmazonCredentials, REGION, clientProvider)
+  EcsCloudMetricAlarmCachingAgent agent
 
   def setup() {
     cloudWatch = Mock(AmazonCloudWatch)
     clientProvider = Mock(AmazonClientProvider)
     providerCache = Mock(ProviderCache)
     credentialsProvider = Mock(AWSCredentialsProvider)
+    agent = new EcsCloudMetricAlarmCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider)
+
   }
 
   def 'should get a list of cloud watch alarms'() {
@@ -74,4 +79,35 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
     metricAlarms*.accountName.containsAll(cacheData.get(Keys.Namespace.ALARMS.ns)*.getAttributes().accountName)
     metricAlarms*.region.containsAll(cacheData.get(Keys.Namespace.ALARMS.ns)*.getAttributes().region)
   }
+
+  def 'should evict old keys when id is appended'() {
+    given:
+    def metricAlarm1 = new MetricAlarm().withAlarmName("alarm-name-1").withAlarmArn("alarmArn-1").withDimensions([new Dimension().withName("ClusterName").withValue("my-cluster")])
+    def metricAlarm2 = new MetricAlarm().withAlarmName("alarm-name-2").withAlarmArn("alarmArn-2").withDimensions([new Dimension().withName("ClusterName").withValue("my-cluster")])
+    def attributes1 = EcsCloudMetricAlarmCachingAgent.convertMetricAlarmToAttributes(metricAlarm1, ACCOUNT, REGION)
+    def attributes2 = EcsCloudMetricAlarmCachingAgent.convertMetricAlarmToAttributes(metricAlarm2, ACCOUNT, REGION)
+    def metricAlarms = [metricAlarm1, metricAlarm2]
+    def describeAlarmsResult = new DescribeAlarmsResult().withMetricAlarms(metricAlarms)
+    cloudWatch.describeAlarms(_) >> describeAlarmsResult
+    clientProvider.getAmazonCloudWatch(_, _, _) >> cloudWatch
+
+    def oldKey1 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm1.getAlarmArn())
+    def oldKey2 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm2.getAlarmArn())
+    def oldData = [new DefaultCacheData(oldKey1, attributes1, [:]), new DefaultCacheData(oldKey2, attributes2, [:])]
+    providerCache.getAll(Keys.Namespace.ALARMS.ns) >> oldData
+
+    def newKey1 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm1.getAlarmArn(), "my-cluster")
+    def newKey2 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm2.getAlarmArn(), "my-cluster")
+
+    when:
+    def cacheResult = agent.loadData(providerCache)
+
+    then:
+    cacheResult.evictions[Keys.Namespace.ALARMS.ns].size() == 2
+    cacheResult.evictions[Keys.Namespace.ALARMS.ns].containsAll([oldKey1, oldKey2])
+    cacheResult.cacheResults[Keys.Namespace.ALARMS.ns].size() == 2
+    cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.id.containsAll([newKey1, newKey2])
+    cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.attributes.containsAll([attributes1, attributes2])
+  }
+
 }

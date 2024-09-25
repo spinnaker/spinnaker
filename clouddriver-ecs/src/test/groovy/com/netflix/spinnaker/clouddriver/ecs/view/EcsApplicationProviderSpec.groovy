@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
+import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsApplication
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.ServiceCachingAgent
@@ -45,15 +46,21 @@ class EcsApplicationProviderSpec extends Specification {
     def accountName = 'test-account'
     def credentials = new NetflixECSCredentials(TestCredential.named(accountName))
     def appName = 'testapp'
-    def serviceName = appName + '-kcats-liated'
+    def serviceName = appName + '-kcats-liated-v001'
+    def monikerCluster = appName + '-kcats-liated'
     Map<String, Set<String>> clusterNames = new HashMap<>()
     clusterNames.put(accountName, Collections.singleton(serviceName))
+    Map<String, Set<String>> clusterNameMetadata = new HashMap<>()
+    clusterNameMetadata.put(accountName, Collections.singleton(monikerCluster))
+
+
 
     def givenApp = (Application) new EcsApplication(appName,
       [
         name: appName
       ],
-      clusterNames)
+      clusterNames,
+      clusterNameMetadata)
 
     def service = new Service(
       serviceName: serviceName,
@@ -67,8 +74,9 @@ class EcsApplicationProviderSpec extends Specification {
       credentials.getRegions()[0].getName()).convertServiceToAttributes(service)
 
     credentialsRepository.getAll() >> [credentials]
-    cache.filterIdentifiers(_, _) >> []
-    cache.getAll(_, _) >> [new DefaultCacheData('key', attributes, [:])]
+    credentialsRepository.has(accountName) >> true
+    cache.filterIdentifiers(_, _) >> [Keys.getServiceKey(accountName,"us-east-1",serviceName)]
+    cache.getAll(_, _) >> [new DefaultCacheData(Keys.getServiceKey(accountName,"us-east-1",serviceName), attributes, [:])]
 
     when:
     def retrievedApp = provider.getApplication(appName)

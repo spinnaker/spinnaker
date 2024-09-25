@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
+import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsLoadbalancerCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsTargetGroupCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
@@ -118,8 +119,13 @@ public class EcsLoadBalancerProvider implements LoadBalancerProvider<EcsLoadBala
   @Override
   public Set<EcsLoadBalancer> getApplicationLoadBalancers(String application) {
     // Find the load balancers currently in use by ECS services in this application
+    String glob =
+        application != null
+            ? Keys.getServiceKey("*", "*", application + "*")
+            : Keys.getServiceKey("*", "*", "*");
+    Collection<String> ecsServices = ecsServiceCacheClient.filterIdentifiers(glob);
     Set<Service> services =
-        ecsServiceCacheClient.getAll().stream()
+        ecsServiceCacheClient.getAll(ecsServices).stream()
             .filter(service -> service.getApplicationName().equals(application))
             .collect(Collectors.toSet());
     log.debug("Retrieved {} services for application '{}'", services.size(), application);

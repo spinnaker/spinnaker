@@ -191,7 +191,7 @@ class EcsServerClusterProviderSpec extends Specification {
     containerInformationService.getTaskZone(_, _, _) >> 'us-west-1a'
     taskDefinitionCacheClient.get(_) >> cachedTaskDefinition
     scalableTargetCacheClient.get(_) >> scalableTarget
-    ecsCloudWatchAlarmCacheClient.getMetricAlarms(_, _, _) >> []
+    ecsCloudWatchAlarmCacheClient.getMetricAlarms(_, _,_ ,_) >> []
     subnetSelector.getSubnetVpcIds(_, _, _) >> ['vpc-1234']
 
     cacheView.filterIdentifiers(_, _) >> ['key']

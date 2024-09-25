@@ -20,6 +20,7 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ALARMS;
 
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsMetricAlarm;
 import java.util.Collection;
 import java.util.Collections;
@@ -71,31 +72,19 @@ public class EcsCloudWatchAlarmCacheClient extends AbstractCacheClient<EcsMetric
   }
 
   public List<EcsMetricAlarm> getMetricAlarms(
-      String serviceName, String accountName, String region) {
+      String serviceName, String accountName, String region, String ecsClusterName) {
     List<EcsMetricAlarm> metricAlarms = new LinkedList<>();
-    Collection<EcsMetricAlarm> allMetricAlarms = getAll(accountName, region);
 
-    outLoop:
+    String glob = Keys.getAlarmKey(accountName, region, "*", ecsClusterName);
+    Collection<String> metricAlarmsIds = filterIdentifiers(glob);
+    Collection<EcsMetricAlarm> allMetricAlarms = getAll(metricAlarmsIds);
+
     for (EcsMetricAlarm metricAlarm : allMetricAlarms) {
-      for (String action : metricAlarm.getAlarmActions()) {
-        if (action.contains(serviceName)) {
-          metricAlarms.add(metricAlarm);
-          continue outLoop;
-        }
-      }
-
-      for (String action : metricAlarm.getOKActions()) {
-        if (action.contains(serviceName)) {
-          metricAlarms.add(metricAlarm);
-          continue outLoop;
-        }
-      }
-
-      for (String action : metricAlarm.getInsufficientDataActions()) {
-        if (action.contains(serviceName)) {
-          metricAlarms.add(metricAlarm);
-          continue outLoop;
-        }
+      if (metricAlarm.getAlarmActions().stream().anyMatch(action -> action.contains(serviceName))
+          || metricAlarm.getOKActions().stream().anyMatch(action -> action.contains(serviceName))
+          || metricAlarm.getInsufficientDataActions().stream()
+              .anyMatch(action -> action.contains(serviceName))) {
+        metricAlarms.add(metricAlarm);
       }
     }
 

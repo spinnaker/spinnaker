@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.view;
 
 import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
+import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsApplication;
@@ -50,31 +51,31 @@ public class EcsApplicationProvider implements ApplicationProvider {
 
   @Override
   public Application getApplication(String name) {
-
-    for (Application application : getApplications(true)) {
+    String glob = Keys.getServiceKey("*", "*", name + "*");
+    Collection<String> ecsServices = serviceCacheClient.filterIdentifiers(glob);
+    for (Application application : populateApplicationSet(ecsServices, true)) {
       if (name.equals(application.getName())) {
         return application;
       }
     }
-
     return null;
   }
 
   @Override
-  public Set<Application> getApplications(boolean expand) {
-    Set<Application> applications = new HashSet<>();
-
+  public Set<EcsApplication> getApplications(boolean expand) {
+    Set<EcsApplication> applications = new HashSet<>();
     for (NetflixECSCredentials credentials : credentialsRepository.getAll()) {
-      Set<Application> retrievedApplications = findApplicationsForAllRegions(credentials, expand);
+      Set<EcsApplication> retrievedApplications =
+          findApplicationsForAllRegions(credentials, expand);
       applications.addAll(retrievedApplications);
     }
 
     return applications;
   }
 
-  private Set<Application> findApplicationsForAllRegions(
+  private Set<EcsApplication> findApplicationsForAllRegions(
       AmazonCredentials credentials, boolean expand) {
-    Set<Application> applications = new HashSet<>();
+    Set<EcsApplication> applications = new HashSet<>();
 
     for (AmazonCredentials.AWSRegion awsRegion : credentials.getRegions()) {
       applications.addAll(
@@ -84,16 +85,16 @@ public class EcsApplicationProvider implements ApplicationProvider {
     return applications;
   }
 
-  private Set<Application> findApplicationsForRegion(
+  private Set<EcsApplication> findApplicationsForRegion(
       String account, String region, boolean expand) {
-    HashMap<String, Application> applicationHashMap =
+    HashMap<String, EcsApplication> applicationHashMap =
         populateApplicationMap(account, region, expand);
     return transposeApplicationMapToSet(applicationHashMap);
   }
 
-  private HashMap<String, Application> populateApplicationMap(
+  private HashMap<String, EcsApplication> populateApplicationMap(
       String account, String region, boolean expand) {
-    HashMap<String, Application> applicationHashMap = new HashMap<>();
+    HashMap<String, EcsApplication> applicationHashMap = new HashMap<>();
     Collection<Service> services = serviceCacheClient.getAll(account, region);
 
     for (Service service : services) {
@@ -102,19 +103,32 @@ public class EcsApplicationProvider implements ApplicationProvider {
     return applicationHashMap;
   }
 
-  private Set<Application> transposeApplicationMapToSet(
-      HashMap<String, Application> applicationHashMap) {
-    Set<Application> applications = new HashSet<>();
+  private Set<EcsApplication> populateApplicationSet(
+      Collection<String> identifiers, boolean expand) {
+    HashMap<String, EcsApplication> applicationHashMap = new HashMap<>();
+    Collection<Service> services = serviceCacheClient.getAll(identifiers);
 
-    for (Map.Entry<String, Application> entry : applicationHashMap.entrySet()) {
+    for (Service service : services) {
+      if (credentialsRepository.has(service.getAccount())) {
+        applicationHashMap = inferApplicationFromServices(applicationHashMap, service, expand);
+      }
+    }
+    return transposeApplicationMapToSet(applicationHashMap);
+  }
+
+  private Set<EcsApplication> transposeApplicationMapToSet(
+      HashMap<String, EcsApplication> applicationHashMap) {
+    Set<EcsApplication> applications = new HashSet<>();
+
+    for (Map.Entry<String, EcsApplication> entry : applicationHashMap.entrySet()) {
       applications.add(entry.getValue());
     }
 
     return applications;
   }
 
-  private HashMap<String, Application> inferApplicationFromServices(
-      HashMap<String, Application> applicationHashMap, Service service, boolean expand) {
+  private HashMap<String, EcsApplication> inferApplicationFromServices(
+      HashMap<String, EcsApplication> applicationHashMap, Service service, boolean expand) {
 
     HashMap<String, String> attributes = new HashMap<>();
     Moniker moniker = service.getMoniker();
@@ -125,18 +139,31 @@ public class EcsApplicationProvider implements ApplicationProvider {
     attributes.put("name", appName);
 
     HashMap<String, Set<String>> clusterNames = new HashMap<>();
+    HashMap<String, Set<String>> clusterNamesMetadata = new HashMap<>();
+
     if (expand) {
       clusterNames.put(accountName, Sets.newHashSet(serviceName));
+      clusterNamesMetadata.put(accountName, Sets.newHashSet(moniker.getCluster()));
     }
 
-    EcsApplication application = new EcsApplication(appName, attributes, clusterNames);
+    EcsApplication application =
+        new EcsApplication(appName, attributes, clusterNames, clusterNamesMetadata);
 
     if (!applicationHashMap.containsKey(appName)) {
       applicationHashMap.put(appName, application);
     } else {
       applicationHashMap.get(appName).getAttributes().putAll(application.getAttributes());
       if (expand) {
-        applicationHashMap.get(appName).getClusterNames().get(accountName).add(serviceName);
+        applicationHashMap
+            .get(appName)
+            .getClusterNames()
+            .computeIfAbsent(accountName, k -> Sets.newHashSet())
+            .add(serviceName);
+        applicationHashMap
+            .get(appName)
+            .getClusterNameMetadata()
+            .computeIfAbsent(accountName, k -> Sets.newHashSet())
+            .add(moniker.getCluster());
       }
     }
 

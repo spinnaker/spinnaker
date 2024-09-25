@@ -413,12 +413,14 @@ class EcsCloudMetricServiceSpec extends Specification {
       )
     }
 
-    metricAlarmCacheClient.getMetricAlarms(_, _, _) >> metricAlarms
+    metricAlarmCacheClient.getMetricAlarms(_, _,_ ,_) >> metricAlarms
 
     when:
-    service.deleteMetrics(targetServiceName, targetAccountName, targetRegion)
+    service.deleteMetrics(targetServiceName, targetAccountName, targetRegion, clusterName)
 
     then:
     1 * targetCloudWatch.deleteAlarms(_)
   }
+
+
 }

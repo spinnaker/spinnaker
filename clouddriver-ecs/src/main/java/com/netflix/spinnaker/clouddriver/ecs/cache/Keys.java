@@ -201,8 +201,8 @@ public class Keys implements KeyParser {
     return buildKey(Namespace.TASK_DEFINITIONS.ns, account, region, taskDefinitionArn);
   }
 
-  public static String getAlarmKey(String account, String region, String alarmArn) {
-    return buildKey(Namespace.ALARMS.ns, account, region, alarmArn);
+  public static String getAlarmKey(String account, String region, String alarmArn, String cluster) {
+    return buildKey(Namespace.ALARMS.ns, account, region, alarmArn + SEPARATOR + cluster);
   }
 
   public static String getScalableTargetKey(String account, String region, String resourceId) {

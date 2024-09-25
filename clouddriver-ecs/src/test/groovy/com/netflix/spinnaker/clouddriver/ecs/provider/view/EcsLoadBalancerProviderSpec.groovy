@@ -174,7 +174,7 @@ class EcsLoadBalancerProviderSpec extends Specification {
     def loadBalancerList = provider.getApplicationLoadBalancers(applicationName)
 
     then:
-    mockServiceCache.getAll() >> Collections.singletonList(ecsService)
+    mockServiceCache.getAll(_) >> Collections.singletonList(ecsService)
     mockTargetGroupCache.getAllKeys() >> ['fake-tg-key-1', 'fake-tg-key-2']
     mockTargetGroupCache.find(_) >> [ecsTg1, ecsTg2]
     mockLBCache.findWithTargetGroups(_) >> [ecsLoadBalancerCache1, ecsLoadBalancerCache2]
@@ -249,7 +249,7 @@ class EcsLoadBalancerProviderSpec extends Specification {
     def loadBalancerList = provider.getApplicationLoadBalancers(applicationName)
 
     then:
-    mockServiceCache.getAll() >> [ecsService1, ecsService2]
+    mockServiceCache.getAll(_) >> [ecsService1, ecsService2]
     mockTargetGroupCache.getAllKeys() >> ['fake-tg-key-1']
     mockTargetGroupCache.find(_) >> [ecsTg]
     mockLBCache.findWithTargetGroups(_) >> Collections.singletonList(ecsLoadBalancerCache)

@@ -23,6 +23,7 @@ import com.amazonaws.services.ecs.model.DescribeClustersResult;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsClusterCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsCluster;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
@@ -55,9 +56,11 @@ public class EcsClusterProvider {
   // TODO include[] input of Describe Cluster is not a part of this implementation, need to
   // implement in the future if additional properties are needed.
   public Collection<Cluster> getEcsClusterDescriptions(String account, String region) {
+    String glob = Keys.getClusterKey(account, region, "*");
+    Collection<String> ecsClustersIdentifiers = ecsClusterCacheClient.filterIdentifiers(glob);
     Collection<Cluster> clusters = new ArrayList<>();
     List<String> filteredEcsClusters =
-        ecsClusterCacheClient.getAll().stream()
+        ecsClusterCacheClient.getAll(ecsClustersIdentifiers).stream()
             .filter(
                 cluster ->
                     account.equals(cluster.getAccount()) && region.equals(cluster.getRegion()))
