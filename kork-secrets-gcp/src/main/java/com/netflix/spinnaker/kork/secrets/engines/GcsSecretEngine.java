@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kork.secrets.engines;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
@@ -82,7 +82,7 @@ public class GcsSecretEngine extends AbstractStorageSecretEngine {
 
     if (storage == null) {
       HttpTransport httpTransport = GoogleUtils.buildHttpTransport();
-      JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+      JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
       GoogleCredentials credentials = GoogleUtils.buildGoogleCredentials();
       HttpRequestInitializer requestInitializer =
           GoogleUtils.setTimeoutsAndRetryBehavior(credentials);

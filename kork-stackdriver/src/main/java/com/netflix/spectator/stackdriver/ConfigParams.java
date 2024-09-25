@@ -20,7 +20,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.MonitoringScopes;
 import com.netflix.spectator.api.Measurement;
@@ -106,7 +106,7 @@ public class ConfigParams {
       if (result.monitoring == null) {
         try {
           HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
-          JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+          JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
           GoogleCredential credential = loadCredential(transport, jsonFactory, credentialsPath);
           String version = getClass().getPackage().getImplementationVersion();
           if (version == null) {
