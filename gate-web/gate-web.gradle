@@ -32,6 +32,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-config"
   implementation "io.spinnaker.kork:kork-plugins"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.netflix.frigga:frigga"
   implementation "redis.clients:jedis"
@@ -78,7 +79,6 @@ dependencies {
   testImplementation "io.spinnaker.kork:kork-jedis-test"
   testImplementation "io.spinnaker.kork:kork-test"
   testImplementation "org.apache.groovy:groovy-json"
-  testRuntimeOnly "io.spinnaker.kork:kork-retrofit"
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {

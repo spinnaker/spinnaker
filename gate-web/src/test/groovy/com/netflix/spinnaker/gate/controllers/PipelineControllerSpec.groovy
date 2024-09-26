@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
+import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import groovy.json.JsonSlurper
@@ -39,12 +40,14 @@ class PipelineControllerSpec extends Specification {
 
   def taskSerivce = Mock(TaskService)
   def front50Service = Mock(Front50Service)
+  def pipelineService = Mock(PipelineService)
   def pipelineControllerConfig = new PipelineControllerConfigProperties()
   def mockMvc = MockMvcBuilders
-    .standaloneSetup(new PipelineController(objectMapper: new ObjectMapper(),
-      taskService: taskSerivce,
-      front50Service: front50Service,
-      pipelineControllerConfigProperties: pipelineControllerConfig))
+    .standaloneSetup(new PipelineController(pipelineService,
+                                            taskSerivce,
+                                            front50Service,
+                                            new ObjectMapper(),
+                                            pipelineControllerConfig))
     .build()
 
   def "should update a pipeline"() {

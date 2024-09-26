@@ -73,7 +73,8 @@ class ApplicationService {
     this.allApplicationsCache
   }
 
-  @Scheduled(fixedDelayString = '${services.front50.applicationRefreshIntervalMs:5000}')
+  @Scheduled(fixedDelayString = '${services.front50.applicationRefreshIntervalMs:5000}',
+             initialDelayString = '${services.front50.applicationRefreshInitialDelayMs:}')
   void refreshApplicationsCache() {
     try {
       allApplicationsCache.set(tick(true))

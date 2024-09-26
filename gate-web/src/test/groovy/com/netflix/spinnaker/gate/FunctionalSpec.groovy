@@ -259,8 +259,12 @@ class FunctionalSpec extends Specification {
    }
 
     @Bean
-    PipelineController pipelineController() {
-      new PipelineController()
+    PipelineController pipelineController(PipelineService pipelineService,
+                                          TaskService taskService,
+                                          Front50Service front50Service,
+                                          ObjectMapper objectMapper,
+                                          PipelineControllerConfigProperties pipelineControllerConfigProperties) {
+      new PipelineController(pipelineService, taskService, front50Service, objectMapper, pipelineControllerConfigProperties)
     }
 
     @Bean
