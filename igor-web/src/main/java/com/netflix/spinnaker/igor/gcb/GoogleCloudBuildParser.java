@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.client.json.JsonGenerator;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
@@ -34,11 +34,11 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty("gcb.enabled")
 final class GoogleCloudBuildParser {
-  private final JacksonFactory jacksonFactory = JacksonFactory.getDefaultInstance();
+  private final GsonFactory gsonFactory = GsonFactory.getDefaultInstance();
 
   <T> T parse(String input, Class<T> destinationClass) {
     try {
-      return jacksonFactory.createJsonParser(input).parse(destinationClass);
+      return gsonFactory.createJsonParser(input).parse(destinationClass);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -51,7 +51,7 @@ final class GoogleCloudBuildParser {
 
   String serialize(Object input) {
     Writer writer = new StringWriter();
-    try (JsonGenerator generator = jacksonFactory.createJsonGenerator(writer)) {
+    try (JsonGenerator generator = gsonFactory.createJsonGenerator(writer)) {
       generator.serialize(input);
     } catch (IOException e) {
       throw new UncheckedIOException(e);

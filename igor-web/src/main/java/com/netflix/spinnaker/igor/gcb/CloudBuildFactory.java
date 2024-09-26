@@ -20,7 +20,7 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.cloudbuild.v1.CloudBuild;
 import com.google.api.services.storage.Storage;
 import com.google.auth.http.HttpCredentialsAdapter;
@@ -38,7 +38,7 @@ final class CloudBuildFactory {
   private final int connectTimeoutSec = 10;
   private final int readTimeoutSec = 10;
 
-  private final JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+  private final JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
   private final HttpTransport httpTransport;
 
   // Override the base URL for all requests to the cloud build API; primarily for testing.
