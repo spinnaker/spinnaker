@@ -59,7 +59,9 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
     this.bucket = bucket;
     this.uriBuilder = uriBuilder;
     this.applicationsPattern =
-        (applicationsRegex != null) ? Pattern.compile(applicationsRegex) : null;
+        (applicationsRegex != null)
+            ? Pattern.compile(applicationsRegex, Pattern.CASE_INSENSITIVE)
+            : null;
   }
 
   /**

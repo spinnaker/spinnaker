@@ -99,6 +99,8 @@ public class S3ArtifactStoreStorerTest {
         Arguments.of("any", null, true),
         Arguments.of("app-one", allowRegex, true),
         Arguments.of("app-four", allowRegex, false),
+        Arguments.of("APP-One", allowRegex, true),
+        Arguments.of("APP-FOUR", allowRegex, false),
         Arguments.of("one", allowRegex, false),
         Arguments.of("app-one-more", allowRegex, false),
         Arguments.of("app-five", allowRegex, true),
