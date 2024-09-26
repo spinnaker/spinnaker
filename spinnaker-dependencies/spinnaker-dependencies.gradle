@@ -98,13 +98,13 @@ dependencies {
       force = true
     }
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
-    api("com.google.api-client:google-api-client:1.31.5") // TODO: Track update for CVE-2020-7692, reanalysis pending.
-    api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20210531-1.31.5")
-    api("com.google.apis:google-api-services-cloudbuild:v1-rev20210625-1.31.5")
-    api("com.google.apis:google-api-services-compute:beta-rev20210525-1.31.5")
-    api("com.google.apis:google-api-services-iam:v1-rev20210519-1.31.5")
-    api("com.google.apis:google-api-services-monitoring:v3-rev20210618-1.31.5") //v3-rev20210618-1.31.5
-    api("com.google.apis:google-api-services-storage:v1-rev20210127-1.31.5")
+    api("com.google.api-client:google-api-client:1.33.0") // TODO: Track update for CVE-2020-7692, reanalysis pending.
+    api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20220125-1.32.1")
+    api("com.google.apis:google-api-services-cloudbuild:v1-rev20211230-1.32.1")
+    api("com.google.apis:google-api-services-compute:beta-rev20211228-1.32.1")
+    api("com.google.apis:google-api-services-iam:v1-rev20220105-1.32.1")
+    api("com.google.apis:google-api-services-monitoring:v3-rev20220117-1.32.1") //v3-rev20210618-1.31.5
+    api("com.google.apis:google-api-services-storage:v1-rev20220210-1.32.1")
     api("com.google.cloud:google-cloud-secretmanager:2.3.10")
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:33.0.0-jre")
