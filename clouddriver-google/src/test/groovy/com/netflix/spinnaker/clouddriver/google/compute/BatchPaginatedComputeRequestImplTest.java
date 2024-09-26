@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import com.google.api.client.googleapis.testing.json.GoogleJsonResponseExceptionFactoryTesting;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Image;
 import com.google.api.services.compute.model.ImageList;
@@ -96,7 +96,7 @@ final class BatchPaginatedComputeRequestImplTest {
             pageToken ->
                 FakeGoogleComputeRequest.createWithException(
                     GoogleJsonResponseExceptionFactoryTesting.newMock(
-                        JacksonFactory.getDefaultInstance(), 500, "bad news"),
+                        GsonFactory.getDefaultInstance(), 500, "bad news"),
                     mock(Compute.Images.List.class)),
             ImageList::getNextPageToken,
             ImageList::getItems));

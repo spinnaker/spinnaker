@@ -24,7 +24,7 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpResponse
 import com.google.api.client.json.JsonObjectParser
-import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.cats.cache.Cache
@@ -142,7 +142,7 @@ class GCEUtil {
       {
         return compute.getRequestFactory()
           .buildGetRequest(new GenericUrl(reference))
-          .setParser(new JsonObjectParser(JacksonFactory.getDefaultInstance()))
+          .setParser(new JsonObjectParser(GsonFactory.getDefaultInstance()))
           .execute()
       },
       "gce/image",

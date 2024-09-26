@@ -28,7 +28,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.LowLevelHttpRequest;
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.testing.http.MockLowLevelHttpRequest;
 import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import com.google.api.services.compute.Compute;
@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
 // providing simpler methods like setInstances() and using it more like a stub seems easier.
 final class StubComputeFactory {
 
-  private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+  private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
   private static final String COMPUTE_PATH_PREFIX = "/compute/[-.a-zA-Z0-9]+";
 
@@ -173,7 +173,7 @@ final class StubComputeFactory {
             .addGetResponse(AGGREGATED_AUTOSCALERS_PATTERN, this::autoscalerAggregatedList)
             .addGetResponse(GET_PROJECT_PATTERN, this::project);
     return new Compute(
-        httpTransport, JacksonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
+        httpTransport, GsonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
   }
 
   private MockLowLevelHttpResponse getInstanceGroupManager(MockLowLevelHttpRequest request) {

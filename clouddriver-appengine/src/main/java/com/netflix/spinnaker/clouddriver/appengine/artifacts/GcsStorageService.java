@@ -20,7 +20,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.Objects;
@@ -56,7 +56,7 @@ public class GcsStorageService {
     public Factory(String applicationName) throws IOException, GeneralSecurityException {
       applicationName_ = applicationName;
       transport_ = GoogleNetHttpTransport.newTrustedTransport();
-      jsonFactory_ = JacksonFactory.getDefaultInstance();
+      jsonFactory_ = GsonFactory.getDefaultInstance();
     }
 
     public Factory(String applicationName, HttpTransport transport, JsonFactory jsonFactory) {

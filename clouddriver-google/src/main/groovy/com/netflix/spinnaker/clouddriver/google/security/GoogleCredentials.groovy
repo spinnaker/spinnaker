@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.security
 
 import com.google.api.client.http.HttpTransport
 import com.google.api.client.json.JsonFactory
-import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.googlecommon.security.GoogleCommonCredentials
@@ -33,7 +33,7 @@ public class GoogleCredentials extends GoogleCommonCredentials {
 
   Compute getCompute(String applicationName) {
     HttpTransport httpTransport = buildHttpTransport()
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance()
+    JsonFactory jsonFactory = GsonFactory.getDefaultInstance()
 
     def credentials = getCredentials()
     def reqInit = setHttpTimeout(credentials)

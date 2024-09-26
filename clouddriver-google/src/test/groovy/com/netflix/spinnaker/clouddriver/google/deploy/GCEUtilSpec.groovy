@@ -22,7 +22,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
   import com.google.api.client.http.HttpRequest
   import com.google.api.client.http.HttpRequestFactory
   import com.google.api.client.http.HttpResponse
-  import com.google.api.client.json.jackson2.JacksonFactory
+  import com.google.api.client.json.gson.GsonFactory
   import com.google.api.services.compute.Compute
   import com.google.api.services.compute.model.*
   import com.netflix.spectator.api.DefaultRegistry
@@ -88,7 +88,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def executorMock = Mock(GoogleExecutorTraits)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
-      def jsonFactory = JacksonFactory.defaultInstance
+      def jsonFactory = GsonFactory.defaultInstance
       def httpRequestInitializer =
         new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def compute = new Compute.Builder(
@@ -124,7 +124,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def executorMock = Mock(GoogleExecutorTraits)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
-      def jsonFactory = JacksonFactory.defaultInstance
+      def jsonFactory = GsonFactory.defaultInstance
       def httpRequestInitializer =
         new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def compute = new Compute.Builder(
@@ -157,7 +157,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       def executorMock = Mock(GoogleExecutorTraits)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
-      def jsonFactory = JacksonFactory.defaultInstance
+      def jsonFactory = GsonFactory.defaultInstance
       def httpRequestInitializer =
         new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def compute = new Compute.Builder(

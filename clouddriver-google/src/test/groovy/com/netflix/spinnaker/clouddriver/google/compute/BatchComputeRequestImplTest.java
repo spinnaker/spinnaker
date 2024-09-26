@@ -26,7 +26,7 @@ import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.LowLevelHttpRequest;
 import com.google.api.client.http.LowLevelHttpResponse;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.Compute.Images.Get;
@@ -341,9 +341,7 @@ public class BatchComputeRequestImplTest {
 
   private static Compute computeWithResponses(ResponseSupplier... responses) {
     return new Compute(
-        responses(responses),
-        JacksonFactory.getDefaultInstance(),
-        /* httpRequestInitializer= */ null);
+        responses(responses), GsonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
   }
 
   private static HttpTransport responses(ResponseSupplier... responses) {

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.security;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.appengine.v1.Appengine;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -35,7 +35,7 @@ public class AppengineCredentials extends GoogleCommonCredentials {
 
   public Appengine getAppengine(String applicationName) {
     HttpTransport httpTransport = buildHttpTransport();
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
     GoogleCredentials credentials = getCredentials();
     HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
 

@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.api.client.googleapis.testing.json.GoogleJsonResponseExceptionFactoryTesting;
 import com.google.api.client.http.HttpResponseException;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Image;
 import java.io.IOException;
@@ -69,7 +69,7 @@ final class GetFirstBatchComputeRequestTest {
         GetFirstBatchComputeRequest.create(new FakeBatchComputeRequest<>());
     HttpResponseException notFoundException =
         GoogleJsonResponseExceptionFactoryTesting.newMock(
-            JacksonFactory.getDefaultInstance(), 404, "not found");
+            GsonFactory.getDefaultInstance(), 404, "not found");
     batchRequest.queue(FakeGoogleComputeRequest.createWithException(notFoundException));
     batchRequest.queue(FakeGoogleComputeRequest.createWithException(notFoundException));
     batchRequest.queue(FakeGoogleComputeRequest.createWithException(notFoundException));
@@ -87,10 +87,10 @@ final class GetFirstBatchComputeRequestTest {
         GetFirstBatchComputeRequest.create(new FakeBatchComputeRequest<>());
     HttpResponseException notFoundException =
         GoogleJsonResponseExceptionFactoryTesting.newMock(
-            JacksonFactory.getDefaultInstance(), 404, "not found");
+            GsonFactory.getDefaultInstance(), 404, "not found");
     HttpResponseException actualError =
         GoogleJsonResponseExceptionFactoryTesting.newMock(
-            JacksonFactory.getDefaultInstance(), 500, "bad news");
+            GsonFactory.getDefaultInstance(), 500, "bad news");
     batchRequest.queue(FakeGoogleComputeRequest.createWithException(notFoundException));
     batchRequest.queue(FakeGoogleComputeRequest.createWithException(notFoundException));
     batchRequest.queue(FakeGoogleComputeRequest.createWithException(actualError));

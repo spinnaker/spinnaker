@@ -20,7 +20,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
@@ -69,7 +69,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
       def instancesInsertMock = Mock(Compute.Instances.Insert)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
-      def jsonFactory = JacksonFactory.defaultInstance
+      def jsonFactory = GsonFactory.defaultInstance
       def httpRequestInitializer =
               new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def images = new Compute.Builder(
@@ -167,7 +167,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
       def listMock = new MockFor(Compute.Images.List)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
-      def jsonFactory = JacksonFactory.defaultInstance
+      def jsonFactory = GsonFactory.defaultInstance
       def httpRequestInitializer =
               new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def images = new Compute.Builder(

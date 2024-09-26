@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.api.client.googleapis.testing.json.GoogleJsonResponseExceptionFactoryTesting;
 import com.google.api.client.http.HttpStatusCodes;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.Compute.InstanceTemplates.Delete;
 import com.google.api.services.compute.Compute.InstanceTemplates.Insert;
@@ -239,9 +239,7 @@ final class StatefullyUpdateBootImageAtomicOperationTest {
       throws IOException {
     return FakeGoogleComputeRequest.createWithException(
         GoogleJsonResponseExceptionFactoryTesting.newMock(
-            JacksonFactory.getDefaultInstance(),
-            HttpStatusCodes.STATUS_CODE_NOT_FOUND,
-            "not found"));
+            GsonFactory.getDefaultInstance(), HttpStatusCodes.STATUS_CODE_NOT_FOUND, "not found"));
   }
 
   private static InstanceTemplate baseInstanceTemplate() {

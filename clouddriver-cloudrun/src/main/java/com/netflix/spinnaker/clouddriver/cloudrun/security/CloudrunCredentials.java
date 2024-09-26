@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.cloudrun.security;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.run.v1.CloudRun;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -35,7 +35,7 @@ public class CloudrunCredentials extends GoogleCommonCredentials {
 
   public CloudRun getCloudrun(String applicationName) {
     HttpTransport httpTransport = buildHttpTransport();
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
     GoogleCredentials credentials =
         getCredentials().createScoped("https://www.googleapis.com/auth/cloud-platform");
     HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
