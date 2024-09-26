@@ -26,12 +26,12 @@ import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.ExponentialBackOff;
-import com.google.api.services.admin.directory.Directory;
-import com.google.api.services.admin.directory.DirectoryScopes;
-import com.google.api.services.admin.directory.model.Group;
-import com.google.api.services.admin.directory.model.Groups;
+import com.google.api.services.directory.Directory;
+import com.google.api.services.directory.DirectoryScopes;
+import com.google.api.services.directory.model.Group;
+import com.google.api.services.directory.model.Groups;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
@@ -225,7 +225,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
 
   private Directory getDirectoryService() {
     HttpTransport httpTransport = new NetHttpTransport();
-    JacksonFactory jacksonFactory = new JacksonFactory();
+    GsonFactory jacksonFactory = new GsonFactory();
     GoogleCredential credential = getGoogleCredential();
 
     PropertyAccessor accessor = PropertyAccessorFactory.forDirectFieldAccess(credential);

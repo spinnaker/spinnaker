@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.fiat.roles.google
 
 import com.netflix.spinnaker.fiat.permissions.ExternalUser
-import com.google.api.services.admin.directory.model.Group;
-import com.google.api.services.admin.directory.model.Groups;
+import com.google.api.services.directory.model.Group;
+import com.google.api.services.directory.model.Groups;
 import spock.lang.Specification
 
 class GoogleDirectoryUserRolesProviderSpec extends Specification {
