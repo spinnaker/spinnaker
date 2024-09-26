@@ -23,7 +23,7 @@ import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.Bucket;
@@ -73,7 +73,7 @@ class GoogleStorage {
 
   private Storage buildCredentials(GoogleSecureStorageProperties properties) {
     HttpTransport transport = new NetHttpTransport();
-    JsonFactory jsonFactory = new JacksonFactory();
+    JsonFactory jsonFactory = new GsonFactory();
     GoogleCredentials credentials;
     try {
       credentials = loadStorageCredential(properties.getJsonPath());

@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.netflix.spinnaker.halyard.core.provider.v1.google.GoogleCredentials;
@@ -45,7 +45,7 @@ public class GoogleProfileReaderConfig {
   }
 
   private Storage createGoogleStorage(boolean useApplicationDefaultCreds) {
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
     String applicationName = "Spinnaker/Halyard";
     HttpRequestInitializer requestInitializer = null;
 

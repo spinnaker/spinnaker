@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.core.registry.v1;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.StorageObject;
@@ -45,7 +45,7 @@ public class GoogleWriteableProfileRegistry {
 
   GoogleWriteableProfileRegistry(WriteableProfileRegistryProperties properties) {
     HttpTransport httpTransport = GoogleCredentials.buildHttpTransport();
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
     com.google.auth.oauth2.GoogleCredentials credentials;
     try {
       credentials = loadCredentials(properties.getJsonPath());
