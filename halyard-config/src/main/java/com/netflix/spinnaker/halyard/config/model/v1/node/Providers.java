@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.Appengi
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudrun.CloudrunProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.ecs.EcsProvider;
@@ -48,6 +49,8 @@ public class Providers extends Node implements Cloneable {
   AwsProvider aws = new AwsProvider();
   EcsProvider ecs = new EcsProvider();
   AzureProvider azure = new AzureProvider();
+
+  CloudrunProvider cloudrun = new CloudrunProvider();
   DCOSProvider dcos = new DCOSProvider();
   DockerRegistryProvider dockerRegistry = new DockerRegistryProvider();
   GoogleProvider google = new GoogleProvider();

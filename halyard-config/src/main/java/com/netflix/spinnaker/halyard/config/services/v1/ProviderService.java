@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudrun.CloudrunProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
@@ -118,6 +119,9 @@ public class ProviderService {
         break;
       case AZURE:
         providers.setAzure((AzureProvider) provider);
+        break;
+      case CLOUDRUN:
+        providers.setCloudrun((CloudrunProvider) provider);
         break;
       case DCOS:
         providers.setDcos((DCOSProvider) provider);

@@ -78,6 +78,7 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     ECS("ecs"),
     AZURE("azure"),
     CLOUDFOUNDRY("cloudfoundry"),
+    CLOUDRUN("cloudrun"),
     DCOS("dcos"),
     DOCKERREGISTRY("dockerRegistry"),
     GOOGLE("google", "gce"),

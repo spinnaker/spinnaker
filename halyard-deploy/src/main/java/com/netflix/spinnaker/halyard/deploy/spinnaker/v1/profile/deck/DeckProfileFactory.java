@@ -29,6 +29,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudrun.CloudrunProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.ecs.EcsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
@@ -157,6 +158,10 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     // Configure Appengine
     AppengineProvider appengineProvider = deploymentConfiguration.getProviders().getAppengine();
     bindings.put("appengine.default.account", appengineProvider.getPrimaryAccount());
+
+    // Configure CloudRun
+    CloudrunProvider cloudrunProvider = deploymentConfiguration.getProviders().getCloudrun();
+    bindings.put("cloudrun.default.account", cloudrunProvider.getPrimaryAccount());
 
     // Configure DC/OS
     final DCOSProvider dcosProvider = deploymentConfiguration.getProviders().getDcos();
