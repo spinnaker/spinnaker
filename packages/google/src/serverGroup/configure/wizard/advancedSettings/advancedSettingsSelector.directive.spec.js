@@ -18,7 +18,7 @@ describe('Directive: GCE Group Advanced Settings Selector', function () {
       );
       this.gceTagManager = gceTagManager;
       this.scope = $rootScope.$new();
-      this.scope.command = { instanceMetadata: [], tags: [], labels: [], authScopes: [] };
+      this.scope.command = { instanceMetadata: [], tags: [], labels: [], authScopes: [], resourceManagerTags: [] };
       this.elem = angular.element(
         '<gce-server-group-advanced-settings-selector command="command"></gce-server-group-advanced-settings-selector>',
       );
