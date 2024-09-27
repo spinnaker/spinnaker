@@ -73,6 +73,14 @@ public interface KatoRestService {
       @Path("id") String id,
       @Path("fileName") String fileName);
 
+  @GET("/applications/{app}/kubernetes/pods/{account}/{namespace}/{podName}/{fileName}")
+  Map<String, Object> getFileContentsFromKubernetesPod(
+      @Path("app") String app,
+      @Path("account") String account,
+      @Path("namespace") String namespace,
+      @Path("podName") String podName,
+      @Path("fileName") String fileName);
+
   /**
    * This should _only_ be called if there is a problem retrieving the Task from
    * CloudDriverTaskStatusService (ie. a clouddriver replica).

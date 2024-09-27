@@ -4,5 +4,6 @@
       "job testrep"
     ]
   },
-  "account": "test-account"
+  "account": "test-account",
+  "application": "test-app"
 }

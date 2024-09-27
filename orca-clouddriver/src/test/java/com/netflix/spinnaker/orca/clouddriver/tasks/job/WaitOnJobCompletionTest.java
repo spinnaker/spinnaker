@@ -51,11 +51,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import okhttp3.MediaType;
-import okhttp3.Protocol;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,14 +58,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
-import retrofit.mime.TypedInput;
 
 public final class WaitOnJobCompletionTest {
   private ObjectMapper objectMapper;
-  private RetrySupport retrySupport;
   private KatoRestService mockKatoRestService;
-  private JobUtils mockJobUtils;
   private ExecutionRepository mockExecutionRepository;
   private TaskConfigurationProperties configProperties;
   private Front50Service mockFront50Service;
@@ -79,15 +72,22 @@ public final class WaitOnJobCompletionTest {
   @BeforeEach
   public void setup() {
     objectMapper = new ObjectMapper();
-    retrySupport = new RetrySupport();
+    RetrySupport retrySupport = new RetrySupport();
+    mockKatoRestService = mock(KatoRestService.class);
+    JobUtils mockJobUtils = mock(JobUtils.class);
+    mockExecutionRepository = mock(ExecutionRepository.class);
+    mockFront50Service = mock(Front50Service.class);
+
     configProperties = new TaskConfigurationProperties();
+    TaskConfigurationProperties.WaitOnJobCompletionTaskConfig.Retries retries =
+        new TaskConfigurationProperties.WaitOnJobCompletionTaskConfig.Retries();
+    retries.setMaxAttempts(3);
+    retries.setBackOffInMs(1);
+    configProperties.getWaitOnJobCompletionTask().setFileContentRetry(retries);
+    configProperties.getWaitOnJobCompletionTask().setJobStatusRetry(retries);
     configProperties
         .getWaitOnJobCompletionTask()
         .setExcludeKeysFromOutputs(Set.of("completionDetails"));
-    mockKatoRestService = mock(KatoRestService.class);
-    mockJobUtils = mock(JobUtils.class);
-    mockExecutionRepository = mock(ExecutionRepository.class);
-    mockFront50Service = mock(Front50Service.class);
 
     task =
         new WaitOnJobCompletion(
@@ -116,8 +116,8 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingContextApplication() {
-    retrofit.client.Response mockResponse =
-        new retrofit.client.Response(
+    Response mockResponse =
+        new Response(
             "test-url",
             200,
             "test-reason",
@@ -142,8 +142,8 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingContextMoniker() {
-    retrofit.client.Response mockResponse =
-        new retrofit.client.Response(
+    Response mockResponse =
+        new Response(
             "test-url",
             200,
             "test-reason",
@@ -167,8 +167,8 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingParsedName() {
-    retrofit.client.Response mockResponse =
-        new retrofit.client.Response(
+    Response mockResponse =
+        new Response(
             "test-url",
             200,
             "test-reason",
@@ -191,8 +191,8 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingExecutionApp() {
-    retrofit.client.Response mockResponse =
-        new retrofit.client.Response(
+    Response mockResponse =
+        new Response(
             "test-url",
             200,
             "test-reason",
@@ -213,24 +213,16 @@ public final class WaitOnJobCompletionTest {
   }
 
   @DisplayName(
-      "parameterized test for checking how property file contents are set in the stage context for a successful runjob")
+      "parameterized test for checking how property file contents are set in the stage context for a successful k8s runjob")
   @ParameterizedTest(name = "{index} ==> isPropertyFileContentsEmpty = {0}")
   @ValueSource(booleans = {true, false})
-  void testPropertyFileContentsHandlingForASuccessfulRunJob(boolean isPropertyFileContentsEmpty)
+  void testPropertyFileContentsHandlingForASuccessfulK8sRunJob(boolean isPropertyFileContentsEmpty)
       throws IOException {
     // setup
-    InputStream jobStatusInputStream =
-        getResourceAsStream("clouddriver/tasks/job/successful-runjob-status.json");
-
-    retrofit.client.Response mockResponse =
-        new retrofit.client.Response(
-            "test-url",
-            200,
-            "test-reason",
-            Collections.emptyList(),
-            new TypedByteArray("application/json", IOUtils.toByteArray(jobStatusInputStream)));
-
-    when(mockKatoRestService.collectJob(any(), any(), any(), any())).thenReturn(mockResponse);
+    when(mockKatoRestService.collectJob(any(), any(), any(), any()))
+        .thenReturn(
+            createJobStatusFromResource(
+                "clouddriver/tasks/job/kubernetes/successful-runjob-status.json"));
 
     Map<String, Object> propertyFileContents = new HashMap<>();
     if (!isPropertyFileContentsEmpty) {
@@ -240,12 +232,9 @@ public final class WaitOnJobCompletionTest {
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep")))
         .thenReturn(propertyFileContents);
 
-    Map<String, Object> stageContext =
-        getResource(
-            objectMapper,
-            "clouddriver/tasks/job/runjob-stage-context-with-property-file.json",
-            Map.class);
-    StageExecutionImpl myStage = createStageWithContext(stageContext);
+    StageExecution myStage =
+        createStageFromResource(
+            "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json");
 
     // when
     ConfigurationException thrown = null;
@@ -275,7 +264,9 @@ public final class WaitOnJobCompletionTest {
           thrown
               .getMessage()
               .matches(
-                  "Expected properties file testrep but it was either missing, empty or contained invalid syntax"));
+                  "Expected properties file: testrep in job: job testrep, application: test-app,"
+                      + " location: test, account: test-account but it was either missing, empty or"
+                      + " contained invalid syntax"));
     } else {
       assertNotNull(result);
       assertThat(result.getContext().containsKey("propertyFileContents")).isTrue();
@@ -284,42 +275,36 @@ public final class WaitOnJobCompletionTest {
   }
 
   @Test
-  void testPropertyFileContentsErrorHandlingForASuccessfulRunJob() throws IOException {
-    // setup
-    InputStream jobStatusInputStream =
-        getResourceAsStream("clouddriver/tasks/job/successful-runjob-status.json");
-
-    retrofit.client.Response mockResponse =
-        new retrofit.client.Response(
-            "test-url",
-            200,
-            "test-reason",
-            Collections.emptyList(),
-            new TypedByteArray("application/json", IOUtils.toByteArray(jobStatusInputStream)));
-
-    when(mockKatoRestService.collectJob(any(), any(), any(), any())).thenReturn(mockResponse);
+  void testPropertyFileContentsErrorHandlingForASuccessfulK8sRunJob() throws IOException {
+    when(mockKatoRestService.collectJob(any(), any(), any(), any()))
+        .thenReturn(
+            createJobStatusFromResource(
+                "clouddriver/tasks/job/kubernetes/successful-runjob-status.json"));
 
     when(mockKatoRestService.getFileContents(
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep")))
         .thenThrow(new RuntimeException("some exception"));
 
-    Map<String, Object> stageContext =
-        getResource(
-            objectMapper,
-            "clouddriver/tasks/job/runjob-stage-context-with-property-file.json",
-            Map.class);
-    StageExecutionImpl myStage = createStageWithContext(stageContext);
-
     // when
     ConfigurationException thrown =
-        assertThrows(ConfigurationException.class, () -> task.execute(myStage));
+        assertThrows(
+            ConfigurationException.class,
+            () ->
+                task.execute(
+                    createStageFromResource(
+                        "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json")));
 
     // then
     verify(mockKatoRestService, times(1))
         .collectJob(eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"));
 
-    // since there are 6 tries made for this call if it fails
-    verify(mockKatoRestService, times(6))
+    verify(
+            mockKatoRestService,
+            times(
+                configProperties
+                    .getWaitOnJobCompletionTask()
+                    .getFileContentRetry()
+                    .getMaxAttempts()))
         .getFileContents(
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep"));
 
@@ -332,42 +317,158 @@ public final class WaitOnJobCompletionTest {
         thrown
             .getMessage()
             .matches(
-                "Property File: testrep contents could not be retrieved. "
-                    + "Error: java.lang.RuntimeException: some exception"));
+                "Expected properties file: testrep in job: job testrep, application: test-app,"
+                    + " location: test, account: test-account but it was either missing, empty or contained"
+                    + " invalid syntax. Error: java.lang.RuntimeException: some exception"));
   }
 
   @DisplayName(
-      "parameterized test for checking if an exception is thrown when a run job fails, with or without a propertyFile")
+      "test to parse properties file for a successful k8s job having 2 pods - first failed, and second succeeded. The"
+          + " properties file should be obtained from the getFileContents() call, if that is successful")
+  @Test
+  void
+      testParsePropertiesFileContentsForSuccessfulK8sJobWith2PodsWithSuccessfulGetFileContentsCall()
+          throws IOException {
+    // setup
+
+    // mocked JobStatus response from clouddriver
+    when(mockKatoRestService.collectJob("test-app", "test-account", "test", "job testrep"))
+        .thenReturn(
+            createJobStatusFromResource(
+                "clouddriver/tasks/job/kubernetes/successful-runjob-status-with-multiple-pods.json"));
+
+    // when
+    when(mockKatoRestService.getFileContents(
+            "test-app", "test-account", "test", "job testrep", "testrep"))
+        .thenReturn(Map.of("some-key", "some-value"));
+
+    TaskResult result =
+        task.execute(
+            createStageFromResource(
+                "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json"));
+
+    // then
+    assertThat(result.getOutputs()).isNotEmpty();
+    assertThat(result.getContext()).isNotEmpty();
+
+    assertThat(result.getOutputs().containsKey("some-key"));
+    assertThat(result.getOutputs().containsValue("some-value"));
+    verify(mockKatoRestService)
+        .getFileContents("test-app", "test-account", "test", "job testrep", "testrep");
+    // no need to get file contents from a specific pod if the getFileContents call was successful
+    verify(mockKatoRestService, never())
+        .getFileContentsFromKubernetesPod(
+            anyString(), anyString(), anyString(), anyString(), anyString());
+  }
+
+  @DisplayName(
+      "test to parse properties file for a successful k8s job having 2 pods - first failed, and second succeeded. The"
+          + " the properties file should be read directly from the succeeded pod if the getFileContents() call fails")
+  @Test
+  void testParsePropertiesFileContentsForSuccessfulK8sJobWith2PodsWithFailedGetFileContentsCall()
+      throws IOException {
+    // setup
+
+    // mocked JobStatus response from clouddriver
+    when(mockKatoRestService.collectJob("test-app", "test-account", "test", "job testrep"))
+        .thenReturn(
+            createJobStatusFromResource(
+                "clouddriver/tasks/job/kubernetes/successful-runjob-status-with-multiple-pods.json"));
+
+    // when
+    when(mockKatoRestService.getFileContents(
+            "test-app", "test-account", "test", "job testrep", "testrep"))
+        .thenReturn(Map.of());
+
+    when(mockKatoRestService.getFileContentsFromKubernetesPod(
+            "test-app", "test-account", "test", "testrep-rn5qt", "testrep"))
+        .thenReturn(Map.of("some-key", "some-value"));
+
+    TaskResult result =
+        task.execute(
+            createStageFromResource(
+                "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json"));
+
+    // then
+    assertThat(result.getOutputs()).isNotEmpty();
+    assertThat(result.getContext()).isNotEmpty();
+
+    assertThat(result.getOutputs().containsKey("some-key"));
+    assertThat(result.getOutputs().containsValue("some-value"));
+    verify(mockKatoRestService)
+        .getFileContents("test-app", "test-account", "test", "job testrep", "testrep");
+    verify(mockKatoRestService)
+        .getFileContentsFromKubernetesPod(
+            "test-app", "test-account", "test", "testrep-rn5qt", "testrep");
+  }
+
+  @DisplayName(
+      "test to parse properties file for a successful k8s job having 2 pods - first failed, and second succeeded. The"
+          + " the properties file should be read from the getFileContents() call first. If that fails, a call to "
+          + " get the properties from the getFileContentsFromPod() should be made. If that fails,"
+          + " an exception should be thrown")
+  @Test
+  void testParsePropertiesFileContentsErrorHandlingForSuccessfulK8sJobWith2Pods()
+      throws IOException {
+    // setup
+
+    // mocked JobStatus response from clouddriver
+    when(mockKatoRestService.collectJob("test-app", "test-account", "test", "job testrep"))
+        .thenReturn(
+            createJobStatusFromResource(
+                "clouddriver/tasks/job/kubernetes/successful-runjob-status-with-multiple-pods.json"));
+
+    // when
+    when(mockKatoRestService.getFileContents(
+            "test-app", "test-account", "test", "job testrep", "testrep"))
+        .thenReturn(Map.of());
+
+    when(mockKatoRestService.getFileContentsFromKubernetesPod(
+            "test-app", "test-account", "test", "testrep-rn5qt", "testrep"))
+        .thenReturn(Map.of());
+
+    // then
+    ConfigurationException thrown =
+        assertThrows(
+            ConfigurationException.class,
+            () ->
+                task.execute(
+                    createStageFromResource(
+                        "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json")));
+
+    verify(mockKatoRestService)
+        .getFileContents("test-app", "test-account", "test", "job testrep", "testrep");
+    verify(mockKatoRestService)
+        .getFileContentsFromKubernetesPod(
+            "test-app", "test-account", "test", "testrep-rn5qt", "testrep");
+    assertTrue(
+        thrown
+            .getMessage()
+            .matches(
+                "Expected properties file: testrep in job: job testrep, application: test-app,"
+                    + " location: test, account: test-account but it was either missing, empty or contained"
+                    + " invalid syntax"));
+  }
+
+  @DisplayName(
+      "parameterized test for checking if an exception is thrown when a k8s run job fails, with or without a propertyFile")
   @ParameterizedTest(name = "{index} ==> includePropertyFile = {0}")
   @ValueSource(booleans = {true, false})
-  void testRunJobFailuresErrorHandling(boolean includePropertyFile) throws IOException {
+  void testK8sRunJobFailuresErrorHandling(boolean includePropertyFile) throws IOException {
     // setup
-    InputStream jobStatusInputStream =
-        getResourceAsStream("clouddriver/tasks/job/failed-runjob-status.json");
+    when(mockKatoRestService.collectJob(any(), any(), any(), any()))
+        .thenReturn(
+            createJobStatusFromResource(
+                "clouddriver/tasks/job/kubernetes/failed-runjob-status.json"));
 
-    retrofit.client.Response mockResponse =
-        new retrofit.client.Response(
-            "test-url",
-            200,
-            "test-reason",
-            Collections.emptyList(),
-            new TypedByteArray("application/json", IOUtils.toByteArray(jobStatusInputStream)));
-
-    when(mockKatoRestService.collectJob(any(), any(), any(), any())).thenReturn(mockResponse);
-
-    Map<String, Object> stageContext = new HashMap<>();
+    String stageContextResource =
+        "clouddriver/tasks/job/kubernetes/runjob-stage-context-without-property-file.json";
     if (includePropertyFile) {
-      stageContext =
-          getResource(
-              objectMapper,
-              "clouddriver/tasks/job/runjob-stage-context-with-property-file.json",
-              Map.class);
-    } else {
-      stageContext =
-          getResource(objectMapper, "clouddriver/tasks/job/runjob-stage-context.json", Map.class);
+      stageContextResource =
+          "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json";
     }
 
-    StageExecutionImpl myStage = createStageWithContext(stageContext);
+    StageExecution myStage = createStageFromResource(stageContextResource);
 
     // when
     JobFailedException thrown = assertThrows(JobFailedException.class, () -> task.execute(myStage));
@@ -407,21 +508,13 @@ public final class WaitOnJobCompletionTest {
       "parameterized test for checking how property file contents are set in the stage context on a runjob failure")
   @ParameterizedTest(name = "{index} ==> isPropertyFileContentsEmpty = {0}")
   @ValueSource(booleans = {true, false})
-  void testPropertyFileContentsHandlingForRunJobFailures(boolean isPropertyFileContentsEmpty)
+  void testPropertyFileContentsHandlingForK8sRunJobFailures(boolean isPropertyFileContentsEmpty)
       throws IOException {
     // setup
-    InputStream jobStatusInputStream =
-        getResourceAsStream("clouddriver/tasks/job/failed-runjob-status.json");
-
-    retrofit.client.Response mockResponse =
-        new retrofit.client.Response(
-            "test-url",
-            200,
-            "test-reason",
-            Collections.emptyList(),
-            new TypedByteArray("application/json", IOUtils.toByteArray(jobStatusInputStream)));
-
-    when(mockKatoRestService.collectJob(any(), any(), any(), any())).thenReturn(mockResponse);
+    when(mockKatoRestService.collectJob(any(), any(), any(), any()))
+        .thenReturn(
+            createJobStatusFromResource(
+                "clouddriver/tasks/job/kubernetes/failed-runjob-status.json"));
 
     Map<String, Object> propertyFileContents = new HashMap<>();
     if (!isPropertyFileContentsEmpty) {
@@ -432,12 +525,9 @@ public final class WaitOnJobCompletionTest {
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep")))
         .thenReturn(propertyFileContents);
 
-    Map<String, Object> stageContext =
-        getResource(
-            objectMapper,
-            "clouddriver/tasks/job/runjob-stage-context-with-property-file.json",
-            Map.class);
-    StageExecutionImpl myStage = createStageWithContext(stageContext);
+    StageExecution myStage =
+        createStageFromResource(
+            "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json");
 
     // when
     JobFailedException thrown = assertThrows(JobFailedException.class, () -> task.execute(myStage));
@@ -457,8 +547,7 @@ public final class WaitOnJobCompletionTest {
     verify(mockExecutionRepository, times(1)).storeStage(myStage);
 
     // validate that depending on the response obtained from the getFileContents() call, we either
-    // set
-    // propertyFileContents in the stage context or not
+    // set propertyFileContents in the stage context or not
     if (isPropertyFileContentsEmpty) {
       assertThat(myStage.getContext().containsKey("propertyFileContents")).isFalse();
     } else {
@@ -480,31 +569,20 @@ public final class WaitOnJobCompletionTest {
   }
 
   @Test
-  void testPropertyFileContentsErrorHandlingForRunJobFailures() throws IOException {
+  void testPropertyFileContentsErrorHandlingForK8sRunJobFailures() throws IOException {
     // setup
-    InputStream jobStatusInputStream =
-        getResourceAsStream("clouddriver/tasks/job/failed-runjob-status.json");
-
-    retrofit.client.Response mockResponse =
-        new retrofit.client.Response(
-            "test-url",
-            200,
-            "test-reason",
-            Collections.emptyList(),
-            new TypedByteArray("application/json", IOUtils.toByteArray(jobStatusInputStream)));
-
-    when(mockKatoRestService.collectJob(any(), any(), any(), any())).thenReturn(mockResponse);
+    when(mockKatoRestService.collectJob(any(), any(), any(), any()))
+        .thenReturn(
+            createJobStatusFromResource(
+                "clouddriver/tasks/job/kubernetes/failed-runjob-status.json"));
 
     when(mockKatoRestService.getFileContents(
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep")))
         .thenThrow(new RuntimeException("some exception"));
 
-    Map<String, Object> stageContext =
-        getResource(
-            objectMapper,
-            "clouddriver/tasks/job/runjob-stage-context-with-property-file.json",
-            Map.class);
-    StageExecutionImpl myStage = createStageWithContext(stageContext);
+    StageExecution myStage =
+        createStageFromResource(
+            "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json");
 
     // when
     JobFailedException thrown = assertThrows(JobFailedException.class, () -> task.execute(myStage));
@@ -513,10 +591,13 @@ public final class WaitOnJobCompletionTest {
     verify(mockKatoRestService, times(1))
         .collectJob(eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"));
 
-    // since there are 6 tries made for this call if it fails - this is a slow call since retry
-    // config options are
-    // hard-coded
-    verify(mockKatoRestService, times(6))
+    verify(
+            mockKatoRestService,
+            times(
+                configProperties
+                    .getWaitOnJobCompletionTask()
+                    .getFileContentRetry()
+                    .getMaxAttempts()))
         .getFileContents(
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep"));
 
@@ -555,6 +636,22 @@ public final class WaitOnJobCompletionTest {
         new PipelineExecutionImpl(ExecutionType.PIPELINE, null), "test", new HashMap<>(context));
   }
 
+  private StageExecution createStageFromResource(String resourceName) {
+    Map<String, Object> context = getResource(objectMapper, resourceName, Map.class);
+    return createStageWithContext(context);
+  }
+
+  private Response createJobStatusFromResource(String resourceName) throws IOException {
+    InputStream jobStatusInputStream = getResourceAsStream(resourceName);
+
+    return new Response(
+        "test-url",
+        200,
+        "test-reason",
+        Collections.emptyList(),
+        new TypedByteArray("application/json", IOUtils.toByteArray(jobStatusInputStream)));
+  }
+
   @DisplayName(
       "parameterized test to see how keys in the outputs object are filtered based on the inputs")
   @ParameterizedTest(name = "{index} ==> keys to be excluded from outputs = {0}")
@@ -570,61 +667,20 @@ public final class WaitOnJobCompletionTest {
         .getWaitOnJobCompletionTask()
         .setExcludeKeysFromOutputs(expectedKeysToBeExcludedFromOutput);
 
-    InputStream inputStream =
-        getResourceAsStream("clouddriver/tasks/job/successful-run-job-state.json");
-
-    // mocked response from clouddriver
-    Response response =
-        new Response.Builder()
-            .code(200)
-            .message("some message")
-            .request(new Request.Builder().url("http://url").build())
-            .protocol(Protocol.HTTP_1_0)
-            .body(
-                ResponseBody.create(
-                    MediaType.parse("application/json"), IOUtils.toByteArray(inputStream)))
-            .addHeader("content-type", "application/json")
-            .build();
-
-    retrofit.client.Response retrofitResponse =
-        new retrofit.client.Response(
-            "http://url",
-            200,
-            "",
-            Collections.emptyList(),
-            new TypedInput() {
-              @Override
-              public String mimeType() {
-                okhttp3.MediaType mediaType = response.body().contentType();
-                return mediaType == null ? null : mediaType.toString();
-              }
-
-              @Override
-              public long length() {
-                return response.body().contentLength();
-              }
-
-              @Override
-              public InputStream in() {
-                return response.body().byteStream();
-              }
-            });
-
-    when(mockKatoRestService.collectJob("testrep", "test-account", "test", "job testrep"))
-        .thenReturn(retrofitResponse);
+    // when
+    when(mockKatoRestService.collectJob("test-app", "test-account", "test", "job testrep"))
+        .thenReturn(
+            createJobStatusFromResource(
+                "clouddriver/tasks/job/kubernetes/successful-runjob-status.json"));
 
     when(mockKatoRestService.getFileContents(
-            "testrep", "test-account", "test", "job testrep", "testrep"))
+            "test-app", "test-account", "test", "job testrep", "testrep"))
         .thenReturn(Map.of("some-key", "some-value"));
 
-    Map<String, Object> context =
-        getResource(objectMapper, "clouddriver/tasks/job/runjob-context-success.json", Map.class);
-    StageExecution stageExecution =
-        new StageExecutionImpl(
-            new PipelineExecutionImpl(ExecutionType.PIPELINE, "testrep"), "test", context);
-
-    // when
-    TaskResult result = task.execute(stageExecution);
+    TaskResult result =
+        task.execute(
+            createStageFromResource(
+                "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json"));
 
     // then
     assertThat(result.getOutputs()).isNotEmpty();

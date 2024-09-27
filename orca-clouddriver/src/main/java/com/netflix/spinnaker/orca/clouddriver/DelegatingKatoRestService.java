@@ -72,6 +72,13 @@ public class DelegatingKatoRestService extends DelegatingClouddriverService<Kato
   }
 
   @Override
+  public Map<String, Object> getFileContentsFromKubernetesPod(
+      String app, String account, String namespace, String podName, String fileName) {
+    return getService()
+        .getFileContentsFromKubernetesPod(app, account, namespace, podName, fileName);
+  }
+
+  @Override
   public Task lookupTask(String id) {
     return getService().lookupTask(id);
   }

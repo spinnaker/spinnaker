@@ -47,6 +47,22 @@ public class TaskConfigurationProperties {
      * Default or empty set means that no keys will be excluded.
      */
     private Set<String> excludeKeysFromOutputs = Set.of();
+
+    private Retries jobStatusRetry = new Retries();
+
+    private Retries fileContentRetry = new Retries();
+
+    @Data
+    public static class Retries {
+      // total number of attempts
+      int maxAttempts = 6;
+
+      // time in ms to wait before subsequent retry attempts
+      long backOffInMs = 5000;
+
+      // flag to enable exponential backoff
+      boolean exponentialBackoffEnabled = false;
+    }
   }
 
   @Data
