@@ -68,6 +68,8 @@ class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription
 
   String accountName
 
+  Map<String, String> resourceManagerTags
+
   // The source of the image to deploy
   // ARTIFACT: An artifact of type gce/image stored in imageArtifact
   // STRING:   A string representing a GCE image name in the current

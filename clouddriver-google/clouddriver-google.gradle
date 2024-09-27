@@ -48,7 +48,3 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation "org.apache.groovy:groovy-test"
 }
-
-configurations.all {
-   resolutionStrategy.force 'com.google.apis:google-api-services-compute:beta-rev20201102-1.30.10'
-}
