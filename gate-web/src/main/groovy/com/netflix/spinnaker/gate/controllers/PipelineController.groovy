@@ -23,6 +23,7 @@ import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -324,19 +325,16 @@ class PipelineController {
     AuthenticatedRequest.setApplication(application)
     try {
       pipelineService.trigger(application, pipelineNameOrId, trigger)
+    } catch (SpinnakerException e) {
+      throw e.newInstance(triggerFailureMessage(application, pipelineNameOrId, e));
     } catch (RetrofitError e) {
-      // If spinnakerRetrofitErrorHandler were registered as a "real" error handler, the code here would look something like
-      //
-      // } catch (SpinnakerException e) {
-      //   throw new e.newInstance(triggerFailureMessage(application, pipelineNameOrId, e));
-      // }
       throw spinnakerRetrofitErrorHandler.handleError(e, {
         exception -> triggerFailureMessage(application, pipelineNameOrId, exception) });
     }
   }
 
   private String triggerFailureMessage(String application, String pipelineNameOrId, Throwable e) {
-    String.format("Unable to trigger pipeline (application: %s, pipelineId: %s). Error: %s",
+    String.format("Unable to trigger pipeline (application: %s, pipelineNameOrId: %s). Error: %s",
         value("application", application), value("pipelineId", pipelineNameOrId), e.getMessage())
   }
 

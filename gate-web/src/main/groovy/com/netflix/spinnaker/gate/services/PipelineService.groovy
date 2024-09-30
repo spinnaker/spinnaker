@@ -23,7 +23,6 @@ import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import de.huxhorn.sulky.ulid.ULID
 import groovy.util.logging.Slf4j
@@ -93,9 +92,6 @@ class PipelineService {
 
   Map trigger(String application, String pipelineNameOrId, Map trigger) {
     def pipelineConfig = applicationService.getPipelineConfigForApplication(application, pipelineNameOrId)
-    if (!pipelineConfig) {
-      throw new NotFoundException("Pipeline configuration not found (id: ${pipelineNameOrId})")
-    }
     pipelineConfig.trigger = trigger
     if (trigger.notifications) {
       if (pipelineConfig.notifications) {

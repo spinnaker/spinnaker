@@ -123,6 +123,7 @@ class InvokePipelineConfigTest {
 
   private static final String APPLICATION = "my-application";
   private static final String PIPELINE_ID = "my-pipeline-id";
+  private static final String PIPELINE_NAME = "my-pipeline-name";
   private static final String USERNAME = "some user";
   private static final String ACCOUNT = "my-account";
   private static final String SUBMITTED_REQUEST_ID = "submitted-request-id";
@@ -195,57 +196,8 @@ class InvokePipelineConfigTest {
 
     // If front50 doesn't return a configuration for the test pipeline id, don't
     // expect a call to orca, so there's no mock to set up for orca.
-    simulateFront50SuccessWithoutPipelineConfig();
+    simulateFront50ResponseWithoutPipelineConfig();
 
-    webAppMockMvc
-        .perform(invokePipelineConfigRequest())
-        .andDo(print())
-        .andExpect(status().isNotFound())
-        .andExpect(status().reason("Pipeline configuration not found (id: " + PIPELINE_ID + ")"))
-        .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
-
-    verifyFront50PipelinesRequest();
-    verifyNoOrcaOrchestrateRequest();
-  }
-
-  @Test
-  void invokePipelineConfig404ResponseFromFront50() throws Exception {
-
-    // Different than a 200 from front50 without the requested info, this test
-    // is about front50 responding with a 404.  Currently, front50's GET
-    // /pipelines/{app} endpoint doesn't generate a 404, but a request to an
-    // endpoint that doesn't exist does.  For example:
-    //
-    // $ curl -s http://localhost:8080/endpointDoesNotExist | python -mjson.tool
-    // {
-    //     "error": "Not Found",
-    //     "message": "No message available",
-    //     "status": 404,
-    //     "timestamp": "2023-04-07T17:51:22.560+00:00"
-    // }
-    //
-    // and
-    //
-    // $ curl -s -i http://localhost:8080/endpointDoesNotExist | head -1
-    // HTTP/1.1 404
-    Map<String, Object> front50Response =
-        Map.of(
-            "error",
-            "Not Found",
-            "message",
-            "message from front50",
-            "status",
-            404,
-            "timestamp",
-            "2023-04-07T17:51:22.560+00:00");
-    String front50ResponseJson = objectMapper.writeValueAsString(front50Response);
-    simulateFront50HttpResponse(HttpStatus.NOT_FOUND, front50ResponseJson);
-
-    // gate's 404 response in this case makes it difficult to distinguish
-    // between a 404 because the endpoint itself doesn't exist and a "real" 404
-    // -- one where all the requests are correct, but front50 doesn't know about
-    // the pipeline.  This seems fairly minor, and callers who want to
-    // distinguish can look at more of the resposne than the status code.
     webAppMockMvc
         .perform(invokePipelineConfigRequest())
         .andDo(print())
@@ -253,9 +205,11 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineId: my-pipeline-id). Error: Status: 404, URL: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Pipeline configuration not found (id: "
+                        + PIPELINE_NAME
+                        + "): Status: 404, URL: "
                         + wmFront50.baseUrl()
-                        + "/pipelines/my-application?refresh=true, Message: message from front50"))
+                        + "/pipelines/my-pipeline-name/get, Message: message from front50"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
     verifyFront50PipelinesRequest();
@@ -310,9 +264,9 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineId: my-pipeline-id). Error: Status: 400, URL: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 400, URL: "
                         + wmFront50.baseUrl()
-                        + "/pipelines/my-application?refresh=true, Message: message from front50"))
+                        + "/pipelines/my-application/name/my-pipeline-name?refresh=true, Message: message from front50"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
     verifyFront50PipelinesRequest();
@@ -363,9 +317,9 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineId: my-pipeline-id). Error: Status: 500, URL: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 500, URL: "
                         + wmFront50.baseUrl()
-                        + "/pipelines/my-application?refresh=true, Message: jOOQ; message from front50"))
+                        + "/pipelines/my-application/name/my-pipeline-name?refresh=true, Message: jOOQ; message from front50"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
     verifyFront50PipelinesRequest();
@@ -383,7 +337,7 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineId: my-pipeline-id). Error: Connection reset"))
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Connection reset"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
     verifyFront50PipelinesRequest();
@@ -401,7 +355,7 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineId: my-pipeline-id). Error: com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'this': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')\n"
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'this': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')\n"
                         + " at [Source: (retrofit.ExceptionCatchingTypedInput$ExceptionCatchingInputStream); line: 1, column: 6]"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
@@ -453,7 +407,7 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineId: my-pipeline-id). Error: Status: 500, URL: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 500, URL: "
                         + wmOrca.baseUrl()
                         + "/orchestrate?user=some+user, Message: message from orca"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
@@ -488,7 +442,7 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineId: my-pipeline-id). Error: Status: 400, URL: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 400, URL: "
                         + wmOrca.baseUrl()
                         + "/orchestrate?user=some+user, Message: message from orca"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
@@ -500,22 +454,42 @@ class InvokePipelineConfigTest {
   /**
    * Simulate a successful response from front50. The actual response needs to be sufficient for
    * PipelineService.trigger to get far enough to call orca, which means we need a configuration for
-   * the pipeline we're triggering
+   * the pipeline we're triggering.
    */
   private void simulateFront50Success() throws JsonProcessingException {
-    List<Map<String, Object>> pipelineConfigs = List.of(Map.of("id", PIPELINE_ID));
-    String pipelineConfigsJson = objectMapper.writeValueAsString(pipelineConfigs);
-    simulateFront50HttpResponse(HttpStatus.OK, pipelineConfigsJson);
+    Map<String, Object> pipelineConfig = Map.of("id", PIPELINE_ID, "name", PIPELINE_NAME);
+    String pipelineConfigJson = objectMapper.writeValueAsString(pipelineConfig);
+    simulateFront50HttpResponse(HttpStatus.OK, pipelineConfigJson);
   }
 
   /**
-   * Simulate a successful response from front50, but one that doesn't contain a pipeline
-   * configuration for the test id
+   * Simulate a response from front50 that doesn't contain a pipeline configuration for the test id
    */
-  private void simulateFront50SuccessWithoutPipelineConfig() throws JsonProcessingException {
-    List<Map<String, Object>> pipelineConfigs = Collections.emptyList();
-    String pipelineConfigsJson = objectMapper.writeValueAsString(pipelineConfigs);
-    simulateFront50HttpResponse(HttpStatus.OK, pipelineConfigsJson);
+  private void simulateFront50ResponseWithoutPipelineConfig() throws JsonProcessingException {
+    // Currently front50 responds with a 404 when it doesn't contain a pipeline
+    // configuration for the given application + nameOrId as well as a query by
+    // pipeline id.
+    Map<String, Object> notFoundResponse =
+        Map.of(
+            "error",
+            "Not Found",
+            "message",
+            "message from front50",
+            "status",
+            404,
+            "timestamp",
+            "2023-04-07T17:51:22.560+00:00");
+    String notFoundResponseJson = objectMapper.writeValueAsString(notFoundResponse);
+    simulateFront50HttpResponse(HttpStatus.NOT_FOUND, notFoundResponseJson);
+
+    // When the query by application + nameOrId responds with 404, gate queries
+    // again by id.  Simulate a 404 response from that query as well.
+    wmFront50.stubFor(
+        WireMock.get(urlPathEqualTo("/pipelines/" + PIPELINE_NAME + "/get"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.NOT_FOUND.value())
+                    .withBody(notFoundResponseJson)));
   }
 
   /**
@@ -530,8 +504,18 @@ class InvokePipelineConfigTest {
 
   /** Simulate a response from front50 */
   private void simulateFront50Response(ResponseDefinitionBuilder responseDefinitionBuilder) {
+    // This satisfies the queries that
+    // ApplicationService.getPipelineConfigForApplication makes to front50
+    //
+    // The first query is by application and name.  Since these tests use a
+    // pipeline name as the pipelineNameOrId argument to gate's
+    // invokePipelineConfig endpoint, this succeeds, and we can ignore the
+    // second query by pipeline id.
+    //
+    // What's important is that this method produces the desired return value or
+    // exception from ApplicationService.getPipelineConfigForApplication.
     wmFront50.stubFor(
-        WireMock.get(urlPathEqualTo("/pipelines/" + APPLICATION))
+        WireMock.get(urlPathEqualTo("/pipelines/" + APPLICATION + "/name/" + PIPELINE_NAME))
             .withQueryParam("refresh", anythingPattern)
             .willReturn(responseDefinitionBuilder));
   }
@@ -563,7 +547,7 @@ class InvokePipelineConfigTest {
 
   /** Generate a request to the endpoint that PipelineController.invokePipelineConfig serves */
   private RequestBuilder invokePipelineConfigRequest() throws JsonProcessingException {
-    return post("/pipelines/" + APPLICATION + "/" + PIPELINE_ID)
+    return post("/pipelines/" + APPLICATION + "/" + PIPELINE_NAME)
         .contentType(MediaType.APPLICATION_JSON_VALUE)
         .characterEncoding(StandardCharsets.UTF_8.toString())
         .header(USER.getHeader(), USERNAME)
@@ -580,7 +564,7 @@ class InvokePipelineConfigTest {
    */
   private void verifyFront50PipelinesRequest() {
     wmFront50.verify(
-        getRequestedFor(urlPathEqualTo("/pipelines/" + APPLICATION))
+        getRequestedFor(urlPathEqualTo("/pipelines/" + APPLICATION + "/name/" + PIPELINE_NAME))
             .withQueryParam("refresh", anythingPattern)
             .withHeader(USER.getHeader(), equalTo(USERNAME)));
   }

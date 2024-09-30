@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate
 
+import com.google.gson.Gson
 import com.netflix.spinnaker.gate.config.ApplicationConfigurationProperties
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
@@ -23,8 +24,11 @@ import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import retrofit.RetrofitError
 import retrofit.client.Response
+import retrofit.converter.GsonConverter
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -49,6 +53,10 @@ class ApplicationServiceSpec extends Specification {
       applicationConfigurationProperties
     )
     return service
+  }
+
+  void setup() {
+    println "--------------- Test " + specificationContext.currentIteration.name
   }
 
   void "should properly aggregate application data from Front50 and Clouddriver when useFront50AsSourceOfTruth: #useFront50AsSourceOfTruth"() {
@@ -458,23 +466,84 @@ class ApplicationServiceSpec extends Specification {
     null        | null          || ""
   }
 
-  @Unroll
-  void "should return pipeline config based on name or id"() {
+  void "getPipelineConfigForApplication returns pipeline config based on name"() {
+    given:
+    def app = "theApp"
+    def nameOrId = "by-name"
+
+    when:
+    def service = applicationService()
+    def result = service.getPipelineConfigForApplication(app, nameOrId)
+
+    then:
+    result != null
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> [ id: "by-id", name: "by-name" ]
+    0 * front50.getPipelineConfigById(_)
+  }
+
+  void "getPipelineConfigForApplication returns pipeline config based on id"() {
+    given:
+    def app = "theApp"
+    def nameOrId = "by-id"
+
     when:
     def service = applicationService()
     def result = service.getPipelineConfigForApplication(app, nameOrId) != null
 
     then:
-    result == expected
-    1 * front50.getPipelineConfigsForApplication(app, true) >> [ [ id: "by-id", name: "by-name" ] ]
+    result != null
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw retrofit404() }
+    1 * front50.getPipelineConfigById(nameOrId) >> [ id: "by-id", name: "by-name" ]
+  }
 
-    where:
-    app = "theApp"
+  void "getPipelineConfigForApplication throws an exception when neither name nor id match"() {
+    given:
+    def app = "theApp"
+    def nameOrId = "not-id"
 
-    nameOrId  || expected
-    "by-id"   || true
-    "by-name" || true
-    "not-id"  || false
+    when:
+    def service = applicationService()
+    service.getPipelineConfigForApplication(app, nameOrId)
+
+    then:
+    def e = thrown SpinnakerHttpException
+    e.responseCode == 404
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw retrofit404() }
+    1 * front50.getPipelineConfigById(nameOrId) >> { throw retrofit404() }
+  }
+
+  void "getPipelineConfigForApplication queries by id when response to query by name doesn't match"() {
+    given:
+    def app = "theApp"
+    def nameOrId = "by-name"
+
+    when:
+    def service = applicationService()
+    def result = service.getPipelineConfigForApplication(app, nameOrId)
+
+    then:
+    result != null
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> [ id: "arbitrary-id", name: "some-other-name" ]
+
+    // The key part of this test is that gate queries front50 by id.  The choice
+    // of id here needs to match the expectation for result (i.e. throw an exception or not),
+    // but is otherwise arbitrary.
+    1 * front50.getPipelineConfigById(nameOrId) >> [ id: nameOrId, name: "arbitrary-name" ]
+  }
+
+  void "getPipelineConfigForApplication throws an exception when response to query by id doesn't match"() {
+    given:
+    def app = "theApp"
+    def nameOrId = "by-id"
+
+    when:
+    def service = applicationService()
+    service.getPipelineConfigForApplication(app, nameOrId)
+
+    then:
+    thrown NotFoundException
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw retrofit404() }
+    1 * front50.getPipelineConfigById(nameOrId) >> [ id: "some-other-id", name: "arbitrary-name" ]
   }
 
   void "should skip clouddriver call if expand set to false"() {
@@ -501,6 +570,6 @@ class ApplicationServiceSpec extends Specification {
   }
 
   def retrofit404(){
-    RetrofitError.httpError("http://localhost", new Response("http://localhost", 404, "Not Found", [], new TypedByteArray("application/json", new byte[0])), null, Map)
+    RetrofitError.httpError("http://localhost", new Response("http://localhost", 404, "Not Found", [], new TypedByteArray("application/json", new byte[0])), new GsonConverter(new Gson()), Map)
   }
 }
