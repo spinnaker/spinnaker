@@ -18,9 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.CaseFormat;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
@@ -31,6 +33,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.CheckIfApplicationExistsForClusterTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import java.beans.Introspector;
@@ -170,6 +173,9 @@ public abstract class AbstractClusterWideClouddriverOperationStage
     Class<? extends AbstractWaitForClusterWideClouddriverTask> waitTask = getWaitForTask();
     String waitName = Introspector.decapitalize(getStepName(waitTask.getSimpleName()));
 
+    // add any optional pre-validation tasks at the beginning of the stage
+    getOptionalPreValidationTasks().forEach(builder::withTask);
+
     builder
         .withTask("determineHealthProviders", DetermineHealthProvidersTask.class)
         .withTask(opName, operationTask)
@@ -183,6 +189,45 @@ public abstract class AbstractClusterWideClouddriverOperationStage
 
     if (isForceCacheRefreshEnabled(dynamicConfigService)) {
       builder.withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
+    }
+  }
+
+  /**
+   * helper method that returns a map of task name to task class that are added to a stage. These
+   * tasks are added only if the correct configuration property is set.
+   *
+   * <p>This is also used in unit tests.
+   *
+   * @return map of task name to task class
+   */
+  protected Map<String, Class<? extends Task>> getOptionalPreValidationTasks() {
+    Map<String, Class<? extends Task>> output = new HashMap<>();
+    if (isCheckIfApplicationExistsEnabled(dynamicConfigService)) {
+      output.put(
+          CheckIfApplicationExistsForClusterTask.getTaskName(),
+          CheckIfApplicationExistsForClusterTask.class);
+    }
+    return output;
+  }
+
+  /**
+   * helper method that returns a map of task name to task class that are added to a stage. These
+   * tasks are added only if the correct configuration property is set.
+   *
+   * @return map of task name to task class
+   */
+  private boolean isCheckIfApplicationExistsEnabled(DynamicConfigService dynamicConfigService) {
+    String className = getClass().getSimpleName();
+    try {
+      return dynamicConfigService.isEnabled(
+          String.format(
+              "stages.%s.check-if-application-exists",
+              CaseFormat.LOWER_CAMEL.to(
+                  CaseFormat.LOWER_HYPHEN,
+                  Character.toLowerCase(className.charAt(0)) + className.substring(1))),
+          false);
+    } catch (Exception e) {
+      return false;
     }
   }
 }

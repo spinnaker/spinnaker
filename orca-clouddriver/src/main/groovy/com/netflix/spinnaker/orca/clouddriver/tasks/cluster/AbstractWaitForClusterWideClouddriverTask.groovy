@@ -113,7 +113,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask implements CloudProvide
     }
 
     Optional<Cluster> cluster = cloudDriverService.maybeCluster(clusterSelection.getApplication(), clusterSelection.credentials, clusterSelection.cluster, clusterSelection.cloudProvider)
-    if (!cluster.isPresent()) {
+    if (cluster.isEmpty()) {
       return missingClusterResult(stage, clusterSelection)
     }
 

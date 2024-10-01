@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CheckIfApplicationExistsForServerGroupTask
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
 
 import javax.annotation.Nonnull
@@ -37,7 +38,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCache
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static java.util.concurrent.TimeUnit.MINUTES
@@ -47,20 +47,22 @@ import static java.util.concurrent.TimeUnit.MINUTES
 class CreateServerGroupStage extends AbstractDeployStrategyStage implements ForceCacheRefreshAware {
   public static final String PIPELINE_CONFIG_TYPE = "createServerGroup"
 
-  @Autowired
   private FeaturesService featuresService
-
-  @Autowired
   private RollbackClusterStage rollbackClusterStage
-
-  @Autowired
   private DestroyServerGroupStage destroyServerGroupStage
-
-  @Autowired
   private DynamicConfigService dynamicConfigService
 
-  CreateServerGroupStage() {
+  CreateServerGroupStage(
+      FeaturesService featuresService,
+      RollbackClusterStage rollbackClusterStage,
+      DestroyServerGroupStage destroyServerGroupStage,
+      DynamicConfigService dynamicConfigService
+  ){
     super(PIPELINE_CONFIG_TYPE)
+    this.featuresService = featuresService
+    this.rollbackClusterStage = rollbackClusterStage
+    this.destroyServerGroupStage = destroyServerGroupStage
+    this.dynamicConfigService = dynamicConfigService
   }
 
   @Override
@@ -160,6 +162,15 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage implements Forc
 
     // any on-failure stages from the parent should be executed _after_ the rollback completes
     super.onFailureStages(stage, graph)
+  }
+
+  @Override
+  protected Map<String, Class> getOptionalPreValidationTasks(){
+    Map<String, Class> output = [:]
+    if (isCheckIfApplicationExistsEnabled(dynamicConfigService)) {
+      output[CheckIfApplicationExistsForServerGroupTask.getTaskName()] = CheckIfApplicationExistsForServerGroupTask
+    }
+    return output
   }
 
   static class StageData {

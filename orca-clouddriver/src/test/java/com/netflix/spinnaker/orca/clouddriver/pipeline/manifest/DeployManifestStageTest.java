@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -26,6 +28,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
@@ -34,6 +38,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.manifest.DeployManifestStage.GetDeployedManifests;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.manifest.DeployManifestStage.ManifestOperationsHelper;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.manifest.DeployManifestStage.OldManifestActionAppender;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.CheckIfApplicationExistsForManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestContext;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestContext.TrafficManagement.ManifestStrategyType;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
@@ -45,6 +50,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,6 +67,7 @@ final class DeployManifestStageTest {
   private GetDeployedManifests getDeployedManifests;
   private DeployManifestStage deployManifestStage;
   private OldManifestActionAppender oldManifestActionAppender;
+  private DynamicConfigService dynamicConfigService;
 
   private static Map<String, Object> getContext(DeployManifestContext deployManifestContext) {
     Map<String, Object> context =
@@ -87,11 +95,12 @@ final class DeployManifestStageTest {
   @BeforeEach
   void setUp() {
     oortService = mock(OortService.class);
+    dynamicConfigService = mock(DynamicConfigService.class);
     manifestOperationsHelper = new ManifestOperationsHelper(oortService);
     getDeployedManifests = new GetDeployedManifests(manifestOperationsHelper);
     oldManifestActionAppender =
         new OldManifestActionAppender(getDeployedManifests, manifestOperationsHelper);
-    deployManifestStage = new DeployManifestStage(oldManifestActionAppender);
+    deployManifestStage = new DeployManifestStage(oldManifestActionAppender, dynamicConfigService);
   }
 
   @Test
@@ -495,5 +504,27 @@ final class DeployManifestStageTest {
   private void givenManifestIs(Manifest manifest) {
     when(oortService.getManifest(anyString(), anyString(), anyString(), anyBoolean()))
         .thenReturn(manifest);
+  }
+
+  @DisplayName(
+      "parameterized test to verify if checkIfApplicationExistsForManifest Task is present in the"
+          + " deploy manifest stage")
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  public void testPresenceOfCheckIfApplicationExistsForManifestTask(boolean isTaskEnabled) {
+    when(dynamicConfigService.isEnabled(
+            "stages.deploy-manifest-stage.check-if-application-exists", false))
+        .thenReturn(isTaskEnabled);
+    Map<String, Class<? extends Task>> optionalTasks =
+        deployManifestStage.getOptionalPreValidationTasks();
+
+    if (isTaskEnabled) {
+      assertFalse(optionalTasks.isEmpty());
+      assertThat(optionalTasks.size()).isEqualTo(1);
+      assertTrue(optionalTasks.containsKey(CheckIfApplicationExistsForManifestTask.getTaskName()));
+      assertTrue(optionalTasks.containsValue(CheckIfApplicationExistsForManifestTask.class));
+    } else {
+      assertTrue(optionalTasks.isEmpty());
+    }
   }
 }

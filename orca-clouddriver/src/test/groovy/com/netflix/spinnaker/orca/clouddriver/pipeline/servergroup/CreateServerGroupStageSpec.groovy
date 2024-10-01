@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
-
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
@@ -38,11 +39,16 @@ class CreateServerGroupStageSpec extends Specification {
   def env = new MockEnvironment()
 
   @Subject
-  def createServerGroupStage = new CreateServerGroupStage(
-    rollbackClusterStage: new RollbackClusterStage(),
-    destroyServerGroupStage: new DestroyServerGroupStage(),
-    deployStagePreProcessors: [ deployStagePreProcessor ]
-  )
+  CreateServerGroupStage createServerGroupStage
+
+  def setup() {
+    def dynamicConfigService = Mock(DynamicConfigService)
+    createServerGroupStage = new CreateServerGroupStage(Mock(FeaturesService),
+        new RollbackClusterStage(),
+        new DestroyServerGroupStage(dynamicConfigService),
+        dynamicConfigService)
+    createServerGroupStage.deployStagePreProcessors = [ deployStagePreProcessor ]
+  }
 
   @Unroll
   def "should build RollbackStage when 'rollbackOnFailure' is enabled"() {

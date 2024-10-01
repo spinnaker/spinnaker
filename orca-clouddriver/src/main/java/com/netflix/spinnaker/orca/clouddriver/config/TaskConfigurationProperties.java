@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config;
 
+import com.netflix.spinnaker.orca.clouddriver.config.tasks.CheckIfApplicationExistsTaskConfig;
+import com.netflix.spinnaker.orca.clouddriver.config.tasks.RetryConfig;
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCheckIfApplicationExistsTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveDeploySourceManifestTask;
@@ -23,9 +26,9 @@ import java.util.Set;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/** configuration properties for various Orca tasks that are in the orca-clouddriver module */
 @Data
 @ConfigurationProperties("tasks.clouddriver")
-/** configuration properties for various Orca tasks that are in the orca-clouddriver module */
 public class TaskConfigurationProperties {
 
   /** properties that pertain to {@link WaitOnJobCompletion} task. */
@@ -40,6 +43,10 @@ public class TaskConfigurationProperties {
   private ResolveDeploySourceManifestTaskConfig resolveDeploySourceManifestTask =
       new ResolveDeploySourceManifestTaskConfig();
 
+  /** properties that pertain to {@link AbstractCheckIfApplicationExistsTask} task */
+  private CheckIfApplicationExistsTaskConfig checkIfApplicationExistsTask =
+      new CheckIfApplicationExistsTaskConfig();
+
   @Data
   public static class WaitOnJobCompletionTaskConfig {
     /**
@@ -48,21 +55,9 @@ public class TaskConfigurationProperties {
      */
     private Set<String> excludeKeysFromOutputs = Set.of();
 
-    private Retries jobStatusRetry = new Retries();
+    private RetryConfig jobStatusRetry = new RetryConfig();
 
-    private Retries fileContentRetry = new Retries();
-
-    @Data
-    public static class Retries {
-      // total number of attempts
-      int maxAttempts = 6;
-
-      // time in ms to wait before subsequent retry attempts
-      long backOffInMs = 5000;
-
-      // flag to enable exponential backoff
-      boolean exponentialBackoffEnabled = false;
-    }
+    private RetryConfig fileContentRetry = new RetryConfig();
   }
 
   @Data

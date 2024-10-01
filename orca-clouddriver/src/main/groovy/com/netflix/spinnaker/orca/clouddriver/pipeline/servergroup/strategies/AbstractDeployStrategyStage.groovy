@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.google.common.base.CaseFormat
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
@@ -67,8 +69,23 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
   protected
   abstract List<TaskNode.TaskDefinition> basicTasks(StageExecution stage)
 
+  /**
+   * helper method that returns a map of task name to task class that are added to a stage. These
+   * tasks are added only if the correct configuration property is set.
+   *
+   *
+   * @return map of task name to task class
+   */
+  protected Map<String, Class> getOptionalPreValidationTasks() {
+    return [:]
+  }
+
   @Override
   void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
+    // add any optional pre-validation tasks at the beginning of the stage
+    getOptionalPreValidationTasks().each {key, val ->
+      builder.withTask(key, val)
+    }
 
     String cloudProvider = getCloudProvider(stage);
     if ("cloudrun".equals(cloudProvider)) {
@@ -191,6 +208,29 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
           it.context = stageDefinition.context
         }
       }
+  }
+
+  /**
+   * method that checks if the check if application exists task is enabled via
+   * configuration properties
+   *
+   * @param dynamicConfigService config properties
+   * @return true, if the config is set, false otherwise
+   */
+  boolean isCheckIfApplicationExistsEnabled(DynamicConfigService dynamicConfigService) {
+    String className = getClass().getSimpleName();
+
+    try {
+      return dynamicConfigService.isEnabled(
+          String.format(
+              "stages.%s.check-if-application-exists",
+              CaseFormat.LOWER_CAMEL.to(
+                  CaseFormat.LOWER_HYPHEN,
+                  Character.toLowerCase(className.charAt(0)).toString() + className.substring(1))),
+          false)
+    } catch (Exception ignored) {
+      return false
+    }
   }
 
   /**

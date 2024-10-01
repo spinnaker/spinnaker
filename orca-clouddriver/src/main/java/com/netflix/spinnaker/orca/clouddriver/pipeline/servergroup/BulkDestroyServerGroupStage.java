@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup;
 
+import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
@@ -47,6 +48,11 @@ public class BulkDestroyServerGroupStage
     // break into several parallel bulk ops based on cluster and lock/unlock around those?
     // question: do traffic guard checks actually even work in the bulk disable/destroy tasks?
 
+    if (isCheckIfApplicationExistsEnabled(dynamicConfigService)) {
+      builder.withTask(
+          CheckIfApplicationExistsForServerGroupTask.getTaskName(),
+          CheckIfApplicationExistsForServerGroupTask.class);
+    }
     builder
         .withTask("bulkDisableServerGroup", BulkDisableServerGroupTask.class)
         .withTask("monitorServerGroups", MonitorKatoTask.class)
@@ -65,5 +71,21 @@ public class BulkDestroyServerGroupStage
   @Override
   public String getName() {
     return this.getType();
+  }
+
+  private boolean isCheckIfApplicationExistsEnabled(DynamicConfigService dynamicConfigService) {
+    String className = getClass().getSimpleName();
+
+    try {
+      return dynamicConfigService.isEnabled(
+          String.format(
+              "stages.%s.check-if-application-exists",
+              CaseFormat.LOWER_CAMEL.to(
+                  CaseFormat.LOWER_HYPHEN,
+                  Character.toLowerCase(className.charAt(0)) + className.substring(1))),
+          true);
+    } catch (Exception e) {
+      return true;
+    }
   }
 }

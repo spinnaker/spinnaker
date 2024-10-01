@@ -36,6 +36,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService;
 import com.netflix.spinnaker.orca.clouddriver.config.TaskConfigurationProperties;
+import com.netflix.spinnaker.orca.clouddriver.config.tasks.RetryConfig;
 import com.netflix.spinnaker.orca.clouddriver.exception.JobFailedException;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
@@ -79,8 +80,7 @@ public final class WaitOnJobCompletionTest {
     mockFront50Service = mock(Front50Service.class);
 
     configProperties = new TaskConfigurationProperties();
-    TaskConfigurationProperties.WaitOnJobCompletionTaskConfig.Retries retries =
-        new TaskConfigurationProperties.WaitOnJobCompletionTaskConfig.Retries();
+    RetryConfig retries = new RetryConfig();
     retries.setMaxAttempts(3);
     retries.setBackOffInMs(1);
     configProperties.getWaitOnJobCompletionTask().setFileContentRetry(retries);

@@ -143,7 +143,7 @@ class DeployManifestExpressionEvaluationTest : JUnit5Minutests {
     override val contextParameterProcessor = ContextParameterProcessor()
     override val stageDefinitionBuilderFactory = StageDefinitionBuilderFactory { execution ->
       when (execution.type) {
-        "deployManifest" -> DeployManifestStage(mockk())
+        "deployManifest" -> DeployManifestStage(mockk(), mockk())
         else -> throw IllegalArgumentException("Test factory can't make \"${execution.type}\" stages.")
       }
     }

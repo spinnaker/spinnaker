@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CheckIfApplicationExistsForServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CloneServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask
@@ -77,5 +78,14 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage implements Force
     }
 
     return tasks
+  }
+
+  @Override
+  protected Map<String, Class> getOptionalPreValidationTasks(){
+    Map<String, Class> output = [:]
+    if (isCheckIfApplicationExistsEnabled(dynamicConfigService)) {
+      output[CheckIfApplicationExistsForServerGroupTask.getTaskName()] = CheckIfApplicationExistsForServerGroupTask
+    }
+    return output
   }
 }

@@ -103,16 +103,18 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
 
     try {
       String applicationName = (String) stage.getContext().get("application");
-      Moniker moniker = MonikerHelper.monikerFromStage(stage);
-      if (applicationName == null && moniker != null && moniker.getApp() != null) {
-        applicationName = moniker.getApp();
-      } else if (applicationName == null && stage.getContext().containsKey("serverGroupName")) {
-        applicationName =
-            Names.parseName((String) stage.getContext().get("serverGroupName")).getApp();
-      } else if (applicationName == null && stage.getContext().containsKey("asgName")) {
-        applicationName = Names.parseName((String) stage.getContext().get("asgName")).getApp();
-      } else if (applicationName == null && stage.getContext().containsKey("cluster")) {
-        applicationName = Names.parseName((String) stage.getContext().get("cluster")).getApp();
+      if (applicationName == null) {
+        Moniker moniker = MonikerHelper.monikerFromStage(stage);
+        if (moniker != null && moniker.getApp() != null) {
+          applicationName = moniker.getApp();
+        } else if (stage.getContext().containsKey("serverGroupName")) {
+          applicationName =
+              Names.parseName((String) stage.getContext().get("serverGroupName")).getApp();
+        } else if (stage.getContext().containsKey("asgName")) {
+          applicationName = Names.parseName((String) stage.getContext().get("asgName")).getApp();
+        } else if (stage.getContext().containsKey("cluster")) {
+          applicationName = Names.parseName((String) stage.getContext().get("cluster")).getApp();
+        }
       }
 
       if (front50Service == null) {

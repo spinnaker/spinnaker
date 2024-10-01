@@ -20,8 +20,11 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Collections.emptyMap;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
+import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -34,10 +37,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestConte
 import com.netflix.spinnaker.orca.pipeline.ExpressionAwareStageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -53,6 +53,7 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
   public static final String PIPELINE_CONFIG_TYPE = "deployManifest";
 
   private final OldManifestActionAppender oldManifestActionAppender;
+  private final DynamicConfigService dynamicConfigService;
 
   private static boolean shouldRemoveStageOutputs(@NotNull StageExecution stage) {
     return stage.getContext().getOrDefault("noOutput", "false").toString().equals("true");
@@ -60,6 +61,8 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
 
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
+    // add any optional pre-validation tasks at the beginning of the stage
+    getOptionalPreValidationTasks().forEach(builder::withTask);
     builder
         .withTask(ResolveDeploySourceManifestTask.TASK_NAME, ResolveDeploySourceManifestTask.class)
         .withTask(DeployManifestTask.TASK_NAME, DeployManifestTask.class)
@@ -106,6 +109,45 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
     }
     if (shouldRemoveStageOutputs(stage)) {
       stage.setOutputs(emptyMap());
+    }
+  }
+
+  /**
+   * helper method that returns a map of task name to task class that are added to a stage. These
+   * tasks are added only if the correct configuration property is set.
+   *
+   * @return map of task name to task class
+   */
+  protected Map<String, Class<? extends Task>> getOptionalPreValidationTasks() {
+    Map<String, Class<? extends Task>> output = new HashMap<>();
+    if (isCheckIfApplicationExistsEnabled(dynamicConfigService)) {
+      output.put(
+          CheckIfApplicationExistsForManifestTask.getTaskName(),
+          CheckIfApplicationExistsForManifestTask.class);
+    }
+    return output;
+  }
+
+  /**
+   * method that checks if the {@link CheckIfApplicationExistsForManifestTask} is enabled via
+   * configuration properties
+   *
+   * @param dynamicConfigService config properties
+   * @return true, if the config is set, false otherwise
+   */
+  private boolean isCheckIfApplicationExistsEnabled(DynamicConfigService dynamicConfigService) {
+    String className = getClass().getSimpleName();
+
+    try {
+      return dynamicConfigService.isEnabled(
+          String.format(
+              "stages.%s.check-if-application-exists",
+              CaseFormat.LOWER_CAMEL.to(
+                  CaseFormat.LOWER_HYPHEN,
+                  Character.toLowerCase(className.charAt(0)) + className.substring(1))),
+          false);
+    } catch (Exception e) {
+      return false;
     }
   }
 

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ModifyAwsSc
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CheckIfApplicationExistsForServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ResizeServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForCapacityMatchTask
@@ -43,6 +44,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
   @Override
   protected void taskGraphInternal(StageExecution stage, TaskNode.Builder builder) {
     builder
+      .withTask(CheckIfApplicationExistsForServerGroupTask.getTaskName(), CheckIfApplicationExistsForServerGroupTask)
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("resizeServerGroup", ResizeServerGroupTask)
       .withTask("monitorServerGroup", MonitorKatoTask)
