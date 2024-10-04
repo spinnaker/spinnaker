@@ -19,7 +19,8 @@ package com.netflix.spinnaker.clouddriver.google.model
 public enum GoogleDiskType {
   PD_STANDARD("pd-standard", true),
   PD_SSD("pd-ssd", true),
-  LOCAL_SSD("local-ssd", false)
+  LOCAL_SSD("local-ssd", false),
+  HYPERDISK_BALANCED("hyperdisk-balanced", true)
 
   String text
   boolean persistent
