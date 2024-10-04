@@ -84,7 +84,9 @@ class GceDiskConfigurerController implements IComponentController {
   }
 
   private sortDisks(disks: IGceDisk[]): IGceDisk[] {
-    const diskWithoutImage = disks.find((disk) => disk.type.startsWith('pd-') && disk.sourceImage === undefined);
+    const diskWithoutImage = disks.find(
+      (disk) => (disk.type.startsWith('pd-') || disk.type.startsWith('hyperdisk-')) && disk.sourceImage === undefined,
+    );
     return [diskWithoutImage].concat(without(disks, diskWithoutImage));
   }
 
@@ -93,7 +95,9 @@ class GceDiskConfigurerController implements IComponentController {
   }
 
   private getPersistentDisks(): IGceDisk[] {
-    return (this.command.disks || []).filter((disk: IGceDisk) => disk.type.startsWith('pd-'));
+    return (this.command.disks || []).filter(
+      (disk: IGceDisk) => disk.type.startsWith('pd-') || disk.type.startsWith('hyperdisk-'),
+    );
   }
 }
 

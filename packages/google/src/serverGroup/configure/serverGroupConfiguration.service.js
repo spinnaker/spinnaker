@@ -61,7 +61,7 @@ angular
       gceTagManager,
       gceLoadBalancerSetTransformer,
     ) {
-      const persistentDiskTypes = ['pd-standard', 'pd-ssd'];
+      const persistentDiskTypes = ['pd-standard', 'pd-ssd', 'hyperdisk-balanced'];
       const authScopes = [
         'cloud-platform',
         'userinfo.email',

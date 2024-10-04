@@ -104,7 +104,9 @@ angular
           }
         });
         const localSSDDisks = disks.filter((disk) => disk.type === 'local-ssd');
-        const persistentDisks = disks.filter((disk) => disk.type.startsWith('pd-'));
+        const persistentDisks = disks.filter(
+          (disk) => disk.type.startsWith('pd-') || disk.type.startsWith('hyperdisk-'),
+        );
 
         if (persistentDisks.length) {
           command.disks = persistentDisks.concat(localSSDDisks);
@@ -149,7 +151,9 @@ angular
       }
 
       function getPersistentDisks(command) {
-        return (command.disks || []).filter((disk) => disk.type.startsWith('pd-'));
+        return (command.disks || []).filter(
+          (disk) => disk.type.startsWith('pd-') || disk.type.startsWith('hyperdisk-'),
+        );
       }
 
       function calculatePersistentDiskOverriddenStorageDescription(command) {
