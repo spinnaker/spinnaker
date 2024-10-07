@@ -53,11 +53,16 @@ public class WebhookProperties {
           .collect(Collectors.toList());
 
   private List<PreconfiguredWebhook> preconfigured = new ArrayList<>();
-  private TrustSettings trust;
+  private TrustSettings trust = new TrustSettings();
+  private IdentitySettings identity = new IdentitySettings();
 
   private boolean verifyRedirects = true;
 
   private List<Integer> defaultRetryStatusCodes = List.of(429);
+
+  // For testing *only*
+  private boolean insecureSkipHostnameVerification = false;
+  private boolean insecureTrustSelfSigned = false;
 
   @Data
   @NoArgsConstructor
@@ -65,6 +70,22 @@ public class WebhookProperties {
     private boolean enabled;
     private String trustStore;
     private String trustStorePassword;
+    // Default as JKS instead of PKCS12 for backward compatibility
+    private String trustStoreType = "JKS";
+    private String trustPem;
+  }
+
+  @Data
+  @NoArgsConstructor
+  public static class IdentitySettings {
+    private boolean enabled;
+    private String identityStore;
+    private String identityStorePassword;
+    private String identityStoreKeyPassword;
+    private String identityStoreType = "PKCS12";
+
+    private String identityKeyPem;
+    private String identityCertPem;
   }
 
   @Data

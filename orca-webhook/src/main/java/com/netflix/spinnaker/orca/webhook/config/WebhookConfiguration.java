@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.orca.webhook.config;
 
+import com.netflix.spinnaker.kork.crypto.TrustStores;
+import com.netflix.spinnaker.kork.crypto.X509Identity;
+import com.netflix.spinnaker.kork.crypto.X509IdentitySource;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.util.UnionX509TrustManager;
@@ -25,13 +28,14 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.net.ssl.*;
@@ -51,7 +55,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -73,9 +76,9 @@ public class WebhookConfiguration {
   @Bean
   @ConditionalOnMissingBean(RestTemplate.class)
   public RestTemplate restTemplate(ClientHttpRequestFactory webhookRequestFactory) {
-    RestTemplate restTemplate = new RestTemplate(webhookRequestFactory);
+    var restTemplate = new RestTemplate(webhookRequestFactory);
 
-    List<HttpMessageConverter<?>> converters = restTemplate.getMessageConverters();
+    var converters = restTemplate.getMessageConverters();
     converters.add(new ObjectStringHttpMessageConverter());
     converters.add(new MapToStringHttpMessageConverter());
     restTemplate.setMessageConverters(converters);
@@ -86,10 +89,11 @@ public class WebhookConfiguration {
   @Bean
   public ClientHttpRequestFactory webhookRequestFactory(
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-      UserConfiguredUrlRestrictions userConfiguredUrlRestrictions) {
-    X509TrustManager trustManager = webhookX509TrustManager();
-    SSLSocketFactory sslSocketFactory = getSSLSocketFactory(trustManager);
-    OkHttpClient client =
+      UserConfiguredUrlRestrictions userConfiguredUrlRestrictions)
+      throws IOException {
+    var trustManager = webhookX509TrustManager();
+    var sslSocketFactory = getSSLSocketFactory(trustManager);
+    var builder =
         new OkHttpClient.Builder()
             .sslSocketFactory(sslSocketFactory, trustManager)
             .addNetworkInterceptor(
@@ -105,9 +109,14 @@ public class WebhookConfiguration {
                   }
 
                   return response;
-                })
-            .build();
-    OkHttp3ClientHttpRequestFactory requestFactory = new OkHttp3ClientHttpRequestFactory(client);
+                });
+
+    if (webhookProperties.isInsecureSkipHostnameVerification()) {
+      builder.hostnameVerifier((hostname, session) -> true);
+    }
+
+    var client = builder.build();
+    var requestFactory = new OkHttp3ClientHttpRequestFactory(client);
     requestFactory.setReadTimeout(
         Math.toIntExact(okHttpClientConfigurationProperties.getReadTimeoutMs()));
     requestFactory.setConnectTimeout(
@@ -116,19 +125,41 @@ public class WebhookConfiguration {
   }
 
   private X509TrustManager webhookX509TrustManager() {
-    List<X509TrustManager> trustManagers = new ArrayList<>();
+    var trustManagers = new ArrayList<X509TrustManager>();
 
     trustManagers.add(getTrustManager(null));
-    getCustomKeyStore().ifPresent(keyStore -> trustManagers.add(getTrustManager(keyStore)));
+    getCustomTrustStore().ifPresent(keyStore -> trustManagers.add(getTrustManager(keyStore)));
+
+    if (webhookProperties.isInsecureTrustSelfSigned()) {
+      trustManagers.add(
+          new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) {}
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+              return new X509Certificate[0];
+            }
+          });
+    }
 
     return new UnionX509TrustManager(trustManagers);
   }
 
-  private SSLSocketFactory getSSLSocketFactory(X509TrustManager trustManager) {
+  private SSLSocketFactory getSSLSocketFactory(X509TrustManager trustManager) throws IOException {
     try {
-      SSLContext sslContext = SSLContext.getInstance("TLS");
-      sslContext.init(null, new X509TrustManager[] {trustManager}, null);
-      return sslContext.getSocketFactory();
+      var identityOpt = getCustomIdentity();
+      if (identityOpt.isPresent()) {
+        var identity = identityOpt.get();
+        return identity.createSSLContext(trustManager).getSocketFactory();
+      } else {
+        var sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new X509TrustManager[] {trustManager}, null);
+        return sslContext.getSocketFactory();
+      }
     } catch (KeyManagementException | NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
@@ -136,38 +167,81 @@ public class WebhookConfiguration {
 
   private X509TrustManager getTrustManager(KeyStore keyStore) {
     try {
-      TrustManagerFactory trustManagerFactory =
+      var trustManagerFactory =
           TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       trustManagerFactory.init(keyStore);
-      TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+      var trustManagers = trustManagerFactory.getTrustManagers();
       return (X509TrustManager) trustManagers[0];
     } catch (KeyStoreException | NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private Optional<KeyStore> getCustomKeyStore() {
-    WebhookProperties.TrustSettings trustSettings = webhookProperties.getTrust();
-    if (trustSettings == null
-        || !trustSettings.isEnabled()
-        || StringUtils.isEmpty(trustSettings.getTrustStore())) {
+  private Optional<X509Identity> getCustomIdentity() throws IOException {
+    var identitySettings = webhookProperties.getIdentity();
+    if (identitySettings == null || !identitySettings.isEnabled()) {
       return Optional.empty();
     }
 
-    KeyStore keyStore;
-    try {
-      keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-    } catch (KeyStoreException e) {
-      throw new RuntimeException(e);
+    if (StringUtils.isNotEmpty(identitySettings.getIdentityStore())) {
+      var identity =
+          X509IdentitySource.fromKeyStore(
+              Path.of(identitySettings.getIdentityStore()),
+              identitySettings.getIdentityStoreType(),
+              () -> {
+                var password = identitySettings.getIdentityStorePassword();
+                return password == null ? new char[0] : password.toCharArray();
+              },
+              () -> {
+                var password = identitySettings.getIdentityStoreKeyPassword();
+                return password == null ? new char[0] : password.toCharArray();
+              });
+      return Optional.of(identity.load());
+    } else if (StringUtils.isNotEmpty(identitySettings.getIdentityKeyPem())) {
+      return Optional.of(
+          X509IdentitySource.fromPEM(
+                  Path.of(identitySettings.getIdentityKeyPem()),
+                  Path.of(identitySettings.getIdentityCertPem()))
+              .load());
     }
 
-    try (FileInputStream file = new FileInputStream(trustSettings.getTrustStore())) {
-      keyStore.load(file, trustSettings.getTrustStorePassword().toCharArray());
-    } catch (CertificateException | IOException | NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
+    return Optional.empty();
+  }
+
+  private Optional<KeyStore> getCustomTrustStore() {
+    var trustSettings = webhookProperties.getTrust();
+    if (trustSettings == null || !trustSettings.isEnabled()) {
+      return Optional.empty();
     }
 
-    return Optional.of(keyStore);
+    // Use keystore first if set, then try PEM
+    if (StringUtils.isNotEmpty(trustSettings.getTrustStore())) {
+      KeyStore keyStore;
+      try {
+        keyStore = KeyStore.getInstance(trustSettings.getTrustStoreType());
+      } catch (KeyStoreException e) {
+        throw new RuntimeException(e);
+      }
+
+      try (FileInputStream file = new FileInputStream(trustSettings.getTrustStore())) {
+        keyStore.load(file, trustSettings.getTrustStorePassword().toCharArray());
+      } catch (CertificateException | IOException | NoSuchAlgorithmException e) {
+        throw new RuntimeException(e);
+      }
+
+      return Optional.of(keyStore);
+    } else if (StringUtils.isNotEmpty(trustSettings.getTrustPem())) {
+      try {
+        return Optional.of(TrustStores.loadPEM(Path.of(trustSettings.getTrustPem())));
+      } catch (CertificateException
+          | IOException
+          | NoSuchAlgorithmException
+          | KeyStoreException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return Optional.empty();
   }
 
   public class ObjectStringHttpMessageConverter extends StringHttpMessageConverter {
