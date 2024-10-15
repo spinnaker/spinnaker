@@ -11,7 +11,7 @@ ext {
     awsv2            : "2.23.7",
     bouncycastle     : "1.77",
     brave            : "5.12.3",
-    gcp              : "25.3.0",
+    gcp              : "26.34.0",
     groovy           : "4.0.15",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
@@ -19,7 +19,7 @@ ext {
     // CVE-2023-6378 and CVE-2023-6481 until spring boot 3.1.7 which brings in
     // 1.4.14.  See https://logback.qos.ch/news.html#1.3.12.
     logback          : "1.2.13",
-    protobuf         : "3.21.12",
+    protobuf         : "3.25.2",
     okhttp           : "2.7.5", // CVE-2016-2402
     okhttp3          : "4.9.3",
     openapi          : "1.3.9", // this needs to be kept in sync with spring boot as it pulls in the spring-boot-dependencies BOM
@@ -98,14 +98,16 @@ dependencies {
       force = true
     }
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
-    api("com.google.api-client:google-api-client:1.33.0") // TODO: Track update for CVE-2020-7692, reanalysis pending.
-    api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20220125-1.32.1")
-    api("com.google.apis:google-api-services-cloudbuild:v1-rev20211230-1.32.1")
-    api("com.google.apis:google-api-services-compute:beta-rev20211228-1.32.1")
-    api("com.google.apis:google-api-services-iam:v1-rev20220105-1.32.1")
-    api("com.google.apis:google-api-services-monitoring:v3-rev20220117-1.32.1") //v3-rev20210618-1.31.5
-    api("com.google.apis:google-api-services-storage:v1-rev20220210-1.32.1")
-    api("com.google.cloud:google-cloud-secretmanager:2.3.10")
+    api("com.google.api-client:google-api-client:2.4.1")
+    api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20240429-2.0.0")
+    api("com.google.apis:google-api-services-cloudbuild:v1-rev20240427-2.0.0")
+    api("com.google.apis:google-api-services-compute:beta-rev20240430-2.0.0")
+    api("com.google.apis:google-api-services-iam:v1-rev20240502-2.0.0")
+    api("com.google.apis:google-api-services-monitoring:v3-rev20240427-2.0.0")
+    api("com.google.apis:google-api-services-storage:v1-rev20240319-2.0.0")
+    api("com.google.apis:google-api-services-appengine:v1-rev20240415-2.0.0")
+    api("com.google.apis:google-api-services-run:v1-rev20240426-2.0.0")
+    api("com.google.cloud:google-cloud-secretmanager:2.37.0")
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:33.0.0-jre")
     api("com.hubspot.jinjava:jinjava:2.7.1")
