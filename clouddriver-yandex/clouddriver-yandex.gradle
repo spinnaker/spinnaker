@@ -26,6 +26,8 @@ dependencies {
   implementation "com.squareup.retrofit:retrofit"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "com.google.protobuf:protobuf-java"
+  implementation "com.google.protobuf:protobuf-java-util"
 
   testImplementation project(":clouddriver-web")
   testImplementation "cglib:cglib-nodep"

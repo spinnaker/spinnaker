@@ -6,7 +6,7 @@ dependencies {
   implementation project(":clouddriver-google-common")
   implementation project(":clouddriver-security")
 
-  implementation "com.google.apis:google-api-services-appengine:v1-rev92-1.25.0"
+  implementation "com.google.apis:google-api-services-appengine"
   implementation "com.google.apis:google-api-services-storage"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "com.jcraft:jsch"

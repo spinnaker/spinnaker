@@ -25,7 +25,7 @@ dependencies {
   implementation "com.amazonaws:aws-java-sdk-s3"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-  implementation "com.google.apis:google-api-services-storage:v1-rev141-1.25.0"
+  implementation "com.google.apis:google-api-services-storage"
   implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.kork:kork-artifacts"
