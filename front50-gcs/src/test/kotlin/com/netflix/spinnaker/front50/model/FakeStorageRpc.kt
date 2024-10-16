@@ -18,6 +18,7 @@
 package com.netflix.spinnnaker.front50.model
 
 import com.google.api.client.util.DateTime
+import com.google.api.services.storage.Storage
 import com.google.api.services.storage.model.Bucket
 import com.google.api.services.storage.model.BucketAccessControl
 import com.google.api.services.storage.model.HmacKey
@@ -103,13 +104,12 @@ internal class FakeStorageRpc(private val clock: Clock) : StorageRpc {
 
   override fun patch(storageObject: StorageObject, options: MutableMap<Option, *>): StorageObject {
     if (options.isNotEmpty()) throw UnsupportedOperationException("unsupported options to patch: ${options.keys}")
-    if (storageObject.generation != null) throw UnsupportedOperationException("can't call patch with a specific generation")
     val blobs = buckets[storageObject.bucket] ?: throw StorageException(404, "bucket ${storageObject.bucket} does not exist")
     val generations = blobs.getGenerations(storageObject)
     if (generations.isEmpty()) throw StorageException(404, "no object ${fullPath(storageObject)}")
     val foundObject = generations[generations.size - 1].storageObject
-    foundObject.updated = DateTime(clock.millis())
     storageObject.forEach { (key, value) -> foundObject.set(key, value) }
+    foundObject.updated = DateTime(clock.millis())
     return foundObject
   }
 
@@ -192,7 +192,23 @@ internal class FakeStorageRpc(private val clock: Clock) : StorageRpc {
     TODO("Not yet implemented")
   }
 
+  override fun getStorage(): Storage {
+    TODO("Not yet implemented")
+  }
+
   override fun write(uploadId: String?, toWrite: ByteArray?, toWriteOffset: Int, destOffset: Long, length: Int, last: Boolean) {
+    TODO("Not yet implemented")
+  }
+
+  override fun getCurrentUploadOffset(uploadId: String?): Long {
+    TODO("Not yet implemented")
+  }
+
+  override fun queryCompletedResumableUpload(uploadId: String?, totalBytes: Long): StorageObject {
+    TODO("Not yet implemented")
+  }
+
+  override fun writeWithResponse(uploadId: String?, toWrite: ByteArray?, toWriteOffset: Int, destOffset: Long, length: Int, last: Boolean): StorageObject {
     TODO("Not yet implemented")
   }
 
@@ -261,6 +277,10 @@ internal class FakeStorageRpc(private val clock: Clock) : StorageRpc {
   }
 
   override fun createNotification(bucket: String?, notification: Notification?): Notification {
+    TODO("Not yet implemented")
+  }
+
+  override fun getNotification(bucket: String?, id: String?): Notification {
     TODO("Not yet implemented")
   }
 

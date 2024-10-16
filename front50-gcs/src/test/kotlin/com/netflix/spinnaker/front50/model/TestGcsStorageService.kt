@@ -18,6 +18,7 @@
 package com.netflix.spinnnaker.front50.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.cloud.storage.Blob
 import com.google.cloud.storage.BlobId
 import com.google.cloud.storage.BlobInfo
 import com.google.cloud.storage.Bucket
@@ -510,6 +511,16 @@ class GcsStorageServiceTest {
     val updateStarted = lock.newCondition()
     val finishUpdate = lock.newCondition()
     val updateTaskCompleted = lock.newCondition()
+
+    val lastModified: Blob = mockk()
+    val blobBuilder: Blob.Builder = mockk()
+    val updatedBlob: Blob = mockk()
+
+    every { lastModified.toBuilder() } returns blobBuilder
+    every { blobBuilder.setMetadata(any()) } returns blobBuilder
+    every { blobBuilder.build() } returns updatedBlob
+
+    every { gcs.get(any<BlobId>()) } answers { lastModified }
 
     // When the service tries to update last-modified, hold until we call `finishUpdate.signal()`
     every { gcs.update(any<BlobInfo>()) } answers {

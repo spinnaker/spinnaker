@@ -31,6 +31,8 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.util.concurrent.Futures
 import com.netflix.spinnaker.front50.api.model.Timestamped
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import net.logstash.logback.argument.StructuredArguments
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.time.Duration
 import java.util.concurrent.ExecutorService
@@ -38,8 +40,6 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.annotation.PostConstruct
-import net.logstash.logback.argument.StructuredArguments
-import org.slf4j.LoggerFactory
 
 class GcsStorageService(
   private val storage: Storage,
@@ -206,7 +206,11 @@ class GcsStorageService(
     try {
       // Calling update() is enough to change the modification time on the file, which is all we
       // care about. It doesn't matter if we don't actually specify any fields to change.
-      storage.update(blobInfo)
+
+      //if last-modified does not exist, throw exception to create it
+      val lastModified = storage.get(lastModifiedBlobId(objectType)) ?: throw StorageException(404, "no object $blobInfo.bucket/$blobInfo.name")
+      val lastUpdated = lastModified.toBuilder().setMetadata(mapOf("updateTrigger" to System.currentTimeMillis().toString())).build()
+      storage.update(lastUpdated)
     } catch (e: Exception) {
       when {
         e is StorageException && e.code == 404 ->
