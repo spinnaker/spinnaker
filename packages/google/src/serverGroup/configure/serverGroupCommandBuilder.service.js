@@ -295,6 +295,12 @@ angular
         }
       }
 
+      function populatePartnerMetadata(instanceTemplatePartnerMetadata, command) {
+        if (instanceTemplatePartnerMetadata) {
+          Object.assign(command.partnerMetadata, instanceTemplatePartnerMetadata);
+        }
+      }
+
       function populateLabels(instanceTemplateLabels, command) {
         if (instanceTemplateLabels) {
           Object.assign(command.labels, instanceTemplateLabels);
@@ -374,6 +380,7 @@ angular
           tags: [],
           labels: {},
           resourceManagerTags: {},
+          partnerMetadata: {},
           enableSecureBoot: false,
           enableVtpm: false,
           enableIntegrityMonitoring: false,
@@ -453,6 +460,7 @@ angular
           tags: [],
           labels: {},
           resourceManagerTags: {},
+          partnerMetadata: {},
           availabilityZones: [],
           enableSecureBoot: serverGroup.enableSecureBoot,
           enableVtpm: serverGroup.enableVtpm,
@@ -588,6 +596,9 @@ angular
 
               const resourceManagerTags = extendedCommand.resourceManagerTags;
               populateResourceManagerTags(resourceManagerTags, extendedCommand);
+
+              const partnerMetadata = extendedCommand.partnerMetadata;
+              populatePartnerMetadata(partnerMetadata, extendedCommand);
 
               return extendedCommand;
             });

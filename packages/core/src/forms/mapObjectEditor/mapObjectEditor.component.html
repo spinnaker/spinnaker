@@ -1,0 +1,56 @@
+<form name="mapObjectEditor">
+  <div class="sm-label-left" ng-if="$ctrl.label">
+    <b>{{ $ctrl.label }}</b>
+  </div>
+  <input class="form-control input-sm" ng-model="$ctrl.model" ng-if="$ctrl.isParameterized" />
+  <table class="table table-condensed packed tags {{ $ctrl.tableClass }}" ng-if="!$ctrl.isParameterized">
+    <thead>
+      <tr ng-if="!$ctrl.labelsLeft">
+        <th ng-bind="$ctrl.keyLabel"></th>
+        <th ng-bind="$ctrl.valueLabel"></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="pair in $ctrl.backingModel" ng-if="!$ctrl.hiddenKeys.includes(pair.key)">
+        <td class="table-label" ng-if="$ctrl.labelsLeft">
+          <b>{{ $ctrl.keyLabel }}</b>
+        </td>
+        <td>
+          <input
+            class="form-control input input-sm"
+            type="text"
+            name="{{ $index }}"
+            ng-model="pair.key"
+            validate-unique="pair.checkUnique"
+          />
+          <div class="error-message" ng-if="mapObjectEditor[$index].$error.validateUnique">Duplicate key</div>
+        </td>
+        <td class="table-label" ng-if="$ctrl.labelsLeft">
+          <b>{{ $ctrl.valueLabel }}</b>
+        </td>
+        <td>
+          <textarea json-text class="form-control input input-sm" ng-model="pair.value" rows="4"></textarea>
+        </td>
+        <td>
+          <div class="form-control-static">
+            <a href ng-click="$ctrl.removeField($index)">
+              <span class="glyphicon glyphicon-trash"></span>
+              <span class="sr-only">Remove field</span>
+            </a>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="{{ $ctrl.columnCount }}">
+          <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addField()">
+            <span class="glyphicon glyphicon-plus-sign"></span>
+            {{ $ctrl.addButtonLabel }}
+          </button>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</form>

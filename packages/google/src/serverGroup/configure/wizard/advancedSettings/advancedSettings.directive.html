@@ -96,6 +96,17 @@
 </div>
 <div class="form-group">
   <div class="sm-label-left">
+    <b>Partner Metadata</b>
+    <help-field key="gce.serverGroup.partnerMetadata"></help-field>
+  </div>
+  <map-object-editor
+    model="vm.command.partnerMetadata"
+    add-button-label="Add New Metadata"
+    allow-empty="false"
+  ></map-object-editor>
+</div>
+<div class="form-group">
+  <div class="sm-label-left">
     Shielded VMs
     <help-field key="gce.serverGroup.shieldedVmConfig"></help-field>
   </div>
