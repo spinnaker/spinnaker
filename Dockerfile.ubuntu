@@ -9,7 +9,7 @@ ENV AWS_CLI_VERSION=1.18.18
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
-      openjdk-11-jre-headless \
+      openjdk-17-jre-headless \
       curl \
       python-pip && \
     rm -rf /var/lib/apt/lists/* && \
