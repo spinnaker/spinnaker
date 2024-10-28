@@ -33,6 +33,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
 
   implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-security"
   implementation "com.netflix.spectator:spectator-api"

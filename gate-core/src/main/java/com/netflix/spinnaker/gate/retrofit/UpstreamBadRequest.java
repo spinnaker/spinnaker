@@ -20,6 +20,8 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static retrofit.RetrofitError.Kind.HTTP;
 
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.util.Collection;
 import retrofit.RetrofitError;
 
@@ -34,6 +36,14 @@ public class UpstreamBadRequest extends SpinnakerException {
     status = cause.getResponse().getStatus();
     url = cause.getUrl();
     error = cause.getBody();
+  }
+
+  private UpstreamBadRequest(SpinnakerHttpException cause) {
+    super(cause.getMessage(), cause);
+    this.setRetryable(cause.getRetryable());
+    status = cause.getResponseCode();
+    url = cause.getUrl();
+    error = cause.getResponseBody();
   }
 
   public int getStatus() {
@@ -62,6 +72,15 @@ public class UpstreamBadRequest extends SpinnakerException {
     if (error.getKind() == HTTP
         && supportedHttpStatuses.contains(error.getResponse().getStatus())) {
       return new UpstreamBadRequest(error);
+    } else {
+      return error;
+    }
+  }
+
+  public static RuntimeException classifyError(SpinnakerServerException error) {
+    if (error instanceof SpinnakerHttpException
+        && ((SpinnakerHttpException) error).getResponseCode() < INTERNAL_SERVER_ERROR.value()) {
+      return new UpstreamBadRequest((SpinnakerHttpException) error);
     } else {
       return error;
     }
