@@ -54,15 +54,6 @@ public class CleanupService {
     }
   }
 
-  public String restore(String namespace, String resourceId) {
-    try {
-      swabbieService.restore(namespace, resourceId, "");
-    } catch (RetrofitError e) {
-      return Integer.toString(e.getResponse().getStatus());
-    }
-    return "200";
-  }
-
   public List getMarkedList() {
     return swabbieService.getMarkedList(true);
   }
