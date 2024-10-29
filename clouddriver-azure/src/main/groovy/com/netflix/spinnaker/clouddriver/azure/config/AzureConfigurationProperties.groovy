@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.azure.config
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomImageStorage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.fiat.model.resources.Permissions
+import groovy.transform.Canonical
 import groovy.transform.ToString
+import org.springframework.boot.context.properties.NestedConfigurationProperty
 
 class AzureConfigurationProperties {
 
@@ -42,4 +44,16 @@ class AzureConfigurationProperties {
   }
 
   List<ManagedAccount> accounts = []
+  /**
+   * health check related config settings
+   */
+  @Canonical
+  static class HealthConfig {
+    /**
+     * flag to toggle verifying account health check. by default, account health check is enabled.
+     */
+    boolean verifyAccountHealth = true
+  }
+  @NestedConfigurationProperty
+  final HealthConfig health = new HealthConfig()
 }

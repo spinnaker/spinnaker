@@ -21,7 +21,9 @@ import com.netflix.spinnaker.clouddriver.azure.client.AzureComputeClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureNetworkClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureStorageClient
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class AzureCredentials {
 
   final String tenantId
@@ -63,7 +65,12 @@ class AzureCredentials {
 
     storageClient = new AzureStorageClient(this.subscriptionId, token, azureProfile)
 
-    registerProviders()
+    try {
+      registerProviders()
+    } catch (Exception e) {
+      log.error("Failed to register providers with AzureResourceManagerClient", e)
+      throw e
+    }
   }
 
   /**

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.health
 
+import com.netflix.spinnaker.clouddriver.azure.config.AzureConfigurationProperties
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.transform.CompileStatic
@@ -41,6 +42,9 @@ class AzureHealthIndicator implements HealthIndicator {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
+  AzureConfigurationProperties azureConfigurationProperties
+
   private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
 
   @Override
@@ -57,6 +61,8 @@ class AzureHealthIndicator implements HealthIndicator {
   @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
     try {
+      if (azureConfigurationProperties.getHealth().getVerifyAccountHealth()) {
+        LOG.info("azure.health.verifyAccountHealth flag is enabled - verifying connection to the Azure accounts")
       Set<AzureNamedAccountCredentials> azureCredentialsSet = accountCredentialsProvider.all.findAll {
         it instanceof AzureNamedAccountCredentials
       } as Set<AzureNamedAccountCredentials>
@@ -73,7 +79,9 @@ class AzureHealthIndicator implements HealthIndicator {
           throw new AzureIOException(e)
         }
       }
-
+      } else {
+        LOG.info("azure.health.verifyAccountHealth flag is disabled - Not verifying connection to the Azure accounts");
+      }
       lastException.set(null)
     } catch (Exception ex) {
       LOG.warn "Unhealthy", ex

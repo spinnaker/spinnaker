@@ -247,6 +247,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
     } catch (Exception e) {
       // Something went wrong. log the exception
       log.error("Unable to register Azure Provider: ${namespace}", e)
+      throw e
     }
   }
 
