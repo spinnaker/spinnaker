@@ -39,7 +39,7 @@ jobs:
           ./gradlew --info -Pversion="${RELEASE_VERSION}" -Pgradle.publish.key="${GRADLE_PUBLISH_KEY}" -Pgradle.publish.secret="${GRADLE_PUBLISH_SECRET}" publishPlugins
       - name: Create release
         if: steps.release_info.outputs.SKIP_RELEASE == 'false'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body: |
             ${{ steps.release_info.outputs.CHANGELOG }}
