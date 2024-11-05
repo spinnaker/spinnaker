@@ -16,26 +16,26 @@
 
 package com.netflix.spinnaker.clouddriver.eureka.api
 
-import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 import retrofit.converter.Converter
 
 class EurekaApiFactory {
 
   private Converter eurekaConverter
-  private OkHttpClientConfiguration okHttpClientConfiguration
+  private OkHttp3ClientConfiguration okHttp3ClientConfiguration
 
-  EurekaApiFactory(Converter eurekaConverter, OkHttpClientConfiguration okHttpClientConfiguration) {
+  EurekaApiFactory(Converter eurekaConverter, OkHttp3ClientConfiguration okHttp3ClientConfiguration) {
     this.eurekaConverter = eurekaConverter
-    this.okHttpClientConfiguration = okHttpClientConfiguration
+    this.okHttp3ClientConfiguration = okHttp3ClientConfiguration
   }
 
   public EurekaApi createApi(String endpoint) {
     new RestAdapter.Builder()
       .setConverter(eurekaConverter)
-      .setClient(new OkClient(okHttpClientConfiguration.create()))
+      .setClient(new Ok3Client(okHttp3ClientConfiguration.create().build()))
       .setEndpoint(endpoint)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()

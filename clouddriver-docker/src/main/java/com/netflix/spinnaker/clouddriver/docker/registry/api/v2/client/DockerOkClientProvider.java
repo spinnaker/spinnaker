@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client;
 
-import retrofit.client.OkClient;
+import com.jakewharton.retrofit.Ok3Client;
 
 /** Allows custom configuration of the Docker Registry OkHttpClient. */
 public interface DockerOkClientProvider {
@@ -26,7 +26,7 @@ public interface DockerOkClientProvider {
    * @param timeoutMs The client timeout in milliseconds
    * @param insecure Whether or not the registry should be configured to trust all SSL certificates.
    *     If this is true, you may want to fallback to {@code DefaultDockerOkClientProvider}
-   * @return An OkClient
+   * @return An Ok3Client
    */
-  OkClient provide(String address, long timeoutMs, boolean insecure);
+  Ok3Client provide(String address, long timeoutMs, boolean insecure);
 }

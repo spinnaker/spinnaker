@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.consul.api.v1
 
-
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
-import com.squareup.okhttp.OkHttpClient
+import okhttp3.OkHttpClient
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
 class Consul<T> {
@@ -39,7 +38,7 @@ class Consul<T> {
     this.timeout = timeout
     this.api = new RestAdapter.Builder()
       .setEndpoint(this.endpoint)
-      .setClient(new OkClient(new OkHttpClient()))
+      .setClient(new Ok3Client(new OkHttpClient()))
       .setConverter(new JacksonConverter())
       .setLogLevel(RestAdapter.LogLevel.NONE)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())

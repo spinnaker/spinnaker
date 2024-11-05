@@ -15,35 +15,37 @@
  */
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client;
 
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.TrustAllX509TrustManager;
-import com.squareup.okhttp.OkHttpClient;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import retrofit.client.OkClient;
+import javax.net.ssl.X509TrustManager;
+import okhttp3.OkHttpClient;
 
 public class DefaultDockerOkClientProvider implements DockerOkClientProvider {
 
   @Override
-  public OkClient provide(String address, long timeoutMs, boolean insecure) {
-    OkHttpClient client = new OkHttpClient();
-    client.setReadTimeout(timeoutMs, TimeUnit.MILLISECONDS);
+  public Ok3Client provide(String address, long timeoutMs, boolean insecure) {
+    OkHttpClient.Builder clientBuilder =
+        new OkHttpClient.Builder().readTimeout(timeoutMs, TimeUnit.MILLISECONDS);
 
     if (insecure) {
       SSLContext sslContext;
+      TrustManager[] trustManagers = {new TrustAllX509TrustManager()};
       try {
         sslContext = SSLContext.getInstance("SSL");
-        TrustManager[] trustManagers = {new TrustAllX509TrustManager()};
         sslContext.init(null, trustManagers, new SecureRandom());
       } catch (NoSuchAlgorithmException | KeyManagementException e) {
         throw new IllegalStateException("Failed configuring insecure SslSocketFactory", e);
       }
-      client.setSslSocketFactory(sslContext.getSocketFactory());
+      clientBuilder.sslSocketFactory(
+          sslContext.getSocketFactory(), (X509TrustManager) trustManagers[0]);
     }
 
-    return new OkClient(client);
+    return new Ok3Client(clientBuilder.build());
   }
 }

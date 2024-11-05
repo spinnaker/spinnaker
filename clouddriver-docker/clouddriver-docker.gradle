@@ -9,6 +9,7 @@ dependencies {
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.apache.groovy:groovy"
   implementation "com.google.guava:guava"
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.retrofit:converter-jackson"
@@ -27,6 +28,7 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "org.mockito:mockito-core"
+  testImplementation 'org.mockito:mockito-inline'
   testImplementation "org.mockito:mockito-junit-jupiter"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"

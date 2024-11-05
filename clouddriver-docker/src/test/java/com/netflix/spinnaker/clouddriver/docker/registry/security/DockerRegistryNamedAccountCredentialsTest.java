@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerOkClientProvider;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryTags;
 import java.io.IOException;
@@ -41,7 +42,6 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import retrofit.client.OkClient;
 import retrofit.client.Request;
 import retrofit.client.Response;
 import retrofit.mime.TypedString;
@@ -55,12 +55,12 @@ final class DockerRegistryNamedAccountCredentialsTest {
   @Test
   void getTags() throws IOException {
     ImmutableList<String> tags = ImmutableList.of("latest", "other", "something");
-    OkClient okClient = mockDockerOkClient(tags, ImmutableMap.of());
+    Ok3Client ok3Client = mockDockerOkClient(tags, ImmutableMap.of());
     DockerRegistryNamedAccountCredentials credentials =
         new DockerRegistryNamedAccountCredentials.Builder()
             .accountName(ACCOUNT_NAME)
             .address("https://gcr.io")
-            .dockerOkClientProvider(new MockDockerOkClientProvider(okClient))
+            .dockerOkClientProvider(new MockDockerOkClientProvider(ok3Client))
             .build();
     assertThat(credentials.getTags(REPO_NAME)).containsExactlyInAnyOrderElementsOf(tags);
   }
@@ -77,26 +77,26 @@ final class DockerRegistryNamedAccountCredentialsTest {
             "oldest",
             LATEST_DATE.minus(Duration.ofDays(1)));
 
-    OkClient okClient = mockDockerOkClient(tags, creationDates);
+    Ok3Client ok3Client = mockDockerOkClient(tags, creationDates);
     DockerRegistryNamedAccountCredentials credentials =
         new DockerRegistryNamedAccountCredentials.Builder()
             .accountName(ACCOUNT_NAME)
             .address("https://gcr.io")
             .sortTagsByDate(true)
-            .dockerOkClientProvider(new MockDockerOkClientProvider(okClient))
+            .dockerOkClientProvider(new MockDockerOkClientProvider(ok3Client))
             .build();
     assertThat(credentials.getTags(REPO_NAME))
         .containsExactly("latest", "older", "oldest", "nodate");
   }
 
   /**
-   * Generates a mock OkClient that simulates responses from a docker registry with the supplied
+   * Generates a mock Ok3Client that simulates responses from a docker registry with the supplied
    * tags and supplied creation dates for each tag. Tags that are not present in the map of creation
    * dates will return null as their creation date.
    */
-  private static OkClient mockDockerOkClient(
+  private static Ok3Client mockDockerOkClient(
       Iterable<String> tags, Map<String, Instant> creationDates) throws IOException {
-    OkClient okClient = mock(OkClient.class);
+    Ok3Client ok3Client = mock(Ok3Client.class);
     doReturn(
             new Response(
                 "https://gcr.io/v2/myrepo/tags/list",
@@ -104,7 +104,7 @@ final class DockerRegistryNamedAccountCredentialsTest {
                 "",
                 Collections.emptyList(),
                 new TypedString(objectMapper.writeValueAsString(getTagsResponse(tags)))))
-        .when(okClient)
+        .when(ok3Client)
         .execute(argThat(r -> r.getUrl().equals("https://gcr.io/v2/myrepo/tags/list")));
 
     doAnswer(
@@ -134,10 +134,10 @@ final class DockerRegistryNamedAccountCredentialsTest {
                 throw new IllegalArgumentException();
               }
             })
-        .when(okClient)
+        .when(ok3Client)
         .execute(argThat(r -> r.getUrl().matches("https://gcr.io/v2/myrepo/manifests/.*")));
 
-    return okClient;
+    return ok3Client;
   }
 
   private static DockerRegistryTags getTagsResponse(Iterable<String> tags) {
@@ -177,10 +177,10 @@ final class DockerRegistryNamedAccountCredentialsTest {
 
   @RequiredArgsConstructor
   private static class MockDockerOkClientProvider implements DockerOkClientProvider {
-    private final OkClient mockClient;
+    private final Ok3Client mockClient;
 
     @Override
-    public OkClient provide(String address, long timeoutMs, boolean insecure) {
+    public Ok3Client provide(String address, long timeoutMs, boolean insecure) {
       return mockClient;
     }
   }

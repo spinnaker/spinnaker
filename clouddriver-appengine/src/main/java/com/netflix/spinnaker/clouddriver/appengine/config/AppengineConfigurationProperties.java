@@ -18,18 +18,18 @@ package com.netflix.spinnaker.clouddriver.appengine.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor;
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
-import com.squareup.okhttp.OkHttpClient;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import okhttp3.OkHttpClient;
 import org.springframework.util.StringUtils;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.JacksonConverter;
 import retrofit.http.GET;
@@ -99,13 +99,12 @@ public class AppengineConfigurationProperties {
     }
 
     static MetadataService createMetadataService() {
-      OkHttpClient client = new OkHttpClient();
-      client.setRetryOnConnectionFailure(true);
+      OkHttpClient okHttpClient = new OkHttpClient.Builder().retryOnConnectionFailure(true).build();
       RestAdapter restAdapter =
           new RestAdapter.Builder()
               .setEndpoint(metadataUrl)
               .setConverter(new JacksonConverter())
-              .setClient(new OkClient(client))
+              .setClient(new Ok3Client(okHttpClient))
               .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
               .build();
       return restAdapter.create(MetadataService.class);

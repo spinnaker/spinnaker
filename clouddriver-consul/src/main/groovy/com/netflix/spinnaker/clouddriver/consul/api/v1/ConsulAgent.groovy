@@ -19,11 +19,6 @@ package com.netflix.spinnaker.clouddriver.consul.api.v1
 import com.netflix.spinnaker.clouddriver.consul.api.v1.services.AgentApi
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
-import com.squareup.okhttp.OkHttpClient
-import retrofit.RestAdapter
-import retrofit.client.OkClient
-
-import java.util.concurrent.TimeUnit
 
 class ConsulAgent extends Consul<AgentApi> {
   ConsulAgent(ConsulConfig config, String agentBaseUrl) {
