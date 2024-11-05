@@ -492,7 +492,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     result != null
-    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw retrofit404() }
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw http404() }
     1 * front50.getPipelineConfigById(nameOrId) >> [ id: "by-id", name: "by-name" ]
   }
 
@@ -508,8 +508,8 @@ class ApplicationServiceSpec extends Specification {
     then:
     def e = thrown SpinnakerHttpException
     e.responseCode == 404
-    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw retrofit404() }
-    1 * front50.getPipelineConfigById(nameOrId) >> { throw retrofit404() }
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw http404() }
+    1 * front50.getPipelineConfigById(nameOrId) >> { throw http404() }
   }
 
   void "getPipelineConfigForApplication queries by id when response to query by name doesn't match"() {
@@ -542,7 +542,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     thrown NotFoundException
-    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw retrofit404() }
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw http404() }
     1 * front50.getPipelineConfigById(nameOrId) >> [ id: "some-other-id", name: "arbitrary-name" ]
   }
 
@@ -571,5 +571,9 @@ class ApplicationServiceSpec extends Specification {
 
   def retrofit404(){
     RetrofitError.httpError("http://localhost", new Response("http://localhost", 404, "Not Found", [], new TypedByteArray("application/json", new byte[0])), new GsonConverter(new Gson()), Map)
+  }
+
+  def http404(){
+    new SpinnakerHttpException(retrofit404())
   }
 }

@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.MineService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 import static com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest.classifyError
 
 @Component
@@ -35,7 +35,7 @@ class CanaryService {
   void generateCanaryResult(String canaryId, int duration, String durationUnit) {
     try {
       mineService?.generateCanaryResult(canaryId, duration, durationUnit, "")
-    } catch (RetrofitError error) {
+    } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
   }
@@ -43,7 +43,7 @@ class CanaryService {
   List<Map> getCanaryAnalysisHistory(String canaryDeploymentId) {
     try {
       mineService ? mineService.getCanaryAnalysisHistory(canaryDeploymentId) : []
-    } catch (RetrofitError error) {
+    } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
   }
@@ -51,7 +51,7 @@ class CanaryService {
   Map endCanary(String canaryId, String result, String reason) {
     try {
       mineService ? mineService.endCanary(canaryId, result, reason, "") : [:]
-    } catch (RetrofitError error) {
+    } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
   }
@@ -59,7 +59,7 @@ class CanaryService {
   Map showCanary(String canaryId) {
     try {
       mineService ? mineService.showCanary(canaryId) : [:]
-    } catch (RetrofitError error) {
+    } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
   }
@@ -67,7 +67,7 @@ class CanaryService {
   List<String> getCanaryConfigNames(String application) {
     try {
       mineService ? mineService.getCanaryConfigNames(application) : []
-    } catch (RetrofitError error) {
+    } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
   }
@@ -75,7 +75,7 @@ class CanaryService {
   List<Map> canaryConfigsForApplication(String applicationName) {
     try {
       mineService ? mineService.canaryConfigsForApplication(applicationName) : []
-    } catch (RetrofitError error) {
+    } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
   }

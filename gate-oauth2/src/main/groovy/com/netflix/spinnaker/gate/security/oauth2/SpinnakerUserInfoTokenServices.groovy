@@ -24,6 +24,7 @@ import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.User
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
@@ -39,7 +40,6 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
-import retrofit.RetrofitError
 
 import java.util.function.BiFunction
 import java.util.regex.Pattern
@@ -188,8 +188,8 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     try {
       def serviceAccounts = front50Service.getServiceAccounts()
       return serviceAccounts.find { email.equalsIgnoreCase(it.name) }
-    } catch (RetrofitError re) {
-      log.warn("Could not get list of service accounts.", re)
+    } catch (SpinnakerServerException e) {
+      log.warn("Could not get list of service accounts.", e)
     }
     return false
   }

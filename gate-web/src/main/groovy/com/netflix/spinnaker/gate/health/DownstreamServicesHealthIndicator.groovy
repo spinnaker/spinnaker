@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.internal.HealthCheckableService
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,7 +32,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
-import retrofit.RetrofitError
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -96,7 +96,7 @@ class DownstreamServicesHealthIndicator extends AbstractHealthIndicator {
     healthCheckableServices.each { String name, HealthCheckableService service ->
       try {
         AuthenticatedRequest.allowAnonymous { service.health() }
-      } catch (RetrofitError e) {
+      } catch (SpinnakerServerException e) {
         serviceHealths[name] = "${e.message} (url: ${e.url})".toString()
         log.error('Exception received during health check of service: {}, {}', name, serviceHealths[name])
       }

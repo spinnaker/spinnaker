@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
 import com.netflix.spinnaker.gate.services.internal.EchoService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.converter.GsonConverter
@@ -33,7 +34,7 @@ class CronServiceSpec extends Specification {
   void "should return validation message when scheduler service fails with 400 status"() {
     given:
     def body = new TypedByteArray(null, OBJECT_MAPPER.writeValueAsBytes([message: "Invalid Cron expression!!!"]))
-    def error = RetrofitError.httpError("", new Response("", 400, "", [], body), new GsonConverter(new Gson()), Map)
+    def error = new SpinnakerHttpException(RetrofitError.httpError("https://blah", new Response("", 400, "", [], body), new GsonConverter(new Gson()), Map))
     def service = new CronService(
         echoService: Mock(EchoService) {
           1 * validateCronExpression("blah") >> { throw error }
@@ -41,14 +42,14 @@ class CronServiceSpec extends Specification {
     )
 
     expect:
-    service.validateCronExpression("blah") == [ valid: false, message: "Invalid Cron expression!!!"]
+    service.validateCronExpression("blah") == [ valid: false, message: "Status: 400, URL: https://blah, Message: Invalid Cron expression!!!"]
   }
 
   @Unroll
   void "should propagate Retrofit error when status code is #code"() {
     given:
     def body = new TypedByteArray(null, OBJECT_MAPPER.writeValueAsBytes([message: "Invalid Cron expression!!!"]))
-    def error = RetrofitError.httpError("", new Response("", code, "", [], body), new GsonConverter(new Gson()), Map)
+    def error = new SpinnakerHttpException(RetrofitError.httpError("", new Response("", code, "", [], body), new GsonConverter(new Gson()), Map))
     def service = new CronService(
         echoService: Mock(EchoService) {
           1 * validateCronExpression("blah") >> { throw error }
@@ -59,7 +60,7 @@ class CronServiceSpec extends Specification {
     service.validateCronExpression("blah")
 
     then:
-    thrown RetrofitError
+    thrown SpinnakerHttpException
 
     where:
     code << [401, 402, 403, 404, 500]

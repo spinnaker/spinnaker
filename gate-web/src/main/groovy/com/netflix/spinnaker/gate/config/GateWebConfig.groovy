@@ -43,7 +43,6 @@ import org.springframework.web.servlet.config.annotation.ContentNegotiationConfi
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector
-import retrofit.RetrofitError
 
 import javax.servlet.Filter
 import javax.servlet.http.HttpServletResponse
@@ -111,16 +110,6 @@ public class GateWebConfig implements WebMvcConfigurer {
 
       def message = exception.message
       def failureCause = exception.cause
-      if (failureCause instanceof RetrofitError) {
-        try {
-          def retrofitBody = failureCause.getBodyAs(Map) as Map
-          message = retrofitBody.error ?: message
-        } catch (Exception ignored) {
-          // unable to extract error from response
-        }
-
-        failureCause = failureCause.cause ?: failureCause
-      }
 
       return [
         failureCause: failureCause.toString(),

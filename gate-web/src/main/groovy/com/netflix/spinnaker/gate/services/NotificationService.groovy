@@ -22,6 +22,8 @@ import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -37,10 +39,8 @@ import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import retrofit.Endpoint
-import retrofit.RetrofitError
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
-import static retrofit.RetrofitError.Kind.HTTP
 
 @CompileStatic
 @Component
@@ -136,13 +136,12 @@ class NotificationService {
       HttpHeaders headers = new HttpHeaders()
       headers.putAll(response.headers().toMultimap())
       return new ResponseEntity(body, headers, HttpStatus.valueOf(response.code()))
-    } catch (RetrofitError error) {
-      log.error("Error proxying notification callback to {}: $error", service)
-      if (error.getKind() == HTTP) {
-        throw error
-      } else {
-        return new ResponseEntity(INTERNAL_SERVER_ERROR)
+    } catch (SpinnakerServerException e) {
+      log.error("Error proxying notification callback to {}: $e", service)
+      if (e instanceof SpinnakerHttpException) {
+        throw e
       }
+      return new ResponseEntity(INTERNAL_SERVER_ERROR)
     }
   }
 }

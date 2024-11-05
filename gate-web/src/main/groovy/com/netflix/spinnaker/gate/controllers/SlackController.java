@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.gate.config.SlackConfigProperties;
 import com.netflix.spinnaker.gate.services.SlackService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import io.swagger.annotations.ApiOperation;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -33,10 +34,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpHeaders;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import retrofit.RetrofitError;
 
 @RestController
 @RequestMapping("/slack")
@@ -128,18 +129,15 @@ public class SlackController {
   }
 
   private Optional<Long> getRetryDelayMs(Exception e) {
-    if (e instanceof RetrofitError) {
-      RetrofitError re = (RetrofitError) e;
-      if (re.getKind() == RetrofitError.Kind.HTTP) {
-        if (re.getResponse() != null && re.getResponse().getStatus() == 429) {
-          return re.getResponse().getHeaders().stream()
-              // slack rate limit responses may include a `Retry-After` header indicating the number
-              // of seconds
-              // before a subsequent request should be made.
-              .filter(h -> "retry-after".equalsIgnoreCase(h.getName()))
-              .findFirst()
-              .map(h -> Long.parseLong(h.getValue()) * 1000);
-        }
+    if (e instanceof SpinnakerHttpException) {
+      SpinnakerHttpException se = (SpinnakerHttpException) e;
+      if (se.getResponseCode() == 429) {
+        // slack rate limit responses may include a `Retry-After` header indicating the number
+        // of seconds
+        // before a subsequent request should be made.
+        return se.getHeaders().getOrEmpty(HttpHeaders.RETRY_AFTER).stream()
+            .findFirst()
+            .map(h -> Long.parseLong(h) * 1000);
       }
     }
 

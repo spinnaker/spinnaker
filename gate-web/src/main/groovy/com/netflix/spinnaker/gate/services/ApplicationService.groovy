@@ -22,8 +22,8 @@ import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
@@ -34,8 +34,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
-import retrofit.converter.ConversionException
 
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
@@ -57,25 +55,6 @@ class ApplicationService {
   private AtomicReference<List<Map>> allApplicationsCache
   private ApplicationConfigurationProperties applicationConfigurationProperties
 
-  /**
-   * Adjusting the front50Service and other retrofit objects for communicating
-   * with downstream services means changing RetrofitServiceFactory in kork and
-   * so it affects more than gate.  Front50 uses that code to communicate with
-   * echo.  Front50 doesn't currently do any special exception handling when it
-   * calls echo.  Gate does a ton though, and so it would be a big change to
-   * adjust all the catching of RetrofitError into catching
-   * SpinnakerHttpException, etc. as appropriate.
-   *
-   * Even if RetrofitServiceFactory were configurable by service type, so only
-   * gate's Front50Service used SpinnakerRetrofitErrorHandler, it would still be
-   * a big change, affecting gate-iap and gate-oauth2 where there's code that
-   * uses front50Service but checks for RetrofitError.
-   *
-   * To limit the scope of the change to getPipelineConfigForApplication, construct a
-   * spinnakerRetrofitErrorHandler and use it directly.
-   */
-  final SpinnakerRetrofitErrorHandler spinnakerRetrofitErrorHandler
-
   @Autowired
   ApplicationService(
     ServiceConfiguration serviceConfiguration,
@@ -89,7 +68,6 @@ class ApplicationService {
     this.applicationConfigurationProperties = applicationConfigurationProperties
     this.executorService = Executors.newCachedThreadPool()
     this.allApplicationsCache = new AtomicReference<>([])
-    this.spinnakerRetrofitErrorHandler = SpinnakerRetrofitErrorHandler.newInstance()
   }
 
   // used in tests
@@ -193,24 +171,12 @@ class ApplicationService {
       }
       log.error("front50 query for a pipeline with name ${pipelineNameOrId} in application ${app} returned a pipeline named ${pipelineConfig.name}")
       // Tempting to return null here, but querying by id might work, so give it a shot.
-    } catch (RetrofitError e) {
-      // If spinnakerRetrofitErrorHandler were registered as a "real" error handler, the code here would look something like
-      //
-      // } catch (SpinnakeHttpException e) {
-      //   if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
-      //     ...
-      //   }
-      // }
-      Throwable throwable = spinnakerRetrofitErrorHandler.handleError(e);
-      if (throwable instanceof SpinnakerHttpException && throwable.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
         log.info("front50 returned no pipeline with name ${pipelineNameOrId} in application ${app}")
         // fall through to try querying by id
       } else {
-        // It's a pretty arbitrary choice whether to throw e or throwable here
-        // since PipelineController.invokePipelineConfig handles both.  May as
-        // well throw throwable to avoid converting the RetrofitError to a
-        // Spinnaker*Exception again.
-        throw throwable
+        throw e;
       }
     }
 
@@ -222,13 +188,12 @@ class ApplicationService {
         return pipelineConfig
       }
       log.error("front50 query for a pipeline with id ${pipelineNameOrId} returned a pipeline with id ${pipelineConfig.id}")
-    } catch (RetrofitError e) {
-      Throwable throwable = spinnakerRetrofitErrorHandler.handleError(e);
-      if (throwable instanceof SpinnakerHttpException && throwable.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
+    } catch (SpinnakerHttpException e) {
+      if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
         log.info("front50 returned no pipeline with id ${pipelineNameOrId}")
-        throw throwable.newInstance("Pipeline configuration not found (id: ${pipelineNameOrId}): " + throwable.getMessage())
+        throw e.newInstance("Pipeline configuration not found (id: ${pipelineNameOrId}): " + e.getMessage())
       }
-      throw throwable
+      throw e
     }
 
     // If we get here, the query by id returned a pipeline whose id didn't match
@@ -449,12 +414,11 @@ class ApplicationService {
         AuthenticatedRequest.propagate({
           try {
             return AuthenticatedRequest.allowAnonymous { front50.getAllApplicationsUnrestricted() }
-          } catch (RetrofitError e) {
-            if (e.response?.status == 404) {
+          } catch (SpinnakerHttpException e) {
+            if (e.responseCode == 404) {
               return []
-            } else {
-              throw e
             }
+            throw e
           }
         }, false, principal).call() as List<Map>
       } catch (Exception e) {
@@ -486,14 +450,13 @@ class ApplicationService {
           try {
             def metadata = front50.getApplication(name)
             metadata ?: [:]
-          } catch (ConversionException ignored) {
+          } catch (SpinnakerConversionException e) {
             return [:]
-          } catch (RetrofitError e) {
-            if ((e.cause instanceof ConversionException) || e.response.status == 404) {
+          } catch (SpinnakerHttpException e) {
+            if (e.responseCode == 404) {
               return [:]
-            } else {
-              throw e
             }
+            throw e
           }
         }, false, principal).call() as Map
       } catch (Exception e) {
@@ -524,12 +487,11 @@ class ApplicationService {
         AuthenticatedRequest.propagate({
           try {
             return AuthenticatedRequest.allowAnonymous { clouddriver.getAllApplicationsUnrestricted(expandClusterNames) }
-          } catch (RetrofitError e) {
-            if (e.response?.status == 404) {
+          } catch (SpinnakerHttpException e) {
+            if (e.responseCode == 404) {
               return []
-            } else {
-              throw e
             }
+            throw e
           }
         }, false, principal).call() as List<Map>
       } catch (Exception e) {
@@ -557,12 +519,11 @@ class ApplicationService {
         AuthenticatedRequest.propagate({
           try {
             return clouddriver.getApplication(name)
-          } catch (RetrofitError e) {
-            if (e.response?.status == 404) {
+          } catch (SpinnakerHttpException e) {
+            if (e.responseCode == 404) {
               return [:]
-            } else {
-              throw e
             }
+            throw e
           }
         }, false, principal).call() as Map
       } catch (Exception e) {

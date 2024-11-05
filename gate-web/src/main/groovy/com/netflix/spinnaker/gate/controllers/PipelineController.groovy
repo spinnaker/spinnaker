@@ -24,7 +24,8 @@ import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
@@ -41,7 +42,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-import retrofit.RetrofitError
 
 import java.nio.charset.StandardCharsets
 
@@ -58,25 +58,6 @@ class PipelineController {
   final ObjectMapper objectMapper
   final PipelineControllerConfigProperties pipelineControllerConfigProperties
 
-  /**
-   * Adjusting the front50Service and other retrofit objects for communicating
-   * with downstream services means changing RetrofitServiceFactory in kork and
-   * so it affects more than gate.  Front50 uses that code to communicate with
-   * echo.  Front50 doesn't currently do any special exception handling when it
-   * calls echo.  Gate does a ton though, and so it would be a big change to
-   * adjust all the catching of RetrofitError into catching
-   * SpinnakerHttpException, etc. as appropriate.
-   *
-   * Even if RetrofitServiceFactory were configurable by service type, so only
-   * gate's Front50Service and OrcaService used SpinnakerRetrofitErrorHandler,
-   * it would still be a big change, affecting gate-iap and gate-oauth2 where
-   * there's code that uses front50Service but checks for RetrofitError.
-   *
-   * To limit the scope of the change to invokePipelineConfig, construct a
-   * spinnakerRetrofitErrorHandler and use it directly.
-   */
-  final SpinnakerRetrofitErrorHandler spinnakerRetrofitErrorHandler
-
   @Autowired
   PipelineController(PipelineService pipelineService,
                      TaskService taskService,
@@ -88,7 +69,6 @@ class PipelineController {
     this.front50Service = front50Service
     this.objectMapper = objectMapper
     this.pipelineControllerConfigProperties = pipelineControllerConfigProperties
-    this.spinnakerRetrofitErrorHandler = SpinnakerRetrofitErrorHandler.newInstance()
   }
 
   @CompileDynamic
@@ -207,8 +187,8 @@ class PipelineController {
   Map getPipeline(@PathVariable("id") String id) {
     try {
       pipelineService.getPipeline(id)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new NotFoundException("Pipeline not found (id: ${id})")
       }
     }
@@ -327,9 +307,6 @@ class PipelineController {
       pipelineService.trigger(application, pipelineNameOrId, trigger)
     } catch (SpinnakerException e) {
       throw e.newInstance(triggerFailureMessage(application, pipelineNameOrId, e));
-    } catch (RetrofitError e) {
-      throw spinnakerRetrofitErrorHandler.handleError(e, {
-        exception -> triggerFailureMessage(application, pipelineNameOrId, exception) });
     }
   }
 
@@ -362,8 +339,8 @@ class PipelineController {
                                      @RequestParam("expression") String pipelineExpression) {
     try {
       pipelineService.evaluateExpressionForExecution(id, pipelineExpression)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new NotFoundException("Pipeline not found (id: ${id})")
       }
     }
@@ -375,8 +352,8 @@ class PipelineController {
                                             @RequestBody String pipelineExpression) {
     try {
       pipelineService.evaluateExpressionForExecution(id, pipelineExpression)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new NotFoundException("Pipeline not found (id: ${id})")
       }
     }
@@ -389,8 +366,8 @@ class PipelineController {
                                             @RequestParam("expression") String pipelineExpression) {
     try {
       pipelineService.evaluateExpressionForExecutionAtStage(id, stageId, pipelineExpression)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new NotFoundException("Pipeline not found (id: ${id})", e)
       }
     }
@@ -402,8 +379,8 @@ class PipelineController {
                                             @RequestBody Map pipelineExpression) {
     try {
       pipelineService.evaluateExpressionForExecution(id, (String) pipelineExpression.expression)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new NotFoundException("Pipeline not found (id: ${id})")
       }
     }
@@ -425,8 +402,8 @@ class PipelineController {
                         @RequestBody List<Map<String, String>> expressions) {
     try {
       return pipelineService.evaluateVariables(executionId, requisiteStageRefIds, spelVersionOverride, expressions)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new NotFoundException("Pipeline not found (id: ${executionId})")
       }
     }
@@ -436,12 +413,11 @@ class PipelineController {
     try {
       def body = call()
       new ResponseEntity(body, HttpStatus.OK)
-    } catch (RetrofitError re) {
-      if (re.response?.status == HttpStatus.BAD_REQUEST.value() && requestBody.type == "templatedPipeline") {
-        throw new PipelineException((HashMap<String, Object>) re.getBodyAs(HashMap.class))
-      } else {
-        throw re
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == HttpStatus.BAD_REQUEST.value() && requestBody.type == "templatedPipeline") {
+        throw new PipelineException(e.responseBody)
       }
+      throw e
     }
   }
 

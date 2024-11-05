@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.KayentaService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import static com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest.classifyError
 
@@ -38,7 +38,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
   List getCanaryConfigs(String application, String configurationAccountName) {
     try {
       return kayentaService.getCanaryConfigs(application, configurationAccountName)
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }
   }
@@ -46,7 +46,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
   Map getCanaryConfig(String id, String configurationAccountName) {
     try {
       return kayentaService.getCanaryConfig(id, configurationAccountName)
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }
   }
@@ -54,7 +54,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
   Map createCanaryConfig(Map config, String configurationAccountName) {
     try {
       return kayentaService.createCanaryConfig(config, configurationAccountName)
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }
   }
@@ -62,7 +62,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
   Map updateCanaryConfig(String id, Map config, String configurationAccountName) {
     try {
       return kayentaService.updateCanaryConfig(id, config, configurationAccountName)
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }
   }
@@ -70,7 +70,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
   void deleteCanaryConfig(String id, String configurationAccountName) {
     try {
       kayentaService.deleteCanaryConfig(id, configurationAccountName)
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }
   }

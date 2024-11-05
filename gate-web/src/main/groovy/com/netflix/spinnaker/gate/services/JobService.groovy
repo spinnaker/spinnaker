@@ -19,10 +19,10 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @CompileStatic
 @Component
@@ -51,8 +51,8 @@ class JobService {
       return clouddriverServiceSelector.select().getJobDetails(applicationName, account, region, name, "") + [
           "insightActions": insightConfiguration.job.collect { it.applyContext(context) }
       ]
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         return [:]
       }
       throw e

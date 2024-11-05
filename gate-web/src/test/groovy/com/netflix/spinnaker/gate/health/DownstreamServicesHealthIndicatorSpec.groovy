@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.health
 
 import com.netflix.spinnaker.gate.services.internal.HealthCheckableService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import org.springframework.boot.actuate.health.Health
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletWebRequest
@@ -58,7 +59,7 @@ class DownstreamServicesHealthIndicatorSpec extends Specification {
 
     then:
     1 * healthCheckableService.health() >> {
-      throw new RetrofitError("Unable to connect", "http://localhost", null, null, null, null, null)
+      throw new SpinnakerServerException(new RetrofitError("Unable to connect", "http://localhost", null, null, null, null, null))
     }
 
     healthIndicator.failuresByService.get() == [

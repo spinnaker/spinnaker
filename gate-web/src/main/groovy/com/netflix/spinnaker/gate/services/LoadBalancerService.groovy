@@ -19,10 +19,10 @@ package com.netflix.spinnaker.gate.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @CompileStatic
 @Component
@@ -64,8 +64,8 @@ class LoadBalancerService {
         return foo
       }
       return loadBalancerDetails
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         return []
       }
       throw e

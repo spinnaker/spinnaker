@@ -3,6 +3,7 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
   implementation "org.apache.groovy:groovy-json"
   implementation "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure"

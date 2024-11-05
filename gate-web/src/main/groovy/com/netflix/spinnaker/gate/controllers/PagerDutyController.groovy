@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.PagerDutyService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -26,7 +27,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import retrofit.RetrofitError
 
 import java.util.concurrent.atomic.AtomicReference
 
@@ -80,7 +80,7 @@ class PagerDutyController {
       log.info("Fetched {} PagerDuty services", services?.size())
       pagerDutyServicesCache.set(services)
     } catch (e) {
-      if (e instanceof RetrofitError && e.response?.status == 429) {
+      if (e instanceof SpinnakerHttpException && e.responseCode == 429) {
         log.warn("Unable to refresh PagerDuty service list (throttled!)")
       } else {
         log.error("Unable to refresh PagerDuty service list", e)
@@ -92,7 +92,7 @@ class PagerDutyController {
       log.info("Fetched {} PagerDuty onCall", onCalls?.size())
       pagerDutyOnCallCache.set(onCalls)
     } catch (e) {
-      if (e instanceof RetrofitError && e.response?.status == 429) {
+      if (e instanceof SpinnakerHttpException && e.responseCode == 429) {
         log.warn("Unable to refresh PagerDuty onCall list (throttled!)")
       } else {
         log.error("Unable to refresh PagerDuty onCall list", e)

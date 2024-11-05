@@ -20,11 +20,11 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.GoogleCloudBuildTrigger
 import com.netflix.spinnaker.gate.services.internal.IgorService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.web.util.UriUtils
-import retrofit.RetrofitError
 
 @CompileStatic
 @Component
@@ -62,8 +62,8 @@ class BuildService {
     }
     try {
       igorService.getJobsForBuildMaster(controller)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new BuildMasterNotFound("Build master '${controller}' not found")
       }
       throw e
@@ -76,8 +76,8 @@ class BuildService {
     }
     try {
       igorService.getGoogleCloudBuildTriggers(account)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new GCBAccountNotFound("Account '${account}' not found")
       }
 
@@ -91,8 +91,8 @@ class BuildService {
     }
     try {
       igorService.getJobConfig(controller, encode(job))
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new BuildMasterNotFound("Job not found (controller: '${controller}', job: '${job}')")
       }
 
@@ -106,8 +106,8 @@ class BuildService {
     }
     try {
       igorService.getBuilds(controller, encode(job))
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new BuildMasterNotFound("Builds not found (controller: '${controller}', job: '${job}')")
       }
 
@@ -121,8 +121,8 @@ class BuildService {
     }
     try {
       igorService.getBuild(controller, encode(job), number)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
+    } catch (SpinnakerHttpException e) {
+      if (e.responseCode == 404) {
         throw new BuildMasterNotFound("Build not found (controller: '${controller}', job: '${job}', build: ${number})")
       }
 

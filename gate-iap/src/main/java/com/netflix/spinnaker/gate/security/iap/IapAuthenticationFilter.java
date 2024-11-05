@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.gate.security.iap.IapSsoConfig.IapSecurityConfigProperties;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.User;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
@@ -50,7 +51,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
-import retrofit.RetrofitError;
 
 /**
  * * This filter verifies the request header from Cloud IAP containing a JWT token, after the user
@@ -140,8 +140,8 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
         }
       }
       return false;
-    } catch (RetrofitError re) {
-      log.warn("Could not get list of service accounts.", re);
+    } catch (SpinnakerServerException e) {
+      log.warn("Could not get list of service accounts.", e);
     }
     return false;
   }
