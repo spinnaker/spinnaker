@@ -28,6 +28,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.orca.kayenta.config.KayentaConfiguration
 import com.netflix.spinnaker.time.fixedClock
 import java.time.Duration
@@ -44,7 +45,6 @@ import retrofit.Endpoint
 import retrofit.Endpoints.newFixedEndpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter.LogLevel
-import retrofit.client.OkClient
 
 object KayentaServiceTest : Spek({
 
@@ -55,7 +55,7 @@ object KayentaServiceTest : Spek({
     configureFor(wireMockServer.port())
     subject = KayentaConfiguration()
       .kayentaService(
-        OkClient(),
+        Ok3Client(),
         wireMockServer.endpoint,
         LogLevel.FULL,
         RequestInterceptor.NONE

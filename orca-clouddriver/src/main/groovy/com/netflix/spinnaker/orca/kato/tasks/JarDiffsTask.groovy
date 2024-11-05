@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
@@ -34,7 +35,7 @@ import com.netflix.spinnaker.orca.libdiffs.Library
 import com.netflix.spinnaker.orca.libdiffs.LibraryDiffTool
 import com.netflix.spinnaker.orca.libdiffs.LibraryDiffs
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import com.squareup.okhttp.OkHttpClient
+import okhttp3.OkHttpClient
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -42,7 +43,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 
 @Slf4j
 @Component
@@ -118,17 +118,18 @@ class JarDiffsTask implements DiffTask {
   }
 
   InstanceService createInstanceService(String address) {
-    def okHttpClient = new OkHttpClient(retryOnConnectionFailure: false)
-
+    def okHttpClient = new OkHttpClient.Builder()
     // short circuit as quickly as possible security groups don't allow ingress to <instance>:8077
     // (spinnaker applications don't allow this)
-    okHttpClient.setConnectTimeout(2, TimeUnit.SECONDS)
-    okHttpClient.setReadTimeout(2, TimeUnit.SECONDS)
+    .connectTimeout(2, TimeUnit.SECONDS)
+    .readTimeout(2, TimeUnit.SECONDS)
+    .retryOnConnectionFailure(false)
+    .build()
 
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
       .setConverter(new JacksonConverter())
-      .setClient(new OkClient(okHttpClient))
+      .setClient(new Ok3Client(okHttpClient))
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()
 

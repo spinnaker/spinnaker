@@ -27,6 +27,7 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.mine.MineService;
@@ -47,7 +48,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpStatus;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.JacksonConverter;
 import retrofit.mime.TypedString;
@@ -68,13 +68,12 @@ public class RegisterCanaryTaskTest {
 
   @BeforeAll
   static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
-    OkClient okClient = new OkClient();
     RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
 
     mineService =
         new RestAdapter.Builder()
             .setEndpoint(wmRuntimeInfo.getHttpBaseUrl())
-            .setClient(okClient)
+            .setClient(new Ok3Client())
             .setLogLevel(retrofitLogLevel)
             .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .setLog(new RetrofitSlf4jLog(MineService.class))

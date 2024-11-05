@@ -35,6 +35,7 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
@@ -63,7 +64,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 /*
@@ -88,14 +88,13 @@ public class ImportDeliveryConfigTaskTest {
 
   @BeforeAll
   static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
-    OkClient okClient = new OkClient();
     RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
 
     keelService =
         new RestAdapter.Builder()
             .setRequestInterceptor(new SpinnakerRequestInterceptor(true))
             .setEndpoint(wmRuntimeInfo.getHttpBaseUrl())
-            .setClient(okClient)
+            .setClient(new Ok3Client())
             .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .setLogLevel(retrofitLogLevel)
             .setConverter(new JacksonConverter(objectMapper))

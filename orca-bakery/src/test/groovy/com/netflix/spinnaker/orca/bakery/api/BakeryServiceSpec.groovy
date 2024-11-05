@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.bakery.api
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import retrofit.RequestInterceptor
-import retrofit.client.OkClient
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.github.tomakehurst.wiremock.client.WireMock.*
@@ -56,7 +56,7 @@ class BakeryServiceSpec extends Specification {
 
   def setup() {
     bakery = new BakeryConfiguration(
-      retrofitClient: new OkClient(),
+      retrofitClient: new Ok3Client(),
       retrofitLogLevel: FULL,
       spinnakerRequestInterceptor: Mock(RequestInterceptor)
     )

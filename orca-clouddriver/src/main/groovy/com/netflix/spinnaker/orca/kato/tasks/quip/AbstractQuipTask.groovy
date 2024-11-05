@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
-import com.squareup.okhttp.OkHttpClient
+import okhttp3.OkHttpClient
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
 import static retrofit.RestAdapter.LogLevel.BASIC
@@ -32,7 +32,7 @@ abstract class AbstractQuipTask implements Task {
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
       .setConverter(new JacksonConverter())
-      .setClient(new OkClient(new OkHttpClient(retryOnConnectionFailure: false)))
+      .setClient(new Ok3Client(new OkHttpClient(retryOnConnectionFailure: false)))
       .setLogLevel(BASIC)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()

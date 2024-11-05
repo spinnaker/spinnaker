@@ -33,6 +33,7 @@ import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.google.common.collect.Iterables;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
@@ -63,7 +64,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 
 public class EvaluateDeploymentHealthTaskTest {
 
@@ -111,12 +111,11 @@ public class EvaluateDeploymentHealthTaskTest {
   void setup(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
-    OkClient okClient = new OkClient();
     RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
 
     DeploymentMonitorServiceProvider deploymentMonitorServiceProvider =
         new DeploymentMonitorServiceProvider(
-            okClient,
+            new Ok3Client(),
             retrofitLogLevel,
             new SpinnakerRequestInterceptor(true),
             deploymentMonitorDefinitions);

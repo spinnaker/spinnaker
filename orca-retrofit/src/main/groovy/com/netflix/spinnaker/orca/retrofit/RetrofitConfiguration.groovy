@@ -20,13 +20,11 @@ package com.netflix.spinnaker.orca.retrofit
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
-import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler
 import groovy.transform.CompileStatic
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -37,7 +35,6 @@ import org.springframework.context.annotation.Scope
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import retrofit.RestAdapter.LogLevel
-import retrofit.client.OkClient
 
 @Configuration
 @CompileStatic
@@ -67,30 +64,6 @@ class RetrofitConfiguration {
     }
 
     new Ok3Client(builder.build())
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkClient okClient(Registry registry,
-                    @Qualifier("okHttpClientConfiguration") OkHttpClientConfiguration okHttpClientConfig,
-                    Optional<List<RetrofitInterceptorProvider>> retrofitInterceptorProviders) {
-    final String userAgent = "Spinnaker-${System.getProperty('spring.application.name', 'unknown')}/${getClass().getPackage().implementationVersion ?: '1.0'}"
-    def cfg = okHttpClientConfig.create()
-    cfg.networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
-      @Override
-      com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
-        def req = chain.request().newBuilder().header('User-Agent', userAgent).build()
-        chain.proceed(req)
-      }
-    })
-
-    (retrofitInterceptorProviders.orElse([])).each { provider ->
-      provider.legacyInterceptors.each { interceptor ->
-        cfg.interceptors().add(interceptor)
-      }
-    }
-
-    new OkClient(cfg)
   }
 
   @Bean
