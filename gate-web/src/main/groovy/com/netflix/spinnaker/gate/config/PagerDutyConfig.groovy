@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.config
 
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.gate.services.PagerDutyService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Value
@@ -25,7 +26,6 @@ import org.springframework.context.annotation.Configuration
 import retrofit.Endpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
 import static retrofit.Endpoints.newFixedEndpoint
@@ -56,7 +56,7 @@ class PagerDutyConfig {
   PagerDutyService pagerDutyService(Endpoint pagerDutyEndpoint) {
     new RestAdapter.Builder()
       .setEndpoint(pagerDutyEndpoint)
-      .setClient(new OkClient())
+      .setClient(new Ok3Client())
       .setConverter(new JacksonConverter())
       .setRequestInterceptor(requestInterceptor)
       .build()
