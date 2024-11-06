@@ -15,13 +15,14 @@
  */
 package com.netflix.spinnaker.echo.config
 
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.echo.config.TelemetryConfig.TelemetryConfigProps
 import com.netflix.spinnaker.echo.telemetry.TelemetryService
 import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
-import com.squareup.okhttp.OkHttpClient
 import de.huxhorn.sulky.ulid.ULID
 import java.util.concurrent.TimeUnit
+import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -29,7 +30,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
 @Configuration
@@ -57,11 +57,12 @@ open class TelemetryConfig {
       .create(TelemetryService::class.java)
   }
 
-  private fun telemetryOkClient(configProps: TelemetryConfigProps): OkClient {
-    val httpClient = OkHttpClient()
-    httpClient.setConnectTimeout(configProps.connectionTimeoutMillis.toLong(), TimeUnit.MILLISECONDS)
-    httpClient.setReadTimeout(configProps.readTimeoutMillis.toLong(), TimeUnit.MILLISECONDS)
-    return OkClient(httpClient)
+  private fun telemetryOkClient(configProps: TelemetryConfigProps): Ok3Client {
+    val httpClient = OkHttpClient.Builder()
+      .connectTimeout(configProps.connectionTimeoutMillis.toLong(), TimeUnit.MILLISECONDS)
+      .readTimeout(configProps.readTimeoutMillis.toLong(), TimeUnit.MILLISECONDS)
+      .build()
+    return Ok3Client(httpClient)
   }
 
   @ConfigurationProperties(prefix = "stats")

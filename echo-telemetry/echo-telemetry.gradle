@@ -25,6 +25,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-proto"
   implementation "io.spinnaker.kork:kork-security"
   implementation 'io.spinnaker.kork:kork-web'
+  implementation 'com.jakewharton.retrofit:retrofit1-okhttp3-client'
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.squareup.retrofit:converter-jackson'
   implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'

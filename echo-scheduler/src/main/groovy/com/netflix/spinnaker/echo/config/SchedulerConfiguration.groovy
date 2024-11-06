@@ -22,7 +22,6 @@ import com.netflix.spinnaker.echo.scheduler.actions.pipeline.QuartzDiscoveryActi
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerConverter
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.TriggerListener
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
-import com.squareup.okhttp.OkHttpClient
 import org.quartz.JobDetail
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -34,8 +33,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.scheduling.quartz.JobDetailFactoryBean
 import org.springframework.scheduling.quartz.SchedulerFactoryBean
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean
-import retrofit.client.Client
-import retrofit.client.OkClient
 
 import javax.sql.DataSource
 import java.util.concurrent.TimeUnit

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config;
 
 import static retrofit.Endpoints.newFixedEndpoint;
 
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.jira.JiraProperties;
 import com.netflix.spinnaker.echo.jira.JiraService;
@@ -32,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 @Configuration
@@ -42,7 +42,7 @@ public class JiraConfig {
   private static Logger LOGGER = LoggerFactory.getLogger(JiraConfig.class);
 
   @Autowired(required = false)
-  private OkClient x509ConfiguredClient;
+  private Ok3Client x509ConfiguredClient;
 
   @Bean
   JiraService jiraService(
