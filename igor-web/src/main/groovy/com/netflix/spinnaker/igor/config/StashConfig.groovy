@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.igor.scm.stash.client.StashClient
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
@@ -29,7 +30,6 @@ import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 
@@ -58,7 +58,7 @@ class StashConfig {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
-            .setClient(new OkClient())
+            .setClient(new Ok3Client())
             .setConverter(new JacksonConverter())
             .setLogLevel(retrofitLogLevel)
             .setLog(new Slf4jRetrofitLogger(StashClient))

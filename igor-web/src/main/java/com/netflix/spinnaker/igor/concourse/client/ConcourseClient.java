@@ -20,17 +20,17 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.igor.concourse.client.model.ClusterInfo;
 import com.netflix.spinnaker.igor.concourse.client.model.Token;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import com.squareup.okhttp.OkHttpClient;
 import com.vdurmont.semver4j.Semver;
 import java.time.ZonedDateTime;
 import lombok.Getter;
+import okhttp3.OkHttpClient;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.JacksonConverter;
 
@@ -85,13 +85,13 @@ public class ConcourseClient {
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .registerModule(new JavaTimeModule());
 
-    this.okHttpClient = OkHttpClientBuilder.retryingClient(this::refreshToken);
+    this.okHttpClient = OkHttpClientBuilder.retryingClient3(this::refreshToken);
     this.jacksonConverter = new JacksonConverter(mapper);
 
     RestAdapter.Builder tokenRestBuilder =
         new RestAdapter.Builder()
             .setEndpoint(host)
-            .setClient(new OkClient(okHttpClient))
+            .setClient(new Ok3Client(okHttpClient))
             .setConverter(jacksonConverter)
             .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .setRequestInterceptor(
@@ -102,7 +102,7 @@ public class ConcourseClient {
     this.clusterInfoService =
         new RestAdapter.Builder()
             .setEndpoint(host)
-            .setClient(new OkClient(okHttpClient))
+            .setClient(new Ok3Client(okHttpClient))
             .setConverter(jacksonConverter)
             .setLog(new Slf4jRetrofitLogger(ClusterInfoService.class))
             .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
@@ -195,7 +195,7 @@ public class ConcourseClient {
   private <S> S createService(Class<S> serviceClass) {
     return new RestAdapter.Builder()
         .setEndpoint(host)
-        .setClient(new OkClient(okHttpClient))
+        .setClient(new Ok3Client(okHttpClient))
         .setConverter(jacksonConverter)
         .setRequestInterceptor(oauthInterceptor)
         .setLog(new Slf4jRetrofitLogger(serviceClass))

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.igor.scm.github.client.GitHubClient
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
@@ -30,7 +31,6 @@ import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
 import javax.validation.Valid
@@ -55,7 +55,7 @@ class GitHubConfig {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setRequestInterceptor(new BasicAuthRequestInterceptor(accessToken))
-            .setClient(new OkClient())
+            .setClient(new Ok3Client())
             .setConverter(new JacksonConverter(mapper))
             .setLog(new Slf4jRetrofitLogger(GitHubClient))
             .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())

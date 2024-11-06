@@ -18,7 +18,8 @@ package com.netflix.spinnaker.igor.config;
 
 import com.amazonaws.util.IOUtils;
 import com.google.gson.Gson;
-import com.netflix.spinnaker.config.OkHttpClientConfiguration;
+import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccounts;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccountsService;
@@ -33,7 +34,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.ConversionException;
 import retrofit.converter.Converter;
 import retrofit.converter.GsonConverter;
@@ -75,7 +75,7 @@ public class HelmConfig {
 
   @Bean
   HelmAccountsService helmAccountsService(
-      OkHttpClientConfiguration okHttpClientConfig,
+      OkHttp3ClientConfiguration okHttp3ClientConfig,
       IgorConfigurationProperties igorConfigurationProperties,
       RestAdapter.LogLevel retrofitLogLevel) {
     String address = igorConfigurationProperties.getServices().getClouddriver().getBaseUrl();
@@ -87,7 +87,7 @@ public class HelmConfig {
 
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(address))
-        .setClient(new OkClient(okHttpClientConfig.create()))
+        .setClient(new Ok3Client(okHttp3ClientConfig.create().build()))
         .setConverter(new StringConverter())
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(HelmAccountsService.class))

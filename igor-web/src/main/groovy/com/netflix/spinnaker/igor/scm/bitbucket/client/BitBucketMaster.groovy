@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.scm.bitbucket.client
 
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.igor.config.BitBucketProperties
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
@@ -25,7 +26,6 @@ import org.springframework.context.annotation.Bean
 import retrofit.Endpoints
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 import javax.validation.Valid
 
@@ -49,7 +49,7 @@ class BitBucketMaster extends AbstractScmMaster {
     new RestAdapter.Builder()
       .setEndpoint(Endpoints.newFixedEndpoint(address))
       .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
-      .setClient(new OkClient())
+      .setClient(new Ok3Client())
       .setConverter(new JacksonConverter())
       .setLog(new Slf4jRetrofitLogger(BitBucketClient))
       .build()

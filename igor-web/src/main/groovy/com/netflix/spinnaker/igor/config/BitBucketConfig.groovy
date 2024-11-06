@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketClient
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
@@ -30,7 +31,6 @@ import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 import javax.validation.Valid
 
@@ -56,7 +56,7 @@ class BitBucketConfig {
     new RestAdapter.Builder()
       .setEndpoint(Endpoints.newFixedEndpoint(address))
       .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
-      .setClient(new OkClient())
+      .setClient(new Ok3Client())
       .setConverter(new JacksonConverter())
       .setLog(new Slf4jRetrofitLogger(BitBucketClient))
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())

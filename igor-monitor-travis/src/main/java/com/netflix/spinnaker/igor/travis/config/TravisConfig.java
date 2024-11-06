@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.igor.travis.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildServices;
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.Root;
 import com.netflix.spinnaker.igor.travis.service.TravisService;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import com.squareup.okhttp.OkHttpClient;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.ArrayList;
 import java.util.Map;
@@ -37,6 +37,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -44,7 +45,6 @@ import org.springframework.context.annotation.Configuration;
 import retrofit.Endpoints;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 /**
@@ -124,13 +124,13 @@ public class TravisConfig {
   }
 
   public static TravisClient travisClient(String address, int timeout, ObjectMapper objectMapper) {
-    OkHttpClient client = new OkHttpClient();
-    client.setReadTimeout(timeout, TimeUnit.MILLISECONDS);
+    OkHttpClient client =
+        new OkHttpClient.Builder().readTimeout(timeout, TimeUnit.MILLISECONDS).build();
 
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(address))
         .setRequestInterceptor(new TravisHeader())
-        .setClient(new OkClient(client))
+        .setClient(new Ok3Client(client))
         .setConverter(new JacksonConverter(objectMapper))
         .setLog(new Slf4jRetrofitLogger(TravisClient.class))
         .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
