@@ -23,6 +23,7 @@ import org.springframework.data.redis.core.Cursor
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ScanOptions
 import org.springframework.util.Assert
+import org.springframework.util.ObjectUtils
 
 class RedisPipelineDAO implements PipelineDAO {
 
@@ -39,8 +40,17 @@ class RedisPipelineDAO implements PipelineDAO {
 
   @Override
   Collection<Pipeline> getPipelinesByApplication(String application, boolean refresh = true) {
+    return getPipelinesByApplication(application, null, refresh)
+  }
+
+  @Override
+  Collection<Pipeline> getPipelinesByApplication(String application, String pipelineNameFilter, boolean refresh = true) {
     all(refresh).findAll {
-      it.application == application
+      /* if the pipeline name filter is empty, we want to treat it as if it doesn't exist
+      if isEmpty returns true, the statement will short circuit and return true,
+      which effectively means we don't use the filter at all. */
+      it.getApplication() == application &&
+        (ObjectUtils.isEmpty(pipelineNameFilter) || it.getName().toLowerCase().contains(pipelineNameFilter.toLowerCase()))
     }
   }
 

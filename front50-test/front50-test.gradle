@@ -18,10 +18,13 @@ dependencies {
   implementation project(":front50-api")
   implementation project(":front50-core")
   implementation project(":front50-s3")
+  implementation project(":front50-sql")
 
   implementation "org.apache.groovy:groovy"
   implementation "org.spockframework:spock-core"
   implementation "com.amazonaws:aws-java-sdk-s3"
+  implementation "io.spinnaker.kork:kork-sql-test"
+  implementation "io.reactivex:rxjava"
 }
 
 tasks.compileGroovy.enabled = true

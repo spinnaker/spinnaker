@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.config.Front50SqlProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
@@ -25,21 +23,17 @@ import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
 import com.netflix.spinnaker.front50.config.controllers.PipelineControllerConfig
 import com.netflix.spinnaker.front50.jackson.Front50ApiModule
-import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
-import com.netflix.spinnaker.front50.model.SqlStorageService
-import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
-import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
+
+import com.netflix.spinnaker.front50.pipeline.SqlPipelineDAOTestConfiguration
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import org.hamcrest.Matchers
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.web.util.UriComponentsBuilder
 
 import java.nio.charset.StandardCharsets
-import java.time.Clock
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -49,7 +43,6 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import rx.schedulers.Schedulers
 import spock.lang.*
 
 import static org.hamcrest.Matchers.containsInAnyOrder
@@ -64,6 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 abstract class PipelineControllerTck extends Specification {
+
   static final int OK = 200
   static final int BAD_REQUEST = 400
   static final int NOT_FOUND = 404
@@ -165,6 +159,23 @@ abstract class PipelineControllerTck extends Specification {
     response
       .andExpect(jsonPath('$.[*].name').value(["a1", "b1", "a3", "b", "c"]))
       .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
+  }
+
+  void "should use pipelineNameFilter when getting pipelines for an application"() {
+    given:
+    pipelineDAO.create("0", new Pipeline(application: "test", name: "pipelineName1"))
+    for (int i = 1; i < 10; i++) {
+      def name = i % 2 == 0 ? "pipelineNameA" + i : "pipelineNameB" + i;
+      pipelineDAO.create(i.toString(), new Pipeline(application: "test", name: name))
+    }
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/test?pipelineNameFilter=NameA"))
+
+    then:
+    response
+      .andExpect(jsonPath('$.[*].name').value(["pipelineNameA2", "pipelineNameA4", "pipelineNameA6", "pipelineNameA8"]))
+      .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3]))
   }
 
   void 'should update a pipeline'() {
@@ -972,43 +983,15 @@ abstract class PipelineControllerTck extends Specification {
 }
 
 class SqlPipelineControllerTck extends PipelineControllerTck {
-  def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
-
   @AutoCleanup("close")
-  SqlTestUtil.TestDatabase currentDatabase = SqlTestUtil.initTcMysqlDatabase()
+  SqlTestUtil.TestDatabase database = SqlTestUtil.initTcMysqlDatabase()
 
-  void cleanup() {
-    SqlTestUtil.cleanupDb(currentDatabase.context)
+  def cleanup() {
+    SqlTestUtil.cleanupDb(database.context)
   }
 
   @Override
   PipelineDAO createPipelineDAO() {
-    def registry = new NoopRegistry()
-
-    def storageService = new SqlStorageService(
-      objectMapper,
-      registry,
-      currentDatabase.context,
-      Clock.systemDefaultZone(),
-      new SqlRetryProperties(),
-      100,
-      "default",
-      new Front50SqlProperties()
-    )
-
-    pipelineDAOConfigProperties.setRefreshMs(0)
-    pipelineDAOConfigProperties.setShouldWarmCache(false)
-
-    pipelineDAO = new DefaultPipelineDAO(storageService,
-      scheduler,
-      new DefaultObjectKeyLoader(storageService),
-      pipelineDAOConfigProperties,
-      new NoopRegistry(),
-      CircuitBreakerRegistry.ofDefaults())
-
-    // refreshing to initialize the cache with empty set
-    pipelineDAO.all(true)
-
-    return pipelineDAO
+    return SqlPipelineDAOTestConfiguration.createPipelineDAO(database)
   }
 }

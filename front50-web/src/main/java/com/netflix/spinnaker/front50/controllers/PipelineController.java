@@ -201,9 +201,11 @@ public class PipelineController {
   @RequestMapping(value = "{application:.+}", method = RequestMethod.GET)
   public List<Pipeline> listByApplication(
       @PathVariable(value = "application") String application,
+      @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
       @RequestParam(required = false, value = "refresh", defaultValue = "true") boolean refresh) {
     List<Pipeline> pipelines =
-        new ArrayList<>(pipelineDAO.getPipelinesByApplication(application, refresh));
+        new ArrayList<>(
+            pipelineDAO.getPipelinesByApplication(application, pipelineNameFilter, refresh));
 
     pipelines.sort(
         (p1, p2) -> {

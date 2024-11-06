@@ -384,6 +384,13 @@ class PipelineControllerSpec extends Specification {
     }
 
     @Override
+    Collection<Pipeline> getPipelinesByApplication(String application, String pipelineFilter, boolean refresh) {
+      map.values().stream()
+        .filter({ p -> p.getApplication().equalsIgnoreCase(application) })
+        .collect(Collectors.toList())
+    }
+
+    @Override
     Pipeline getPipelineByName(String application, String pipelineName, boolean refresh) {
       map.values().stream()
         .filter({ p -> p.getApplication().equalsIgnoreCase(application) })

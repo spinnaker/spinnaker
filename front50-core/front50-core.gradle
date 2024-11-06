@@ -41,4 +41,11 @@ dependencies {
   implementation "io.spinnaker.kork:kork-moniker"
 
   implementation project(":front50-api")
+
+  // this is a circular dependency, but given that it's only for tests
+  // it's probably ok to keep. The alternative is to move the PipelineDAO test classes
+  // in front50-test to front50-common, but front50-test seems like a better place.
+  testImplementation project(":front50-test")
+  testImplementation "io.spinnaker.kork:kork-sql-test"
+
 }

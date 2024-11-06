@@ -41,4 +41,36 @@ abstract class PipelineDAOSpec<T extends PipelineDAO> extends Specification {
     thrown IllegalArgumentException
   }
 
+  def "filters pipelines by pipeline name"() {
+    when:
+    instance.create("0", new Pipeline(application: "foo", name: "pipelineName1"))
+    for (int i = 1; i < 10; i++) {
+      def name = i % 2 == 0 ? "pipelineNameA" + i : "pipelineNameB" + i;
+      instance.create(i.toString(), new Pipeline(application: "foo", name: name))
+    }
+    def filteredPipelines = instance.getPipelinesByApplication("foo", "NameA", true);
+
+    then:
+    // the pipelines are not guaranteed to be in order of insertion
+    pipelinesContainName(filteredPipelines, "pipelineNameA2")
+    pipelinesContainName(filteredPipelines, "pipelineNameA4")
+    pipelinesContainName(filteredPipelines, "pipelineNameA6")
+    pipelinesContainName(filteredPipelines, "pipelineNameA8")
+    filteredPipelines.size() == 4
+  }
+
+  def "filters pipelines by pipeline name case insensitive"() {
+    when:
+    instance.create("0", new Pipeline(application: "foo", name: "PipElinenamea"))
+    def filteredPipelines = instance.getPipelinesByApplication("foo", "NameA", true);
+
+    then:
+    filteredPipelines[0].getName() == "PipElinenamea"
+    filteredPipelines.size() == 1
+  }
+
+  private static boolean pipelinesContainName(Collection<Pipeline> pipelines, String name) {
+    return pipelines.stream().filter {pipeline -> pipeline.getName() == name}.findAny().isPresent();
+  }
+
 }
