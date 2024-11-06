@@ -150,7 +150,11 @@ class ApplicationService {
   }
 
   List<Map> getPipelineConfigsForApplication(String app) {
-    return front50Service.getPipelineConfigsForApplication(app, true)
+    return getPipelineConfigsForApplication(app, null);
+  }
+
+  List<Map> getPipelineConfigsForApplication(String app, String pipelineNameFilter) {
+    return front50Service.getPipelineConfigsForApplication(app, pipelineNameFilter, true)
   }
 
   /**
