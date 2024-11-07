@@ -24,8 +24,8 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
-import com.squareup.okhttp.OkHttpClient;
 import java.util.List;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 
 public class SignalFxConfigLoadTest {

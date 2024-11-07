@@ -27,10 +27,10 @@ import com.netflix.kayenta.judge.service.RemoteJudgeService;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
-import com.squareup.okhttp.OkHttpClient;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import retrofit.converter.JacksonConverter;
@@ -73,9 +73,11 @@ public class RemoteJudge extends CanaryJudge {
       CanaryClassifierThresholdsConfig scoreThresholds,
       List<MetricSetPair> metricSetPairList) {
 
-    OkHttpClient okHttpClient = new OkHttpClient();
-    okHttpClient.setConnectTimeout(30, TimeUnit.SECONDS);
-    okHttpClient.setReadTimeout(90, TimeUnit.SECONDS);
+    OkHttpClient okHttpClient =
+        new OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
+            .build();
 
     RemoteJudgeService remoteJudge =
         retrofitClientFactory.createClient(

@@ -17,10 +17,10 @@ package com.netflix.kayenta.atlas.backends;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
-import com.squareup.okhttp.OkHttpClient;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;

@@ -23,12 +23,12 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.squareup.okhttp.OkHttpClient;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import retrofit.converter.JacksonConverter;
 
 @Slf4j

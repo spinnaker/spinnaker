@@ -19,11 +19,9 @@ package com.netflix.kayenta.retrofit.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.config.KayentaSerializationConfigurationProperties;
 import com.netflix.kayenta.config.KayentaConfiguration;
-import com.netflix.spinnaker.config.OkHttpClientConfiguration;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler;
-import com.squareup.okhttp.ConnectionPool;
-import com.squareup.okhttp.OkHttpClient;
-import org.springframework.beans.factory.annotation.Value;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.*;
@@ -33,22 +31,10 @@ import org.springframework.core.annotation.Order;
 @Configuration
 public class RetrofitClientConfiguration {
 
-  @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
-  int maxIdleConnections;
-
-  @Value("${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
-  int keepAliveDurationMs;
-
-  @Value("${ok-http-client.retry-on-connection-failure:true}")
-  boolean retryOnConnectionFailure;
-
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkHttpClient okHttpClient(OkHttpClientConfiguration okHttpClientConfig) {
-    OkHttpClient okHttpClient = okHttpClientConfig.create();
-    okHttpClient.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs));
-    okHttpClient.setRetryOnConnectionFailure(retryOnConnectionFailure);
-    return okHttpClient;
+  OkHttpClient okHttpClient(OkHttp3ClientConfiguration okHttp3ClientConfig) {
+    return okHttp3ClientConfig.create().build();
   }
 
   @Bean

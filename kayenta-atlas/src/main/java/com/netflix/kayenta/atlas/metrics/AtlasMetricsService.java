@@ -39,7 +39,6 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.util.Retry;
 import com.netflix.spectator.api.Registry;
-import com.squareup.okhttp.OkHttpClient;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -50,6 +49,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Builder
@@ -94,9 +94,11 @@ public class AtlasMetricsService implements MetricsService {
       CanaryMetricConfig canaryMetricConfig,
       CanaryScope canaryScope) {
 
-    OkHttpClient okHttpClient = new OkHttpClient();
-    okHttpClient.setConnectTimeout(30, TimeUnit.SECONDS);
-    okHttpClient.setReadTimeout(90, TimeUnit.SECONDS);
+    OkHttpClient okHttpClient =
+        new OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
+            .build();
 
     if (!(canaryScope instanceof AtlasCanaryScope)) {
       throw new IllegalArgumentException(

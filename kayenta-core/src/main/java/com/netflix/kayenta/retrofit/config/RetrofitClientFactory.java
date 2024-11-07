@@ -19,19 +19,16 @@ package com.netflix.kayenta.retrofit.config;
 import static retrofit.Endpoints.newFixedEndpoint;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import com.squareup.okhttp.Authenticator;
 import com.squareup.okhttp.Credentials;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 import java.io.IOException;
-import java.net.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Function;
+import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +36,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import retrofit.Endpoint;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.Converter;
 import retrofit.converter.JacksonConverter;
 
@@ -118,7 +114,7 @@ public class RetrofitClientFactory {
 
     return new RestAdapter.Builder()
         .setEndpoint(endpoint)
-        .setClient(new OkClient(okHttpClient))
+        .setClient(new Ok3Client(okHttpClient))
         .setConverter(converter)
         .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
         .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
@@ -143,25 +139,10 @@ public class RetrofitClientFactory {
       credential = Credentials.basic(username, password);
     }
 
-    OkHttpClient httpClient = new OkHttpClient();
-
-    httpClient.setAuthenticator(
-        new Authenticator() {
-          @Override
-          public Request authenticate(Proxy proxy, Response response) throws IOException {
-            return response.request().newBuilder().header("Authorization", credential).build();
-          }
-
-          @Override
-          public Request authenticateProxy(Proxy proxy, Response response) throws IOException {
-            return response
-                .request()
-                .newBuilder()
-                .header("Proxy-Authorization", credential)
-                .build();
-          }
-        });
-
-    return httpClient;
+    return new OkHttpClient.Builder()
+        .authenticator(
+            (route, response) ->
+                response.request().newBuilder().header("Authorization", credential).build())
+        .build();
   }
 }
