@@ -95,7 +95,6 @@ class StartStageHandler(
               try {
                 // Set the startTime in case we throw an exception.
                 stage.startTime = clock.millis()
-                repository.storeStage(stage)
                 stage.plan()
                 stage.status = RUNNING
                 repository.storeStage(stage)
