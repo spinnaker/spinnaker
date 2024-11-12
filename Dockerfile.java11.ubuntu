@@ -1,9 +1,0 @@
-FROM ubuntu:bionic
-LABEL maintainer="sig-platform@spinnaker.io"
-RUN apt-get update && apt-get -y install curl openjdk-11-jre-headless wget
-RUN adduser --system --uid 10111 --group spinnaker
-COPY igor-web/build/install/igor /opt/igor
-RUN mkdir -p /opt/igor/plugins && chown -R spinnaker:nogroup /opt/igor/plugins
-USER spinnaker
-HEALTHCHECK CMD curl http://localhost:8088/health | grep UP || exit 1
-CMD ["/opt/igor/bin/igor"]
