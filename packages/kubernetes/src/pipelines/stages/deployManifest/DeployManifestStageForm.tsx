@@ -187,6 +187,14 @@ export class DeployManifestStageForm extends React.Component<
           />
         </StageConfigField>
         <hr />
+        <h4>Deploy Configuration</h4>
+        <StageConfigField label="Skip Spec Template Labels" helpKey="kubernetes.manifest.skipSpecTemplateLabels">
+          <CheckboxInput
+            checked={stage.skipSpecTemplateLabels === true}
+            onChange={(e: any) => this.props.formik.setFieldValue('skipSpecTemplateLabels', e.target.checked)}
+          />
+        </StageConfigField>
+        <hr />
         <ManifestDeploymentOptions
           accounts={this.props.accounts}
           config={stage.trafficManagement}
