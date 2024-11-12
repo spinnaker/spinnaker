@@ -93,6 +93,24 @@ class AbstractEventNotificationAgentSpec extends Specification {
     fakeStageEvent("orca:stage:complete", "stage.complete", false, true)                      || 0
   }
 
+  @Unroll
+  def "sends notifications for ManualJudgment stage based on status and configuration"() {
+    given:
+    subclassMock.sendNotifications(*_) >> { notification, application, event_local, config, status -> }
+
+    when:
+    agent.processEvent(event)
+
+    then:
+    expectedNotifications * subclassMock.sendNotifications(*_)
+
+    where:
+    event                                                           || expectedNotifications
+    fakeStageEvent("orca:stage:complete", "manualJudgmentContinue") || 1
+    fakeStageEvent("orca:stage:starting", "manualJudgment")         || 1
+    fakeStageEvent("orca:stage:failed", "manualJudgmentStop")       || 1
+  }
+
   private def fakePipelineEvent(String type, String status, String notifyWhen, Map extraExecutionProps = [:]) {
     def eventProps = [
       details: [type: type],
