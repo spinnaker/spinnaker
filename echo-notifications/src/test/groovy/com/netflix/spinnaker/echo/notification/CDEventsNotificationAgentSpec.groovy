@@ -53,12 +53,12 @@ class CDEventsNotificationAgentSpec extends Specification {
     cdevent.get().getType() ==~ expectedType
 
     where:
-    cdEventsType      || expectedType || status
-    "dev.cdevents.pipelinerun.queued" || /dev.cdevents.pipelinerun.queued.0.1.1/ || /starting/
-    "dev.cdevents.pipelinerun.started" || /dev.cdevents.pipelinerun.started.0.1.1/ || /started/
+    cdEventsType                        || expectedType                              || status
+    "dev.cdevents.pipelinerun.queued"   || /dev.cdevents.pipelinerun.queued.0.1.1/   || /starting/
+    "dev.cdevents.pipelinerun.started"  || /dev.cdevents.pipelinerun.started.0.1.1/  || /started/
     "dev.cdevents.pipelinerun.finished" || /dev.cdevents.pipelinerun.finished.0.1.1/ || /complete/
-    "dev.cdevents.taskrun.started" || /dev.cdevents.taskrun.started.0.1.1/ || /started/
-    "dev.cdevents.taskrun.finished" || /dev.cdevents.taskrun.finished.0.1.1/ || /complete/
+    "dev.cdevents.taskrun.started"      || /dev.cdevents.taskrun.started.0.1.1/      || /started/
+    "dev.cdevents.taskrun.finished"     || /dev.cdevents.taskrun.finished.0.1.1/     || /complete/
 
 
     brokerURL = "http://dev.cdevents.server/default/events-broker"
@@ -70,7 +70,7 @@ class CDEventsNotificationAgentSpec extends Specification {
   }
 
   @Unroll
-  def "sends cdEvent with customData #customData"() {
+  def "sends cdEvent with customData #customData when set at event.context level"() {
 
     given:
     def cdevent = new BlockingVariable<CloudEvent>()
@@ -86,19 +86,85 @@ class CDEventsNotificationAgentSpec extends Specification {
     cdevent.get().getType() ==~ expectedType
 
     where:
-    cdEventsType      || expectedType || status || customData
-    "dev.cdevents.pipelinerun.queued" || /dev.cdevents.pipelinerun.queued.0.1.1/ || /starting/ || [foo: "pipelinerun.queued"]
-    "dev.cdevents.pipelinerun.started" || /dev.cdevents.pipelinerun.started.0.1.1/ || /started/ || [foo: "pipelinerun.started"]
+    cdEventsType                        || expectedType                              || status     || customData
+    "dev.cdevents.pipelinerun.queued"   || /dev.cdevents.pipelinerun.queued.0.1.1/   || /starting/ || [foo: "pipelinerun.queued"]
+    "dev.cdevents.pipelinerun.started"  || /dev.cdevents.pipelinerun.started.0.1.1/  || /started/  || [foo: "pipelinerun.started"]
     "dev.cdevents.pipelinerun.finished" || /dev.cdevents.pipelinerun.finished.0.1.1/ || /complete/ || [foo: "pipelinerun.finished"]
-    "dev.cdevents.taskrun.started" || /dev.cdevents.taskrun.started.0.1.1/ || /started/ || [foo: "taskrun.started"]
-    "dev.cdevents.taskrun.finished" || /dev.cdevents.taskrun.finished.0.1.1/ || /complete/ || [foo: "taskrun.finished"]
-
+    "dev.cdevents.taskrun.started"      || /dev.cdevents.taskrun.started.0.1.1/      || /started/  || [foo: "taskrun.started"]
+    "dev.cdevents.taskrun.finished"     || /dev.cdevents.taskrun.finished.0.1.1/     || /complete/ || [foo: "taskrun.finished"]
 
     brokerURL = "http://dev.cdevents.server/default/events-broker"
     application = "whatever"
     event = new Event(content: [
       execution: [id: "1", name: "foo-pipeline"],
-      context: [customData: customData]
+      context  : [customData: customData]
+    ])
+    type = "pipeline"
+  }
+
+  @Unroll
+  def "sends cdEvent with customData #customData when set at notification preference level"() {
+
+    given:
+    def cdevent = new BlockingVariable<CloudEvent>()
+    cdeventsSender.sendCDEvent(*_) >> { ceToSend, eventsBrokerURL ->
+      cdevent.set(ceToSend)
+    }
+
+    when:
+    agent.sendNotifications([address: brokerURL, cdEventsType: cdEventsType, customData: customData], application, event, [type: type, link: "link"], status)
+
+    then:
+    def m = convertToMap(cdevent.get().getData().toBytes())
+    convertToMap(cdevent.get().getData().toBytes()).customData == customData
+    cdevent.get().getType() ==~ expectedType
+
+    where:
+    cdEventsType                        || expectedType                              || status     || customData
+    "dev.cdevents.pipelinerun.queued"   || /dev.cdevents.pipelinerun.queued.0.1.1/   || /starting/ || [foo: "pipelinerun.queued"]
+    "dev.cdevents.pipelinerun.started"  || /dev.cdevents.pipelinerun.started.0.1.1/  || /started/  || [foo: "pipelinerun.started"]
+    "dev.cdevents.pipelinerun.finished" || /dev.cdevents.pipelinerun.finished.0.1.1/ || /complete/ || [foo: "pipelinerun.finished"]
+    "dev.cdevents.taskrun.started"      || /dev.cdevents.taskrun.started.0.1.1/      || /started/  || [foo: "taskrun.started"]
+    "dev.cdevents.taskrun.finished"     || /dev.cdevents.taskrun.finished.0.1.1/     || /complete/ || [foo: "taskrun.finished"]
+
+    brokerURL = "http://dev.cdevents.server/default/events-broker"
+    application = "whatever"
+    event = new Event(content: [
+      execution: [id: "1", name: "foo-pipeline"]
+    ])
+    type = "pipeline"
+  }
+
+  @Unroll
+  def "sends cdEvent with customData #customData when set at notification preference level and event.context level"() {
+
+    given:
+    def cdevent = new BlockingVariable<CloudEvent>()
+    cdeventsSender.sendCDEvent(*_) >> { ceToSend, eventsBrokerURL ->
+      cdevent.set(ceToSend)
+    }
+
+    when:
+    agent.sendNotifications([address: brokerURL, cdEventsType: cdEventsType, customData: preferenceCustomData], application, event, [type: type, link: "link"], status)
+
+    then:
+    //Preference level should take higher order precedence
+    convertToMap(cdevent.get().getData().toBytes()).customData == preferenceCustomData
+    cdevent.get().getType() ==~ expectedType
+
+    where:
+    cdEventsType                        || expectedType                              || status     || customData                    || preferenceCustomData
+    "dev.cdevents.pipelinerun.queued"   || /dev.cdevents.pipelinerun.queued.0.1.1/   || /starting/ || [foo: "pipelinerun.queued"]   || [zoo: "pipelinerun.queued"]
+    "dev.cdevents.pipelinerun.started"  || /dev.cdevents.pipelinerun.started.0.1.1/  || /started/  || [foo: "pipelinerun.started"]  || [zoo: "pipelinerun.started"]
+    "dev.cdevents.pipelinerun.finished" || /dev.cdevents.pipelinerun.finished.0.1.1/ || /complete/ || [foo: "pipelinerun.finished"] || [zoo: "pipelinerun.finished"]
+    "dev.cdevents.taskrun.started"      || /dev.cdevents.taskrun.started.0.1.1/      || /started/  || [foo: "taskrun.started"]      || [zoo: "taskrun.started"]
+    "dev.cdevents.taskrun.finished"     || /dev.cdevents.taskrun.finished.0.1.1/     || /complete/ || [foo: "taskrun.finished"]     || [zoo: "taskrun.finished"]
+
+    brokerURL = "http://dev.cdevents.server/default/events-broker"
+    application = "whatever"
+    event = new Event(content: [
+      execution: [id: "1", name: "foo-pipeline"],
+      context  : [customData: customData]
     ])
     type = "pipeline"
   }

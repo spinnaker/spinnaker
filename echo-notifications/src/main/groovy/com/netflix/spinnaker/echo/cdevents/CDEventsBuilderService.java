@@ -21,6 +21,7 @@ import com.netflix.spinnaker.echo.exceptions.FieldNotFoundException;
 import dev.cdevents.constants.CDEventConstants.CDEventTypes;
 import dev.cdevents.exception.CDEventsException;
 import io.cloudevents.CloudEvent;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -72,11 +73,18 @@ public class CDEventsBuilderService {
             .map(p -> (String) p.get("cdEventsType"))
             .orElseThrow(() -> new FieldNotFoundException("notifications.cdEventsType"));
 
-    Object customData =
-        Optional.ofNullable(event.content)
-            .map(e -> (Map) e.get("context"))
-            .map(e -> e.get("customData"))
-            .orElse(new Object());
+    // Grab customData object from notification level as higher order precedence. Needed for when
+    // setting pipeline
+    // level notifications.
+    Map<String, Object> customData =
+        Optional.ofNullable(preference)
+            .map(p -> (Map<String, Object>) p.get("customData"))
+            .orElseGet(
+                () ->
+                    Optional.ofNullable(event.content)
+                        .map(e -> (Map<String, Object>) e.get("context"))
+                        .map(ctx -> (Map<String, Object>) ctx.get("customData"))
+                        .orElseGet(Collections::emptyMap));
 
     log.info("Event type {} received to create CDEvent.", cdEventsType);
     // This map will be updated to add more event types that Spinnaker needs to send
