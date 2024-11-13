@@ -1,6 +1,6 @@
-FROM ubuntu:bionic
+FROM ubuntu:jammy
 RUN apt-get update && apt-get install -y \
-    openjdk-11-jdk \
+    openjdk-17-jdk \
  && rm -rf /var/lib/apt/lists/*
 LABEL maintainer="sig-platform@spinnaker.io"
 ENV GRADLE_USER_HOME /workspace/.gradle
