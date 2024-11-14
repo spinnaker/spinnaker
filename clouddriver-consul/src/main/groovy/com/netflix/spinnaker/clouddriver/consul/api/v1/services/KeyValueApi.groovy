@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.consul.api.v1.services
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.model.KeyValuePair
-import com.squareup.okhttp.Response
+import okhttp3.Response
 import retrofit.http.Body
 import retrofit.http.DELETE
 import retrofit.http.GET

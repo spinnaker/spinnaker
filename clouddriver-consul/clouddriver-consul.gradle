@@ -2,7 +2,6 @@ dependencies {
   implementation project(":clouddriver-core")
 
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
-  implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.squareup.retrofit:retrofit"
   implementation "org.apache.groovy:groovy"

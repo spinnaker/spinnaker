@@ -21,10 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.squareup.okhttp.OkHttpClient;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.Nullable;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ru.lanwen.wiremock.ext.WiremockResolver;

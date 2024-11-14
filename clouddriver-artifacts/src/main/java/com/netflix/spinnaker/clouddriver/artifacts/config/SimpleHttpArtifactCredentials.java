@@ -19,10 +19,10 @@ package com.netflix.spinnaker.clouddriver.artifacts.config;
 import com.netflix.spinnaker.clouddriver.artifacts.exceptions.FailedDownloadException;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.squareup.okhttp.HttpUrl;
-import com.squareup.okhttp.OkHttpClient;
 import java.io.IOException;
 import java.io.InputStream;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
 
 @NonnullByDefault
 public abstract class SimpleHttpArtifactCredentials<T extends ArtifactAccount>

@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.SimpleHttpArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import com.squareup.okhttp.OkHttpClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 
 @NonnullByDefault
 @Slf4j

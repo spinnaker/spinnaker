@@ -19,7 +19,6 @@ dependencies {
   implementation "io.spinnaker.kork:kork-cloud-config-server"
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "com.netflix.spectator:spectator-api"
-  implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.retrofit:retrofit"
   implementation "commons-io:commons-io"
   implementation "org.apache.commons:commons-compress:1.20"

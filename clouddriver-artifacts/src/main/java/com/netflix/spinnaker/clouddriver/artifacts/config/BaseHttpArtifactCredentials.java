@@ -17,10 +17,15 @@
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.squareup.okhttp.*;
 import java.io.IOException;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Headers;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 @Slf4j
 public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
