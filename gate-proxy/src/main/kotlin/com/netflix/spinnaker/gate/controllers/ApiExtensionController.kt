@@ -22,7 +22,7 @@ import com.netflix.spinnaker.kork.annotations.Alpha
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import com.squareup.okhttp.internal.http.HttpMethod
+import okhttp3.internal.http.HttpMethod
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -74,10 +74,11 @@ class ApiExtensionController @Autowired constructor(private val apiExtensionsPro
 
     if (HttpMethod.permitsRequestBody(httpRequest.method)) {
       try {
-        httpRequest.body = httpServletRequest
-          .reader
-          .lines()
-          .collect(Collectors.joining(System.lineSeparator()))
+        httpRequest.body = if (httpServletRequest.contentLength > 0) {
+          httpServletRequest.reader.readText()
+        } else {
+          ""
+        }
       } catch (e: IOException) {
         throw SpinnakerException("Unable to read request body", e)
       }

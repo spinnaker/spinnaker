@@ -18,8 +18,8 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.EcsClusterService
 import com.netflix.spinnaker.gate.controllers.ecs.EcsClusterController
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
-import com.squareup.okhttp.mockwebserver.MockWebServer
 import groovy.json.JsonSlurper
+import okhttp3.mockwebserver.MockWebServer
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc

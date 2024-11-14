@@ -21,8 +21,7 @@ import com.netflix.spinnaker.gate.services.BuildService
 import com.netflix.spinnaker.gate.services.internal.GoogleCloudBuildTrigger
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
-import com.squareup.okhttp.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.MockWebServer
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc

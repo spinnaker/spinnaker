@@ -21,8 +21,8 @@ import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.gate.services.WebhookService
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
-import com.squareup.okhttp.mockwebserver.MockWebServer
 import io.cloudevents.spring.mvc.CloudEventHttpMessageConverter
+import okhttp3.mockwebserver.MockWebServer
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
