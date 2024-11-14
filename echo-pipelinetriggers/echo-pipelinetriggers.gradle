@@ -23,9 +23,6 @@ dependencies {
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
   implementation "io.spinnaker.kork:kork-web"
-  implementation "com.squareup.okhttp:okhttp"
-  implementation "com.squareup.okhttp:okhttp-urlconnection"
-  implementation "com.squareup.okhttp:okhttp-apache"
 
   implementation project(':echo-core')
   implementation "io.spinnaker.kork:kork-core"

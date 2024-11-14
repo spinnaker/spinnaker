@@ -21,9 +21,6 @@ dependencies {
 
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.squareup.okhttp:okhttp"
-  implementation "com.squareup.okhttp:okhttp-urlconnection"
-  implementation "com.squareup.okhttp:okhttp-apache"
 
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.kork:kork-artifacts"
