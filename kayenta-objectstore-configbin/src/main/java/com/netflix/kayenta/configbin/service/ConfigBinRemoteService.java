@@ -16,7 +16,7 @@
 
 package com.netflix.kayenta.configbin.service;
 
-import com.squareup.okhttp.RequestBody;
+import okhttp3.RequestBody;
 import retrofit.client.Response;
 import retrofit.http.*;
 

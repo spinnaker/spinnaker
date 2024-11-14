@@ -96,9 +96,6 @@ subprojects { project ->
 
       api "com.squareup.retrofit:retrofit"
       api "com.squareup.retrofit:converter-jackson"
-      api "com.squareup.okhttp:okhttp"
-      api "com.squareup.okhttp:okhttp-urlconnection"
-      api "com.squareup.okhttp:okhttp-apache"
 
       testImplementation "org.springframework.boot:spring-boot-starter-test"
       testImplementation "org.spockframework:spock-core"

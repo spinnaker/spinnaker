@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.configbin.config;
 
-import com.squareup.okhttp.RequestBody;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +23,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.RequestBody;
 import okio.Buffer;
 import org.springframework.stereotype.Component;
 import retrofit.converter.ConversionException;

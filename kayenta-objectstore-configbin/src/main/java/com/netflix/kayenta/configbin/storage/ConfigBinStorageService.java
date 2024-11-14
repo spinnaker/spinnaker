@@ -33,8 +33,6 @@ import com.netflix.kayenta.util.Retry;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.RequestBody;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -44,6 +42,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
