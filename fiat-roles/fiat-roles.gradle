@@ -20,9 +20,6 @@ dependencies {
   implementation "com.github.ben-manes.caffeine:caffeine"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.squareup.okhttp:okhttp"
-  implementation "com.squareup.okhttp:okhttp-urlconnection"
-  implementation "com.squareup.okhttp:okhttp-apache"
 
   implementation "io.github.resilience4j:resilience4j-spring-boot2"
   implementation "org.springframework:spring-core"

@@ -10,9 +10,6 @@ configurations.all {
 dependencies {
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.squareup.okhttp:okhttp"
-  implementation "com.squareup.okhttp:okhttp-urlconnection"
-  implementation "com.squareup.okhttp:okhttp-apache"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.google.guava:guava"
 
