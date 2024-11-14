@@ -1,6 +1,6 @@
 :doctype: book
 
-image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker.io]
+image:https://spinnaker.io/images/slack-logo-text.png[Slack Status,link=https://join.slack.com/t/spinnakerteam/shared_invite/zt-7juwxmx0-nQ4Ud4pJcbuPykX3SXwQrg]
 image:https://travis-ci.org/spinnaker/spinnaker.svg?branch=master["Build Status", link="https://travis-ci.org/spinnaker/spinnaker"]
 
 = Welcome to the Spinnaker Project
