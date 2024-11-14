@@ -20,7 +20,7 @@ import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.igor.config.BitBucketProperties
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
-import com.squareup.okhttp.Credentials
+import okhttp3.Credentials
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import retrofit.Endpoints

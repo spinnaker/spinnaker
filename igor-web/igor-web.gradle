@@ -41,9 +41,6 @@ dependencies {
 
     implementation "com.squareup.retrofit:retrofit"
     implementation "com.squareup.retrofit:converter-jackson"
-    implementation "com.squareup.okhttp:okhttp"
-    implementation "com.squareup.okhttp:okhttp-urlconnection"
-    implementation "com.squareup.okhttp:okhttp-apache"
     implementation "com.squareup.okhttp3:okhttp-sse"
     implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
     implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
@@ -79,7 +76,7 @@ dependencies {
 
     runtimeOnly "io.spinnaker.kork:kork-runtime"
 
-    testImplementation "com.squareup.okhttp:mockwebserver"
+    testImplementation "com.squareup.okhttp3:mockwebserver"
     testImplementation "io.spinnaker.kork:kork-jedis-test"
     testImplementation "org.apache.groovy:groovy-datetime"
     testImplementation "org.apache.groovy:groovy-json"

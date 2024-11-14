@@ -20,8 +20,8 @@ import com.netflix.spinnaker.igor.config.GitlabCiConfig
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline
 import com.netflix.spinnaker.igor.gitlabci.client.model.PipelineStatus
 import com.netflix.spinnaker.igor.gitlabci.client.model.Project
-import com.squareup.okhttp.mockwebserver.MockResponse
-import com.squareup.okhttp.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
 import spock.lang.Specification
 

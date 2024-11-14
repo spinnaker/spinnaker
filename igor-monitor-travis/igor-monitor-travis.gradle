@@ -35,5 +35,5 @@ dependencies {
   implementation "javax.validation:validation-api"
   implementation "javax.xml.bind:jaxb-api"
 
-  testImplementation "com.squareup.okhttp:mockwebserver"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
 }

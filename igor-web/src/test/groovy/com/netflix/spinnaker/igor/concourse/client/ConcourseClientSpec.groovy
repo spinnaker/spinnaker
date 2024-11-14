@@ -1,20 +1,11 @@
 package com.netflix.spinnaker.igor.concourse.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.igor.concourse.client.ConcourseClient
-import com.netflix.spinnaker.igor.concourse.client.SkyService
-import com.netflix.spinnaker.igor.concourse.client.SkyServiceV2
-import com.netflix.spinnaker.igor.concourse.client.TokenService
-import com.netflix.spinnaker.igor.concourse.client.TokenServiceV2
-import com.netflix.spinnaker.igor.concourse.client.model.Token
-import com.squareup.okhttp.mockwebserver.MockResponse
-import com.squareup.okhttp.mockwebserver.MockWebServer
-import com.squareup.okhttp.mockwebserver.RecordedRequest
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import retrofit.client.Response;
 import spock.lang.Shared
 import spock.lang.Specification
-
-import java.time.ZonedDateTime
 
 class ConcourseClientSpec extends Specification {
 
@@ -145,6 +136,6 @@ class ConcourseClientSpec extends Specification {
             )
         }
         server.start()
-        client = new ConcourseClient(server.getUrl('/').toString(), "test-username", "test-password")
+        client = new ConcourseClient(server.url('/').toString(), "test-username", "test-password")
     }
 }

@@ -21,9 +21,9 @@ import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketClient
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
-import com.squareup.okhttp.Credentials
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import okhttp3.Credentials
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean

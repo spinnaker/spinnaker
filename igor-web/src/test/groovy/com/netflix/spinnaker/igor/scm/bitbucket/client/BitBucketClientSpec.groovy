@@ -18,8 +18,8 @@ package com.netflix.spinnaker.igor.scm.bitbucket.client
 
 import com.netflix.spinnaker.igor.config.BitBucketConfig
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.CompareCommitsResponse
-import com.squareup.okhttp.mockwebserver.MockResponse
-import com.squareup.okhttp.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -49,7 +49,7 @@ class BitBucketClientSpec extends Specification {
         .setHeader('Content-Type', 'text/xml;charset=UTF-8')
     )
     server.start()
-    client = new BitBucketConfig().bitBucketClient(server.getUrl('/').toString(), 'username', 'password')
+    client = new BitBucketConfig().bitBucketClient(server.url('/').toString(), 'username', 'password')
   }
 
   void 'getCompareCommits'() {

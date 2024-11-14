@@ -37,5 +37,5 @@ dependencies {
   // TODO(rz): Get rid of this dependency!
   implementation "com.squareup.retrofit:retrofit"
 
-  testImplementation "com.squareup.okhttp:mockwebserver"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
 }

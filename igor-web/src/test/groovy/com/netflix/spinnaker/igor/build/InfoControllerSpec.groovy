@@ -27,8 +27,8 @@ import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.igor.wercker.WerckerService
-import com.squareup.okhttp.mockwebserver.MockResponse
-import com.squareup.okhttp.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import groovy.json.JsonSlurper
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import org.springframework.http.MediaType
@@ -315,7 +315,7 @@ class InfoControllerSpec extends Specification {
         )
         server.start()
         def host = new JenkinsProperties.JenkinsHost(
-            address: server.getUrl('/').toString(),
+            address: server.url('/').toString(),
             username: 'username',
             password: 'password')
         service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host), false, Permissions.EMPTY, circuitBreakerRegistry)

@@ -21,8 +21,8 @@ import com.netflix.spinnaker.igor.scm.ScmMaster
 import com.netflix.spinnaker.igor.scm.stash.client.model.CompareCommitsResponse
 import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryListingResponse
 import com.netflix.spinnaker.igor.scm.stash.client.model.TextLinesResponse
-import com.squareup.okhttp.mockwebserver.MockResponse
-import com.squareup.okhttp.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import retrofit.RestAdapter
 import spock.lang.Shared
 import spock.lang.Specification
@@ -54,7 +54,7 @@ class StashClientSpec extends Specification {
                 .setHeader('Content-Type', contentType)
         )
         server.start()
-        client = new StashConfig().stashClient(server.getUrl('/').toString(), 'username', 'password', RestAdapter.LogLevel.BASIC)
+        client = new StashConfig().stashClient(server.url('/').toString(), 'username', 'password', RestAdapter.LogLevel.BASIC)
     }
 
     void 'getCompareCommits'() {

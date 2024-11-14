@@ -18,12 +18,10 @@ package com.netflix.spinnaker.igor.scm.gitlab.client
 
 import com.netflix.spinnaker.igor.config.GitLabConfig
 import com.netflix.spinnaker.igor.scm.gitlab.client.model.CompareCommitsResponse
-import com.squareup.okhttp.mockwebserver.MockResponse
-import com.squareup.okhttp.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
 import spock.lang.Specification
-
-import java.time.Instant
 
 class GitLabClientSpec extends Specification {
 
@@ -48,7 +46,7 @@ class GitLabClientSpec extends Specification {
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
         server.start()
-        client = new GitLabConfig().gitLabClient(server.getUrl('/').toString(), "token")
+        client = new GitLabConfig().gitLabClient(server.url('/').toString(), "token")
     }
 
     void 'getCompareCommits'() {

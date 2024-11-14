@@ -18,7 +18,7 @@ package com.netflix.spinnaker.igor.config.auth
 
 import com.google.auth.oauth2.GoogleCredentials
 import com.netflix.spinnaker.igor.config.JenkinsProperties
-import com.squareup.okhttp.Credentials
+import okhttp3.Credentials
 import groovy.util.logging.Slf4j
 import retrofit.RequestInterceptor
 

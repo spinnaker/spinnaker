@@ -20,9 +20,9 @@ import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.igor.scm.stash.client.StashClient
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
-import com.squareup.okhttp.Credentials
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import okhttp3.Credentials
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean

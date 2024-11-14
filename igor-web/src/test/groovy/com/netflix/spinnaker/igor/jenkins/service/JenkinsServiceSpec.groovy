@@ -27,9 +27,8 @@ import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import com.squareup.okhttp.mockwebserver.MockResponse
-import com.squareup.okhttp.mockwebserver.MockWebServer
-import io.github.resilience4j.circuitbreaker.CircuitBreaker
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -189,7 +188,7 @@ class JenkinsServiceSpec extends Specification {
         )
         server.start()
         def host = new JenkinsProperties.JenkinsHost(
-            address: server.getUrl('/').toString(),
+            address: server.url('/').toString(),
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)

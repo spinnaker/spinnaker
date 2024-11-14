@@ -25,8 +25,8 @@ import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.squareup.okhttp.mockwebserver.MockResponse
-import com.squareup.okhttp.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.springframework.scheduling.TaskScheduler
 import spock.lang.Specification
 

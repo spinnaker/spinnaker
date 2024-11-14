@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.config.GitHubConfig
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
 import com.netflix.spinnaker.igor.scm.github.client.model.GetRepositoryContentResponse
-import com.squareup.okhttp.mockwebserver.MockResponse
-import com.squareup.okhttp.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -59,7 +59,7 @@ class GitHubClientSpec extends Specification {
         .setHeader('Content-Type', 'text/xml;charset=UTF-8')
     )
     server.start()
-    client = new GitHubConfig().gitHubClient(server.getUrl('/').toString(), 'token', mapper)
+    client = new GitHubConfig().gitHubClient(server.url('/').toString(), 'token', mapper)
   }
 
   void 'getDirectoryContent'() {
