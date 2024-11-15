@@ -3,9 +3,6 @@ package com.netflix.spinnaker.okhttp;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.kork.common.Header;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -45,14 +42,11 @@ class MetricsInterceptor {
     boolean wasSuccessful = false;
     int statusCode = -1;
 
-    Interceptor.Chain chain =
-        (chainObject instanceof Interceptor.Chain) ? (Interceptor.Chain) chainObject : null;
     okhttp3.Interceptor.Chain chain3 =
         (chainObject instanceof okhttp3.Interceptor.Chain)
             ? (okhttp3.Interceptor.Chain) chainObject
             : null;
 
-    Request request = (chain != null) ? chain.request() : null;
     okhttp3.Request request3 = (chain3 != null) ? chain3.request() : null;
 
     List<String> missingHeaders = new ArrayList<>();
@@ -63,24 +57,14 @@ class MetricsInterceptor {
 
       Object response;
 
-      if (chain != null) {
-        method = request.method();
-        url = request.url();
-        response = chain.proceed(request);
-        statusCode = ((Response) response).code();
-      } else {
-        method = request3.method();
-        url = request3.url().url();
-        response = chain3.proceed(request3);
-        statusCode = ((okhttp3.Response) response).code();
-      }
+      method = request3.method();
+      url = request3.url().url();
+      response = chain3.proceed(request3);
+      statusCode = ((okhttp3.Response) response).code();
 
       if (checkForHeaders(url.toString())) {
         for (Header header : Header.values()) {
-          String headerValue =
-              (request != null)
-                  ? request.header(header.getHeader())
-                  : request3.header(header.getHeader());
+          String headerValue = request3.header(header.getHeader());
 
           if (header.isRequired() && StringUtils.isEmpty(headerValue)) {
             missingHeaders.add(header.getHeader());

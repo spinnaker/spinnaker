@@ -28,7 +28,6 @@ import com.netflix.spinnaker.kork.crypto.X509Identity;
 import com.netflix.spinnaker.kork.crypto.X509IdentitySource;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
-import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
@@ -88,11 +87,6 @@ public class OkHttpClientComponents {
   @Bean
   public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
     return new SpinnakerRequestHeaderInterceptor(clientProperties.getPropagateSpinnakerHeaders());
-  }
-
-  @Bean
-  public OkHttpMetricsInterceptor okHttpMetricsInterceptor() {
-    return new OkHttpMetricsInterceptor(registryProvider, metricsProperties);
   }
 
   @Bean

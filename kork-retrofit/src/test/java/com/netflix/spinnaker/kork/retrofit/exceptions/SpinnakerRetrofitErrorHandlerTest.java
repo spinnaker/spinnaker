@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jakewharton.retrofit.Ok3Client;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +53,7 @@ class SpinnakerRetrofitErrorHandlerTest {
 
     retrofitService =
         new RestAdapter.Builder()
+            .setClient(new Ok3Client())
             .setEndpoint(mockWebServer.url("/").toString())
             .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
             .build()

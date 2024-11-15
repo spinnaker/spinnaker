@@ -19,7 +19,6 @@ package com.netflix.spinnaker.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
-import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +46,6 @@ class OkHttpClientComponentsTest {
         ctx -> {
           assertThat(ctx).hasSingleBean(SpinnakerRequestInterceptor.class);
           assertThat(ctx).hasSingleBean(SpinnakerRequestHeaderInterceptor.class);
-          assertThat(ctx).hasSingleBean(OkHttpMetricsInterceptor.class);
           assertThat(ctx).hasSingleBean(OkHttp3MetricsInterceptor.class);
         });
   }
