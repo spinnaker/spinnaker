@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.services.SessionService
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -24,7 +25,7 @@ class AuthControllerSpec extends Specification {
   @Unroll
   def "should validate redirectUrl against deckBaseUrl or redirectHostPattern"() {
     given:
-    def autoController = new AuthController(deckBaseUrl, redirectHostPattern)
+    def autoController = new AuthController(deckBaseUrl, redirectHostPattern, null)
 
     expect:
     autoController.validDeckRedirect(to) == isValid
@@ -37,5 +38,20 @@ class AuthControllerSpec extends Specification {
     new URL("http://localhost:9000") | "spinnaker"         | "http://localhost:8000"          || false
     new URL("http://localhost:9000") | "root.net"          | "http://spinnaker.root.net:8000" || false
     new URL("http://localhost:9000") | ".*\\.root\\.net"   | "http://spinnaker.root.net:8000" || true     // redirectHostPattern supports regex
+  }
+
+  @Unroll
+  def "should delete session tokens cache"() {
+    given:
+    def sessionServiceMock = Mock(SessionService)
+    sessionServiceMock.deleteSpringSessions() >> null
+
+    def authController = new AuthController(null, null, sessionServiceMock)
+
+    when:
+    authController.deleteSessionCache()
+
+    then:
+    1 * sessionServiceMock.deleteSpringSessions()
   }
 }

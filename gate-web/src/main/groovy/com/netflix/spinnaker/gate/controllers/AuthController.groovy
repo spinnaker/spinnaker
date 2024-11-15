@@ -18,11 +18,11 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.PermissionService
+import com.netflix.spinnaker.gate.services.SessionService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
-import org.apache.commons.lang3.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.access.prepost.PreAuthorize
@@ -58,10 +58,14 @@ class AuthController {
   @Autowired
   PermissionService permissionService
 
+  SessionService sessionService
+
   @Autowired
   AuthController(@Value('${services.deck.base-url:}') URL deckBaseUrl,
-                 @Value('${services.deck.redirect-host-pattern:#{null}}') String redirectHostPattern) {
+                 @Value('${services.deck.redirect-host-pattern:#{null}}') String redirectHostPattern,
+                 @Autowired SessionService sessionService) {
     this.deckBaseUrl = deckBaseUrl
+    this.sessionService = sessionService
 
     if (redirectHostPattern) {
       this.redirectHostPattern = Pattern.compile(redirectHostPattern)
@@ -115,6 +119,16 @@ class AuthController {
   @PreAuthorize("@authController.isAdmin()")
   void sync() {
     permissionService.sync()
+  }
+
+  /**
+   * On-demand endpoint to purge the session tokens cache
+   */
+  @ApiOperation(value = "Delete session cache")
+  @RequestMapping(value = "/deleteSessionCache", method = RequestMethod.POST)
+  @PreAuthorize("@authController.isAdmin()")
+  void deleteSessionCache() {
+    sessionService.deleteSpringSessions()
   }
 
   @ApiOperation(value = "Redirect to Deck")
