@@ -1,8 +1,8 @@
 FROM alpine:3.16
 RUN apk add --update \
-    openjdk11 \
+    openjdk17 \
     && rm -rf /var/cache/apk
 LABEL maintainer="sig-platform@spinnaker.io"
 ENV GRADLE_USER_HOME /workspace/.gradle
 ENV GRADLE_OPTS -Xmx4g
-CMD ./gradlew -PenableCrossCompilerPlugin=true --no-daemon kayenta-web:installDist -x test
+CMD ./gradlew --no-daemon kayenta-web:installDist -x test
