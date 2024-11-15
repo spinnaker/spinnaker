@@ -28,7 +28,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMount;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMountSet;
-import com.squareup.okhttp.Response;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.util.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import okhttp3.Response;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

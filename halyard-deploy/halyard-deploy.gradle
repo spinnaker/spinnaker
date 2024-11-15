@@ -18,7 +18,7 @@ dependencies {
   implementation 'org.apache.commons:commons-lang3'
   implementation 'commons-io:commons-io'
   implementation 'com.squareup.retrofit:retrofit'
-  implementation 'com.squareup.okhttp:okhttp'
+  implementation 'com.squareup.okhttp3:okhttp'
 
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
   implementation 'io.fabric8:kubernetes-client'

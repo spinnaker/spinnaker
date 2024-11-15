@@ -24,7 +24,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.AwsCredentialsProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ClouddriverProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.squareup.okhttp.Response;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
