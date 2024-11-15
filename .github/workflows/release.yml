@@ -25,7 +25,6 @@ jobs:
         with:
           java-version: |
             17
-            11
           distribution: 'zulu'
           cache: 'gradle'
       - name: Assemble release info
@@ -52,14 +51,14 @@ jobs:
           ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
         run: |
-          ./gradlew -PenableCrossCompilerPlugin=true --info build ${{ steps.build_variables.outputs.REPO }}-web:installDist publishToNexus closeAndReleaseNexusStagingRepository
+          ./gradlew --info build ${{ steps.build_variables.outputs.REPO }}-web:installDist publishToNexus closeAndReleaseNexusStagingRepository
       - name: Publish apt packages to Google Artifact Registry
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.release_info.outputs.RELEASE_VERSION }}
           ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: true
           GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
         run: |
-          ./gradlew -PenableCrossCompilerPlugin=true --info publish
+          ./gradlew --info publish
       - name: Login to GAR
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
