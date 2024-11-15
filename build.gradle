@@ -30,10 +30,6 @@ allprojects {
     apply(plugin: "com.github.ben-manes.versions")
     apply(plugin: "com.diffplug.spotless")
 
-    java {
-      sourceCompatibility = JavaVersion.VERSION_11
-      targetCompatibility = JavaVersion.VERSION_11
-    }
 
     dependencies {
       annotationProcessor(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))

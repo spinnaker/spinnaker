@@ -54,6 +54,7 @@ import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import java.time.Clock
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
   val publisher: ApplicationEventPublisher = mockk(relaxed = true)
@@ -649,7 +650,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     }
 
     context("artifact creation timestamp exists") {
-      val createdAt = Instant.now()
+      // We truncate this since we're using a serialization to java that reduces the level of precision
+      // and later comparisons break otherwise.  This is needed to work with generated columns in
+      // certain databases.  See the PrecisionSqlSerializer class for more info
+      val createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
 
       before {
         subject.register(versionedSnapshotDebian)

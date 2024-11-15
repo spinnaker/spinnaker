@@ -19,7 +19,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - uses: actions/setup-java@v4
         with:
-          java-version: 11
+          java-version: 17
           distribution: 'zulu'
           cache: 'gradle'
       - name: Prepare build variables

@@ -16,8 +16,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import de.huxhorn.sulky.ulid.ULID
-import org.springframework.boot.jackson.JsonComponentModule
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.TimeZone
 
 /**
@@ -29,18 +29,20 @@ fun configuredObjectMapper(): ObjectMapper = ObjectMapper().configureForKeel()
  * Factory method for [YAMLMapper]s configured how we like 'em.
  */
 fun configuredYamlMapper(): YAMLMapper = YAMLMapper().configureForKeel().disable(USE_NATIVE_TYPE_ID)
-
-fun <T : ObjectMapper> T.configureForKeel(): T =
-  apply {
+fun <T : ObjectMapper> T.configureForKeel(): T {
+  val javaTimeModule = JavaTimeModule()
+  javaTimeModule.addSerializer(Instant::class.java,PrecisionSqlSerializer())
+  return apply {
     registerKeelApiModule()
       .registerKotlinModule()
       .registerULIDModule()
-      .registerModule(JavaTimeModule())
+      .registerModule(javaTimeModule)
       .configureSaneDateTimeRepresentation()
       .disable(FAIL_ON_UNKNOWN_PROPERTIES)
       .enable(ACCEPT_CASE_INSENSITIVE_ENUMS)
       .setSerializationInclusion(NON_NULL)
   }
+}
 
 private fun ObjectMapper.registerULIDModule(): ObjectMapper =
   registerModule(
