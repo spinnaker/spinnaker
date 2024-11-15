@@ -39,7 +39,7 @@ jobs:
       - name: Build
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
-        run: ./gradlew -PenableCrossCompilerPlugin=true build --stacktrace ${{ steps.build_variables.outputs.REPO }}-web:installDist
+        run: ./gradlew build --stacktrace ${{ steps.build_variables.outputs.REPO }}-web:installDist
       - name: Build local slim container image for testing
         uses: docker/build-push-action@v6
         with:

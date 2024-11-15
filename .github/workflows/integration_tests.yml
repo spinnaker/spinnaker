@@ -40,8 +40,8 @@ jobs:
             ${{ runner.os }}-cd-it-${{ github.event.before }}
       # Separating integration tests by provider allows to have separate logs
       - name: Amazon ECS Provider Integration Tests
-        run: ./gradlew  -PenableCrossCompilerPlugin=true--build-cache --no-daemon :clouddriver-ecs:integrationTest
+        run: ./gradlew  --build-cache --no-daemon :clouddriver-ecs:integrationTest
       - name: Artifacts Integration Tests
-        run: ./gradlew -PenableCrossCompilerPlugin=true --build-cache :clouddriver-artifacts:integrationTest
+        run: ./gradlew --build-cache :clouddriver-artifacts:integrationTest
       - name: AWS EC2 Provider Integration Tests
-        run: ./gradlew -PenableCrossCompilerPlugin=true --build-cache :clouddriver-aws:integrationTest
+        run: ./gradlew --build-cache :clouddriver-aws:integrationTest

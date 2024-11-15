@@ -66,4 +66,4 @@ jobs:
       - name: Kubernetes Provider Integration Tests
         run: |
           version=$(echo '${{ matrix.kubernetes-image }}' | grep -o 'v[0-9]*\.[0-9]*')
-          ./gradlew -PenableCrossCompilerPlugin=true --build-cache :clouddriver-kubernetes:integrationTest -Pkubernetes-image=${{ matrix.kubernetes-image }} -Pkubectl-version=${{ matrix.kubectl-version }} -Pkubernetes-version=${version}
+          ./gradlew --build-cache :clouddriver-kubernetes:integrationTest -Pkubernetes-image=${{ matrix.kubernetes-image }} -Pkubectl-version=${{ matrix.kubectl-version }} -Pkubernetes-version=${version}
