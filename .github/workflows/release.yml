@@ -24,7 +24,6 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           java-version: |
-            11
             17
           distribution: 'zulu'
           cache: 'gradle'
@@ -52,14 +51,14 @@ jobs:
           ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
         run: |
-          ./gradlew -PenableCrossCompilerPlugin=true --info build ${{ steps.build_variables.outputs.REPO }}-web:installDist publishToNexus closeAndReleaseNexusStagingRepository
+          ./gradlew --info build ${{ steps.build_variables.outputs.REPO }}-web:installDist publishToNexus closeAndReleaseNexusStagingRepository
       - name: Publish apt packages to Google Artifact Registry
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.release_info.outputs.RELEASE_VERSION }}
           ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: true
           GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
         run: |
-          ./gradlew -PenableCrossCompilerPlugin=true --info publish
+          ./gradlew --info publish
       - name: Login to Google Cloud
         # Only run this on repositories in the 'spinnaker' org, not on forks.
         if: startsWith(github.repository, 'spinnaker/')
@@ -110,31 +109,6 @@ jobs:
           tags: |
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-unvalidated-ubuntu"
             "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-${{ steps.build_variables.outputs.VERSION }}-unvalidated-ubuntu"
-      - name: Build and publish slim JRE 11 container image
-        # Only run this on repositories in the 'spinnaker' org, not on forks.
-        if: startsWith(github.repository, 'spinnaker/')
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile.java11.slim
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-java11-unvalidated"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-java11-unvalidated-slim"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-${{ steps.build_variables.outputs.VERSION }}-java11-unvalidated-slim"
-      - name: Build and publish ubuntu JRE 11 container image
-        # Only run this on repositories in the 'spinnaker' org, not on forks.
-        if: startsWith(github.repository, 'spinnaker/')
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile.java11.ubuntu
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-java11-unvalidated-ubuntu"
-            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.release_info.outputs.RELEASE_VERSION }}-${{ steps.build_variables.outputs.VERSION }}-java11-unvalidated-ubuntu"
       - name: Create release
         if: steps.release_info.outputs.SKIP_RELEASE == 'false'
         uses: softprops/action-gh-release@v2
