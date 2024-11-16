@@ -26,8 +26,8 @@ import com.netflix.spinnaker.clouddriver.eureka.provider.EurekaCachingProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaCachingAgent
 import com.netflix.spinnaker.clouddriver.eureka.provider.config.EurekaAccountConfigurationProperties
+import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import com.netflix.spinnaker.okhttp.OkHttpMetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -85,8 +85,8 @@ class EurekaProviderConfiguration {
   }
 
   private EurekaApiFactory eurekaApiFactory(OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
-    OkHttpClientConfiguration config = new OkHttpClientConfiguration(eurekaClientConfig(),
-      new OkHttpMetricsInterceptor({ registry }, okHttpMetricsInterceptorProperties))
+    OkHttp3ClientConfiguration config = new OkHttp3ClientConfiguration(eurekaClientConfig(),
+      new OkHttp3MetricsInterceptor({ registry }, okHttpMetricsInterceptorProperties))
     return new EurekaApiFactory(eurekaConverter(), config)
   }
 
