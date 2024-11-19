@@ -65,6 +65,7 @@ interface EchoService {
       PUBSUB,
       SLACK,
       SMS,
+      CDEVENTS,
     }
 
     static enum Severity {
