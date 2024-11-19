@@ -19,7 +19,7 @@ RUN tar -xf /tmp/workdir/kayenta-web/build/distributions/kayenta.tar -C /opt
 #
 # Release Image
 #
-FROM alpine:3.16
+FROM alpine:3.20
 
 LABEL maintainer="delivery-engineering@netflix.com"
 
