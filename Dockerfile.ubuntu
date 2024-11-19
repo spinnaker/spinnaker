@@ -1,19 +1,32 @@
-FROM ubuntu:bionic
+FROM ubuntu:jammy
 LABEL maintainer="sig-platform@spinnaker.io"
 ARG TARGETARCH
 
 ENV KUBECTL_RELEASE=1.15.10
 ENV AWS_BINARY_RELEASE_DATE=2020-02-22
-ENV AWS_CLI_VERSION=1.18.18
+ENV AWS_CLI_VERSION=2.15.57
 
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
       openjdk-17-jre-headless \
       curl \
-      python-pip && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install awscli==${AWS_CLI_VERSION} --upgrade
+      wget \
+      python3-pip \
+      python3 \
+      unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# AWS CLI 2
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+    wget -nv -O "awscliv2.zip" "https://awscli.amazonaws.com/awscli-exe-linux-aarch64-${AWS_CLI_VERSION}.zip"; \
+  else \
+    wget -nv -O "awscliv2.zip" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VERSION}.zip"; \
+  fi && \
+  unzip awscliv2.zip && \
+  ./aws/install && \
+  rm -rf ./awscliv2.zip ./aws
+
 
 RUN echo '#!/usr/bin/env bash' > /usr/local/bin/hal && \
   echo '/opt/halyard/bin/hal "$@"' >> /usr/local/bin/hal && \

@@ -1,4 +1,4 @@
-FROM python:3.7-alpine3.16
+FROM python:3.12-alpine3.20
 LABEL maintainer="sig-platform@spinnaker.io"
 ARG TARGETARCH
 
@@ -11,7 +11,7 @@ RUN apk --no-cache add --update \
       curl \
       openjdk17-jre \
       openssl \
-  && pip install --upgrade awscli==${AWS_CLI_VERSION} \
+  && pip3 install --upgrade awscli==${AWS_CLI_VERSION} \
   && apk --purge del \
   && rm -rf /var/cache/apk
 
