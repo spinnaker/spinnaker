@@ -10,6 +10,7 @@ dependencies {
   implementation 'ch.qos.logback:logback-classic'
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.squareup.retrofit:converter-jackson'
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation 'com.fasterxml.jackson.core:jackson-annotations'
   implementation 'com.fasterxml.jackson.core:jackson-core'
   implementation 'com.fasterxml.jackson.core:jackson-databind'

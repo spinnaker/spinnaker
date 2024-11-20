@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.ArtifactTemplate;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
@@ -45,7 +46,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 @Slf4j
@@ -1452,7 +1452,7 @@ public class Daemon {
   private static DaemonService createService(boolean log) {
     return new RestAdapter.Builder()
         .setEndpoint(GlobalOptions.getGlobalOptions().getDaemonEndpoint())
-        .setClient(new OkClient())
+        .setClient(new Ok3Client())
         .setConverter(new JacksonConverter(getObjectMapper()))
         .setLogLevel(log ? RestAdapter.LogLevel.FULL : RestAdapter.LogLevel.NONE)
         .build()
