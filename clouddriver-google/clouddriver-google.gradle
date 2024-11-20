@@ -40,6 +40,7 @@ dependencies {
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.mockito:mockito-core"
+  testImplementation "org.mockito:mockito-inline"
   testImplementation "org.mockito:mockito-junit-jupiter"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"

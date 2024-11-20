@@ -920,7 +920,7 @@ class GCEUtil {
       : []
   }
 
-  static ServiceAccount buildScheduling(BaseGoogleInstanceDescription description) {
+  static Scheduling buildScheduling(BaseGoogleInstanceDescription description) {
     def scheduling = new Scheduling()
 
     if (description.preemptible != null) {
