@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference
 @Component
 public class GCEBakeHandler extends CloudProviderBakeHandler {
 
-  private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
+  private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created"
 
   private final resolvedBakeryDefaults = new AtomicReference<RoscoGoogleConfiguration.GCEBakeryDefaults>()
 

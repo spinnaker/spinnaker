@@ -164,16 +164,21 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         "Build 'googlecompute' finished.\n" +
         "\n" +
         "==> Builds finished. The artifacts of successful builds are:\n" +
-        "--> googlecompute: A disk image was created: kato-x12345678-trusty"
+        "--> googlecompute: ${packerLog}"
 
-      Bake bake = gceBakeHandler.scrapeCompletedBakeResults(REGION, "123", logsContent)
+      Bake bake = gceBakeHandler.scrapeCompletedBakeResults(REGION, bakeId, logsContent)
 
     then:
       with (bake) {
-        id == "123"
+        id == bakeId
         !ami
-        image_name == "kato-x12345678-trusty"
+        image_name == imageName
       }
+
+    where:
+      packerLog | bakeId | imageName
+      "A disk image was created: kato-x12345678-trusty" | "123" | "kato-x12345678-trusty"
+      "A disk image was created in the test-gcp project: kato-x12345678-trusty-changed" | "456" | "kato-x12345678-trusty-changed"
   }
 
   void 'scraping returns null for missing image name'() {
