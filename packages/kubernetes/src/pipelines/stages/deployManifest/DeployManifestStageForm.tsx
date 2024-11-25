@@ -13,6 +13,7 @@ import {
   ArtifactTypePatterns,
   CheckboxInput,
   RadioButtonInput,
+  SETTINGS,
   StageArtifactSelectorDelegate,
   StageConfigField,
   yamlDocumentsToString,
@@ -25,15 +26,23 @@ import { ManifestBindArtifactsSelector } from './ManifestBindArtifactsSelector';
 import { ManifestDeploymentOptions } from './ManifestDeploymentOptions';
 import { NamespaceSelector } from './NamespaceSelector';
 import { ManifestSource } from '../../../manifest/ManifestSource';
+import type { IManifestLabelSelector } from '../../../manifest/selector/IManifestLabelSelector';
+import type { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
+import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
+import LabelEditor from '../../../manifest/selector/labelEditor/LabelEditor';
 import { ManifestBasicSettings } from '../../../manifest/wizard/BasicSettings';
 
 interface IDeployManifestStageConfigFormProps {
   accounts: IAccountDetails[];
+  selector?: IManifestSelector;
+  modes?: SelectorMode.Label;
 }
 
 interface IDeployManifestStageConfigFormState {
   rawManifest: string;
   overrideNamespace: boolean;
+  selector: IManifestSelector;
+  labelSelectors: IManifestLabelSelector[];
 }
 
 export class DeployManifestStageForm extends React.Component<
@@ -55,6 +64,13 @@ export class DeployManifestStageForm extends React.Component<
     this.state = {
       rawManifest: !isEmpty(manifests) && isTextManifest ? yamlDocumentsToString(manifests) : '',
       overrideNamespace: get(stage, 'namespaceOverride', '') !== '',
+      selector: {
+        account: '',
+        location: '',
+        mode: SelectorMode.Label,
+        labelSelectors: { selectors: [] },
+      },
+      labelSelectors: [],
     };
   }
 
@@ -186,14 +202,51 @@ export class DeployManifestStageForm extends React.Component<
             stage={stage}
           />
         </StageConfigField>
-        <hr />
-        <h4>Deploy Configuration</h4>
-        <StageConfigField label="Skip Spec Template Labels" helpKey="kubernetes.manifest.skipSpecTemplateLabels">
-          <CheckboxInput
-            checked={stage.skipSpecTemplateLabels === true}
-            onChange={(e: any) => this.props.formik.setFieldValue('skipSpecTemplateLabels', e.target.checked)}
-          />
-        </StageConfigField>
+        {SETTINGS.feature.deployManifestStageAdvancedConfiguration && (
+          <>
+            <hr />
+            <h4>Deploy Configuration</h4>
+            <StageConfigField label="Skip Spec Template Labels" helpKey="kubernetes.manifest.skipSpecTemplateLabels">
+              <CheckboxInput
+                checked={stage.skipSpecTemplateLabels === true}
+                onChange={(e: any) => this.props.formik.setFieldValue('skipSpecTemplateLabels', e.target.checked)}
+              />
+            </StageConfigField>
+            <StageConfigField label="Label Selectors" helpKey="kubernetes.manifest.deployLabelSelectors">
+              <CheckboxInput
+                checked={stage.labelSelectors != null}
+                onChange={(e: any) => {
+                  if (e.target.checked) {
+                    this.props.formik.setFieldValue('labelSelectors', { selectors: [] });
+                    this.props.formik.setFieldValue('allowNothingSelected', false);
+                  } else {
+                    this.props.formik.setFieldValue('labelSelectors', null);
+                    this.props.formik.setFieldValue('allowNothingSelected', null);
+                  }
+                }}
+              />
+            </StageConfigField>
+            {stage.labelSelectors && stage.labelSelectors.selectors && (
+              <>
+                <StageConfigField label="Labels">
+                  <LabelEditor
+                    labelSelectors={this.props.formik.values.labelSelectors.selectors}
+                    onLabelSelectorsChange={this.handleLabelSelectorsChange}
+                  />
+                </StageConfigField>
+                <StageConfigField
+                  label="Allow nothing selected"
+                  helpKey="kubernetes.manifest.deployLabelSelectors.allowNothingSelected"
+                >
+                  <CheckboxInput
+                    checked={stage.allowNothingSelected === true}
+                    onChange={(e: any) => this.props.formik.setFieldValue('allowNothingSelected', e.target.checked)}
+                  />
+                </StageConfigField>
+              </>
+            )}
+          </>
+        )}
         <hr />
         <ManifestDeploymentOptions
           accounts={this.props.accounts}
@@ -204,4 +257,9 @@ export class DeployManifestStageForm extends React.Component<
       </div>
     );
   }
+
+  private handleLabelSelectorsChange = (labelSelectors: IManifestLabelSelector[]): void => {
+    this.setState({ labelSelectors });
+    this.props.formik.setFieldValue('labelSelectors.selectors', labelSelectors);
+  };
 }
