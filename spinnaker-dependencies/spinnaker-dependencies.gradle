@@ -21,8 +21,7 @@ ext {
     logback          : "1.2.13",
     protobuf         : "3.25.2",
     okhttp3          : "4.9.3",
-    openapi          : "1.3.9", // this needs to be kept in sync with spring boot as it pulls in the spring-boot-dependencies BOM
-    restassured      : "5.2.1", // spring boot 2.7.18 brings rest-assured 4.5.1. It uses groovy 3. Keep until spring boot >=3.0.13
+    openapi          : "1.8.0",
     retrofit         : "1.9.0",
     retrofit2        : "2.8.1",
     spectator        : "1.0.6",
@@ -30,9 +29,7 @@ ext {
     spek2            : "2.0.9",
     springBoot       : "2.7.18",
     springCloud      : "2021.0.8",
-    springfoxSwagger : "3.0.0",
-    swagger          : "1.5.20", //this should stay in sync with what springfoxSwagger expects.
-
+    swagger          : "2.2.22",
     // 2.7.18 brings in 9.0.83, which fixes all CVEs to date (20-feb-24). Continue to pin.
     // See https://tomcat.apache.org/security-9.html for latest security fixes.
     tomcat           : "9.0.83"
@@ -157,9 +154,8 @@ dependencies {
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
     api("io.mockk:mockk:1.10.5")
-    api("io.springfox:springfox-boot-starter:${versions.springfoxSwagger}")
-    api("io.springfox:springfox-swagger2:${versions.springfoxSwagger}")
-    api("io.swagger:swagger-annotations:${versions.swagger}")
+    api("io.swagger.core.v3:swagger-annotations:${versions.swagger}")
+    api("io.swagger.core.v3:swagger-core:${versions.swagger}")
     api("javax.annotation:javax.annotation-api:1.3.2")
     api("javax.xml.bind:jaxb-api:2.3.1")
     api("net.logstash.logback:logstash-logback-encoder:4.11")
@@ -211,6 +207,7 @@ dependencies {
     api("org.yaml:snakeyaml:1.31")
     api("org.springdoc:springdoc-openapi-webmvc-core:${versions.openapi}")
     api("org.springdoc:springdoc-openapi-kotlin:${versions.openapi}")
+    api("org.springdoc:springdoc-openapi-ui:${versions.openapi}")
     api("org.springframework.boot:spring-boot-configuration-processor:${versions.springBoot}")
     api("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.3.12.RELEASE")
     api("org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE")
