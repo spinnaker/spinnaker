@@ -25,8 +25,8 @@ import com.netflix.spinnaker.front50.model.SearchUtils;
 import com.netflix.spinnaker.front50.model.project.Project;
 import com.netflix.spinnaker.front50.model.project.ProjectDAO;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/v2/projects", produces = MediaType.APPLICATION_JSON_VALUE)
-@Api(value = "projects", description = "Project API")
+@Tag(name = "projects", description = "Project API")
 public class ProjectsController {
 
   private static final Splitter COMMA_SPLITTER = Splitter.on(',');
@@ -50,9 +50,9 @@ public class ProjectsController {
   }
 
   @RequestMapping(value = "/search", method = RequestMethod.GET)
-  @ApiOperation(
-      value = "",
-      notes =
+  @Operation(
+      summary = "",
+      description =
           "Search for projects given one or more attributes.\n\n- /search?q=ProjectName\n- /search?q=ApplicationName\n")
   public Set<Project> search(@RequestParam("q") final String query) {
     return projectDAO.all().stream()
@@ -64,9 +64,9 @@ public class ProjectsController {
         .collect(Collectors.toSet());
   }
 
-  @ApiOperation(
-      value = "",
-      notes =
+  @Operation(
+      summary = "",
+      description =
           "Fetch all projects.\n\n    Support filtering by one or more attributes:\n    - ?name=projectName\n    - ?email=my@email.com")
   @RequestMapping(method = RequestMethod.GET)
   public List<Project> projects(
@@ -78,7 +78,7 @@ public class ProjectsController {
     return (pageSize == null) ? projects : projects.subList(0, Math.min(pageSize, projects.size()));
   }
 
-  @ApiOperation(value = "", notes = "Fetch a single project")
+  @Operation(summary = "", description = "Fetch a single project")
   @RequestMapping(method = RequestMethod.GET, value = "/{projectId}")
   public Project project(@PathVariable String projectId) {
     try {
@@ -88,7 +88,7 @@ public class ProjectsController {
     }
   }
 
-  @ApiOperation(value = "", notes = "Update an existing project")
+  @Operation(summary = "", description = "Update an existing project")
   @RequestMapping(method = RequestMethod.PUT, value = "/{projectId}")
   public Project put(@PathVariable final String projectId, @RequestBody final Project project) {
     Project existingProject = projectDAO.findById(projectId);
@@ -110,7 +110,7 @@ public class ProjectsController {
     return project;
   }
 
-  @ApiOperation(value = "", notes = "Create a project")
+  @Operation(summary = "", description = "Create a project")
   @RequestMapping(method = RequestMethod.POST)
   public Project create(@RequestBody final Project project) {
     project.setCreateTs(System.currentTimeMillis());
@@ -202,7 +202,7 @@ public class ProjectsController {
         .orElse(false);
   }
 
-  @ApiOperation(value = "", notes = "Delete a project")
+  @Operation(summary = "", description = "Delete a project")
   @RequestMapping(method = RequestMethod.DELETE, value = "/{projectId}")
   public void delete(@PathVariable String projectId, HttpServletResponse response) {
     projectDAO.delete(projectId);

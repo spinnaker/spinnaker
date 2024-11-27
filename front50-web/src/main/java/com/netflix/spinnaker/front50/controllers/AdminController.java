@@ -18,8 +18,8 @@ package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.front50.model.AdminOperations;
 import com.netflix.spinnaker.front50.model.ObjectType;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/admin")
-@Api(value = "admin", description = "Various administrative operations")
+@Tag(name = "admin", description = "Various administrative operations")
 public class AdminController {
 
   private final Collection<AdminOperations> adminOperations;
@@ -39,7 +39,7 @@ public class AdminController {
     this.adminOperations = adminOperations;
   }
 
-  @ApiOperation(value = "", notes = "Recover a previously deleted object")
+  @Operation(summary = "", description = "Recover a previously deleted object")
   @RequestMapping(value = "/recover", method = RequestMethod.POST)
   void recover(@RequestBody AdminOperations.Recover operation) {
     adminOperations.forEach(o -> o.recover(operation));

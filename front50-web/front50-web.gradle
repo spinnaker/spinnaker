@@ -35,7 +35,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "com.squareup.retrofit:converter-jackson"
-  implementation "io.swagger:swagger-annotations"
+  implementation "io.swagger.core.v3:swagger-annotations"
   implementation "commons-codec:commons-codec"
   implementation "javax.validation:validation-api"
 

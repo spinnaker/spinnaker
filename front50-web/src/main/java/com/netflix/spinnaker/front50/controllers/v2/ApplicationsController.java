@@ -13,8 +13,8 @@ import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationService;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v2/applications")
-@Api(value = "application", description = "Application API")
+@Tag(name = "application", description = "Application API")
 public class ApplicationsController {
 
   private static final Logger log = LoggerFactory.getLogger(ApplicationsController.class);
@@ -62,9 +62,9 @@ public class ApplicationsController {
 
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
-  @ApiOperation(
-      value = "",
-      notes =
+  @Operation(
+      summary = "",
+      description =
           "Fetch all applications.\n\nSupports filtering by one or more attributes:\n- ?email=my@email.com\n- ?email=my@email.com&name=flex")
   @RequestMapping(method = RequestMethod.GET)
   public List<Application> applications(
@@ -113,7 +113,7 @@ public class ApplicationsController {
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.canCreate('APPLICATION', #app)")
-  @ApiOperation(value = "", notes = "Create an application")
+  @Operation(summary = "", description = "Create an application")
   @RequestMapping(method = RequestMethod.POST)
   public Application create(@RequestBody final Application app) {
     if (applicationService.findByName(app.getName()) != null) {
@@ -135,7 +135,7 @@ public class ApplicationsController {
   }
 
   @PreAuthorize("hasPermission(#applicationName, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Delete an application")
+  @Operation(summary = "", description = "Delete an application")
   @RequestMapping(method = RequestMethod.DELETE, value = "/{applicationName:.+}")
   public void delete(@PathVariable String applicationName, HttpServletResponse response) {
     applicationService.delete(applicationName);
@@ -143,7 +143,7 @@ public class ApplicationsController {
   }
 
   @PreAuthorize("hasPermission(#app.name, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Update an existing application by merging the attributes")
+  @Operation(summary = "", description = "Update an existing application by merging the attributes")
   @RequestMapping(method = RequestMethod.PATCH, value = "/{applicationName:.+}")
   public Application update(
       @PathVariable final String applicationName, @RequestBody final Application app) {
@@ -158,7 +158,9 @@ public class ApplicationsController {
   }
 
   @PreAuthorize("hasPermission(#app.name, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Update an existing application by replacing all attributes")
+  @Operation(
+      summary = "",
+      description = "Update an existing application by replacing all attributes")
   @RequestMapping(method = RequestMethod.PUT, value = "/{applicationName:.+}")
   public Application replace(
       @PathVariable final String applicationName, @RequestBody final Application app) {
@@ -173,7 +175,7 @@ public class ApplicationsController {
   }
 
   @PostAuthorize("hasPermission(#applicationName, 'APPLICATION', 'READ')")
-  @ApiOperation(value = "", notes = "Fetch a single application by name")
+  @Operation(summary = "", description = "Fetch a single application by name")
   @RequestMapping(method = RequestMethod.GET, value = "/{applicationName:.+}")
   public Application get(@PathVariable final String applicationName) {
     Application app = applicationDAO.findByName(applicationName.toUpperCase());

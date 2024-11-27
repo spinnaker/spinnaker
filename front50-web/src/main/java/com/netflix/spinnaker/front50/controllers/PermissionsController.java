@@ -2,7 +2,7 @@ package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.front50.ApplicationPermissionsService;
 import com.netflix.spinnaker.front50.model.application.Application;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.Set;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +16,7 @@ public class PermissionsController {
     this.permissionsService = permissionsService;
   }
 
-  @ApiOperation(value = "", notes = "Get all application permissions. Internal use only.")
+  @Operation(summary = "", description = "Get all application permissions. Internal use only.")
   @RequestMapping(method = RequestMethod.GET, value = "/applications")
   public Set<Application.Permission> getAllApplicationPermissions() {
     return permissionsService.getAllApplicationPermissions();
@@ -27,7 +27,7 @@ public class PermissionsController {
     return permissionsService.getApplicationPermission(appName);
   }
 
-  @ApiOperation(value = "", notes = "Create an application permission.")
+  @Operation(summary = "", description = "Create an application permission.")
   @RequestMapping(method = RequestMethod.POST, value = "/applications")
   public Application.Permission createApplicationPermission(
       @RequestBody Application.Permission newPermission) {

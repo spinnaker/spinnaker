@@ -4,7 +4,7 @@ import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.delivery.Delivery;
 import com.netflix.spinnaker.front50.model.delivery.DeliveryRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -25,35 +25,35 @@ public class DeliveryController {
   }
 
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
-  @ApiOperation(value = "", notes = "Get all delivery configs")
+  @Operation(summary = "", description = "Get all delivery configs")
   @RequestMapping(method = RequestMethod.GET, value = "/deliveries")
   Collection<Delivery> getAllConfigs() {
     return deliveryRepository.getAllConfigs();
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
-  @ApiOperation(value = "", notes = "Get the delivery configs for an application")
+  @Operation(summary = "", description = "Get the delivery configs for an application")
   @RequestMapping(method = RequestMethod.GET, value = "/applications/{application}/deliveries")
   Collection<Delivery> getConfigByAppName(@PathVariable String application) {
     return deliveryRepository.getConfigsByApplication(application);
   }
 
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
-  @ApiOperation(value = "", notes = "Get a delivery config by id")
+  @Operation(summary = "", description = "Get a delivery config by id")
   @RequestMapping(method = RequestMethod.GET, value = "deliveries/{id}")
   Delivery getConfigById(@PathVariable String id) {
     return deliveryRepository.findById(id);
   }
 
   @PreAuthorize("hasPermission(#config.application, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Create a delivery config")
+  @Operation(summary = "", description = "Create a delivery config")
   @RequestMapping(method = RequestMethod.POST, value = "/deliveries")
   Delivery createConfig(@RequestBody Delivery config) {
     return deliveryRepository.upsertConfig(config);
   }
 
   @PreAuthorize("hasPermission(#config.application, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Update a delivery config")
+  @Operation(summary = "", description = "Update a delivery config")
   @RequestMapping(method = RequestMethod.PUT, value = "/deliveries/{id}")
   Delivery upsertConfig(@PathVariable String id, @RequestBody Delivery config) {
     if (!id.equals(config.getId())) {
@@ -71,7 +71,7 @@ public class DeliveryController {
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE')")
-  @ApiOperation(value = "", notes = "Delete a delivery config")
+  @Operation(summary = "", description = "Delete a delivery config")
   @RequestMapping(
       method = RequestMethod.DELETE,
       value = "/applications/{application}/deliveries/{id}")
