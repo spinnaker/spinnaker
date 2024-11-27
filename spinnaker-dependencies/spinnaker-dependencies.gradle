@@ -22,6 +22,7 @@ ext {
     protobuf         : "3.25.2",
     okhttp3          : "4.9.3",
     openapi          : "1.8.0",
+    restassured      : "5.2.1", // spring boot 2.7.18 brings rest-assured 4.5.1. It uses groovy 3. Keep until spring boot >=3.0.13
     retrofit         : "1.9.0",
     retrofit2        : "2.8.1",
     spectator        : "1.0.6",
