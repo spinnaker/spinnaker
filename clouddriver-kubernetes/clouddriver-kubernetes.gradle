@@ -85,6 +85,7 @@ dependencies {
   implementation "org.springframework.cloud:spring-cloud-config-server"
   implementation "io.github.resilience4j:resilience4j-retry"
   implementation "io.github.resilience4j:resilience4j-micrometer"
+  implementation "io.swagger.core.v3:swagger-annotations"
 
   testImplementation "io.spinnaker.kork:kork-test"
   testImplementation "org.apache.commons:commons-exec"

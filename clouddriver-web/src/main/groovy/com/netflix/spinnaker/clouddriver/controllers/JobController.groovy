@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.netflix.spinnaker.clouddriver.model.JobProvider
 import com.netflix.spinnaker.clouddriver.model.JobStatus
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.security.access.prepost.PreAuthorize
@@ -42,12 +42,12 @@ class JobController {
   MessageSource messageSource
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
-  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job.")
+  @Operation(summary = "Collect a JobStatus", description = "Collects the output of the job.")
   @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.GET)
-  JobStatus collectJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
-                       @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
-                       @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
-                       @ApiParam(value = "Unique identifier of job being looked up", required = true) @PathVariable String id) {
+  JobStatus collectJob(@Parameter(description = "Application name", required = true) @PathVariable String application,
+                       @Parameter(description = "Account job was created by", required = true) @PathVariable String account,
+                       @Parameter(description = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
+                       @Parameter(description = "Unique identifier of job being looked up", required = true) @PathVariable String id) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     Collection<JobStatus> jobMatches = jobProviders.findResults {
       return it.collectJob(account, location, id)
@@ -59,26 +59,26 @@ class JobController {
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")
-  @ApiOperation(value = "Cancel a Job", notes = "Cancels the job.")
+  @Operation(summary = "Cancel a Job", description = "Cancels the job.")
   @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.DELETE)
-  void cancelJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
-                 @ApiParam(value = "Account job is running in", required = true) @PathVariable String account,
-                 @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
-                 @ApiParam(value = "Unique identifier of job to be canceled", required = true) @PathVariable String id) {
+  void cancelJob(@Parameter(description = "Application name", required = true) @PathVariable String application,
+                 @Parameter(description = "Account job is running in", required = true) @PathVariable String account,
+                 @Parameter(description = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
+                 @Parameter(description = "Unique identifier of job to be canceled", required = true) @PathVariable String id) {
     jobProviders.forEach {
       it.cancelJob(account, location, id)
     }
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
-  @ApiOperation(value = "Collect a file from a job", notes = "Collects the file result of a job.")
+  @Operation(summary = "Collect a file from a job", description = "Collects the file result of a job.")
   @RequestMapping(value = "/{account}/{location}/{id}/{fileName:.+}", method = RequestMethod.GET)
   Map<String, Object> getFileContents(
-    @ApiParam(value = "Application name", required = true) @PathVariable String application,
-    @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
-    @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
-    @ApiParam(value = "Unique identifier of job being looked up", required = true) @PathVariable String id,
-    @ApiParam(value = "File name to look up", required = true) @PathVariable String fileName
+    @Parameter(description = "Application name", required = true) @PathVariable String application,
+    @Parameter(description = "Account job was created by", required = true) @PathVariable String account,
+    @Parameter(description = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
+    @Parameter(description = "Unique identifier of job being looked up", required = true) @PathVariable String id,
+    @Parameter(description = "File name to look up", required = true) @PathVariable String fileName
   ) {
     Collection<Map<String, Object>> results = jobProviders.findResults {
       it.getFileContents(account, location, id, fileName)

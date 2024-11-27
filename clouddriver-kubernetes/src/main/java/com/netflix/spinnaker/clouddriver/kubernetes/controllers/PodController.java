@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.controllers;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.KubernetesJobProvider;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.util.Collections;
 import java.util.Map;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,18 +38,25 @@ public class PodController {
 
   @PreAuthorize(
       "hasPermission(#application, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
-  @ApiOperation(value = "Collect a file from a pod", notes = "Collects the file result of a pod.")
+  @Operation(
+      summary = "Collect a file from a pod",
+      description = "Collects the file result of a pod.")
   @RequestMapping(
       value = "/{account}/{namespace}/{podName}/{fileName:.+}",
       method = RequestMethod.GET)
   Map<String, Object> getFileContents(
-      @ApiParam(value = "Application name", required = true) @PathVariable String application,
-      @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
-      @ApiParam(value = "Namespace in which the pod is running in", required = true) @PathVariable
+      @Parameter(description = "Application name", required = true) @PathVariable
+          String application,
+      @Parameter(description = "Account job was created by", required = true) @PathVariable
+          String account,
+      @Parameter(description = "Namespace in which the pod is running in", required = true)
+          @PathVariable
           String namespace,
-      @ApiParam(value = "Unique identifier of pod being looked up", required = true) @PathVariable
+      @Parameter(description = "Unique identifier of pod being looked up", required = true)
+          @PathVariable
           String podName,
-      @ApiParam(value = "File name to look up", required = true) @PathVariable String fileName) {
+      @Parameter(description = "File name to look up", required = true) @PathVariable
+          String fileName) {
     Map<String, Object> results =
         kubernetesJobProvider.getFileContentsFromPod(account, namespace, podName, fileName);
 
