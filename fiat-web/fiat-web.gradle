@@ -19,7 +19,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-retrofit"
-  implementation "io.swagger:swagger-annotations"
+  implementation "io.swagger.core.v3:swagger-annotations"
   implementation "net.logstash.logback:logstash-logback-encoder"
 
   runtimeOnly "io.spinnaker.kork:kork-runtime"
