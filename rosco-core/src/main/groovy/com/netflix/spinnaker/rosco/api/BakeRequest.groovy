@@ -25,7 +25,7 @@ import com.netflix.spinnaker.rosco.providers.util.packagespecific.NupkgPackageUt
 import com.netflix.spinnaker.rosco.providers.util.packagespecific.RpmPackageUtil
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
-import io.swagger.annotations.ApiModelProperty
+import io.swagger.v3.oas.annotations.media.Schema
 
 /**
  * A request to bake a new machine image.
@@ -37,30 +37,30 @@ import io.swagger.annotations.ApiModelProperty
 class BakeRequest {
 
   // A generated uuid which will identify the request and be used as the jobId when running the bake
-  @ApiModelProperty(value = "A generated UUID which will be used to identify the effective packer bake", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+  @Schema(description= "A generated UUID which will be used to identify the effective packer bake", accessMode = Schema.AccessMode.READ_ONLY)
   String request_id = UUID.randomUUID().toString()
   String user
-  @ApiModelProperty("The package(s) to install, as a space-delimited string") @JsonProperty("package") @SerializedName("package")
+  @Schema(description="The package(s) to install, as a space-delimited string") @JsonProperty("package") @SerializedName("package")
   String package_name
-  @ApiModelProperty("The package(s) to install, as Spinnaker artifacts")
+  @Schema(description="The package(s) to install, as Spinnaker artifacts")
   List<Artifact> package_artifacts
-  @ApiModelProperty("The CI server")
+  @Schema(description="The CI server")
   String build_host
-  @ApiModelProperty("The CI job")
+  @Schema(description="The CI job")
   String job
-  @ApiModelProperty("The CI build number")
+  @Schema(description="The CI build number")
   String build_number
-  @ApiModelProperty("The commit hash of the CI build")
+  @Schema(description="The commit hash of the CI build")
   String commit_hash
-  @ApiModelProperty("The CI Build Url")
+  @Schema(description="The CI Build Url")
   String build_info_url
-  @ApiModelProperty("The target platform")
+  @Schema(description="The target platform")
   CloudProviderType cloud_provider_type
   Label base_label
-  @ApiModelProperty("The named base image to resolve from rosco's configuration")
+  @Schema(description="The named base image to resolve from rosco's configuration")
   String base_os
   String base_name
-  @ApiModelProperty("The explicit machine image to use, instead of resolving one from rosco's configuration")
+  @Schema(description="The explicit machine image to use, instead of resolving one from rosco's configuration")
   String base_ami
   VmType vm_type
   StoreType store_type
@@ -69,17 +69,17 @@ class BakeRequest {
   String ami_suffix
   Boolean upgrade
   String instance_type
-  @ApiModelProperty("The image owner organization")
+  @Schema(description="The image owner organization")
   String organization
 
-  @ApiModelProperty("The explicit packer template to use, instead of resolving one from rosco's configuration")
+  @Schema(description="The explicit packer template to use, instead of resolving one from rosco's configuration")
   String template_file_name
-  @ApiModelProperty("A map of key/value pairs to add to the packer command")
+  @Schema(description="A map of key/value pairs to add to the packer command")
   Map extended_attributes
-  @ApiModelProperty("The name of a json file containing key/value pairs to add to the packer command (must be in the same location as the template file)")
+  @Schema(description="The name of a json file containing key/value pairs to add to the packer command (must be in the same location as the template file)")
   String var_file_name
 
-  @ApiModelProperty("The name of a configured account to use when baking the image")
+  @Schema(description="The name of a configured account to use when baking the image")
   String account_name
 
   String spinnaker_execution_id

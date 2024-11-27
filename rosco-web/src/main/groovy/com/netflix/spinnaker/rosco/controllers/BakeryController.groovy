@@ -31,8 +31,8 @@ import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRe
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -222,10 +222,10 @@ class BakeryController {
     }
   }
 
-  @ApiOperation(value = "Look up bake request status")
+  @Operation(summary = "Look up bake request status")
   @RequestMapping(value = "/api/v1/{region}/status/{statusId}", method = RequestMethod.GET)
-  BakeStatus lookupStatus(@ApiParam(value = "The region of the bake request to lookup", required = true) @PathVariable("region") String region,
-                          @ApiParam(value = "The id of the bake request to lookup", required = true) @PathVariable("statusId") String statusId) {
+  BakeStatus lookupStatus(@Parameter(description = "The region of the bake request to lookup", required = true) @PathVariable("region") String region,
+                          @Parameter(description = "The id of the bake request to lookup", required = true) @PathVariable("statusId") String statusId) {
     def bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
 
     if (bakeStatus) {
@@ -235,10 +235,10 @@ class BakeryController {
     throw new IllegalArgumentException("Unable to retrieve status for '$statusId'.")
   }
 
-  @ApiOperation(value = "Look up bake details")
+  @Operation(summary = "Look up bake details")
   @RequestMapping(value = "/api/v1/{region}/bake/{bakeId}", method = RequestMethod.GET)
-  Bake lookupBake(@ApiParam(value = "The region of the bake to lookup", required = true) @PathVariable("region") String region,
-                  @ApiParam(value = "The id of the bake to lookup", required = true) @PathVariable("bakeId") String bakeId) {
+  Bake lookupBake(@Parameter(description = "The region of the bake to lookup", required = true) @PathVariable("region") String region,
+                  @Parameter(description = "The id of the bake to lookup", required = true) @PathVariable("bakeId") String bakeId) {
     def bake = bakeStore.retrieveBakeDetailsById(bakeId)
 
     if (bake) {
@@ -317,10 +317,10 @@ class BakeryController {
   }
 
   // TODO(duftler): Synchronize this with existing bakery api.
-  @ApiOperation(value = "Cancel bake request")
+  @Operation(summary = "Cancel bake request")
   @RequestMapping(value = "/api/v1/{region}/cancel/{statusId}", method = RequestMethod.GET)
-  String cancelBake(@ApiParam(value = "The region of the bake request to cancel", required = true) @PathVariable("region") String region,
-                    @ApiParam(value = "The id of the bake request to cancel", required = true) @PathVariable("statusId") String statusId) {
+  String cancelBake(@Parameter(description = "The region of the bake request to cancel", required = true) @PathVariable("region") String region,
+                    @Parameter(description = "The id of the bake request to cancel", required = true) @PathVariable("statusId") String statusId) {
     if (bakeStore.cancelBakeById(statusId)) {
       jobExecutor.cancelJob(statusId)
 
