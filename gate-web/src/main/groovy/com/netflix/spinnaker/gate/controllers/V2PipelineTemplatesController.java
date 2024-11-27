@@ -28,7 +28,7 @@ import com.netflix.spinnaker.gate.services.V2PipelineTemplateService;
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import groovy.transform.InheritConstructors;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,25 +69,25 @@ public class V2PipelineTemplatesController {
   }
 
   // TODO(louisjimenez): Deprecated. Will be replaced with /versions endpoint starting with 1.19.
-  @ApiOperation(value = "(ALPHA) List pipeline templates.", response = List.class)
+  @Operation(summary = "(ALPHA) List pipeline templates.")
   @RequestMapping(method = RequestMethod.GET)
   public Collection<Map> list(@RequestParam(required = false) List<String> scopes) {
     return v2PipelineTemplateService.findByScope(scopes);
   }
 
-  @ApiOperation(value = "List pipeline templates with versions", response = Map.class)
+  @Operation(summary = "List pipeline templates with versions")
   @RequestMapping(value = "/versions", method = RequestMethod.GET)
   public Map<String, List<Map>> listVersions(@RequestParam(required = false) List<String> scopes) {
     return v2PipelineTemplateService.findVersionsByScope(scopes);
   }
 
-  @ApiOperation(value = "(ALPHA) Plan a pipeline template configuration.", response = HashMap.class)
+  @Operation(summary = "(ALPHA) Plan a pipeline template configuration.")
   @RequestMapping(value = "/plan", method = RequestMethod.POST)
   public Map<String, Object> plan(@RequestBody Map<String, Object> pipeline) {
     return v2PipelineTemplateService.plan(pipeline);
   }
 
-  @ApiOperation(value = "(ALPHA) Create a pipeline template.", response = HashMap.class)
+  @Operation(summary = "(ALPHA) Create a pipeline template.")
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
   public Map create(
@@ -133,7 +133,7 @@ public class V2PipelineTemplatesController {
     }
   }
 
-  @ApiOperation(value = "(ALPHA) Update a pipeline template.", response = HashMap.class)
+  @Operation(summary = "(ALPHA) Update a pipeline template.")
   @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
   public Map update(
@@ -175,7 +175,7 @@ public class V2PipelineTemplatesController {
     return operation;
   }
 
-  @ApiOperation(value = "(ALPHA) Get a pipeline template.", response = HashMap.class)
+  @Operation(summary = "(ALPHA) Get a pipeline template.")
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   public Map get(
       @PathVariable String id,
@@ -184,7 +184,7 @@ public class V2PipelineTemplatesController {
     return v2PipelineTemplateService.get(id, tag, digest);
   }
 
-  @ApiOperation(value = "Delete a pipeline template.", response = HashMap.class)
+  @Operation(summary = "Delete a pipeline template.")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(value = HttpStatus.OK)
   public Map delete(
@@ -209,9 +209,7 @@ public class V2PipelineTemplatesController {
     return taskService.createAndWaitForCompletion(operation);
   }
 
-  @ApiOperation(
-      value = "(ALPHA) List all pipelines that implement a pipeline template",
-      response = List.class)
+  @Operation(summary = "(ALPHA) List all pipelines that implement a pipeline template")
   @RequestMapping(value = "/{id}/dependents", method = RequestMethod.GET)
   public List<PipelineTemplateDependent> listPipelineTemplateDependents(@PathVariable String id) {
     return v2PipelineTemplateService.getTemplateDependents(id);

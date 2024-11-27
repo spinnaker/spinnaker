@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ProjectService
 import groovy.util.logging.Slf4j
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -30,26 +30,26 @@ class ProjectController {
   @Autowired
   ProjectService projectService
 
-  @ApiOperation(value = "Get all projects", response = List.class)
+  @Operation(summary = "Get all projects")
   @RequestMapping(method = RequestMethod.GET)
   List<Map> all() {
     return projectService.getAll()
   }
 
-  @ApiOperation(value = "Get a project", response = HashMap.class)
+  @Operation(summary = "Get a project")
   @RequestMapping(value = "/{id:.+}", method = RequestMethod.GET)
   Map get(@PathVariable("id") String projectId) {
     return projectService.get(projectId)
   }
 
-  @ApiOperation(value = "Get a project's clusters", response = List.class)
+  @Operation(summary = "Get a project's clusters")
   @RequestMapping(value = "/{id}/clusters", method = RequestMethod.GET)
   List<Map> getClusters(@PathVariable("id") String projectId,
                         @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return projectService.getClusters(projectId, sourceApp)
   }
 
-  @ApiOperation(value = "Get all pipelines for project", response = List.class)
+  @Operation(summary = "Get all pipelines for project")
   @RequestMapping(value = "/{id:.+}/pipelines", method = RequestMethod.GET)
   List<Map> allPipelinesForProject(@PathVariable("id") String projectId,
                                    @RequestParam(value = "limit", defaultValue = "5") int limit,

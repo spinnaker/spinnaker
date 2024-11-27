@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.RoleService
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,7 +31,7 @@ class RoleController {
   @Autowired
   RoleService roleService
 
-  @ApiOperation(value = "Retrieve a list of roles that can be used by the selected cloud provider")
+  @Operation(summary = "Retrieve a list of roles that can be used by the selected cloud provider")
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
   List all(@PathVariable String cloudProvider) {
     roleService.getRoles(cloudProvider)

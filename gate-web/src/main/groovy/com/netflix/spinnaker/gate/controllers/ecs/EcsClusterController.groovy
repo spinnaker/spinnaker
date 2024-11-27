@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers.ecs
 
 import com.netflix.spinnaker.gate.services.EcsClusterService
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,13 +29,13 @@ class EcsClusterController {
   @Autowired
   EcsClusterService ecsClusterService
 
-  @ApiOperation(value = "Retrieve a list of ECS clusters that can be used for the account and region.")
+  @Operation(summary = "Retrieve a list of ECS clusters that can be used for the account and region.")
   @RequestMapping(value = "/ecs/ecsClusters", method = RequestMethod.GET)
   List all() {
     ecsClusterService.getAllEcsClusters()
   }
 
-  @ApiOperation(value = "Retrieve a list of Ecs Cluster Description WRT account and region")
+  @Operation(summary = "Retrieve a list of Ecs Cluster Description WRT account and region")
   @RequestMapping(value = "/ecs/ecsClusterDescriptions/{account}/{region}", method = RequestMethod.GET)
   List getEcsClusterDescriptions(@PathVariable String account, @PathVariable String region) {
     ecsClusterService.getEcsClusterDescriptions(account, region)

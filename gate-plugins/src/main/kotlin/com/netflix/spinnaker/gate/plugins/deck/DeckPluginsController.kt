@@ -16,7 +16,8 @@
 package com.netflix.spinnaker.gate.plugins.deck
 
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
+
 import java.util.concurrent.TimeUnit
 import javax.servlet.http.HttpServletResponse
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -36,13 +37,13 @@ class DeckPluginsController(
   private val deckPluginService: DeckPluginService
 ) {
 
-  @ApiOperation(value = "Retrieve a plugin manifest")
+  @Operation(summary = "Retrieve a plugin manifest")
   @GetMapping("/plugin-manifest.json")
   fun getPluginManifest(): List<DeckPluginVersion> {
     return deckPluginService.getPluginsManifests()
   }
 
-  @ApiOperation(value = "Retrieve a single plugin asset by version")
+  @Operation(summary = "Retrieve a single plugin asset by version")
   @GetMapping("/{pluginId}/{pluginVersion}/{asset:.*}")
   fun getPluginAsset(
     @PathVariable pluginId: String,

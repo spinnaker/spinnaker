@@ -50,7 +50,7 @@ dependencies {
       force = true					   // Unpin it after adoption of spring-boot-starter-graphql
    }
 
-  implementation "io.springfox:springfox-swagger2"
+  implementation "org.springdoc:springdoc-openapi-ui:1.8.0"
 
   implementation "io.cloudevents:cloudevents-spring:2.5.0"
   implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"

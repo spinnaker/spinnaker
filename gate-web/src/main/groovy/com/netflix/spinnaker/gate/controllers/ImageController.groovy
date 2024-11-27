@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ImageService
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -30,7 +30,7 @@ class ImageController {
   @Autowired
   ImageService imageService
 
-  @ApiOperation(value = "Get image details", response = List.class)
+  @Operation(summary = "Get image details")
   @RequestMapping(value = "/{account}/{region}/{imageId:.+}", method = RequestMethod.GET)
   List<Map> getImageDetails(@PathVariable(value = "account") String account,
                             @PathVariable(value = "region") String region,
@@ -40,9 +40,8 @@ class ImageController {
     imageService.getForAccountAndRegion(provider, account, region, imageId, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of images, filtered by cloud provider, region, and account",
-                notes = "The query parameter `q` filters the list of images by image name",
-                response = List.class)
+  @Operation(summary = "Retrieve a list of images, filtered by cloud provider, region, and account",
+                description = "The query parameter `q` filters the list of images by image name")
   @RequestMapping(value = "/find", method = RequestMethod.GET)
   List<Map> findImages(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
                        @RequestParam(value = "q", required = false) String query,
@@ -58,7 +57,7 @@ class ImageController {
     imageService.search(provider, query, region, account, count, additionalFilters, httpServletRequest.getHeader("X-RateLimit-Header"))
   }
 
-  @ApiOperation(value = "Find tags", response = List.class)
+  @Operation(summary = "Find tags")
   @RequestMapping(value = "/tags", method = RequestMethod.GET)
   List<String> findTags(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
                         @RequestParam(value = "account", required = true) String account,

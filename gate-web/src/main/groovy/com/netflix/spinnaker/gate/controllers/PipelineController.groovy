@@ -32,10 +32,9 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
-import io.swagger.annotations.Example
-import io.swagger.annotations.ExampleProperty
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
@@ -72,7 +71,7 @@ class PipelineController {
   }
 
   @CompileDynamic
-  @ApiOperation(value = "Delete a pipeline definition")
+  @Operation(summary = "Delete a pipeline definition")
   @DeleteMapping("/{application}/{pipelineName:.+}")
   void deletePipeline(@PathVariable String application, @PathVariable String pipelineName) {
     List<Map> pipelineConfigs = front50Service.getPipelineConfigsForApplication(application, null, true)
@@ -107,7 +106,7 @@ class PipelineController {
   }
 
   @CompileDynamic
-  @ApiOperation(value = "Save a pipeline definition")
+  @Operation(summary = "Save a pipeline definition")
   @PostMapping('')
   void savePipeline(
     @RequestBody Map pipeline,
@@ -137,12 +136,12 @@ class PipelineController {
   }
 
   @CompileDynamic
-  @ApiOperation(value = "Save a list of pipelines")
+  @Operation(summary = "Save a list of pipelines")
   @PostMapping('/bulksave')
   Map bulksavePipeline(
     @RequestParam(defaultValue = "bulk_save_placeholder_app")
-    @ApiParam(value = "Application in which to run the bulk save task",
-      defaultValue = "bulk_save_placeholder_app",
+    @Parameter(description = "Application in which to run the bulk save task",
+      example = "bulk_save_placeholder_app",
       required = false) String application,
     @RequestBody List<Map> pipelines) {
     def operation = [
@@ -176,13 +175,13 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Rename a pipeline definition")
+  @Operation(summary = "Rename a pipeline definition")
   @PostMapping('move')
   void renamePipeline(@RequestBody Map renameCommand) {
     pipelineService.move(renameCommand)
   }
 
-  @ApiOperation(value = "Retrieve a pipeline execution")
+  @Operation(summary = "Retrieve a pipeline execution")
   @GetMapping("{id}")
   Map getPipeline(@PathVariable("id") String id) {
     try {
@@ -195,7 +194,7 @@ class PipelineController {
   }
 
   @CompileDynamic
-  @ApiOperation(value = "Update a pipeline definition", response = HashMap.class)
+  @Operation(summary = "Update a pipeline definition")
   @PutMapping("{id}")
   Map updatePipeline(@PathVariable("id") String id, @RequestBody Map pipeline) {
     def operation = [
@@ -225,7 +224,7 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Cancel a pipeline execution")
+  @Operation(summary = "Cancel a pipeline execution")
   @PutMapping("{id}/cancel")
   void cancelPipeline(@PathVariable("id") String id,
                       @RequestParam(required = false) String reason,
@@ -233,25 +232,25 @@ class PipelineController {
     pipelineService.cancelPipeline(id, reason, force)
   }
 
-  @ApiOperation(value = "Pause a pipeline execution")
+  @Operation(summary = "Pause a pipeline execution")
   @PutMapping("{id}/pause")
   void pausePipeline(@PathVariable("id") String id) {
     pipelineService.pausePipeline(id)
   }
 
-  @ApiOperation(value = "Resume a pipeline execution", response = HashMap.class)
+  @Operation(summary = "Resume a pipeline execution")
   @PutMapping("{id}/resume")
   void resumePipeline(@PathVariable("id") String id) {
     pipelineService.resumePipeline(id)
   }
 
-  @ApiOperation(value = "Update a stage execution", response = HashMap.class)
+  @Operation(summary = "Update a stage execution")
   @PatchMapping("/{id}/stages/{stageId}")
   Map updateStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
     pipelineService.updatePipelineStage(id, stageId, context)
   }
 
-  @ApiOperation(value = "Restart a stage execution", response = HashMap.class)
+  @Operation(summary = "Restart a stage execution")
   @PutMapping("/{id}/stages/{stageId}/restart")
   Map restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
     Map pipelineMap = getPipeline(id)
@@ -273,13 +272,13 @@ class PipelineController {
     pipelineService.restartPipelineStage(id, stageId, context)
   }
 
-  @ApiOperation(value = "Delete a pipeline execution", response = HashMap.class)
+  @Operation(summary = "Delete a pipeline execution")
   @DeleteMapping("{id}")
   Map deletePipeline(@PathVariable("id") String id) {
     pipelineService.deletePipeline(id);
   }
 
-  @ApiOperation(value = "Initiate a pipeline execution")
+  @Operation(summary = "Initiate a pipeline execution")
   @PostMapping('/start')
   ResponseEntity start(@RequestBody Map map) {
     if (map.containsKey("application")) {
@@ -291,7 +290,7 @@ class PipelineController {
     })
   }
 
-  @ApiOperation(value = "Trigger a pipeline execution")
+  @Operation(summary = "Trigger a pipeline execution")
   @PostMapping("/{application}/{pipelineNameOrId:.+}")
   @ResponseBody
   @ResponseStatus(HttpStatus.ACCEPTED)
@@ -315,7 +314,7 @@ class PipelineController {
         value("application", application), value("pipelineId", pipelineNameOrId), e.getMessage())
   }
 
-  @ApiOperation(value = "Trigger a pipeline execution", response = Map.class)
+  @Operation(summary = "Trigger a pipeline execution")
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'EXECUTE')")
   @PostMapping("/v2/{application}/{pipelineNameOrId:.+}")
   HttpEntity invokePipelineConfigViaEcho(@PathVariable("application") String application,
@@ -333,7 +332,7 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Evaluate a pipeline expression using the provided execution as context", response = HashMap.class)
+  @Operation(summary = "Evaluate a pipeline expression using the provided execution as context")
   @GetMapping("{id}/evaluateExpression")
   Map evaluateExpressionForExecution(@PathVariable("id") String id,
                                      @RequestParam("expression") String pipelineExpression) {
@@ -346,7 +345,7 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Evaluate a pipeline expression using the provided execution as context", response = HashMap.class)
+  @Operation(summary = "Evaluate a pipeline expression using the provided execution as context")
   @PostMapping(value = "{id}/evaluateExpression", consumes = "text/plain")
   Map evaluateExpressionForExecutionViaPOST(@PathVariable("id") String id,
                                             @RequestBody String pipelineExpression) {
@@ -359,7 +358,7 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Evaluate a pipeline expression at a specific stage using the provided execution as context", response = HashMap.class)
+  @Operation(summary = "Evaluate a pipeline expression at a specific stage using the provided execution as context")
   @GetMapping("{id}/{stageId}/evaluateExpression")
   Map evaluateExpressionForExecutionAtStage(@PathVariable("id") String id,
                                             @PathVariable("stageId") String stageId,
@@ -373,7 +372,7 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Evaluate a pipeline expression using the provided execution as context", response = HashMap.class)
+  @Operation(summary = "Evaluate a pipeline expression using the provided execution as context")
   @PostMapping(value = "{id}/evaluateExpression", consumes = "application/json")
   Map evaluateExpressionForExecutionViaPOST(@PathVariable("id") String id,
                                             @RequestBody Map pipelineExpression) {
@@ -386,19 +385,18 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Evaluate variables same as Evaluate Variables stage using the provided execution as context", response = HashMap.class)
+  @Operation(summary = "Evaluate variables same as Evaluate Variables stage using the provided execution as context")
   @PostMapping(value = "{id}/evaluateVariables", consumes = "application/json")
-  Map evaluateVariables(@ApiParam(value = "Execution id to run against", required = true)
+  Map evaluateVariables(@Parameter(description = "Execution id to run against", required = true)
                         @RequestParam("executionId") String executionId,
-                        @ApiParam(value = "Comma separated list of requisite stage IDs for the evaluation stage", required = false)
+                        @Parameter(description = "Comma separated list of requisite stage IDs for the evaluation stage", required = false)
                         @RequestParam(value = "requisiteStageRefIds", defaultValue = "") String requisiteStageRefIds,
-                        @ApiParam(value = "Version of SpEL evaluation logic to use (v3 or v4)", required = false)
+                        @Parameter(description = "Version of SpEL evaluation logic to use (v3 or v4)", required = false)
                         @RequestParam(value = "spelVersion", defaultValue = "") String spelVersionOverride,
-                        @ApiParam(value = "List of variables/expressions to evaluate",
+                        @Parameter(description = "List of variables/expressions to evaluate",
                           required = true,
-                          examples = @Example(value =
-                            @ExampleProperty(mediaType = "application/json", value = '[{"key":"a","value":"1"},{"key":"b","value":"2"},{"key":"sum","value":"${a+b}"}]')
-                          ))
+                          example = '[{"key":"a","value":"1"},{"key":"b","value":"2"},{"key":"sum","value":"${a+b}"}]'
+                        )
                         @RequestBody List<Map<String, String>> expressions) {
     try {
       return pipelineService.evaluateVariables(executionId, requisiteStageRefIds, spelVersionOverride, expressions)

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.JobService
 import groovy.transform.CompileStatic
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -29,7 +29,7 @@ class JobController {
   @Autowired
   JobService jobService
 
-  @ApiOperation(value = "Get job", response = HashMap.class)
+  @Operation(summary = "Get job")
   @RequestMapping(value = "/applications/{applicationName}/jobs/{account}/{region}/{name}", method = RequestMethod.GET)
   Map getJob(@PathVariable String applicationName, @PathVariable String account,
              @PathVariable String region,
@@ -39,7 +39,7 @@ class JobController {
     jobService.getForApplicationAndAccountAndRegion(applicationName, account, region, name, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of preconfigured jobs in Orca")
+  @Operation(summary = "Retrieve a list of preconfigured jobs in Orca")
   @RequestMapping(value = "/jobs/preconfigured", method = RequestMethod.GET)
   List preconfiguredWebhooks() {
     jobService.getPreconfiguredJobs()

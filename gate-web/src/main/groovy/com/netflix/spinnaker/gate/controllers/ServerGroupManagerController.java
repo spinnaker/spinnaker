@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.ServerGroupManagerService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +36,7 @@ public class ServerGroupManagerController {
     this.serverGroupManagerService = serverGroupManagerService;
   }
 
-  @ApiOperation(
-      value = "Retrieve a list of server group managers for an application",
-      response = List.class)
+  @Operation(summary = "Retrieve a list of server group managers for an application")
   @RequestMapping(method = RequestMethod.GET)
   public List<Map> getServerGroupManagersForApplication(@PathVariable String application) {
     return this.serverGroupManagerService.getServerGroupManagersForApplication(application);

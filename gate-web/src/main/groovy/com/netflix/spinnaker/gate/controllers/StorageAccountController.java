@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.appengine.StorageAccountService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -32,7 +32,7 @@ public class StorageAccountController {
 
   @Autowired private StorageAccountService storageAccountService;
 
-  @ApiOperation(value = "Retrieve the list of storage accounts configured in Clouddriver.")
+  @Operation(summary = "Retrieve the list of storage accounts configured in Clouddriver.")
   @RequestMapping(method = RequestMethod.GET)
   List<String> all(@RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return storageAccountService.getAppengineStorageAccounts(sourceApp);

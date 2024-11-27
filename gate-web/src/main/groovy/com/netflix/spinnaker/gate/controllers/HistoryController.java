@@ -2,7 +2,7 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.internal.KeelService;
 import groovy.util.logging.Slf4j;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public class HistoryController {
     this.keelService = keelService;
   }
 
-  @ApiOperation(value = "Get history for a resource", response = List.class)
+  @Operation(summary = "Get history for a resource")
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   List<Map<String, Object>> getHistory(
       @PathVariable("name") String name,

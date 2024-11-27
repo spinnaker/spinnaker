@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.gate.controllers.ecs;
 
 import com.netflix.spinnaker.gate.services.EcsServiceDiscoveryService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class EcsServiceDiscoveryController {
   @Autowired private EcsServiceDiscoveryService ecsServiceDiscoveryService;
 
-  @ApiOperation(
-      value = "Retrieve a list of Cloud Map services that can be used for the account and region.")
+  @Operation(
+      summary =
+          "Retrieve a list of Cloud Map services that can be used for the account and region.")
   @GetMapping(value = "/ecs/serviceDiscoveryRegistries")
   public List<Map> all() {
     return ecsServiceDiscoveryService.getAllEcsServiceDiscoveryRegistries();

@@ -28,6 +28,7 @@ dependencies {
     api("io.spinnaker.fiat:fiat-api:$fiatVersion")
     api("io.spinnaker.fiat:fiat-core:$fiatVersion")
 
+
     rootProject
       .subprojects
       .findAll { it != project }

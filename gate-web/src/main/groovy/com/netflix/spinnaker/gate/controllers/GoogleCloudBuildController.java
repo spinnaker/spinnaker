@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.controllers;
 import com.netflix.spinnaker.gate.services.BuildService;
 import com.netflix.spinnaker.gate.services.internal.GoogleCloudBuildTrigger;
 import com.netflix.spinnaker.gate.services.internal.IgorService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,15 +41,13 @@ public class GoogleCloudBuildController {
     this.buildService = buildService;
   }
 
-  @ApiOperation(value = "Retrieve the list of Google Cloud Build accounts", response = List.class)
+  @Operation(summary = "Retrieve the list of Google Cloud Build accounts")
   @GetMapping(value = "/accounts")
   List<String> getAccounts() {
     return igorService.getGoogleCloudBuildAccounts();
   }
 
-  @ApiOperation(
-      value = "Retrieve the list of Google Cloud Build triggers for a given account",
-      response = List.class)
+  @Operation(summary = "Retrieve the list of Google Cloud Build triggers for a given account")
   @GetMapping(value = "/triggers/{account}")
   List<GoogleCloudBuildTrigger> getGoogleCloudBuildTriggers(
       @PathVariable("account") String account) {

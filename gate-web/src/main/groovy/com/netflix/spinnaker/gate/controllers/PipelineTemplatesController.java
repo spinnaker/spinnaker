@@ -22,7 +22,7 @@ import com.netflix.spinnaker.gate.services.PipelineTemplateService;
 import com.netflix.spinnaker.gate.services.PipelineTemplateService.PipelineTemplateDependent;
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
@@ -61,13 +61,13 @@ public class PipelineTemplatesController {
     this.objectMapper = objectMapper;
   }
 
-  @ApiOperation(value = "List pipeline templates.", response = List.class)
+  @Operation(summary = "List pipeline templates.")
   @RequestMapping(method = RequestMethod.GET)
   public Collection<Map> list(@RequestParam(required = false) List<String> scopes) {
     return pipelineTemplateService.findByScope(scopes);
   }
 
-  @ApiOperation(value = "Create a pipeline template.", response = HashMap.class)
+  @Operation(summary = "Create a pipeline template.")
   @RequestMapping(method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map create(@RequestBody Map<String, Object> pipelineTemplate) {
@@ -94,7 +94,7 @@ public class PipelineTemplatesController {
     return taskService.create(operation);
   }
 
-  @ApiOperation(value = "Resolve a pipeline template.", response = HashMap.class)
+  @Operation(summary = "Resolve a pipeline template.")
   @RequestMapping(value = "/resolve", method = RequestMethod.GET)
   public Map resolveTemplates(
       @RequestParam String source,
@@ -103,13 +103,13 @@ public class PipelineTemplatesController {
     return pipelineTemplateService.resolve(source, executionId, pipelineConfigId);
   }
 
-  @ApiOperation(value = "Get a pipeline template.", response = HashMap.class)
+  @Operation(summary = "Get a pipeline template.")
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   public Map get(@PathVariable String id) {
     return pipelineTemplateService.get(id);
   }
 
-  @ApiOperation(value = "Update a pipeline template.", response = HashMap.class)
+  @Operation(summary = "Update a pipeline template.")
   @RequestMapping(value = "/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map update(
@@ -142,7 +142,7 @@ public class PipelineTemplatesController {
     return taskService.create(operation);
   }
 
-  @ApiOperation(value = "Delete a pipeline template.", response = HashMap.class)
+  @Operation(summary = "Delete a pipeline template.")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map delete(
@@ -163,9 +163,7 @@ public class PipelineTemplatesController {
     return taskService.create(operation);
   }
 
-  @ApiOperation(
-      value = "List all pipelines that implement a pipeline template",
-      response = List.class)
+  @Operation(summary = "List all pipelines that implement a pipeline template")
   @RequestMapping(value = "/{id}/dependents", method = RequestMethod.GET)
   public List<PipelineTemplateDependent> listPipelineTemplateDependents(
       @PathVariable String id,

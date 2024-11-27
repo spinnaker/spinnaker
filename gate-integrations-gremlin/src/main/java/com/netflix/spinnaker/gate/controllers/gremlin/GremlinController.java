@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.gate.controllers.gremlin;
 
 import com.netflix.spinnaker.gate.services.gremlin.GremlinService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +24,14 @@ class GremlinController {
     this.gremlinService = gremlinService;
   }
 
-  @ApiOperation(value = "Retrieve a list of gremlin command templates")
+  @Operation(summary = "Retrieve a list of gremlin command templates")
   @RequestMapping(value = "/templates/command", method = RequestMethod.POST)
   List listCommandTemplates(@RequestBody(required = true) Map apiKeyMap) {
     String apiKeyValue = (String) apiKeyMap.get(APIKEY_KEY);
     return gremlinService.getCommandTemplates("Key " + apiKeyValue);
   }
 
-  @ApiOperation(value = "Retrieve a list of gremlin target templates")
+  @Operation(summary = "Retrieve a list of gremlin target templates")
   @RequestMapping(value = "/templates/target", method = RequestMethod.POST)
   List listTargetTemplates(@RequestBody(required = true) Map apiKeyMap) {
     String apiKeyValue = (String) apiKeyMap.get(APIKEY_KEY);

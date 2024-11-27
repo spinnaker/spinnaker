@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.RawResourceService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +33,7 @@ public class RawResourceController {
     this.rawResourceService = rawResourceService;
   }
 
-  @ApiOperation(
-      value = "Retrieve a list of raw resources for a given application",
-      response = List.class)
+  @Operation(summary = "Retrieve a list of raw resources for a given application")
   @RequestMapping(value = "/applications/{application}/rawResources", method = RequestMethod.GET)
   List<Map<String, Object>> getApplicationRawResources(@PathVariable String application) {
     return rawResourceService.getApplicationRawResources(application);

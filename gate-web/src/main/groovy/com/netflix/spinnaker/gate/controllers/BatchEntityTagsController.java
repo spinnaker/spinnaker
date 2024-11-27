@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.TaskService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +37,7 @@ public class BatchEntityTagsController {
     this.taskService = taskService;
   }
 
-  @ApiOperation(value = "Batch update a set of entity tags.", response = HashMap.class)
+  @Operation(summary = "Batch update a set of entity tags.")
   @RequestMapping(method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map batchUpdate(

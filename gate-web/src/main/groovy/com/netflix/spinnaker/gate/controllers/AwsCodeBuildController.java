@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.internal.IgorService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,15 +31,13 @@ public class AwsCodeBuildController {
 
   private final IgorService igorService;
 
-  @ApiOperation(value = "Retrieve the list of AWS CodeBuild accounts", response = List.class)
+  @Operation(summary = "Retrieve the list of AWS CodeBuild accounts")
   @GetMapping(value = "/accounts")
   List<String> getAccounts() {
     return igorService.getAwsCodeBuildAccounts();
   }
 
-  @ApiOperation(
-      value = "Retrieve the list of AWS CodeBuild projects in the account",
-      response = List.class)
+  @Operation(summary = "Retrieve the list of AWS CodeBuild projects in the account")
   @GetMapping(value = "/projects/{account}")
   List<String> getProjects(@PathVariable String account) {
     return igorService.getAwsCodeBuildProjects(account);

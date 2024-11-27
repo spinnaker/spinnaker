@@ -18,7 +18,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -30,37 +30,37 @@ class TaskController {
   @Autowired
   TaskService taskService
 
-  @ApiOperation(value = "Get task", response = HashMap.class)
+  @Operation(summary = "Get task")
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   Map getTask(@PathVariable("id") String id) {
     taskService.getTask(id)
   }
 
-  @ApiOperation(value = "Delete task", response = HashMap.class)
+  @Operation(summary = "Delete task")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   Map deleteTask(@PathVariable("id") String id) {
     taskService.deleteTask(id)
   }
 
-  @ApiOperation(value = "Create task", response = HashMap.class)
+  @Operation(summary = "Create task")
   @RequestMapping(method = RequestMethod.POST)
   Map task(@RequestBody Map map) {
     taskService.createAppTask(map)
   }
 
-  @ApiOperation(value = "Cancel task", response = HashMap.class)
+  @Operation(summary = "Cancel task")
   @RequestMapping(value = "/{id}/cancel", method = RequestMethod.PUT)
   Map cancelTask(@PathVariable("id") String id) {
     taskService.cancelTask(id)
   }
 
-  @ApiOperation(value = "Cancel tasks", response = HashMap.class)
+  @Operation(summary = "Cancel tasks")
   @RequestMapping(value = "/cancel", method = RequestMethod.PUT)
   Map cancelTasks(@RequestParam List<String> ids) {
     taskService.cancelTasks(ids)
   }
 
-  @ApiOperation(value = "Get task details", response = HashMap.class)
+  @Operation(summary = "Get task details")
   @RequestMapping(value = "/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
   Map getTaskDetails(@PathVariable("id") String id,
                      @PathVariable("taskDetailsId") String taskDetailsId,

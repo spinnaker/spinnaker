@@ -20,7 +20,7 @@ import com.netflix.spinnaker.kork.web.interceptors.Criticality;
 import groovy.util.logging.Slf4j;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -96,7 +96,7 @@ public class ManagedController {
             .build());
   }
 
-  @ApiOperation(value = "Post a graphql request", response = Map.class)
+  @Operation(summary = "Post a graphql request")
   @PostMapping(
       path = "/graphql",
       consumes = {APPLICATION_JSON_VALUE},
@@ -105,19 +105,19 @@ public class ManagedController {
     return keelService.graphql(query);
   }
 
-  @ApiOperation(value = "Get a resource", response = Resource.class)
+  @Operation(summary = "Get a resource")
   @GetMapping(path = "/resources/{resourceId}")
   Resource getResource(@PathVariable("resourceId") String resourceId) {
     return keelService.getResource(resourceId);
   }
 
-  @ApiOperation(value = "Get a resource", response = Resource.class)
+  @Operation(summary = "Get a resource")
   @GetMapping(path = "/resources/{resourceId}.yml", produces = APPLICATION_YAML_VALUE)
   Resource getResourceYaml(@PathVariable("resourceId") String resourceId) {
     return keelService.getResourceYaml(resourceId);
   }
 
-  @ApiOperation(value = "Get status of a resource", response = Map.class)
+  @Operation(summary = "Get status of a resource")
   @GetMapping(path = "/resources/{resourceId}/status")
   Map getResourceStatus(@PathVariable("resourceId") String resourceId) {
     Map<String, String> status = new HashMap<>();
@@ -125,7 +125,7 @@ public class ManagedController {
     return status;
   }
 
-  @ApiOperation(value = "Ad-hoc validate and diff a resource", response = Map.class)
+  @Operation(summary = "Ad-hoc validate and diff a resource")
   @PostMapping(
       path = "/resources/diff",
       consumes = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE},
@@ -134,21 +134,19 @@ public class ManagedController {
     return keelService.diffResource(resource);
   }
 
-  @ApiOperation(value = "Pause management of a resource")
+  @Operation(summary = "Pause management of a resource")
   @PostMapping(path = "/resources/{resourceId}/pause")
   void pauseResource(@PathVariable("resourceId") String resourceId) {
     keelService.pauseResource(resourceId, Collections.emptyMap());
   }
 
-  @ApiOperation(value = "Resume management of a resource")
+  @Operation(summary = "Resume management of a resource")
   @DeleteMapping(path = "/resources/{resourceId}/pause")
   void resumeResource(@PathVariable("resourceId") String resourceId) {
     keelService.resumeResource(resourceId);
   }
 
-  @ApiOperation(
-      value = "Generate a keel resource definition for a deployed cloud resource",
-      response = Resource.class)
+  @Operation(summary = "Generate a keel resource definition for a deployed cloud resource")
   @GetMapping(path = "/resources/export/{cloudProvider}/{account}/{type}/{name}")
   ResponseEntity<Resource> exportResource(
       @PathVariable("cloudProvider") String cloudProvider,
@@ -161,9 +159,8 @@ public class ManagedController {
     return new ResponseEntity<>(resource, yamlResponseHeaders, HttpStatus.OK);
   }
 
-  @ApiOperation(
-      value = "Generates an artifact definition based on the artifact used in a running cluster",
-      response = Map.class)
+  @Operation(
+      summary = "Generates an artifact definition based on the artifact used in a running cluster")
   @GetMapping(path = "/resources/export/artifact/{cloudProvider}/{account}/{clusterName}")
   ResponseEntity<Map> exportResource(
       @PathVariable("cloudProvider") String cloudProvider,
@@ -173,30 +170,26 @@ public class ManagedController {
     return new ResponseEntity<>(artifact, yamlResponseHeaders, HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Get a delivery config manifest", response = DeliveryConfig.class)
+  @Operation(summary = "Get a delivery config manifest")
   @GetMapping(path = "/delivery-configs/{name}")
   DeliveryConfig getManifest(@PathVariable("name") String name) {
     return keelService.getManifest(name);
   }
 
-  @ApiOperation(value = "Get a delivery config manifest", response = DeliveryConfig.class)
+  @Operation(summary = "Get a delivery config manifest")
   @GetMapping(path = "/delivery-configs/{name}.yml", produces = APPLICATION_YAML_VALUE)
   DeliveryConfig getManifestYaml(@PathVariable("name") String name) {
     return keelService.getManifestYaml(name);
   }
 
-  @ApiOperation(
-      value = "Get the status of each version of each artifact in each environment",
-      response = List.class)
+  @Operation(summary = "Get the status of each version of each artifact in each environment")
   @GetMapping(path = "/delivery-configs/{name}/artifacts")
   List<Map<String, Object>> getManifestArtifacts(@PathVariable("name") String name) {
     return keelService.getManifestArtifacts(name);
   }
 
   @SneakyThrows
-  @ApiOperation(
-      value = "Create or update a delivery config manifest",
-      response = DeliveryConfig.class)
+  @Operation(summary = "Create or update a delivery config manifest")
   @PostMapping(
       path = "/delivery-configs",
       consumes = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE},
@@ -207,13 +200,13 @@ public class ManagedController {
         .executeCallable(() -> keelService.upsertManifest(manifest));
   }
 
-  @ApiOperation(value = "Delete a delivery config manifest", response = DeliveryConfig.class)
+  @Operation(summary = "Delete a delivery config manifest")
   @DeleteMapping(path = "/delivery-configs/{name}")
   DeliveryConfig deleteManifest(@PathVariable("name") String name) {
     return keelService.deleteManifest(name);
   }
 
-  @ApiOperation(value = "Validate a delivery config manifest", response = Map.class)
+  @Operation(summary = "Validate a delivery config manifest")
   @PostMapping(
       path = "/delivery-configs/validate",
       consumes = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE},
@@ -231,7 +224,7 @@ public class ManagedController {
     }
   }
 
-  @ApiOperation(value = "Ad-hoc validate and diff a config manifest", response = Map.class)
+  @Operation(summary = "Ad-hoc validate and diff a config manifest")
   @PostMapping(
       path = "/delivery-configs/diff",
       consumes = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE},
@@ -240,7 +233,7 @@ public class ManagedController {
     return keelService.diffManifest(manifest);
   }
 
-  @ApiOperation(value = "Ad-hoc validate and diff a config manifest", response = Map.class)
+  @Operation(summary = "Ad-hoc validate and diff a config manifest")
   @GetMapping(
       path = "/delivery-configs/schema",
       produces = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE})
@@ -248,9 +241,7 @@ public class ManagedController {
     return keelService.schema();
   }
 
-  @ApiOperation(
-      value = "List up-to {limit} current constraint states for an environment",
-      response = ConstraintState.class)
+  @Operation(summary = "List up-to {limit} current constraint states for an environment")
   @GetMapping(path = "/application/{application}/environment/{environment}/constraints")
   List<ConstraintState> getConstraintState(
       @PathVariable("application") String application,
@@ -259,23 +250,19 @@ public class ManagedController {
     return keelService.getConstraintState(application, environment, Integer.valueOf(limit));
   }
 
-  @ApiOperation(
-      value = "Get the delivery config associated with an application",
-      response = DeliveryConfig.class)
+  @Operation(summary = "Get the delivery config associated with an application")
   @GetMapping(path = "/application/{application}/config")
   DeliveryConfig getConfigBy(@PathVariable("application") String application) {
     return keelService.getConfigBy(application);
   }
 
-  @ApiOperation(
-      value = "Delete a delivery config manifest for an application",
-      response = DeliveryConfig.class)
+  @Operation(summary = "Delete a delivery config manifest for an application")
   @DeleteMapping(path = "/application/{application}/config")
   DeliveryConfig deleteManifestByApp(@PathVariable("application") String application) {
     return keelService.deleteManifestByAppName(application);
   }
 
-  @ApiOperation(value = "Update the status of an environment constraint")
+  @Operation(summary = "Update the status of an environment constraint")
   @PostMapping(path = "/application/{application}/environment/{environment}/constraint")
   void updateConstraintStatus(
       @PathVariable("application") String application,
@@ -284,7 +271,7 @@ public class ManagedController {
     keelService.updateConstraintStatus(application, environment, status);
   }
 
-  @ApiOperation(value = "Get managed details about an application", response = Map.class)
+  @Operation(summary = "Get managed details about an application")
   @GetMapping(path = "/application/{application}")
   Map getApplicationDetails(
       @PathVariable("application") String application,
@@ -297,27 +284,27 @@ public class ManagedController {
         application, includeDetails, entities, maxArtifactVersions);
   }
 
-  @ApiOperation(value = "Pause management of an entire application")
+  @Operation(summary = "Pause management of an entire application")
   @PostMapping(path = "/application/{application}/pause")
   void pauseApplication(@PathVariable("application") String application) {
     keelService.pauseApplication(application, Collections.emptyMap());
   }
 
-  @ApiOperation(value = "Resume management of an entire application")
+  @Operation(summary = "Resume management of an entire application")
   @DeleteMapping(path = "/application/{application}/pause")
   void resumeApplication(@PathVariable("application") String application) {
     keelService.resumeApplication(application);
   }
 
-  @ApiOperation(value = "Create a pin for an artifact in an environment")
+  @Operation(summary = "Create a pin for an artifact in an environment")
   @PostMapping(path = "/application/{application}/pin")
   void createPin(
       @PathVariable("application") String application, @RequestBody EnvironmentArtifactPin pin) {
     keelService.pin(application, pin);
   }
 
-  @ApiOperation(
-      value =
+  @Operation(
+      summary =
           "Unpin one or more artifact(s) in an environment. If the `reference` parameter is specified, only "
               + "the corresponding artifact will be unpinned. If it's omitted, all pinned artifacts in the environment will be "
               + "unpinned.")
@@ -329,14 +316,14 @@ public class ManagedController {
     keelService.deletePinForEnvironment(application, targetEnvironment, reference);
   }
 
-  @ApiOperation(value = "Veto an artifact version in an environment")
+  @Operation(summary = "Veto an artifact version in an environment")
   @PostMapping(path = "/application/{application}/veto")
   void veto(
       @PathVariable("application") String application, @RequestBody EnvironmentArtifactVeto veto) {
     keelService.veto(application, veto);
   }
 
-  @ApiOperation(value = "Remove veto of an artifact version in an environment")
+  @Operation(summary = "Remove veto of an artifact version in an environment")
   @DeleteMapping(path = "/application/{application}/veto/{targetEnvironment}/{reference}/{version}")
   void deleteVeto(
       @PathVariable("application") String application,
@@ -346,21 +333,21 @@ public class ManagedController {
     keelService.deleteVeto(application, targetEnvironment, reference, version);
   }
 
-  @ApiOperation(value = "Veto an artifact version in an environment")
+  @Operation(summary = "Veto an artifact version in an environment")
   @PostMapping(path = "/application/{application}/mark/bad")
   void markBad(
       @PathVariable("application") String application, @RequestBody EnvironmentArtifactVeto veto) {
     keelService.markBad(application, veto);
   }
 
-  @ApiOperation(value = "Delete veto of an artifact version in an environment")
+  @Operation(summary = "Delete veto of an artifact version in an environment")
   @PostMapping(path = "/application/{application}/mark/good")
   void markGood(
       @PathVariable("application") String application, @RequestBody EnvironmentArtifactVeto veto) {
     keelService.markGood(application, veto);
   }
 
-  @ApiOperation(value = "Override the status of a verification")
+  @Operation(summary = "Override the status of a verification")
   @PostMapping(path = "/{application}/environment/{environment}/verifications")
   void overrideVerification(
       @PathVariable("application") String application,
@@ -369,7 +356,7 @@ public class ManagedController {
     keelService.overrideVerification(application, environment, payload);
   }
 
-  @ApiOperation(value = "Retry a verification")
+  @Operation(summary = "Retry a verification")
   @PostMapping(path = "/{application}/environment/{environment}/verifications/retry")
   void retryVerification(
       @PathVariable("application") String application,
@@ -388,7 +375,7 @@ public class ManagedController {
     return notificationService.processNotificationCallback(source, request, "keel");
   }
 
-  @ApiOperation(value = "Get a report of application onboarding")
+  @Operation(summary = "Get a report of application onboarding")
   @GetMapping(path = "/reports/onboarding")
   ResponseEntity<byte[]> getOnboardingReport(
       @RequestHeader(value = "Accept", defaultValue = "text/html") String accept,
@@ -410,7 +397,7 @@ public class ManagedController {
     return response;
   }
 
-  @ApiOperation(value = "Get a report of Managed Delivery adoption")
+  @Operation(summary = "Get a report of Managed Delivery adoption")
   @GetMapping(path = "/reports/adoption", produces = "text/html")
   ResponseEntity<byte[]> getAdoptionReport(@RequestParam Map<String, String> params)
       throws IOException {
@@ -420,7 +407,7 @@ public class ManagedController {
         .body(keelResponse.getBody().in().readAllBytes());
   }
 
-  @ApiOperation(value = "Get current environment details")
+  @Operation(summary = "Get current environment details")
   @GetMapping(path = "/environments/{application}", produces = MediaType.APPLICATION_JSON_VALUE)
   List<Map<String, Object>> getEnvironments(@PathVariable String application) {
     return keelService.getEnvironments(application);

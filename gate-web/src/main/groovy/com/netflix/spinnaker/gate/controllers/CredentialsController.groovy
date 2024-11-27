@@ -26,8 +26,8 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverService.Account
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import com.netflix.spinnaker.kork.annotations.Alpha
 import com.netflix.spinnaker.security.User
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -61,7 +61,7 @@ class CredentialsController {
     Boolean authorized
   }
 
-  @ApiOperation(value = "Retrieve a list of accounts")
+  @Operation(summary = "Retrieve a list of accounts")
   @RequestMapping(method = RequestMethod.GET)
   List<Account> getAccounts(@SpinnakerUser User user, @RequestParam(value = "expand", required = false) boolean expand) {
     List<AccountDetails> allAccounts = getAccountDetailsWithAuthorizedFlag(user)
@@ -83,7 +83,7 @@ class CredentialsController {
     return allAccounts
   }
 
-  @ApiOperation(value = "Retrieve an account's details")
+  @Operation(summary = "Retrieve an account's details")
   @RequestMapping(value = '/{account:.+}', method = RequestMethod.GET)
   AccountDetails getAccount(@SpinnakerUser User user, @PathVariable("account") String account,
                             @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
@@ -91,44 +91,44 @@ class CredentialsController {
   }
 
   @GetMapping('/type/{accountType}')
-  @ApiOperation('Looks up account definitions by type.')
+  @Operation(summary='Looks up account definitions by type.')
   @Alpha
   List<ClouddriverService.AccountDefinition> getAccountsByType(
-    @ApiParam(value = 'Value of the "@type" key for accounts to search for.', example = 'kubernetes')
+    @Parameter(description = 'Value of the "@type" key for accounts to search for.', example = 'kubernetes')
     @PathVariable String accountType,
-    @ApiParam('Maximum number of entries to return in results. Used for pagination.')
+    @Parameter(description='Maximum number of entries to return in results. Used for pagination.')
     @RequestParam(required = false) Integer limit,
-    @ApiParam('Account name to start account definition listing from. Used for pagination.')
+    @Parameter(description='Account name to start account definition listing from. Used for pagination.')
     @RequestParam(required = false) String startingAccountName
   ) {
     clouddriverService.getAccountDefinitionsByType(accountType, limit, startingAccountName)
   }
 
   @PostMapping
-  @ApiOperation('Creates a new account definition.')
+  @Operation(summary='Creates a new account definition.')
   @Alpha
   ClouddriverService.AccountDefinition createAccount(
-    @ApiParam('Account definition body including a discriminator field named "type" with the account type.')
+    @Parameter(description='Account definition body including a discriminator field named "type" with the account type.')
     @RequestBody ClouddriverService.AccountDefinition accountDefinition
   ) {
     clouddriverService.createAccountDefinition(accountDefinition)
   }
 
   @PutMapping
-  @ApiOperation('Updates an existing account definition.')
+  @Operation(summary='Updates an existing account definition.')
   @Alpha
   ClouddriverService.AccountDefinition updateAccount(
-    @ApiParam('Account definition body including a discriminator field named "type" with the account type.')
+    @Parameter(description='Account definition body including a discriminator field named "type" with the account type.')
     @RequestBody ClouddriverService.AccountDefinition accountDefinition
   ) {
     clouddriverService.updateAccountDefinition(accountDefinition)
   }
 
   @DeleteMapping('/{accountName}')
-  @ApiOperation('Deletes an account definition by name.')
+  @Operation(summary='Deletes an account definition by name.')
   @Alpha
   void deleteAccount(
-    @ApiParam('Name of account definition to delete.')
+    @Parameter(description='Name of account definition to delete.')
     @PathVariable String accountName
   ) {
     clouddriverService.deleteAccountDefinition(accountName)

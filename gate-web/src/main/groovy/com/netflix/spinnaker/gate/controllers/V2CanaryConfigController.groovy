@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.CanaryConfigService
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.web.bind.annotation.PathVariable
@@ -35,28 +35,28 @@ class V2CanaryConfigController {
   @Autowired
   CanaryConfigService canaryConfigService
 
-  @ApiOperation(value = "Retrieve a list of canary configurations")
+  @Operation(summary = "Retrieve a list of canary configurations")
   @RequestMapping(method = RequestMethod.GET)
   List getCanaryConfigs(@RequestParam(value = "application", required = false) String application,
                         @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName) {
     canaryConfigService.getCanaryConfigs(application, configurationAccountName)
   }
 
-  @ApiOperation(value = "Retrieve a canary configuration by id")
+  @Operation(summary = "Retrieve a canary configuration by id")
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   Map getCanaryConfig(@PathVariable String id,
                       @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName) {
     canaryConfigService.getCanaryConfig(id, configurationAccountName)
   }
 
-  @ApiOperation(value = "Create a canary configuration")
+  @Operation(summary = "Create a canary configuration")
   @RequestMapping(method = RequestMethod.POST)
   Map createCanaryConfig(@RequestBody Map config,
                          @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName) {
     canaryConfigService.createCanaryConfig(config, configurationAccountName)
   }
 
-  @ApiOperation(value = "Update a canary configuration")
+  @Operation(summary = "Update a canary configuration")
   @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
   Map updateCanaryConfig(@PathVariable String id,
                          @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName,
@@ -64,7 +64,7 @@ class V2CanaryConfigController {
     canaryConfigService.updateCanaryConfig(id, config, configurationAccountName)
   }
 
-  @ApiOperation(value = "Delete a canary configuration")
+  @Operation(summary = "Delete a canary configuration")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   void deleteCanaryConfig(@PathVariable String id,
                           @RequestParam(value = "configurationAccountName", required = false) String configurationAccountName) {

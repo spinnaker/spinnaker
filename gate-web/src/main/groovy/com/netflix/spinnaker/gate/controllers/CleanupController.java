@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.CleanupService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +35,7 @@ public class CleanupController {
     this.cleanupService = cleanupService;
   }
 
-  @ApiOperation(value = "Opt out of clean up for a marked resource.", response = Map.class)
+  @Operation(summary = "Opt out of clean up for a marked resource.")
   @RequestMapping(
       method = RequestMethod.GET,
       value = "/resources/{namespace}/{resourceId}/optOut",
@@ -51,7 +51,7 @@ public class CleanupController {
         namespace, resourceId, "Resource has been opted out of automated deletion.");
   }
 
-  @ApiOperation(value = "Get information about a marked resource.", response = Map.class)
+  @Operation(summary = "Get information about a marked resource.")
   @RequestMapping(
       method = RequestMethod.GET,
       value = "/resources/{namespace}/{resourceId}",
@@ -65,7 +65,7 @@ public class CleanupController {
     return markedResource;
   }
 
-  @ApiOperation(value = "Get all marked resources.", response = List.class)
+  @Operation(summary = "Get all marked resources.")
   @RequestMapping(
       method = RequestMethod.GET,
       value = "/resources/marked",
@@ -74,7 +74,7 @@ public class CleanupController {
     return cleanupService.getMarkedList();
   }
 
-  @ApiOperation(value = "Get all deleted resources.", response = List.class)
+  @Operation(summary = "Get all deleted resources.")
   @RequestMapping(
       method = RequestMethod.GET,
       value = "/resources/deleted",

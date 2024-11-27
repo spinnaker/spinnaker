@@ -21,8 +21,10 @@ import com.netflix.spinnaker.gate.services.ExecutionHistoryService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
@@ -59,13 +61,13 @@ class ApplicationController {
   @Autowired
   Environment environment
 
-  @ApiOperation(value = "Retrieve a list of applications", response = List.class)
+  @Operation(summary = "Retrieve a list of applications")
   @RequestMapping(method = RequestMethod.GET)
   @PostFilter("hasPermission(filterObject.get('name'), 'APPLICATION', 'READ')")
   List<HashMap<String, Object>> getAllApplications(
-    @ApiParam(name = "account", required = false, value = "filters results to only include applications deployed in the specified account")
+    @Parameter(name = "account", required = false, description = "filters results to only include applications deployed in the specified account")
     @RequestParam(value = "account", required = false) String account,
-    @ApiParam(name = "owner", required = false, value = "filters results to only include applications owned by the specified email")
+    @Parameter(name = "owner", required = false, description = "filters results to only include applications owned by the specified email")
     @RequestParam(value = "owner", required = false) String owner) {
     return applicationService.getAllApplications()
       .findAll {
@@ -82,7 +84,7 @@ class ApplicationController {
       }
   }
 
-  @ApiOperation(value = "Retrieve an application's details", response = HashMap.class)
+  @Operation(summary = "Retrieve an application's details")
   @RequestMapping(value = "/{application:.+}", method = RequestMethod.GET)
   Map getApplication(@PathVariable("application") String application, @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
     def result = applicationService.getApplication(application, expand)
@@ -96,14 +98,14 @@ class ApplicationController {
     result
   }
 
-  @ApiOperation(value = "Retrieve a list of an application's configuration revision history", response = List.class)
+  @Operation(summary = "Retrieve a list of an application's configuration revision history")
   @RequestMapping(value = "/{application}/history", method = RequestMethod.GET)
   List<Map> getApplicationHistory(@PathVariable("application") String application,
                                   @RequestParam(value = "limit", defaultValue = "20") int limit) {
     return applicationService.getApplicationHistory(application, limit)
   }
 
-  @ApiOperation(value = "Retrieve a list of an application's tasks", response = List.class)
+  @Operation(summary = "Retrieve a list of an application's tasks")
   @RequestMapping(value = "/{application}/tasks", method = RequestMethod.GET)
   List getTasks(@PathVariable("application") String application,
                 @RequestParam(value = "page", required = false) Integer page,
@@ -112,7 +114,7 @@ class ApplicationController {
     executionHistoryService.getTasks(application, page, limit, statuses)
   }
 
-  @ApiOperation(value = "Retrieve a list of an application's pipeline executions", response = List.class)
+  @Operation(summary = "Retrieve a list of an application's pipeline executions")
   @RequestMapping(value = "/{application}/pipelines", method = RequestMethod.GET)
   List getPipelines(@PathVariable("application") String application,
                     @RequestParam(value = "limit", required = false) Integer limit,
@@ -126,21 +128,21 @@ class ApplicationController {
    * @deprecated There is no reason to provide an app name, use PipelineController instead for pipeline operations.
    */
   @Deprecated
-  @ApiOperation(value = "Cancel pipeline", response = HashMap.class)
+  @Operation(summary = "Cancel pipeline")
   @RequestMapping(value = "/{application}/pipelines/{id}/cancel", method = RequestMethod.PUT)
   Map cancelPipeline(@PathVariable("id") String id,
                      @RequestParam(required = false) String reason) {
     taskService.cancelPipeline(id, reason)
   }
 
-  @ApiOperation(value = "Retrieve a list of an application's pipeline configurations", response = List.class)
+  @Operation(summary = "Retrieve a list of an application's pipeline configurations")
   @RequestMapping(value = "/{application}/pipelineConfigs", method = RequestMethod.GET)
   List getPipelineConfigsForApplication(@PathVariable("application") String application,
                                         @RequestParam(required = false, value="pipelineNameFilter") String pipelineNameFilter) {
     applicationService.getPipelineConfigsForApplication(application, pipelineNameFilter)
   }
 
-  @ApiOperation(value = "Retrieve a pipeline configuration", response = HashMap.class)
+  @Operation(summary = "Retrieve a pipeline configuration")
   @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.GET)
   Map getPipelineConfig(
     @PathVariable("application") String application, @PathVariable("pipelineName") String pipelineName) {
@@ -154,13 +156,13 @@ class ApplicationController {
     config
   }
 
-  @ApiOperation(value = "Retrieve a list of an application's pipeline strategy configurations", response = List.class)
+  @Operation(summary = "Retrieve a list of an application's pipeline strategy configurations")
   @RequestMapping(value = "/{application}/strategyConfigs", method = RequestMethod.GET)
   List getStrategyConfigsForApplication(@PathVariable("application") String application) {
     applicationService.getStrategyConfigsForApplication(application)
   }
 
-  @ApiOperation(value = "Retrieve a pipeline strategy configuration", response = HashMap.class)
+  @Operation(summary = "Retrieve a pipeline strategy configuration")
   @RequestMapping(value = "/{application}/strategyConfigs/{strategyName}", method = RequestMethod.GET)
   Map getStrategyConfig(@PathVariable("application") String application,
                         @PathVariable("strategyName") String strategyName) {
@@ -178,7 +180,7 @@ class ApplicationController {
    * @deprecated Use PipelineController instead for pipeline operations.
    */
   @Deprecated
-  @ApiOperation(value = "Invoke pipeline config", response = HttpEntity.class)
+  @Operation(summary = "Invoke pipeline config")
   @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.POST)
   HttpEntity invokePipelineConfig(@PathVariable("application") String application,
                                   @PathVariable("pipelineName") String pipelineName,
@@ -191,7 +193,7 @@ class ApplicationController {
    * @deprecated There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
-  @ApiOperation(value = "Get task", response = HashMap.class)
+  @Operation(summary = "Get task")
   @RequestMapping(value = "/{application}/tasks/{id}", method = RequestMethod.GET)
   Map getTask(@PathVariable("id") String id) {
     taskService.getTask(id)
@@ -201,7 +203,7 @@ class ApplicationController {
    * @deprecated There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
-  @ApiOperation(value = "Cancel task", response = HashMap.class)
+  @Operation(summary = "Cancel task")
   @RequestMapping(value = "/{application}/tasks/{id}/cancel", method = RequestMethod.PUT)
   Map cancelTask(@PathVariable("id") String id) {
     taskService.cancelTask(id)
@@ -211,7 +213,7 @@ class ApplicationController {
    * @deprecated There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
-  @ApiOperation(value = "Get task details", response = HashMap.class)
+  @Operation(summary = "Get task details")
   @RequestMapping(value = "/{application}/tasks/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
   Map getTaskDetails(@PathVariable("id") String id,
                      @PathVariable("taskDetailsId") String taskDetailsId,
@@ -223,7 +225,7 @@ class ApplicationController {
    * @deprecated There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
-  @ApiOperation(value = "Create task", response = HashMap.class)
+  @Operation(summary = "Create task")
   @RequestMapping(value = "/{application}/tasks", method = RequestMethod.POST)
   Map task(@PathVariable String application, @RequestBody Map map) {
     taskService.createAppTask(application, map)

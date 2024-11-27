@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.Optional;
 import lombok.Data;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/version")
 public class VersionController {
 
-  @ApiOperation(value = "Fetch Gate's current version")
+  @Operation(summary = "Fetch Gate's current version")
   @RequestMapping(method = RequestMethod.GET)
   Version getVersion() {
     return new Version();

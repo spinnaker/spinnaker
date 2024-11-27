@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.V2CanaryService
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.web.bind.annotation.*
@@ -31,26 +31,26 @@ class V2CanaryController {
   @Autowired
   V2CanaryService v2CanaryService
 
-  @ApiOperation(value = 'Retrieve a list of configured Kayenta accounts')
+  @Operation(summary = 'Retrieve a list of configured Kayenta accounts')
   @RequestMapping(value = '/credentials', method = RequestMethod.GET)
   List listCredentials() {
     v2CanaryService.getCredentials()
   }
 
-  @ApiOperation(value = 'Retrieve a list of descriptors for use in populating the canary config ui')
+  @Operation(summary = 'Retrieve a list of descriptors for use in populating the canary config ui')
   @RequestMapping(value = '/metadata/metricsService', method = RequestMethod.GET)
   List listMetricsServiceMetadata(@RequestParam(required = false) final String filter,
                                   @RequestParam(required = false) final String metricsAccountName) {
     v2CanaryService.listMetricsServiceMetadata(filter, metricsAccountName)
   }
 
-  @ApiOperation(value = 'Retrieve a list of all configured canary judges')
+  @Operation(summary = 'Retrieve a list of all configured canary judges')
   @RequestMapping(value = '/judges', method = RequestMethod.GET)
   List listJudges() {
     v2CanaryService.listJudges()
   }
 
-  @ApiOperation(value = 'Start a canary execution')
+  @Operation(summary = 'Start a canary execution')
   @RequestMapping(value = '/canary/{canaryConfigId:.+}', method = RequestMethod.POST)
   Map initiateCanary(@PathVariable String canaryConfigId,
                      @RequestBody Map executionRequest,
@@ -68,7 +68,7 @@ class V2CanaryController {
                                    configurationAccountName)
   }
 
-  @ApiOperation(value = 'Start a canary execution with the supplied canary config')
+  @Operation(summary = 'Start a canary execution with the supplied canary config')
   @RequestMapping(value = '/canary', method = RequestMethod.POST)
   Map initiateCanaryWithConfig(@RequestBody Map adhocExecutionRequest,
                                @RequestParam(value = 'application', required = false) String application,
@@ -83,7 +83,7 @@ class V2CanaryController {
   }
 
   // TODO: Change callers to the new endpoint sans canary config id in Spinnaker 1.17.x.
-  @ApiOperation(value = '(DEPRECATED) Retrieve a canary result')
+  @Operation(summary = '(DEPRECATED) Retrieve a canary result')
   @RequestMapping(value = '/canary/{canaryConfigId}/{canaryExecutionId}', method = RequestMethod.GET)
   @Deprecated
   Map getCanaryResult(@PathVariable String canaryConfigId /* unused */,
@@ -92,19 +92,19 @@ class V2CanaryController {
     v2CanaryService.getCanaryResults(canaryExecutionId, storageAccountName)
   }
 
-  @ApiOperation(value = 'Retrieve a canary result')
+  @Operation(summary = 'Retrieve a canary result')
   @RequestMapping(value = '/canary/{canaryExecutionId}', method = RequestMethod.GET)
   Map getCanaryResult(@PathVariable String canaryExecutionId,
                       @RequestParam(value='storageAccountName', required = false) String storageAccountName) {
     v2CanaryService.getCanaryResults(canaryExecutionId, storageAccountName)
   }
 
-  @ApiOperation(value = 'Retrieve a list of an application\'s canary results')
+  @Operation(summary = 'Retrieve a list of an application\'s canary results')
   @RequestMapping(value = '/{application}/executions', method = RequestMethod.GET)
   List getCanaryResultsByApplication(@PathVariable String application,
                                      @RequestParam(value='limit') int limit,
                                      @RequestParam(value='page', defaultValue='1') int page,
-                                     @ApiParam('Comma-separated list of statuses, e.g.: RUNNING, SUCCEEDED, TERMINAL')
+                                     @Parameter(description = 'Comma-separated list of statuses, e.g.: RUNNING, SUCCEEDED, TERMINAL')
                                      @RequestParam(value='statuses', required = false) String statuses,
                                      @RequestParam(value='storageAccountName', required = false) String storageAccountName) {
     v2CanaryService.getCanaryResultsByApplication(application, limit, page, statuses, storageAccountName)
@@ -112,7 +112,7 @@ class V2CanaryController {
 
   // TODO(dpeach): remove this endpoint when a Kayenta endpoint for
   // retrieving a single metric set pair exists.
-  @ApiOperation(value = 'Retrieve a metric set pair list')
+  @Operation(summary = 'Retrieve a metric set pair list')
   @RequestMapping(value = '/metricSetPairList/{metricSetPairListId}', method = RequestMethod.GET)
   List getMetricSetPairList(@PathVariable String metricSetPairListId,
                             @RequestParam(value='storageAccountName', required = false) String storageAccountName) {

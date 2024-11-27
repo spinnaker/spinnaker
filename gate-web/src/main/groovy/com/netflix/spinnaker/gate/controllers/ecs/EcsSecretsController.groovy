@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers.ecs
 
 import com.netflix.spinnaker.gate.services.EcsSecretService
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,7 +29,7 @@ class EcsSecretController {
   @Autowired
   EcsSecretService ecsSecretService
 
-  @ApiOperation(value = "Retrieve a list of Secrets Manager secrets that can be used for the account and region.")
+  @Operation(summary = "Retrieve a list of Secrets Manager secrets that can be used for the account and region.")
   @RequestMapping(value = "/ecs/secrets", method = RequestMethod.GET)
   List all() {
     ecsSecretService.getAllEcsSecrets()

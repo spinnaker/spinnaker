@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers.ecs
 
 import com.netflix.spinnaker.gate.services.EcsServerGroupEventsService
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -27,7 +27,7 @@ class EcsServerGroupEventsController {
   @Autowired
   EcsServerGroupEventsService ecsServerGroupEventsService
 
-  @ApiOperation(value = "Retrieves a list of events for a server group")
+  @Operation(summary = "Retrieves a list of events for a server group")
   @RequestMapping(value = "applications/{application}/serverGroups/{account}/{serverGroupName}/events", method = RequestMethod.GET)
   List getEvents(@PathVariable String application,
                  @PathVariable String account,

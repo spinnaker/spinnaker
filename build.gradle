@@ -3,13 +3,13 @@ plugins {
   id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
   id "org.jetbrains.kotlin.plugin.allopen" version "$kotlinVersion" apply false
   id "org.jetbrains.dokka" version "0.10.1" apply false
+
 }
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
 
   group = "io.spinnaker.gate"
-
   if ([korkVersion, fiatVersion].find { it.endsWith('-SNAPSHOT') }) {
     repositories {
       mavenLocal()
@@ -26,6 +26,7 @@ allprojects {
     }
 
     dependencies {
+
       implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
       annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

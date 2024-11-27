@@ -18,7 +18,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.SecurityGroupService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -29,7 +29,7 @@ class FirewallController {
   @Autowired
   SecurityGroupService securityGroupService
 
-  @ApiOperation(value = "Retrieve a list of firewalls, grouped by account, cloud provider, and region")
+  @Operation(summary = "Retrieve a list of firewalls, grouped by account, cloud provider, and region")
   @RequestMapping(method = RequestMethod.GET)
   Map all(@RequestParam(value = "id", required = false) String id,
           @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
@@ -45,7 +45,7 @@ class FirewallController {
     }
   }
 
-  @ApiOperation(value = "Retrieve a list of firewalls for a given account, grouped by region")
+  @Operation(summary = "Retrieve a list of firewalls for a given account, grouped by region")
   @RequestMapping(value = "/{account}", method = RequestMethod.GET)
   Map allByAccount(
     @PathVariable String account,
@@ -54,7 +54,7 @@ class FirewallController {
     securityGroupService.getForAccountAndProvider(account, provider, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of firewalls for a given account and region")
+  @Operation(summary = "Retrieve a list of firewalls for a given account and region")
   @RequestMapping(value = "/{account}/{region}", method = RequestMethod.GET)
   List allByAccountAndRegion(
     @PathVariable String account,
@@ -64,7 +64,7 @@ class FirewallController {
     securityGroupService.getForAccountAndProviderAndRegion(account, provider, region, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a firewall's details")
+  @Operation(summary = "Retrieve a firewall's details")
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   Map getSecurityGroup(
       @PathVariable String account,

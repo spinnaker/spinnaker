@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.SnapshotService
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -32,14 +32,14 @@ class SnapshotController {
   @Autowired
   SnapshotService snapshotService
 
-  @ApiOperation(value = "Get current snapshot", response = HashMap.class)
+  @Operation(summary = "Get current snapshot")
   @RequestMapping(value = "/{application}/snapshots/{account}", method = RequestMethod.GET)
   Map getCurrentSnapshot(@PathVariable("application") String application,
                          @PathVariable("account") String account) {
     snapshotService.getCurrent(application, account)
   }
 
-  @ApiOperation(value = "Get snapshot history", response = List.class)
+  @Operation(summary = "Get snapshot history")
   @RequestMapping(value = "/{application}/snapshots/{account}/history", method = RequestMethod.GET)
   List<Map> getSnapshotHistory(@PathVariable("application") String application,
                                @PathVariable("account") String account,

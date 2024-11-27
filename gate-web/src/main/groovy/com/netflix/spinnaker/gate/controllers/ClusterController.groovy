@@ -20,7 +20,7 @@ import com.netflix.spinnaker.gate.services.ClusterService
 import com.netflix.spinnaker.gate.services.LoadBalancerService
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -35,14 +35,14 @@ class ClusterController {
   @Autowired
   LoadBalancerService loadBalancerService
 
-  @ApiOperation(value = "Retrieve a list of cluster names for an application, grouped by account", response = HashMap.class)
+  @Operation(summary = "Retrieve a list of cluster names for an application, grouped by account")
   @RequestMapping(method = RequestMethod.GET)
   Map getClusters(@PathVariable("application") String app,
                   @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     clusterService.getClusters(app, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of clusters for an account", response = List.class)
+  @Operation(summary = "Retrieve a list of clusters for an account")
   @RequestMapping(value = "/{account}", method = RequestMethod.GET)
   List<Map> getClusters(@PathVariable("application") String app,
                         @PathVariable("account") String account,
@@ -50,7 +50,7 @@ class ClusterController {
     clusterService.getClustersForAccount(app, account, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a cluster's details", response = HashMap.class)
+  @Operation(summary = "Retrieve a cluster's details")
   @RequestMapping(value = "/{account}/{clusterName:.+}", method = RequestMethod.GET)
   Map getClusters(@PathVariable("application") String app,
                   @PathVariable("account") String account,
@@ -59,7 +59,7 @@ class ClusterController {
     clusterService.getCluster(app, account, clusterName, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a cluster's loadbalancers", response = List.class)
+  @Operation(summary = "Retrieve a cluster's loadbalancers")
   @RequestMapping(value = "/{account}/{clusterName}/{type}/loadBalancers", method = RequestMethod.GET)
   List getClusterLoadBalancers(@PathVariable String applicationName,
                                @PathVariable String account,
@@ -69,7 +69,7 @@ class ClusterController {
     loadBalancerService.getClusterLoadBalancers(applicationName, account, type, clusterName, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of server groups for a cluster", response = List.class)
+  @Operation(summary = "Retrieve a list of server groups for a cluster")
   @RequestMapping(value = "/{account}/{clusterName}/serverGroups", method = RequestMethod.GET)
   List<Map> getServerGroups(@PathVariable("application") String app,
                             @PathVariable("account") String account,
@@ -78,7 +78,7 @@ class ClusterController {
     clusterService.getClusterServerGroups(app, account, clusterName, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of scaling activities for a server group", response = List.class)
+  @Operation(summary = "Retrieve a list of scaling activities for a server group")
   @RequestMapping(value = "/{account}/{clusterName}/serverGroups/{serverGroupName}/scalingActivities", method = RequestMethod.GET)
   List<Map> getScalingActivities(@PathVariable("application") String app,
                                  @PathVariable("account") String account,
@@ -91,7 +91,7 @@ class ClusterController {
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)
-  @ApiOperation(value = "Retrieve a server group's details", response = List.class)
+  @Operation(summary = "Retrieve a server group's details")
   @RequestMapping(value = "/{account}/{clusterName}/serverGroups/{serverGroupName:.+}", method = RequestMethod.GET)
   List<Map> getServerGroups(@PathVariable("application") String app,
                             @PathVariable("account") String account,
@@ -104,8 +104,8 @@ class ClusterController {
     }
   }
 
-  @ApiOperation(value = "Retrieve a server group that matches a target coordinate (e.g., newest, ancestor) relative to a cluster",
-                notes = "`scope` is either a zone or a region", response = HashMap.class)
+  @Operation(summary = "Retrieve a server group that matches a target coordinate (e.g., newest, ancestor) relative to a cluster",
+                description = "`scope` is either a zone or a region")
   @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
   Map getTargetServerGroup(@PathVariable("application") String app,
                            @PathVariable("account") String account,

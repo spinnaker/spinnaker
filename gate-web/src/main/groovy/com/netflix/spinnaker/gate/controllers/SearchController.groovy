@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.SearchService
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -29,7 +29,7 @@ class SearchController {
   @Autowired
   SearchService searchService
 
-  @ApiOperation(value = "Search infrastructure", response = List.class)
+  @Operation(summary = "Search infrastructure")
   @RequestMapping(value = "/search", method = RequestMethod.GET)
   List<Map> search(@RequestParam(value = "q", defaultValue = "", required = false) String query,
                    @RequestParam(value = "type") String type,

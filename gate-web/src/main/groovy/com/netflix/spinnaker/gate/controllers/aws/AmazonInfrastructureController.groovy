@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers.aws
 
 import com.netflix.spinnaker.gate.services.aws.InfrastructureService
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,32 +31,32 @@ class AmazonInfrastructureController {
   @Autowired
   InfrastructureService infrastructureService
 
-  @ApiOperation(value = "Get instance types", response = List.class)
+  @Operation(summary = "Get instance types")
   @RequestMapping(value = "/instanceTypes", method = RequestMethod.GET)
   List<Map> instanceTypes() {
     infrastructureService.instanceTypes
   }
 
-  @ApiOperation(value = "Get key pairs", response = List.class)
+  @Operation(summary = "Get key pairs")
   @RequestMapping(value = "/keyPairs", method = RequestMethod.GET)
   List<Map> keyPairs() {
     infrastructureService.keyPairs
   }
 
-  @ApiOperation(value = "Get subnets", response = List.class)
+  @Operation(summary = "Get subnets")
   @RequestMapping(value = "/subnets", method = RequestMethod.GET)
   List<Map> subnets() {
     infrastructureService.subnets
   }
 
   @Deprecated
-  @ApiOperation(value = "Get VPCs", response = List.class)
+  @Operation(summary = "Get VPCs")
   @RequestMapping(value = "/vpcs", method = RequestMethod.GET)
   List<Map> vpcs() {
     infrastructureService.vpcs
   }
 
-  @ApiOperation(value = "Get functions", response = List.class)
+  @Operation(summary = "Get functions")
   @RequestMapping(value = "/functions", method = RequestMethod.GET)
   List<Map> functions(@RequestParam(value = "functionName", required = false) String functionName,
                       @RequestParam(value = "region", required = false) String region,
@@ -64,7 +64,7 @@ class AmazonInfrastructureController {
     infrastructureService.getFunctions(functionName, region, account)
   }
 
-  @ApiOperation(value = "Get application functions", response = List.class)
+  @Operation(summary = "Get application functions")
   @RequestMapping(value = "/applications/{application}/functions", method = RequestMethod.GET)
   List<Map> applicationFunctions(@PathVariable String application) {
     infrastructureService.getApplicationFunctions(application)

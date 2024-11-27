@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.WebhookService
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
@@ -38,7 +38,7 @@ class WebhookController {
   @Autowired
   WebhookService webhookService
 
-  @ApiOperation(value = "Endpoint for posting webhooks to Spinnaker's webhook service")
+  @Operation(summary = "Endpoint for posting webhooks to Spinnaker's webhook service")
   @RequestMapping(value = "/{type}/{source}", method = RequestMethod.POST)
   Map webhooks(@PathVariable("type") String type,
                @PathVariable("source") String source,
@@ -53,7 +53,7 @@ class WebhookController {
     }
   }
 
-  @ApiOperation(value = "Endpoint for posting webhooks to Spinnaker's CDEvents webhook service")
+  @Operation(summary = "Endpoint for posting webhooks to Spinnaker's CDEvents webhook service")
   @RequestMapping(value = "/cdevents/{source}", method = RequestMethod.POST)
   ResponseEntity<Void> webhooks(@PathVariable String source,
                                 @RequestBody CloudEvent cdEvent)
@@ -62,7 +62,7 @@ class WebhookController {
     webhookService.webhooks(source, cdEvent, ceDataJsonString)
   }
 
-  @ApiOperation(value = "Retrieve a list of preconfigured webhooks in Orca")
+  @Operation(summary = "Retrieve a list of preconfigured webhooks in Orca")
   @RequestMapping(value = "/preconfigured", method = RequestMethod.GET)
   List preconfiguredWebhooks() {
     return webhookService.preconfiguredWebhooks()

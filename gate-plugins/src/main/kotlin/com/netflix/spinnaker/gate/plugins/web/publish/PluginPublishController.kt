@@ -24,7 +24,8 @@ import com.netflix.spinnaker.gate.plugins.web.PluginService
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
+
 import java.lang.String.format
 import lombok.SneakyThrows
 import okhttp3.MediaType
@@ -55,7 +56,7 @@ class PluginPublishController(
   private val okHttpClient: OkHttpClient = okHttpClientProvider.getClient(DefaultServiceEndpoint("front50", front50Url))
 
   @SneakyThrows
-  @ApiOperation(value = "Publish a plugin binary and the plugin info metadata.")
+  @Operation(summary = "Publish a plugin binary and the plugin info metadata.")
   @PostMapping("/{pluginId}/{pluginVersion}", consumes = [MULTIPART_FORM_DATA_VALUE])
   fun publishPlugin(
     @RequestPart("plugin") body: MultipartFile,

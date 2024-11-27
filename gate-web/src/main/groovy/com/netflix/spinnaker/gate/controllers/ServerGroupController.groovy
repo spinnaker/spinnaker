@@ -20,7 +20,7 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.ServerGroupService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.CompileStatic
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestHeader
@@ -35,7 +35,7 @@ class ServerGroupController {
   @Autowired
   ServerGroupService serverGroupService
 
-  @ApiOperation(value = "Retrieve a list of server groups for a given application")
+  @Operation(summary = "Retrieve a list of server groups for a given application")
   @RequestMapping(value = "/applications/{applicationName}/serverGroups", method = RequestMethod.GET)
   List getServerGroupsForApplication(@PathVariable String applicationName,
                                      @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
@@ -45,7 +45,7 @@ class ServerGroupController {
     serverGroupService.getForApplication(applicationName, expand, cloudProvider, clusters, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of server groups for a list of applications or a list of servergroups by 'account:region:name'")
+  @Operation(summary = "Retrieve a list of server groups for a list of applications or a list of servergroups by 'account:region:name'")
   @RequestMapping(value = "/serverGroups", method = RequestMethod.GET)
   List getServerGroups(@RequestParam(required = false, value = 'applications') List<String> applications,
                        @RequestParam(required = false, value = 'ids') List<String> ids,
@@ -62,7 +62,7 @@ class ServerGroupController {
     }
   }
 
-  @ApiOperation(value = "Retrieve a server group's details")
+  @Operation(summary = "Retrieve a server group's details")
   @RequestMapping(value = "/applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName:.+}", method = RequestMethod.GET)
   Map getServerGroupDetails(@PathVariable String applicationName,
                             @PathVariable String account,

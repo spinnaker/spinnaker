@@ -21,7 +21,7 @@ import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -36,20 +36,20 @@ class PipelineConfigController {
   @Autowired
   OrcaServiceSelector orcaServiceSelector
 
-  @ApiOperation(value = "Get all pipeline configs.", response = List.class)
+  @Operation(summary = "Get all pipeline configs.")
   @RequestMapping(method = RequestMethod.GET)
   Collection<Map> getAllPipelineConfigs() {
     return front50Service.getAllPipelineConfigs()
   }
 
-  @ApiOperation(value = "Get pipeline config history.", response = List.class)
+  @Operation(summary = "Get pipeline config history.")
   @RequestMapping(value = "/{pipelineConfigId}/history", method = RequestMethod.GET)
   Collection<Map> getPipelineConfigHistory(@PathVariable("pipelineConfigId") String pipelineConfigId,
                                            @RequestParam(value = "limit", defaultValue = "20") int limit) {
     return front50Service.getPipelineConfigHistory(pipelineConfigId, limit)
   }
 
-  @ApiOperation(value = "Convert a pipeline config to a pipeline template.", response = String.class)
+  @Operation(summary = "Convert a pipeline config to a pipeline template.")
   @RequestMapping(value = "/{pipelineConfigId}/convertToTemplate", method = RequestMethod.GET)
   String convertPipelineConfigToPipelineTemplate(@PathVariable("pipelineConfigId") String pipelineConfigId) {
     Map pipelineConfig = front50Service.getAllPipelineConfigs().find { (pipelineConfigId == it.get("id")) }

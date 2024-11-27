@@ -18,7 +18,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.SecurityGroupService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -30,7 +30,7 @@ class SecurityGroupController {
   @Autowired
   SecurityGroupService securityGroupService
 
-  @ApiOperation(value = "Retrieve a list of security groups, grouped by account, cloud provider, and region")
+  @Operation(summary = "Retrieve a list of security groups, grouped by account, cloud provider, and region")
   @RequestMapping(method = RequestMethod.GET)
   Map all(@RequestParam(value = "id", required = false) String id,
           @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
@@ -46,7 +46,7 @@ class SecurityGroupController {
     }
   }
 
-  @ApiOperation(value = "Retrieve a list of security groups for a given account, grouped by region")
+  @Operation(summary = "Retrieve a list of security groups for a given account, grouped by region")
   @RequestMapping(value = "/{account}", method = RequestMethod.GET)
   Map allByAccount(
       @PathVariable String account,
@@ -55,7 +55,7 @@ class SecurityGroupController {
     securityGroupService.getForAccountAndProvider(account, provider, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a security group's details")
+  @Operation(summary = "Retrieve a security group's details")
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   Map getSecurityGroup(
       @PathVariable String account,
