@@ -3,3 +3,4 @@ export * from './deployManifest/deployManifestStage';
 export * from './patchManifest/patchManifestStage';
 export * from './rolloutRestartManifest/rolloutRestartManifestStage';
 export * from './runJob/runJobStage';
+export * from './scaleManifest/scaleManifestStage';

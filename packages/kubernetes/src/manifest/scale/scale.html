@@ -3,14 +3,19 @@
   <form role="form" name="scaleForm">
     <modal-close dismiss="$dismiss()"></modal-close>
     <div class="modal-header">
-      <h4 class="modal-title">Scale {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}</h4>
+      <h4 class="modal-title">
+        Scale {{ctrl.$scope.command.manifestName | robotToHuman}} in {{ctrl.$scope.command.location}}
+      </h4>
     </div>
     <div class="modal-body confirmation-modal">
-      <kubernetes-scale-manifest-settings-form settings="ctrl.command"></kubernetes-scale-manifest-settings-form>
-      <task-reason command="ctrl.command"></task-reason>
+      <kubernetes-scale-manifest-settings-form
+        options="ctrl.$scope.command"
+        on-change="ctrl.$scope.onChange"
+      ></kubernetes-scale-manifest-settings-form>
+      <task-reason command="ctrl.$scope.command"></task-reason>
     </div>
     <div class="modal-footer">
-      <user-verification account="ctrl.command.account" verification="ctrl.verification"></user-verification>
+      <user-verification account="ctrl.$scope.command.account" verification="ctrl.verification"></user-verification>
       <button type="submit" ng-click="ctrl.scale()" style="display: none"></button>
       <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
