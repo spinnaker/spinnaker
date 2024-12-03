@@ -25,7 +25,8 @@ import com.netflix.kayenta.datadog.config.DatadogConfigurationTestControllerDefa
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
@@ -61,18 +62,21 @@ public class DatadogFetchController {
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
-      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-      @ApiParam(defaultValue = "avg:system.cpu.user") @RequestParam String metricName,
-      @ApiParam(value = "The scope of the Datadog query. e.g. autoscaling_group:myapp-prod-v002")
+      @Parameter(example = "cpu") @RequestParam String metricSetName,
+      @Parameter(example = "avg:system.cpu.user") @RequestParam String metricName,
+      @Parameter(
+              description =
+                  "The scope of the Datadog query. e.g. autoscaling_group:myapp-prod-v002")
           @RequestParam(required = false)
           String scope,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z")
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z")
           @RequestParam(required = false)
           String start,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z")
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z")
           @RequestParam(required = false)
           String end,
-      @ApiParam(defaultValue = "false") @RequestParam(required = false) final boolean dryRun)
+      @Parameter(schema = @Schema(defaultValue = "false")) @RequestParam(required = false)
+          final boolean dryRun)
       throws IOException {
     // Apply defaults.
     scope =

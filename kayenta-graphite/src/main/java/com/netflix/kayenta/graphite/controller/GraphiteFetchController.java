@@ -25,7 +25,7 @@ import com.netflix.kayenta.graphite.config.GraphiteConfigurationTestControllerDe
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
@@ -63,25 +63,25 @@ public class GraphiteFetchController {
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
-      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-      @ApiParam(defaultValue = "system.$location.$scope") @RequestParam String metricName,
-      @ApiParam(
-              value =
+      @Parameter(example = "cpu") @RequestParam String metricSetName,
+      @Parameter(example = "system.$location.$scope") @RequestParam String metricName,
+      @Parameter(
+              description =
                   "The name of the resource to use when scoping the query. "
                       + "This parameter will replace $scope in metricName")
           @RequestParam(required = false)
           String scope,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "The name of the resource to use when locating the query. "
                       + "This parameter will replace $location in metricName")
           @RequestParam(required = false)
           String location,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
           String start,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
           String end,
-      @ApiParam(defaultValue = "false") @RequestParam(required = false) final boolean dryRun)
+      @Parameter(example = "false") @RequestParam(required = false) final boolean dryRun)
       throws IOException {
 
     start =

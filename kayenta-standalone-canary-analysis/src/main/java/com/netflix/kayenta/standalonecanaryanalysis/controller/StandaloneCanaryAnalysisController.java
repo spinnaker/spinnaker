@@ -32,8 +32,9 @@ import com.netflix.kayenta.standalonecanaryanalysis.service.CanaryAnalysisServic
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,44 +87,45 @@ public class StandaloneCanaryAnalysisController {
    * @param canaryConfigId The id for the canary configuration to use for the analysis execution
    * @return Object with the execution id
    */
-  @ApiOperation(
-      value =
+  @Operation(
+      summary =
           "Initiate a canary analysis execution with multiple canary judgements using a stored canary config")
   @RequestMapping(value = "/{canaryConfigId:.+}", consumes = "application/json", method = POST)
   public CanaryAnalysisExecutionResponse initiateCanaryAnalysis(
-      @ApiParam(
-              value = "The initiating user",
-              defaultValue = "anonymous",
+      @Parameter(
+              description = "The initiating user",
+              schema = @Schema(defaultValue = "anonymous"),
               example = "justin.field@example.com")
           @RequestParam(required = false)
           final String user,
-      @ApiParam(value = "The application under test", example = "examplecanarymicroservice")
+      @Parameter(description = "The application under test", example = "examplecanarymicroservice")
           @RequestParam(required = false)
           final String application,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "The parent pipeline execution id, if this is being executed as a StageExecution in another pipeline",
               example = "01CYZCD53RBX2KR2Q9GY0218UI")
           @RequestParam(required = false)
           final String parentPipelineExecutionId,
-      @ApiParam(
-              value = "The account that has the metrics for the application under test",
+      @Parameter(
+              description = "The account that has the metrics for the application under test",
               example = "some-metrics-account")
           @RequestParam(required = false)
           final String metricsAccountName,
-      @ApiParam(
-              value = "The account that has the supplied canary config id",
+      @Parameter(
+              description = "The account that has the supplied canary config id",
               example = "some-config-account")
           @RequestParam(required = false)
           final String configurationAccountName,
-      @ApiParam(
-              value = "The account that will be used to store results",
+      @Parameter(
+              description = "The account that will be used to store results",
               example = "some-storage-account")
           @RequestParam(required = false)
           final String storageAccountName,
-      @ApiParam(required = true) @RequestBody
+      @Parameter(required = true) @RequestBody
           final CanaryAnalysisExecutionRequest canaryAnalysisExecutionRequest,
-      @ApiParam(value = "The id for the canary configuration to use for the analysis execution")
+      @Parameter(
+              description = "The id for the canary configuration to use for the analysis execution")
           @PathVariable
           String canaryConfigId) {
 
@@ -173,37 +175,37 @@ public class StandaloneCanaryAnalysisController {
    *     that configures how the analysis will be performed and the canary config
    * @return Object with the execution id
    */
-  @ApiOperation(
-      value =
+  @Operation(
+      summary =
           "Initiate an canary analysis execution with multiple canary judgements with the CanaryConfig provided in the request body")
   @RequestMapping(consumes = "application/json", method = POST)
   public CanaryAnalysisExecutionResponse initiateCanaryAnalysisExecutionWithConfig(
-      @ApiParam(
-              value = "The initiating user",
-              defaultValue = "anonymous",
+      @Parameter(
+              description = "The initiating user",
+              schema = @Schema(defaultValue = "anonymous"),
               example = "justin.field@example.com")
           @RequestParam(required = false)
           final String user,
-      @ApiParam(value = "The application under test", example = "examplecanarymicroservice")
+      @Parameter(description = "The application under test", example = "examplecanarymicroservice")
           @RequestParam(required = false)
           final String application,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "The parent pipeline execution id, if this is being executed as a StageExecution in another pipeline",
               example = "01CYZCD53RBX2KR2Q9GY0218UI")
           @RequestParam(required = false)
           final String parentPipelineExecutionId,
-      @ApiParam(
-              value = "The account that has the metrics for the application under test",
+      @Parameter(
+              description = "The account that has the metrics for the application under test",
               example = "some-metrics-account")
           @RequestParam(required = false)
           final String metricsAccountName,
-      @ApiParam(
-              value = "The account that will be used to store results",
+      @Parameter(
+              description = "The account that will be used to store results",
               example = "some-storage-account")
           @RequestParam(required = false)
           final String storageAccountName,
-      @ApiParam(required = true) @RequestBody
+      @Parameter(required = true) @RequestBody
           final CanaryAnalysisAdhocExecutionRequest canaryAnalysisAdhocExecutionRequest) {
 
     String resolvedMetricsAccountName =
@@ -242,13 +244,13 @@ public class StandaloneCanaryAnalysisController {
    * @param canaryAnalysisExecutionId The id for the Canary Analysis Execution
    * @return The canary analysis execution object that will have the results and status.
    */
-  @ApiOperation(value = "Retrieve status and results for a canary analysis execution")
+  @Operation(summary = "Retrieve status and results for a canary analysis execution")
   @RequestMapping(value = "/{canaryAnalysisExecutionId:.+}", method = GET)
   public CanaryAnalysisExecutionStatusResponse getCanaryAnalysisExecution(
-      @ApiParam(value = "The id for the Canary Analysis Execution") @PathVariable
+      @Parameter(description = "The id for the Canary Analysis Execution") @PathVariable
           final String canaryAnalysisExecutionId,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "The account to use to try and find the execution if not found in the execution repo",
               example = "some-storage-account")
           @RequestParam(required = false)

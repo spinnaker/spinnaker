@@ -18,8 +18,7 @@ package com.netflix.kayenta.newrelic.controller;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -31,10 +30,10 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel(description = "Request body for using the New Relic Fetch controller")
+@Schema(description = "Request body for using the New Relic Fetch controller")
 class NewRelicFetchRequest {
   @NotNull
-  @ApiModelProperty(value = "The metric config to query New Relic insights for")
+  @Schema(description = "The metric config to query New Relic insights for")
   CanaryMetricConfig canaryMetricConfig;
 
   @NotNull @Builder.Default Map<String, String> extendedScopeParams = new HashMap<>();

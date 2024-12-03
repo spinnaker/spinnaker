@@ -22,7 +22,7 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -50,7 +50,7 @@ public class MetricSetListController {
     this.storageServiceRepository = storageServiceRepository;
   }
 
-  @ApiOperation(value = "Retrieve a metric set list from object storage")
+  @Operation(summary = "Retrieve a metric set list from object storage")
   @RequestMapping(value = "/{metricSetListId:.+}", method = RequestMethod.GET)
   public List<MetricSet> loadMetricSetList(
       @RequestParam(required = false) final String accountName,
@@ -65,7 +65,7 @@ public class MetricSetListController {
         resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId);
   }
 
-  @ApiOperation(value = "Write a metric set list to object storage")
+  @Operation(summary = "Write a metric set list to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public Map storeMetricSetList(
       @RequestParam(required = false) final String accountName,
@@ -84,7 +84,7 @@ public class MetricSetListController {
     return Collections.singletonMap("metricSetListId", metricSetListId);
   }
 
-  @ApiOperation(value = "Delete a metric set list")
+  @Operation(summary = "Delete a metric set list")
   @RequestMapping(value = "/{metricSetListId:.+}", method = RequestMethod.DELETE)
   public void deleteMetricSetList(
       @RequestParam(required = false) final String accountName,
@@ -101,7 +101,7 @@ public class MetricSetListController {
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
 
-  @ApiOperation(value = "Retrieve a list of metric set list ids and timestamps")
+  @Operation(summary = "Retrieve a list of metric set list ids and timestamps")
   @RequestMapping(method = RequestMethod.GET)
   public List<Map<String, Object>> listAllMetricSetLists(
       @RequestParam(required = false) final String accountName) {

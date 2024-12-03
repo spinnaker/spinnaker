@@ -25,7 +25,8 @@ import com.netflix.kayenta.newrelic.canary.NewRelicCanaryScope;
 import com.netflix.kayenta.newrelic.config.NewRelicConfigurationTestControllerDefaultProperties;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
@@ -62,22 +63,25 @@ public class NewRelicFetchController {
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
-      @ApiParam(required = true) @Valid @RequestBody NewRelicFetchRequest newRelicFetchRequest,
-      @ApiParam(value = "The scope of the NewRelic query. e.g. autoscaling_group:myapp-prod-v002")
+      @Parameter(required = true) @Valid @RequestBody NewRelicFetchRequest newRelicFetchRequest,
+      @Parameter(
+              description =
+                  "The scope of the NewRelic query. e.g. autoscaling_group:myapp-prod-v002")
           @RequestParam(required = false)
           String scope,
-      @ApiParam(value = "The location of the NewRelic query. e.g. us-west-2")
+      @Parameter(description = "The location of the NewRelic query. e.g. us-west-2")
           @RequestParam(required = false)
           String location,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
           String start,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
           String end,
-      @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step,
-      @ApiParam(defaultValue = "0", value = "canary config metrics index")
+      @Parameter(example = "60", description = "seconds") @RequestParam Long step,
+      @Parameter(schema = @Schema(defaultValue = "0"), description = "canary config metrics index")
           @RequestParam(required = false)
           Integer metricIndex,
-      @ApiParam(defaultValue = "false") @RequestParam(required = false) final boolean dryRun)
+      @Parameter(schema = @Schema(defaultValue = "false")) @RequestParam(required = false)
+          final boolean dryRun)
       throws IOException {
 
     // Apply defaults.

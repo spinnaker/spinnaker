@@ -17,8 +17,7 @@
 package com.netflix.kayenta.canary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
 import lombok.*;
@@ -28,11 +27,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel(description = "The classification configuration, such as group weights.")
+@Schema(description = "The classification configuration, such as group weights.")
 public class CanaryClassifierConfig {
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "List of each metrics group along with its corresponding weight. Weights must total 100.",
       example = "{\"pod-group\": 70, \"app-group\": 30}")
   @NotNull
@@ -40,7 +39,7 @@ public class CanaryClassifierConfig {
   @Getter
   private Map<String, Double> groupWeights;
 
-  @ApiModelProperty(hidden = true)
+  @Schema(hidden = true)
   @Getter
   private CanaryClassifierThresholdsConfig scoreThresholds;
 }

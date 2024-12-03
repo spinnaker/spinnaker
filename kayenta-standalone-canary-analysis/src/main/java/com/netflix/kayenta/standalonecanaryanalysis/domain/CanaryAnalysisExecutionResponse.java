@@ -16,18 +16,17 @@
 
 package com.netflix.kayenta.standalonecanaryanalysis.domain;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel(description = "Wrapper object around the canary analysis execution id.")
+@Schema(description = "Wrapper object around the canary analysis execution id.")
 public class CanaryAnalysisExecutionResponse {
 
   @NonNull
-  @ApiModelProperty(value = "The id of the execution", example = "01CYZCD53RBX2KR2Q9GY0218TV")
+  @Schema(description = "The id of the execution", example = "01CYZCD53RBX2KR2Q9GY0218TV")
   protected String canaryAnalysisExecutionId;
 }

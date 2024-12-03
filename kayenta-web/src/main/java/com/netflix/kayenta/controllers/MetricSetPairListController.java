@@ -18,7 +18,7 @@ package com.netflix.kayenta.controllers;
 
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.service.MetricSetPairListService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +47,7 @@ public class MetricSetPairListController {
     this.metricSetPairListService = metricSetPairListService;
   }
 
-  @ApiOperation(value = "Retrieve a metric set pair list from object storage")
+  @Operation(summary = "Retrieve a metric set pair list from object storage")
   @RequestMapping(value = "/{metricSetPairListId:.+}", method = RequestMethod.GET)
   public List<MetricSetPair> loadMetricSetPairList(
       @RequestParam(required = false) final String accountName,
@@ -55,8 +55,8 @@ public class MetricSetPairListController {
     return metricSetPairListService.loadMetricSetPairList(accountName, metricSetPairListId);
   }
 
-  @ApiOperation(
-      value = "Retrieve a single metric set pair from a metricSetPairList from object storage")
+  @Operation(
+      summary = "Retrieve a single metric set pair from a metricSetPairList from object storage")
   @RequestMapping(
       value = "/{metricSetPairListId:.+}/{metricSetPairId:.+}",
       method = RequestMethod.GET)
@@ -70,7 +70,7 @@ public class MetricSetPairListController {
         .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
-  @ApiOperation(value = "Write a metric set pair list to object storage")
+  @Operation(summary = "Write a metric set pair list to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public Map storeMetricSetPairList(
       @RequestParam(required = false) final String accountName,
@@ -82,7 +82,7 @@ public class MetricSetPairListController {
     return Collections.singletonMap("metricSetPairListId", metricSetPairListId);
   }
 
-  @ApiOperation(value = "Delete a metric set pair list")
+  @Operation(summary = "Delete a metric set pair list")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @RequestMapping(value = "/{metricSetPairListId:.+}", method = RequestMethod.DELETE)
   public void deleteMetricSetPairList(
@@ -91,7 +91,7 @@ public class MetricSetPairListController {
     metricSetPairListService.deleteMetricSetPairList(accountName, metricSetPairListId);
   }
 
-  @ApiOperation(value = "Retrieve a list of metric set pair list ids and timestamps")
+  @Operation(summary = "Retrieve a list of metric set pair list ids and timestamps")
   @RequestMapping(method = RequestMethod.GET)
   public List<Map<String, Object>> listAllMetricSetPairLists(
       @RequestParam(required = false) final String accountName) {

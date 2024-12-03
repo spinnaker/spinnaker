@@ -25,7 +25,8 @@ import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
 import com.netflix.kayenta.prometheus.config.PrometheusConfigurationTestControllerDefaultProperties;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -64,39 +65,40 @@ public class PrometheusFetchController {
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
-      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-      @ApiParam(defaultValue = "node_cpu") @RequestParam String metricName,
+      @Parameter(example = "cpu") @RequestParam String metricSetName,
+      @Parameter(example = "node_cpu") @RequestParam String metricName,
       @RequestParam(required = false) List<String> groupByFields,
       @RequestParam(required = false) String project,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "Used to identify the type of the resource being queried, "
                       + "e.g. aws_ec2_instance, gce_instance.")
           @RequestParam(required = false)
           String resourceType,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "The location to use when scoping the query. Valid choices depend on what cloud "
                       + "platform the query relates to (could be a region, a namespace, or something else).")
           @RequestParam(required = false)
           String location,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "The name of the resource to use when scoping the query. "
                       + "The most common use-case is to provide a server group name.")
           @RequestParam(required = false)
           String scope,
-      @ApiParam(defaultValue = "mode=~\"user|system\"") @RequestParam(required = false)
+      @Parameter(example = "mode=~\"user|system\"") @RequestParam(required = false)
           List<String> labelBindings,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-08T01:02:53Z")
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-08T01:02:53Z")
           @RequestParam(required = false)
           String start,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-08T01:12:22Z")
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-08T01:12:22Z")
           @RequestParam(required = false)
           String end,
-      @ApiParam(example = "60", value = "seconds") @RequestParam Long step,
+      @Parameter(example = "60", description = "seconds") @RequestParam Long step,
       @RequestParam(required = false) final String customFilter,
-      @ApiParam(defaultValue = "false") @RequestParam(required = false) final boolean dryRun)
+      @Parameter(schema = @Schema(defaultValue = "false")) @RequestParam(required = false)
+          final boolean dryRun)
       throws IOException {
     // Apply defaults.
     project =

@@ -16,8 +16,7 @@
 
 package com.netflix.kayenta.standalonecanaryanalysis.domain;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -30,44 +29,43 @@ import lombok.NonNull;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel(description = "The canary analysis execution results.")
+@Schema(description = "The canary analysis execution results.")
 public class CanaryAnalysisExecutionResult {
 
-  @ApiModelProperty(
-      value = "This boolean represents whether the canary passed the defined thresholds.")
+  @Schema(description = "This boolean represents whether the canary passed the defined thresholds.")
   protected boolean didPassThresholds;
 
-  @ApiModelProperty(value = "This boolean is set to true if any of the judgements had warnings.")
+  @Schema(description = "This boolean is set to true if any of the judgements had warnings.")
   protected boolean hasWarnings;
 
-  @ApiModelProperty(value = "This string describes the aggregated judgement results.")
+  @Schema(description = "This string describes the aggregated judgement results.")
   protected String canaryScoreMessage;
 
   @NonNull
   @Builder.Default
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is an ordered list of the individual judgement scores. "
               + "The last score is used for determining the final result.")
   protected List<Double> canaryScores = new LinkedList<>();
 
   @NonNull
   @Builder.Default
-  @ApiModelProperty(value = "This is a list of canary execution summaries.")
+  @Schema(description = "This is a list of canary execution summaries.")
   protected List<CanaryExecutionResult> canaryExecutionResults = new LinkedList<>();
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "buildTimeIso is an ISO 8061 string and refers to the time the pipeline was first created.")
   protected String buildTimeIso;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "startTimeIso is an ISO 8061 string and refers to the time the pipeline started running.")
   protected String startTimeIso;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "endTimeIso is an ISO 8061 string and refers to the time the pipeline ended, either successfully or unsuccessfully.")
   protected String endTimeIso;
 }

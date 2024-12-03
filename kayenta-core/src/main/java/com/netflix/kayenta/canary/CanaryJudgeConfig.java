@@ -17,8 +17,7 @@
 package com.netflix.kayenta.canary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
 import lombok.*;
@@ -28,19 +27,19 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel(description = "Judge configuration.")
+@Schema(description = "Judge configuration.")
 public class CanaryJudgeConfig {
 
-  @ApiModelProperty(
-      value = "Judge to use, as of right now there is only `NetflixACAJudge-v1.0`.",
+  @Schema(
+      description = "Judge to use, as of right now there is only `NetflixACAJudge-v1.0`.",
       example = "NetflixACAJudge-v1.0",
       required = true)
   @NotNull
   @Getter
   private String name;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "Additional judgement configuration. As of right now, this should always be an empty object.",
       example = "{}",
       required = true)

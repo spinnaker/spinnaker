@@ -21,7 +21,7 @@ import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.wavefront.canary.WavefrontCanaryScope;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
@@ -52,24 +52,26 @@ public class WavefrontFetchController {
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
-      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-      @ApiParam(defaultValue = "system.cpu.user") @RequestParam String metricName,
-      @ApiParam(value = "An aggregate function, e.g.: avg, min, max")
+      @Parameter(example = "cpu") @RequestParam String metricSetName,
+      @Parameter(example = "system.cpu.user") @RequestParam String metricName,
+      @Parameter(description = "An aggregate function, e.g.: avg, min, max")
           @RequestParam(defaultValue = "")
           String aggregate,
-      @ApiParam(value = "Summarization strategy to use when bucketing points together")
+      @Parameter(description = "Summarization strategy to use when bucketing points together")
           @RequestParam(
               defaultValue = "MEAN",
               value = "[MEAN, MEDIAN, MIN, MAX, SUM, COUNT, FIRST, LAST]")
           String summarization,
-      @ApiParam(value = "The scope of the Wavefront query. e.g. autoscaling_group=myapp-prd-v002")
+      @Parameter(
+              description =
+                  "The scope of the Wavefront query. e.g. autoscaling_group=myapp-prd-v002")
           @RequestParam(defaultValue = "")
           String scope,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
           String start,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z") @RequestParam
           String end,
-      @ApiParam(defaultValue = "m", value = "[s, m, h, d]") @RequestParam String step,
+      @Parameter(example = "m", description = "[s, m, h, d]") @RequestParam String step,
       @RequestParam(required = false) final boolean dryRun)
       throws IOException {
 

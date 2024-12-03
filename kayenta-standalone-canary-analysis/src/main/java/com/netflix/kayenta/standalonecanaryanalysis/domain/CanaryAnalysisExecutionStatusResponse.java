@@ -19,8 +19,7 @@ package com.netflix.kayenta.standalonecanaryanalysis.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -32,105 +31,104 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel(description = "The canary analysis execution status response.")
+@Schema(description = "The canary analysis execution status response.")
 public class CanaryAnalysisExecutionStatusResponse {
 
   @NotNull
-  @ApiModelProperty(value = "The application under test.")
+  @Schema(description = "The application under test.")
   protected String application;
 
   @NotNull
-  @ApiModelProperty(
-      value = "This is the initiating user. If none was supplied this will be anonymous.")
+  @Schema(description = "This is the initiating user. If none was supplied this will be anonymous.")
   protected String user;
 
-  @ApiModelProperty(value = "This is the parent pipeline execution id if one was provided.")
+  @Schema(description = "This is the parent pipeline execution id if one was provided.")
   protected String parentPipelineExecutionId;
 
   @NotNull
-  @ApiModelProperty(value = "This is the pipeline id of this execution.")
+  @Schema(description = "This is the pipeline id of this execution.")
   protected String pipelineId;
 
   @NotNull
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is a map of StageExecution statuses which is useful for gaining insight into progress of the execution.")
   protected List<StageMetadata> stageStatus;
 
   @NotNull
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This indicates that the task/stage/pipeline has finished its work, independent of whether it was successful.")
   protected Boolean complete;
 
   @NotNull
-  @ApiModelProperty(
-      value = "This is the Orca Execution Status for the Canary Analysis Pipeline Execution.")
+  @Schema(
+      description = "This is the Orca Execution Status for the Canary Analysis Pipeline Execution.")
   protected ExecutionStatus executionStatus;
 
   @JsonProperty("status")
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is the lowercased serialized Orca status which is similar to the status in the /canary endpoints.")
   public String status() {
     return executionStatus.toString().toLowerCase();
   }
 
-  @ApiModelProperty(value = "This shows the first exception if any occurred.")
+  @Schema(description = "This shows the first exception if any occurred.")
   protected Object exception;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is the actual result of the canary analysis execution which will be present when complete is true.")
   protected CanaryAnalysisExecutionResult canaryAnalysisExecutionResult;
 
-  @ApiModelProperty(value = "The supplied request configuration.")
+  @Schema(description = "The supplied request configuration.")
   protected CanaryAnalysisExecutionRequest canaryAnalysisExecutionRequest;
 
-  @ApiModelProperty(value = "The supplied or retrieved canary configuration used.")
+  @Schema(description = "The supplied or retrieved canary configuration used.")
   protected CanaryConfig canaryConfig;
 
-  @ApiModelProperty(value = "This is the supplied canary config id if one was provided.")
+  @Schema(description = "This is the supplied canary config id if one was provided.")
   protected String canaryConfigId;
 
   // (startTime - buildTime) should indicate the time it was in the queue before starting.
   // (endTime - buildTime) should indicate the total time it took from request to result.
   // (endTime - startTime) should be the amount of time the canary was actually running.
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "buildTimeMillis is in epoch millis time and refers to the time the pipeline was first created.")
   protected Long buildTimeMillis;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "buildTimeIso is an ISO 8061 string and refers to the time the pipeline was first created.")
   protected String buildTimeIso;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "startTimeIso is an ISO 8061 string and refers to the time the pipeline started running.")
   protected Long startTimeMillis;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "startTimeIso is an ISO 8061 string and refers to the time the pipeline started running.")
   protected String startTimeIso;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "endTimeMillis is in epoch millis time and refers to the time the pipeline ended, either successfully or unsuccessfully.")
   protected Long endTimeMillis;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "endTimeIso is an ISO 8061 string and refers to the time the pipeline ended, either successfully or unsuccessfully.")
   protected String endTimeIso;
 
   @NotNull
-  @ApiModelProperty(value = "The resolved storage account name.")
+  @Schema(description = "The resolved storage account name.")
   protected String storageAccountName;
 
   @NotNull
-  @ApiModelProperty(value = "The resolved metrics account name.")
+  @Schema(description = "The resolved metrics account name.")
   protected String metricsAccountName;
 }

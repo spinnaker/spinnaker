@@ -23,7 +23,7 @@ import com.netflix.kayenta.canary.providers.metrics.AtlasCanaryMetricSetQueryCon
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
@@ -55,14 +55,14 @@ public class AtlasFetchController {
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
-      @ApiParam(defaultValue = "name,CpuRawUser,:eq,:sum") @RequestParam String q,
-      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-      @ApiParam(defaultValue = "cluster") @RequestParam String type,
+      @Parameter(example = "name,CpuRawUser,:eq,:sum") @RequestParam String q,
+      @Parameter(example = "cpu") @RequestParam String metricSetName,
+      @Parameter(example = "cluster") @RequestParam String type,
       @RequestParam String scope,
-      @ApiParam(defaultValue = "us-east-1") @RequestParam String location,
-      @ApiParam(defaultValue = "2000-01-01T00:00:00Z") @RequestParam Instant start,
-      @ApiParam(defaultValue = "2000-01-01T04:00:00Z") @RequestParam Instant end,
-      @ApiParam(defaultValue = "300") @RequestParam Long step)
+      @Parameter(example = "us-east-1") @RequestParam String location,
+      @Parameter(example = "2000-01-01T00:00:00Z") @RequestParam Instant start,
+      @Parameter(example = "2000-01-01T04:00:00Z") @RequestParam Instant end,
+      @Parameter(example = "300") @RequestParam Long step)
       throws IOException {
     String resolvedMetricsAccountName =
         accountCredentialsRepository

@@ -17,22 +17,21 @@
 package com.netflix.kayenta.standalonecanaryanalysis.domain;
 
 import com.netflix.kayenta.canary.CanaryConfig;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-@ApiModel(
+@Schema(
     description =
         "Wrapper object around canary config and execution request for the ad-hoc endpoint.")
 public class CanaryAnalysisAdhocExecutionRequest {
 
   @NotNull
-  @ApiModelProperty(value = "The canary configuration to use for the canary analysis execution.")
+  @Schema(description = "The canary configuration to use for the canary analysis execution.")
   protected CanaryConfig canaryConfig;
 
   @NotNull
-  @ApiModelProperty(value = "The canary analysis configuration request object.")
+  @Schema(description = "The canary analysis configuration request object.")
   protected CanaryAnalysisExecutionRequest executionRequest;
 }

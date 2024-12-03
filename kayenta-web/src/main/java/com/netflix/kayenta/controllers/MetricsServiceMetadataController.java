@@ -20,7 +20,7 @@ import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +48,7 @@ public class MetricsServiceMetadataController {
     this.metricsServiceRepository = metricsServiceRepository;
   }
 
-  @ApiOperation(value = "Retrieve a list of descriptors for use in populating the canary config ui")
+  @Operation(summary = "Retrieve a list of descriptors for use in populating the canary config ui")
   @RequestMapping(method = RequestMethod.GET)
   public List<Map> listMetadata(
       @RequestParam(required = false) final String metricsAccountName,

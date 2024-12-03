@@ -5,8 +5,6 @@ dependencies {
   api "io.spinnaker.kork:kork-retrofit"
   api "com.netflix.spectator:spectator-api"
 
-  api "io.swagger:swagger-annotations"
-
   api "io.spinnaker.orca:orca-core"
   api "io.spinnaker.orca:orca-retrofit"
 
@@ -16,6 +14,7 @@ dependencies {
   api "net.logstash.logback:logstash-logback-encoder"
 
   api "javax.validation:validation-api"
+  api "io.swagger.core.v3:swagger-annotations"
 
   testImplementation "io.spinnaker.kork:kork-jedis-test"
 }

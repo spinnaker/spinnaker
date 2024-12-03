@@ -25,7 +25,7 @@ import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashSet;
@@ -70,7 +70,7 @@ public class CanaryConfigController {
     this.disableMetricNameValidation = disableMetricNameValidation;
   }
 
-  @ApiOperation(value = "Retrieve a canary config from object storage")
+  @Operation(summary = "Retrieve a canary config from object storage")
   @RequestMapping(value = "/{canaryConfigId:.+}", method = RequestMethod.GET)
   public CanaryConfig loadCanaryConfig(
       @RequestParam(required = false) final String configurationAccountName,
@@ -86,7 +86,7 @@ public class CanaryConfigController {
         resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
   }
 
-  @ApiOperation(value = "Write a canary config to object storage")
+  @Operation(summary = "Write a canary config to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public CanaryConfigUpdateResponse storeCanaryConfig(
       @RequestParam(required = false) final String configurationAccountName,
@@ -140,7 +140,7 @@ public class CanaryConfigController {
     }
   }
 
-  @ApiOperation(value = "Update a canary config")
+  @Operation(summary = "Update a canary config")
   @RequestMapping(
       value = "/{canaryConfigId:.+}",
       consumes = "application/json",
@@ -232,7 +232,7 @@ public class CanaryConfigController {
     }
   }
 
-  @ApiOperation(value = "Delete a canary config")
+  @Operation(summary = "Delete a canary config")
   @RequestMapping(value = "/{canaryConfigId:.+}", method = RequestMethod.DELETE)
   public void deleteCanaryConfig(
       @RequestParam(required = false) final String configurationAccountName,
@@ -251,7 +251,7 @@ public class CanaryConfigController {
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
 
-  @ApiOperation(value = "Retrieve a list of canary config ids and timestamps")
+  @Operation(summary = "Retrieve a list of canary config ids and timestamps")
   @RequestMapping(method = RequestMethod.GET)
   public List<Map<String, Object>> listAllCanaryConfigs(
       @RequestParam(required = false) final String configurationAccountName,

@@ -35,8 +35,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -74,14 +74,14 @@ public class CanaryJudgesController {
     this.canaryJudges = canaryJudges;
   }
 
-  @ApiOperation(value = "Retrieve a list of all configured canary judges")
+  @Operation(summary = "Retrieve a list of all configured canary judges")
   @GetMapping
   List<CanaryJudge> list() {
     return canaryJudges;
   }
 
-  @ApiOperation(
-      value =
+  @Operation(
+      summary =
           "Exercise a judge directly, without any orchestration or querying of metrics services")
   @PostMapping(value = "/judge")
   public CanaryJudgeResult judge(
@@ -141,18 +141,20 @@ public class CanaryJudgesController {
     return canaryJudge.judge(canaryConfig, canaryClassifierThresholdsConfig, metricSetPairList);
   }
 
-  @ApiOperation(value = "Apply a pair of judges to a canned set of data")
+  @Operation(summary = "Apply a pair of judges to a canned set of data")
   @PostMapping(value = "/comparison")
   public CanaryExecutionResponse initiateJudgeComparison(
       @RequestParam(required = false) final String configurationAccountName,
       @RequestParam(required = false) final String storageAccountName,
       @RequestParam final String canaryConfigId,
-      @ApiParam(
-              value = "The name of the first judge to use, e.g. NetflixACAJudge-v1.0, dredd-v1.0.")
+      @Parameter(
+              description =
+                  "The name of the first judge to use, e.g. NetflixACAJudge-v1.0, dredd-v1.0.")
           @RequestParam(required = false)
           final String overrideCanaryJudge1,
-      @ApiParam(
-              value = "The name of the second judge to use, e.g. NetflixACAJudge-v1.0, dredd-v1.0.")
+      @Parameter(
+              description =
+                  "The name of the second judge to use, e.g. NetflixACAJudge-v1.0, dredd-v1.0.")
           @RequestParam(required = false)
           final String overrideCanaryJudge2,
       @RequestParam final String metricSetPairListId,
@@ -188,7 +190,7 @@ public class CanaryJudgesController {
         resolvedStorageAccountName);
   }
 
-  @ApiOperation(value = "Retrieve the results of a judge comparison")
+  @Operation(summary = "Retrieve the results of a judge comparison")
   @GetMapping(value = "/comparison/{executionId:.+}")
   public Map getJudgeComparisonResults(@PathVariable String executionId) {
     PipelineExecution pipeline = executionRepository.retrieve(ExecutionType.PIPELINE, executionId);

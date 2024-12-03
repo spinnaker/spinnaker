@@ -5,6 +5,7 @@ dependencies {
   api "io.spinnaker.orca:orca-redis"
   api "org.springframework.boot:spring-boot-starter-actuator"
   api "org.springframework.cloud:spring-cloud-commons"
+  api "io.swagger.core.v3:swagger-annotations"
 
   // TODO(duftler): Move these to spinnaker-dependencies.
   testImplementation "io.spinnaker.orca:orca-test"

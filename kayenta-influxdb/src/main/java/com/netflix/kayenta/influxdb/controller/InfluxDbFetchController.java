@@ -27,7 +27,7 @@ import com.netflix.kayenta.influxdb.config.InfluxDbConfigurationTestControllerDe
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
@@ -64,21 +64,23 @@ public class InfluxDbFetchController {
   public Map<String, String> queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
-      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-      @ApiParam(defaultValue = "temperature") @RequestParam String metricName,
-      @ApiParam(value = "Fields that are being queried. e.g. internal, external")
+      @Parameter(example = "cpu") @RequestParam String metricSetName,
+      @Parameter(example = "temperature") @RequestParam String metricName,
+      @Parameter(description = "Fields that are being queried. e.g. internal, external")
           @RequestParam(required = false)
           List<String> fields,
-      @ApiParam(value = "The scope of the Influxdb query. e.g. autoscaling_group:myapp-prod-v002")
+      @Parameter(
+              description =
+                  "The scope of the Influxdb query. e.g. autoscaling_group:myapp-prod-v002")
           @RequestParam(required = false)
           String scope,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z")
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z")
           @RequestParam(required = false)
           String start,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z")
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-03-15T01:23:45Z")
           @RequestParam(required = false)
           String end,
-      @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step)
+      @Parameter(example = "60", description = "seconds") @RequestParam Long step)
       throws IOException {
     // Apply defaults.
     scope =

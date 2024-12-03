@@ -18,8 +18,7 @@ package com.netflix.kayenta.standalonecanaryanalysis.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -36,37 +35,37 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel(
+@Schema(
     description =
         "The canary analysis configuration request object for initiating a canary analysis execution.")
 public class CanaryAnalysisExecutionRequest {
 
   @NotNull
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is a list of Canary Analysis Execution Request scopes. "
               + "This directs the Canary Analysis Execution where to find the experiment and control metrics in the metrics source. "
               + "The list must have at least one value.")
   private List<CanaryAnalysisExecutionRequestScope> scopes;
 
   @NotNull
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "The thresholds that will be used for the canary judgements. "
               + "When multiple judgements are occurring during the lifetime of this execution, the last judgement must have a score "
               + "that meets or exceeds the pass threshold, all previous judgement scores must meet or exceed the marginal score.")
   private CanaryClassifierThresholdsConfig thresholds;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is the amount of time in minutes the analysis phase of the canary analysis execution will last. "
               + "Either this value or endTimeIso (in scopes) must be set. ")
   private Long lifetimeDurationMins;
 
   @NotNull
   @Builder.Default
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is how long the canary analysis execution will wait before beginning the analysis phase. "
               + "This can be useful in a continuous integration situation where the canary analysis execution is triggered asynchronously "
               + "and metrics are ready for consumption after a time period.")
@@ -74,8 +73,8 @@ public class CanaryAnalysisExecutionRequest {
 
   @NotNull
   @Builder.Default
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "If this optional value is supplied, then the canary analysis execution will perform judgements on a sliding time window. "
               + "The judgements will be from endTime - lookbackMins to startTime + (judgementNumber * interval). "
               + "If lookbackMins is not exactly equal to interval, then the metrics analyzed will be overlapping or discontinuous.\n"
@@ -83,15 +82,15 @@ public class CanaryAnalysisExecutionRequest {
               + "from startTime + to startTime + (judgementNumber * interval).\n")
   private Long lookbackMins = 0L;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "The value of analysisIntervalMins is used to calculate how many judgements will occur over the lifetime of the canary analysis execution.\n"
               + "If this field is omitted then it will default to lifetime.\n"
               + "If this field is set to a value greater than lifetime, it will be reset to lifetime.")
   private Long analysisIntervalMins;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "A map of customizable data that among other things can be used in org-specific external modules such as event "
               + "listeners to handle notifications such as Slack, email, async http callbacks, etc.\n"
               + "The contents of this field don't have an effect on the actual canary analysis execution.")

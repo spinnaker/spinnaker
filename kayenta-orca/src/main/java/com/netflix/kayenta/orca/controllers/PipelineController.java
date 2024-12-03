@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -97,19 +97,19 @@ public class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Initiate a pipeline execution")
+  @Operation(summary = "Initiate a pipeline execution")
   @RequestMapping(value = "/start", method = RequestMethod.POST)
   String start(@RequestBody Map map) throws Exception {
     return startPipeline(map);
   }
 
-  @ApiOperation(value = "Retrieve a pipeline execution")
+  @Operation(summary = "Retrieve a pipeline execution")
   @RequestMapping(value = "/{executionId}", method = RequestMethod.GET)
   PipelineExecution getPipeline(@PathVariable String executionId) {
     return executionRepository.retrieve(PIPELINE, executionId);
   }
 
-  @ApiOperation(value = "Cancel a pipeline execution")
+  @Operation(summary = "Cancel a pipeline execution")
   @RequestMapping(value = "/{executionId}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(@PathVariable String executionId) {
@@ -126,7 +126,7 @@ public class PipelineController {
     executionRepository.updateStatus(PIPELINE, executionId, ExecutionStatus.CANCELED);
   }
 
-  @ApiOperation(value = "Delete a pipeline execution")
+  @Operation(summary = "Delete a pipeline execution")
   @RequestMapping(value = "/{executionId}", method = RequestMethod.DELETE)
   ResponseEntity delete(@PathVariable String executionId) {
     log.info("Deleting pipeline execution {}...", executionId);
@@ -139,7 +139,7 @@ public class PipelineController {
     return new ResponseEntity(HttpStatus.OK);
   }
 
-  @ApiOperation(value = "List all pipeline IDs")
+  @Operation(summary = "List all pipeline IDs")
   @RequestMapping(method = RequestMethod.GET)
   List<String> list() {
     return executionRepository.retrieveAllExecutionIds(PIPELINE);

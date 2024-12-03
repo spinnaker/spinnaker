@@ -17,8 +17,7 @@
 package com.netflix.kayenta.standalonecanaryanalysis.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,68 +32,68 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel(
+@Schema(
     description =
         "Defines where to find the metrics for the experiment and control in the metrics source.")
 public class CanaryAnalysisExecutionRequestScope {
 
   @Builder.Default
-  @ApiModelProperty(value = "Specifies unique name of the metrics scope.", example = "default")
+  @Schema(description = "Specifies unique name of the metrics scope.", example = "default")
   String scopeName = "default";
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This value is used to fetch the data for the control from the metrics service. "
               + "It is often a server group name (e.g. ASG on EC2 or MIG on GCE).",
       example = "examplemicroservice--control-v001")
   String controlScope;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is the location of the control which is used by some metrics sources to further differentiate metrics."
               + "Examples include a region or zone.",
       example = "us-west-2")
   String controlLocation;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "The time offset in minutes to be subtracted from the control start and end time. If none is provided, the control is "
               + "evaluated at the same time as the experiment.",
       example = "10")
   @Builder.Default
   Long controlOffsetInMinutes = 0L;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This value is used to fetch the data for the experiment from the metrics service. "
               + "It is often a server group name (e.g. ASG on EC2 or MIG on GCE).",
       example = "examplemicroservice--experiment-v001")
   String experimentScope;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is the location of the experiment which is used by some metrics sources to further differentiate metrics."
               + "Examples include a region or zone.",
       example = "us-west-2")
   String experimentLocation;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This optional value indicates the start time for looking up metrics. "
               + "If this value is omitted, the current time at execution will be used instead.",
       example = "2018-12-17T20:56:39.689Z")
   String startTimeIso;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This value will be used to calculate the length of time of the analysis execution.\n"
               + "Either this value or lifetime (in the parent object) must be supplied. "
               + "This field takes precedence over lifetime.",
       example = "2018-12-17T21:56:39.689Z")
   String endTimeIso;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This indicates the period in seconds for how often data points will be requested from the metrics sources when querying for metrics.\n"
               + "The value defaults to 60 which means a data point will be requested every 60 seconds from the data source.\n"
               + "The resulting resolution (data points per the calculated interval) needs to be at least 50 "
@@ -103,8 +102,8 @@ public class CanaryAnalysisExecutionRequestScope {
   @Builder.Default
   Long step = 60L;
 
-  @ApiModelProperty(
-      value =
+  @Schema(
+      description =
           "This is an additional scope to define key values as some metric sources require additional scope params. "
               + "For example New Relic and SignalFx require _scope_key to be supplied.")
   @Builder.Default

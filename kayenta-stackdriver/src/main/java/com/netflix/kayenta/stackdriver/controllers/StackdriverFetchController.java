@@ -26,8 +26,9 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScopeFactory;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfigurationTestControllerDefaultProperties;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -64,46 +65,47 @@ public class StackdriverFetchController {
         stackdriverConfigurationTestControllerDefaultProperties;
   }
 
-  @ApiOperation(
-      value =
+  @Operation(
+      summary =
           "Exercise the Stackdriver Metrics Service directly, without any orchestration or judging")
   @RequestMapping(value = "/query", method = RequestMethod.POST)
   public Map queryMetrics(
       @RequestParam(required = false) final String metricsAccountName,
       @RequestParam(required = false) final String storageAccountName,
-      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-      @ApiParam(defaultValue = "compute.googleapis.com/instance/cpu/utilization") @RequestParam
+      @Parameter(example = "cpu") @RequestParam String metricSetName,
+      @Parameter(example = "compute.googleapis.com/instance/cpu/utilization") @RequestParam
           String metricType,
       @RequestParam(required = false) List<String> groupByFields, // metric.label.instance_name
       @RequestParam(required = false) String project,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "Used to identify the type of the resource being queried, "
                       + "e.g. aws_ec2_instance, gce_instance.")
           @RequestParam(required = false)
           String resourceType,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "The location to use when scoping the query. Valid choices depend on what cloud "
                       + "platform the query relates to (could be a region, a namespace, or something else).")
           @RequestParam(required = false)
           String location,
-      @ApiParam(
-              value =
+      @Parameter(
+              description =
                   "The name of the resource to use when scoping the query. "
                       + "The most common use-case is to provide a server group name.")
           @RequestParam(required = false)
           String scope,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-02-21T12:48:00Z")
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-02-21T12:48:00Z")
           @RequestParam(required = false)
           String startTimeIso,
-      @ApiParam(value = "An ISO format timestamp, e.g.: 2018-02-21T12:51:00Z")
+      @Parameter(description = "An ISO format timestamp, e.g.: 2018-02-21T12:51:00Z")
           @RequestParam(required = false)
           String endTimeIso,
-      @ApiParam(example = "60", value = "seconds") @RequestParam Long step,
+      @Parameter(example = "60", description = "seconds") @RequestParam Long step,
       @RequestParam(required = false) final String customFilter,
-      @ApiParam @RequestBody final Map<String, String> extendedScopeParams,
-      @ApiParam(defaultValue = "false") @RequestParam(required = false) final boolean dryRun)
+      @Parameter @RequestBody final Map<String, String> extendedScopeParams,
+      @Parameter(schema = @Schema(defaultValue = "false")) @RequestParam(required = false)
+          final boolean dryRun)
       throws IOException {
     // Apply defaults.
     project =

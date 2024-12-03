@@ -24,8 +24,8 @@ import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +38,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/canaryResultArchive")
-@Api(
-    value = "/canaryResultArchive",
+@Tag(
+    name = "/canaryResultArchive",
     description =
         "Manipulate the archived canary result object store.  This should be used only for Kayenta maintenance.  Use the /canary endpoints for canary results.")
 @Slf4j
@@ -56,7 +56,7 @@ public class CanaryResultArchiveController {
     this.storageServiceRepository = storageServiceRepository;
   }
 
-  @ApiOperation(value = "Retrieve an archived canary result from object storage")
+  @Operation(summary = "Retrieve an archived canary result from object storage")
   @RequestMapping(value = "/{pipelineId:.+}", method = RequestMethod.GET)
   public CanaryExecutionStatusResponse loadArchivedCanaryResult(
       @RequestParam(required = false) final String storageAccountName,
@@ -68,7 +68,7 @@ public class CanaryResultArchiveController {
         resolvedConfigurationAccountName, ObjectType.CANARY_RESULT_ARCHIVE, pipelineId);
   }
 
-  @ApiOperation(value = "Create an archived canary result to object storage")
+  @Operation(summary = "Create an archived canary result to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public CanaryArchiveResultUpdateResponse storeArchivedCanaryResult(
       @RequestParam(required = false) final String storageAccountName,
@@ -101,7 +101,7 @@ public class CanaryResultArchiveController {
         "Archived canary result '" + pipelineId + "' already exists.");
   }
 
-  @ApiOperation(value = "Update an archived canary result in object storage")
+  @Operation(summary = "Update an archived canary result in object storage")
   @RequestMapping(
       value = "/{pipelineId:.+}",
       consumes = "application/json",
@@ -133,7 +133,7 @@ public class CanaryResultArchiveController {
     return CanaryArchiveResultUpdateResponse.builder().pipelineId(pipelineId).build();
   }
 
-  @ApiOperation(value = "Delete an archived canary result from object storage")
+  @Operation(summary = "Delete an archived canary result from object storage")
   @RequestMapping(value = "/{pipelineId:.+}", method = RequestMethod.DELETE)
   public void deleteArchivedCanaryResult(
       @RequestParam(required = false) final String storageAccountName,
@@ -148,7 +148,7 @@ public class CanaryResultArchiveController {
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
 
-  @ApiOperation(value = "Retrieve a list of archived canary result ids in object storage")
+  @Operation(summary = "Retrieve a list of archived canary result ids in object storage")
   @RequestMapping(method = RequestMethod.GET)
   public List<Map<String, Object>> listAllCanaryArchivedResults(
       @RequestParam(required = false) final String storageAccountName) {

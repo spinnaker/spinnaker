@@ -20,7 +20,7 @@ import static com.netflix.kayenta.security.AccountCredentials.Type.METRICS_STORE
 
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,7 +40,7 @@ public class MetricsServicesController {
     this.accountCredentialsRepository = accountCredentialsRepository;
   }
 
-  @ApiOperation(value = "Retrieve a list of all configured metrics services")
+  @Operation(summary = "Retrieve a list of all configured metrics services")
   @RequestMapping(method = RequestMethod.GET)
   List<MetricsServiceDetail> list() {
     Set<AccountCredentials> metricAccountCredentials =
