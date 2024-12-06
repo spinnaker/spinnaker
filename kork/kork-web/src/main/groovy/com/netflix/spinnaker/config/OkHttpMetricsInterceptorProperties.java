@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.config;
 
+import jakarta.annotation.PostConstruct;
 import java.util.regex.Pattern;
-import javax.annotation.PostConstruct;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
