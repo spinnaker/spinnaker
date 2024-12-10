@@ -21,6 +21,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-api"))
   implementation("io.spinnaker.kork:kork-core")
+  implementation("io.spinnaker.kork:kork-retrofit")
   implementation("io.spinnaker.kork:kork-web")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   compileOnly("org.projectlombok:lombok")

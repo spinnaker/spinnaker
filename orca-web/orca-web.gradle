@@ -94,6 +94,7 @@ dependencies {
   testImplementation("io.strikt:strikt-core")
   testImplementation("io.mockk:mockk")
   testImplementation("org.apache.groovy:groovy-json")
+  testImplementation ("com.squareup.retrofit2:retrofit-mock")
 }
 
 test {

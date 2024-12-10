@@ -48,6 +48,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import retrofit2.mock.Calls
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -682,7 +683,7 @@ class OperationsControllerSpec extends Specification {
     def role = new Role().setName("some-role")
     def permission = new UserPermission().setId("foo").setAccounts([account] as Set).setRoles([role] as Set)
 
-    fiatService.getUserPermission(*_) >> permission.getView()
+    fiatService.getUserPermission(*_) >> Calls.response(permission.getView())
 
     when:
     def preconfiguredWebhooks = controller.preconfiguredWebhooks()

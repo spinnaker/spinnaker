@@ -23,6 +23,7 @@ import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -390,7 +391,7 @@ class OperationsController {
         def userPermissionRoles = [new Role.View(new Role("anonymous"))] as Set<Role.View>
         try {
           String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-          UserPermission.View userPermission = fiatService.getUserPermission(user)
+          UserPermission.View userPermission = Retrofit2SyncCall.execute(fiatService.getUserPermission(user))
           userPermissionRoles = userPermission.roles
         } catch (Exception e) {
           log.error("Unable to determine roles for current user, falling back to 'anonymous'", e)

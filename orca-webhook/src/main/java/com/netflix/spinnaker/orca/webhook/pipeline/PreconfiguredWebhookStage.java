@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.webhook.pipeline;
 
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties.PreconfiguredWebhook;
@@ -70,7 +71,7 @@ public class PreconfiguredWebhookStage extends WebhookStage {
     var permissions = preconfiguredWebhook.getPermissions();
     if (permissions != null && !permissions.isEmpty()) {
       String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous");
-      var userPermission = fiatService.getUserPermission(user);
+      var userPermission = Retrofit2SyncCall.execute(fiatService.getUserPermission(user));
 
       boolean isAllowed = preconfiguredWebhook.isAllowed("WRITE", userPermission.getRoles());
       if (!isAllowed) {
