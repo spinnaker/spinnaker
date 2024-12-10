@@ -32,6 +32,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-config"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "com.squareup.retrofit:converter-jackson"

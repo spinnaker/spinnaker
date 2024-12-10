@@ -23,6 +23,7 @@ import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -44,7 +45,7 @@ class ApplicationPermissionsServiceSpec extends Specification {
     subject.createApplicationPermission(permission)
 
     then:
-    1 * fiatService.sync(expectedSyncedRoles)
+    1 * fiatService.sync(expectedSyncedRoles) >> Calls.response(null)
 
     where:
     permission                                                  | expectedSyncedRoles

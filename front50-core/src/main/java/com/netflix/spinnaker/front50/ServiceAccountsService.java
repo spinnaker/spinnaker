@@ -23,6 +23,7 @@ import com.netflix.spinnaker.front50.config.FiatConfigurationProperties;
 import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.Collection;
@@ -86,7 +87,8 @@ public class ServiceAccountsService {
         sa -> {
           try {
             serviceAccountDAO.delete(sa.getId());
-            fiatService.ifPresent(service -> service.logoutUser(sa.getId()));
+            fiatService.ifPresent(
+                service -> Retrofit2SyncCall.execute(service.logoutUser(sa.getId())));
           } catch (Exception e) {
             log.warn("Could not delete service account user {}", sa.getId(), e);
           }
@@ -129,7 +131,7 @@ public class ServiceAccountsService {
               .flatMap(Collection::stream)
               .distinct()
               .collect(Collectors.toList());
-      fiatService.get().sync(rolesToSync);
+      Retrofit2SyncCall.execute(fiatService.get().sync(rolesToSync));
       log.debug("Synced users with roles: {}", rolesToSync);
       // Invalidate the current user's permissions in the local cache
       Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -149,7 +151,10 @@ public class ServiceAccountsService {
       return;
     }
     try {
-      fiatService.get().syncServiceAccount(serviceAccount.getId(), serviceAccount.getMemberOf());
+      Retrofit2SyncCall.execute(
+          fiatService
+              .get()
+              .syncServiceAccount(serviceAccount.getId(), serviceAccount.getMemberOf()));
       log.debug(
           "Synced service account {} with roles: {}",
           serviceAccount.getId(),

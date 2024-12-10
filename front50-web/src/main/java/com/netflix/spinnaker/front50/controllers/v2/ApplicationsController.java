@@ -12,6 +12,7 @@ import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -125,7 +126,7 @@ public class ApplicationsController {
         && fiatConfigurationProperties.getRoleSync().isEnabled()
         && fiatService.isPresent()) {
       try {
-        fiatService.get().sync();
+        Retrofit2SyncCall.execute(fiatService.get().sync());
       } catch (Exception e) {
         log.warn("failed to trigger fiat permission sync", e);
       }

@@ -47,5 +47,6 @@ dependencies {
   // in front50-test to front50-common, but front50-test seems like a better place.
   testImplementation project(":front50-test")
   testImplementation "io.spinnaker.kork:kork-sql-test"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 
 }
