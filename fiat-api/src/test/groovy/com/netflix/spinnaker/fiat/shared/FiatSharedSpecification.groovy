@@ -18,10 +18,17 @@ package com.netflix.spinnaker.fiat.shared
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.fiat.model.UserPermission
+import retrofit2.Call
+import retrofit2.Response
 import spock.lang.Specification
 
 abstract class FiatSharedSpecification extends Specification {
-    FiatService fiatService = Mock(FiatService)
+    FiatService fiatService = Mock(FiatService) {
+        getUserPermission(_ as String) >> Mock(Call) {
+            execute() >> Response.success(new UserPermission.View(new UserPermission()))
+        }
+    }
     Registry registry = new NoopRegistry()
     FiatStatus fiatStatus = Mock(FiatStatus) {
         _ * isEnabled() >> { return true }

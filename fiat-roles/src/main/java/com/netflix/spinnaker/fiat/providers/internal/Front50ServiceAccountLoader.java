@@ -18,10 +18,11 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 
 public class Front50ServiceAccountLoader extends Front50DataLoader<ServiceAccount> {
 
   public Front50ServiceAccountLoader(ProviderHealthTracker healthTracker, Front50Api front50Api) {
-    super(healthTracker, front50Api::getAllServiceAccounts);
+    super(healthTracker, () -> Retrofit2SyncCall.execute(front50Api.getAllServiceAccounts()));
   }
 }

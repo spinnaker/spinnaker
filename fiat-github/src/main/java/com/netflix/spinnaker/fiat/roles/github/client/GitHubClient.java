@@ -19,23 +19,24 @@ package com.netflix.spinnaker.fiat.roles.github.client;
 import com.netflix.spinnaker.fiat.roles.github.model.Member;
 import com.netflix.spinnaker.fiat.roles.github.model.Team;
 import java.util.List;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 /** Retrofit interface for interacting with a GitHub REST API. */
 public interface GitHubClient {
 
   @GET("/orgs/{org}/teams")
-  List<Team> getOrgTeams(
+  Call<List<Team>> getOrgTeams(
       @Path("org") String org, @Query("page") int page, @Query("per_page") int paginationValue);
 
   @GET("/orgs/{org}/members")
-  List<Member> getOrgMembers(
+  Call<List<Member>> getOrgMembers(
       @Path("org") String org, @Query("page") int page, @Query("per_page") int paginationValue);
 
   @GET("/orgs/{org}/teams/{teamSlug}/members")
-  List<Member> getMembersOfTeam(
+  Call<List<Member>> getMembersOfTeam(
       @Path("org") String org,
       @Path("teamSlug") String teamSlug,
       @Query("page") int page,

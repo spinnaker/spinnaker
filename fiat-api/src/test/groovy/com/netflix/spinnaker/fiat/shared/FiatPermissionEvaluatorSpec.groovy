@@ -27,16 +27,19 @@ import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.kork.common.Header
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import org.slf4j.MDC
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Call;
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory;
 import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import javax.servlet.http.HttpServletResponse
 
 class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
 
@@ -67,25 +70,29 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
                                          authorization)
 
     then:
-    1 * fiatService.getUserPermission("testUser") >> new UserPermission.View(new UserPermission())
     !result
 
     when:
+    fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >> Mock(Call){
+        execute() >> Response.success(new UserPermission(
+                applications: [
+                        new Application(name: "abc-def",
+                                permissions: Permissions.factory([
+                                        (Authorization.READ): ["testRole"] as Set
+                                ])),
+                ],
+                roles: [new Role("testRole")]
+        ).getView() )
+      }
+    }
+    evaluator = updateEvaluator(fiatService)
     result = evaluator.hasPermission(authentication,
                                      resource,
                                      resourceType.name,
                                      authorization)
 
     then:
-    1 * fiatService.getUserPermission("testUser") >> new UserPermission(
-            applications: [
-                new Application(name: "abc-def",
-                                permissions: Permissions.factory([
-                                    (Authorization.READ): ["testRole"] as Set
-                                ])),
-            ],
-            roles: [new Role("testRole")]
-        ).getView()
     result
 
     where:
@@ -105,15 +112,23 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
                                                .setAuthorizations([Authorization.READ] as Set)] as Set)
     upv.setServiceAccounts([new ServiceAccount.View().setName(svcAcct)
                                                      .setMemberOf(["foo"])] as Set)
-    fiatService.getUserPermission("testUser") >> upv
-
     SecurityContextHolder.getContext().setAuthentication(authentication)
     Resource resourceCanCreate = new Application().setName("app1")
     Resource resourceCannotCreate = new Application().setName("app2")
-    fiatService.canCreate("testUser", 'APPLICATION', resourceCanCreate) >> null // doesn't return anything in case of success
-    fiatService.canCreate("testUser", 'APPLICATION', resourceCannotCreate) >> {
-      throw RetrofitError.httpError("", new Response("", HttpServletResponse.SC_NOT_FOUND, "", [], null), null, null)
+    SpinnakerHttpException spinnakerHttpException = makeSpinnakerHttpException(404)
+
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >> Mock(Call) {
+        execute() >> Response.success(upv)
+      }
+      canCreate("testUser", "APPLICATION", resourceCanCreate) >> Mock(Call) {
+        execute() >> Response.success(null) // doesn't return anything in case of success
+      }
+      canCreate("testUser", "APPLICATION", resourceCannotCreate) >> {
+        throw spinnakerHttpException
+      }
     }
+    evaluator = updateEvaluator(fiatService)
 
     expect:
     evaluator.hasPermission(authentication, resource, 'APPLICATION', 'READ')
@@ -127,6 +142,7 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     evaluator.hasPermission(authentication, svcAcct, 'SERVICE_ACCOUNT', 'WRITE')
 
     evaluator.canCreate('APPLICATION', resourceCanCreate)
+
     !evaluator.canCreate('APPLICATION', resourceCannotCreate)
   }
 
@@ -139,6 +155,11 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     retryConfiguration.setRetryMultiplier(1.5)
 
     and:
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >>  {
+        throw new IllegalStateException("something something something")
+      }
+    }
     FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(
             registry,
             fiatService,
@@ -151,8 +172,6 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     def view = evaluator.getPermission("testUser")
 
     then:
-    2 * fiatService.getUserPermission("testUser") >> { throw new IllegalStateException("something something something")}
-
     view == null
   }
 
@@ -163,12 +182,18 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     MDC.put(Header.ACCOUNTS.header, "account1,account2")
 
     when:
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >>  {
+        throw new IllegalStateException("something something something")
+      }
+    }
+
+    FiatPermissionEvaluator evaluator = updateEvaluator(fiatService)
     def permission = evaluator.getPermission("testUser")
     def hasPermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "READ")
 
     then:
     2 * fiatStatus.isLegacyFallbackEnabled() >> { return legacyFallbackEnabled }
-    2 * fiatService.getUserPermission("testUser") >> { throw new IllegalStateException("something something something")}
 
     hasPermission == expectedToHavePermission
     permission?.name == expectedName
@@ -183,21 +208,24 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
   @Unroll
   def "should deny access to an application that has an empty set of authorizations"() {
     when:
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >> Mock(Call){
+        execute() >> Response.success(new UserPermission.View()
+                .setApplications(
+                        [
+                                new Application.View()
+                                        .setName("my_application")
+                                        .setAuthorizations(authorizations as Set<Authorization>)
+                        ] as Set<Application.View>
+                ) )
+      }
+    }
+
+    evaluator = updateEvaluator(fiatService)
     def hasReadPermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "READ")
     def hasWritePermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "WRITE")
 
     then:
-    2 * fiatService.getUserPermission("testUser") >> {
-      return new UserPermission.View()
-          .setApplications(
-          [
-              new Application.View()
-                  .setName("my_application")
-                  .setAuthorizations(authorizations as Set<Authorization>)
-          ] as Set<Application.View>
-      )
-    }
-
     !hasReadPermission
     !hasWritePermission
 
@@ -208,15 +236,18 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
   @Unroll
   def "should allow access to unknown applications"() {
     when:
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >> Mock(Call){
+        execute() >> Response.success(new UserPermission.View()
+                .setAllowAccessToUnknownApplications(allowAccessToUnknownApplications)
+                .setApplications(Collections.emptySet()))
+      }
+    }
+
+    evaluator = updateEvaluator(fiatService)
     def hasPermission = evaluator.hasPermission(authentication, "my_application", "APPLICATION", "READ")
 
     then:
-    1 * fiatService.getUserPermission("testUser") >> {
-      return new UserPermission.View()
-          .setAllowAccessToUnknownApplications(allowAccessToUnknownApplications)
-          .setApplications(Collections.emptySet())
-    }
-
     hasPermission == expectedToHavePermission
 
     where:
@@ -228,11 +259,15 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
   @Unroll
   def "should allow an admin to access #resourceType"() {
     given:
-    fiatService.getUserPermission("testUser") >> {
-      return new UserPermission.View()
-          .setApplications(Collections.emptySet())
-          .setAdmin(true)
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >> Mock(Call){
+        execute() >> Response.success(new UserPermission.View()
+                .setApplications(Collections.emptySet())
+                .setAdmin(true))
+      }
     }
+
+    evaluator = updateEvaluator(fiatService)
 
     expect:
     evaluator.hasPermission(authentication, "my_resource", resourceType, "READ")
@@ -244,11 +279,15 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
 
   def "should support isAdmin check for a user"() {
     given:
-    1 * fiatService.getUserPermission("testUser") >> {
-      return new UserPermission.View()
-          .setApplications(Collections.emptySet())
-          .setAdmin(isAdmin)
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >> Mock(Call){
+        execute() >> Response.success(new UserPermission.View()
+                .setApplications(Collections.emptySet())
+                .setAdmin(isAdmin))
+      }
     }
+
+    evaluator = updateEvaluator(fiatService)
 
     expect:
     evaluator.isAdmin(authentication) == expectedIsAdmin
@@ -269,14 +308,19 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     }
 
     when:
+    FiatService fiatService = Mock(FiatService) {
+      getUserPermission("testUser") >> Mock(Call){
+        execute() >> Response.success(new UserPermission.View()
+                .setExtensionResources([
+                        (MY_EXTENSION_RESOURCE): [extensionResource] as Set
+                ]))
+      }
+    }
+
+    evaluator = updateEvaluator(fiatService)
     def hasPermission = evaluator.hasPermission(authentication, "extension_resource", resourceType, authorization)
 
     then:
-    1 * fiatService.getUserPermission("testUser") >> new UserPermission.View()
-        .setExtensionResources([
-            (MY_EXTENSION_RESOURCE): [extensionResource] as Set
-        ])
-
     hasPermission == expectedHasPermission
 
     where:
@@ -285,21 +329,6 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     "MY_EXTENSION_RESOURCE"   | "WRITE"       | false
     "YOUR_EXTENSION_RESOURCE" | "READ"        | false
     "YOUR_EXTENSION_RESOURCE" | "WRITE"       | false
-  }
-
-  private static FiatClientConfigurationProperties buildConfigurationProperties() {
-    FiatClientConfigurationProperties configurationProperties = new FiatClientConfigurationProperties()
-    configurationProperties.enabled = true
-    configurationProperties.cache.maxEntries = 0
-    configurationProperties.cache.expiresAfterWriteSeconds = 0
-    configurationProperties.grantedAuthorities.enabled = true
-    return configurationProperties
-  }
-
-  private static MY_EXTENSION_RESOURCE = new ResourceType("MY_EXTENSION_RESOURCE");
-  private static class MyExtensionResourceView implements Authorizable {
-    String name
-    Set<Authorization> authorizations
   }
 
   def "should evaluate permissions for AccessControlled objects"() {
@@ -323,4 +352,47 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     'WRITE'            | false
     'EXECUTE'          | false
   }
+
+  private static FiatClientConfigurationProperties buildConfigurationProperties() {
+    FiatClientConfigurationProperties configurationProperties = new FiatClientConfigurationProperties()
+    configurationProperties.enabled = true
+    configurationProperties.cache.maxEntries = 0
+    configurationProperties.cache.expiresAfterWriteSeconds = 0
+    configurationProperties.grantedAuthorities.enabled = true
+    return configurationProperties
+  }
+
+  private static MY_EXTENSION_RESOURCE = new ResourceType("MY_EXTENSION_RESOURCE");
+  private static class MyExtensionResourceView implements Authorizable {
+    String name
+    Set<Authorization> authorizations
+  }
+
+  private FiatPermissionEvaluator updateEvaluator(FiatService updatedFiatService) {
+    new FiatPermissionEvaluator(
+            registry,
+            updatedFiatService,
+            buildConfigurationProperties(),
+            fiatStatus,
+            FiatPermissionEvaluator.RetryHandler.NOOP
+    )
+  }
+  private static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+    String url = "https://some-url";
+    Response retrofit2Response =
+            Response.error(
+                    status,
+                    ResponseBody.create(
+                            MediaType.parse("application/json"),
+                            "{ \"message\": \"arbitrary message\" }"));
+
+    Retrofit retrofit =
+            new Retrofit.Builder()
+                    .baseUrl(url)
+                    .addConverterFactory(JacksonConverterFactory.create())
+                    .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
+  }
+
 }

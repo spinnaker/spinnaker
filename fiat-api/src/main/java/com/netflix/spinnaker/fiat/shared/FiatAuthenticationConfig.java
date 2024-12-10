@@ -20,18 +20,11 @@ import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
-import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.ErrorConfiguration;
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import lombok.Setter;
 import lombok.val;
-import okhttp3.OkHttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -46,9 +39,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.AuthenticationConverter;
-import retrofit.Endpoints;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Import(ErrorConfiguration.class)
 @EnableWebSecurity
@@ -58,33 +50,21 @@ import retrofit.converter.JacksonConverter;
 @ComponentScan("com.netflix.spinnaker.fiat.shared")
 public class FiatAuthenticationConfig {
 
-  @Autowired(required = false)
-  @Setter
-  private RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.BASIC;
-
   @Bean
   @ConditionalOnMissingBean(FiatService.class) // Allows for override
   public FiatService fiatService(
       FiatClientConfigurationProperties fiatConfigurationProperties,
-      SpinnakerRequestInterceptor interceptor,
-      OkHttpClientProvider okHttpClientProvider) {
+      OkHttp3ClientConfiguration okHttpClientConfig) {
     // New role providers break deserialization if this is not enabled.
     val objectMapper = new ObjectMapper();
     objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(
-            new DefaultServiceEndpoint("fiat", fiatConfigurationProperties.getBaseUrl()));
-
-    return new RestAdapter.Builder()
-        .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
-        .setRequestInterceptor(interceptor)
-        .setClient(new Ok3Client(okHttpClient))
-        .setConverter(new JacksonConverter(objectMapper))
-        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new Slf4jRetrofitLogger(FiatService.class))
+    return new Retrofit.Builder()
+        .baseUrl(fiatConfigurationProperties.getBaseUrl())
+        .client(okHttpClientConfig.createForRetrofit2().build())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
         .build()
         .create(FiatService.class);
   }

@@ -25,7 +25,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * This class makes and caches live calls to front50. In the event that front50 is unavailable, the
- * cached data is returned in stead. Failed calls are logged with the front50 health tracker, which
+ * cached data is returned instead. Failed calls are logged with the front50 health tracker, which
  * will turn unhealthy after X number of failed cache refreshes.
  */
 public class Front50DataLoader<T> extends DataLoader<T> {

@@ -24,6 +24,8 @@ import com.netflix.spinnaker.fiat.providers.internal.ClouddriverAccountLoader
 import com.netflix.spinnaker.fiat.providers.internal.Front50ApplicationLoader
 import com.netflix.spinnaker.fiat.providers.internal.Front50ServiceAccountLoader
 import com.netflix.spinnaker.fiat.providers.internal.IgorBuildServiceLoader
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import okhttp3.Request
 import org.jooq.Configuration
 import org.jooq.DSLContext
 import org.jooq.TransactionalRunnable
@@ -34,7 +36,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.util.Pool
-import retrofit.RetrofitError
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -151,7 +152,7 @@ class RolesControllerSpec extends Specification {
 
     then:
     front50ApplicationLoader.getData() >> {
-      throw RetrofitError.networkError("test1", new IOException("test2"))
+      throw new SpinnakerNetworkException(new IOException("test1"), new Request.Builder().url("test2").build())
     }
 
     when:

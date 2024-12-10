@@ -19,9 +19,10 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import java.util.List;
-import retrofit.http.GET;
+import retrofit2.Call;
+import retrofit2.http.GET;
 
 public interface IgorApi {
   @GET("/buildServices")
-  List<BuildService> getBuildMasters();
+  Call<List<BuildService>> getBuildMasters();
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import java.util.List;
@@ -25,12 +26,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * This class makes and caches live calls to igor. In the event that igor is unavailable, the cached
- * data is returned in stead. Failed calls are logged with the igor health tracker, which will turn
+ * data is returned instead. Failed calls are logged with the igor health tracker, which will turn
  * unhealthy after X number of failed cache refreshes.
  */
 public class IgorBuildServiceLoader extends DataLoader<BuildService> {
   public IgorBuildServiceLoader(ProviderHealthTracker healthTracker, IgorApi igorApi) {
-    super(healthTracker, igorApi::getBuildMasters);
+    super(healthTracker, () -> Retrofit2SyncCall.execute(igorApi.getBuildMasters()));
   }
 
   @Override

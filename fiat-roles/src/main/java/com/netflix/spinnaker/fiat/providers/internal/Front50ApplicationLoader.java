@@ -18,10 +18,11 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 
 public class Front50ApplicationLoader extends Front50DataLoader<Application> {
 
   public Front50ApplicationLoader(ProviderHealthTracker healthTracker, Front50Api front50Api) {
-    super(healthTracker, front50Api::getAllApplications);
+    super(healthTracker, () -> Retrofit2SyncCall.execute(front50Api.getAllApplications()));
   }
 }

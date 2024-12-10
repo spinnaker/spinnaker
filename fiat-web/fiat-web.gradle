@@ -8,9 +8,7 @@ configurations.all {
 }
 
 dependencies {
-  implementation "com.squareup.retrofit:retrofit"
-  implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
+  implementation "com.squareup.retrofit2:converter-jackson"
   implementation "com.google.guava:guava"
 
   implementation "org.springframework.boot:spring-boot-starter-actuator"

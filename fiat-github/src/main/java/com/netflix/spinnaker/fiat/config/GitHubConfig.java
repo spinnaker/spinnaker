@@ -1,23 +1,22 @@
 package com.netflix.spinnaker.fiat.config;
 
-import com.jakewharton.retrofit.Ok3Client;
-import com.netflix.spinnaker.config.DefaultServiceEndpoint;
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import java.io.IOException;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoints;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /**
  * Converts the list of GitHub Configuration properties a collection of clients to access the GitHub
@@ -28,55 +27,33 @@ import retrofit.converter.JacksonConverter;
 @Slf4j
 public class GitHubConfig {
 
-  @Autowired @Setter private RestAdapter.LogLevel retrofitLogLevel;
-
   @Autowired @Setter private GitHubProperties gitHubProperties;
 
   @Bean
-  public GitHubClient gitHubClient(OkHttpClientProvider clientProvider) {
+  public GitHubClient gitHubClient(OkHttp3ClientConfiguration okHttpClientConfig) {
     BasicAuthRequestInterceptor interceptor =
         new BasicAuthRequestInterceptor().setAccessToken(gitHubProperties.getAccessToken());
 
-    return new RestAdapter.Builder()
-        .setEndpoint(Endpoints.newFixedEndpoint(gitHubProperties.getBaseUrl()))
-        .setRequestInterceptor(interceptor)
-        .setClient(
-            new Ok3Client(
-                clientProvider.getClient(
-                    new DefaultServiceEndpoint("github", gitHubProperties.getBaseUrl()))))
-        .setConverter(new JacksonConverter())
-        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new Slf4jRetrofitLogger(GitHubClient.class))
+    return new Retrofit.Builder()
+        .baseUrl(gitHubProperties.getBaseUrl())
+        .client(okHttpClientConfig.createForRetrofit2().addInterceptor(interceptor).build())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create())
         .build()
         .create(GitHubClient.class);
   }
 
-  private static class Slf4jRetrofitLogger implements RestAdapter.Log {
-    private final Logger logger;
+  @Setter
+  private static class BasicAuthRequestInterceptor implements Interceptor {
 
-    Slf4jRetrofitLogger(Class type) {
-      this(LoggerFactory.getLogger(type));
-    }
-
-    Slf4jRetrofitLogger(Logger logger) {
-      this.logger = logger;
-    }
+    private String accessToken;
 
     @Override
-    public void log(String message) {
-      logger.info(message);
-    }
-  }
-
-  private static class BasicAuthRequestInterceptor implements RequestInterceptor {
-
-    @Setter private String accessToken;
-
-    @Override
-    public void intercept(RequestFacade request) {
+    public @NotNull Response intercept(Chain chain) throws IOException {
       // See docs at https://developer.github.com/v3/#authentication
-      request.addHeader("Authorization", "token " + accessToken);
+      Request request =
+          chain.request().newBuilder().addHeader("Authorization", "token " + accessToken).build();
+      return chain.proceed(request);
     }
   }
 }

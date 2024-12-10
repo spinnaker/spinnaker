@@ -35,23 +35,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.ExponentialBackOff;
-import retrofit.RestAdapter;
 
 /** This package is placed in fiat-core in order to be shared by fiat-web and fiat-shared. */
 @Configuration
 public class RetrofitConfig {
-
-  @Value("${ok-http-client.connection-pool.max-idle-connections:5}")
-  @Setter
-  private int maxIdleConnections;
-
-  @Value("${ok-http-client.connection-pool.keep-alive-duration-ms:300000}")
-  @Setter
-  private int keepAliveDurationMs;
-
-  @Value("${ok-http-client.retry-on-connection-failure:true}")
-  @Setter
-  private boolean retryOnConnectionFailure;
 
   @Value("${ok-http-client.retries.max-elapsed-backoff-ms:5000}")
   @Setter
@@ -64,11 +51,6 @@ public class RetrofitConfig {
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .configure(SerializationFeature.INDENT_OUTPUT, true)
         .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-  }
-
-  @Bean
-  RestAdapter.LogLevel retrofitLogLevel(@Value("${retrofit.log-level:BASIC}") String logLevel) {
-    return RestAdapter.LogLevel.valueOf(logLevel);
   }
 
   @Bean

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.providers.internal;
 import com.netflix.spinnaker.fiat.config.ResourceProviderConfig.ApplicationProviderConfig;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -30,7 +31,7 @@ public class ClouddriverApplicationLoader extends ClouddriverDataLoader<Applicat
       ProviderHealthTracker healthTracker,
       ClouddriverApi clouddriverApi,
       ApplicationProviderConfig applicationProviderConfig) {
-    super(healthTracker, clouddriverApi::getApplications);
+    super(healthTracker, () -> Retrofit2SyncCall.execute(clouddriverApi.getApplications()));
     this.applicationProviderConfig = applicationProviderConfig;
   }
 

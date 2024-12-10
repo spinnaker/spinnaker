@@ -19,12 +19,13 @@ package com.netflix.spinnaker.fiat.providers.internal;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import java.util.List;
-import retrofit.http.GET;
-import retrofit.http.Query;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public interface Front50Api {
   @GET("/permissions/applications")
-  List<Application> getAllApplicationPermissions();
+  Call<List<Application>> getAllApplicationPermissions();
 
   /**
    * @deprecated for fiat's usage this is always going to be called with restricted = false, use the
@@ -32,11 +33,11 @@ public interface Front50Api {
    */
   @GET("/v2/applications")
   @Deprecated
-  List<Application> getAllApplications(@Query("restricted") boolean restricted);
+  Call<List<Application>> getAllApplications(@Query("restricted") boolean restricted);
 
   @GET("/v2/applications?restricted=false")
-  List<Application> getAllApplications();
+  Call<List<Application>> getAllApplications();
 
   @GET("/serviceAccounts")
-  List<ServiceAccount> getAllServiceAccounts();
+  Call<List<ServiceAccount>> getAllServiceAccounts();
 }

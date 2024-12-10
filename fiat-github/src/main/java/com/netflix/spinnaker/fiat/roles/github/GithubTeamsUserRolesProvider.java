@@ -27,6 +27,7 @@ import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
 import com.netflix.spinnaker.fiat.roles.github.model.Member;
 import com.netflix.spinnaker.fiat.roles.github.model.Team;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import java.util.*;
@@ -269,7 +270,9 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     List<Team> teams = new ArrayList<>();
     try {
       log.debug("Requesting page " + page + " of teams.");
-      teams = gitHubClient.getOrgTeams(organization, page, gitHubProperties.paginationValue);
+      teams =
+          Retrofit2SyncCall.execute(
+              gitHubClient.getOrgTeams(organization, page, gitHubProperties.paginationValue));
     } catch (SpinnakerNetworkException e) {
       log.error(String.format("Could not find the server %s", gitHubProperties.getBaseUrl()), e);
     } catch (SpinnakerHttpException e) {
@@ -288,7 +291,9 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     List<Member> members = new ArrayList<>();
     try {
       log.debug("Requesting page " + page + " of members.");
-      members = gitHubClient.getOrgMembers(organization, page, gitHubProperties.paginationValue);
+      members =
+          Retrofit2SyncCall.execute(
+              gitHubClient.getOrgMembers(organization, page, gitHubProperties.paginationValue));
     } catch (SpinnakerNetworkException e) {
       log.error(String.format("Could not find the server %s", gitHubProperties.getBaseUrl()), e);
     } catch (SpinnakerHttpException e) {
@@ -308,8 +313,9 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     try {
       log.debug("Requesting page " + page + " of members team " + teamSlug + ".");
       members =
-          gitHubClient.getMembersOfTeam(
-              organization, teamSlug, page, gitHubProperties.paginationValue);
+          Retrofit2SyncCall.execute(
+              gitHubClient.getMembersOfTeam(
+                  organization, teamSlug, page, gitHubProperties.paginationValue));
     } catch (SpinnakerNetworkException e) {
       log.error(String.format("Could not find the server %s", gitHubProperties.getBaseUrl()), e);
     } catch (SpinnakerHttpException e) {

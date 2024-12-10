@@ -18,11 +18,12 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 
 public class ClouddriverAccountLoader extends ClouddriverDataLoader<Account> {
 
   public ClouddriverAccountLoader(
       ProviderHealthTracker healthTracker, ClouddriverApi clouddriverApi) {
-    super(healthTracker, clouddriverApi::getAccounts);
+    super(healthTracker, () -> Retrofit2SyncCall.execute(clouddriverApi.getAccounts()));
   }
 }

@@ -19,13 +19,13 @@ package com.netflix.spinnaker.fiat.shared;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import java.util.Collection;
 import java.util.List;
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.DELETE;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.PUT;
-import retrofit.http.Path;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.DELETE;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
 
 public interface FiatService {
 
@@ -34,7 +34,7 @@ public interface FiatService {
    * @return The full UserPermission of the user.
    */
   @GET("/authorize/{userId}")
-  UserPermission.View getUserPermission(@Path("userId") String userId);
+  Call<UserPermission.View> getUserPermission(@Path("userId") String userId);
 
   /**
    * @param userId The username of the user
@@ -44,7 +44,7 @@ public interface FiatService {
    * @return True if the user has access to the specified resource.
    */
   @GET("/authorize/{userId}/{resourceType}/{resourceName}/{authorization}")
-  Response hasAuthorization(
+  Call<Void> hasAuthorization(
       @Path("userId") String userId,
       @Path("resourceType") String resourceType,
       @Path("resourceName") String resourceName,
@@ -59,7 +59,7 @@ public interface FiatService {
    * @param resource The resource to check
    */
   @POST("/authorize/{userId}/{resourceType}/create")
-  Response canCreate(
+  Call<Void> canCreate(
       @Path("userId") String userId,
       @Path("resourceType") String resourceType,
       @Body Object resource);
@@ -70,7 +70,7 @@ public interface FiatService {
    * @return The number of non-anonymous users synced.
    */
   @POST("/roles/sync")
-  long sync();
+  Call<Long> sync();
 
   /**
    * Use to update a subset of users. An empty list will update the anonymous/unrestricted user.
@@ -79,7 +79,7 @@ public interface FiatService {
    * @return The number of non-anonymous users synced.
    */
   @POST("/roles/sync")
-  long sync(@Body List<String> roles);
+  Call<Long> sync(@Body List<String> roles);
 
   /**
    * Use to update a service account. As opposed to `sync`, this will not trigger a full sync for
@@ -90,17 +90,15 @@ public interface FiatService {
    * @return The number of non-anonymous users synced.
    */
   @POST("/roles/sync/serviceAccount/{serviceAccountId}")
-  long syncServiceAccount(
+  Call<Long> syncServiceAccount(
       @Path("serviceAccountId") String serviceAccountId, @Body List<String> roles);
 
   /**
    * @param userId The user being logged in
-   * @param ignored ignored.
    * @return ignored.
    */
   @POST("/roles/{userId}")
-  Response loginUser(
-      @Path("userId") String userId, @Body String ignored /* retrofit requires this */);
+  Call<Void> loginUser(@Path("userId") String userId);
 
   /**
    * Used specifically for logins that contain the users roles/groups.
@@ -110,12 +108,12 @@ public interface FiatService {
    * @return ignored.
    */
   @PUT("/roles/{userId}")
-  Response loginWithRoles(@Path("userId") String userId, @Body Collection<String> roles);
+  Call<Void> loginWithRoles(@Path("userId") String userId, @Body Collection<String> roles);
 
   /**
    * @param userId The user being logged out
    * @return ignored.
    */
   @DELETE("/roles/{userId}")
-  Response logoutUser(@Path("userId") String userId);
+  Call<Void> logoutUser(@Path("userId") String userId);
 }

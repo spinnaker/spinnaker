@@ -26,6 +26,7 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.telemetry.caffeine.CaffeineStatsCounter;
 import com.netflix.spinnaker.security.AccessControlled;
@@ -185,7 +186,8 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
                     "determine whether " + username + " can create resource " + resource,
                     () -> {
                       try {
-                        fiatService.canCreate(username, resourceType, resource);
+                        Retrofit2SyncCall.execute(
+                            fiatService.canCreate(username, resourceType, resource));
                         return true;
                       } catch (SpinnakerHttpException e) {
                         if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
@@ -312,7 +314,9 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
                             try {
                               return retryHandler.retry(
                                   "getUserPermission for " + loadUserName,
-                                  () -> fiatService.getUserPermission(loadUserName));
+                                  () ->
+                                      Retrofit2SyncCall.execute(
+                                          fiatService.getUserPermission(loadUserName)));
                             } catch (Exception e) {
                               if (!fiatStatus.isLegacyFallbackEnabled()) {
                                 throw e;
