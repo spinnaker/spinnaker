@@ -21,6 +21,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-exceptions"
 
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.assertj:assertj-core"

@@ -61,6 +61,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import retrofit2.mock.Calls;
 
 @SpringBootTest(classes = TestConfig.class, properties = "services.fiat.cache.max-entries=0")
 @AutoConfigureMockMvc
@@ -112,7 +113,7 @@ class DockerRegistryImageLookupControllerTest {
   @Test
   void authorizedToReadTags() throws Exception {
     var permissions = createAuthorizedUserPermission();
-    given(fiatService.getUserPermission(eq("user"))).willReturn(permissions);
+    given(fiatService.getUserPermission(eq("user"))).willReturn(Calls.response(permissions));
 
     mockMvc
         .perform(
@@ -125,7 +126,7 @@ class DockerRegistryImageLookupControllerTest {
   @Test
   void notAuthorizedToReadTags() throws Exception {
     var permissions = createUnauthorizedUserPermission();
-    given(fiatService.getUserPermission("user")).willReturn(permissions);
+    given(fiatService.getUserPermission("user")).willReturn(Calls.response(permissions));
 
     mockMvc
         .perform(
@@ -138,7 +139,7 @@ class DockerRegistryImageLookupControllerTest {
   @Test
   void canSearchForAuthorizedItems() throws Exception {
     var permissions = createAuthorizedUserPermission();
-    given(fiatService.getUserPermission("user")).willReturn(permissions);
+    given(fiatService.getUserPermission("user")).willReturn(Calls.response(permissions));
     cache.merge(Keys.Namespace.TAGGED_IMAGE.getNs(), createTestAccountTaggedImageCacheData());
     var credentials = createTestAccountCredentials();
     accountCredentialsRepository.save(credentials.getName(), credentials);
@@ -151,7 +152,7 @@ class DockerRegistryImageLookupControllerTest {
   @Test
   void filtersOutUnauthorizedItems() throws Exception {
     var permissions = createUnauthorizedUserPermission();
-    given(fiatService.getUserPermission("user")).willReturn(permissions);
+    given(fiatService.getUserPermission("user")).willReturn(Calls.response(permissions));
     cache.merge(Keys.Namespace.TAGGED_IMAGE.getNs(), createTestAccountTaggedImageCacheData());
     var credentials = createTestAccountCredentials();
     accountCredentialsRepository.save(credentials.getName(), credentials);
