@@ -20,6 +20,7 @@ package com.netflix.spinnaker.gate.services;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.micrometer.core.annotation.Counted;
 import java.util.Collection;
@@ -59,7 +60,7 @@ public class AuthenticationService {
 
     return AuthenticatedRequest.allowAnonymous(
         () -> {
-          getFiatServiceForLogin().loginUser(userid, "");
+          Retrofit2SyncCall.execute(getFiatServiceForLogin().loginUser(userid));
           return resolveAuthorities(userid);
         });
   }
@@ -73,7 +74,7 @@ public class AuthenticationService {
 
     return AuthenticatedRequest.allowAnonymous(
         () -> {
-          getFiatServiceForLogin().loginWithRoles(userid, roles);
+          Retrofit2SyncCall.execute(getFiatServiceForLogin().loginWithRoles(userid, roles));
           return resolveAuthorities(userid);
         });
   }
@@ -84,7 +85,7 @@ public class AuthenticationService {
       return;
     }
 
-    getFiatServiceForLogin().logoutUser(userid);
+    Retrofit2SyncCall.execute(getFiatServiceForLogin().logoutUser(userid));
     permissionEvaluator.invalidatePermission(userid);
   }
 

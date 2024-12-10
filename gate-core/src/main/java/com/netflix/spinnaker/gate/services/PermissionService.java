@@ -29,6 +29,7 @@ import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -78,9 +79,7 @@ public class PermissionService {
       try {
         AuthenticatedRequest.allowAnonymous(
             () -> {
-              // TODO(jvz): FiatService::loginUser should have only one parameter as Retrofit no
-              // longer requires this body parameter
-              getFiatServiceForLogin().loginUser(userId, "");
+              Retrofit2SyncCall.execute(getFiatServiceForLogin().loginUser(userId));
               permissionEvaluator.invalidatePermission(userId);
               return null;
             });
@@ -95,7 +94,7 @@ public class PermissionService {
       try {
         AuthenticatedRequest.allowAnonymous(
             () -> {
-              getFiatServiceForLogin().loginWithRoles(userId, roles);
+              Retrofit2SyncCall.execute(getFiatServiceForLogin().loginWithRoles(userId, roles));
               permissionEvaluator.invalidatePermission(userId);
               return null;
             });
@@ -108,7 +107,7 @@ public class PermissionService {
   public void logout(String userId) {
     if (fiatStatus.isEnabled()) {
       try {
-        getFiatServiceForLogin().logoutUser(userId);
+        Retrofit2SyncCall.execute(getFiatServiceForLogin().logoutUser(userId));
         permissionEvaluator.invalidatePermission(userId);
       } catch (SpinnakerServerException e) {
         throw UpstreamBadRequest.classifyError(e);
@@ -119,7 +118,7 @@ public class PermissionService {
   public void sync() {
     if (fiatStatus.isEnabled()) {
       try {
-        getFiatServiceForLogin().sync(List.of());
+        Retrofit2SyncCall.execute(getFiatServiceForLogin().sync(List.of()));
       } catch (SpinnakerServerException e) {
         throw UpstreamBadRequest.classifyError(e);
       }
