@@ -24,8 +24,11 @@ import com.amazonaws.services.ecs.model.HealthCheck
 import com.amazonaws.services.ecs.model.LoadBalancer
 import com.amazonaws.services.ecs.model.NetworkBinding
 import com.amazonaws.services.ecs.model.TaskDefinition
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealth
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.*
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance
+import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsTargetHealth
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.TaskHealth
@@ -42,6 +45,7 @@ class ContainerInformationServiceSpec extends Specification {
   def taskDefinitionCacheClient = Mock(TaskDefinitionCacheClient)
   def ecsInstanceCacheClient = Mock(EcsInstanceCacheClient)
   def containerInstanceCacheClient = Mock(ContainerInstanceCacheClient)
+  def targetHealthCacheClient = Mock(TargetHealthCacheClient)
 
   @Subject
   def service = new ContainerInformationService(ecsCredentialsConfig,
@@ -50,7 +54,8 @@ class ContainerInformationServiceSpec extends Specification {
     taskHealthCacheClient,
     taskDefinitionCacheClient,
     ecsInstanceCacheClient,
-    containerInstanceCacheClient)
+    containerInstanceCacheClient,
+    targetHealthCacheClient)
 
   def 'should return a proper health status'() {
     given:
@@ -245,6 +250,142 @@ class ContainerInformationServiceSpec extends Specification {
     'HEALTHY'     | 'Starting'    | 'PENDING'
     'HEALTHY'     | 'Starting'    | 'ACTIVATING'
     'HEALTHY'     | 'Up'          | 'RUNNING'
+  }
+
+  def 'should return Up health check status if task is running but healthcheck in container definition is null and targetHealthchecks related container is null'() {
+    given:
+    def taskId = 'task-id'
+    def serviceName = 'test-service-name'
+    def type = 'loadBalancer'
+
+    def cachedService = new Service(
+      serviceName: serviceName,
+      loadBalancers: [new LoadBalancer()]
+    )
+
+    serviceCacheClient.get(_) >> cachedService
+    taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
+    taskDefinitionCacheClient.get(_) >> new TaskDefinition(containerDefinitions:  Lists.newArrayList(new ContainerDefinition(healthCheck: null)))
+    targetHealthCacheClient.get(_) >> null
+
+    def expectedHealthStatus = [
+      [
+        instanceId: taskId,
+        state     : 'Unknown',
+        type      : type
+      ],
+      [
+        instanceId: taskId,
+        state     : resultStatus,
+        type      : 'ecs',
+        healthClass: 'platform'
+      ]
+    ]
+    def retrievedHealthStatus = service.getHealthStatus(taskId, serviceName, 'test-account', 'us-west-1')
+
+    expect:
+    retrievedHealthStatus == expectedHealthStatus
+
+    where:
+    healthStatus  | resultStatus  | lastStatus
+    'UNKNOWN'     | 'Starting'    | 'PROVISIONING'
+    'UNKNOWN'     | 'Starting'    | 'PENDING'
+    'UNKNOWN'     | 'Starting'    | 'ACTIVATING'
+    'UNKNOWN'     | 'Up'          | 'RUNNING'
+  }
+
+  def 'should return health status based on target group if task is running but healthcheck in container definition is null and container has a targetHealthcheck defined'() {
+    given:
+    def taskId = 'task-id'
+    def serviceName = 'test-service-name'
+    def type = 'loadBalancer'
+
+    def cachedService = new Service(
+      serviceName: serviceName,
+      loadBalancers: [new LoadBalancer()]
+    )
+
+    serviceCacheClient.get(_) >> cachedService
+    taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
+    taskDefinitionCacheClient.get(_) >> new TaskDefinition(containerDefinitions:  Lists.newArrayList(new ContainerDefinition(healthCheck: null)))
+    targetHealthCacheClient.get(_) >> new EcsTargetHealth(targetHealthDescriptions: List.of(
+      new TargetHealthDescription(targetHealth: new TargetHealth(state: targetHealthStatus))
+    ))
+
+    def expectedHealthStatus = [
+      [
+        instanceId: taskId,
+        state     : 'Unknown',
+        type      : type
+      ],
+      [
+        instanceId: taskId,
+        state     : resultStatus,
+        type      : 'ecs',
+        healthClass: 'platform'
+      ]
+    ]
+    def retrievedHealthStatus = service.getHealthStatus(taskId, serviceName, 'test-account', 'us-west-1')
+
+    expect:
+    retrievedHealthStatus == expectedHealthStatus
+
+    where:
+    healthStatus  | resultStatus  | lastStatus  | targetHealthStatus
+    'UNKNOWN'     | 'Starting'    | 'RUNNING'   | 'initial'
+    'UNKNOWN'     | 'Up'          | 'RUNNING'   | 'healthy'
+    'UNKNOWN'     | 'Down'        | 'RUNNING'   | 'unhealthy'
+    'UNKNOWN'     | 'Down'        | 'RUNNING'   | 'unused'
+    'UNKNOWN'     | 'Down'        | 'RUNNING'   | 'draining'
+    'UNKNOWN'     | 'Down'        | 'RUNNING'   | 'unavailable'
+
+  }
+
+  def 'should return health status based on target group if task is running but healthcheck in container definition is null and container has multiple targetHealthcheck related'() {
+    given:
+    def taskId = 'task-id'
+    def serviceName = 'test-service-name'
+    def type = 'loadBalancer'
+
+    def cachedService = new Service(
+      serviceName: serviceName,
+      loadBalancers: [new LoadBalancer()]
+    )
+
+    serviceCacheClient.get(_) >> cachedService
+    taskCacheClient.get(_) >> new Task(lastStatus: lastStatus, healthStatus: healthStatus)
+    taskDefinitionCacheClient.get(_) >> new TaskDefinition(containerDefinitions:  Lists.newArrayList(new ContainerDefinition(healthCheck: null)))
+    targetHealthCacheClient.get(_) >> new EcsTargetHealth(targetHealthDescriptions: List.of(
+      new TargetHealthDescription(targetHealth: new TargetHealth(state: targetHealthStatus1)),
+      new TargetHealthDescription(targetHealth: new TargetHealth(state: targetHealthStatus2))
+    ))
+
+    def expectedHealthStatus = [
+      [
+        instanceId: taskId,
+        state     : 'Unknown',
+        type      : type
+      ],
+      [
+        instanceId: taskId,
+        state     : resultStatus,
+        type      : 'ecs',
+        healthClass: 'platform'
+      ]
+    ]
+    def retrievedHealthStatus = service.getHealthStatus(taskId, serviceName, 'test-account', 'us-west-1')
+
+    expect:
+    retrievedHealthStatus == expectedHealthStatus
+
+    where:
+    healthStatus  | resultStatus  | lastStatus  | targetHealthStatus1 | targetHealthStatus2
+    'UNKNOWN'     | 'Starting'    | 'RUNNING'   | 'initial'           | 'draining'
+    'UNKNOWN'     | 'Starting'    | 'RUNNING'   | 'draining'          | 'initial'
+    'UNKNOWN'     | 'Up'          | 'RUNNING'   | 'healthy'           | 'draining'
+    'UNKNOWN'     | 'Up'          | 'RUNNING'   | 'draining'          | 'healthy'
+    'UNKNOWN'     | 'Up'          | 'RUNNING'   | 'unhealthy'         | 'healthy'
+
   }
 
   def 'should return a proper private address for a task'() {

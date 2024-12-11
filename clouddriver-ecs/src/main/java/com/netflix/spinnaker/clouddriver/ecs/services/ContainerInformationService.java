@@ -18,16 +18,19 @@ package com.netflix.spinnaker.clouddriver.ecs.services;
 
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ecs.model.ContainerDefinition;
+import com.amazonaws.services.ecs.model.LoadBalancer;
 import com.amazonaws.services.ecs.model.NetworkBinding;
 import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsInstanceCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
+import com.netflix.spinnaker.clouddriver.ecs.cache.client.TargetHealthCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskHealthCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance;
+import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsTargetHealth;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.TaskHealth;
@@ -37,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +54,7 @@ public class ContainerInformationService {
   private final TaskDefinitionCacheClient taskDefinitionCacheClient;
   private final EcsInstanceCacheClient ecsInstanceCacheClient;
   private final ContainerInstanceCacheClient containerInstanceCacheClient;
+  private final TargetHealthCacheClient targetHealthCacheClient;
 
   @Autowired
   public ContainerInformationService(
@@ -59,7 +64,8 @@ public class ContainerInformationService {
       TaskHealthCacheClient taskHealthCacheClient,
       TaskDefinitionCacheClient taskDefinitionCacheClient,
       EcsInstanceCacheClient ecsInstanceCacheClient,
-      ContainerInstanceCacheClient containerInstanceCacheClient) {
+      ContainerInstanceCacheClient containerInstanceCacheClient,
+      TargetHealthCacheClient targetHealthCacheClient) {
     this.ecsCredentialsConfig = ecsCredentialsConfig;
     this.taskCacheClient = taskCacheClient;
     this.serviceCacheClient = serviceCacheClient;
@@ -67,6 +73,7 @@ public class ContainerInformationService {
     this.taskDefinitionCacheClient = taskDefinitionCacheClient;
     this.ecsInstanceCacheClient = ecsInstanceCacheClient;
     this.containerInstanceCacheClient = containerInstanceCacheClient;
+    this.targetHealthCacheClient = targetHealthCacheClient;
   }
 
   public List<Map<String, Object>> getHealthStatus(
@@ -101,8 +108,15 @@ public class ContainerInformationService {
     // Task-based health
     if (task != null) {
       boolean hasHealthCheck = false;
+      EcsTargetHealth targetHealth = null;
       if (service != null) {
         hasHealthCheck = taskHasHealthCheck(service, accountName, region);
+        LoadBalancer loadBalancer = service.getLoadBalancers().stream().findFirst().orElse(null);
+        if (loadBalancer != null) {
+          String targetGroupKey =
+              Keys.getTargetHealthKey(accountName, region, loadBalancer.getTargetGroupArn());
+          targetHealth = targetHealthCacheClient.get(targetGroupKey);
+        }
       }
 
       Map<String, Object> taskPlatformHealth = new HashMap<>();
@@ -111,7 +125,8 @@ public class ContainerInformationService {
       taskPlatformHealth.put("healthClass", "platform");
       taskPlatformHealth.put(
           "state",
-          toPlatformHealthState(task.getLastStatus(), task.getHealthStatus(), hasHealthCheck));
+          toPlatformHealthState(
+              task.getLastStatus(), task.getHealthStatus(), hasHealthCheck, targetHealth));
       healthMetrics.add(taskPlatformHealth);
     }
 
@@ -138,11 +153,18 @@ public class ContainerInformationService {
   }
 
   private String toPlatformHealthState(
-      String ecsTaskStatus, String ecsTaskHealthStatus, boolean hasHealthCheck) {
+      String ecsTaskStatus,
+      String ecsTaskHealthStatus,
+      boolean hasHealthCheck,
+      EcsTargetHealth ecsTargetHealth) {
     if (hasHealthCheck && "UNKNOWN".equals(ecsTaskHealthStatus)) {
       return "Starting";
     } else if ("UNHEALTHY".equals(ecsTaskHealthStatus)) {
       return "Down";
+    }
+
+    if (ecsTargetHealth != null) {
+      return getPlatformHealthStateFromTargetGroup(ecsTargetHealth);
     }
 
     switch (ecsTaskStatus) {
@@ -155,6 +177,27 @@ public class ContainerInformationService {
       default:
         return "Down";
     }
+  }
+
+  // based on:
+  // https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html#target-health-states
+  private String getPlatformHealthStateFromTargetGroup(EcsTargetHealth targetHealth) {
+    Set<String> statuses =
+        targetHealth.getTargetHealthDescriptions().stream()
+            .map(tg -> tg.getTargetHealth().getState())
+            .collect(Collectors.toSet());
+
+    for (String status : statuses) {
+      if ("healthy".equalsIgnoreCase(status)) {
+        return "Up";
+      }
+      if ("initial".equalsIgnoreCase(status)) {
+        return "Starting";
+      }
+    }
+
+    // statuses: unhealthy, unused, draining, unavailable
+    return "Down";
   }
 
   public String getClusterArn(String accountName, String region, String taskId) {
