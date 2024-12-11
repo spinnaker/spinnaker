@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.qos
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.patterns.PolledMeter
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.annotations.Sync
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED
@@ -29,6 +30,7 @@ import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Determines if an execution should be buffered.
@@ -50,6 +52,11 @@ class ExecutionBufferActuator(
   private val enqueuedId = registry.createId("qos.executionsEnqueued")
   private val elapsedTimeId = registry.createId("qos.actuator.elapsedTime")
 
+  // have to use PolledMeter because an ordinary metric is deleted by Garbage Collector
+  private val bufferingEnabled = PolledMeter.using(registry)
+    .withId(bufferingId)
+    .monitorValue(AtomicLong(0))
+
   @Sync
   @EventListener(BeforeInitialExecutionPersist::class)
   fun beforeInitialPersist(event: BeforeInitialExecutionPersist) {
@@ -61,7 +68,7 @@ class ExecutionBufferActuator(
 
     val supplierName = bufferStateSupplier.javaClass.simpleName
     if (bufferStateSupplier.get() == ACTIVE) {
-      registry.gauge(bufferingId).set(1.0)
+      bufferingEnabled.set(1)
 
       val execution = event.execution
       withActionDecision(execution) {
@@ -83,7 +90,7 @@ class ExecutionBufferActuator(
         }
       }
     } else {
-      registry.gauge(bufferingId).set(0.0)
+      bufferingEnabled.set(0)
     }
   }
 
