@@ -30,7 +30,8 @@ dependencies {
 
   implementation "com.netflix.archaius:archaius-core"
   implementation "commons-configuration:commons-configuration"
-  implementation "com.netflix.eureka:eureka-client"
+  implementation "com.netflix.eureka:eureka-client-jersey3"
+  implementation "com.netflix.eureka:eureka-core-jersey3"
   implementation "com.netflix.netflix-commons:netflix-eventbus"
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
