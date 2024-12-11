@@ -92,7 +92,7 @@ class EcsServerGroupCreatorSpec extends Specification {
     def parentStage = stage {}
     parentStage.id = parentStageId
     parentStage.refId = parentStageId
-    parentStage.context.amiDetails = [imageId: [value: ["$testReg/$testRepo:$testTag"]]]
+    parentStage.context.amiDetails = List.of(Map.of("imageId","$testReg/$testRepo:$testTag"))
 
     stage.context.imageDescription = testDescription
     stage.parentStageId = parentStageId
@@ -120,7 +120,7 @@ class EcsServerGroupCreatorSpec extends Specification {
     parentStage.id = parentStageId
     parentStage.context.region = testRegion
     parentStage.context.cloudProviderType = "ecs"
-    parentStage.context.amiDetails = [imageId: [value: ["$testReg/$testRepo:$testTag"]]]
+    parentStage.context.amiDetails = List.of(Map.of("imageId","$testReg/$testRepo:$testTag"))
 
     stage.context.region = testRegion
     stage.parentStageId = parentStageId

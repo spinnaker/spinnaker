@@ -122,7 +122,7 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
       def bakeStage = getPreviousStageWithImage(stage, operation.region, cloudProvider)
 
       if (bakeStage) {
-        operation.dockerImageAddress = bakeStage.context.amiDetails.imageId.value.get(0).toString()
+        operation.dockerImageAddress = bakeStage.context.amiDetails.collect(it->it.imageId).get(0).toString()
       }
     }
 
@@ -216,7 +216,7 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
           throw new IllegalStateException("No image stage found in context for $description.imageLabelOrSha.")
         }
 
-        description.imageId = imageStage.context.amiDetails.imageId.value.get(0).toString()
+        description.imageId = imageStage.context.amiDetails.collect(it->it.imageId).get(0).toString()
       }
     }
 
