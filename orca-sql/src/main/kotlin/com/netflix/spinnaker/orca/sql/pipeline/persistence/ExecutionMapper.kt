@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import java.sql.ResultSet
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.name
 import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
 
@@ -142,11 +141,7 @@ class ExecutionMapper(
   fun convertPipelineRefTrigger(execution: PipelineExecution, context: DSLContext) {
     val trigger = execution.trigger
     if (trigger is PipelineRefTrigger) {
-      val parentExecution = context
-        .selectExecution(execution.type, compressionProperties)
-        .where(field("id").eq(trigger.parentExecutionId))
-        .fetchExecutions(mapper, 200, compressionProperties, context, pipelineRefEnabled)
-        .firstOrNull()
+      val parentExecution = fetchParentExecution(execution.type, trigger, context)
 
       if (parentExecution == null) {
         // If someone deletes the parent execution, we'll be unable to load the full, valid child pipeline. Rather than
@@ -159,5 +154,14 @@ class ExecutionMapper(
 
       execution.trigger = trigger.toPipelineTrigger(parentExecution)
     }
+  }
+
+  @VisibleForTesting
+  fun fetchParentExecution(type: ExecutionType, trigger: PipelineRefTrigger, context: DSLContext): PipelineExecution? {
+    return context
+      .selectExecution(type, compressionProperties)
+      .where(field("id").eq(trigger.parentExecutionId))
+      .fetchExecutions(mapper, 200, compressionProperties, context, pipelineRefEnabled)
+      .firstOrNull()
   }
 }
