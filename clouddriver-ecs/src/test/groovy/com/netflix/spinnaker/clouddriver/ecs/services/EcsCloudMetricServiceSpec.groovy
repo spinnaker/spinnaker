@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.ecs.services
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling
 import com.amazonaws.services.applicationautoscaling.model.*
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch
+import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest
 import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
 import com.amazonaws.services.cloudwatch.model.Dimension
 import com.amazonaws.services.cloudwatch.model.MetricAlarm
@@ -409,17 +410,20 @@ class EcsCloudMetricServiceSpec extends Specification {
     5.times {
       metricAlarms << new EcsMetricAlarm(
         accountName: targetAccountName,
-        region: targetRegion
+        region: targetRegion,
+        alarmName: "alarm-name-${it}"
       )
     }
 
-    metricAlarmCacheClient.getMetricAlarms(_, _,_ ,_) >> metricAlarms
+    metricAlarmCacheClient.getMetricAlarms(targetServiceName,targetAccountName,targetRegion,clusterName) >> metricAlarms
 
     when:
     service.deleteMetrics(targetServiceName, targetAccountName, targetRegion, clusterName)
 
     then:
-    1 * targetCloudWatch.deleteAlarms(_)
+    1 * targetCloudWatch.deleteAlarms({ DeleteAlarmsRequest request ->
+      request.alarmNames.sort() == metricAlarms*.alarmName.sort()
+    })
   }
 
 

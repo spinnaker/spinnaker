@@ -46,7 +46,7 @@ public class EcsCloudMetricService {
   public void deleteMetrics(
       String serviceName, String account, String region, String ecsClusterName) {
     List<EcsMetricAlarm> metricAlarms =
-        metricAlarmCacheClient.getMetricAlarms(ecsClusterName, serviceName, account, region);
+        metricAlarmCacheClient.getMetricAlarms(serviceName, account, region, ecsClusterName);
 
     if (metricAlarms.isEmpty()) {
       return;
