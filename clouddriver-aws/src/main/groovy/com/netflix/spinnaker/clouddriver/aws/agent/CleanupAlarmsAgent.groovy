@@ -40,31 +40,35 @@ class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
   public static final long POLL_INTERVAL_MILLIS = TimeUnit.HOURS.toMillis(24)
   public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(20)
 
-  public static final Pattern ALARM_NAME_PATTERN = Pattern.compile(".+-v[0-9]{3}-alarm-.+")
+  public final Pattern ALARM_NAME_PATTERN = Pattern.compile(alarmsNamePattern)
 
   final AmazonClientProvider amazonClientProvider
   final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository
   final long pollIntervalMillis
   final long timeoutMillis
   final int daysToLeave
+  final String alarmsNamePattern;
 
 
   CleanupAlarmsAgent(AmazonClientProvider amazonClientProvider,
                      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
-                     int daysToLeave) {
-    this(amazonClientProvider, credentialsRepository, POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS, daysToLeave)
+                     int daysToLeave,
+                     String alarmsNamePattern) {
+    this(amazonClientProvider, credentialsRepository, POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS, daysToLeave, alarmsNamePattern)
   }
 
   CleanupAlarmsAgent(AmazonClientProvider amazonClientProvider,
                      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository,
                      long pollIntervalMillis,
                      long timeoutMills,
-                     int daysToLeave) {
+                     int daysToLeave,
+                     String alarmsNamePattern) {
     this.amazonClientProvider = amazonClientProvider
     this.credentialsRepository = credentialsRepository
     this.pollIntervalMillis = pollIntervalMillis
     this.timeoutMillis = timeoutMills
     this.daysToLeave = daysToLeave
+    this.alarmsNamePattern = alarmsNamePattern
   }
 
   @Override

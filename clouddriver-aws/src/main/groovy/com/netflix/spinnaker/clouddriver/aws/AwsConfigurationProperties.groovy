@@ -39,6 +39,7 @@ class AwsConfigurationProperties {
     static class AlarmsConfig {
       boolean enabled = false
       int daysToKeep = 90
+      String alarmsNamePattern = ".+-v[0-9]{3}-alarm-.+"
     }
 
     @NestedConfigurationProperty

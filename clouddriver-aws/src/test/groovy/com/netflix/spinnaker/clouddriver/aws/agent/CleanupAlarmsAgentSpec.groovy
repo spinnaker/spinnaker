@@ -64,7 +64,7 @@ class CleanupAlarmsAgentSpec extends Specification {
       0 * _
     }
 
-    agent = new CleanupAlarmsAgent(amazonClientProvider, credentialsRepository, 10L, 10L, 90)
+    agent = new CleanupAlarmsAgent(amazonClientProvider, credentialsRepository, 10L, 10L, 90, ".+-v[0-9]{3}-alarm-.+")
   }
 
   void "should run across all regions/accounts and delete in each"() {
@@ -128,9 +128,55 @@ class CleanupAlarmsAgentSpec extends Specification {
 
   }
 
+  void "should delete alarms that match a user defined pattern"() {
+    agent = new CleanupAlarmsAgent(amazonClientProvider, credentialsRepository, 10L, 10L, 90, ".+-v[0-9]{3}-CustomAlarm-.+")
+
+    given:
+    MetricAlarm alarmA = buildAlarm("some-other-v000-CustomAlarm-${validUuid}", 91)
+    MetricAlarm alarmB = buildAlarm("some-other-alarm-v000-${validUuid}", 91) // missing "-alarm-"
+
+    when:
+    agent.run()
+
+    then:
+    1 * autoScalingUSE.describePolicies() >> new DescribePoliciesResult()
+    1 * cloudWatchUSE.describeAlarms(_) >> new DescribeAlarmsResult()
+    1 * autoScalingUSW.describePolicies() >> new DescribePoliciesResult()
+    1 * cloudWatchUSW.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([alarmA, alarmB])
+    1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest request ->
+      request.alarmNames == ["some-other-v000-CustomAlarm-${validUuid}"]
+    })
+    0 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest request ->
+      request.alarmNames == ["some-other-alarm-v000-${validUuid}"]
+    })
+  }
+
+
+  void "should delete alarms that match a user defined multiple pattern"() {
+    agent = new CleanupAlarmsAgent(amazonClientProvider, credentialsRepository, 10L, 10L, 90, ".+-v[0-9]{3}-CustomAlarm-.+|^some-other-alarm-v[0-9]{3}-.+")
+
+    given:
+    MetricAlarm alarmA = buildAlarm("some-other-v000-CustomAlarm-${validUuid}", 91)
+    MetricAlarm alarmB = buildAlarm("some-other-alarm-v000-${validUuid}", 91) // missing "-alarm-"
+
+    when:
+    agent.run()
+
+    then:
+    1 * autoScalingUSE.describePolicies() >> new DescribePoliciesResult()
+    1 * cloudWatchUSE.describeAlarms(_) >> new DescribeAlarmsResult()
+    1 * autoScalingUSW.describePolicies() >> new DescribePoliciesResult()
+    1 * cloudWatchUSW.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms([alarmA, alarmB])
+    1 * cloudWatchUSW.deleteAlarms({ DeleteAlarmsRequest request ->
+      request.alarmNames == ["some-other-v000-CustomAlarm-${validUuid}", "some-other-alarm-v000-${validUuid}"]
+    })
+  }
 
   private static MetricAlarm buildAlarm(String name, int dataDays) {
     new MetricAlarm(alarmName: name, stateUpdatedTimestamp: DateTime.now().minusDays(dataDays).toDate())
   }
+
+
+
 
 }
