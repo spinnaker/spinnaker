@@ -275,7 +275,7 @@ public class SqlTestUtil {
     context.meta().getTables().stream()
         .filter(
             table ->
-                table.getType().isTable()
+                table.getTableType().isTable()
                     && table.getSchema().getName().equals(schema)
                     && !table.getName().equals(configuration.getDatabaseChangeLogTableName())
                     && !table.getName().equals(configuration.getDatabaseChangeLogLockTableName()))
