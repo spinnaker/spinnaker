@@ -24,7 +24,7 @@ dependencies {
   implementation project(":kork-core")
   implementation project(":kork-exceptions")
 
-  implementation "javax.inject:javax.inject:1"
+  implementation "jakarta.inject:jakarta.inject-api" // Transitive dependency of com.netflix.eureka:eureka-client-jersey3
   implementation "org.springframework.boot:spring-boot-autoconfigure"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
 
