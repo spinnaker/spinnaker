@@ -63,7 +63,7 @@ dependencies {
   api(platform("software.amazon.awssdk:bom:${versions.awsv2}"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))
-  api(platform("org.spockframework:spock-bom:2.3-groovy-4.0"))
+  api(platform("org.spockframework:spock-bom:2.4-M1-groovy-4.0"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:3.21.0"))
   api(platform("org.testcontainers:testcontainers-bom:1.19.8"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
@@ -117,7 +117,7 @@ dependencies {
     api("com.nimbusds:nimbus-jose-jwt:9.37.2")
     api("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
     api("com.nhaarman:mockito-kotlin:1.6.0")
-    api("com.ninja-squad:springmockk:2.0.3")
+    api("com.ninja-squad:springmockk:4.0.2")  //Compatible with Spring boot 3.x and Java 17+ https://github.com/Ninja-Squad/springmockk?tab=readme-ov-file#versions-compatibility
     api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit-mock:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit:${versions.retrofit2}")
