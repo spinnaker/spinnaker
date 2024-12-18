@@ -26,9 +26,9 @@ import com.netflix.discovery.shared.transport.jersey3.Jersey3TransportClientFact
 import com.netflix.eventbus.impl.EventBusImpl;
 import com.netflix.eventbus.spi.EventBus;
 import com.netflix.spinnaker.kork.discovery.DiscoveryAutoConfiguration;
+import jakarta.inject.Provider;
 import java.util.Map;
 import java.util.Objects;
-import javax.inject.Provider;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.actuate.health.StatusAggregator;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
