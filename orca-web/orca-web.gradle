@@ -94,7 +94,17 @@ dependencies {
   testImplementation("io.strikt:strikt-core")
   testImplementation("io.mockk:mockk")
   testImplementation("org.apache.groovy:groovy-json")
+  testImplementation("com.nhaarman:mockito-kotlin")
+  testImplementation("io.spinnaker.kork:kork-sql-test")
+  testImplementation("org.testcontainers:mysql")
   testImplementation ("com.squareup.retrofit2:retrofit-mock")
+}
+
+sourceSets {
+  main {
+    java { srcDirs = [] }    // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/java", "src/main/groovy"] }  // compile   everything in src/ with groovy
+  }
 }
 
 test {

@@ -23,10 +23,11 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import rx.Observable
 import java.lang.System.currentTimeMillis
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
-import rx.Observable
+import javax.annotation.Nonnull
 
 class InMemoryExecutionRepository : ExecutionRepository {
 
@@ -274,6 +275,34 @@ class InMemoryExecutionRepository : ExecutionRepository {
         .filter { it.pipelineConfigId == pipelineConfigId }
         .applyCriteria(criteria)
     )
+  }
+
+  override fun retrievePipelineConfigIdsForApplication(application: String): List<String> {
+    return pipelines.values
+      .filter { it.application == application }
+      .map { it.pipelineConfigId }
+      .distinct()
+  }
+
+  override fun retrieveAndFilterPipelineExecutionIdsForApplication(
+    @Nonnull application: String,
+    @Nonnull pipelineConfigIds: List<String>,
+    @Nonnull criteria: ExecutionCriteria
+  ): List<String> {
+    return pipelines.values
+      .filter { it.application == application && pipelineConfigIds.contains(it.pipelineConfigId) }
+      .applyCriteria(criteria)
+      .map { it.id }
+  }
+
+  override fun retrievePipelineExecutionDetailsForApplication(
+    application: String,
+    pipelineConfigIds: List<String>,
+    queryTimeoutSeconds: Int
+  ): Collection<PipelineExecution> {
+    return pipelines.values
+      .filter { it.application == application && pipelineConfigIds.contains(it.pipelineConfigId) }
+      .distinctBy { it.id }
   }
 
   override fun retrieveOrchestrationForCorrelationId(correlationId: String): PipelineExecution {

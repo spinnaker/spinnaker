@@ -19,16 +19,19 @@ package com.netflix.spinnaker.orca.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Collections2
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.util.ExpressionUtils
 import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
@@ -60,25 +63,26 @@ class TaskControllerSpec extends Specification {
   def registry = new NoopRegistry()
 
   def clock = Clock.fixed(Instant.now(), UTC)
-  int daysOfExecutionHistory = 14
-  int numberOfOldPipelineExecutionsToInclude = 2
+  def taskControllerConfigurationProperties = new TaskControllerConfigurationProperties()
 
+  int daysOfExecutionHistory = taskControllerConfigurationProperties.getDaysOfExecutionHistory()
   ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
 
   void setup() {
     mockMvc = MockMvcBuilders.standaloneSetup(
-      new TaskController(
-        front50Service: front50Service,
-        executionRepository: executionRepository,
-        executionRunner: executionRunner,
-        daysOfExecutionHistory: daysOfExecutionHistory,
-        numberOfOldPipelineExecutionsToInclude: numberOfOldPipelineExecutionsToInclude,
-        clock: clock,
-        mapper: mapper,
-        registry: registry,
-        contextParameterProcessor: new ContextParameterProcessor(),
-        executionOperator: executionOperator
-      )
+        new TaskController(
+            front50Service,
+            executionRepository,
+            executionRunner,
+            executionOperator,
+            List.of(Mock(StageDefinitionBuilder)),
+            new ContextParameterProcessor(),
+            Mock(ExpressionUtils),
+            mapper,
+            registry,
+            Mock(StageDefinitionBuilderFactory),
+            taskControllerConfigurationProperties
+        )
     ).build()
   }
 
@@ -246,6 +250,8 @@ class TaskControllerSpec extends Specification {
     })
     front50Service.getPipelines(app, false) >> [[id: "1"], [id: "2"]]
     front50Service.getStrategies(app) >> []
+
+    executionRepository.retrievePipelineConfigIdsForApplication(app) >> { return List.of( '2')}
 
     when:
     def response = mockMvc.perform(get("/applications/$app/pipelines")).andReturn().response

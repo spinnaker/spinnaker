@@ -30,6 +30,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
 import rx.Observable
+import javax.annotation.Nonnull
 
 /**
  * Intended for performing red/black Orca deployments which do not share the
@@ -192,6 +193,13 @@ class DualExecutionRepository(
     ).distinct { it.id }
   }
 
+  override fun retrievePipelineConfigIdsForApplication(application: String): List<String> {
+    return (
+      primary.retrievePipelineConfigIdsForApplication(application) +
+      previous.retrievePipelineConfigIdsForApplication(application)
+      ).distinct()
+  }
+
   override fun retrievePipelinesForPipelineConfigId(
     pipelineConfigId: String,
     criteria: ExecutionCriteria
@@ -200,6 +208,26 @@ class DualExecutionRepository(
       primary.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria),
       previous.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
     ).distinct { it.id }
+  }
+
+  override fun retrieveAndFilterPipelineExecutionIdsForApplication(
+    @Nonnull application: String,
+    @Nonnull pipelineConfigIds: List<String>,
+    @Nonnull criteria: ExecutionCriteria
+  ): List<String> {
+    return primary.retrieveAndFilterPipelineExecutionIdsForApplication(application, pipelineConfigIds, criteria) +
+      previous.retrieveAndFilterPipelineExecutionIdsForApplication(application, pipelineConfigIds, criteria)
+  }
+
+  override fun retrievePipelineExecutionDetailsForApplication(
+    @Nonnull application: String,
+    pipelineConfigIds: List<String>,
+    queryTimeoutSeconds: Int
+  ): Collection<PipelineExecution> {
+    return (
+      primary.retrievePipelineExecutionDetailsForApplication(application, pipelineConfigIds, queryTimeoutSeconds) +
+      previous.retrievePipelineExecutionDetailsForApplication(application, pipelineConfigIds, queryTimeoutSeconds)
+      ).distinctBy { it.id }
   }
 
   override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(

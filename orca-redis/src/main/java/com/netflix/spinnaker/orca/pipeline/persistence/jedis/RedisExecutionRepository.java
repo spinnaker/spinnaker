@@ -479,6 +479,37 @@ public class RedisExecutionRepository implements ExecutionRepository {
     return currentObservable;
   }
 
+  @Override
+  public @Nonnull List<String> retrievePipelineConfigIdsForApplication(
+      @Nonnull String application) {
+    // TODO: not implemented yet - this method, at present, is primarily meant for the
+    // SqlExecutionRepository
+    //  implementation.
+    return List.of();
+  }
+
+  @Override
+  public @Nonnull List<String> retrieveAndFilterPipelineExecutionIdsForApplication(
+      @Nonnull String application,
+      @Nonnull List<String> pipelineConfigIds,
+      @Nonnull ExecutionCriteria criteria) {
+    // TODO: not implemented yet - this method, at present, is primarily meant for the
+    // SqlExecutionRepository
+    //  implementation.
+    return List.of();
+  }
+
+  @Override
+  public @Nonnull List<PipelineExecution> retrievePipelineExecutionDetailsForApplication(
+      @Nonnull String application,
+      @Nonnull List<String> pipelineExecutionIds,
+      int queryTimeoutSeconds) {
+    // TODO: not implemented yet - this method, at present, is primarily meant for the
+    // SqlExecutionRepository
+    //  implementation.
+    return List.of();
+  }
+
   /*
    * There is no guarantee that the returned results will be sorted.
    * @param limit and the param @offset are only implemented in SqlExecutionRepository

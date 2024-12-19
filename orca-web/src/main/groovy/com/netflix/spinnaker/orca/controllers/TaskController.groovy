@@ -18,7 +18,9 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.*
@@ -34,9 +36,8 @@ import com.netflix.spinnaker.orca.util.ExpressionUtils
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
+import org.springframework.lang.Nullable
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
@@ -47,6 +48,10 @@ import rx.schedulers.Schedulers
 import java.nio.charset.Charset
 import java.time.Clock
 import java.time.ZoneOffset
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
@@ -60,43 +65,44 @@ import static java.time.temporal.ChronoUnit.DAYS
 @Slf4j
 @RestController
 class TaskController {
-  @Autowired(required = false)
   Front50Service front50Service
-
-  @Autowired
   ExecutionRepository executionRepository
-
-  @Autowired
   ExecutionRunner executionRunner
-
-  @Autowired
   CompoundExecutionOperator executionOperator
-
-  @Autowired
   Collection<StageDefinitionBuilder> stageBuilders
-
-  @Autowired
   ContextParameterProcessor contextParameterProcessor
-
-  @Autowired
   ExpressionUtils expressionUtils
-
-  @Autowired
   ObjectMapper mapper
-
-  @Autowired
   Registry registry
-
-  @Autowired
   StageDefinitionBuilderFactory stageDefinitionBuilderFactory
+  TaskControllerConfigurationProperties configurationProperties
+  Clock clock
 
-  @Value('${tasks.days-of-execution-history:14}')
-  int daysOfExecutionHistory
-
-  @Value('${tasks.number-of-old-pipeline-executions-to-include:2}')
-  int numberOfOldPipelineExecutionsToInclude
-
-  Clock clock = Clock.systemUTC()
+  TaskController(@Nullable Front50Service front50Service,
+                 ExecutionRepository executionRepository,
+                 ExecutionRunner executionRunner,
+                 CompoundExecutionOperator executionOperator,
+                 Collection<StageDefinitionBuilder> stageBuilders,
+                 ContextParameterProcessor contextParameterProcessor,
+                 ExpressionUtils expressionUtils,
+                 ObjectMapper mapper,
+                 Registry registry,
+                 StageDefinitionBuilderFactory stageDefinitionBuilderFactory,
+                 TaskControllerConfigurationProperties configurationProperties
+  ) {
+    this.front50Service = front50Service
+    this.executionRepository = executionRepository
+    this.executionRunner = executionRunner
+    this.executionOperator = executionOperator
+    this.stageBuilders = stageBuilders
+    this.contextParameterProcessor = contextParameterProcessor
+    this.expressionUtils = expressionUtils
+    this.mapper = mapper
+    this.registry = registry
+    this.stageDefinitionBuilderFactory = stageDefinitionBuilderFactory
+    this.configurationProperties = configurationProperties
+    this.clock = Clock.systemUTC()
+  }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
@@ -115,7 +121,7 @@ class TaskController {
         clock
           .instant()
           .atZone(ZoneOffset.UTC)
-          .minusDays(daysOfExecutionHistory)
+          .minusDays(this.configurationProperties.getDaysOfExecutionHistory())
           .toInstant()
       )
 
@@ -583,11 +589,9 @@ class TaskController {
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<PipelineExecution> getPipelinesForApplication(@PathVariable String application,
-                                                         @RequestParam(value = "limit", defaultValue = "5")
-                                               int limit,
-                                                         @RequestParam(value = "statuses", required = false)
-                                               String statuses,
-                                                         @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
+                                                     @RequestParam(value = "limit", defaultValue = "5") int limit,
+                                                     @RequestParam(value = "statuses", required = false) String statuses,
+                                                     @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
     if (!front50Service) {
       throw new UnsupportedOperationException("Cannot lookup pipelines, front50 has not been enabled. Fix this by setting front50.enabled: true")
     }
@@ -595,26 +599,41 @@ class TaskController {
     if (!limit) {
       return []
     }
-
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     def executionCriteria = new ExecutionCriteria(
       pageSize: limit,
       statuses: (statuses.split(",") as Collection)
     )
 
+    // get all relevant pipeline and strategy configs from front50
     def pipelineConfigIds = front50Service.getPipelines(application, false)*.id as List<String>
+    log.debug("received ${pipelineConfigIds.size()} pipelines for application: $application from front50")
     def strategyConfigIds = front50Service.getStrategies(application)*.id as List<String>
-    def allIds = pipelineConfigIds + strategyConfigIds
+    log.debug("received ${strategyConfigIds.size()} strategies for application: $application from front50")
 
-    def allPipelines = rx.Observable.merge(allIds.collect {
-      executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
-    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+    def allFront50PipelineConfigIds = pipelineConfigIds + strategyConfigIds
 
-    if (!expand) {
-      unexpandPipelineExecutions(allPipelines)
+    List<PipelineExecution> allPipelineExecutions = []
+
+    if (this.configurationProperties.getOptimizeExecutionRetrieval()) {
+      allPipelineExecutions.addAll(
+          optimizedGetPipelineExecutions(application, allFront50PipelineConfigIds, executionCriteria)
+      )
+    } else {
+      allPipelineExecutions = rx.Observable.merge(allFront50PipelineConfigIds.collect {
+        log.debug("processing pipeline config id: $it")
+        executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
+      }).subscribeOn(Schedulers.io()).toList().toBlocking().single()
     }
 
-    return filterPipelinesByHistoryCutoff(allPipelines, limit)
+    allPipelineExecutions.sort(startTimeOrId)
+    if (!expand) {
+      log.debug("unexpanding pipeline executions")
+      unexpandPipelineExecutions(allPipelineExecutions)
+    }
+
+    log.debug("filtering pipelines by history")
+    return filterPipelinesByHistoryCutoff(allPipelineExecutions, limit)
   }
 
   private static void validateSearchForPipelinesByTriggerParameters(long triggerTimeStartBoundary, long triggerTimeEndBoundary, int startIndex, int size) {
@@ -663,7 +682,7 @@ class TaskController {
 
   private List<PipelineExecution> filterPipelinesByHistoryCutoff(List<PipelineExecution> pipelines, int limit) {
     // TODO-AJ The eventual goal is to return `allPipelines` without the need to group + filter below (WIP)
-    def cutoffTime = clock.instant().minus(daysOfExecutionHistory, DAYS).toEpochMilli()
+    def cutoffTime = clock.instant().minus(this.configurationProperties.getDaysOfExecutionHistory(), DAYS).toEpochMilli()
 
     def pipelinesSatisfyingCutoff = []
     pipelines.groupBy {
@@ -674,8 +693,9 @@ class TaskController {
         !it.startTime || it.startTime > cutoffTime
       }
       if (!recentPipelines && sortedPipelinesGroup) {
-        // no pipeline executions within `daysOfExecutionHistory` so include the first `numberOfOldPipelineExecutionsToInclude`
-        def upperBounds = Math.min(sortedPipelinesGroup.size(), numberOfOldPipelineExecutionsToInclude) - 1
+        // no pipeline executions within `this.configurationProperties.getDaysOfExecutionHistory()` so include
+        // the first `this.configurationProperties.numberOfOldPipelineExecutionsToInclude()`
+        def upperBounds = Math.min(sortedPipelinesGroup.size(), this.getConfigurationProperties().getNumberOfOldPipelineExecutionsToInclude()) - 1
         recentPipelines = sortedPipelinesGroup[0..upperBounds]
       }
 
@@ -848,6 +868,113 @@ class TaskController {
     }
     // Failed to match for all permutations
     return false
+  }
+
+  /**
+   *   this optimized flow speeds up the execution retrieval process for all pipelines in an application. It
+   *   does it in three steps:
+   *<p>
+   *  1. It compares the list of pipeline config ids obtained from front50 with what is stored in the orca db itself.
+   *      Rationale: We can ignore those process config ids that have no executions. The absence of a pipeline config
+   *      id from the orca db indicates the same. So to reduce the number of config ids to process, we
+   *      intersect the result obtained from front50 and orca db, which gives us the reduced list.
+   *      Note: this could be further optimized by cutting front50 out from the picture completely.
+   *      But I do not know what other side-effects that may cause, hence I am going ahead with the above logic.
+   *
+   *<p>
+   *   2. It then uses the list of pipeline config ids obtained from step 1 and gets all the valid executions
+   *   associated with each one of them. The valid executions are found after applying the execution criteria.
+   *
+   *<p>
+   *   3. It then processes n pipeline executions at a time to retrieve the complete execution details. In addition,
+   *      we make use of a configured thread pool to process multiple batches of n executions in parallel.
+   */
+  private List<PipelineExecution> optimizedGetPipelineExecutions(String application,
+  List<String> front50PipelineConfigIds, ExecutionCriteria executionCriteria) {
+    List<PipelineExecution> finalResult = []
+    log.info("running optimized execution retrieval process with: " +
+        "${this.configurationProperties.getMaxExecutionRetrievalThreads()} threads and processing" +
+        " ${this.configurationProperties.getMaxNumberOfPipelineExecutionsToProcess()} pipeline executions at a time")
+
+    List<String> commonPipelineConfigIdsInFront50AndOrca
+    try {
+      List<String> allOrcaPipelineConfigIds = executionRepository.retrievePipelineConfigIdsForApplication(application)
+      log.info("found ${allOrcaPipelineConfigIds.size()} pipeline config ids for application: $application in orca")
+      commonPipelineConfigIdsInFront50AndOrca = front50PipelineConfigIds.intersect(allOrcaPipelineConfigIds)
+      log.info("found ${commonPipelineConfigIdsInFront50AndOrca.size()} pipeline config ids that are common in orca " +
+          "and front50 for application: $application. " +
+          "Saved ${front50PipelineConfigIds.size() - commonPipelineConfigIdsInFront50AndOrca.size()} extra pipeline " +
+          "config id queries")
+    } catch (Exception e) {
+      log.warn("retrieving pipeline config ids from orca db failed. using the result obtained from front50 ", e)
+      commonPipelineConfigIdsInFront50AndOrca = front50PipelineConfigIds
+    }
+
+    if (commonPipelineConfigIdsInFront50AndOrca.size() == 0 ) {
+      log.info("no pipeline config ids found.")
+      return finalResult
+    }
+
+    // get complete list of executions based on the execution criteria
+    log.info("filtering pipeline executions based on the execution criteria: " +
+        "limit: ${executionCriteria.getPageSize()}, statuses: ${executionCriteria.getStatuses()}")
+    List<String> filteredPipelineExecutionIds = executionRepository.retrieveAndFilterPipelineExecutionIdsForApplication(
+        application,
+        commonPipelineConfigIdsInFront50AndOrca,
+        executionCriteria
+    )
+    if (filteredPipelineExecutionIds.size() == 0) {
+      log.info("no pipeline executions found")
+      return finalResult
+    }
+
+    // need to define a new executor service since we want a dedicated set of threads to be made available for every
+    // new request for performance reasons
+    ExecutorService executorService = Executors.newFixedThreadPool(
+        this.configurationProperties.getMaxExecutionRetrievalThreads(),
+        new ThreadFactoryBuilder()
+            .setNameFormat("application-" + application  + "-%d")
+            .build())
+
+    try {
+      List<Future<Collection<PipelineExecution>>> futures = new ArrayList<>(filteredPipelineExecutionIds.size())
+      log.info("processing ${filteredPipelineExecutionIds.size()} pipeline executions")
+
+      // process a chunk of the executions at a time
+      filteredPipelineExecutionIds
+          .collate(this.configurationProperties.getMaxNumberOfPipelineExecutionsToProcess())
+          .each { List<String> chunkedExecutions ->
+            futures.add(executorService.submit({
+              try {
+                List<PipelineExecution> result = executionRepository.retrievePipelineExecutionDetailsForApplication(
+                    application,
+                    chunkedExecutions,
+                    this.configurationProperties.getExecutionRetrievalTimeoutSeconds()
+                )
+                log.debug("completed execution retrieval for ${result.size()} executions")
+                return result
+              } catch (Exception e) { // handle exceptions such as query timeouts etc.
+                log.error("error occurred while retrieving these executions: ${chunkedExecutions.toString()} " +
+                    "for application: ${application}.", e)
+                // in case of errors, this will return partial results. We are going with this best-effort approach
+                // because the UI keeps refreshing the executions view frequently. Hence, the user will eventually see
+                // these executions via one of the subsequent calls. Partial data is better than an exception at this
+                // point since the latter will result in a UI devoid of any executions.
+                //
+                return []
+              }
+            } as Callable<Collection<PipelineExecution>>))
+          }
+
+      futures.each { Future<Collection<PipelineExecution>> future -> finalResult.addAll(future.get()) }
+      return finalResult
+    } finally {
+      try {
+        executorService.shutdownNow()   // attempt to shutdown the executor service
+      } catch (Exception e) {
+        log.error("shutting down the executor service failed", e)
+      }
+    }
   }
 
   @InheritConstructors
