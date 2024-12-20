@@ -1,3 +1,4 @@
+import type { IStage } from '@spinnaker/core';
 import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
 import { manifestExecutionDetails } from '../ManifestExecutionDetails';
@@ -14,6 +15,8 @@ Registry.pipeline.registerStage({
   cloudProvider: 'kubernetes',
   component: ScaleManifestStageConfig,
   executionDetailsSections: [manifestExecutionDetails(STAGE_KEY), ExecutionDetailsTasks],
+  accountExtractor: (stage: IStage): string[] => (stage.context.account ? [stage.context.account] : []),
+  configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
   validators: [
     ...manifestSelectorValidators(STAGE_NAME),
     { type: 'requiredField', fieldName: 'replicas', fieldLabel: 'Replicas' },

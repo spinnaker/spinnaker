@@ -21,7 +21,7 @@ Registry.pipeline.registerStage({
   producesArtifacts: true,
   supportsCustomTimeout: true,
   validators: deployManifestValidators(),
-  accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
+  accountExtractor: (stage: IStage): string[] => (stage.context.account ? [stage.context.account] : []),
   configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
   artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['manifestArtifactId', 'requiredArtifactIds']),
   artifactRemover: ArtifactReferenceService.removeArtifactFromFields(['manifestArtifactId', 'requiredArtifactIds']),

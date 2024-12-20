@@ -15,7 +15,7 @@ Registry.pipeline.registerStage({
   cloudProvider: 'kubernetes',
   component: DeleteManifestStageConfig,
   executionDetailsSections: [manifestExecutionDetails(STAGE_KEY), ExecutionDetailsTasks],
-  accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
+  accountExtractor: (stage: IStage): string[] => (stage.context.account ? [stage.context.account] : []),
   configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
   validators: manifestSelectorValidators(STAGE_NAME),
 });
