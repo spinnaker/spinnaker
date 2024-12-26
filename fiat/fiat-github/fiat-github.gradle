@@ -8,7 +8,7 @@ dependencies {
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-retrofit"
-  implementation "javax.validation:validation-api"
+  implementation "jakarta.validation:jakarta.validation-api"
 
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 }
