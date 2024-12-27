@@ -37,7 +37,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import retrofit2.Retrofit;
@@ -94,9 +94,19 @@ public class FiatAuthenticationConfig {
   }
 
   @Bean
-  FiatWebSecurityConfigurerAdapter fiatSecurityConfig(
-      FiatStatus fiatStatus, AuthenticationConverter authenticationConverter) {
-    return new FiatWebSecurityConfigurerAdapter(fiatStatus, authenticationConverter);
+  public SecurityFilterChain configure(
+      HttpSecurity http, FiatStatus fiatStatus, AuthenticationConverter authenticationConverter)
+      throws Exception {
+    return http.servletApi()
+        .and()
+        .exceptionHandling()
+        .and()
+        .anonymous()
+        .and()
+        .addFilterBefore(
+            new FiatAuthenticationFilter(fiatStatus, authenticationConverter),
+            AnonymousAuthenticationFilter.class)
+        .build();
   }
 
   @Bean
@@ -104,30 +114,5 @@ public class FiatAuthenticationConfig {
   FiatAccessDeniedExceptionHandler fiatAccessDeniedExceptionHandler(
       ExceptionMessageDecorator exceptionMessageDecorator) {
     return new FiatAccessDeniedExceptionHandler(exceptionMessageDecorator);
-  }
-
-  private static class FiatWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-    private final FiatStatus fiatStatus;
-    private final AuthenticationConverter authenticationConverter;
-
-    private FiatWebSecurityConfigurerAdapter(
-        FiatStatus fiatStatus, AuthenticationConverter authenticationConverter) {
-      super(true);
-      this.fiatStatus = fiatStatus;
-      this.authenticationConverter = authenticationConverter;
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-      http.servletApi()
-          .and()
-          .exceptionHandling()
-          .and()
-          .anonymous()
-          .and()
-          .addFilterBefore(
-              new FiatAuthenticationFilter(fiatStatus, authenticationConverter),
-              AnonymousAuthenticationFilter.class);
-    }
   }
 }
