@@ -102,6 +102,9 @@ public class WebhookProperties {
   /** True to enable audit logging */
   private boolean auditLoggingEnabled = false;
 
+  /** True to require an account property in webhook stage configuration */
+  private boolean requireAccount = false;
+
   @Data
   @NoArgsConstructor
   public static class TrustSettings {
