@@ -32,6 +32,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.util.stream.Collectors
+import java.util.stream.Stream
+
 class EcsCloudWatchAlarmCacheClientSpec extends Specification {
   @Subject
   EcsCloudWatchAlarmCacheClient client
@@ -245,5 +248,59 @@ def 'should return metric alarms with actions matching the service'() {
     "arn:aws:sns:us-west-1:123456789012:${serviceName}-InsufficientDataActions1"
   )
 }
+
+
+  def 'should return metric alarms for a service - single cluster with Custom Alarms/Cloudwatch Dimensions'() {
+    given:
+    def serviceName = 'my-service'
+    def serviceName2 = 'not-matching-service'
+
+    def ecsClusterName = 'my-cluster'
+    def metricAlarms = Set.of(
+      new MetricAlarm().withAlarmName("alarm-name").withAlarmArn("alarmArn")
+        .withAlarmActions("arn:aws:sns:us-west-1:123456789012:${serviceName}")
+        .withDimensions([new Dimension().withName("ClusterName").withValue(ecsClusterName)]),
+      new MetricAlarm().withAlarmName("alarm-name-2").withAlarmArn("alarmArn2")
+        .withAlarmActions("arn:aws:sns:us-west-1:123456789012:${serviceName}")
+        .withDimensions([new Dimension().withName("ClusterName").withValue(ecsClusterName)]),
+      new MetricAlarm().withAlarmName("alarm-name").withAlarmArn("alarmArn3")
+        .withAlarmActions("arn:aws:sns:us-west-1:123456789012:${serviceName2}")
+        .withDimensions([new Dimension().withName("ClusterName").withValue(ecsClusterName)])
+    )
+    def metricAlarmCustomDimension = Set.of (
+      new MetricAlarm().withAlarmName("alarm-name-2-custom").withAlarmArn("alarmArn2-custom")
+        .withAlarmActions("arn:aws:sns:us-west-1:123456789012:${serviceName}")
+        .withDimensions([new Dimension().withName("CustomDimension").withValue("customValue")]),
+    )
+
+    def keys = metricAlarms.collect { alarm ->
+      def key = Keys.getAlarmKey(ACCOUNT, REGION, alarm.getAlarmArn(), ecsClusterName)
+      def attributes = agent.convertMetricAlarmToAttributes(alarm, ACCOUNT, REGION)
+      [key, new DefaultCacheData(key, attributes, [:])]
+    }
+    def keysCustom = metricAlarmCustomDimension.collect { alarm ->
+      def key = Keys.getAlarmKey(ACCOUNT, REGION, alarm.getAlarmArn(), "")
+      def attributes = agent.convertMetricAlarmToAttributes(alarm, ACCOUNT, REGION)
+      [key, new DefaultCacheData(key, attributes, [:])]
+    }
+
+    cacheView.filterIdentifiers(Keys.Namespace.ALARMS.ns, Keys.getAlarmKey(ACCOUNT, REGION, "*", ecsClusterName)) >> keys*.first()
+    cacheView.filterIdentifiers(Keys.Namespace.ALARMS.ns, Keys.getAlarmKey(ACCOUNT, REGION, "*", "")) >> keysCustom*.first()
+    def combinedMetricIds = Stream.of( keys*.first(), keysCustom*.first())
+      .filter { it != null }
+      .flatMap { it.stream() }
+      .collect(Collectors.toList())
+
+    cacheView.getAll(Keys.Namespace.ALARMS.ns, combinedMetricIds) >>  keys*.last() + keysCustom*.last()
+
+    when:
+    def metricAlarmsReturned = client.getMetricAlarms(serviceName, ACCOUNT, REGION, ecsClusterName)
+
+    then:
+    metricAlarmsReturned.size() == 3
+    metricAlarmsReturned*.alarmName.containsAll(["alarm-name", "alarm-name-2", "alarm-name-2-custom"])
+    metricAlarmsReturned*.alarmArn.containsAll(["alarmArn", "alarmArn2","alarmArn2-custom"])
+    !metricAlarmsReturned*.alarmArn.contains(["alarmArn3"])
+  }
 
 }

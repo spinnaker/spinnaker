@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -77,7 +79,16 @@ public class EcsCloudWatchAlarmCacheClient extends AbstractCacheClient<EcsMetric
 
     String glob = Keys.getAlarmKey(accountName, region, "*", ecsClusterName);
     Collection<String> metricAlarmsIds = filterIdentifiers(glob);
-    Collection<EcsMetricAlarm> allMetricAlarms = getAll(metricAlarmsIds);
+    String globEmptyDimension = Keys.getAlarmKey(accountName, region, "*", "");
+    Collection<String> otherMetricAlarmsIds = filterIdentifiers(globEmptyDimension);
+
+    Collection<String> combinedMetricIds =
+        Stream.of(metricAlarmsIds, otherMetricAlarmsIds)
+            .filter(m -> m != null)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+    Collection<EcsMetricAlarm> allMetricAlarms = getAll(combinedMetricIds);
 
     for (EcsMetricAlarm metricAlarm : allMetricAlarms) {
       if (metricAlarm.getAlarmActions().stream().anyMatch(action -> action.contains(serviceName))
