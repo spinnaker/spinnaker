@@ -43,6 +43,8 @@ import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import javax.sql.DataSource
+
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initDualTcMysqlDatabases
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initDualTcPostgresDatabases
@@ -98,7 +100,19 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
   ExecutionRepository createExecutionRepository(String partition, Interlink interlink = null, boolean compression = false) {
     return InstrumentedProxy.proxy(
         new DefaultRegistry(),
-        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", interlink, [], new ExecutionCompressionProperties(enabled: compression), false),
+        new SqlExecutionRepository(partition,
+            currentDatabase.context,
+            mapper,
+            new RetryProperties(),
+            10,
+            100,
+            "poolName",
+            "readPoolName",
+            interlink,
+            [],
+            new ExecutionCompressionProperties(enabled: compression),
+            false,
+            Mock(DataSource)),
         "namespace")
   }
 

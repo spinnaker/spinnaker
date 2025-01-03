@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.CompressionMode
 import com.netflix.spinnaker.config.CompressionType
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
@@ -32,14 +33,21 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
+import com.nhaarman.mockito_kotlin.atLeastOnce
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.testcontainers.DockerClientFactory
 import java.lang.System.currentTimeMillis
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
+import javax.sql.DataSource
 
 class SqlExecutionRepositoryTest : JUnit5Minutests {
 
@@ -567,6 +575,64 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         assertThat(actualPipelineExecution).isEqualTo(pipelineExecution)
       }
     }
+    context("read pool usage") {
+      val mockedDslContext = mock<DSLContext>()
+      val mockedObjectMapper = mock<ObjectMapper>()
+      val mockedAbstractRoutingDataSource = mock<AbstractRoutingDataSource>()
+
+      test("fallback when read pool is not configured") {
+
+        val poolName = "poolName"
+        val readPoolName = "myReadPoolName"
+
+        doReturn(mapOf("someOtherPool" to mock<DataSource>())).`when`(mockedAbstractRoutingDataSource).resolvedDataSources
+
+        val sqlExecutionRepository = SqlExecutionRepository("test",
+          mockedDslContext,
+          mockedObjectMapper,
+          testRetryProprties,
+          10,
+          100,
+          poolName,
+          readPoolName,
+          null,
+          emptyList(),
+          executionCompressionPropertiesEnabled,
+          false,
+          mockedAbstractRoutingDataSource
+        )
+
+        verify(mockedAbstractRoutingDataSource, atLeastOnce()).resolvedDataSources
+        assertThat(sqlExecutionRepository.readPoolName).isEqualTo(poolName)
+      }
+
+      test("use read pool when configured") {
+
+        val poolName = "poolName"
+        val readPoolName = "myReadPoolName"
+
+        doReturn(mapOf(readPoolName to mock<DataSource>())).`when`(mockedAbstractRoutingDataSource).resolvedDataSources
+
+        val sqlExecutionRepository = SqlExecutionRepository("test",
+          mockedDslContext,
+          mockedObjectMapper,
+          testRetryProprties,
+          10,
+          100,
+          poolName,
+          readPoolName,
+          null,
+          emptyList(),
+          executionCompressionPropertiesEnabled,
+          false,
+          mockedAbstractRoutingDataSource
+        )
+
+        verify(mockedAbstractRoutingDataSource, atLeastOnce()).resolvedDataSources
+        assertThat(sqlExecutionRepository.readPoolName).isEqualTo(readPoolName)
+      }
+
+    }
   }
 
   private inner class Fixture {
@@ -589,6 +655,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
       bodyCompressionThreshold = 9
       compressionType = CompressionType.ZLIB
     }
+    val mockDataSource = mock<DataSource>()
 
     val sqlExecutionRepository =
       SqlExecutionRepository(
@@ -599,10 +666,12 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         10,
         100,
         "poolName",
+        "myReadPoolName",
         null,
         emptyList(),
         executionCompressionPropertiesEnabled,
-        false
+        false,
+        mockDataSource
       )
 
     val executionCompressionPropertiesDisabled = ExecutionCompressionProperties().apply {
@@ -618,10 +687,12 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         10,
         100,
         "poolName",
+        "myReadPoolName",
         null,
         emptyList(),
         executionCompressionPropertiesDisabled,
-        false
+        false,
+        mockDataSource
       )
 
     val executionCompressionPropertiesReadOnly = ExecutionCompressionProperties().apply {
@@ -640,10 +711,12 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         10,
         100,
         "poolName",
+        "myReadPoolName",
         null,
         emptyList(),
         executionCompressionPropertiesReadOnly,
-        false
+        false,
+        mockDataSource
       )
 
     val sqlExecutionRepositoryWithPipelineRefOnly =
@@ -655,10 +728,12 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         10,
         100,
         "poolName",
+        "myReadPoolName",
         null,
         emptyList(),
         executionCompressionPropertiesDisabled,
-        true
+        true,
+        mockDataSource
       )
 
     val sqlExecutionRepositoryWithPipelineRefAndCompression =
@@ -670,10 +745,12 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         10,
         100,
         "poolName",
+        "myReadPoolName",
         null,
         emptyList(),
         executionCompressionPropertiesEnabled,
-        true
+        true,
+        mockDataSource
       )
 
     fun addCustomDeserializerWithFeatureFlagEnabled() {

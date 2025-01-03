@@ -38,6 +38,9 @@ import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import com.netflix.spinnaker.orca.sql.telemetry.SqlActiveExecutionsMonitor
+import java.time.Clock
+import java.util.Optional
+import javax.sql.DataSource
 import liquibase.integration.spring.SpringLiquibase
 import net.javacrumbs.shedlock.core.LockProvider
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider
@@ -49,10 +52,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.*
-import java.time.Clock
-import java.util.*
-import javax.sql.DataSource
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
@@ -78,7 +82,8 @@ class SqlConfiguration {
     interlink: Optional<Interlink>,
     executionRepositoryListeners: Collection<ExecutionRepositoryListener>,
     compressionProperties: ExecutionCompressionProperties,
-    pipelineRefProperties: PipelineRefProperties
+    pipelineRefProperties: PipelineRefProperties,
+    dataSource: DataSource
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -90,7 +95,8 @@ class SqlConfiguration {
       interlink = interlink.orElse(null),
       executionRepositoryListeners = executionRepositoryListeners,
       compressionProperties = compressionProperties,
-      pipelineRefEnabled = pipelineRefProperties.enabled
+      pipelineRefEnabled = pipelineRefProperties.enabled,
+      dataSource = dataSource
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "primary"))) as ExecutionRepository
     }
@@ -105,7 +111,8 @@ class SqlConfiguration {
     orcaSqlProperties: OrcaSqlProperties,
     @Value("\${execution-repository.sql.secondary.pool-name}") poolName: String,
     compressionProperties: ExecutionCompressionProperties,
-    pipelineRefProperties: PipelineRefProperties
+    pipelineRefProperties: PipelineRefProperties,
+    dataSource: DataSource
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -116,7 +123,8 @@ class SqlConfiguration {
       orcaSqlProperties.stageReadSize,
       poolName,
       compressionProperties = compressionProperties,
-      pipelineRefEnabled = pipelineRefProperties.enabled
+      pipelineRefEnabled = pipelineRefProperties.enabled,
+      dataSource = dataSource
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }

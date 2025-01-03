@@ -31,11 +31,11 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
-import org.jooq.SQLDialect
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
+import javax.sql.DataSource
 import java.time.Instant
 
 import static com.netflix.spinnaker.kork.sql.test.SqlTestUtil.*
@@ -82,7 +82,7 @@ abstract class TopApplicationExecutionCleanupPollingNotificationAgentSpec extend
 
   def setupSpec() {
     currentDatabase = getDatabase()
-    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null, [], new ExecutionCompressionProperties(), false)
+    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", "readPoolName", null, [], new ExecutionCompressionProperties(), false, Mock(DataSource))
   }
 
   def cleanup() {

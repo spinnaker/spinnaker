@@ -55,9 +55,11 @@ import java.util.Optional
 import org.jooq.DSLContext
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import javax.sql.DataSource
 
 @Configuration
 class SqlTestConfig {
@@ -121,7 +123,8 @@ class SqlTestConfig {
     registry: Registry,
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
-    compressionProperties: ExecutionCompressionProperties
+    compressionProperties: ExecutionCompressionProperties,
+    dataSource: DataSource
   ) = SqlExecutionRepository(
     orcaSqlProperties.partitionName,
     dsl,
@@ -131,7 +134,8 @@ class SqlTestConfig {
     orcaSqlProperties.stageReadSize,
     interlink = null,
     compressionProperties = compressionProperties,
-    pipelineRefEnabled = false
+    pipelineRefEnabled = false,
+    dataSource = dataSource
   )
 
   @Bean
@@ -192,4 +196,7 @@ class SqlTestConfig {
     "spring.application.name=orcaTest"
   ]
 )
-class SqlQueueIntegrationTest : QueueIntegrationTest()
+class SqlQueueIntegrationTest : QueueIntegrationTest() {
+  @MockBean
+  var dataSource: DataSource? = null
+}

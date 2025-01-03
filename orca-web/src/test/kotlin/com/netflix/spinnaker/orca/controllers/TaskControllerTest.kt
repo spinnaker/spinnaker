@@ -61,7 +61,8 @@ class TaskControllerTest : JUnit5Minutests {
       mapper = OrcaObjectMapper.getInstance(),
       retryProperties = RetryProperties(),
       compressionProperties = ExecutionCompressionProperties(),
-      pipelineRefEnabled = false
+      pipelineRefEnabled = false,
+      dataSource = mock()
     )
 
     private val taskControllerConfigurationProperties: TaskControllerConfigurationProperties = TaskControllerConfigurationProperties()
