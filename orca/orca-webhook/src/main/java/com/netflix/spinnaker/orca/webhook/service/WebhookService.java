@@ -18,7 +18,9 @@
 package com.netflix.spinnaker.orca.webhook.service;
 
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
@@ -28,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -60,14 +63,18 @@ public class WebhookService {
 
   private final WebhookProperties webhookProperties;
 
+  private final OortService oortService;
+
   @Autowired
   public WebhookService(
       List<RestTemplateProvider> restTemplateProviders,
       UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
-      WebhookProperties webhookProperties) {
+      WebhookProperties webhookProperties,
+      OortService oortService) {
     this.restTemplateProviders = restTemplateProviders;
     this.userConfiguredUrlRestrictions = userConfiguredUrlRestrictions;
     this.webhookProperties = webhookProperties;
+    this.oortService = oortService;
   }
 
   public ResponseEntity<Object> callWebhook(StageExecution stageExecution) {
@@ -124,6 +131,15 @@ public class WebhookService {
     for (RestTemplateProvider provider : restTemplateProviders) {
       WebhookStage.StageData stageData =
           (WebhookStage.StageData) stageExecution.mapTo(provider.getStageDataType());
+
+      if (webhookProperties.isValidateAccount() && StringUtils.isNotBlank(stageData.account)) {
+        // Expect this to throw an exception if the current user is not
+        // authorized to use the given account, or the account doesn't exist.
+        // Ignore the return value for now.
+        Retrofit2SyncCall.execute(
+            oortService.getCredentialsAuthorized(stageData.account, true /* expand */));
+      }
+
       HttpHeaders headers = buildHttpHeaders(stageData.customHeaders);
       HttpMethod httpMethod = HttpMethod.GET;
       HttpEntity<Object> payloadEntity = null;

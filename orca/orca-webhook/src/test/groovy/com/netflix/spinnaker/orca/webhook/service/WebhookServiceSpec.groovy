@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.webhook.service
 
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
@@ -67,10 +68,13 @@ class WebhookServiceSpec extends Specification {
 
   def server = MockRestServiceServer.createServer(restTemplateProvider.restTemplate)
 
+  def oortService = Mock(OortService)
+
   @Subject
   def webhookService = new WebhookService(List.of(restTemplateProvider),
                                           userConfiguredUrlRestrictions,
-                                          preconfiguredWebhookProperties)
+                                          preconfiguredWebhookProperties,
+                                          oortService)
 
   @Unroll
   def "Webhook is being called with correct parameters"() {
