@@ -65,16 +65,20 @@ public class WebhookService {
 
   private final OortService oortService;
 
+  private final Optional<WebhookAccountProcessor> webhookAccountProcessor;
+
   @Autowired
   public WebhookService(
       List<RestTemplateProvider> restTemplateProviders,
       UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
       WebhookProperties webhookProperties,
-      OortService oortService) {
+      OortService oortService,
+      Optional<WebhookAccountProcessor> webhookAccountProcessor) {
     this.restTemplateProviders = restTemplateProviders;
     this.userConfiguredUrlRestrictions = userConfiguredUrlRestrictions;
     this.webhookProperties = webhookProperties;
     this.oortService = oortService;
+    this.webhookAccountProcessor = webhookAccountProcessor;
   }
 
   public ResponseEntity<Object> callWebhook(StageExecution stageExecution) {
@@ -132,15 +136,24 @@ public class WebhookService {
       WebhookStage.StageData stageData =
           (WebhookStage.StageData) stageExecution.mapTo(provider.getStageDataType());
 
+      HttpHeaders headers = null;
+      Map<String, Object> accountDetails = null;
       if (webhookProperties.isValidateAccount() && StringUtils.isNotBlank(stageData.account)) {
         // Expect this to throw an exception if the current user is not
         // authorized to use the given account, or the account doesn't exist.
-        // Ignore the return value for now.
-        Retrofit2SyncCall.execute(
-            oortService.getCredentialsAuthorized(stageData.account, true /* expand */));
+        accountDetails =
+            Retrofit2SyncCall.execute(
+                oortService.getCredentialsAuthorized(stageData.account, true /* expand */));
       }
 
-      HttpHeaders headers = buildHttpHeaders(stageData.customHeaders);
+      if (webhookAccountProcessor.isPresent()) {
+        headers =
+            webhookAccountProcessor
+                .get()
+                .getHeaders(stageData.account, accountDetails, stageData.customHeaders);
+      } else {
+        headers = buildHttpHeaders(stageData.customHeaders);
+      }
       HttpMethod httpMethod = HttpMethod.GET;
       HttpEntity<Object> payloadEntity = null;
       switch (taskType) {

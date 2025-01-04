@@ -74,7 +74,7 @@ class WebhookServiceSpec extends Specification {
   def webhookService = new WebhookService(List.of(restTemplateProvider),
                                           userConfiguredUrlRestrictions,
                                           preconfiguredWebhookProperties,
-                                          oortService)
+                                          oortService, Optional.empty())
 
   @Unroll
   def "Webhook is being called with correct parameters"() {
