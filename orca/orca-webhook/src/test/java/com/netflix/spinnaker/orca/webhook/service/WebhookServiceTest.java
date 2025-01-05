@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.webhook.service;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -35,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.matching.MatchResult;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -425,9 +427,13 @@ class WebhookServiceTest {
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
+    String headerName = "foo";
+    String headerValue = "bar";
+    Map<String, Object> customHeaders = Map.of(headerName, headerValue);
+
     // The StageExecutionImpl constructor mutates the map, so use a mutable map.
     Map<String, Object> webhookStageData =
-        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET));
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET, "customHeaders", customHeaders));
     StageExecution stage =
         new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
 
@@ -443,7 +449,11 @@ class WebhookServiceTest {
     // verify, and the webhook stage makes the http request.
     verifyNoInteractions(oortService);
 
-    apiProvider.verify(getRequestedFor(urlPathEqualTo(path)));
+    apiProvider.verify(
+        getRequestedFor(urlPathEqualTo(path))
+            .withHeader(headerName, equalTo(headerValue))
+            .andMatching(
+                r -> MatchResult.of(r.getHeaders().getHeader(headerName).isSingleValued())));
   }
 
   @ParameterizedTest(name = "{index} => testValidateAccountWithMissingAccount: account = ''{0}''")
@@ -455,12 +465,17 @@ class WebhookServiceTest {
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
+    String headerName = "foo";
+    String headerValue = "bar";
+    Map<String, Object> customHeaders = Map.of(headerName, headerValue);
+
     // The StageExecutionImpl constructor mutates the map, so use a mutable map.
     // As well, Map.of requires non-null values, so build the HashMap this way.
     Map<String, Object> webhookStageData = new HashMap<>();
     webhookStageData.put("url", url);
     webhookStageData.put("method", HttpMethod.GET);
     webhookStageData.put("account", account);
+    webhookStageData.put("customHeaders", customHeaders);
 
     StageExecution stage =
         new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
@@ -477,7 +492,11 @@ class WebhookServiceTest {
     // verify, and the webhook stage makes the http request.
     verifyNoInteractions(oortService);
 
-    apiProvider.verify(getRequestedFor(urlPathEqualTo(path)));
+    apiProvider.verify(
+        getRequestedFor(urlPathEqualTo(path))
+            .withHeader(headerName, equalTo(headerValue))
+            .andMatching(
+                r -> MatchResult.of(r.getHeaders().getHeader(headerName).isSingleValued())));
   }
 
   @ParameterizedTest(name = "{index} => testValidateAccountWithAccount: validAccount = {0}")
@@ -488,10 +507,23 @@ class WebhookServiceTest {
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
+    String headerName = "foo";
+    String headerValue = "bar";
+    Map<String, Object> customHeaders = Map.of(headerName, headerValue);
+
     // The StageExecutionImpl constructor mutates the map, so use a mutable map.
     String account = "my-account";
     Map<String, Object> webhookStageData =
-        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET, "account", account));
+        new HashMap<>(
+            Map.of(
+                "url",
+                url,
+                "method",
+                HttpMethod.GET,
+                "account",
+                account,
+                "customHeaders",
+                customHeaders));
     StageExecution stage =
         new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
 
@@ -525,7 +557,12 @@ class WebhookServiceTest {
 
     if (validAccount) {
       assertThat(thrown).isNull();
-      apiProvider.verify(getRequestedFor(urlPathEqualTo(path)));
+      apiProvider.verify(
+          getRequestedFor(urlPathEqualTo(path))
+              .withHeader(headerName, equalTo(headerValue))
+              .andMatching(
+                  r -> MatchResult.of(r.getHeaders().getHeader(headerName).isSingleValued())));
+
     } else {
       assertThat(thrown).isNotNull();
       assertThat(thrown).isEqualTo(exception);
