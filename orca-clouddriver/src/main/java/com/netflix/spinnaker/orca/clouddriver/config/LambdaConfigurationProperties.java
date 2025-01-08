@@ -22,9 +22,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "lambda")
 public class LambdaConfigurationProperties {
+  private int cloudDriverPostTimeoutSeconds = 120;
 
-  private int cloudDriverReadTimeout = 60;
-  private int cloudDriverConnectTimeout = 15;
   private int cacheRefreshRetryWaitTime = 15;
   private int cacheOnDemandRetryWaitTime = 15;
   private int cloudDriverPostRequestRetries = 5;

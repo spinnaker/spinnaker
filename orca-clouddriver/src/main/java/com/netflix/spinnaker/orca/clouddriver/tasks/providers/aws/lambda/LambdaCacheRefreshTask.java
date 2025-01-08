@@ -45,12 +45,25 @@ import org.springframework.util.StringUtils;
 public class LambdaCacheRefreshTask implements LambdaStageBaseTask {
   private static final Logger logger = LoggerFactory.getLogger(LambdaCacheRefreshTask.class);
   private static final String CLOUDDRIVER_REFRESH_CACHE_PATH = "/cache/aws/function";
+  private final OkHttpClient client;
 
-  @Autowired CloudDriverConfigurationProperties props;
+  CloudDriverConfigurationProperties props;
 
-  @Autowired private LambdaCloudDriverUtils utils;
+  private LambdaCloudDriverUtils utils;
 
-  @Autowired LambdaConfigurationProperties config;
+  LambdaConfigurationProperties config;
+
+  @Autowired
+  public LambdaCacheRefreshTask(
+      CloudDriverConfigurationProperties props,
+      LambdaCloudDriverUtils utils,
+      OkHttpClient client,
+      LambdaConfigurationProperties config) {
+    this.props = props;
+    this.utils = utils;
+    this.client = client;
+    this.config = config;
+  }
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -98,11 +111,6 @@ public class LambdaCacheRefreshTask implements LambdaStageBaseTask {
         .retry(
             () -> {
               try {
-                OkHttpClient client =
-                    new OkHttpClient.Builder()
-                        .connectTimeout(Duration.ofSeconds(config.getCloudDriverConnectTimeout()))
-                        .readTimeout(Duration.ofSeconds(config.getCloudDriverReadTimeout()))
-                        .build();
                 Call call = client.newCall(request);
                 Response response = call.execute();
                 String respString = response.body().string();

@@ -34,10 +34,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import okhttp3.Headers;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -49,7 +49,7 @@ public class LambdaCacheRefreshTaskTest {
 
   WireMockServer wireMockServer;
 
-  @InjectMocks private LambdaCacheRefreshTask lambdaCacheRefreshTask;
+  private LambdaCacheRefreshTask lambdaCacheRefreshTask;
 
   @Mock private CloudDriverConfigurationProperties propsMock;
 
@@ -86,6 +86,9 @@ public class LambdaCacheRefreshTaskTest {
         new ResponseDefinitionBuilder().withStatus(202).withBody(responseDefinitionBuilderJson);
 
     this.wireMockServer.stubFor(WireMock.post("/cache/aws/function").willReturn(mockResponse));
+    lambdaCacheRefreshTask =
+        new LambdaCacheRefreshTask(
+            propsMock, lambdaCloudDriverUtilsMock, new OkHttpClient(), config);
   }
 
   @Test

@@ -42,8 +42,16 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import okhttp3.*;
+import okhttp3.Call;
+import okhttp3.Headers;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.pf4j.util.StringUtils;
@@ -63,11 +71,24 @@ public class LambdaCloudDriverUtils {
     objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
   }
 
-  @Autowired LambdaConfigurationProperties config;
+  private final LambdaConfigurationProperties config;
 
-  @Autowired CloudDriverConfigurationProperties props;
+  private final CloudDriverConfigurationProperties props;
 
-  @Autowired OortService oort;
+  private final OortService oort;
+  private final OkHttpClient client;
+
+  @Autowired
+  public LambdaCloudDriverUtils(
+      LambdaConfigurationProperties config,
+      CloudDriverConfigurationProperties props,
+      OkHttpClient client,
+      OortService oort) {
+    this.config = config;
+    this.props = props;
+    this.client = client;
+    this.oort = oort;
+  }
 
   public LambdaCloudDriverResponse postToCloudDriver(String endPointUrl, String jsonString) {
     return postToCloudDriver(endPointUrl, jsonString, config.getCloudDriverPostRequestRetries());
@@ -82,8 +103,12 @@ public class LambdaCloudDriverUtils {
         .retry(
             () -> {
               try {
-                OkHttpClient client = new OkHttpClient();
-                Call call = client.newCall(request);
+                Call call =
+                    client
+                        .newBuilder()
+                        .readTimeout(config.getCloudDriverPostTimeoutSeconds(), TimeUnit.SECONDS)
+                        .build()
+                        .newCall(request);
                 Response response = call.execute();
                 String respString = response.body().string();
 
@@ -184,11 +209,6 @@ public class LambdaCloudDriverUtils {
 
   public String getFromCloudDriver(String endPoint) {
     Request request = new Request.Builder().url(endPoint).headers(buildHeaders()).get().build();
-    OkHttpClient client =
-        new OkHttpClient.Builder()
-            .connectTimeout(Duration.ofSeconds(config.getCloudDriverConnectTimeout()))
-            .readTimeout(Duration.ofSeconds(config.getCloudDriverReadTimeout()))
-            .build();
     Call call = client.newCall(request);
     try {
       Response response = call.execute();
@@ -229,7 +249,6 @@ public class LambdaCloudDriverUtils {
     httpBuilder.addQueryParameter("functionName", fName);
     Request request =
         new Request.Builder().url(httpBuilder.build()).headers(buildHeaders()).build();
-    OkHttpClient client = new OkHttpClient();
     Call call = client.newCall(request);
     try {
       Response response = call.execute();
