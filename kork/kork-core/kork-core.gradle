@@ -24,6 +24,18 @@ dependencies {
   implementation "com.netflix.spectator:spectator-ext-jvm"
   implementation "com.netflix.spectator:spectator-reg-micrometer"
 
+  implementation("io.micrometer:micrometer-registry-prometheus") {
+    exclude group: 'io.micrometer', module: 'micrometer-core'
+  }
+  implementation('io.micrometer:micrometer-registry-datadog') {
+    exclude group: 'io.micrometer', module: 'micrometer-core'
+    exclude group: 'org.slf4j', module: 'slf4j-api'
+  }
+  implementation('com.newrelic.telemetry:micrometer-registry-new-relic:0.5.0') {
+    exclude group: 'io.micrometer', module: 'micrometer-core'
+    exclude group: 'org.slf4j', module: 'slf4j-api'
+  }
+
   testImplementation project(":kork-test")
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.assertj:assertj-core"

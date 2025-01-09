@@ -37,6 +37,8 @@ dependencies {
   implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
   implementation "com.squareup.retrofit2:retrofit"
 
+  implementation group: 'io.prometheus', name: 'simpleclient_common', version: '0.9.0'
+
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
 
   runtimeOnly "org.hibernate.validator:hibernate-validator"
