@@ -20,6 +20,8 @@ package com.netflix.spinnaker.kork.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.List;
+import okhttp3.Interceptor;
 
 @NonnullByDefault
 public interface ServiceClientProvider {
@@ -29,7 +31,7 @@ public interface ServiceClientProvider {
    *
    * @param type retrofit interface type
    * @param serviceEndpoint endpoint definition
-   * @param <T> type of client , usually a interface with all the remote method definitions.
+   * @param <T> type of client , usually an interface with all the remote method definitions.
    * @return the retrofit interface implementation
    */
   public <T> T getService(Class<T> type, ServiceEndpoint serviceEndpoint);
@@ -40,9 +42,25 @@ public interface ServiceClientProvider {
    * @param type retrofit interface type
    * @param serviceEndpoint endpoint definition
    * @param objectMapper object mapper for conversion
-   * @param <T> type of client , usually a interface with all the remote method definitions.
+   * @param <T> type of client , usually an interface with all the remote method definitions.
    * @return the retrofit interface implementation
    */
   public <T> T getService(
       Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper);
+
+  /**
+   * Returns the concrete retrofit service client
+   *
+   * @param type retrofit interface type
+   * @param serviceEndpoint endpoint definition
+   * @param objectMapper object mapper for conversion
+   * @param interceptors list of interceptors
+   * @param <T> type of client , usually an interface with all the remote method definitions.
+   * @return the retrofit interface implementation
+   */
+  public <T> T getService(
+      Class<T> type,
+      ServiceEndpoint serviceEndpoint,
+      ObjectMapper objectMapper,
+      List<Interceptor> interceptors);
 }

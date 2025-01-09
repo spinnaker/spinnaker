@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.client.ServiceClientFactory;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.util.List;
+import okhttp3.Interceptor;
 import org.springframework.stereotype.Component;
 
 /** Provider that returns a suitable service client capable of making http calls. */
@@ -52,6 +53,16 @@ public class DefaultServiceClientProvider implements ServiceClientProvider {
       Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper) {
     ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint);
     return serviceClientFactory.create(type, serviceEndpoint, objectMapper);
+  }
+
+  @Override
+  public <T> T getService(
+      Class<T> type,
+      ServiceEndpoint serviceEndpoint,
+      ObjectMapper objectMapper,
+      List<Interceptor> interceptors) {
+    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint);
+    return serviceClientFactory.create(type, serviceEndpoint, objectMapper, interceptors);
   }
 
   private ServiceClientFactory findProvider(Class<?> type, ServiceEndpoint service) {

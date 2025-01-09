@@ -21,6 +21,7 @@ import static java.lang.String.format;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.util.List;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import org.springframework.stereotype.Component;
 
@@ -41,8 +42,13 @@ public class OkHttpClientProvider {
    * @return okHttpClient
    */
   public OkHttpClient getClient(ServiceEndpoint service) {
-    OkHttpClientBuilderProvider provider = findProvider(service);
-    return provider.get(service).build();
+    return getClient(service, List.of());
+  }
+
+  public OkHttpClient getClient(ServiceEndpoint service, List<Interceptor> interceptors) {
+    OkHttpClient.Builder builder = findProvider(service).get(service);
+    interceptors.forEach(builder::addInterceptor);
+    return builder.build();
   }
 
   private OkHttpClientBuilderProvider findProvider(ServiceEndpoint service) {

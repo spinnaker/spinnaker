@@ -22,8 +22,10 @@ import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
+import java.util.List;
 import java.util.Objects;
 import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Retrofit;
@@ -40,7 +42,16 @@ public class Retrofit2ServiceFactory implements ServiceClientFactory {
 
   @Override
   public <T> T create(Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper) {
-    OkHttpClient okHttpClient = clientProvider.getClient(serviceEndpoint);
+    return create(type, serviceEndpoint, objectMapper, List.of());
+  }
+
+  @Override
+  public <T> T create(
+      Class<T> type,
+      ServiceEndpoint serviceEndpoint,
+      ObjectMapper objectMapper,
+      List<Interceptor> interceptors) {
+    OkHttpClient okHttpClient = clientProvider.getClient(serviceEndpoint, interceptors);
 
     return new Retrofit.Builder()
         .baseUrl(Objects.requireNonNull(HttpUrl.parse(serviceEndpoint.getBaseUrl())))

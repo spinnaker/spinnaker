@@ -19,6 +19,8 @@ package com.netflix.spinnaker.kork.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ServiceEndpoint;
+import java.util.List;
+import okhttp3.Interceptor;
 
 /** Factory to build a client for a service. */
 public interface ServiceClientFactory {
@@ -29,10 +31,26 @@ public interface ServiceClientFactory {
    * @param type client type
    * @param serviceEndpoint endpoint configuration
    * @param objectMapper mapper
-   * @param <T> type of client , usually a interface with all the remote method definitions.
-   * @return a implementation of the type of client given.
+   * @param <T> type of client , usually an interface with all the remote method definitions.
+   * @return an implementation of the type of client given.
    */
   public <T> T create(Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper);
+
+  /**
+   * Builds a concrete client capable of making HTTP calls.
+   *
+   * @param type client type
+   * @param serviceEndpoint endpoint configuration
+   * @param objectMapper mapper
+   * @param interceptors list of interceptors
+   * @param <T> type of client , usually an interface with all the remote method definitions.
+   * @return an implementation of the type of client given.
+   */
+  public <T> T create(
+      Class<T> type,
+      ServiceEndpoint serviceEndpoint,
+      ObjectMapper objectMapper,
+      List<Interceptor> interceptors);
 
   /**
    * Decide if this factory can support the endpoint provided.
