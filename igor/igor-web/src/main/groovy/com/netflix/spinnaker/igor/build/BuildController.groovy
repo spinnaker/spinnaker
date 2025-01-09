@@ -50,7 +50,7 @@ import retrofit2.Response
 import retrofit2.http.Query
 
 import javax.annotation.Nullable
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 import static org.springframework.http.HttpStatus.NOT_FOUND
