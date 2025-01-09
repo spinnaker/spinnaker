@@ -20,6 +20,7 @@ import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.services.Front50Service
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -71,11 +72,13 @@ class DryRunNotificationAgentSpec extends Specification {
 
   def "triggers a pipeline run for a pipeline:complete notification"() {
     given:
-    front50.getPipelines(application) >> [pipeline]
+    front50.getPipelines(application) >> Calls.response([pipeline])
 
     and:
-    def captor = new BlockingVariable<Pipeline>()
-    orca.trigger(_) >> { captor.set(it[0]) }
+    def captor = new BlockingVariable<Pipeline>(5)
+    orca.trigger(_) >> { captor.set(it[0])
+      Calls.response(null)
+    }
 
     when:
     agent.processEvent(event)
@@ -118,7 +121,7 @@ class DryRunNotificationAgentSpec extends Specification {
 
   def "adds notifications to triggered pipeline"() {
     given:
-    front50.getPipelines(application) >> [pipeline]
+    front50.getPipelines(application) >> Calls.response([pipeline])
 
     and:
     properties.notifications = [
@@ -131,8 +134,10 @@ class DryRunNotificationAgentSpec extends Specification {
     ]
 
     and:
-    def captor = new BlockingVariable<Pipeline>()
-    orca.trigger(_) >> { captor.set(it[0]) }
+    def captor = new BlockingVariable<Pipeline>(5)
+    orca.trigger(_) >> { captor.set(it[0])
+      Calls.response(null)
+    }
 
     when:
     agent.processEvent(event)

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.echo.twilio.TwilioNotificationService
 import com.netflix.spinnaker.echo.twilio.TwilioService
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerNonWebConfiguration
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -59,6 +60,6 @@ class NotificationServiceSpec extends Specification {
     twilioNotificationService.handle(notification)
 
     then:
-    1 * twilioService.sendMessage("account", "222-333-4444", "111-222-3333", "generic SPINNAKER_URL application")
+    1 * twilioService.sendMessage("account", "222-333-4444", "111-222-3333", "generic SPINNAKER_URL application") >> Calls.response(null)
   }
 }

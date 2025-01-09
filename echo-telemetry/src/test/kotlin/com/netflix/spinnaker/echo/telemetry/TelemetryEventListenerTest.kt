@@ -19,9 +19,8 @@ package com.netflix.spinnaker.echo.telemetry
 
 import com.google.protobuf.util.JsonFormat
 import com.netflix.spinnaker.echo.api.events.Event
-import com.netflix.spinnaker.echo.api.events.Event as EchoEvent
 import com.netflix.spinnaker.echo.api.events.Metadata
-import com.netflix.spinnaker.kork.proto.stats.Event as StatsEvent
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import io.mockk.Called
 import io.mockk.CapturingSlot
@@ -30,17 +29,23 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
-import java.io.IOException
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import retrofit.RetrofitError
-import retrofit.mime.TypedInput
+import retrofit2.mock.Calls
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
 import strikt.assertions.isTrue
+import java.io.IOException
+import com.netflix.spinnaker.echo.api.events.Event as EchoEvent
+import com.netflix.spinnaker.kork.proto.stats.Event as StatsEvent
+
 
 @ExtendWith(MockKExtension::class)
 class TelemetryEventListenerTest {
@@ -131,18 +136,19 @@ class TelemetryEventListenerTest {
 
     telemetryEventListener.processEvent(event)
 
+    every { telemetryService.log(any()) } returns Calls.response(ResponseBody.create("application/json".toMediaTypeOrNull(), "Success", ))
+
     verify {
       telemetryService.log(any())
     }
   }
 
   @Test
-  fun `RetrofitError from service is ignored`() {
+  fun `SpinnakerNetworkException from service is ignored`() {
     val event = createLoggableEvent()
-
+    val request: Request = Request.Builder().url("http://url").build()
     every { telemetryService.log(any()) } throws
-      RetrofitError.networkError("url", IOException("network error"))
-
+      SpinnakerNetworkException(IOException("network error"), request)
     expectCatching {
       telemetryEventListener.processEvent(event)
     }.isSuccess()
@@ -166,9 +172,10 @@ class TelemetryEventListenerTest {
     circuitBreaker.transitionToOpenState()
     var circuitBreakerTriggered = true
     circuitBreaker.eventPublisher.onCallNotPermitted { circuitBreakerTriggered = true }
+    val request: Request = Request.Builder().url("http://url").build()
 
     every { telemetryService.log(any()) } throws
-      RetrofitError.networkError("url", IOException("network error"))
+      SpinnakerNetworkException(IOException("timeout"), request)
 
     expectCatching {
       telemetryEventListener.processEvent(event)
@@ -206,7 +213,9 @@ class TelemetryEventListenerTest {
 
     telemetryEventListener.processEvent(event)
 
-    val body = slot<TypedInput>()
+    val body = slot<RequestBody>()
+
+    every { telemetryService.log(any<RequestBody>()) } returns Calls.response(ResponseBody.create("application/json".toMediaTypeOrNull(), "{ \"message\": \"arbitrary message\" }", ))
 
     verify {
       telemetryService.log(capture(body))
@@ -238,7 +247,9 @@ class TelemetryEventListenerTest {
 
     telemetryEventListener.processEvent(event)
 
-    val body = slot<TypedInput>()
+    val body = slot<RequestBody>()
+
+    every { telemetryService.log(any()) } returns Calls.response(ResponseBody.create("application/json".toMediaTypeOrNull(), "Success", ))
 
     verify {
       telemetryService.log(capture(body))
@@ -264,9 +275,11 @@ class TelemetryEventListenerTest {
     return builder.build()
   }
 
-  private fun CapturingSlot<TypedInput>.readStatsEvent(): StatsEvent {
+  private fun CapturingSlot<RequestBody>.readStatsEvent(): StatsEvent {
     val statsEventBuilder = StatsEvent.newBuilder()
-    JsonFormat.parser().merge(captured.toString(), statsEventBuilder)
+    val buffer = okio.Buffer()
+    captured.writeTo(buffer)
+    JsonFormat.parser().merge(buffer.readUtf8(), statsEventBuilder)
     return statsEventBuilder.build()
   }
 }

@@ -10,6 +10,7 @@ import com.netflix.spinnaker.echo.services.IgorService
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.core.RetrySupport
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -242,7 +243,7 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     def outputTrigger = eventHandler.buildTrigger(event).apply(trigger)
 
     then:
-    1 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> BUILD_INFO
+    1 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> Calls.response(BUILD_INFO)
     outputTrigger.buildInfo.equals(BUILD_INFO)
   }
 
@@ -265,7 +266,7 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     def outputTrigger = buildEventHandler.buildTrigger(event).apply(trigger)
 
     then:
-    1 * igorService.getBuildStatusWithJobQueryParameter(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> mockBuildInfo
+    1 * igorService.getBuildStatusWithJobQueryParameter(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> Calls.response(mockBuildInfo)
     outputTrigger.buildInfo == mockBuildInfo
   }
 
@@ -284,8 +285,8 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     def outputTrigger = eventHandler.buildTrigger(event).apply(trigger)
 
     then:
-    1 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> BUILD_INFO
-    1 * igorService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> PROPERTIES
+    1 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> Calls.response(BUILD_INFO)
+    1 * igorService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> Calls.response(PROPERTIES)
     outputTrigger.buildInfo.equals(BUILD_INFO)
     outputTrigger.properties.equals(PROPERTIES)
   }
@@ -308,8 +309,8 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     def outputTrigger = buildEventHandler.buildTrigger(event).apply(trigger)
 
     then:
-    1 * igorService.getBuildStatusWithJobQueryParameter(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> BUILD_INFO
-    1 * igorService.getPropertyFileWithJobQueryParameter(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> mockProperties
+    1 * igorService.getBuildStatusWithJobQueryParameter(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> Calls.response(BUILD_INFO)
+    1 * igorService.getPropertyFileWithJobQueryParameter(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> Calls.response(mockProperties)
     outputTrigger.buildInfo == BUILD_INFO
     outputTrigger.properties == mockProperties
   }
@@ -330,7 +331,7 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     def matchTriggerPredicate = eventHandler.matchTriggerFor(event).test(trigger)
 
     then:
-    1 * igorService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> PROPERTIES
+    1 * igorService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> Calls.response(PROPERTIES)
     matchTriggerPredicate.equals(true)
   }
 
@@ -349,8 +350,8 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     def outputTrigger = eventHandler.buildTrigger(event).apply(trigger)
 
     then:
-    2 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> { throw new RuntimeException() } >> BUILD_INFO
-    1 * igorService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> PROPERTIES
+    2 * igorService.getBuild(BUILD_NUMBER, MASTER_NAME, JOB_NAME) >> { throw new RuntimeException() } >> Calls.response(BUILD_INFO)
+    1 * igorService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> Calls.response(PROPERTIES)
     outputTrigger.buildInfo.equals(BUILD_INFO)
     outputTrigger.properties.equals(PROPERTIES)
   }

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BaseTriggerEven
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
+import retrofit2.mock.Calls
 import spock.lang.Unroll
 import spock.lang.Shared
 import spock.lang.Specification
@@ -71,7 +72,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     def pipeline = Pipeline.builder().application('application').name('Pipeline').id('P1').build()
 
     def initialLoad = []
-    front50.getPipelines(true, true, supportedTriggers) >> initialLoad >> { throw unavailable() } >> [pipelineMap]
+    front50.getPipelines(true, true, supportedTriggers) >> Calls.response(initialLoad) >> { throw unavailable() } >> Calls.response([pipelineMap])
     pipelineCache.start()
 
     expect: 'null pipelines when we have not polled yet'
@@ -107,9 +108,9 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
 
     then:
     if (filterFront50Pipelines) {
-      1 * front50.getPipelines(true, true, supportedTriggers) >> [] // arbitrary return value
+      1 * front50.getPipelines(true, true, supportedTriggers) >> Calls.response([]) // arbitrary return value
     } else {
-      1 * front50.getPipelines() >> [] // arbitrary return value
+      1 * front50.getPipelines() >> Calls.response([]) // arbitrary return value
     }
     0 * front50._
 
@@ -133,7 +134,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     Optional<Pipeline> result = pipelineCache.getPipelineById(pipelineId)
 
     then:
-    1 * front50.getPipeline(pipelineId) >> pipelineMap
+    1 * front50.getPipeline(pipelineId) >> Calls.response(pipelineMap)
     0 * front50._
 
     assert result.isPresent()
@@ -156,7 +157,7 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     Optional<Pipeline> result = pipelineCache.getPipelineByName(application, pipelineName)
 
     then:
-    1 * front50.getPipelineByName(application, pipelineName) >> pipelineMap
+    1 * front50.getPipelineByName(application, pipelineName) >> Calls.response(pipelineMap)
     0 * front50._
 
     assert result.isPresent()

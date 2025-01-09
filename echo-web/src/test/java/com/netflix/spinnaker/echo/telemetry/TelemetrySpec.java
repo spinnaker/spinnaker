@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.echo.telemetry;
 
+import static java.time.Instant.now;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.netflix.spinnaker.echo.Application;
+import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import com.netflix.spinnaker.fiat.shared.FiatService;
@@ -49,6 +52,8 @@ public class TelemetrySpec {
 
   @Autowired WebApplicationContext wac;
 
+  @MockBean PipelineCache pipelineCache;
+
   @Autowired CircuitBreakerRegistry circuitBreakerRegistry;
 
   MockMvc mockMvc;
@@ -56,6 +61,9 @@ public class TelemetrySpec {
   @BeforeEach
   public void setup() {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+    given(pipelineCache.isRunning()).willReturn(true);
+    given(pipelineCache.isInitialized()).willReturn(true);
+    given(pipelineCache.getLastPollTimestamp()).willReturn(now());
   }
 
   @Test

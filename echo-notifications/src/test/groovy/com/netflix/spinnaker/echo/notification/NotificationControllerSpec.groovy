@@ -23,18 +23,17 @@ import com.netflix.spinnaker.echo.api.events.NotificationParameter
 import com.netflix.spinnaker.echo.controller.NotificationController
 import com.netflix.spinnaker.echo.notification.InteractiveNotificationCallbackHandler.SpinnakerService
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import okhttp3.MediaType
+import okhttp3.ResponseBody
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
-
-import static java.util.Collections.emptyList
 
 class NotificationControllerSpec extends Specification {
   static final String INTERACTIVE_CALLBACK_URI = "/notifications/callbacks"
@@ -128,7 +127,7 @@ class NotificationControllerSpec extends Specification {
     callbackObject.user = "john.doe"
 
     interactiveNotificationService.supportsType("SLACK") >> true
-    spinnakerService.notificationCallback(*_) >> { mockResponse() }
+    spinnakerService.notificationCallback(*_) >> Calls.response(mockResponse())
 
     when:
     notificationController.processCallback("slack", request)
@@ -169,7 +168,7 @@ class NotificationControllerSpec extends Specification {
     callbackObject.user = "john.doe"
 
     interactiveNotificationService.supportsType("SLACK") >> true
-    spinnakerService.notificationCallback(*_) >> { mockResponse() }
+    spinnakerService.notificationCallback(*_) >> Calls.response(mockResponse())
 
     when:
     ResponseEntity<String> response = notificationController.processCallback("slack", request)
@@ -189,8 +188,8 @@ class NotificationControllerSpec extends Specification {
     response[0] instanceof MyNotificationAgent
   }
 
-  static Response mockResponse() {
-    new Response("url", 200, "nothing", emptyList(), new TypedByteArray("application/json", "response".bytes))
+  static ResponseBody mockResponse() {
+    ResponseBody.create("{}", MediaType.parse("application/json"))
   }
 
   static class MyNotificationAgent implements NotificationAgent {

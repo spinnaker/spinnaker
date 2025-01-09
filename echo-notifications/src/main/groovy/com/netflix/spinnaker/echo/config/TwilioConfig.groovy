@@ -16,25 +16,22 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
-
-import static retrofit.Endpoints.newFixedEndpoint
-
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.twilio.TwilioService
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import org.apache.commons.codec.binary.Base64
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.Endpoint
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty('twilio.enabled')
@@ -43,39 +40,43 @@ import retrofit.converter.JacksonConverter
 class TwilioConfig {
 
     @Bean
-    Endpoint twilioEndpoint(@Value('${twilio.base-url:https://api.twilio.com/}') String twilioBaseUrl) {
-        newFixedEndpoint(twilioBaseUrl)
-    }
-
-    @Bean
     TwilioService twilioService(
-            @Value('${twilio.account}') String username,
-            @Value('${twilio.token}') String password,
-            Endpoint twilioEndpoint,
-            Client retrofitClient,
-            RestAdapter.LogLevel retrofitLogLevel) {
+      @Value('${twilio.account}') String username,
+      @Value('${twilio.token}') String password,
+      @Value('${twilio.base-url:https://api.twilio.com/}') String twilioBaseUrl,
+      OkHttp3ClientConfiguration okHttpClientConfig) {
 
         log.info('twilio service loaded')
 
-        RequestInterceptor authInterceptor = new RequestInterceptor() {
-            @Override
-            public void intercept(RequestInterceptor.RequestFacade request) {
-                String auth = "Basic " + Base64.encodeBase64String("${username}:${password}".getBytes())
-                request.addHeader("Authorization", auth)
-            }
-        }
+        String auth = "Basic " + Base64.encodeBase64String("${username}:${password}".getBytes())
+        BasicAuthRequestInterceptor interceptor = new BasicAuthRequestInterceptor(auth);
 
-        JacksonConverter converter = new JacksonConverter(EchoObjectMapper.getInstance())
-
-        new RestAdapter.Builder()
-                .setEndpoint(twilioEndpoint)
-                .setRequestInterceptor(authInterceptor)
-                .setClient(retrofitClient)
-                .setLogLevel(retrofitLogLevel)
-                .setLog(new Slf4jRetrofitLogger(TwilioService.class))
-                .setConverter(converter)
+        new Retrofit.Builder()
+                .baseUrl(twilioBaseUrl)
+                .client(okHttpClientConfig.createForRetrofit2().addInterceptor(interceptor).build())
+                .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+                .addConverterFactory(JacksonConverterFactory.create(EchoObjectMapper.getInstance()))
                 .build()
-                .create(TwilioService.class)
+                .create(TwilioService.class);
     }
 
+  private static class BasicAuthRequestInterceptor implements Interceptor {
+
+    private final String basic
+
+    BasicAuthRequestInterceptor(String basic) {
+      this.basic = basic
+    }
+
+    @Override
+    Response intercept(Chain chain) throws IOException {
+      Request request =
+        chain
+          .request()
+          .newBuilder()
+          .addHeader("Authorization", basic)
+          .build()
+      return chain.proceed(request)
+    }
+  }
 }

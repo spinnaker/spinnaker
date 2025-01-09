@@ -16,19 +16,17 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.bearychat.BearychatService
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
-import retrofit.converter.JacksonConverter
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
-import static retrofit.Endpoints.newFixedEndpoint
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.Endpoint
-import retrofit.RestAdapter
-import retrofit.client.Client
 
 @Configuration
 @ConditionalOnProperty('bearychat.enabled')
@@ -37,22 +35,16 @@ import retrofit.client.Client
 class BearychatConfig {
 
   final static String BEARYCHAT_BASE_URL = 'https://api.bearychat.com'
-  @Bean
-  Endpoint bearychatEndpoint() {
-    String endpoint = BEARYCHAT_BASE_URL
-    newFixedEndpoint(endpoint)
-  }
 
   @Bean
-  BearychatService bearychatService(Endpoint bearychatEndpoint, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
-    log.info('bearchat service loaded')
+  BearychatService bearychatService(OkHttp3ClientConfiguration okHttpClientConfig) {
+    log.info('bearychat service loaded')
 
-    new RestAdapter.Builder()
-      .setEndpoint(bearychatEndpoint)
-      .setConverter(new JacksonConverter())
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new Slf4jRetrofitLogger(BearychatService.class))
+    new Retrofit.Builder()
+      .baseUrl(BEARYCHAT_BASE_URL)
+      .client(okHttpClientConfig.createForRetrofit2().build())
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+      .addConverterFactory(JacksonConverterFactory.create())
       .build()
       .create(BearychatService.class)
   }

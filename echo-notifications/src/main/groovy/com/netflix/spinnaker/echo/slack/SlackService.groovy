@@ -20,10 +20,12 @@ package com.netflix.spinnaker.echo.slack
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.echo.config.SlackLegacyProperties
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.json.JsonBuilder
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
-import retrofit.client.Response
+import okhttp3.ResponseBody
+import retrofit2.Response
 
 @Canonical
 @Slf4j
@@ -31,19 +33,19 @@ class SlackService {
   SlackClient slackClient
   SlackLegacyProperties config
 
-  Response sendCompactMessage(CompactSlackMessage message, String channel, boolean asUser) {
-    slackClient.sendMessage(config.token, message.buildMessage(), channel, asUser, config.expandUserNames ? 1 : 0)
+  ResponseBody sendCompactMessage(CompactSlackMessage message, String channel, boolean asUser) {
+    Retrofit2SyncCall.execute(slackClient.sendMessage(config.token, message.buildMessage(), channel, asUser, config.expandUserNames ? 1 : 0))
   }
 
-  Response sendMessage(SlackAttachment message, String channel, boolean asUser) {
+  ResponseBody sendMessage(SlackAttachment message, String channel, boolean asUser) {
     config.useIncomingWebhook ?
-      slackClient.sendUsingIncomingWebHook(config.token, new SlackRequest([message], channel)) :
-      slackClient.sendMessage(config.token, toJson(message), channel, asUser, config.expandUserNames ? 1 : 0)
+      Retrofit2SyncCall.execute(slackClient.sendUsingIncomingWebHook(config.token, new SlackRequest([message], channel))) :
+      Retrofit2SyncCall.execute(slackClient.sendMessage(config.token, toJson(message), channel, asUser, config.expandUserNames ? 1 : 0))
   }
 
 
   SlackUserInfo getUserInfo(String userId) {
-    slackClient.getUserInfo(config.token, userId)
+    Retrofit2SyncCall.execute(slackClient.getUserInfo(config.token, userId))
   }
 
 

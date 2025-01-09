@@ -26,6 +26,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.PipelineResponse
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.util.logging.Slf4j
 import org.quartz.CronExpression
 import org.springframework.beans.factory.annotation.Autowired
@@ -166,7 +167,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     long startTime = System.currentTimeMillis()
     Lists.partition(ids, pipelineFetchSize).forEach { idsPartition ->
       try {
-        onOrcaResponse(orcaService.getLatestPipelineExecutions(idsPartition, 1), pipelines, triggers)
+        onOrcaResponse(Retrofit2SyncCall.execute(orcaService.getLatestPipelineExecutions(idsPartition, 1)), pipelines, triggers)
       } catch (Exception e) {
         onOrcaError(e)
       }

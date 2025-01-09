@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.echo.notification;
 
-import com.jakewharton.retrofit.Ok3Client
-import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.api.Notification;
-import com.netflix.spinnaker.echo.api.Notification.InteractiveActionCallback;
+import com.netflix.spinnaker.echo.api.Notification.InteractiveActionCallback
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +32,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component
-import retrofit.Endpoint;
-import retrofit.Endpoints;
-import retrofit.RestAdapter;
-import retrofit.client.Response;
-import retrofit.converter.JacksonConverter;
-import retrofit.http.Body;
-import retrofit.http.Header;
-import retrofit.http.POST;
+import retrofit2.http.Body;
+import retrofit2.http.Header;
+import retrofit2.http.POST
+import retrofit2.Call
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /**
  * Implements the flow of interactive notification processing as described in {@link InteractiveNotificationService}.
@@ -48,18 +46,18 @@ import retrofit.http.POST;
 class InteractiveNotificationCallbackHandler {
   private final Logger log = LoggerFactory.getLogger(InteractiveNotificationCallbackHandler.class);
 
-  private OkHttpClientProvider clientProvider;
+  private OkHttp3ClientConfiguration okHttp3ClientConfiguration
   private List<InteractiveNotificationService> notificationServices;
   private Environment environment;
   private Map<String, SpinnakerService> spinnakerServices = new HashMap<>();
 
   @Autowired
   InteractiveNotificationCallbackHandler(
-      OkHttpClientProvider clientProvider,
+      OkHttp3ClientConfiguration okHttp3ClientConfiguration,
       List<InteractiveNotificationService> notificationServices,
       Environment environment
   ) {
-    this.clientProvider = clientProvider;
+    this.okHttp3ClientConfiguration = okHttp3ClientConfiguration;
     this.notificationServices = notificationServices;
     this.environment = environment;
   }
@@ -99,9 +97,9 @@ class InteractiveNotificationCallbackHandler {
 
     // TODO(lfp): error handling (retries?). I'd like to respond to the message in a thread, but
     //  have been unable to make that work. Troubleshooting with Slack support.
-    // TODO(lfp): need to retrieve user's acccounts to pass in X-SPINNAKER-ACCOUNTS
-    final Response response = spinnakerService.notificationCallback(callback, callback.getUser());
-    log.debug("Received callback response from downstream Spinnaker service: " + response.toString());
+    // TODO(lfp): need to retrieve user's accounts to pass in X-SPINNAKER-ACCOUNTS
+    final ResponseBody response = Retrofit2SyncCall.execute(spinnakerService.notificationCallback(callback, callback.getUser()));
+    log.debug("Received callback response from downstream Spinnaker service: " + response.string());
 
     // Allows the notification service implementation to respond to the callback as needed
     Optional<ResponseEntity<String>> outwardResponse =
@@ -125,24 +123,15 @@ class InteractiveNotificationCallbackHandler {
             "Base URL for service " + serviceId + " not found in the configuration.");
       }
 
-      Endpoint endpoint = Endpoints.newFixedEndpoint(baseUrl)
-
       spinnakerServices.put(
         serviceId,
-        new RestAdapter.Builder()
-            .setEndpoint(endpoint)
-            .setClient(
-              new Ok3Client(
-                clientProvider.getClient(
-                  new DefaultServiceEndpoint(serviceId, endpoint.getUrl())
-                )
-              )
-            )
-            .setLogLevel(RestAdapter.LogLevel.BASIC)
-            .setLog(new Slf4jRetrofitLogger(SpinnakerService.class))
-            .setConverter(new JacksonConverter())
-            .build()
-            .create(SpinnakerService.class)
+        new Retrofit.Builder()
+          .baseUrl(baseUrl)
+          .client(okHttp3ClientConfiguration.createForRetrofit2().build())
+          .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+          .addConverterFactory(JacksonConverterFactory.create())
+          .build()
+          .create(SpinnakerService.class)
   );
     }
 
@@ -151,7 +140,7 @@ class InteractiveNotificationCallbackHandler {
 
   interface SpinnakerService {
     @POST("/notifications/callback")
-    Response notificationCallback(
+    Call<ResponseBody> notificationCallback(
         @Body InteractiveActionCallback callback, @Header("X-SPINNAKER-USER") String user);
   }
 }

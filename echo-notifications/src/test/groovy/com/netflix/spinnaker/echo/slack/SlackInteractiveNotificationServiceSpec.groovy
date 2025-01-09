@@ -20,9 +20,12 @@ import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import okhttp3.MediaType
+import okhttp3.ResponseBody
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.RequestEntity
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -154,6 +157,6 @@ class SlackInteractiveNotificationServiceSpec extends Specification {
     service.respondToCallback(request)
 
     then:
-    1 * slackHookService.respondToMessage("/actions/T00000000/0123456789/abcdefgh1234567", expectedResponse)
+    1 * slackHookService.respondToMessage("/actions/T00000000/0123456789/abcdefgh1234567", expectedResponse) >> Calls.response(ResponseBody.create("{}", MediaType.parse("application/json")))
   }
 }

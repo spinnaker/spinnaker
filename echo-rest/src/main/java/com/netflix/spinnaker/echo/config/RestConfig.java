@@ -16,29 +16,28 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.rest.RestService;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /** Rest endpoint configuration */
 @Configuration
@@ -46,21 +45,6 @@ import retrofit.converter.JacksonConverter;
 public class RestConfig {
 
   private static final Logger log = LoggerFactory.getLogger(RestConfig.class);
-
-  @Bean
-  public RestAdapter.LogLevel retrofitLogLevel(
-      @Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
-    return RestAdapter.LogLevel.valueOf(retrofitLogLevel);
-  }
-
-  interface RequestInterceptorAttacher {
-    void attach(RestAdapter.Builder builder, RequestInterceptor interceptor);
-  }
-
-  @Bean
-  public RequestInterceptorAttacher requestInterceptorAttacher() {
-    return RestAdapter.Builder::setRequestInterceptor;
-  }
 
   interface HeadersFromFile {
     Map<String, String> headers(String path);
@@ -71,7 +55,7 @@ public class RestConfig {
     return path -> {
       Map<String, String> headers = new HashMap<>();
       try {
-        try (BufferedReader br = new BufferedReader(new FileReader(new File(path)))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
           String line;
           while ((line = br.readLine()) != null) {
             String[] pair = line.split(":");
@@ -92,28 +76,13 @@ public class RestConfig {
   @Bean
   RestUrls restServices(
       RestProperties restProperties,
-      RestAdapter.LogLevel retrofitLogLevel,
-      RequestInterceptorAttacher requestInterceptorAttacher,
       OkHttpClientProvider okHttpClientProvider,
+      OkHttp3ClientConfiguration okHttpClientConfig,
       HeadersFromFile headersFromFile) {
 
     RestUrls restUrls = new RestUrls();
 
     for (RestProperties.RestEndpointConfiguration endpoint : restProperties.getEndpoints()) {
-      RestAdapter.Builder restAdapterBuilder =
-          new RestAdapter.Builder()
-              .setEndpoint(newFixedEndpoint(endpoint.getUrl()))
-              .setClient(
-                  endpoint.insecure
-                      ? new Ok3Client(
-                          okHttpClientProvider.getClient(
-                              new DefaultServiceEndpoint(
-                                  endpoint.getEventName(), endpoint.getUrl(), false)))
-                      : new Ok3Client(new OkHttpClient()))
-              .setLogLevel(retrofitLogLevel)
-              .setLog(new Slf4jRetrofitLogger(RestService.class))
-              .setConverter(new JacksonConverter());
-
       Map<String, String> headers = new HashMap<>();
 
       if (endpoint.getUsername() != null && endpoint.getPassword() != null) {
@@ -130,14 +99,31 @@ public class RestConfig {
         headers.putAll(headersFromFile.headers(endpoint.getHeadersFile()));
       }
 
-      if (!headers.isEmpty()) {
-        RequestInterceptor headerInterceptor = request -> headers.forEach(request::addHeader);
-        requestInterceptorAttacher.attach(restAdapterBuilder, headerInterceptor);
+      BasicAuthRequestInterceptor interceptor = new BasicAuthRequestInterceptor(headers);
+      OkHttpClient okHttpClient;
+      if (endpoint.insecure) {
+        okHttpClient =
+            okHttpClientProvider.getClient(
+                new DefaultServiceEndpoint(endpoint.getEventName(), endpoint.getUrl(), false));
+        if (!headers.isEmpty()) {
+          okHttpClient.interceptors().add(interceptor);
+        }
+      } else if (!headers.isEmpty()) {
+        okHttpClient = okHttpClientConfig.createForRetrofit2().addInterceptor(interceptor).build();
+      } else {
+        okHttpClient = okHttpClientConfig.createForRetrofit2().build();
       }
+
+      Retrofit.Builder retrofitBuilder =
+          new Retrofit.Builder()
+              .baseUrl(endpoint.getUrl())
+              .client(okHttpClient)
+              .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+              .addConverterFactory(JacksonConverterFactory.create());
 
       RestUrls.Service service =
           RestUrls.Service.builder()
-              .client(restAdapterBuilder.build().create(RestService.class))
+              .client(retrofitBuilder.build().create(RestService.class))
               .config(endpoint)
               .build();
 
@@ -145,5 +131,22 @@ public class RestConfig {
     }
 
     return restUrls;
+  }
+
+  private static class BasicAuthRequestInterceptor implements Interceptor {
+
+    private final Map<String, String> headers;
+
+    public BasicAuthRequestInterceptor(Map<String, String> headers) {
+      this.headers = headers;
+    }
+
+    @Override
+    public Response intercept(Interceptor.Chain chain) throws IOException {
+      Request.Builder builder = chain.request().newBuilder();
+      headers.forEach(builder::addHeader);
+
+      return chain.proceed(builder.build());
+    }
   }
 }

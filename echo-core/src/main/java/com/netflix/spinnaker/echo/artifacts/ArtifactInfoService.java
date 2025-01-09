@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.artifacts;
 
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.List;
 
 /** Given an artifact, fetch the details from an artifact provider */
@@ -31,10 +32,11 @@ public class ArtifactInfoService {
   }
 
   public List<String> getVersions(String provider, String packageName) {
-    return igorService.getVersions(provider, packageName);
+    return Retrofit2SyncCall.execute(igorService.getVersions(provider, packageName));
   }
 
   public Artifact getArtifactByVersion(String provider, String packageName, String version) {
-    return igorService.getArtifactByVersion(provider, packageName, version);
+    return Retrofit2SyncCall.execute(
+        igorService.getArtifactByVersion(provider, packageName, version));
   }
 }

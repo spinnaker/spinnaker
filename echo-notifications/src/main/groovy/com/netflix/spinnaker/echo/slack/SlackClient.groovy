@@ -17,9 +17,16 @@
 
 package com.netflix.spinnaker.echo.slack
 
-
-import retrofit.client.Response
-import retrofit.http.*
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface SlackClient {
 
@@ -31,7 +38,7 @@ interface SlackClient {
    */
   @FormUrlEncoded
   @POST('/api/chat.postMessage')
-  Response sendMessage(
+  Call<ResponseBody> sendMessage(
     @Field('token') String token,
     @Field('attachments') String attachments,
     @Field('channel') String channel,
@@ -42,15 +49,15 @@ interface SlackClient {
    * Documentation: https://api.slack.com/incoming-webhooks
    */
   @POST('/{token}')
-  Response sendUsingIncomingWebHook(
-    @Path(value = "token", encode = false) String token,
+  Call<ResponseBody> sendUsingIncomingWebHook(
+    @Path(value = "token", encoded = true) String token,
     @Body SlackRequest slackRequest)
 
   /**
    * Documentation: https://api.slack.com/methods/users.info
    */
   @GET('/api/users.info')
-  SlackService.SlackUserInfo getUserInfo(
+  Call<SlackService.SlackUserInfo> getUserInfo(
     @Query('token') String token,
     @Query('user') String userId
   )

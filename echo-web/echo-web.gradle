@@ -39,10 +39,10 @@ dependencies {
     implementation "io.spinnaker.kork:kork-cloud-config-server"
     implementation "io.spinnaker.kork:kork-core"
     implementation "io.spinnaker.kork:kork-config"
+    implementation "io.spinnaker.kork:kork-retrofit"
     implementation "io.spinnaker.kork:kork-web"
-    implementation "com.squareup.retrofit:retrofit"
-    implementation "com.squareup.retrofit:converter-jackson"
-    implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
+    implementation "com.squareup.retrofit2:retrofit"
+    implementation "com.squareup.retrofit2:converter-jackson"
     implementation "com.fasterxml.jackson.core:jackson-databind"
     implementation "com.netflix.spectator:spectator-api"
     implementation "javax.validation:validation-api"
@@ -59,6 +59,7 @@ dependencies {
     testImplementation "org.spockframework:spock-spring"
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testImplementation "com.squareup.retrofit2:retrofit-mock"
 }
 
 test {

@@ -17,13 +17,14 @@
 
 package com.netflix.spinnaker.echo.pagerduty
 
-import retrofit.http.Body
-import retrofit.http.Header
-import retrofit.http.POST
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.Header
+import retrofit2.http.POST
 
 interface PagerDutyService {
   @POST('/generic/2010-04-15/create_event.json')
-  Map createEvent(@Header("Authorization") String authorization, @Body PagerDutyCreateEvent pagerDutyCreateEvent)
+  Call<Map> createEvent(@Header("Authorization") String authorization, @Body PagerDutyCreateEvent pagerDutyCreateEvent)
 
   static class PagerDutyCreateEvent {
     String event_type = "trigger"

@@ -16,20 +16,17 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.googlechat.GoogleChatService
 import com.netflix.spinnaker.echo.googlechat.GoogleChatClient
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.Endpoint
-import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.converter.JacksonConverter
-
-import static retrofit.Endpoints.newFixedEndpoint
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty('googlechat.enabled')
@@ -37,22 +34,18 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 class GoogleChatConfig {
 
-  @Bean
-  Endpoint chatEndpoint() {
-    newFixedEndpoint("https://chat.googleapis.com")
-  }
+  private String baseUrl = "https://chat.googleapis.com"
 
   @Bean
-  GoogleChatService chatService(Endpoint chatEndpoint, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
+  GoogleChatService chatService(OkHttp3ClientConfiguration okHttpClientConfig) {
 
     log.info("Chat service loaded");
 
-    def chatClient = new RestAdapter.Builder()
-            .setConverter(new JacksonConverter())
-            .setClient(retrofitClient)
-            .setEndpoint(chatEndpoint)
-            .setLogLevel(retrofitLogLevel)
-            .setLog(new Slf4jRetrofitLogger(GoogleChatClient.class))
+    def chatClient = new Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(okHttpClientConfig.createForRetrofit2().build())
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+            .addConverterFactory(JacksonConverterFactory.create())
             .build()
             .create(GoogleChatClient.class)
 

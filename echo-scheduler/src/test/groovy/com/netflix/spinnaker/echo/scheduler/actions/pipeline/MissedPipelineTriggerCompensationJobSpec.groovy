@@ -34,6 +34,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
+import retrofit2.mock.Calls
 
 class MissedPipelineTriggerCompensationJobSpec extends Specification {
   def pipelineCache = Mock(PipelineCache)
@@ -74,7 +75,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     compensationJob.triggerMissedExecutions(pipelines)
 
     then:
-    1 * orcaService.getLatestPipelineExecutions(_, _) >> {
+    1 * orcaService.getLatestPipelineExecutions(_, _) >> Calls.response(
       [
         new OrcaService.PipelineResponse(pipelineConfigId: '1', startTime: getDateOffset(0).time),
         new OrcaService.PipelineResponse(pipelineConfigId: '2', startTime: getDateOffset(0).time),
@@ -82,8 +83,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
         new OrcaService.PipelineResponse(pipelineConfigId: '3', startTime: null),
         new OrcaService.PipelineResponse(pipelineConfigId: '4', startTime: getDateOffset(0).time),
         new OrcaService.PipelineResponse(pipelineConfigId: '4', startTime: getDateOffset(30).time)
-      ]
-    }
+      ])
     1 * pipelineInitiator.startPipeline((Pipeline) pipelines[0].withTrigger(theTriggeringTrigger), PipelineInitiator.TriggerSource.COMPENSATION_SCHEDULER)
     0 * orcaService._
     0 * pipelineInitiator._
@@ -110,12 +110,12 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     compensationJob.triggerMissedExecutions(pipelines)
 
     then: 'they are both in window and queried, but have no missed execution'
-    1 * orcaService.getLatestPipelineExecutions(['1', '2'], _) >> {
+    1 * orcaService.getLatestPipelineExecutions(['1', '2'], _) >> Calls.response({
       [
         new OrcaService.PipelineResponse(pipelineConfigId: '1', startTime: getDateOffset(5).time)
         // pipeline 2 has _no_ execution, which is a special case that is not considered a missed execution
       ]
-    }
+    })
     0 * pipelineInitiator.startPipeline(_, _)
     1 * quietPeriodIndicator.inQuietPeriod(_)
     0 * _
@@ -155,7 +155,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
     compensationJob.triggerMissedExecutions(pipelines)
 
     then:
-    numCalls * orcaService.getLatestPipelineExecutions(queried, _)
+    numCalls * orcaService.getLatestPipelineExecutions(queried, _) >> Calls.response(null)
     0 * orcaService.getLatestPipelineExecutions(_, _) // does not have an eligible trigger in window, execution history should not be looked up
 
     where:

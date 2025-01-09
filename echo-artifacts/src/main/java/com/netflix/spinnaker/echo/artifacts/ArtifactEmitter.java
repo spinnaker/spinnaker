@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.config.ArtifactEmitterProperties;
 import com.netflix.spinnaker.echo.model.ArtifactEvent;
 import com.netflix.spinnaker.echo.services.KeelService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -64,7 +65,7 @@ public class ArtifactEmitter {
       sentEvent.put(
           artifactEmitterProperties.getFieldName(), objectMapper.convertValue(event, Map.class));
       log.debug("Sending artifacts to Keel: {}", event.getArtifacts());
-      keelService.sendArtifactEvent(sentEvent);
+      Retrofit2SyncCall.execute(keelService.sendArtifactEvent(sentEvent));
     } catch (Exception e) {
       log.error("Could not send event {} to Keel", event, e);
     }

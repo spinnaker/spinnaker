@@ -62,8 +62,12 @@ class SlackNotificationService implements NotificationService {
           new SlackAttachment(subject, text, (InteractiveActions)notification.interactiveActions),
           address, true)
       }
-      log.trace("Received response from Slack: {} {} for message '{}'. {}",
-        response?.status, response?.reason, text, response?.body)
+      try {
+        log.trace("Received response from Slack for message '{}'. {}", text, response?.string())
+      } catch (IOException e) {
+        log.trace("Received response from Slack for message '{}' but unable to deserialize", text, e)
+      }
+
     }
 
     new EchoResponse.Void()

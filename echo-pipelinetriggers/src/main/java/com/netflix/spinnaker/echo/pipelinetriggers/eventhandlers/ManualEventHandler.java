@@ -29,6 +29,7 @@ import com.netflix.spinnaker.echo.model.trigger.ManualEvent;
 import com.netflix.spinnaker.echo.model.trigger.ManualEvent.Content;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -39,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import retrofit.RetrofitError;
 
 /**
  * Implementation of TriggerEventHandler for events of type {@link ManualEvent}, which occur when a
@@ -276,9 +276,8 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
                   .getArtifactByVersion(
                       artifact.getLocation(), artifact.getName(), artifact.getVersion());
           resolvedArtifacts.add(resolvedArtifact);
-        } catch (RetrofitError e) {
-          if (e.getResponse() != null
-              && e.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
+        } catch (SpinnakerHttpException e) {
+          if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
             log.error(
                 "Artifact "
                     + artifact.getName()

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.BaseTriggerEven
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.TriggerEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
 import java.time.Instant;
@@ -233,10 +234,13 @@ public class PipelineCache implements MonitoredPoller {
         AuthenticatedRequest.allowAnonymous(
             () -> {
               if (pipelineCacheConfigurationProperties.isFilterFront50Pipelines()) {
-                return front50.getPipelines(
-                    true /* enabledPipelines */, true /* enabledTriggers */, supportedTriggerTypes);
+                return Retrofit2SyncCall.execute(
+                    front50.getPipelines(
+                        true /* enabledPipelines */,
+                        true /* enabledTriggers */,
+                        supportedTriggerTypes));
               }
-              return front50.getPipelines();
+              return Retrofit2SyncCall.execute(front50.getPipelines());
             });
     return (rawPipelines == null) ? Collections.emptyList() : rawPipelines;
   }
@@ -288,7 +292,7 @@ public class PipelineCache implements MonitoredPoller {
    */
   public Pipeline refresh(Pipeline cached) {
     try {
-      Map<String, Object> pipeline = front50.getPipeline(cached.getId());
+      Map<String, Object> pipeline = Retrofit2SyncCall.execute(front50.getPipeline(cached.getId()));
       Optional<Pipeline> processed = process(pipeline);
       if (processed.isEmpty()) {
         log.warn(
@@ -312,7 +316,7 @@ public class PipelineCache implements MonitoredPoller {
    */
   public Optional<Pipeline> getPipelineById(String id) {
     try {
-      Map<String, Object> pipeline = front50.getPipeline(id);
+      Map<String, Object> pipeline = Retrofit2SyncCall.execute(front50.getPipeline(id));
       Optional<Pipeline> processed = process(pipeline);
       if (processed.isEmpty()) {
         log.warn("Failed to process raw pipeline id {}, latestVersion={}", id, pipeline);
@@ -333,7 +337,8 @@ public class PipelineCache implements MonitoredPoller {
    */
   public Optional<Pipeline> getPipelineByName(String application, String name) {
     try {
-      Map<String, Object> pipeline = front50.getPipelineByName(application, name);
+      Map<String, Object> pipeline =
+          Retrofit2SyncCall.execute(front50.getPipelineByName(application, name));
       Optional<Pipeline> processed = process(pipeline);
       if (processed.isEmpty()) {
         log.warn(
@@ -360,7 +365,8 @@ public class PipelineCache implements MonitoredPoller {
       Map<String, Object> pipeline, Predicate<Map<String, Object>> isV2Pipeline) {
     if (isV2Pipeline.test(pipeline)) {
       try {
-        return AuthenticatedRequest.allowAnonymous(() -> orca.v2Plan(pipeline));
+        return AuthenticatedRequest.allowAnonymous(
+            () -> Retrofit2SyncCall.execute(orca.v2Plan(pipeline)));
       } catch (Exception e) {
         // Don't fail the entire cache cycle if we fail a plan.
         log.error("Caught exception while planning templated pipeline: {}", pipeline, e);

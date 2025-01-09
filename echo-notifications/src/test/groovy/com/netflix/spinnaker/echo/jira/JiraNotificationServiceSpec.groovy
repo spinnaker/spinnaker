@@ -6,6 +6,7 @@ import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
 import spock.lang.Specification
 import spock.lang.Unroll
+import retrofit2.mock.Calls;
 
 
 class JiraNotificationServiceSpec extends Specification {
@@ -36,9 +37,9 @@ class JiraNotificationServiceSpec extends Specification {
     service.handle(notification)
 
     then:
-    1 * jiraService.getIssueTransitions(_) >> new JiraService.IssueTransitions(transitions: [new JiraService.IssueTransitions.Transition(name: "Done", id: "4")])
-    1 * jiraService.transitionIssue(_, _)
-    addCommentCall * jiraService.addComment(_, _)
+    1 * jiraService.getIssueTransitions(_) >> Calls.response(new JiraService.IssueTransitions(transitions: [new JiraService.IssueTransitions.Transition(name: "Done", id: "4")]))
+    1 * jiraService.transitionIssue(_, _) >> Calls.response(null)
+    addCommentCall * jiraService.addComment(_, _) >> Calls.response(null)
 
     where:
     comment         || addCommentCall

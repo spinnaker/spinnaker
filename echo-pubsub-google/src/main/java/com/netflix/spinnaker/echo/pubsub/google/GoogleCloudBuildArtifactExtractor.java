@@ -20,6 +20,7 @@ import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.parsing.ArtifactExtractor;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -59,7 +60,9 @@ public class GoogleCloudBuildArtifactExtractor implements ArtifactExtractor {
       return retrySupport.retry(
           () ->
               AuthenticatedRequest.allowAnonymous(
-                  () -> igorService.extractGoogleCloudBuildArtifacts(account, build)),
+                  () ->
+                      Retrofit2SyncCall.execute(
+                          igorService.extractGoogleCloudBuildArtifacts(account, build))),
           5,
           2000,
           false);

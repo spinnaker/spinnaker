@@ -15,13 +15,14 @@
  */
 package com.netflix.spinnaker.echo.config
 
-import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.echo.config.TelemetryConfig.TelemetryConfigProps
 import com.netflix.spinnaker.echo.telemetry.TelemetryService
-import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import de.huxhorn.sulky.ulid.ULID
-import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -29,8 +30,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty(value = ["stats.enabled"], matchIfMissing = true)
@@ -43,26 +44,20 @@ open class TelemetryConfig {
 
   @Bean
   open fun telemetryService(
-    retrofitConfigurationProperties: RetrofitConfigurationProperties,
-    configProps: TelemetryConfigProps
+    configProps: TelemetryConfigProps,
+    okHttpClientConfig: OkHttp3ClientConfiguration,
+    okHttpClient: OkHttpClient
   ): TelemetryService {
+    val clientProps = OkHttpClientConfigurationProperties(configProps.connectionTimeoutMillis.toLong(), configProps.readTimeoutMillis.toLong())
+    val clientProvider = DefaultOkHttpClientBuilderProvider(okHttpClient, clientProps)
     log.info("Telemetry service loaded")
-    return RestAdapter.Builder()
-      .setEndpoint(configProps.endpoint)
-      .setConverter(JacksonConverter())
-      .setClient(telemetryOkClient(configProps))
-      .setLogLevel(retrofitConfigurationProperties.logLevel)
-      .setLog(Slf4jRetrofitLogger(TelemetryService::class.java))
+    return Retrofit.Builder()
+      .baseUrl(configProps.endpoint)
+      .client(clientProvider.get(DefaultServiceEndpoint("telemetry", configProps.endpoint)).build())
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+      .addConverterFactory(JacksonConverterFactory.create())
       .build()
       .create(TelemetryService::class.java)
-  }
-
-  private fun telemetryOkClient(configProps: TelemetryConfigProps): Ok3Client {
-    val httpClient = OkHttpClient.Builder()
-      .connectTimeout(configProps.connectionTimeoutMillis.toLong(), TimeUnit.MILLISECONDS)
-      .readTimeout(configProps.readTimeoutMillis.toLong(), TimeUnit.MILLISECONDS)
-      .build()
-    return Ok3Client(httpClient)
   }
 
   @ConfigurationProperties(prefix = "stats")

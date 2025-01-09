@@ -22,6 +22,7 @@ import com.netflix.spinnaker.echo.bearychat.CreateP2PChannelPara
 import com.netflix.spinnaker.echo.bearychat.CreateP2PChannelResponse
 import com.netflix.spinnaker.echo.bearychat.SendMessagePara
 import com.netflix.spinnaker.echo.api.events.Event
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.text.WordUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -84,12 +85,12 @@ class BearychatNotificationAgent extends AbstractEventNotificationAgent {
         .replace("{{link}}", link ?: "")
     }
 
-    List<BearychatUserInfo> userList = bearychatService.getUserList(token)
+    List<BearychatUserInfo> userList = Retrofit2SyncCall.execute(bearychatService.getUserList(token))
     String userid = userList.find {it.email == preference.address}.id
-    CreateP2PChannelResponse channelInfo = bearychatService.createp2pchannel(token,new CreateP2PChannelPara(user_id: userid))
+    CreateP2PChannelResponse channelInfo = Retrofit2SyncCall.execute(bearychatService.createp2pchannel(token,new CreateP2PChannelPara(user_id: userid)))
     String channelId = channelInfo.vchannel_id
-    bearychatService.sendMessage(token,new SendMessagePara(vchannel_id: channelId,
+    Retrofit2SyncCall.execute(bearychatService.sendMessage(token,new SendMessagePara(vchannel_id: channelId,
       text: message,
-      attachments: "" ))
+      attachments: "" )))
   }
 }

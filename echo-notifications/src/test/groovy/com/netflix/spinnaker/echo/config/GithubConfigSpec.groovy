@@ -1,143 +1,170 @@
 package com.netflix.spinnaker.echo.config
 
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import com.netflix.spinnaker.echo.github.GithubService
+import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig
+import com.netflix.spinnaker.echo.test.config.Retrofit2HeadersLogTestConfig
+import com.netflix.spinnaker.echo.test.config.Retrofit2NoneLogTestConfig
+import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import retrofit.Endpoint
-import retrofit.Endpoints
-import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.client.Header
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import spock.lang.Specification
-import spock.lang.Subject
 
 @SpringBootTest(
-  classes = [GithubConfig.class, MockRetrofitConfig.class],
+  classes = [Retrofit2TestConfig, Retrofit2BasicLogTestConfig],
   properties = ["github-status.enabled=true"],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class GithubConfigSpec extends Specification {
+class GithubConfigLogLevelBasicSpec extends Specification {
+
   @Autowired
-  @Subject
-  GithubConfig githubConfig
+  OkHttp3ClientConfiguration okHttpClientConfig
 
-  def 'test github endpoint default is not wrapped in single quotes'() {
-    given:
-    String ownEndpoint = "'https://api.github.com'"
+  WireMockServer wireMockServer
+  GithubService ghService
+  PrintStream systemError
+  ByteArrayOutputStream testErr
+  int port
 
-    when:
-    Endpoint endpoint = githubConfig.githubEndpoint()
+  def setup() {
+    systemError = System.out;
+    testErr = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(testErr))
 
-    then:
-    endpoint.url != ownEndpoint
+    wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort())
+    wireMockServer.start()
+
+    port = wireMockServer.port()
+
+    wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/repos/repo-name/commits/sha12345"))
+      .willReturn(WireMock.aResponse()
+        .withHeader("Content-Type", "application/json")
+        .withBody("{\"message\": \"response\", \"code\": 200}")));
+
+    wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/repos//commits/"))
+      .willReturn(WireMock.aResponse()
+        .withHeader("Content-Type", "application/json")
+        .withBody("{\"message\": \"response\", \"code\": 200}")));
+
+    GithubConfig config = new GithubConfig(wireMockServer.baseUrl())
+    ghService = config.githubService(okHttpClientConfig)
+
   }
 
-
-  def 'test github endpoint default is set'() {
-    given:
-    String ownEndpoint = "https://api.github.com"
-
-    when:
-    Endpoint endpoint = githubConfig.githubEndpoint()
-
-    then:
-    endpoint.url == ownEndpoint
+  def cleanup() {
+    wireMockServer.stop()
+    System.setOut(systemError)
+    System.out.print(testErr)
   }
+
 
 
   def 'default log level does not output authorization headers and matches basic API call structure'() {
-    given:
-    def systemError = System.out;
-    def testErr = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(testErr))
-
-    Client mockClient = Stub(Client) {
-      execute(_) >> {
-        return new Response("http://example.com", 200, "Success!", new ArrayList<Header>(), new TypedByteArray("", "SOmething workedddd".bytes))
-      }
-
-    }
-    def ghService = new GithubConfig().githubService(Endpoints.newFixedEndpoint("http://example.com"), mockClient, null)
-
     when:
-    ghService.getCommit("SECRET", "repo-name", "sha12345");
+
+    Retrofit2SyncCall.execute(ghService.getCommit("SECRET", "repo-name", "sha12345"))
 
     then:
     def logOutput = testErr.toString()
-    logOutput.contains("HTTP GET http://example.com/repos/repo-name/commits/sha12345")
+    logOutput.contains("--> GET http://localhost:" + port + "/repos/repo-name/commits/sha12345")
     !logOutput.contains("SECRET")
     !logOutput.contains("Authorization")
 
-    cleanup:
+  }
+}
+
+@SpringBootTest(
+  classes = [Retrofit2TestConfig, Retrofit2NoneLogTestConfig],
+  properties = ["github-status.enabled=true"],
+  webEnvironment = SpringBootTest.WebEnvironment.NONE)
+class GithubConfigLogLevelNoneSpec extends Specification {
+
+  @Autowired
+  OkHttp3ClientConfiguration okHttpClientConfig
+
+  WireMockServer wireMockServer
+  GithubService ghService
+  PrintStream systemError
+  ByteArrayOutputStream testErr
+
+  def setup() {
+    systemError = System.out;
+    testErr = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(testErr))
+
+    wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort())
+    wireMockServer.start()
+
+    wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/repos//commits/"))
+      .willReturn(WireMock.aResponse()
+        .withHeader("Content-Type", "application/json")
+        .withBody("{\"message\": \"response\", \"code\": 200}")));
+
+    GithubConfig config = new GithubConfig(wireMockServer.baseUrl())
+    ghService = config.githubService(okHttpClientConfig)
+  }
+
+  def cleanup() {
+    wireMockServer.stop()
     System.setOut(systemError)
     System.out.print(testErr)
   }
 
   def 'When no log set, no log output!'() {
-    given:
-    def systemError = System.out;
-    def testErr = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(testErr))
-
-    Client mockClient = Stub(Client) {
-      execute(_) >> new Response("http://example.com", 200, "Ok", new ArrayList<Header>(), new TypedByteArray("", "response".bytes))
-    }
-    def ghService = new GithubConfig().githubService(Endpoints.newFixedEndpoint("http://example.com"), mockClient, RestAdapter.LogLevel.NONE)
-
     when:
-    ghService.getCommit("", "", "");
+    Retrofit2SyncCall.execute(ghService.getCommit("", "", ""));
 
     then:
-    !testErr.toString().contains("GET")
+    !testErr.toString().contains("--> GET")
+  }
+}
 
-    cleanup:
+@SpringBootTest(
+  classes = [Retrofit2TestConfig, Retrofit2HeadersLogTestConfig],
+  properties = ["github-status.enabled=true"],
+  webEnvironment = SpringBootTest.WebEnvironment.NONE)
+class GithubConfigLogLevelHeadersSpec extends Specification {
+
+  @Autowired
+  OkHttp3ClientConfiguration okHttpClientConfig
+
+  WireMockServer wireMockServer
+  GithubService ghService
+  PrintStream systemError
+  ByteArrayOutputStream testErr
+
+  def setup() {
+    systemError = System.out;
+    testErr = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(testErr))
+
+    wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort())
+    wireMockServer.start()
+
+    wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/repos//commits/"))
+      .willReturn(WireMock.aResponse()
+        .withHeader("Content-Type", "application/json")
+        .withBody("{\"message\": \"response\", \"code\": 200}")));
+
+    GithubConfig config = new GithubConfig(wireMockServer.baseUrl())
+    ghService = config.githubService(okHttpClientConfig)
+
+  }
+
+  def cleanup() {
+    wireMockServer.stop()
     System.setOut(systemError)
     System.out.print(testErr)
   }
 
   def 'Log when full has header information and auth headers- dont do this in prod!'() {
-    given:
-    def systemError = System.out;
-    def testErr = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(testErr))
-
-    Client mockClient = Stub(Client) {
-      execute(_) >> new Response("http://example.com", 200, "Ok", new ArrayList<Header>(), new TypedByteArray("", "response".bytes))
-    }
-    def ghService = new GithubConfig().githubService(Endpoints.newFixedEndpoint("http://example.com"), mockClient, RestAdapter.LogLevel.FULL)
-
     when:
-    ghService.getCommit("", "", "");
+    Retrofit2SyncCall.execute(ghService.getCommit("", "", ""));
 
     then:
     testErr.toString().contains("Authorization")
-
-    cleanup:
-    System.setOut(systemError)
-    System.out.print(testErr)
-  }
-}
-
-@SpringBootTest(
-  classes = [GithubConfig.class, MockRetrofitConfig.class],
-  properties = [
-    "github-status.enabled=true",
-    "github-status.endpoint=https://my.github.com"
-  ],
-  webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class GithubConfigEndpointSetSpec extends Specification {
-  @Autowired
-  @Subject
-  GithubConfig githubConfig
-
-  def 'test github endpoint in config is set'() {
-    given:
-    String ownEndpoint = "https://my.github.com"
-
-    when:
-    Endpoint endpoint = githubConfig.githubEndpoint()
-
-    then:
-    endpoint.url == ownEndpoint
   }
 }

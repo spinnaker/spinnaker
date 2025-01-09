@@ -29,6 +29,9 @@ import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,12 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
-import retrofit.RetrofitError.Kind;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
 
 /** Triggers a {@link Pipeline} by invoking _Orca_. */
 @Component
@@ -115,7 +113,7 @@ public class PipelineInitiator {
   }
 
   public void recordPipelineFailure(Pipeline pipeline) {
-    orca.recordFailure(pipeline);
+    Retrofit2SyncCall.execute(orca.recordFailure(pipeline));
   }
 
   public void startPipeline(Pipeline pipeline, TriggerSource triggerSource) {
@@ -174,16 +172,14 @@ public class PipelineInitiator {
             try {
               Map pipelineToPlan = objectMapper.convertValue(pipeline, Map.class);
               Map resolvedPipelineMap =
-                  AuthenticatedRequest.allowAnonymous(() -> orca.plan(pipelineToPlan, true));
+                  AuthenticatedRequest.allowAnonymous(
+                      () -> Retrofit2SyncCall.execute(orca.plan(pipelineToPlan, true)));
               pipeline = objectMapper.convertValue(resolvedPipelineMap, Pipeline.class);
-            } catch (RetrofitError e) {
-              String orcaResponse = "N/A";
-
-              if (e.getResponse() != null && e.getResponse().getBody() != null) {
-                orcaResponse = new String(((TypedByteArray) e.getResponse().getBody()).getBytes());
-              }
-
-              log.error("Failed planning {}: \n{}", pipeline, orcaResponse);
+            } catch (SpinnakerServerException e) {
+              log.error(
+                  "Failed planning {}: \n{}",
+                  pipeline,
+                  e.getMessage() == null ? "N/A" : e.getMessage());
 
               // Continue anyway, so that the execution will appear in Deck
               pipeline = pipeline.withPlan(false);
@@ -260,22 +256,16 @@ public class PipelineInitiator {
               "triggerType",
               getTriggerType(pipeline))
           .increment();
-    } catch (RetrofitError e) {
+    } catch (SpinnakerHttpException e) {
       String orcaResponse = "N/A";
-      int status = 0;
-
-      if (e.getResponse() != null) {
-        status = e.getResponse().getStatus();
-
-        if (e.getResponse().getBody() != null) {
-          orcaResponse = new String(((TypedByteArray) e.getResponse().getBody()).getBytes());
-        }
+      if (e.getResponseBody() != null) {
+        orcaResponse = e.getResponseBody().toString();
       }
 
       log.error(
           "Failed to trigger {} HTTP: {}\norca error: {}\npayload: {}",
           pipeline,
-          status,
+          e.getResponseCode(),
           orcaResponse,
           pipelineAsString(pipeline));
 
@@ -296,9 +286,9 @@ public class PipelineInitiator {
     while (true) {
       try {
         attempts++;
-        return orca.trigger(pipeline);
-      } catch (RetrofitError e) {
-        if ((attempts >= retryCount) || !isRetryableError(e)) {
+        return Retrofit2SyncCall.execute(orca.trigger(pipeline));
+      } catch (SpinnakerServerException e) {
+        if ((attempts >= retryCount) || (e.getRetryable() != null && !e.getRetryable())) {
           throw e;
         } else {
           log.warn(
@@ -409,23 +399,5 @@ public class PipelineInitiator {
     }
 
     return triggerEnabled && dynamicConfigService.isEnabled("orca", true);
-  }
-
-  private static boolean isRetryableError(Throwable error) {
-    if (!(error instanceof RetrofitError)) {
-      return false;
-    }
-    RetrofitError retrofitError = (RetrofitError) error;
-
-    if (retrofitError.getKind() == Kind.NETWORK) {
-      return true;
-    }
-
-    if (retrofitError.getKind() == Kind.HTTP) {
-      Response response = retrofitError.getResponse();
-      return (response != null && response.getStatus() != HttpStatus.BAD_REQUEST.value());
-    }
-
-    return false;
   }
 }

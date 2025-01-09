@@ -15,12 +15,13 @@
  */
 package com.netflix.spinnaker.echo.telemetry
 
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.POST
-import retrofit.mime.TypedInput
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import retrofit2.http.Body
+import retrofit2.http.POST
+import retrofit2.Call
 
 interface TelemetryService {
   @POST("/log")
-  fun log(@Body body: TypedInput): Response
+  fun log(@Body body: RequestBody): Call<ResponseBody>
 }

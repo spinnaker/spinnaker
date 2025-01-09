@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.echo.notification
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.github.GithubCommitDetail
 import com.netflix.spinnaker.echo.github.GithubCommit
 import com.netflix.spinnaker.echo.github.GithubService
 import com.netflix.spinnaker.echo.github.GithubStatus
 import com.netflix.spinnaker.echo.api.events.Event
-import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
+import okhttp3.Request
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -49,10 +47,10 @@ class GithubNotificationAgentSpec extends Specification {
     def actualMessage = new BlockingVariable<GithubStatus>()
     github.updateCheck(*_) >> { token, repo, sha, status_local ->
       actualMessage.set(status_local)
+      Calls.response(null)
     }
-    github.getCommit(*_) >> { token, repo, sha ->
-      new Response("url", 200, "nothing", [], new TypedByteArray("application/json", "message".bytes))
-    }
+
+    github.getCommit(*_) >> Calls.response(new GithubCommit(new GithubCommitDetail("some message")))
 
     when:
     agent.sendNotifications(null, application, event, [type: type], status)
@@ -98,10 +96,9 @@ class GithubNotificationAgentSpec extends Specification {
     def actualMessage = new BlockingVariable<GithubStatus>()
     github.updateCheck(*_) >> { token, repo, sha, status_local ->
       actualMessage.set(status_local)
+      Calls.response(null)
     }
-    github.getCommit(*_) >> { token, repo, sha ->
-      new Response("url", 200, "nothing", [], new TypedByteArray("application/json", "message".bytes))
-    }
+    github.getCommit(*_) >> Calls.response(new GithubCommit(new GithubCommitDetail("some message")))
 
     when:
     agent.sendNotifications(null, application, event, [type: type], status)
@@ -153,17 +150,13 @@ class GithubNotificationAgentSpec extends Specification {
   def "if commit is a merge commit of the head branch and the default branch then return the head commit"() {
     given:
     GithubCommit commit = new GithubCommit(new GithubCommitDetail(commitMessage))
-    ObjectMapper mapper = EchoObjectMapper.getInstance()
-    String response = mapper.writeValueAsString(commit)
-    github.getCommit(*_) >> { token, repo, sha ->
-      new Response("url", 200, "nothing", [], new TypedByteArray("application/json", response.bytes))
-    }
+    github.getCommit(*_) >> Calls.response(commit)
 
     when:
     agent.sendNotifications(null, application, event, [type: type], status)
 
     then:
-    1 * github.updateCheck(_, _, expectedSha, _)
+    1 * github.updateCheck(_, _, expectedSha, _) >> Calls.response(null)
 
     where:
     commitMessage                                                                                  || expectedSha
@@ -197,15 +190,13 @@ class GithubNotificationAgentSpec extends Specification {
 
   def "retries if updating the github check fails"() {
     given:
-    github.getCommit(*_) >> { token, repo, sha ->
-      new Response("url", 200, "nothing", [], new TypedByteArray("application/json", "message".bytes))
-    }
+    github.getCommit(*_) >> Calls.response(new GithubCommit(new GithubCommitDetail("message")))
 
     when:
     agent.sendNotifications(null, application, event, [type: type], status)
 
     then:
-    5 * github.updateCheck(_, _, _, _) >> RetrofitError.networkError("timeout", new IOException())
+    5 * github.updateCheck(_, _, _, _) >>  new SpinnakerNetworkException(new IOException("timeout"), new Request.Builder().url("http://some-url").build())
 
     where:
     application = "whatever"

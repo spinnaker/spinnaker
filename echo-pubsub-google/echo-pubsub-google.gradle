@@ -20,11 +20,11 @@ dependencies {
   implementation project(':echo-model')
   implementation project(':echo-pubsub-core')
   implementation project(':echo-notifications')
-  implementation "com.squareup.retrofit:retrofit"
   implementation 'com.google.cloud:google-cloud-pubsub:1.101.0'
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation 'org.apache.commons:commons-lang3'
   implementation 'org.springframework.boot:spring-boot-autoconfigure'
   implementation "javax.validation:validation-api"

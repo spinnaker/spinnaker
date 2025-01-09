@@ -16,54 +16,31 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import com.jakewharton.retrofit.Ok3Client;
-import com.netflix.spinnaker.config.DefaultServiceEndpoint;
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.services.Front50Service;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoint;
-import retrofit.Endpoints;
-import retrofit.RestAdapter.Builder;
-import retrofit.RestAdapter.LogLevel;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @Slf4j
 public class Front50Config {
 
   @Bean
-  public LogLevel retrofitLogLevel() {
-    return LogLevel.BASIC;
-  }
-
-  @Bean
-  public Endpoint front50Endpoint(@Value("${front50.base-url}") String front50BaseUrl) {
-    return Endpoints.newFixedEndpoint(front50BaseUrl);
-  }
-
-  @Bean
   public Front50Service front50Service(
-      Endpoint front50Endpoint,
-      OkHttpClientProvider clientProvider,
-      LogLevel retrofitLogLevel,
-      SpinnakerRequestInterceptor spinnakerRequestInterceptor) {
+      @Value("${front50.base-url}") String front50BaseUrl,
+      OkHttp3ClientConfiguration okHttp3ClientConfiguration) {
     log.info("front50 service loaded");
 
-    return new Builder()
-        .setEndpoint(front50Endpoint)
-        .setConverter(new JacksonConverter())
-        .setClient(
-            new Ok3Client(
-                clientProvider.getClient(
-                    new DefaultServiceEndpoint("front50", front50Endpoint.getUrl()))))
-        .setRequestInterceptor(spinnakerRequestInterceptor)
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new Slf4jRetrofitLogger(Front50Service.class))
+    return new Retrofit.Builder()
+        .baseUrl(front50BaseUrl)
+        .client(okHttp3ClientConfiguration.createForRetrofit2().build())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create())
         .build()
         .create(Front50Service.class);
   }

@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.artifacts.ArtifactInfoService
 import com.netflix.spinnaker.echo.build.BuildInfoService
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
@@ -27,8 +26,11 @@ import com.netflix.spinnaker.echo.model.trigger.ManualEvent
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import retrofit.RetrofitError
-import retrofit.client.Response
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -109,9 +111,7 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
     List<Map<String, Object>> triggerArtifacts = [triggerArtifact]
 
     when:
-    artifactInfoService.getArtifactByVersion("artifactory", "my-package", "v2.2.2") >> {
-      throw RetrofitError.httpError("http://foo", new Response("http://foo", 404, "not found", [], null), null, null)
-    }
+    artifactInfoService.getArtifactByVersion("artifactory", "my-package", "v2.2.2") >> { throw makeSpinnakerHttpException() }
     List<Artifact> resolvedArtifacts = eventHandler.resolveArtifacts(triggerArtifacts)
     Map<String, Object> firstArtifact = objectMapper.convertValue(resolvedArtifacts.first(), Map.class)
     firstArtifact = firstArtifact.findAll { key, value -> value && key != "customKind"}
@@ -133,9 +133,7 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
     Trigger manualTrigger = Trigger.builder().type("manual").artifacts([triggerArtifact]).build()
 
     when:
-    artifactInfoService.getArtifactByVersion("artifactory", "my-package", "v2.2.2") >> {
-      throw RetrofitError.httpError("http://foo", new Response("http://foo", 404, "not found", [], null), null, null)
-    }
+    artifactInfoService.getArtifactByVersion("artifactory", "my-package", "v2.2.2") >> { throw makeSpinnakerHttpException() }
     def resolvedPipeline = eventHandler.buildTrigger(inputPipeline, manualTrigger)
 
     then:
@@ -153,9 +151,7 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
     Trigger manualTrigger = Trigger.builder().type("manual").artifacts([triggerArtifact]).build()
 
     when:
-    artifactInfoService.getArtifactByVersion("artifactory", "my-package", "v2.2.2") >> {
-      throw RetrofitError.httpError("http://foo", new Response("http://foo", 404, "not found", [], null), null, null)
-    }
+    artifactInfoService.getArtifactByVersion("artifactory", "my-package", "v2.2.2") >> { throw makeSpinnakerHttpException() }
     def resolvedPipeline = eventHandler.buildTrigger(inputPipeline, manualTrigger)
 
     then:
@@ -402,5 +398,22 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
     // trigger.
     pipelines.first().name == pipelineName
     pipelines.first().errorMessage == arbitraryException.toString()
+  }
+
+  SpinnakerHttpException makeSpinnakerHttpException(){
+    String url = "https://some-url";
+    retrofit2.Response retrofit2Response =
+      retrofit2.Response.error(
+        404,
+        ResponseBody.create(
+          "{ \"message\": \"arbitrary message\" }", MediaType.parse("application/json")));
+
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(url)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build();
+
+    new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

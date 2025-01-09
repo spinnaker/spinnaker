@@ -24,28 +24,29 @@ import java.util.Collection;
 import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.Query;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 public interface OrcaService {
 
   @POST("/orchestrate")
-  TriggerResponse trigger(@Body Pipeline pipeline);
+  Call<TriggerResponse> trigger(@Body Pipeline pipeline);
 
   @POST("/fail")
-  Response recordFailure(@Body Pipeline pipeline);
+  Call<ResponseBody> recordFailure(@Body Pipeline pipeline);
 
   @POST("/plan")
-  Map plan(@Body Map pipelineConfig, @Query("resolveArtifacts") boolean resolveArtifacts);
+  Call<Map> plan(@Body Map pipelineConfig, @Query("resolveArtifacts") boolean resolveArtifacts);
 
   @POST("/v2/pipelineTemplates/plan")
-  Map<String, Object> v2Plan(@Body Map pipelineConfig);
+  Call<Map<String, Object>> v2Plan(@Body Map pipelineConfig);
 
   @GET("/pipelines")
-  Collection<PipelineResponse> getLatestPipelineExecutions(
+  Call<Collection<PipelineResponse>> getLatestPipelineExecutions(
       @Query("pipelineConfigIds") Collection<String> pipelineIds, @Query("limit") Integer limit);
 
   class TriggerResponse {

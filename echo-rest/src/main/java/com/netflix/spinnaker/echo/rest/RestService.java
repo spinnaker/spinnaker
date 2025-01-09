@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.echo.rest;
 
 import java.util.Map;
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.POST;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.POST;
 
 public interface RestService {
 
   @POST("/")
-  Response recordEvent(@Body Map<String, Object> event);
+  Call<ResponseBody> recordEvent(@Body Map<String, Object> event);
 }

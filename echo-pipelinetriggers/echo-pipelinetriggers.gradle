@@ -19,9 +19,9 @@ dependencies {
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "com.squareup.retrofit:retrofit"
-  implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
 
   implementation project(':echo-core')
@@ -45,6 +45,7 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.apache.groovy:groovy-json"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }

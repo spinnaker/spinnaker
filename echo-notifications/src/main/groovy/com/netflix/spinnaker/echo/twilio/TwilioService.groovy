@@ -18,20 +18,21 @@
 
 package com.netflix.spinnaker.echo.twilio
 
-import retrofit.client.Response
-import retrofit.http.Field
-import retrofit.http.FormUrlEncoded
-import retrofit.http.POST
-import retrofit.http.Path
+import okhttp3.ResponseBody
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.Call
 
 interface TwilioService {
 
     @FormUrlEncoded
     @POST("/2010-04-01/Accounts/{account}/Messages.json")
-    Response sendMessage(@Path('account') String account,
-                         @Field('From') String from,
-                         @Field('To') String to,
-                         @Field('Body') String body
+    Call<ResponseBody> sendMessage(@Path('account') String account,
+                                   @Field('From') String from,
+                                   @Field('To') String to,
+                                   @Field('Body') String body
     )
 
 }

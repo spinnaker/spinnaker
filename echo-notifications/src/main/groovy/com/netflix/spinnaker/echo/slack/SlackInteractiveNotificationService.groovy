@@ -17,27 +17,27 @@
 package com.netflix.spinnaker.echo.slack
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.notification.InteractiveNotificationService
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.util.logging.Slf4j
+import okhttp3.ResponseBody
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.client.Response
-import retrofit.converter.JacksonConverter
-import retrofit.http.Body
-import retrofit.http.POST
-import retrofit.http.Path
-
-import static retrofit.Endpoints.newFixedEndpoint
+import retrofit2.http.Body
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.Call
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 @Component
@@ -53,13 +53,13 @@ class SlackInteractiveNotificationService extends SlackNotificationService imple
   SlackInteractiveNotificationService(
     @Qualifier("slackAppService") SlackAppService slackAppService,
     NotificationTemplateEngine notificationTemplateEngine,
-    Client retrofitClient,
+    OkHttp3ClientConfiguration okHttp3ClientConfiguration,
     ObjectMapper objectMapper
   ) {
     super(slackAppService, notificationTemplateEngine)
     this.slackAppService = slackAppService as SlackAppService
     this.objectMapper = objectMapper
-    this.slackHookService = getSlackHookService(retrofitClient)
+    this.slackHookService = getSlackHookService(okHttp3ClientConfiguration)
   }
 
   // For access from tests only
@@ -155,26 +155,25 @@ class SlackInteractiveNotificationService extends SlackNotificationService imple
     // Example: https://hooks.slack.com/actions/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
     URI responseUrl = new URI(payload.response_url)
     log.info("POST ${SLACK_WEBHOOK_BASE_URL}${responseUrl.path}: ${message}")
-    Response response = slackHookService.respondToMessage(responseUrl.path, message)
-    log.info("Response from Slack: ${response.toString()}")
+    ResponseBody response = Retrofit2SyncCall.execute(slackHookService.respondToMessage(responseUrl.path, message))
+    log.info("Response from Slack: ${response.string()}")
 
     return Optional.empty()
   }
 
-  private SlackHookService getSlackHookService(Client retrofitClient) {
+  private SlackHookService getSlackHookService(OkHttp3ClientConfiguration okHttp3ClientConfiguration) {
     log.info("Slack hook service loaded")
-    new RestAdapter.Builder()
-      .setEndpoint(newFixedEndpoint(SLACK_WEBHOOK_BASE_URL))
-      .setClient(retrofitClient)
-      .setLogLevel(RestAdapter.LogLevel.BASIC)
-      .setLog(new Slf4jRetrofitLogger(SlackHookService.class))
-      .setConverter(new JacksonConverter())
+    new Retrofit.Builder()
+      .baseUrl(SLACK_WEBHOOK_BASE_URL)
+      .client(okHttp3ClientConfiguration.createForRetrofit2().build())
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+      .addConverterFactory(JacksonConverterFactory.create())
       .build()
-      .create(SlackHookService.class)
+      .create(SlackHookService.class);
   }
 
   interface SlackHookService {
     @POST('/{path}')
-    Response respondToMessage(@Path(value = "path", encode = false) path, @Body Map content)
+    Call<ResponseBody> respondToMessage(@Path(value = "path", encoded = true) path, @Body Map content)
   }
 }

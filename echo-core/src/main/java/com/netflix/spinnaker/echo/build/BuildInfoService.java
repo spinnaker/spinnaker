@@ -25,6 +25,7 @@ import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,8 +59,10 @@ public class BuildInfoService {
     Map<String, Object> rawBuild =
         retry(
             igorConfigurationProperties.isJobNameAsQueryParameter()
-                ? () -> igorService.getBuildStatusWithJobQueryParameter(buildNumber, master, job)
-                : () -> igorService.getBuild(buildNumber, master, job));
+                ? () ->
+                    Retrofit2SyncCall.execute(
+                        igorService.getBuildStatusWithJobQueryParameter(buildNumber, master, job))
+                : () -> Retrofit2SyncCall.execute(igorService.getBuild(buildNumber, master, job)));
     BuildEvent.Build build = objectMapper.convertValue(rawBuild, BuildEvent.Build.class);
     BuildEvent.Project project = new BuildEvent.Project(job, build);
     BuildEvent.Content content = new BuildEvent.Content(project, master);
@@ -77,8 +80,9 @@ public class BuildInfoService {
       return retry(
           () ->
               igorConfigurationProperties.isJobNameAsQueryParameter()
-                  ? igorService.getBuildStatusWithJobQueryParameter(buildNumber, master, job)
-                  : igorService.getBuild(buildNumber, master, job));
+                  ? Retrofit2SyncCall.execute(
+                      igorService.getBuildStatusWithJobQueryParameter(buildNumber, master, job))
+                  : Retrofit2SyncCall.execute(igorService.getBuild(buildNumber, master, job)));
     }
     return Collections.emptyMap();
   }
@@ -96,9 +100,11 @@ public class BuildInfoService {
       return retry(
           () ->
               igorConfigurationProperties.isJobNameAsQueryParameter()
-                  ? igorService.getPropertyFileWithJobQueryParameter(
-                      buildNumber, propertyFileFinal, master, job)
-                  : igorService.getPropertyFile(buildNumber, propertyFileFinal, master, job));
+                  ? Retrofit2SyncCall.execute(
+                      igorService.getPropertyFileWithJobQueryParameter(
+                          buildNumber, propertyFileFinal, master, job))
+                  : Retrofit2SyncCall.execute(
+                      igorService.getPropertyFile(buildNumber, propertyFileFinal, master, job)));
     }
     return Collections.emptyMap();
   }
@@ -111,9 +117,11 @@ public class BuildInfoService {
       return retry(
           () ->
               igorConfigurationProperties.isJobNameAsQueryParameter()
-                  ? igorService.getArtifactsWithJobQueryParameter(
-                      buildNumber, propertyFile, master, job)
-                  : igorService.getArtifacts(buildNumber, propertyFile, master, job));
+                  ? Retrofit2SyncCall.execute(
+                      igorService.getArtifactsWithJobQueryParameter(
+                          buildNumber, propertyFile, master, job))
+                  : Retrofit2SyncCall.execute(
+                      igorService.getArtifacts(buildNumber, propertyFile, master, job)));
     }
     return Collections.emptyList();
   }

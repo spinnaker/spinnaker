@@ -27,6 +27,7 @@ import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import retrofit2.mock.Calls
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThanOrEqualTo
@@ -48,7 +49,7 @@ class PipelineCountsDataProviderTest {
   @Test
   fun `basic pipeline counts`() {
 
-    every { front50Service.pipelines } returns listOf(
+    every { front50Service.pipelines } returns Calls.response(listOf(
       mapOf(
         "application" to "app1"
       ),
@@ -64,7 +65,7 @@ class PipelineCountsDataProviderTest {
       mapOf(
         "application" to "app3"
       )
-    )
+    ))
 
     val result = dataProvider.populateData(
       echoEventForApplication("app2"),
@@ -78,7 +79,7 @@ class PipelineCountsDataProviderTest {
   @Test
   fun `pipeline without application is ignored`() {
 
-    every { front50Service.pipelines } returns listOf(
+    every { front50Service.pipelines } returns Calls.response(listOf(
       mapOf(
         "application" to "app1"
       ),
@@ -91,7 +92,7 @@ class PipelineCountsDataProviderTest {
       mapOf(
         "noApplicationIsDefined" to "thatsCoolMan"
       )
-    )
+    ))
 
     val result = dataProvider.populateData(
       echoEventForApplication("app2"),

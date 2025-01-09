@@ -2,6 +2,8 @@ package com.netflix.spinnaker.echo.config
 
 import com.netflix.spinnaker.echo.slack.SlackAppService
 import com.netflix.spinnaker.echo.slack.SlackService
+import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig
+import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
@@ -9,7 +11,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 @SpringBootTest(
-  classes = [SlackConfig, MockRetrofitConfig],
+  classes = [SlackConfig, Retrofit2TestConfig, Retrofit2BasicLogTestConfig],
   properties = [
     "slack.enabled = true",
     // Used for the old bot

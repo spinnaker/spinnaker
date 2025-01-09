@@ -20,6 +20,7 @@ import spock.lang.Unroll
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import retrofit2.mock.Calls
 
 class PipelineInitiatorSpec extends Specification {
   def registry = new NoopRegistry()
@@ -92,7 +93,7 @@ class PipelineInitiatorSpec extends Specification {
 
     expectedTriggerCalls * orca.trigger(pipeline) >> {
       captureAuthorizationContext()
-      return new OrcaService.TriggerResponse()
+      Calls.response(new OrcaService.TriggerResponse())
     }
 
     capturedSpinnakerUser.orElse(null) == expectedSpinnakerUser
@@ -148,7 +149,7 @@ class PipelineInitiatorSpec extends Specification {
 
     1 * orca.trigger(pipeline) >> {
       captureAuthorizationContext()
-      return new OrcaService.TriggerResponse()
+      Calls.response(new OrcaService.TriggerResponse())
     }
 
     capturedSpinnakerUser.orElse(null) == user
@@ -177,11 +178,11 @@ class PipelineInitiatorSpec extends Specification {
     then:
     1 * fiatStatus.isEnabled() >> true
     1 * activator.isEnabled() >> true
-    expectedPlanCalls * orca.plan(_, true) >> pipelineMap
+    expectedPlanCalls * orca.plan(_, true) >> Calls.response(pipelineMap)
     objectMapper.convertValue(pipelineMap, Pipeline.class) >> pipeline
     1 * orca.trigger(_) >> {
       captureAuthorizationContext()
-      return new OrcaService.TriggerResponse()
+      Calls.response( new OrcaService.TriggerResponse())
     }
 
     capturedSpinnakerUser.orElse(null) == expectedSpinnakerUser

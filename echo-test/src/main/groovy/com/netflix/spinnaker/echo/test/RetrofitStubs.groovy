@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.echo.test
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.events.Metadata
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
@@ -11,14 +10,17 @@ import com.netflix.spinnaker.echo.model.trigger.*
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
-import retrofit.RetrofitError
-import retrofit.client.Response
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Retrofit
+import retrofit2.Response
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import static com.netflix.spinnaker.echo.model.trigger.BuildEvent.Result.BUILDING
 import static java.net.HttpURLConnection.HTTP_UNAVAILABLE
-import static retrofit.RetrofitError.httpError
 
 trait RetrofitStubs {
 
@@ -60,8 +62,12 @@ trait RetrofitStubs {
   final Trigger disabledCDEventsTrigger = Trigger.builder().enabled(false).type('cdevents').build()
   private nextId = new AtomicInteger(1)
 
-  RetrofitError unavailable() {
-    httpError(url, new Response(url, HTTP_UNAVAILABLE, "Unavailable", [], null), null, null)
+  SpinnakerHttpException unavailable() {
+    new SpinnakerHttpException(
+      Response.error(HTTP_UNAVAILABLE,
+        ResponseBody.create("{ \"message\": \"arbitrary message\" }", MediaType.get("application/json"))),
+      new Retrofit.Builder().baseUrl(url).addConverterFactory(JacksonConverterFactory.create()).build()
+    )
   }
 
   BuildEvent createBuildEventWith(BuildEvent.Result result) {
