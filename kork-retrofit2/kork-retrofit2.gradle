@@ -9,11 +9,13 @@ dependencies {
   implementation "com.squareup.okhttp3:logging-interceptor"
   implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
 
+  testImplementation project(":kork-retrofit")
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
 
   testImplementation "com.squareup.okhttp3:mockwebserver"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "com.github.tomakehurst:wiremock-jre8"
 
 }
