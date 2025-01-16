@@ -136,13 +136,20 @@ public class GoogleCloudBuildTest {
     assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
   }
 
+  @Test
   public void presentAccountTestWithPoolOption() throws Exception {
-    PoolOption poolOption = new PoolOption();
-    poolOption.setName(
-        "projects/spinnaker-gcb-test-2/locations/gcb-location/workerPools/test-pool");
-    BuildOptions buildOptions = new BuildOptions().setPool(poolOption);
-    String buildRequest = objectMapper.writeValueAsString(buildRequest().setOptions(buildOptions));
-    String taggedBuild = objectMapper.writeValueAsString(taggedBuild());
+    Build buildRequest =
+        buildRequest()
+            .setOptions(
+                new BuildOptions()
+                    .setPool(
+                        new PoolOption()
+                            .setName(
+                                "projects/spinnaker-gcb-test-2/locations/gcb-locations/workerPools/test-pool")));
+    String buildRequestString = objectMapper.writeValueAsString(buildRequest);
+    String taggedBuild =
+        objectMapper.writeValueAsString(
+            buildRequest.setTags(Collections.singletonList("started-by.spinnaker.io")));
     String buildResponse = objectMapper.writeValueAsString(buildResponse());
     String operationResponse = objectMapper.writeValueAsString(operationResponse());
     stubCloudBuildService.stubFor(
@@ -157,7 +164,7 @@ public class GoogleCloudBuildTest {
             post("/gcb/builds/create/gcb-account")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(buildRequest))
+                .content(buildRequestString))
         .andExpect(status().is(200))
         .andExpect(content().json(buildResponse));
 
