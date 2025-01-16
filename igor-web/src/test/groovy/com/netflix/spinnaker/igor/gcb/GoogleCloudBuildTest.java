@@ -36,6 +36,7 @@ import com.google.api.services.cloudbuild.v1.model.BuildStep;
 import com.google.api.services.cloudbuild.v1.model.BuildTrigger;
 import com.google.api.services.cloudbuild.v1.model.ListBuildTriggersResponse;
 import com.google.api.services.cloudbuild.v1.model.Operation;
+import com.google.api.services.cloudbuild.v1.model.PoolOption;
 import com.google.api.services.cloudbuild.v1.model.RepoSource;
 import com.netflix.spinnaker.igor.RedisConfig;
 import com.netflix.spinnaker.igor.config.LockManagerConfig;
@@ -119,6 +120,34 @@ public class GoogleCloudBuildTest {
     String operationResponse = objectMapper.writeValueAsString(operationResponse());
     stubCloudBuildService.stubFor(
         WireMock.post(urlEqualTo("/v1/projects/spinnaker-gcb-test/builds"))
+            .withHeader("Authorization", equalTo("Bearer test-token"))
+            .withRequestBody(equalToJson(taggedBuild))
+            .willReturn(aResponse().withStatus(200).withBody(operationResponse)));
+
+    mockMvc
+        .perform(
+            post("/gcb/builds/create/gcb-account")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(buildRequest))
+        .andExpect(status().is(200))
+        .andExpect(content().json(buildResponse));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+  }
+
+  public void presentAccountTestWithPoolOption() throws Exception {
+    PoolOption poolOption = new PoolOption();
+    poolOption.setName(
+        "projects/spinnaker-gcb-test-2/locations/gcb-location/workerPools/test-pool");
+    BuildOptions buildOptions = new BuildOptions().setPool(poolOption);
+    String buildRequest = objectMapper.writeValueAsString(buildRequest().setOptions(buildOptions));
+    String taggedBuild = objectMapper.writeValueAsString(taggedBuild());
+    String buildResponse = objectMapper.writeValueAsString(buildResponse());
+    String operationResponse = objectMapper.writeValueAsString(operationResponse());
+    stubCloudBuildService.stubFor(
+        WireMock.post(
+                urlEqualTo("/v1/projects/spinnaker-gcb-test-2/locations/gcb-locations/builds"))
             .withHeader("Authorization", equalTo("Bearer test-token"))
             .withRequestBody(equalToJson(taggedBuild))
             .willReturn(aResponse().withStatus(200).withBody(operationResponse)));

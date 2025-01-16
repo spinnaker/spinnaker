@@ -55,6 +55,12 @@ class GoogleCloudBuildClient {
   }
 
   Operation createBuild(Build build) {
+    if (build.getOptions() != null && build.getOptions().getPool() != null) {
+      String[] parts = build.getOptions().getPool().getName().split("/");
+      String parent = "projects/" + parts[1] + "/locations/" + parts[3];
+      return executor.execute(
+          () -> cloudBuild.projects().locations().builds().create(parent, build));
+    }
     return executor.execute(() -> cloudBuild.projects().builds().create(projectId, build));
   }
 
