@@ -137,7 +137,7 @@ abstract class PipelineControllerTck extends Specification {
   void "should provide a valid, unique index when listing all for an application"() {
     given:
     pipelineDAO.create(null, new Pipeline([
-      name: "c", application: "test"
+      name: "c", application: "test", "disabled": true
     ]))
     pipelineDAO.create(null, new Pipeline([
       name: "b", application: "test"
@@ -149,7 +149,7 @@ abstract class PipelineControllerTck extends Specification {
       name: "b1", application: "test", index: 1
     ]))
     pipelineDAO.create(null, new Pipeline([
-      name: "a3", application: "test", index: 3
+      name: "a3", application: "test", index: 3, "disabled": true
     ]))
 
     when:
@@ -159,6 +159,40 @@ abstract class PipelineControllerTck extends Specification {
     response
       .andExpect(jsonPath('$.[*].name').value(["a1", "b1", "a3", "b", "c"]))
       .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
+  }
+
+  @Unroll
+  void "should provide a valid, unique index when listing all for an application excluding the disabled Pipelines - enabledPipelines"() {
+    given:
+    pipelineDAO.create(null, new Pipeline([
+      name: "c", application: "test", "disabled": true
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "b", application: "test"
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "a1", application: "test", index: 1
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "b1", application: "test", index: 1
+    ]))
+    pipelineDAO.create(null, new Pipeline([
+      name: "a3", application: "test", index: 3, "disabled": true
+    ]))
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/test?enabledPipelines=${filter}"))
+
+    then:
+    response
+      .andExpect(jsonPath('$.[*].name').value(nameExpectedArray))
+      .andExpect(jsonPath('$.[*].index').value(indexExpectedArray))
+
+    where:
+    filter      || nameExpectedArray        | indexExpectedArray
+    ""          || ["a1","b1","a3","b","c"] | [0, 1, 2, 3, 4]
+    false       || ["a3", "c"]              | [0, 1]
+    true        || ["a1","b1","b"]          | [0, 1, 2]
   }
 
   void "should use pipelineNameFilter when getting pipelines for an application"() {

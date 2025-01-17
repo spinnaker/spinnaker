@@ -202,11 +202,35 @@ public class PipelineController {
   public List<Pipeline> listByApplication(
       @PathVariable(value = "application") String application,
       @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
-      @RequestParam(required = false, value = "refresh", defaultValue = "true") boolean refresh) {
+      @RequestParam(required = false, value = "refresh", defaultValue = "true") boolean refresh,
+      @RequestParam(required = false, value = "enabledPipelines") Boolean enabledPipelines) {
     List<Pipeline> pipelines =
         new ArrayList<>(
             pipelineDAO.getPipelinesByApplication(application, pipelineNameFilter, refresh));
 
+    if (enabledPipelines == null) {
+      return sortPipelines(pipelines);
+    }
+
+    Predicate<Pipeline> pipelinePredicate =
+        pipeline -> {
+          // pipeline.getDisabled may be null, so check that before comparing.  If
+          // pipeline.getDisabled is null, the pipeline is enabled.
+          boolean pipelineEnabled =
+              (pipeline.getDisabled() == null) || (pipeline.getDisabled() == false);
+
+          return ((enabledPipelines == null) || (pipelineEnabled == enabledPipelines));
+        };
+
+    List<Pipeline> retval =
+        pipelines.stream().filter(pipelinePredicate).collect(Collectors.toList());
+
+    log.debug("returning {} of {} total pipeline(s)", retval.size(), pipelines.size());
+
+    return sortPipelines(retval);
+  }
+
+  private List<Pipeline> sortPipelines(List<Pipeline> pipelines) {
     pipelines.sort(
         (p1, p2) -> {
           if (p1.getIndex() != null && p2.getIndex() == null) {
