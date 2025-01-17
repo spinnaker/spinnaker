@@ -51,6 +51,7 @@ import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.StartTask
 import com.netflix.spinnaker.orca.q.buildBeforeStages
 import com.netflix.spinnaker.orca.q.buildTasks
+import com.netflix.spinnaker.orca.q.complexPipeline
 import com.netflix.spinnaker.orca.q.failPlanningStage
 import com.netflix.spinnaker.orca.q.get
 import com.netflix.spinnaker.orca.q.multiTaskStage
@@ -72,6 +73,7 @@ import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.check
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.isA
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.never
@@ -91,6 +93,9 @@ import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
@@ -545,6 +550,37 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("does not publish any events") {
           verifyNoMoreInteractions(publisher)
+        }
+      }
+    }
+
+    given("the stage has multiple layers of upstream stages") {
+      val pipeline = complexPipeline
+      val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("Final").id)
+      fun withTimeout(timeoutMs: Long, block: () -> Unit) {
+        val executor = Executors.newSingleThreadExecutor()
+        val future = executor.submit(block)
+
+        try {
+          future.get(timeoutMs, TimeUnit.MILLISECONDS)
+        } catch (e: TimeoutException) {
+          future.cancel(true) // Force interruption
+          throw RuntimeException("Task timed out!")
+        } finally {
+          executor.shutdownNow()
+        }
+      }
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      it("handles a message in a timely manner") {
+        withTimeout(5000) {
+          subject.handle(message)
+          verify(queue).push(eq(message), any())
         }
       }
     }

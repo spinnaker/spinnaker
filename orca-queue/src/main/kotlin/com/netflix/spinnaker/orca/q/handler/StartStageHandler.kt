@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.q.handler
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.TaskImplementationResolver
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
@@ -26,10 +27,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.ext.allUpstreamStagesComplete
-import com.netflix.spinnaker.orca.ext.anyUpstreamStagesFailed
 import com.netflix.spinnaker.orca.ext.firstAfterStages
 import com.netflix.spinnaker.orca.ext.firstBeforeStages
 import com.netflix.spinnaker.orca.ext.firstTask
+import com.netflix.spinnaker.orca.ext.upstreamStages
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
@@ -78,20 +79,20 @@ class StartStageHandler(
   override fun handle(message: StartStage) {
     message.withStage { stage ->
       try {
-        stage.withAuth {
-          if (stage.anyUpstreamStagesFailed()) {
-            // this only happens in restart scenarios
-            log.warn("Tried to start stage ${stage.id} but something upstream had failed (executionId: ${message.executionId})")
-            queue.push(CompleteExecution(message))
-          } else if (stage.allUpstreamStagesComplete()) {
-            if (stage.status != NOT_STARTED) {
-              log.warn("Ignoring $message as stage is already ${stage.status}")
-            } else if (stage.shouldSkip()) {
-              queue.push(SkipStage(message))
-            } else if (stage.isAfterStartTimeExpiry()) {
-              log.warn("Stage is being skipped because its start time is after TTL (stageId: ${stage.id}, executionId: ${message.executionId})")
-              queue.push(SkipStage(stage))
-            } else {
+        if (stage.anyUpstreamStagesFailed()) {
+          // this only happens in restart scenarios
+          log.warn("Tried to start stage ${stage.id} but something upstream had failed (executionId: ${message.executionId})")
+          queue.push(CompleteExecution(message))
+        } else if (stage.allUpstreamStagesComplete()) {
+          if (stage.status != NOT_STARTED) {
+            log.warn("Ignoring $message as stage is already ${stage.status}")
+          } else if (stage.shouldSkip()) {
+            queue.push(SkipStage(message))
+          } else if (stage.isAfterStartTimeExpiry()) {
+            log.warn("Stage is being skipped because its start time is after TTL (stageId: ${stage.id}, executionId: ${message.executionId})")
+            queue.push(SkipStage(stage))
+          } else {
+            stage.withAuth {
               try {
                 // Set the startTime in case we throw an exception.
                 stage.startTime = clock.millis()
@@ -122,24 +123,23 @@ class StartStageHandler(
                 }
               }
             }
-          } else {
-            log.info("Re-queuing $message as upstream stages are not yet complete")
-            queue.push(message, retryDelay)
           }
+        } else {
+          log.info("Re-queuing $message as upstream stages are not yet complete")
+          queue.push(message, retryDelay)
         }
+
       } catch (e: Exception) {
-        message.withStage { stage ->
-          log.error("Error running ${stage.type}[${stage.id}] stage for ${message.executionType}[${message.executionId}]", e)
+        log.error("Error running ${stage.type}[${stage.id}] stage for ${message.executionType}[${message.executionId}]", e)
 
-          stage.apply {
-            val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.name)
-            context["exception"] = exceptionDetails
-            context["beforeStagePlanningFailed"] = true
-          }
-
-          repository.storeStage(stage)
-          queue.push(CompleteStage(message))
+        stage.apply {
+          val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.name)
+          context["exception"] = exceptionDetails
+          context["beforeStagePlanningFailed"] = true
         }
+
+        repository.storeStage(stage)
+        queue.push(CompleteStage(message))
       }
     }
   }
@@ -167,6 +167,32 @@ class StartStageHandler(
   }
 
   override val messageType = StartStage::class.java
+
+  private fun StageExecution.anyUpstreamStagesFailed(): Boolean {
+    // Memoized map of stageId to the result of anyUpstreamStagesFailed() for each stage
+    val memo = HashMap<String, Boolean>()
+
+    fun anyUpstreamStagesFailed(stage: StageExecution): Boolean {
+      val stageId = stage.id
+      if (memo.containsKey(stageId)) {
+        return memo[stageId]!!
+      }
+      for (upstreamStage in stage.upstreamStages()) {
+        if (upstreamStage.status in listOf(ExecutionStatus.TERMINAL, ExecutionStatus.STOPPED, ExecutionStatus.CANCELED)) {
+          memo[stageId] = true
+          return true
+        }
+        if (upstreamStage.status == NOT_STARTED && anyUpstreamStagesFailed(upstreamStage)) {
+          memo[stageId] = true
+          return true
+        }
+      }
+      memo[stageId] = false
+      return false
+    }
+
+    return anyUpstreamStagesFailed(this)
+  }
 
   private fun StageExecution.plan() {
     builder().let { builder ->
