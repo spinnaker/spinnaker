@@ -29,6 +29,8 @@ public class InstanceTemplates {
   private final Compute.InstanceTemplates computeApi;
   private final GoogleNamedAccountCredentials credentials;
   private final GlobalGoogleComputeRequestFactory requestFactory;
+  private static final String defaultView =
+      "FULL"; // https://cloud.google.com/sdk/gcloud/reference/beta/compute/instance-templates/list
 
   InstanceTemplates(
       GoogleNamedAccountCredentials credentials,
@@ -65,7 +67,11 @@ public class InstanceTemplates {
     return new PaginatedComputeRequestImpl<>(
         pageToken ->
             requestFactory.wrapRequest(
-                computeApi.list(credentials.getProject()).setPageToken(pageToken), "list"),
+                computeApi
+                    .list(credentials.getProject())
+                    .setPageToken(pageToken)
+                    .setView(defaultView),
+                "list"),
         InstanceTemplateList::getNextPageToken,
         InstanceTemplateList::getItems);
   }
