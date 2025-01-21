@@ -2,11 +2,9 @@ package com.netflix.spinnaker.orca.echo.spring
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.echo.EchoService
-import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Shared
 import spock.lang.Specification
@@ -14,6 +12,8 @@ import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener.INCLUDE_FULL_EXECUTION_PROPERTY
+import static com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener.IGNORE_TASK_EVENTS_PROPERTY
+
 
 class EchoNotifyingStageListenerSpec extends Specification {
 
@@ -30,6 +30,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
   @Shared
   def orchestrationStage = new StageExecutionImpl(PipelineExecutionImpl.newOrchestration("orca"), "test")
 
+  @Unroll
   def "triggers an event when a task step starts"() {
     given:
     def task = new TaskExecutionImpl(status: NOT_STARTED)
@@ -38,7 +39,12 @@ class EchoNotifyingStageListenerSpec extends Specification {
     echoListener.beforeTask(pipelineStage, task)
 
     then:
-    1 * echoService.recordEvent({ event -> event.details.type == "orca:task:starting" })
+    1 * dynamicConfigService.getConfig(Boolean, IGNORE_TASK_EVENTS_PROPERTY, false) >> ignoreTaskEvents
+    if (!ignoreTaskEvents) 1 * echoService.recordEvent({ event -> event.details.type == "orca:task:starting" })
+    else 0 * echoService.recordEvent(_)
+
+    where:
+    ignoreTaskEvents << [true, false]
   }
 
   def "triggers an event when a stage starts"() {
@@ -49,20 +55,25 @@ class EchoNotifyingStageListenerSpec extends Specification {
     1 * echoService.recordEvent({ event -> event.details.type == "orca:stage:starting" })
   }
 
+  @Unroll
   def "triggers an event when a task starts"() {
     given:
     def task = new TaskExecutionImpl(stageStart: false)
-
-    and:
-    def events = []
-    echoService.recordEvent(_) >> { events << it[0]; null }
 
     when:
     echoListener.beforeTask(pipelineStage, task)
 
     then:
-    events.size() == 1
-    events.details.type == ["orca:task:starting"]
+    1 * dynamicConfigService.getConfig(Boolean, IGNORE_TASK_EVENTS_PROPERTY, false) >> ignoreTaskEvents
+    if (!ignoreTaskEvents) {
+      def events = []
+      1 * echoService.recordEvent(_) >> { events << it[0]; null }
+      events.size() == 1
+      events.details.type == ["orca:task:starting"]
+    } else 0 * echoService.recordEvent(_)
+
+    where:
+    ignoreTaskEvents << [true, false]
   }
 
   @Unroll
@@ -75,17 +86,25 @@ class EchoNotifyingStageListenerSpec extends Specification {
     echoListener.afterTask(stage, task)
 
     then:
+    1 * dynamicConfigService.getConfig(Boolean, IGNORE_TASK_EVENTS_PROPERTY, false) >> ignoreTaskEvents
     invocations * echoService.recordEvent(_)
 
     where:
-    invocations | stage              | executionStatus | isEnd
-    0           | orchestrationStage | RUNNING         | false
-    1           | orchestrationStage | STOPPED         | false
-    1           | orchestrationStage | SUCCEEDED       | false
-    1           | pipelineStage      | SUCCEEDED       | false
-    1           | pipelineStage      | SUCCEEDED       | true
-    1           | pipelineStage      | TERMINAL        | false
-    1           | orchestrationStage | SUCCEEDED       | true
+    invocations | stage              | executionStatus | isEnd | ignoreTaskEvents
+    0           | orchestrationStage | RUNNING         | false | false
+    1           | orchestrationStage | STOPPED         | false | false
+    1           | orchestrationStage | SUCCEEDED       | false | false
+    1           | pipelineStage      | SUCCEEDED       | false | false
+    1           | pipelineStage      | SUCCEEDED       | true  | false
+    1           | pipelineStage      | TERMINAL        | false | false
+    1           | orchestrationStage | SUCCEEDED       | true  | false
+    0           | orchestrationStage | RUNNING         | false | true
+    0           | orchestrationStage | STOPPED         | false | true
+    0           | orchestrationStage | SUCCEEDED       | false | true
+    0           | pipelineStage      | SUCCEEDED       | false | true
+    0           | pipelineStage      | SUCCEEDED       | true  | true
+    0           | pipelineStage      | TERMINAL        | false | true
+    0           | orchestrationStage | SUCCEEDED       | true  | true
 
     taskName = "xxx"
   }
@@ -121,6 +140,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     echoListener.afterTask(stage, task)
 
     then:
+    1 * dynamicConfigService.getConfig(Boolean, IGNORE_TASK_EVENTS_PROPERTY, false) >> false
     1 * dynamicConfigService.getConfig(Boolean, INCLUDE_FULL_EXECUTION_PROPERTY, _) >> fullExecutionToggle
     message.details.source == "orca"
     message.details.application == pipelineStage.execution.application

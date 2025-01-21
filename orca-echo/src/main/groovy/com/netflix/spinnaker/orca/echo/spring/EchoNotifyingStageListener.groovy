@@ -41,6 +41,7 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHE
 @Slf4j
 class EchoNotifyingStageListener implements StageListener {
   public static final String INCLUDE_FULL_EXECUTION_PROPERTY = "echo.events.includeFullExecution"
+  public static final String IGNORE_TASK_EVENTS_PROPERTY = "echo.events.ignoreTaskEvents"
   private final EchoService echoService
   private final ContextParameterProcessor contextParameterProcessor
   private final DynamicConfigService dynamicConfigService
@@ -56,7 +57,9 @@ class EchoNotifyingStageListener implements StageListener {
 
   @Override
   void beforeTask(StageExecution stage, TaskExecution task) {
-    recordEvent('task', 'starting', stage, task)
+    if (!dynamicConfigService.getConfig(Boolean, IGNORE_TASK_EVENTS_PROPERTY, false)) {
+      recordEvent('task', 'starting', stage, task)
+    }
   }
 
   @Override
@@ -69,7 +72,7 @@ class EchoNotifyingStageListener implements StageListener {
   void afterTask(StageExecution stage,
                  TaskExecution task) {
     ExecutionStatus status = task.getStatus()
-    if (status == RUNNING) {
+    if (dynamicConfigService.getConfig(Boolean, IGNORE_TASK_EVENTS_PROPERTY, false) || status == RUNNING) {
       return
     }
 
