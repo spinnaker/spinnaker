@@ -86,36 +86,38 @@ class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
     getAccounts().each { NetflixAmazonCredentials credentials ->
       credentials.regions.each { AmazonCredentials.AWSRegion region ->
         log.info("Looking for alarms to delete")
+        try {
+          def cloudWatch = amazonClientProvider.getCloudWatch(credentials, region.name)
+          Set<String> attachedAlarms = getAttachedAlarms(amazonClientProvider.getAutoScaling(credentials, region.name))
+          def describeAlarmsRequest = new DescribeAlarmsRequest().withStateValue(StateValue.INSUFFICIENT_DATA)
 
-        def cloudWatch = amazonClientProvider.getCloudWatch(credentials, region.name)
-        Set<String> attachedAlarms = getAttachedAlarms(amazonClientProvider.getAutoScaling(credentials, region.name))
-        def describeAlarmsRequest = new DescribeAlarmsRequest().withStateValue(StateValue.INSUFFICIENT_DATA)
+          while (true) {
+            def result = cloudWatch.describeAlarms(describeAlarmsRequest)
 
-        while (true) {
-          def result = cloudWatch.describeAlarms(describeAlarmsRequest)
-
-          List<MetricAlarm> alarmsToDelete = result.metricAlarms.findAll {
-            it.stateUpdatedTimestamp.before(DateTime.now().minusDays(daysToLeave).toDate()) &&
-              !attachedAlarms.contains(it.alarmName) &&
-              ALARM_NAME_PATTERN.matcher(it.alarmName).matches()
-          }
-
-          if (alarmsToDelete) {
-            // terminate up to 20 alarms at a time (avoids any AWS limits on # of concurrent deletes)
-            alarmsToDelete.collate(20).each {
-              log.info("Deleting ${it.size()} alarms in ${credentials.name}/${region.name} " +
-                "(alarms: ${it.alarmName.join(", ")})")
-              cloudWatch.deleteAlarms(new DeleteAlarmsRequest().withAlarmNames(it.alarmName))
-              Thread.sleep(500)
+            List<MetricAlarm> alarmsToDelete = result.metricAlarms.findAll {
+              it.stateUpdatedTimestamp.before(DateTime.now().minusDays(daysToLeave).toDate()) &&
+                !attachedAlarms.contains(it.alarmName) &&
+                ALARM_NAME_PATTERN.matcher(it.alarmName).matches()
             }
 
-          }
+            if (alarmsToDelete) {
+              // terminate up to 20 alarms at a time (avoids any AWS limits on # of concurrent deletes)
+              alarmsToDelete.collate(20).each {
+                log.info("Deleting ${it.size()} alarms in ${credentials.name}/${region.name} " +
+                  "(alarms: ${it.alarmName.join(", ")})")
+                cloudWatch.deleteAlarms(new DeleteAlarmsRequest().withAlarmNames(it.alarmName))
+                Thread.sleep(500)
+              }
+            }
 
-          if (result.nextToken) {
-            describeAlarmsRequest.withNextToken(result.nextToken)
-          } else {
-            break
+            if (result.nextToken) {
+              describeAlarmsRequest.withNextToken(result.nextToken)
+            } else {
+              break
+            }
           }
+        } catch (Exception e) {
+          log.error("Error occurred while processing alarms for ${credentials.name}/${region.name}: ${e.message}", e)
         }
       }
     }

@@ -74,7 +74,7 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
     getAccounts().each { NetflixAmazonCredentials credentials ->
       credentials.regions.each { AmazonCredentials.AWSRegion region ->
         log.info("Looking for instances pending termination in ${credentials.name}:${region.name}")
-
+        try {
         def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name, true)
         def describeInstancesRequest = new DescribeInstancesRequest().withFilters(
           new Filter("tag-key", [DetachInstancesAtomicOperation.TAG_PENDING_TERMINATION])
@@ -102,6 +102,9 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
           } else {
             break
           }
+        }
+        } catch (Exception e) {
+          log.error("Error occurred while processing instances pending termination for ${credentials.name}/${region.name}: ${e.message}", e)
         }
       }
     }
