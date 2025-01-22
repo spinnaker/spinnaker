@@ -21,6 +21,11 @@ export interface ICustomizedMetricSpecification {
 
 export interface IPredefinedMetricSpecification {
   predefinedMetricType: PredefinedMetricType;
+  resourceLabel?: string;
 }
 
-export type PredefinedMetricType = 'ASGAverageCPUUtilization' | 'ASGAverageNetworkIn' | 'ASGAverageNetworkOut';
+export type PredefinedMetricType =
+  | 'ASGAverageCPUUtilization'
+  | 'ASGAverageNetworkIn'
+  | 'ASGAverageNetworkOut'
+  | 'ALBRequestCountPerTarget';

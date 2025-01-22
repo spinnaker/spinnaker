@@ -11,7 +11,11 @@ export interface IMetricAlarmDimension {
 
 interface IDataPoint {
   timestamp: number;
-  average: number;
+  average?: number;
+  sum?: number;
+  minimum?: number;
+  maximum?: number;
+  sampleCount?: number;
 }
 
 export interface ICloudMetricStatistics {

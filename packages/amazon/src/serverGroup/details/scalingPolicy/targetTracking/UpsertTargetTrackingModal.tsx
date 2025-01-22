@@ -58,6 +58,7 @@ export const UpsertTargetTrackingModal = ({
             cloudwatch={false}
             command={command as ITargetTrackingPolicyCommand}
             isCustomMetric={isCustom}
+            app={app}
             serverGroup={serverGroup}
             toggleMetricType={(t) => setIsCustom(t === 'custom')}
             updateCommand={setCommand}

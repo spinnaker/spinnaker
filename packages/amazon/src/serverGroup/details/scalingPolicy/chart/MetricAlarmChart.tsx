@@ -1,3 +1,4 @@
+import { get } from 'lodash';
 import * as React from 'react';
 
 import type { ICloudMetricStatistics } from '@spinnaker/core';
@@ -36,7 +37,7 @@ export function MetricAlarmChartImpl(props: IMetricAlarmChartProps) {
       return result;
     },
     { datapoints: [], unit: '' },
-    [namespace, statistic, period, type, account, region, metricName],
+    [namespace, statistic, period, type, account, region, metricName, alarm.dimensions],
   );
 
   if (status === 'PENDING') {
@@ -60,13 +61,15 @@ export function MetricAlarmChartImpl(props: IMetricAlarmChartProps) {
 
   const now = new Date();
   const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 24);
-
   const line: IDateLine = {
     label: metricName,
     fill: 'stack',
     borderColor: 'green',
     borderWidth: 2,
-    data: result.datapoints.map((dp) => ({ x: new Date(dp.timestamp), y: dp.average })),
+    data: result.datapoints.map((dp) => ({
+      x: new Date(dp.timestamp),
+      y: get(dp, [alarm.statistic.toLowerCase()], undefined),
+    })),
   };
 
   const setline: IDateLine = {

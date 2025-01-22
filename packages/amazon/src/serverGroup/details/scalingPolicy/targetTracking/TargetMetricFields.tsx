@@ -2,10 +2,17 @@ import { cloneDeep, set } from 'lodash';
 import * as React from 'react';
 
 import { NumberInput, ReactSelectInput } from '@spinnaker/core';
+import type { Application, ILoadBalancer } from '@spinnaker/core';
 
 import type { ITargetTrackingPolicyCommand } from '../ScalingPolicyWriter';
 import { TargetTrackingChart } from './TargetTrackingChart';
-import type { IAmazonServerGroup, ICustomizedMetricSpecification, IScalingPolicyAlarmView } from '../../../../domain';
+import type {
+  IAmazonApplicationLoadBalancer,
+  IAmazonServerGroup,
+  ICustomizedMetricSpecification,
+  IScalingPolicyAlarmView,
+  ITargetGroup,
+} from '../../../../domain';
 import { MetricSelector } from '../upsert/alarm/MetricSelector';
 
 import './TargetMetricFields.less';
@@ -16,9 +23,18 @@ export interface ITargetMetricFieldsProps {
   cloudwatch?: boolean;
   command: ITargetTrackingPolicyCommand;
   isCustomMetric: boolean;
+  app: Application;
   serverGroup: IAmazonServerGroup;
   toggleMetricType?: (type: MetricType) => void;
   updateCommand: (command: ITargetTrackingPolicyCommand) => void;
+}
+
+interface IalbArn {
+  loadBalancerArn: string;
+}
+
+interface ItargetGroupArn {
+  targetGroupArn: string;
 }
 
 export const TargetMetricFields = ({
@@ -26,11 +42,17 @@ export const TargetMetricFields = ({
   cloudwatch,
   command,
   isCustomMetric,
+  app,
   serverGroup,
   toggleMetricType,
   updateCommand,
 }: ITargetMetricFieldsProps) => {
-  const predefinedMetrics = ['ASGAverageCPUUtilization', 'ASGAverageNetworkOut', 'ASGAverageNetworkIn'];
+  const predefinedMetrics = [
+    'ASGAverageCPUUtilization',
+    'ASGAverageNetworkOut',
+    'ASGAverageNetworkIn',
+    'ALBRequestCountPerTarget',
+  ];
   const statistics = ['Average', 'Maximum', 'Minimum', 'SampleCount', 'Sum'];
   const [unit, setUnit] = React.useState<string>(null);
 
@@ -65,6 +87,24 @@ export const TargetMetricFields = ({
     toggleMetricType(isCustomMetric ? 'predefined' : 'custom');
   };
 
+  const targetGroupOptions = () => {
+    const loadBalancers = app.loadBalancers.data as ILoadBalancer[];
+    const albs = loadBalancers.filter(
+      (lb) => lb.account === serverGroup.account && lb.region === serverGroup.region,
+    ) as Array<IAmazonApplicationLoadBalancer & IalbArn>;
+    const targetGroups = albs.flatMap((alb) =>
+      alb.targetGroups
+        .filter((tg) => serverGroup.targetGroups.some((serverGroupTg) => serverGroupTg === tg.name))
+        .map((tg) => ({ ...tg, loadBalancerArn: alb.loadBalancerArn })),
+    ) as Array<ITargetGroup & IalbArn & ItargetGroupArn>;
+    return targetGroups.map((tg) => ({
+      label: tg.name,
+      value: `${tg.loadBalancerArn.substring(tg.loadBalancerArn.indexOf('app'))}/${tg.targetGroupArn.substring(
+        tg.targetGroupArn.indexOf('targetgroup'),
+      )}`,
+    }));
+  };
+
   return (
     <div className="TargetMetricFields sp-margin-l-xaxis">
       <p>
@@ -94,6 +134,7 @@ export const TargetMetricFields = ({
               inputClassName="metric-select-input"
             />
           )}
+
           {isCustomMetric && (
             <MetricSelector
               alarm={command.targetTrackingConfiguration.customizedMetricSpecification as IScalingPolicyAlarmView}
@@ -108,6 +149,26 @@ export const TargetMetricFields = ({
           )}
         </div>
       </div>
+      {!isCustomMetric &&
+        command.targetTrackingConfiguration.predefinedMetricSpecification?.predefinedMetricType ===
+          'ALBRequestCountPerTarget' && (
+          <div className="row sp-margin-s-yaxis">
+            <div className="col-md-2 sm-label-right">Target Group</div>
+            <div className="col-md-10 content-fields horizontal">
+              <ReactSelectInput
+                value={command.targetTrackingConfiguration.predefinedMetricSpecification?.resourceLabel}
+                options={targetGroupOptions()}
+                onChange={(e) =>
+                  setCommandField(
+                    'targetTrackingConfiguration.predefinedMetricSpecification.resourceLabel',
+                    e.target.value,
+                  )
+                }
+                inputClassName="metric-select-input"
+              />
+            </div>
+          </div>
+        )}
       <div className="row sp-margin-s-yaxis">
         <div className="col-md-2 sm-label-right">Target</div>
         <div className="col-md-10 content-fields horizontal">
