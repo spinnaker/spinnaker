@@ -228,12 +228,16 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       // check `manifest` for backwards compatibility until all existing stages have been updated.
       @SuppressWarnings("deprecation")
       KubernetesManifest manifest = description.getManifest();
-      log.warn(
-          "Relying on deprecated single manifest input (account: {}, kind: {}, name: {})",
-          accountName,
-          manifest.getKind(),
-          manifest.getName());
-      inputManifests = ImmutableList.of(manifest);
+
+      // manifest may be null as well, so check
+      if (manifest != null) {
+        log.warn(
+            "Relying on deprecated single manifest input (account: {}, kind: {}, name: {})",
+            accountName,
+            manifest.getKind(),
+            manifest.getName());
+        inputManifests = ImmutableList.of(manifest);
+      }
     }
     inputManifests = inputManifests.stream().filter(Objects::nonNull).collect(Collectors.toList());
     return inputManifests;

@@ -503,6 +503,13 @@ final class KubernetesDeployManifestOperationTest {
             anyString());
   }
 
+  @Test
+  void deployEmptyResource() {
+    KubernetesDeployManifestDescription deployManifestDescription =
+        baseDeployDescription("deploy/empty-resource.yml");
+    deploy(deployManifestDescription);
+  }
+
   private static KubernetesDeployManifestDescription baseDeployDescription(String manifest) {
     return baseDeployDescription(manifest, false);
   }
