@@ -79,4 +79,29 @@ Final output
       true                | COMBINED_OUTPUT | COMBINED_OUTPUT
       false               | EXPECTED_OUTPUT | EXPECTED_LOGS
   }
+
+  void 'job executor handles empty output'() {
+      def jobRequest = new JobRequest(
+          tokenizedCommand: ["true"],
+          jobId: SOME_JOB_ID,
+          combineStdOutAndErr: false)
+
+      @Subject
+      def jobExecutorLocal = new JobExecutorLocal(
+          registry: new DefaultRegistry(),
+          timeoutMinutes: 1)
+
+    when:
+      def jobId = jobExecutorLocal.startJob(jobRequest)
+      // Give the script time to run + 100 ms fudge factor
+      sleep(3000)
+      def bakeStatus = jobExecutorLocal.updateJob(jobId)
+
+    then:
+      bakeStatus != null
+      bakeStatus.state == BakeStatus.State.COMPLETED
+      bakeStatus.result == BakeStatus.Result.SUCCESS
+      bakeStatus.outputContent == ""
+      bakeStatus.logsContent == "No output from command."
+  }
 }
