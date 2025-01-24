@@ -230,6 +230,16 @@ class DualExecutionRepository(
       ).distinctBy { it.id }
   }
 
+  override fun retrievePipelineConfigIdsForApplicationWithCriteria(
+    @Nonnull application: String,
+    @Nonnull criteria: ExecutionCriteria
+  ): List<String> {
+    return (
+      primary.retrievePipelineConfigIdsForApplicationWithCriteria(application, criteria) +
+        previous.retrievePipelineConfigIdsForApplicationWithCriteria(application, criteria)
+      ).distinct()
+  }
+
   override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
     pipelineConfigIds: MutableList<String>,
     buildTimeStartBoundary: Long,

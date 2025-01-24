@@ -305,6 +305,16 @@ class InMemoryExecutionRepository : ExecutionRepository {
       .distinctBy { it.id }
   }
 
+  override fun retrievePipelineConfigIdsForApplicationWithCriteria(
+    @Nonnull application: String,
+    @Nonnull criteria: ExecutionCriteria
+  ): List<String> {
+    return pipelines.values
+      .filter { it.application == application }
+      .applyCriteria(criteria)
+      .map { it.id }
+  }
+
   override fun retrieveOrchestrationForCorrelationId(correlationId: String): PipelineExecution {
     return retrieveByCorrelationId(ORCHESTRATION, correlationId)
   }

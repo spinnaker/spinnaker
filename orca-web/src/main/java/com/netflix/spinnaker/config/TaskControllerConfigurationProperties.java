@@ -65,6 +65,8 @@ public class TaskControllerConfigurationProperties {
   /** moved this to here. Earlier definition was in the {@link TaskController} class */
   int numberOfOldPipelineExecutionsToInclude = 2;
 
+  boolean excludeExecutionsOfDisabledPipelines = false;
+
   public boolean getOptimizeExecutionRetrieval() {
     return this.optimizeExecutionRetrieval;
   }

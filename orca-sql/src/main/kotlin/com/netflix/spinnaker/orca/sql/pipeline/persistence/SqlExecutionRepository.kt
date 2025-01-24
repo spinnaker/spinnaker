@@ -467,6 +467,33 @@ class SqlExecutionRepository(
         .fetch(0, String::class.java)
     }
 
+  override fun retrievePipelineConfigIdsForApplicationWithCriteria(
+    application: String,
+    criteria: ExecutionCriteria
+  ): List<String> {
+    var baseQueryPredicate = field("application").eq(application)
+
+    if (criteria.statuses.isNotEmpty() && criteria.statuses.size != ExecutionStatus.values().size) {
+      val statusStrings = criteria.statuses.map { it.toString() }
+      baseQueryPredicate = baseQueryPredicate
+        .and(field("status").`in`(*statusStrings.toTypedArray()))
+    }
+    if (criteria.startTimeCutoff != null) {
+      baseQueryPredicate = baseQueryPredicate
+        .and(
+          field("start_time").greaterThan(criteria.startTimeCutoff!!.toEpochMilli())
+        )
+    }
+
+    withPool(readPoolName) {
+      return jooq.selectDistinct(field("config_id"))
+        .from(PIPELINE.tableName)
+        .where(baseQueryPredicate)
+        .groupBy(field("config_id"))
+        .fetch(0, String::class.java)
+    }
+  }
+
   /**
    * this function supports the following ExecutionCriteria currently:
    * 'limit', a.k.a page size and

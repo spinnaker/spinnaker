@@ -107,6 +107,9 @@ public interface ExecutionRepository {
       @Nonnull List<String> pipelineConfigIds,
       int queryTimeoutSeconds);
 
+  List<String> retrievePipelineConfigIdsForApplicationWithCriteria(
+      @Nonnull String application, @Nonnull ExecutionCriteria criteria);
+
   /**
    * Returns executions in the time boundary. Redis impl does not respect pageSize or offset params,
    * and returns all executions. Sql impl respects these params.

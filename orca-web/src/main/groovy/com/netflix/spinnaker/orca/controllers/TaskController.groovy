@@ -606,7 +606,7 @@ class TaskController {
     )
 
     // get all relevant pipeline and strategy configs from front50
-    def pipelineConfigIds = front50Service.getPipelines(application, false)*.id as List<String>
+    def pipelineConfigIds = front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null)*.id as List<String>
     log.debug("received ${pipelineConfigIds.size()} pipelines for application: $application from front50")
     def strategyConfigIds = front50Service.getStrategies(application)*.id as List<String>
     log.debug("received ${strategyConfigIds.size()} strategies for application: $application from front50")

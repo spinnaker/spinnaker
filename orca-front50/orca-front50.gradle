@@ -40,6 +40,9 @@ dependencies {
   testImplementation("com.github.ben-manes.caffeine:guava")
   testImplementation("org.apache.groovy:groovy-json")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.mockito:mockito-junit-jupiter")
 }
 
 sourceSets {

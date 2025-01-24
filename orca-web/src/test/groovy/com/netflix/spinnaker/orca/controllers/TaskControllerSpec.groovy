@@ -248,7 +248,8 @@ class TaskControllerSpec extends Specification {
         pipelineConfigId = config.pipelineConfigId
       }
     })
-    front50Service.getPipelines(app, false) >> [[id: "1"], [id: "2"]]
+    taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines = excludeExecutionsOfDisabledPipelines
+    front50Service.getPipelines(app, false, taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines ? true : null) >> front50ConfigIds
     front50Service.getStrategies(app) >> []
 
     executionRepository.retrievePipelineConfigIdsForApplication(app) >> { return List.of( '2')}
@@ -258,7 +259,13 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    results.id == ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
+    results.id == resultsIds
+
+    where:
+    excludeExecutionsOfDisabledPipelines  | front50ConfigIds        | resultsIds
+    null                                  | [[id: "1"], [id: "2"]]  | ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
+    false                                 | [[id: "1"], [id: "2"]]  | ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
+    true                                  | [[id: "2"]]             | ['older2', 'older1']
   }
 
   void '/applications/{application}/evaluateExpressions precomputes values'() {

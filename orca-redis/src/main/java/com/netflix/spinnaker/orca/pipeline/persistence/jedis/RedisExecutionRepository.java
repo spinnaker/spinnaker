@@ -510,6 +510,15 @@ public class RedisExecutionRepository implements ExecutionRepository {
     return List.of();
   }
 
+  @Override
+  public @Nonnull List<String> retrievePipelineConfigIdsForApplicationWithCriteria(
+      @Nonnull String application, @Nonnull ExecutionCriteria criteria) {
+    // TODO: not implemented yet - this method, at present, is primarily meant for the
+    // SqlExecutionRepository
+    //  implementation.
+    return List.of();
+  }
+
   /*
    * There is no guarantee that the returned results will be sorted.
    * @param limit and the param @offset are only implemented in SqlExecutionRepository
