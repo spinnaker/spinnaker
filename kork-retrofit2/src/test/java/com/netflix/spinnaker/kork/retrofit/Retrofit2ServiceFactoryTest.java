@@ -50,6 +50,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.http.GET;
 
 @SpringBootTest(
@@ -98,6 +99,25 @@ public class Retrofit2ServiceFactoryTest {
     Map<String, String> response = Retrofit2SyncCall.execute(retrofit2TestService.getSomething());
 
     assertEquals(response.get("message"), "success");
+  }
+
+  @Test
+  void testRetrofit2ClientWithResponse() {
+    stubFor(
+        get(urlEqualTo("/test"))
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"message\": \"success\", \"code\": 200}")));
+
+    ServiceEndpoint serviceEndpoint =
+        new DefaultServiceEndpoint("retrofit2service", "http://localhost:" + port);
+    Retrofit2TestService retrofit2TestService =
+        serviceClientProvider.getService(Retrofit2TestService.class, serviceEndpoint);
+    Response<Map<String, String>> response =
+        Retrofit2SyncCall.executeCall(retrofit2TestService.getSomething());
+
+    assertEquals(response.body().get("message"), "success");
   }
 
   @Test
