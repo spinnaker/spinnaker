@@ -111,6 +111,10 @@ public interface IgorService {
   GoogleCloudBuild createGoogleCloudBuild(
       @Path("account") String account, @Body Map<String, Object> job);
 
+  @POST("/gcb/builds/stop/{account}/{buildId}")
+  GoogleCloudBuild stopGoogleCloudBuild(
+      @Path("account") String account, @Path("buildId") String buildId);
+
   @GET("/gcb/builds/{account}/{buildId}")
   GoogleCloudBuild getGoogleCloudBuild(
       @Path("account") String account, @Path("buildId") String buildId);
