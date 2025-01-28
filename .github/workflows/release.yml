@@ -18,7 +18,7 @@ jobs:
       # Given a tag, determine what branch we are on, so we can bump dependencies in the correct branch
       - name: Get Branch
         run: |
-          BRANCHES=$(git branch -r --contains ${{ github.ref }})
+          BRANCHES=$(git branch -r --contains ${{ github.ref }} | grep -v 'HEAD')
           echo "BRANCHES is '${BRANCHES}'"
           # Check for no branches explicitly...Otherwise echo adds a newline so wc thinks there's
           # one branch.  And echo -n makes it appears that there's one less branch than there
