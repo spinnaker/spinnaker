@@ -39,7 +39,7 @@ public interface IgorService {
       @Path("name") String master,
       @Path(encode = false, value = "jobName") String jobName,
       @Path(encode = false, value = "queuedBuild") String queuedBuild,
-      @Path(encode = false, value = "buildNumber") Integer buildNumber,
+      @Path(encode = false, value = "buildNumber") Long buildNumber,
       @Body String ignored);
 
   @PUT("/masters/{name}/jobs/stop/{queuedBuild}/{buildNumber}")
@@ -47,14 +47,14 @@ public interface IgorService {
       @Path("name") String master,
       @Query(value = "jobName") String jobName,
       @Path(encode = false, value = "queuedBuild") String queuedBuild,
-      @Path(encode = false, value = "buildNumber") Integer buildNumber,
+      @Path(encode = false, value = "buildNumber") Long buildNumber,
       @Body String ignored);
 
   @PATCH("/masters/{name}/jobs/{jobName}/update/{buildNumber}")
   Response update(
       @Path("name") String master,
       @Path(encode = false, value = "jobName") String jobName,
-      @Path(encode = false, value = "buildNumber") Integer buildNumber,
+      @Path(encode = false, value = "buildNumber") Long buildNumber,
       @Body UpdatedBuild updatedBuild);
 
   @GET("/builds/queue/{master}/{item}")
@@ -62,26 +62,26 @@ public interface IgorService {
 
   @GET("/builds/status/{buildNumber}/{master}/{job}")
   Map<String, Object> getBuild(
-      @Path("buildNumber") Integer buildNumber,
+      @Path("buildNumber") Long buildNumber,
       @Path("master") String master,
       @Path(encode = false, value = "job") String job);
 
   @GET("/builds/status/{buildNumber}/{master}")
   Map<String, Object> getBuildWithJobAsQueryParam(
-      @Path("buildNumber") Integer buildNumber,
+      @Path("buildNumber") Long buildNumber,
       @Path("master") String master,
       @Query(encodeValue = false, value = "job") String job);
 
   @GET("/builds/properties/{buildNumber}/{fileName}/{master}/{job}")
   Map<String, Object> getPropertyFile(
-      @Path("buildNumber") Integer buildNumber,
+      @Path("buildNumber") Long buildNumber,
       @Path("fileName") String fileName,
       @Path("master") String master,
       @Path(encode = false, value = "job") String job);
 
   @GET("/builds/properties/{buildNumber}/{fileName}/{master}")
   Map<String, Object> getPropertyFileWithJobAsQueryParam(
-      @Path("buildNumber") Integer buildNumber,
+      @Path("buildNumber") Long buildNumber,
       @Path("fileName") String fileName,
       @Path("master") String master,
       @Query(encodeValue = false, value = "job") String job);
@@ -95,14 +95,14 @@ public interface IgorService {
 
   @GET("/builds/artifacts/{buildNumber}/{master}/{job}")
   List<Artifact> getArtifacts(
-      @Path("buildNumber") Integer buildNumber,
+      @Path("buildNumber") Long buildNumber,
       @Query("propertyFile") String propertyFile,
       @Path("master") String master,
       @Path(value = "job", encode = false) String job);
 
   @GET("/builds/artifacts/{buildNumber}/{master}")
   List<Artifact> getArtifactsWithJobAsQueryParam(
-      @Path("buildNumber") Integer buildNumber,
+      @Path("buildNumber") Long buildNumber,
       @Query("propertyFile") String propertyFile,
       @Path("master") String master,
       @Query(value = "job", encodeValue = false) String job);

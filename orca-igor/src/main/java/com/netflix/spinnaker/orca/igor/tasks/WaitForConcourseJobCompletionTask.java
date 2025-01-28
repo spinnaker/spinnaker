@@ -51,7 +51,7 @@ public class WaitForConcourseJobCompletionTask implements OverridableTimeoutRetr
 
     Map<String, Object> buildMap =
         buildService.getBuild(
-            (Integer) stage.getContext().get("buildNumber"), stageDefinition.getMaster(), jobPath);
+            (Long) stage.getContext().get("buildNumber"), stageDefinition.getMaster(), jobPath);
 
     ConcourseBuildInfo buildInfo = mapper.convertValue(buildMap, ConcourseBuildInfo.class);
 

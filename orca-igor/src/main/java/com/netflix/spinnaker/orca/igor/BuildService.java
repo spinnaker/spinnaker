@@ -42,7 +42,7 @@ public class BuildService {
     return igorService.build(master, encode(jobName), queryParams, startTime);
   }
 
-  public String stop(String master, String jobName, String queuedBuild, Integer buildNumber) {
+  public String stop(String master, String jobName, String queuedBuild, Long buildNumber) {
     return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
         ? igorService.stopWithJobNameAsQueryParameter(master, jobName, queuedBuild, buildNumber, "")
         : igorService.stop(master, jobName, queuedBuild, buildNumber, "");
@@ -52,28 +52,27 @@ public class BuildService {
     return igorService.queuedBuild(master, item);
   }
 
-  public Map<String, Object> getBuild(Integer buildNumber, String master, String job) {
+  public Map<String, Object> getBuild(Long buildNumber, String master, String job) {
     return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
         ? igorService.getBuildWithJobAsQueryParam(buildNumber, master, encode(job))
         : igorService.getBuild(buildNumber, master, encode(job));
   }
 
   public Map<String, Object> getPropertyFile(
-      Integer buildNumber, String fileName, String master, String job) {
+      Long buildNumber, String fileName, String master, String job) {
     return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
         ? igorService.getPropertyFileWithJobAsQueryParam(buildNumber, fileName, master, encode(job))
         : igorService.getPropertyFile(buildNumber, fileName, master, encode(job));
   }
 
-  public List<Artifact> getArtifacts(
-      Integer buildNumber, String fileName, String master, String job) {
+  public List<Artifact> getArtifacts(Long buildNumber, String fileName, String master, String job) {
     return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
         ? igorService.getArtifactsWithJobAsQueryParam(buildNumber, fileName, master, encode(job))
         : igorService.getArtifacts(buildNumber, fileName, master, encode(job));
   }
 
   public Response updateBuild(
-      String master, String jobName, Integer buildNumber, IgorService.UpdatedBuild updatedBuild) {
+      String master, String jobName, Long buildNumber, IgorService.UpdatedBuild updatedBuild) {
     return igorService.update(master, jobName, buildNumber, updatedBuild);
   }
 }

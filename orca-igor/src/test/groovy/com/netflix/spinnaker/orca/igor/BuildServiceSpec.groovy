@@ -24,7 +24,7 @@ class BuildServiceSpec extends Specification {
   IgorService igorService
 
   private static final MASTER = 'MASTER'
-  private static final BUILD_NUMBER = 123
+  private static final BUILD_NUMBER = 1234567890123
   private static final JOB_NAME = "name/with/slashes and spaces"
   private static final JOB_NAME_ENCODED = "name/with/slashes%20and%20spaces"
   private static final PARAMS = ['key': 'value']
