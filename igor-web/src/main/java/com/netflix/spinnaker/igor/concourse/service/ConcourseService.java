@@ -145,7 +145,7 @@ public class ConcourseService implements BuildOperations, BuildProperties {
 
   @Nullable
   @Override
-  public GenericBuild getGenericBuild(String jobPath, int buildNumber) {
+  public GenericBuild getGenericBuild(String jobPath, long buildNumber) {
     return getBuilds(jobPath, null).stream()
         .filter(build -> build.getNumber() == buildNumber)
         .sorted()
@@ -322,7 +322,7 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public int triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
+  public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
     throw new UnsupportedOperationException("Triggering concourse builds not supported");
   }
 

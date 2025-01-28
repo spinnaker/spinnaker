@@ -26,7 +26,7 @@ class QueuedJob {
     QueuedExecutable executable
 
     @XmlElement(name = 'number')
-    Integer getNumber() {
+    Long getNumber() {
         return executable?.number
     }
 }
@@ -34,5 +34,5 @@ class QueuedJob {
 
 class QueuedExecutable {
     @XmlElement
-    Integer number
+    Long number
 }

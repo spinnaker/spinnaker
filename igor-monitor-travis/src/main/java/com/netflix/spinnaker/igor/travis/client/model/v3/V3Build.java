@@ -41,7 +41,7 @@ public class V3Build {
   private V3Branch branch;
 
   @JsonProperty("commit_id")
-  private int commitId;
+  private long commitId;
 
   private V3Commit commit;
 
@@ -50,14 +50,14 @@ public class V3Build {
   @JsonProperty("event_type")
   private String eventType;
 
-  @EqualsAndHashCode.Include private int id;
+  @EqualsAndHashCode.Include private long id;
 
   private V3Repository repository;
 
   @JsonProperty("repository_id")
-  private int repositoryId;
+  private long repositoryId;
 
-  private int number;
+  private long number;
 
   @EqualsAndHashCode.Include private TravisBuildState state;
 

@@ -57,7 +57,7 @@ public interface TravisClient {
   public abstract Builds builds(
       @Header("Authorization") String accessToken,
       @Query("slug") String repoSlug,
-      @Query("number") int buildNumber);
+      @Query("number") long buildNumber);
 
   @POST("/repo/{repoSlug}/requests")
   @Headers("Travis-API-Version: 3")
@@ -79,14 +79,14 @@ public interface TravisClient {
   @Headers("Travis-API-Version: 3")
   public abstract V3Build v3build(
       @Header("Authorization") String accessToken,
-      @Path("build_id") int buildId,
+      @Path("build_id") long buildId,
       @Query("include") String include);
 
   @GET("/repo/{repository_id}/builds")
   @Headers("Travis-API-Version: 3")
   public abstract V3Builds builds(
       @Header("Authorization") String accessToken,
-      @Path("repository_id") int repositoryId,
+      @Path("repository_id") long repositoryId,
       @Query("limit") int limit,
       @Query("include") String include);
 
@@ -130,8 +130,8 @@ public interface TravisClient {
   @Headers("Travis-API-Version: 3")
   public abstract Request request(
       @Header("Authorization") String accessToken,
-      @Path("repository_id") int repositoryId,
-      @Path("request_id") int requestId);
+      @Path("repository_id") long repositoryId,
+      @Path("request_id") long requestId);
 
   @GET("/jobs")
   @Headers("Travis-API-Version: 3")

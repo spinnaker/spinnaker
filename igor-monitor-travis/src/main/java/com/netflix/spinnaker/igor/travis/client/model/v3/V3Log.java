@@ -76,7 +76,7 @@ public class V3Log {
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class V3LogPart {
     private String content;
-    private Integer number;
+    private Long number;
     private boolean isFinal;
 
     public String getContent() {
@@ -87,11 +87,11 @@ public class V3Log {
       this.content = content;
     }
 
-    public Integer getNumber() {
+    public Long getNumber() {
       return number;
     }
 
-    public void setNumber(Integer number) {
+    public void setNumber(Long number) {
       this.number = number;
     }
 

@@ -53,7 +53,7 @@ public class TravisBuildConverter {
     return genericBuild;
   }
 
-  public static String url(String repoSlug, String baseUrl, int id) {
+  public static String url(String repoSlug, String baseUrl, long id) {
     return baseUrl + "/" + repoSlug + "/builds/" + id;
   }
 }

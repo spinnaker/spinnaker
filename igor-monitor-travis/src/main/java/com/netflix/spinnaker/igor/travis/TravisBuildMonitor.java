@@ -131,7 +131,7 @@ public class TravisBuildMonitor
     delta.getItems().forEach(item -> processBuild(sendEvents, master, travisService, item));
 
     // Find id of processed builds
-    Set<Integer> processedBuilds =
+    Set<Long> processedBuilds =
         delta.getItems().stream()
             .map(BuildDelta::getBuild)
             .map(V3Build::getId)
@@ -140,7 +140,7 @@ public class TravisBuildMonitor
     // Check for tracked builds that have fallen out of the tracking window (can happen for long
     // running Travis jobs)
     buildCache.getTrackedBuilds(master).stream()
-        .mapToInt(build -> Integer.parseInt(build.get("buildId")))
+        .mapToLong(build -> Long.parseLong(build.get("buildId")))
         .filter(id -> !processedBuilds.contains(id))
         .mapToObj(travisService::getV3Build)
         .filter(
@@ -178,7 +178,7 @@ public class TravisBuildMonitor
 
   private Stream<? extends BuildDelta> createBuildDelta(
       String master, TravisService travisService, V3Build v3Build) {
-    int lastBuild =
+    long lastBuild =
         buildCache.getLastBuild(master, v3Build.branchedRepoSlug(), v3Build.getState().isRunning());
     return Stream.of(v3Build)
         .filter(build -> !build.spinnakerTriggered())
@@ -311,7 +311,7 @@ public class TravisBuildMonitor
     private final V3Build build;
     private final GenericBuild genericBuild;
     private final String travisBaseUrl;
-    private final int currentBuildNum;
-    private final int previousBuildNum;
+    private final long currentBuildNum;
+    private final long previousBuildNum;
   }
 }

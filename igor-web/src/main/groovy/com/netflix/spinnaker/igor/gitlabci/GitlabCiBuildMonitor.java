@@ -130,7 +130,7 @@ public class GitlabCiBuildMonitor
                   continue;
                 }
                 String pipelineIdCacheKey = String.valueOf(project.getId());
-                int cachedBuildId = buildCache.getLastBuild(master, pipelineIdCacheKey, false);
+                long cachedBuildId = buildCache.getLastBuild(master, pipelineIdCacheKey, false);
                 // GitLab CI pipelineIds increment; Determine if it is new using the ID
                 if (pipeline.getId() > cachedBuildId) {
                   updatedBuilds.incrementAndGet();

@@ -29,5 +29,5 @@ public class Request {
 
   private List<V3Build> builds;
 
-  private int id;
+  private long id;
 }

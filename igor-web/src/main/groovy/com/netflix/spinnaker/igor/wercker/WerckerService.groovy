@@ -86,7 +86,7 @@ class WerckerService implements BuildOperations {
     }
 
     @Override
-    GenericBuild getGenericBuild(final String job, final int buildNumber) {
+    GenericBuild getGenericBuild(final String job, final long buildNumber) {
         QualifiedPipelineName qPipeline = QualifiedPipelineName.of(job)
         String runId = cache.getRunID(groupKey, job, buildNumber)
         if (runId == null) {
@@ -128,7 +128,7 @@ class WerckerService implements BuildOperations {
         return Result.UNSTABLE
     }
 
-    Response stopRunningBuild (String appAndPipelineName, Integer buildNumber){
+    Response stopRunningBuild (String appAndPipelineName, Long buildNumber){
         String runId = cache.getRunID(groupKey, appAndPipelineName, buildNumber)
         if (runId == null) {
             log.warn("Could not cancel build number {} for job {} - no matching run ID!",
@@ -140,7 +140,7 @@ class WerckerService implements BuildOperations {
     }
 
     @Override
-    int triggerBuildWithParameters(final String appAndPipelineName, final Map<String, String> queryParameters) {
+    long triggerBuildWithParameters(final String appAndPipelineName, final Map<String, String> queryParameters) {
         QualifiedPipelineName qPipeline = QualifiedPipelineName.of(appAndPipelineName)
         String org = qPipeline.ownerName
         String appName = qPipeline.appName
@@ -163,7 +163,7 @@ class WerckerService implements BuildOperations {
 
                 //Create an entry in the WerckerCache for this new run. This will also generate
                 //an integer build number for the run
-                Map<String, Integer> runIdBuildNumbers = cache.updateBuildNumbers(
+                Map<String, Long> runIdBuildNumbers = cache.updateBuildNumbers(
                         master, appAndPipelineName, Collections.singletonList(run))
 
                 log.info("Triggered run {} at URL {} with build number {}",

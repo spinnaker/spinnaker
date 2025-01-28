@@ -35,7 +35,7 @@ public class GenericBuild {
   private boolean building;
   private String fullDisplayName;
   private String name;
-  private int number;
+  private long number;
   private Integer duration;
   /** String representation of time in nanoseconds since Unix epoch */
   private String timestamp;

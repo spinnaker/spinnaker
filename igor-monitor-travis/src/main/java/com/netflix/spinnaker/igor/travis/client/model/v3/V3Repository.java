@@ -26,7 +26,7 @@ import lombok.Data;
 @XmlRootElement(name = "repository")
 public class V3Repository {
 
-  private int id;
+  private long id;
 
   private String name;
 

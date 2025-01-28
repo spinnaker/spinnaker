@@ -45,12 +45,12 @@ public interface GitlabCiClient {
   Pipeline getPipeline(@Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
 
   @GET("/api/v4/projects/{projectId}/pipelines/{pipelineId}/jobs")
-  List<Job> getJobs(@Path("projectId") String projectId, @Path("pipelineId") int pipelineId);
+  List<Job> getJobs(@Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
 
   @GET("/api/v4/projects/{projectId}/jobs/{jobId}/trace")
-  Response getJobLog(@Path("projectId") String projectId, @Path("jobId") int jobId);
+  Response getJobLog(@Path("projectId") String projectId, @Path("jobId") long jobId);
 
   // GitLabCI pipelines can spawn other child pipelines, which are linked by bridges
   @GET("/api/v4/projects/{projectId}/pipelines/{pipelineId}/bridges")
-  List<Bridge> getBridges(@Path("projectId") String projectId, @Path("pipelineId") int pipelineId);
+  List<Bridge> getBridges(@Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
 }

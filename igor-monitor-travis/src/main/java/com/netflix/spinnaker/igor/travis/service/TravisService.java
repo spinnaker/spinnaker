@@ -142,7 +142,7 @@ public class TravisService implements BuildOperations, BuildProperties {
   public List<GenericGitRevision> getGenericGitRevisions(String inputRepoSlug, GenericBuild build) {
     String repoSlug = cleanRepoSlug(inputRepoSlug);
     if (StringUtils.isNumeric(build.getId())) {
-      V3Build v3build = getV3Build(Integer.parseInt(build.getId()));
+      V3Build v3build = getV3Build(Long.parseLong(build.getId()));
       if (v3build.getCommit() != null) {
         return Collections.singletonList(
             v3build
@@ -169,14 +169,15 @@ public class TravisService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public GenericBuild getGenericBuild(final String inputRepoSlug, final int buildNumber) {
+  public GenericBuild getGenericBuild(final String inputRepoSlug, final long buildNumber) {
     String repoSlug = cleanRepoSlug(inputRepoSlug);
     Build build = getBuild(repoSlug, buildNumber);
     return getGenericBuild(build, repoSlug);
   }
 
   @Override
-  public int triggerBuildWithParameters(String inputRepoSlug, Map<String, String> queryParameters) {
+  public long triggerBuildWithParameters(
+      String inputRepoSlug, Map<String, String> queryParameters) {
     String repoSlug = cleanRepoSlug(inputRepoSlug);
     String branch = branchFromRepoSlug(inputRepoSlug);
     RepoRequest repoRequest = new RepoRequest(branch.isEmpty() ? "master" : branch);
@@ -211,16 +212,16 @@ public class TravisService implements BuildOperations, BuildProperties {
     return permissions;
   }
 
-  public V3Build getV3Build(int buildId) {
+  public V3Build getV3Build(long buildId) {
     return travisClient.v3build(
         getAccessToken(), buildId, addLogCompleteIfApplicable("build.commit"));
   }
 
-  public Builds getBuilds(String repoSlug, int buildNumber) {
+  public Builds getBuilds(String repoSlug, long buildNumber) {
     return travisClient.builds(getAccessToken(), repoSlug, buildNumber);
   }
 
-  public Build getBuild(String repoSlug, int buildNumber) {
+  public Build getBuild(String repoSlug, long buildNumber) {
     Builds builds = getBuilds(repoSlug, buildNumber);
     return !builds.getBuilds().isEmpty() ? builds.getBuilds().get(0) : null;
   }
@@ -229,7 +230,7 @@ public class TravisService implements BuildOperations, BuildProperties {
   public Map<String, Object> getBuildProperties(
       String inputRepoSlug, GenericBuild build, String fileName) {
     try {
-      V3Build v3build = getV3Build(Integer.parseInt(build.getId()));
+      V3Build v3build = getV3Build(Long.parseLong(build.getId()));
       return PropertyParser.extractPropertiesFromLog(getLog(v3build));
     } catch (Exception e) {
       log.error("Unable to get igorProperties '{}'", kv("job", inputRepoSlug), e);
@@ -523,8 +524,8 @@ public class TravisService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public Map<String, Integer> queuedBuild(String master, int queueId) {
-    Map<String, Integer> queuedJob = travisCache.getQueuedJob(groupKey, queueId);
+  public Map<String, Long> queuedBuild(String master, long queueId) {
+    Map<String, Long> queuedJob = travisCache.getQueuedJob(groupKey, queueId);
     Request requestResponse =
         travisClient.request(
             getAccessToken(), queuedJob.get("repositoryId"), queuedJob.get("requestId"));
@@ -537,7 +538,7 @@ public class TravisService implements BuildOperations, BuildProperties {
           queueId,
           groupKey);
       travisCache.removeQuededJob(groupKey, queueId);
-      LinkedHashMap<String, Integer> map = new LinkedHashMap<>(1);
+      LinkedHashMap<String, Long> map = new LinkedHashMap<>(1);
       map.put("number", requestResponse.getBuilds().get(0).getNumber());
       return map;
     }

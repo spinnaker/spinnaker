@@ -78,7 +78,7 @@ public class GitlabCiService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public GenericBuild getGenericBuild(String projectId, int pipelineId) {
+  public GenericBuild getGenericBuild(String projectId, long pipelineId) {
     Project project = client.getProject(projectId);
     if (project == null) {
       log.error("Could not find Gitlab CI Project with projectId={}", projectId);
@@ -103,7 +103,7 @@ public class GitlabCiService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public int triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
+  public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
     throw new UnsupportedOperationException();
   }
 
@@ -131,7 +131,7 @@ public class GitlabCiService implements BuildOperations, BuildProperties {
   }
 
   // Gets a pipeline's jobs along with any child pipeline jobs (bridges)
-  private List<Job> getJobsWithBridges(String projectId, Integer pipelineId) {
+  private List<Job> getJobsWithBridges(String projectId, Long pipelineId) {
     List<Job> jobs = this.client.getJobs(projectId, pipelineId);
     List<Bridge> bridges = this.client.getBridges(projectId, pipelineId);
     bridges.parallelStream()
@@ -150,7 +150,7 @@ public class GitlabCiService implements BuildOperations, BuildProperties {
     return jobs;
   }
 
-  private Map<String, Object> getPropertyFileFromLog(String projectId, Integer pipelineId) {
+  private Map<String, Object> getPropertyFileFromLog(String projectId, Long pipelineId) {
     Map<String, Object> properties = new HashMap<>();
     return retrySupport.retry(
         () -> {

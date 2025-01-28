@@ -45,7 +45,7 @@ public interface BuildOperations extends BuildService {
    * @param buildNumber The build number
    * @return A Spinnaker representation of a build
    */
-  GenericBuild getGenericBuild(String job, int buildNumber);
+  GenericBuild getGenericBuild(String job, long buildNumber);
 
   /**
    * Trigger a build of a given job on the build service host
@@ -54,7 +54,7 @@ public interface BuildOperations extends BuildService {
    * @param queryParameters A key-value map of parameters to be injected into the build
    * @return An id identifying the build; preferably the build number of the build
    */
-  int triggerBuildWithParameters(String job, Map<String, String> queryParameters);
+  long triggerBuildWithParameters(String job, Map<String, String> queryParameters);
 
   /**
    * Returns all/relevant builds for the given job.
@@ -71,13 +71,13 @@ public interface BuildOperations extends BuildService {
    * @param buildNumber The build number
    * @param updatedBuild The updated details for the build
    */
-  default void updateBuild(String jobName, Integer buildNumber, UpdatedBuild updatedBuild) {
+  default void updateBuild(String jobName, Long buildNumber, UpdatedBuild updatedBuild) {
     // not supported by default
   }
 
   JobConfiguration getJobConfig(String jobName);
 
-  default Object queuedBuild(String master, int item) {
+  default Object queuedBuild(String master, long item) {
     throw new UnsupportedOperationException(
         String.format("Queued builds are not supported for build service %s", master));
   }

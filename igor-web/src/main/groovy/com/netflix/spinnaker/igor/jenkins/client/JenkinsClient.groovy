@@ -48,14 +48,14 @@ interface JenkinsClient {
     BuildDependencies getDependencies(@EncodedPath('jobName') String jobName)
 
     @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(totalCount)]&tree=actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,fullDisplayName,artifacts[displayPath,fileName,relativePath]')
-    Build getBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
+    Build getBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Long buildNumber)
 
     // The location of the SCM details in the build xml changed in version 4.0.0 of the jenkins-git plugin; see the
     // header comment in com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails for more information.
     // The exclude and tree parameters to this call must continue to support both formats to remain compatible with
     // all versions of the plugin.
     @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(build|lastBuiltRevision)]&tree=actions[remoteUrls,lastBuiltRevision[branch[name,SHA1]],build[revision[branch[name,SHA1]]]]')
-    ScmDetails getGitDetails(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
+    ScmDetails getGitDetails(@EncodedPath('jobName') String jobName, @Path('buildNumber') Long buildNumber)
 
     @GET('/job/{jobName}/lastCompletedBuild/api/xml')
     Build getLatestBuild(@EncodedPath('jobName') String jobName)
@@ -67,7 +67,7 @@ interface JenkinsClient {
     Response getBuildOutput(@EncodedPath('jobName') String jobName, @Path('buildNumber') String buildNumber)
 
     @GET('/queue/item/{itemNumber}/api/xml')
-    QueuedJob getQueuedItem(@Path('itemNumber') Integer item)
+    QueuedJob getQueuedItem(@Path('itemNumber') Long item)
 
     @POST('/job/{jobName}/build')
     Response build(@EncodedPath('jobName') String jobName, @Body String emptyRequest, @Header("Jenkins-Crumb") String crumb)
@@ -77,10 +77,10 @@ interface JenkinsClient {
 
     @FormUrlEncoded
     @POST('/job/{jobName}/{buildNumber}/submitDescription')
-    Response submitDescription(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber, @Field("description") String description, @Header("Jenkins-Crumb") String crumb)
+    Response submitDescription(@EncodedPath('jobName') String jobName, @Path('buildNumber') Long buildNumber, @Field("description") String description, @Header("Jenkins-Crumb") String crumb)
 
     @POST('/job/{jobName}/{buildNumber}/stop')
-    Response stopRunningBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber,  @Body String EmptyRequest, @Header("Jenkins-Crumb") String crumb)
+    Response stopRunningBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Long buildNumber,  @Body String EmptyRequest, @Header("Jenkins-Crumb") String crumb)
 
     @POST('/queue/cancelItem')
     Response stopQueuedBuild(@Query('id') String queuedBuild, @Body String emptyRequest, @Header("Jenkins-Crumb") String crumb)
@@ -92,7 +92,7 @@ interface JenkinsClient {
     @GET('/job/{jobName}/{buildNumber}/artifact/{fileName}')
     Response getPropertyFile(
         @EncodedPath('jobName') String jobName,
-        @Path('buildNumber') Integer buildNumber, @Path(value = 'fileName', encode = false) String fileName)
+        @Path('buildNumber') Long buildNumber, @Path(value = 'fileName', encode = false) String fileName)
 
     @GET('/crumbIssuer/api/xml')
     Crumb getCrumb()

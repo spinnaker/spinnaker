@@ -48,7 +48,7 @@ public class TravisCache {
     this.igorConfigurationProperties = igorConfigurationProperties;
   }
 
-  public Map<String, Integer> getQueuedJob(String master, int queueNumber) {
+  public Map<String, Long> getQueuedJob(String master, long queueNumber) {
     Map<String, String> result =
         redisClientDelegate.withCommandsClient(
             c -> {
@@ -59,32 +59,32 @@ public class TravisCache {
       return Collections.emptyMap();
     }
 
-    Map<String, Integer> converted = new HashMap<>();
-    converted.put("requestId", Integer.parseInt(result.get("requestId")));
-    converted.put("repositoryId", Integer.parseInt(result.get("repositoryId")));
+    Map<String, Long> converted = new HashMap<>();
+    converted.put("requestId", Long.parseLong(result.get("requestId")));
+    converted.put("repositoryId", Long.parseLong(result.get("repositoryId")));
 
     return converted;
   }
 
-  public int setQueuedJob(String master, int repositoryId, int requestId) {
+  public long setQueuedJob(String master, long repositoryId, long requestId) {
     String key = makeKey(QUEUE_TYPE, master, requestId);
     redisClientDelegate.withCommandsClient(
         c -> {
-          c.hset(key, "requestId", Integer.toString(requestId));
-          c.hset(key, "repositoryId", Integer.toString(repositoryId));
+          c.hset(key, "requestId", Long.toString(requestId));
+          c.hset(key, "repositoryId", Long.toString(repositoryId));
           c.expire(key, QUEUE_EXPIRE_SECONDS);
         });
     return requestId;
   }
 
-  public void removeQuededJob(String master, int queueId) {
+  public void removeQuededJob(String master, long queueId) {
     redisClientDelegate.withCommandsClient(
         c -> {
           c.del(makeKey(QUEUE_TYPE, master, queueId));
         });
   }
 
-  public void setJobLog(String master, int jobId, String log) {
+  public void setJobLog(String master, long jobId, String log) {
     String key = makeKey(LOG_TYPE, master, jobId);
     redisClientDelegate.withCommandsClient(
         c -> {
@@ -92,7 +92,7 @@ public class TravisCache {
         });
   }
 
-  public String getJobLog(String master, int jobId) {
+  public String getJobLog(String master, long jobId) {
     String key = makeKey(LOG_TYPE, master, jobId);
     return redisClientDelegate.withCommandsClient(
         c -> {
@@ -100,7 +100,7 @@ public class TravisCache {
         });
   }
 
-  private String makeKey(String type, String master, int id) {
+  private String makeKey(String type, String master, long id) {
     return baseKey() + ":" + type + ":" + master + ":" + id;
   }
 

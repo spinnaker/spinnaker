@@ -84,7 +84,7 @@ public class WerckerCache {
         });
   }
 
-  public String getRunID(String master, String pipeline, final int buildNumber) {
+  public String getRunID(String master, String pipeline, final long buildNumber) {
     String key = makeKey(master, pipeline) + ":runs";
     final Map<String, String> existing =
         redisClientDelegate.withCommandsClient(
@@ -94,7 +94,7 @@ public class WerckerCache {
               }
               return c.hgetAll(key);
             });
-    String build = Integer.toString(buildNumber);
+    String build = Long.toString(buildNumber);
     for (Entry<String, String> entry : existing.entrySet()) {
       if (entry.getValue().equals(build)) {
         return entry.getKey();
@@ -112,7 +112,7 @@ public class WerckerCache {
    * @param runs
    * @return a map containing the generated build numbers for each run created, keyed by run id
    */
-  public Map<String, Integer> updateBuildNumbers(
+  public Map<String, Long> updateBuildNumbers(
       String master, String appAndPipelineName, List<Run> runs) {
     String key = makeKey(master, appAndPipelineName) + ":runs";
     final Map<String, String> existing =
@@ -130,22 +130,22 @@ public class WerckerCache {
               .filter(run -> !existing.containsKey(run.getId()))
               .collect(Collectors.toList());
     }
-    Map<String, Integer> runIdToBuildNumber = new HashMap<>();
+    Map<String, Long> runIdToBuildNumber = new HashMap<>();
     int startNumber = (existing == null || existing.size() == 0) ? 0 : existing.size();
     newRuns.sort(startedAtComparator);
     for (int i = 0; i < newRuns.size(); i++) {
       int buildNum = startNumber + i;
-      setBuildNumber(master, appAndPipelineName, newRuns.get(i).getId(), buildNum);
-      runIdToBuildNumber.put(newRuns.get(i).getId(), buildNum);
+      setBuildNumber(master, appAndPipelineName, newRuns.get(i).getId(), (long) buildNum);
+      runIdToBuildNumber.put(newRuns.get(i).getId(), (long) buildNum);
     }
     return runIdToBuildNumber;
   }
 
-  public void setBuildNumber(String master, String pipeline, String runID, int number) {
+  public void setBuildNumber(String master, String pipeline, String runID, long number) {
     String key = makeKey(master, pipeline) + ":runs";
     redisClientDelegate.withCommandsClient(
         c -> {
-          c.hset(key, runID, Integer.toString(number));
+          c.hset(key, runID, Long.toString(number));
         });
   }
 

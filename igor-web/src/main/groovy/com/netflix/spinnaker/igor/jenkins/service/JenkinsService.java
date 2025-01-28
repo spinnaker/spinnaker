@@ -170,18 +170,18 @@ public class JenkinsService implements BuildOperations, BuildProperties {
     return circuitBreaker.executeSupplier(() -> jenkinsClient.getDependencies(encode(jobName)));
   }
 
-  public Build getBuild(String jobName, Integer buildNumber) {
+  public Build getBuild(String jobName, Long buildNumber) {
     return circuitBreaker.executeSupplier(
         () -> jenkinsClient.getBuild(encode(jobName), buildNumber));
   }
 
   @Override
-  public GenericBuild getGenericBuild(String jobName, int buildNumber) {
+  public GenericBuild getGenericBuild(String jobName, long buildNumber) {
     return getBuild(jobName, buildNumber).genericBuild(jobName);
   }
 
   @Override
-  public int triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
+  public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
     Response response = buildWithParameters(job, queryParameters);
     if (response.getStatus() != 201) {
       throw new BuildJobError("Received a non-201 status when submitting job '" + job + "'");
@@ -200,7 +200,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
                         "Could not find Location header for job '" + job + "'"));
 
     int lastSlash = queuedLocation.lastIndexOf('/');
-    return Integer.parseInt(queuedLocation.substring(lastSlash + 1));
+    return Long.parseLong(queuedLocation.substring(lastSlash + 1));
   }
 
   @Override
@@ -208,7 +208,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
     return permissions;
   }
 
-  private ScmDetails getGitDetails(String jobName, Integer buildNumber) {
+  private ScmDetails getGitDetails(String jobName, Long buildNumber) {
     return retrySupport.retry(
         () -> {
           try {
@@ -230,7 +230,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public QueuedJob queuedBuild(String master, int item) {
+  public QueuedJob queuedBuild(String master, long item) {
     try {
       return circuitBreaker.executeSupplier(() -> jenkinsClient.getQueuedItem(item));
     } catch (SpinnakerHttpException e) {
@@ -253,7 +253,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
   }
 
   @Override
-  public void updateBuild(String jobName, Integer buildNumber, UpdatedBuild updatedBuild) {
+  public void updateBuild(String jobName, Long buildNumber, UpdatedBuild updatedBuild) {
     if (updatedBuild.getDescription() != null) {
       circuitBreaker.executeRunnable(
           () ->
@@ -298,7 +298,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
     return map;
   }
 
-  private String getArtifactPathFromBuild(String job, int buildNumber, String fileName) {
+  private String getArtifactPathFromBuild(String job, long buildNumber, String fileName) {
     return retrySupport.retry(
         () ->
             this.getBuild(job, buildNumber).getArtifacts().stream()
@@ -319,7 +319,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
         false);
   }
 
-  private Response getPropertyFile(String jobName, Integer buildNumber, String fileName) {
+  private Response getPropertyFile(String jobName, Long buildNumber, String fileName) {
     return retrySupport.retry(
         () -> {
           try {
@@ -342,7 +342,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
         false);
   }
 
-  public Response stopRunningBuild(String jobName, Integer buildNumber) {
+  public Response stopRunningBuild(String jobName, Long buildNumber) {
     return circuitBreaker.executeSupplier(
         () -> jenkinsClient.stopRunningBuild(encode(jobName), buildNumber, "", getCrumb()));
   }
