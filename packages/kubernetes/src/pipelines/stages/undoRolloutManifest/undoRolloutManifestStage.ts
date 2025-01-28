@@ -1,30 +1,21 @@
-import { module } from 'angular';
+import { ExecutionDetailsTasks, Registry } from '@spinnaker/core';
 
-import type { IStage } from '@spinnaker/core';
-import { Registry } from '@spinnaker/core';
+import { manifestExecutionDetails } from '../ManifestExecutionDetails';
+import { UndoRolloutManifestConfig } from './UndoRolloutManifestConfig';
+import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
 
-import { KubernetesV2UndoRolloutManifestConfigCtrl } from './undoRolloutManifestConfig.controller';
+const STAGE_NAME = 'Undo Rollout (Manifest)';
+const STAGE_KEY = 'undoRolloutManifest';
 
-export const KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipeline.stage.undoRolloutManifestStage';
-
-module(KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE, [])
-  .config(() => {
-    Registry.pipeline.registerStage({
-      label: 'Undo Rollout (Manifest)',
-      description: 'Rollback a manifest a target number of revisions.',
-      key: 'undoRolloutManifest',
-      cloudProvider: 'kubernetes',
-      templateUrl: require('./undoRolloutManifestConfig.html'),
-      controller: 'KubernetesV2UndoRolloutManifestConfigCtrl',
-      controllerAs: 'ctrl',
-      accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
-      configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
-      validators: [
-        { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
-        { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },
-        { type: 'requiredField', fieldName: 'numRevisionsBack', fieldLabel: 'Number of Revisions' },
-        { type: 'manifestSelector' },
-      ],
-    });
-  })
-  .controller('KubernetesV2UndoRolloutManifestConfigCtrl', KubernetesV2UndoRolloutManifestConfigCtrl);
+Registry.pipeline.registerStage({
+  label: STAGE_NAME,
+  description: 'Rollback a manifest a target number of revisions.',
+  key: STAGE_KEY,
+  cloudProvider: 'kubernetes',
+  component: UndoRolloutManifestConfig,
+  executionDetailsSections: [manifestExecutionDetails(STAGE_KEY), ExecutionDetailsTasks],
+  validators: [
+    ...manifestSelectorValidators(STAGE_NAME),
+    { type: 'requiredField', fieldName: 'numRevisionsBack', fieldLabel: 'Number of Revisions' },
+  ],
+});

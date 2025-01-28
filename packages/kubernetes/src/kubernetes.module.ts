@@ -33,7 +33,6 @@ import { ManifestWizard } from './manifest/wizard/ManifestWizard';
 import './pipelines/stages';
 import { KUBERNETES_DISABLE_MANIFEST_STAGE } from './pipelines/stages/traffic/disableManifest.stage';
 import { KUBERNETES_ENABLE_MANIFEST_STAGE } from './pipelines/stages/traffic/enableManifest.stage';
-import { KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE } from './pipelines/stages/undoRolloutManifest/undoRolloutManifestStage';
 import './pipelines/validation/manifestSelector.validator';
 import { KUBERNETS_RAW_RESOURCE_MODULE } from './rawResource';
 import { KUBERNETES_RESOURCE_STATES } from './resources/resources.state';
@@ -71,7 +70,6 @@ const requires = [
   KUBERNETES_MANIFEST_ARTIFACT,
   KUBERNETES_LOAD_BALANCER_TRANSFORMER,
   KUBERNETES_SECURITY_GROUP_TRANSFORMER,
-  KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE,
   KUBERNETES_MANIFEST_SELECTOR,
   KUBERNETES_MANIFEST_LABELS,
   KUBERNETES_MANIFEST_EVENTS,
