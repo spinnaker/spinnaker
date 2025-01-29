@@ -31,8 +31,8 @@ import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.Select
-import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.sql
 import org.slf4j.LoggerFactory
 
@@ -360,13 +360,29 @@ class SqlTaskRepository(
    * Since task statuses are insert-only, we first need to find the most
    * recent status record for each task ID and the filter that result set
    * down to the ones that are running.
+   *
+   * Query used:
+   * SELECT a.task_id
+   * FROM task_states AS `a`
+   *  JOIN (
+   *    SELECT task_id, MAX(created_at) AS `created`
+   *    FROM task_states
+   *    GROUP BY task_id
+   *  ) AS `b`
+   *    ON (a.task_id = b.task_id AND a.created_at = b.created)
+   *  JOIN tasks AS `t`
+   *    ON (a.task_id = t.id)
+   * WHERE (
+   *  t.owner_id = '<clouddriver host name>'
+   *    and a.state = 'STARTED'
+   * )
    */
   private fun runningTaskIds(ctx: DSLContext, thisInstance: Boolean): Array<String> {
     return withPool(poolName) {
       val baseQuery = ctx.select(field("a.task_id"))
         .from(taskStatesTable.`as`("a"))
         .innerJoin(
-          ctx.select(field("task_id"), DSL.max(field("created_at")).`as`("created"))
+          ctx.select(field("task_id"), max(field("created_at")).`as`("created"))
             .from(taskStatesTable)
             .groupBy(field("task_id"))
             .asTable("b")
@@ -377,10 +393,10 @@ class SqlTaskRepository(
           .innerJoin(tasksTable.`as`("t")).on(sql("a.task_id = t.id"))
           .where(
             field("t.owner_id").eq(ClouddriverHostname.ID)
-              .and(field("a.state").eq(TaskState.STARTED.toString()))
+              .and(field("a.state").eq(STARTED.toString()))
           )
       } else {
-        baseQuery.where(field("a.state").eq(TaskState.STARTED.toString()))
+        baseQuery.where(field("a.state").eq(STARTED.toString()))
       }
 
       select

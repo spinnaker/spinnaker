@@ -117,6 +117,29 @@ public abstract class TaskRepositoryTck<T extends TaskRepository> {
   }
 
   @Test
+  public void testListByThisInstance() {
+    Task t1 = subject.create("Test", "STARTED");
+    Task t2 = subject.create("Test", "STARTED");
+    Task t3 = subject.create("Test", "STARTED");
+    Task t4 = subject.create("Test", "STARTED");
+    Task t5 = subject.create("Test", "STARTED");
+    String ownerId = ClouddriverHostname.ID;
+
+    t3.updateOwnerId("foo@not_this_clouddriver", "Test");
+    t5.complete();
+
+    List<Task> runningTasks = subject.listByThisInstance();
+
+    assertThat(runningTasks.stream().allMatch(t -> t.getOwnerId().equals(ownerId))).isTrue();
+    assertThat(runningTasks.stream().map(Task::getId).collect(Collectors.toList()))
+        .contains(t1.getId(), t2.getId(), t4.getId());
+    // Task 3 doesn't belong to this pod and task 5 is not running, so should not be included in the
+    // result
+    assertThat(runningTasks.stream().map(Task::getId).collect(Collectors.toList()))
+        .doesNotContain(t3.getId(), t5.getId());
+  }
+
+  @Test
   public void testResultObjectsPersistence() {
     Task t1 = subject.create("Test", "Test Status");
 

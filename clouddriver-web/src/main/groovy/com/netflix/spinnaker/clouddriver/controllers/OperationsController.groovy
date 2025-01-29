@@ -213,6 +213,7 @@ class OperationsController {
    */
   @PreDestroy
   void destroy() {
+    log.info("Destroy has been triggered. Initiating graceful shutdown of tasks.")
     long start = System.currentTimeMillis()
     def tasks = taskRepository.listByThisInstance()
     while (tasks && !tasks.isEmpty() &&
@@ -225,6 +226,8 @@ class OperationsController {
     if (tasks && !tasks.isEmpty()) {
       log.error("Shutting down while tasks '{}' are still in progress!", tasks)
     }
+
+    log.info("Destruction procedure completed.")
   }
 
   private StartOperationResult start(@Nullable String cloudProvider,
