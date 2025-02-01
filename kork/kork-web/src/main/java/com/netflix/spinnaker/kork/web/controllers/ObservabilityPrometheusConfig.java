@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.kork.web.controllers;
 
-import com.netflix.spinnaker.kork.observability.model.ObservabilityConfigurationProperites;
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
@@ -30,7 +27,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @EnableWebSecurity
 public class ObservabilityPrometheusConfig extends WebSecurityConfigurerAdapter {
 
-  private final ObservabilityConfigurationProperites pluginConfig;
+  /* private final ObservabilityConfigurationProperites pluginConfig;
 
   public ObservabilityPrometheusConfig(ObservabilityConfigurationProperites pluginConfig) {
     this.pluginConfig = pluginConfig;
@@ -45,5 +42,5 @@ public class ObservabilityPrometheusConfig extends WebSecurityConfigurerAdapter 
       http.requestMatcher(EndpointRequest.to("aop-prometheus"))
           .authorizeRequests((requests) -> requests.anyRequest().denyAll());
     }
-  }
+  }*/
 }
