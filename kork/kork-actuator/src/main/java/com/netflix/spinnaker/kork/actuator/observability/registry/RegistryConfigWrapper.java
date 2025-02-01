@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.registry;
 
+import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Builder;
 import lombok.Data;
-import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
 
 @Data
 @Builder

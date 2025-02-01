@@ -18,6 +18,10 @@ package com.netflix.spinnaker.kork.actuator.observability.service;
 
 import static java.util.Optional.ofNullable;
 
+import com.netflix.spinnaker.kork.actuator.observability.model.ArmoryEnvironmentMetadata;
+import com.netflix.spinnaker.kork.actuator.observability.model.MetricsConfig;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.version.VersionResolver;
 import io.micrometer.core.instrument.Tag;
 import java.util.HashMap;
 import java.util.List;
@@ -25,10 +29,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import com.netflix.spinnaker.kork.actuator.observability.model.ArmoryEnvironmentMetadata;
-import com.netflix.spinnaker.kork.actuator.observability.model.MetricsConfig;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
-import com.netflix.spinnaker.kork.actuator.observability.version.VersionResolver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 

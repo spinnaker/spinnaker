@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.registry;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
+import io.micrometer.core.instrument.MeterRegistry;
 
 @FunctionalInterface
 public interface RegistryCustomizer {

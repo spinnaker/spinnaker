@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.newrelic;
 
+import com.netflix.spinnaker.kork.actuator.observability.model.MetricsNewRelicConfig;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
+import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
 import io.micrometer.core.ipc.http.HttpUrlConnectionSender;
 import io.micrometer.newrelic.NewRelicRegistry;
 import java.net.InetSocketAddress;
@@ -24,10 +28,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
-import com.netflix.spinnaker.kork.actuator.observability.model.MetricsNewRelicConfig;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
-import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
-import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
 
 /**
  * A Supplier bean that can be registered with Spring without providing an actual registry

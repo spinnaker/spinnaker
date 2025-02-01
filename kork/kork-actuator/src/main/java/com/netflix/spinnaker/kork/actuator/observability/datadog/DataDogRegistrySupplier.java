@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.datadog;
 
+import com.netflix.spinnaker.kork.actuator.observability.model.MetricsDatadogConfig;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
 import io.micrometer.core.ipc.http.HttpUrlConnectionSender;
 import io.micrometer.datadog.DatadogMeterRegistry;
 import java.time.Duration;
 import java.util.function.Supplier;
-import com.netflix.spinnaker.kork.actuator.observability.model.MetricsDatadogConfig;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
-import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
 import org.jetbrains.annotations.NotNull;
 
 public class DataDogRegistrySupplier implements Supplier<RegistryConfigWrapper> {

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.datadog;
 
-import java.util.Optional;
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsDatadogConfig;
+import java.util.Optional;
 
 public class DataDogRegistryConfig implements io.micrometer.datadog.DatadogConfig {
   private final MetricsDatadogConfig datadogConfig;
