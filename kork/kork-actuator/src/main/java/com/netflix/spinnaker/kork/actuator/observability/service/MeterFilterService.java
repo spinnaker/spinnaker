@@ -18,11 +18,11 @@ package com.netflix.spinnaker.kork.actuator.observability.service;
 
 import static com.netflix.spinnaker.kork.actuator.observability.filters.ArmoryRecommendedFilters.ARMORY_RECOMMENDED_FILTERS;
 
+import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
 import io.micrometer.core.instrument.config.MeterFilter;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
 import org.springframework.util.CollectionUtils;
 
 /**

@@ -16,11 +16,6 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.config;
 
-import io.micrometer.core.instrument.Clock;
-import io.prometheus.client.CollectorRegistry;
-import java.util.Collection;
-import java.util.function.Supplier;
-import lombok.extern.slf4j.Slf4j;
 import com.netflix.spinnaker.kork.actuator.observability.datadog.DataDogRegistrySupplier;
 import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
 import com.netflix.spinnaker.kork.actuator.observability.newrelic.NewRelicRegistrySupplier;
@@ -35,6 +30,11 @@ import com.netflix.spinnaker.kork.actuator.observability.service.MeterFilterServ
 import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
 import com.netflix.spinnaker.kork.actuator.observability.version.SpringPackageVersionResolver;
 import com.netflix.spinnaker.kork.actuator.observability.version.VersionResolver;
+import io.micrometer.core.instrument.Clock;
+import io.prometheus.client.CollectorRegistry;
+import java.util.Collection;
+import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -116,11 +116,10 @@ public class ObservabilityConfiguration {
         clock, registrySuppliers, meterRegistryCustomizers);
   }
 
-    @Bean
-    public PrometheusScrapeEndpoint prometheusScrapeEndpoint(CollectorRegistry collectorRegistry)
-   {
-      return new PrometheusScrapeEndpoint(collectorRegistry);
-    }
+  @Bean
+  public PrometheusScrapeEndpoint prometheusScrapeEndpoint(CollectorRegistry collectorRegistry) {
+    return new PrometheusScrapeEndpoint(collectorRegistry);
+  }
 
   @Bean
   public DataDogRegistrySupplier dataDogRegistrySupplier(

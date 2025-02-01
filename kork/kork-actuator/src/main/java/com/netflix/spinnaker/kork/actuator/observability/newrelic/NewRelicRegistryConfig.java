@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.newrelic;
 
+import com.netflix.spinnaker.kork.actuator.observability.model.MetricsNewRelicConfig;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import com.netflix.spinnaker.kork.actuator.observability.model.MetricsNewRelicConfig;
 
 /**
  * New Relic config wrapper that sources its config from the Spring Context Plugin Configuration.

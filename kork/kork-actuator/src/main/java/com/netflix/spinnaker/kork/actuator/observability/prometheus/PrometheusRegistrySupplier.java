@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.prometheus;
 
-import io.micrometer.core.instrument.Clock;
-import io.prometheus.client.CollectorRegistry;
-import java.util.function.Supplier;
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsPrometheusConfig;
 import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
 import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
+import io.micrometer.core.instrument.Clock;
+import io.prometheus.client.CollectorRegistry;
+import java.util.function.Supplier;
 
 /**
  * Supplier bean so that we don't create an actual bean of the prometheus registry. We do this so

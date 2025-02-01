@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.registry;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
 import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
 import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 
 @Slf4j

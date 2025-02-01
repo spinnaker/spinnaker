@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.prometheus;
 
+import com.netflix.spinnaker.kork.actuator.observability.model.MetricsPrometheusConfig;
 import io.micrometer.prometheus.PrometheusConfig;
 import java.time.Duration;
-import com.netflix.spinnaker.kork.actuator.observability.model.MetricsPrometheusConfig;
 
 /**
  * Prometheus config wrapper that sources its config from the Spring Context Plugin Configuration.

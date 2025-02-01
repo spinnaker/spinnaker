@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.actuator.observability.registry;
 
 import static java.util.Optional.ofNullable;
 
+import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
@@ -29,7 +30,6 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
 
 /**
  * This is the registry that Micrometer/Spectator will use. It will collect all of the enabled
