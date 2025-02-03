@@ -27,11 +27,6 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
   compileOnly "org.projectlombok:lombok"
-  testImplementation "org.spockframework:spock-core"
-  testImplementation "org.spockframework:spock-spring"
-  testImplementation "org.springframework.boot:spring-boot-starter-test"
-  testRuntimeOnly "cglib:cglib-nodep"
-  testRuntimeOnly "org.objenesis:objenesis"
 
   implementation("io.micrometer:micrometer-registry-prometheus") {
     exclude group: 'io.micrometer', module: 'micrometer-core'
@@ -42,4 +37,28 @@ dependencies {
   implementation('com.newrelic.telemetry:micrometer-registry-new-relic:0.5.0') {
     exclude group: 'io.micrometer', module: 'micrometer-core'
   }
+
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+  testImplementation('io.micrometer:micrometer-core')
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.testcontainers:testcontainers:1.14.3"
+  testImplementation 'io.rest-assured:rest-assured:4.3.0'
+  testImplementation "org.mock-server:mockserver-client-java:5.10.0"
+  testImplementation "org.mock-server:mockserver-junit-rule:5.10.0"
+}
+
+sourceSets {
+  test {
+    java {
+      srcDirs = ['src/test/java']
+    }
+  }
+}
+
+test {
+  useJUnitPlatform()
 }
