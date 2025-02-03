@@ -42,7 +42,8 @@ public class NewRelicRegistryConfig implements io.micrometer.NewRelicRegistryCon
     return Optional.ofNullable(newRelicConfig.getApiKey())
         .orElseThrow(
             () ->
-                new RuntimeException("The New Relic API key is a required plugin config property"));
+                new NewRelicRegistryConfigException(
+                    "The New Relic API key is a required plugin config property"));
   }
 
   @Override
@@ -73,5 +74,11 @@ public class NewRelicRegistryConfig implements io.micrometer.NewRelicRegistryCon
   @Override
   public int batchSize() {
     return newRelicConfig.getBatchSize();
+  }
+
+  public static class NewRelicRegistryConfigException extends RuntimeException {
+    public NewRelicRegistryConfigException(String message) {
+      super(message);
+    }
   }
 }
