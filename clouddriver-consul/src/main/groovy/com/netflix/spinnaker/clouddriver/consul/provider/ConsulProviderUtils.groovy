@@ -23,20 +23,23 @@ import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulHealth
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulNode
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulService
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.util.logging.Slf4j
 
 @Slf4j
 class ConsulProviderUtils {
-  static ConsulNode getHealths(ConsulConfig config, String agent) {
+  static ConsulNode getHealths(ConsulConfig config, String agent, ServiceClientProvider serviceClientProvider) {
     def healths = []
     def services = []
     def running = false
     try {
-      healths = new ConsulAgent(config, agent).api.checks()?.collect { String name, CheckResult result ->
+      def consulAgent = new ConsulAgent(config, agent, serviceClientProvider)
+      healths = Retrofit2SyncCall.execute(consulAgent.api.checks())?.collect { String name, CheckResult result ->
         return new ConsulHealth(result: result, source: result.checkID)
       } ?: []
-      services = new ConsulAgent(config, agent).api.services()?.collect { String name, ServiceResult result ->
+      services = Retrofit2SyncCall.execute(consulAgent.api.services())?.collect { String name, ServiceResult result ->
         return new ConsulService(result)
       } ?: []
       running = true

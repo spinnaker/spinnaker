@@ -23,12 +23,13 @@ import com.netflix.spinnaker.clouddriver.aws.model.edda.EddaRule
 import com.netflix.spinnaker.clouddriver.aws.model.edda.LoadBalancerInstanceState
 import com.netflix.spinnaker.clouddriver.aws.model.edda.TargetGroupAttributes
 import com.netflix.spinnaker.clouddriver.aws.model.edda.TargetGroupHealth
-import retrofit.http.GET
-import retrofit.http.Path
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Path
 
 interface EddaApi {
   @GET('/REST/v2/view/loadBalancerInstances;_expand')
-  List<LoadBalancerInstanceState> loadBalancerInstances()
+  Call<List<LoadBalancerInstanceState>> loadBalancerInstances()
 
   @GET('/REST/v2/view/targetGroupHealth;_expand')
   List<TargetGroupHealth> targetGroupHealth()

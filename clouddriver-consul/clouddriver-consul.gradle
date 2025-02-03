@@ -1,14 +1,12 @@
 dependencies {
   implementation project(":clouddriver-core")
 
-  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
-  implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.squareup.retrofit:retrofit"
   implementation "org.apache.groovy:groovy"
   implementation "org.apache.groovy:groovy-json"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-web"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.objenesis:objenesis"

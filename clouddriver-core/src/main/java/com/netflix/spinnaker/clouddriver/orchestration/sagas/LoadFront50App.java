@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaIntegrationExceptio
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -109,7 +110,7 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
   @Override
   public Result apply(@Nonnull LoadFront50AppCommand command, @Nonnull Saga saga) {
     try {
-      Map response = front50Service.getApplication(command.getAppName());
+      Map response = Retrofit2SyncCall.execute(front50Service.getApplication(command.getAppName()));
       try {
         return new Result(
             Optional.ofNullable(response)

@@ -17,28 +17,29 @@
 package com.netflix.spinnaker.clouddriver.eureka.api
 
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
-import retrofit.client.Response
-import retrofit.http.GET
-import retrofit.http.Headers
-import retrofit.http.PUT
-import retrofit.http.DELETE
-import retrofit.http.Path
-import retrofit.http.Query
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Headers
+import retrofit2.http.PUT
+import retrofit2.http.DELETE
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface Eureka {
   @Headers('Accept: application/json')
   @GET('/instances/{instanceId}')
-  Map getInstanceInfo(@Path('instanceId') String instanceId)
+  Call<Map> getInstanceInfo(@Path('instanceId') String instanceId)
 
   @Headers('Accept: application/json')
   @PUT('/apps/{application}/{instanceId}/status')
-  Response updateInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
+  Call<ResponseBody> updateInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
 
   @Headers('Accept: application/json')
   @DELETE('/apps/{application}/{instanceId}/status')
-  Response resetInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
+  Call<ResponseBody> resetInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
 
   @Headers('Accept: application/json')
   @GET('/apps/{application}')
-  EurekaApplication getApplication(@Path('application') String application)
+  Call<EurekaApplication> getApplication(@Path('application') String application)
 }

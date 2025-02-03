@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops.discovery
 
-import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaUtil
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
 import com.netflix.spinnaker.clouddriver.titus.model.TitusServerGroup
-import groovy.transform.PackageScope
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -35,11 +34,14 @@ class TitusEurekaSupport extends AbstractEurekaSupport {
   @Autowired
   TitusClientProvider titusClientProvider
 
+  @Autowired
+  ServiceClientProvider serviceClientProvider
+
   Eureka getEureka(def credentials, String region) {
     if (!credentials.discoveryEnabled) {
       throw new AbstractEurekaSupport.DiscoveryNotConfiguredException()
     }
-    EurekaUtil.getWritableEureka(credentials.discovery, region)
+    EurekaUtil.getWritableEureka(credentials.discovery, region, serviceClientProvider)
   }
 
   boolean verifyInstanceAndAsgExist(def credentials,

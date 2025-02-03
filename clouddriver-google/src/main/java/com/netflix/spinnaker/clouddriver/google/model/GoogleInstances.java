@@ -22,13 +22,16 @@ import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils;
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.math.BigInteger;
 import java.util.Optional;
 
 public final class GoogleInstances {
 
   public static GoogleInstance createFromComputeInstance(
-      Instance input, GoogleNamedAccountCredentials credentials) {
+      Instance input,
+      GoogleNamedAccountCredentials credentials,
+      ServiceClientProvider serviceClientProvider) {
 
     String localZone = Utils.getLocalName(input.getZone());
 
@@ -49,7 +52,7 @@ public final class GoogleInstances {
     output.setSelfLink(input.getSelfLink());
     output.setTags(input.getTags());
     output.setLabels(input.getLabels());
-    output.setConsulNode(calculateConsulNode(input, credentials));
+    output.setConsulNode(calculateConsulNode(input, credentials, serviceClientProvider));
     output.setInstanceHealth(createInstanceHealth(input));
     return output;
   }
@@ -70,9 +73,12 @@ public final class GoogleInstances {
   }
 
   private static ConsulNode calculateConsulNode(
-      Instance input, GoogleNamedAccountCredentials credentials) {
+      Instance input,
+      GoogleNamedAccountCredentials credentials,
+      ServiceClientProvider serviceClientProvider) {
     return credentials.getConsulConfig() != null && credentials.getConsulConfig().isEnabled()
-        ? ConsulProviderUtils.getHealths(credentials.getConsulConfig(), input.getName())
+        ? ConsulProviderUtils.getHealths(
+            credentials.getConsulConfig(), input.getName(), serviceClientProvider)
         : null;
   }
 

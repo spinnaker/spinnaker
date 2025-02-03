@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.ImageCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
 import com.netflix.spinnaker.config.AwsConfiguration
 import com.netflix.spinnaker.credentials.CredentialsRepository
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
 
@@ -48,7 +49,8 @@ class AmazonCredentialsLifecycleHandlerSpec extends Specification {
   Optional<Collection<AgentProvider>> agentProviders = Optional.empty()
   def amazonCloudProvider = new AmazonCloudProvider()
   def registry = new DefaultRegistry()
-  def eddaApiFactory = new EddaApiFactory()
+  def serviceClientProvider = Mock(ServiceClientProvider)
+  def eddaApiFactory = new EddaApiFactory(serviceClientProvider)
   def dynamicConfigService = Mock(DynamicConfigService) {
     isEnabled("aws.features.cloud-formation", false) >> false
     isEnabled("aws.features.launch-templates", false) >> false

@@ -19,9 +19,10 @@ package com.netflix.spinnaker.clouddriver.consul.api.v1
 import com.netflix.spinnaker.clouddriver.consul.api.v1.services.AgentApi
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 
 class ConsulAgent extends Consul<AgentApi> {
-  ConsulAgent(ConsulConfig config, String agentBaseUrl) {
-    super(agentBaseUrl, config.agentPort, ConsulProperties.DEFAULT_TIMEOUT_MILLIS, AgentApi)
+  ConsulAgent(ConsulConfig config, String agentBaseUrl, ServiceClientProvider serviceClientProvider) {
+    super(agentBaseUrl, config.agentPort, ConsulProperties.DEFAULT_TIMEOUT_MILLIS, AgentApi, serviceClientProvider)
   }
 }

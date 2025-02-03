@@ -17,11 +17,24 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import spock.lang.Ignore
+import com.netflix.spinnaker.config.DefaultServiceClientProvider
+import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import okhttp3.OkHttpClient
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import spock.lang.Shared
 import spock.lang.Specification
-import java.util.Base64
 
+
+@SpringBootTest(
+  classes = [OkHttpClientConfigurationProperties, Retrofit2ServiceFactory, ServiceClientProvider, OkHttpClientProvider,
+    OkHttpClient, DefaultServiceClientProvider,  DefaultOkHttpClientBuilderProvider, Retrofit2ServiceFactoryAutoConfiguration, ObjectMapper],
+  webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class DockerBearerTokenServiceSpec extends Specification {
   private static final REALM1 = "https://auth.docker.io"
   private static final PATH1 = "token"
@@ -30,11 +43,15 @@ class DockerBearerTokenServiceSpec extends Specification {
   private static final SCOPE2 = "repository:library/ubuntu:push"
   private static final REPOSITORY1 = "library/ubuntu"
 
+  @Autowired
+  DefaultServiceClientProvider serviceClientProvider
+
   @Shared
   DockerBearerTokenService tokenService
 
-  def setupSpec() {
-    tokenService = new DockerBearerTokenService()
+
+  def setup() {
+    tokenService = new DockerBearerTokenService(serviceClientProvider)
   }
 
   void "should parse Www-Authenticate header with full privileges and path."() {
@@ -142,7 +159,7 @@ class DockerBearerTokenServiceSpec extends Specification {
       def username = "username"
       def passwordContents = new BufferedReader(new FileReader(passwordFile)).getText()
     when:
-      def fileTokenService = new DockerBearerTokenService(username, passwordFile)
+      def fileTokenService = new DockerBearerTokenService(username, passwordFile, serviceClientProvider)
 
     then:
       new String(Base64.decoder.decode(fileTokenService.getBasicAuth().bytes)) == "$username:$passwordContents"
@@ -155,7 +172,7 @@ class DockerBearerTokenServiceSpec extends Specification {
       def password = ""
       def actualPassword = "hunter2"
     when:
-      def passwordCommandService = new DockerBearerTokenService(username, password, passwordCommand)
+      def passwordCommandService = new DockerBearerTokenService(username, password, passwordCommand, serviceClientProvider)
     then:
       new String(Base64.decoder.decode(passwordCommandService.getBasicAuth().bytes)) == "$username:$actualPassword"
   }

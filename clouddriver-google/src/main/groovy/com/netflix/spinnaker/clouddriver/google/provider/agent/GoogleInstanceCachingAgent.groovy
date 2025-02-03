@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
@@ -44,21 +45,25 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
       INFORMATIVE.forType(CLUSTERS.ns)
   ]
 
+  ServiceClientProvider serviceClientProvider
+
   String agentType = "${accountName}/global/${GoogleInstanceCachingAgent.simpleName}"
 
   GoogleInstanceCachingAgent(String clouddriverUserAgentApplicationName,
                              GoogleNamedAccountCredentials credentials,
                              ObjectMapper objectMapper,
-                             Registry registry){
+                             Registry registry,
+                             ServiceClientProvider serviceClientProvider){
     super(clouddriverUserAgentApplicationName,
       credentials,
       objectMapper,
       registry)
+    this.serviceClientProvider = serviceClientProvider
   }
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<GoogleInstance> instances = GCEUtil.fetchInstances(this, credentials)
+    List<GoogleInstance> instances = GCEUtil.fetchInstances(this, credentials, serviceClientProvider)
     buildCacheResults(providerCache, instances)
   }
 

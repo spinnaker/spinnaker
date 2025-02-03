@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.consul.config
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.ConsulCatalog
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.util.logging.Slf4j
 
@@ -35,7 +37,7 @@ class ConsulConfig {
   // Since this is config injected into every participating provider's Spring config, there is no easy way to
   // standardize where default values should come from. Instead, we require this method to be called after the
   // config is loaded.
-  void applyDefaults() {
+  void applyDefaults(ServiceClientProvider serviceClientProvider) {
     if (!enabled) {
       throw new IllegalStateException("Consul not enabled, cannot set defaults")
     }
@@ -50,8 +52,8 @@ class ConsulConfig {
 
     if (!datacenters) {
       try {
-        def catalog = new ConsulCatalog(this)
-        datacenters = catalog.api.datacenters()
+        def catalog = new ConsulCatalog(this, serviceClientProvider)
+        datacenters = Retrofit2SyncCall.execute(catalog.api.datacenters())
       } catch (SpinnakerServerException e) {
         log.warn "Unable to connect to Consul running on the local Clouddriver instance.", e
         datacenters = []

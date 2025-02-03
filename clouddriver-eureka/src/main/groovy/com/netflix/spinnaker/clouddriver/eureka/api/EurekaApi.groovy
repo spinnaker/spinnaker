@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.clouddriver.eureka.api
 
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplications
-import retrofit.http.GET
-import retrofit.http.Headers
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Headers
 
 interface EurekaApi {
 
   @GET('/apps')
   @Headers(['Accept: application/json'])
-  EurekaApplications loadEurekaApplications()
+  Call<EurekaApplications> loadEurekaApplications()
 }

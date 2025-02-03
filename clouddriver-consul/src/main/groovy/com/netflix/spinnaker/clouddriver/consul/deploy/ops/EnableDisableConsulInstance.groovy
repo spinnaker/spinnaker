@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.consul.deploy.ops
 import com.netflix.spinnaker.clouddriver.consul.api.v1.ConsulAgent
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 
 class EnableDisableConsulInstance {
   static enum State {
@@ -26,8 +27,8 @@ class EnableDisableConsulInstance {
     disable,
   }
 
-  static void operate(ConsulConfig config, String agentEndpoint, State state) {
-    def agent = new ConsulAgent(config, agentEndpoint)
+  static void operate(ConsulConfig config, String agentEndpoint, State state, ServiceClientProvider serviceClientProvider) {
+    def agent = new ConsulAgent(config, agentEndpoint, serviceClientProvider)
 
     // Enabling maintenance mode means the instance is removed from discovery & DNS lookups
     agent.api.maintenance(state == State.disable, "Spinnaker ${state} Operation", "")

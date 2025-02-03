@@ -17,37 +17,42 @@
 package com.netflix.spinnaker.clouddriver.consul.api.v1.services
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.model.*
-import okhttp3.Response
-import retrofit.http.*
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface AgentApi {
   @GET("/v1/agent/checks")
-  Map<String, CheckResult> checks()
+  Call<Map<String, CheckResult>> checks()
 
   @GET("/v1/agent/services")
-  Map<String, ServiceResult> services()
+  Call<Map<String, ServiceResult>> services()
 
   @GET("/v1/agent/self")
-  AgentDefinition self()
+  Call<AgentDefinition> self()
 
   @GET("/v1/agent/join/{address}")
-  Response join(@Path("address") String address, @Query("wan") Integer wan)
+  Call<ResponseBody> join(@Path("address") String address, @Query("wan") Integer wan)
 
   @PUT("/v1/agent/check/register")
-  Response registerCheck(@Body CheckDefinition check, @Query("token") String tokenId)
+  Call<ResponseBody> registerCheck(@Body CheckDefinition check, @Query("token") String tokenId)
 
   @PUT("/v1/agent/check/deregister/{checkId}")
-  Response deregisterCheck(@Path("checkId") String checkId)
+  Call<ResponseBody> deregisterCheck(@Path("checkId") String checkId)
 
   @PUT("/v1/agent/service/register")
-  Response registerService(@Body ServiceDefinition service, @Query("token") String tokenId)
+  Call<ResponseBody> registerService(@Body ServiceDefinition service, @Query("token") String tokenId)
 
   @PUT("/v1/agent/service/deregister/{serviceId}")
-  Response deregisterService(@Path("serviceId") String serviceId)
+  Call<ResponseBody> deregisterService(@Path("serviceId") String serviceId)
 
   @PUT("/v1/agent/service/maintenance/{serviceId}")
-  Response maintenance(@Path("serviceId") String serviceId, @Query("enable") boolean enable, @Query("reason") String reason)
+  Call<ResponseBody> maintenance(@Path("serviceId") String serviceId, @Query("enable") boolean enable, @Query("reason") String reason)
 
   @PUT("/v1/agent/maintenance")
-  Response maintenance(@Query("enable") boolean enable, @Query("reason") String reason, @Body String _empty /* Retrofit requires a body, even if it's empty... */)
+  Call<ResponseBody> maintenance(@Query("enable") boolean enable, @Query("reason") String reason, @Body String _empty /* Retrofit requires a body, even if it's empty... */)
 }

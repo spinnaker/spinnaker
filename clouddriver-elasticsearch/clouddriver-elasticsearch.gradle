@@ -9,7 +9,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
-  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
   implementation "org.apache.groovy:groovy"
   implementation "org.elasticsearch:elasticsearch"
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -20,6 +20,7 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
   testRuntimeOnly "net.bytebuddy:byte-buddy"
 
 }

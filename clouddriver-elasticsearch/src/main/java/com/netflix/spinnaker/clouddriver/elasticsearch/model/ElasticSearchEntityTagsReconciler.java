@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupProvider;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -60,7 +61,8 @@ public class ElasticSearchEntityTagsReconciler {
       String account,
       String region,
       boolean dryRun) {
-    Collection<EntityTags> allEntityTags = front50Service.getAllEntityTags(false);
+    Collection<EntityTags> allEntityTags =
+        Retrofit2SyncCall.execute(front50Service.getAllEntityTags(false));
 
     List<EntityTags> allServerGroupEntityTags =
         filter(allEntityTags, cloudProvider, account, region);

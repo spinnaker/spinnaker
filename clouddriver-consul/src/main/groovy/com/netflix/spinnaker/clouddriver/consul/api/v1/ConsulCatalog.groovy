@@ -18,9 +18,10 @@ package com.netflix.spinnaker.clouddriver.consul.api.v1
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.services.CatalogApi
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 
 class ConsulCatalog extends Consul<CatalogApi> {
-  ConsulCatalog(ConsulConfig config) {
-    super(config, CatalogApi)
+  ConsulCatalog(ConsulConfig config, ServiceClientProvider serviceClientProvider) {
+    super(config, CatalogApi, serviceClientProvider)
   }
 }

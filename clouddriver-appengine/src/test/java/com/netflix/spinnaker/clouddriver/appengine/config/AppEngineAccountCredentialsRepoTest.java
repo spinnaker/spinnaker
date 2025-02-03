@@ -10,6 +10,7 @@ import com.netflix.spinnaker.clouddriver.jobs.JobExecutor;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
@@ -74,6 +75,11 @@ public class AppEngineAccountCredentialsRepoTest {
     @Bean
     String getClouddriverUserAgentApplicationName() {
       return "clouddriverUserAgentApplicationName";
+    }
+
+    @Bean
+    ServiceClientProvider getServiceClientProvider() {
+      return mock(ServiceClientProvider.class);
     }
   }
 }

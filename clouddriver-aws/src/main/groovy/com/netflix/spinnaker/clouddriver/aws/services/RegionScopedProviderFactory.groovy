@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaUtil
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -57,6 +58,9 @@ class RegionScopedProviderFactory {
 
   @Autowired(required = false)
   Collection<AmazonResourceTagger> amazonResourceTaggers
+
+  @Autowired
+  ServiceClientProvider serviceClientProvider
 
   RegionScopedProvider forRegion(NetflixAmazonCredentials amazonCredentials, String region) {
     new RegionScopedProvider(amazonCredentials, region)
@@ -134,7 +138,7 @@ class RegionScopedProviderFactory {
       if (!amazonCredentials.discoveryEnabled) {
         throw new IllegalStateException('discovery not enabled')
       }
-      EurekaUtil.getWritableEureka(amazonCredentials.discovery, region)
+      EurekaUtil.getWritableEureka(amazonCredentials.discovery, region, serviceClientProvider)
     }
 
     AsgBuilder getAsgBuilderForLaunchConfiguration() {

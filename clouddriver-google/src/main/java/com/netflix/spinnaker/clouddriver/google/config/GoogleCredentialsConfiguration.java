@@ -30,6 +30,7 @@ import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.poller.Poller;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,6 +46,8 @@ public class GoogleCredentialsConfiguration {
   private static final Logger log = LoggerFactory.getLogger(GoogleCredentialsConfiguration.class);
 
   @Autowired NamerRegistry namerRegistry;
+
+  @Autowired ServiceClientProvider serviceClientProvider;
 
   @Bean
   public CredentialsTypeBaseConfiguration<
@@ -89,7 +92,7 @@ public class GoogleCredentialsConfiguration {
                         .requiredGroupMembership(a.getRequiredGroupMembership())
                         .permissions(a.getPermissions().build())
                         .applicationName(clouddriverUserAgentApplicationName)
-                        .consulConfig(a.getConsul())
+                        .consulConfig(a.getConsul(), serviceClientProvider)
                         .instanceTypeDisks(googleDeployDefaults.getInstanceTypeDisks())
                         .userDataFile(a.getUserDataFile())
                         .regionsToManage(

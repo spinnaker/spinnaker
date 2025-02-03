@@ -31,8 +31,6 @@ dependencies {
   implementation "io.spinnaker.kork:kork-credentials-api"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-moniker"
-  implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.squareup.retrofit:retrofit"
   implementation "commons-io:commons-io"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.httpcomponents:httpclient"

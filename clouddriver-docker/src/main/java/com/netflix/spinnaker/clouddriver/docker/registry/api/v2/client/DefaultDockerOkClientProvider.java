@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client;
 
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.TrustAllX509TrustManager;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -29,7 +28,7 @@ import okhttp3.OkHttpClient;
 public class DefaultDockerOkClientProvider implements DockerOkClientProvider {
 
   @Override
-  public Ok3Client provide(String address, long timeoutMs, boolean insecure) {
+  public OkHttpClient provide(String address, long timeoutMs, boolean insecure) {
     OkHttpClient.Builder clientBuilder =
         new OkHttpClient.Builder().readTimeout(timeoutMs, TimeUnit.MILLISECONDS);
 
@@ -46,6 +45,6 @@ public class DefaultDockerOkClientProvider implements DockerOkClientProvider {
           sslContext.getSocketFactory(), (X509TrustManager) trustManagers[0]);
     }
 
-    return new Ok3Client(clientBuilder.build());
+    return clientBuilder.build();
   }
 }

@@ -22,6 +22,8 @@ import com.netflix.spinnaker.clouddriver.consul.api.v1.model.KeyValuePair
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulProperties
 import com.netflix.spinnaker.clouddriver.consul.deploy.description.ConsulLoadBalancerDescription
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
@@ -29,13 +31,13 @@ class UpsertConsulLoadBalancer {
   // This operation is a bit odd, since services in Consul don't exist until they are attached to an instance - and
   // when a service is first registered, it doesn't have any instances attached. Therefore this operation simply sticks
   // the service in Consuls KV API for later retrieval & use.
-  static void operate(ConsulConfig config, ConsulLoadBalancerDescription description) {
+  static void operate(ConsulConfig config, ConsulLoadBalancerDescription description, ServiceClientProvider serviceClientProvider) {
     // who comes up with these names??
     def jsonSlurper = new JsonSlurper()
     def objectMapper = new ObjectMapper()
 
-    def kvApi = new ConsulKeyValueStore(config).api
-    List<KeyValuePair> services = kvApi.getKey(description.name, description.datacenter, false)
+    def kvApi = new ConsulKeyValueStore(config, serviceClientProvider).api
+    List<KeyValuePair> services = Retrofit2SyncCall.execute(kvApi.getKey(description.name, description.datacenter, false))
 
     ConsulLoadBalancerDescription oldDescription = new ConsulLoadBalancerDescription()
     if (!services) {
@@ -56,6 +58,6 @@ class UpsertConsulLoadBalancer {
     description.tags = description.tags != null ? description.tags : oldDescription.tags // null check to enable tags = []
 
     def serializedDescription = JsonOutput.toJson(description)
-    kvApi.putKey(description.name, serializedDescription, description.datacenter)
+    Retrofit2SyncCall.execute(kvApi.putKey(description.name, serializedDescription, description.datacenter))
   }
 }

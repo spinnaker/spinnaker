@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -73,7 +74,7 @@ class ProjectClustersServiceSpec extends Specification {
 
     then:
     result["Spinnaker"].isEmpty()
-    1 * front50Service.getProject(_) >> { projectConfig }
+    1 * front50Service.getProject(_) >> Calls.response(projectConfig)
     0 * _
   }
 
@@ -107,7 +108,7 @@ class ProjectClustersServiceSpec extends Specification {
     clusters[0].applications[1].clusters[0].instanceCounts.down == 1
     clusters[0].applications[1].clusters[0].instanceCounts.up == 1
 
-    1 * front50Service.getProject(_) >> { projectConfig }
+    1 * front50Service.getProject(_) >> Calls.response(projectConfig)
     1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [new TestCluster(
         name: "orca-main",
@@ -154,7 +155,7 @@ class ProjectClustersServiceSpec extends Specification {
     then:
     clusters.size() == 1
     clusters[0].applications.application == ["orca", "deck"]
-    1 * front50Service.getProject(_) >> { projectConfig }
+    1 * front50Service.getProject(_) >> Calls.response(projectConfig)
     1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [new TestCluster(
         name: "orca-main",
@@ -201,7 +202,7 @@ class ProjectClustersServiceSpec extends Specification {
     then:
     clusters.size() == 1
     clusters[0].applications.application == ["deck"]
-    1 * front50Service.getProject(_) >> { projectConfig }
+    1 * front50Service.getProject(_) >> Calls.response(projectConfig)
     1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [new TestCluster(
         name: "orca-main",
@@ -253,7 +254,7 @@ class ProjectClustersServiceSpec extends Specification {
     clusters[0].instanceCounts.up == 2
     clusters[0].instanceCounts.starting == 0
 
-    1 * front50Service.getProject(_) >> { projectConfig }
+    1 * front50Service.getProject(_) >> Calls.response(projectConfig)
     1 * clusterProvider.getClusterSummaries("deck") >> [:]
     1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [
@@ -312,7 +313,7 @@ class ProjectClustersServiceSpec extends Specification {
     clusters[0].instanceCounts.total == 2
     clusters[0].instanceCounts.up == 2
 
-    1 * front50Service.getProject(_) >> { projectConfig }
+    1 * front50Service.getProject(_) >> Calls.response(projectConfig)
     1 * clusterProvider.getClusterSummaries("deck") >> [:]
     1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [
@@ -351,7 +352,7 @@ class ProjectClustersServiceSpec extends Specification {
     clusters[0].instanceCounts.total == 1
     clusters[0].instanceCounts.up == 1
 
-    1 * front50Service.getProject(_) >> { projectConfig }
+    1 * front50Service.getProject(_) >> Calls.response(projectConfig)
     1 * clusterProvider.getClusterSummaries("deck") >> [:]
     1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [
@@ -423,7 +424,7 @@ class ProjectClustersServiceSpec extends Specification {
     westCluster.instanceCounts.total == 3
     westCluster.instanceCounts.up == 3
 
-    1 * front50Service.getProject(_) >> { projectConfig }
+    1 * front50Service.getProject(_) >> Calls.response(projectConfig)
     1 * clusterProvider.getClusterSummaries("orca") >> [
       prod: [
         new TestCluster(

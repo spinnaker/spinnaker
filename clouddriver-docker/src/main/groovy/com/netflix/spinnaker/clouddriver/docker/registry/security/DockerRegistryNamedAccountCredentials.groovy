@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistr
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -57,6 +58,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     String repositoriesRegex
     Permissions permissions
     DockerOkClientProvider dockerOkClientProvider
+    ServiceClientProvider serviceClientProvider
 
     Builder() {}
 
@@ -190,6 +192,11 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
       return this
     }
 
+    Builder serviceClientProvider(ServiceClientProvider serviceClientProvider) {
+      this.serviceClientProvider = serviceClientProvider
+      return this
+    }
+
     DockerRegistryNamedAccountCredentials build() {
       return new DockerRegistryNamedAccountCredentials(accountName,
         environment,
@@ -215,7 +222,8 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
         insecureRegistry,
         null,
         permissions,
-        dockerOkClientProvider)
+        dockerOkClientProvider,
+        serviceClientProvider)
     }
   }
 
@@ -241,7 +249,8 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
                                         String catalogFile,
                                         String repositoriesRegex,
                                         boolean insecureRegistry,
-                                        DockerOkClientProvider dockerOkClientProvider) {
+                                        DockerOkClientProvider dockerOkClientProvider,
+                                        ServiceClientProvider serviceClientProvider) {
     this(accountName,
       environment,
       accountType,
@@ -266,7 +275,8 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
       insecureRegistry,
       null,
       null,
-      dockerOkClientProvider)
+      dockerOkClientProvider,
+      serviceClientProvider)
   }
 
   DockerRegistryNamedAccountCredentials(String accountName,
@@ -293,7 +303,8 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
                                         boolean insecureRegistry,
                                         List<String> requiredGroupMembership,
                                         Permissions permissions,
-                                        DockerOkClientProvider dockerOkClientProvider) {
+                                        DockerOkClientProvider dockerOkClientProvider,
+                                        ServiceClientProvider serviceClientProvider) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
     }
@@ -316,6 +327,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     this.paginateSize = paginateSize ?: 100
     this.clientTimeoutMillis = clientTimeoutMillis ?: TimeUnit.MINUTES.toMillis(1)
     this.dockerOkClientProvider = dockerOkClientProvider
+    this.serviceClientProvider = serviceClientProvider
 
     if (!address) {
       throw new IllegalArgumentException("Docker Registry account $accountName must provide an endpoint address.");
@@ -436,6 +448,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
         .repositoriesRegex(repositoriesRegex)
         .insecureRegistry(insecureRegistry)
         .okClientProvider(dockerOkClientProvider)
+        .serviceClientProvider(serviceClientProvider)
         .build()
 
       return new DockerRegistryCredentials(client, repositories, trackDigests, inspectDigests, skip, sortTagsByDate)
@@ -487,4 +500,5 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
   final String catalogFile
   final String repositoriesRegex
   final DockerOkClientProvider dockerOkClientProvider
+  final ServiceClientProvider serviceClientProvider
 }

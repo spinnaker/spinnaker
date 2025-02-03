@@ -50,6 +50,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvid
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HEALTH_CHECKS
@@ -2251,7 +2252,7 @@ class GCEUtil {
     return healthChecks
   }
 
-  static List<GoogleInstance> fetchInstances(GoogleExecutorTraits agent, GoogleNamedAccountCredentials credentials) {
+  static List<GoogleInstance> fetchInstances(GoogleExecutorTraits agent, GoogleNamedAccountCredentials credentials, ServiceClientProvider serviceClientProvider) {
     List<GoogleInstance> instances = new ArrayList<GoogleInstance>()
     String pageToken = null
 
@@ -2261,7 +2262,7 @@ class GCEUtil {
         "compute.instances.aggregatedList",
         agent.TAG_SCOPE, agent.SCOPE_GLOBAL)
 
-      instances += transformInstances(instanceAggregatedList, credentials)
+      instances += transformInstances(instanceAggregatedList, credentials, serviceClientProvider)
       pageToken = instanceAggregatedList.getNextPageToken()
 
       if (!pageToken) {
@@ -2272,12 +2273,12 @@ class GCEUtil {
     return instances
   }
 
-  private static List<GoogleInstance> transformInstances(InstanceAggregatedList instanceAggregatedList, GoogleNamedAccountCredentials credentials) throws IOException {
+  private static List<GoogleInstance> transformInstances(InstanceAggregatedList instanceAggregatedList, GoogleNamedAccountCredentials credentials, ServiceClientProvider serviceClientProvider) throws IOException {
     List<GoogleInstance> instances = []
 
     instanceAggregatedList?.items?.each { String zone, InstancesScopedList instancesScopedList ->
       instancesScopedList?.instances?.each { Instance instance ->
-        instances << GoogleInstances.createFromComputeInstance(instance, credentials)
+        instances << GoogleInstances.createFromComputeInstance(instance, credentials, serviceClientProvider)
       }
     }
 

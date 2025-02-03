@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
 
 @Data
 @ConfigurationProperties("artifacts.gcs")
@@ -33,10 +31,6 @@ public class StorageConfigurationProperties {
   public static class ManagedAccount {
     String name;
     String jsonPath;
-
-    public static String responseToString(Response response) {
-      return new String(((TypedByteArray) response.getBody()).getBytes());
-    }
   }
 
   ManagedAccount getAccount(String name) {

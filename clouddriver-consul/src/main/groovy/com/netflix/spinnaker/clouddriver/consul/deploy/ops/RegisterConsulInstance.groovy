@@ -18,12 +18,13 @@ package com.netflix.spinnaker.clouddriver.consul.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.ConsulAgent
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 
 // The difference between "Register" and "EnableDisable" is that "Register" first joins a node to the Consul cluster,
 // whereas "EnableDisable" keeps a node in a cluster, but changes its discovery status
 class RegisterConsulInstance {
-  static void operate(ConsulConfig config, String agentEndpoint) {
-    def agent = new ConsulAgent("${agentEndpoint}:${config.agentPort}")
+  static void operate(ConsulConfig config, String agentEndpoint, ServiceClientProvider serviceClientProvider) {
+    def agent = new ConsulAgent(config, "${agentEndpoint}:${config.agentPort}", serviceClientProvider)
     agent.api.join(config.servers[0], 0 /* Not joining the WAN, since this is a client node */ )
   }
 }

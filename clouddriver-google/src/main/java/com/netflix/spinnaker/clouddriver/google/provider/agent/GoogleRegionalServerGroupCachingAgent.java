@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.compute.RegionAutoscalers;
 import com.netflix.spinnaker.clouddriver.google.compute.RegionInstanceGroupManagers;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -45,8 +46,9 @@ public final class GoogleRegionalServerGroupCachingAgent
       GoogleComputeApiFactory computeApiFactory,
       Registry registry,
       String region,
-      ObjectMapper objectMapper) {
-    super(credentials, computeApiFactory, registry, region, objectMapper);
+      ObjectMapper objectMapper,
+      ServiceClientProvider serviceClientProvider) {
+    super(credentials, computeApiFactory, registry, region, objectMapper, serviceClientProvider);
   }
 
   @Override

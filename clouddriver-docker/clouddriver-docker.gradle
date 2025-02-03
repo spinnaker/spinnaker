@@ -9,10 +9,8 @@ dependencies {
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.apache.groovy:groovy"
   implementation "com.google.guava:guava"
-  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.netflix.spectator:spectator-api"
-  implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
   implementation "org.apache.commons:commons-compress:1.21"
   implementation "commons-io:commons-io"
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
@@ -20,6 +18,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-web"
 
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "cglib:cglib-nodep"
@@ -35,5 +34,8 @@ dependencies {
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.security:spring-security-test"
+  testImplementation "com.github.tomakehurst:wiremock-jre8"
   testImplementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-retrofit2"
+  implementation "io.spinnaker.kork:kork-web"
 }

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags.EntityTagValueType
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kork.core.RetrySupport
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -70,9 +71,11 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
 
     then:
     1000 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
-    20 * front50Service.getAllEntityTagsById(_) >> []
-    20 * front50Service.batchUpdate(_) >> {
-      description.entityTags.findResults { new EntityTags(id: it.id, lastModified: 123, lastModifiedBy: "unknown")}
+    20 * front50Service.getAllEntityTagsById(_) >> { return Calls.response([])}
+    20 * front50Service.batchUpdate(_) >> { args ->
+      Calls.response(args[0].findResults {
+        new EntityTags(id: it.id, lastModified: 123, lastModifiedBy: "unknown")
+      })
     }
     20 * entityTagsProvider.bulkIndex(_)
     1000 * entityTagsProvider.verifyIndex(_)
@@ -107,10 +110,8 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
     description.entityTags.size() == 2
     description.entityTags[0].tags.size() == 3
     4 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
-    1 * front50Service.getAllEntityTagsById(_) >> []
-    1 * front50Service.batchUpdate(_) >> {
-      description.entityTags.findResults { new EntityTags(id: it.id, lastModified: 123, lastModifiedBy: "unknown")}
-    }
+    1 * front50Service.getAllEntityTagsById(_) >> Calls.response([])
+    1 * front50Service.batchUpdate(_) >> {args ->  Calls.response(args[0].findResults { new EntityTags(id: it.id, lastModified: 123, lastModifiedBy: "unknown")})}
   }
 
   void 'should create new tag if none exists'() {
@@ -135,10 +136,8 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
     tag.tagsMetadata[0].lastModifiedBy == tag.tagsMetadata[0].createdBy
 
     1 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
-    1 * front50Service.batchUpdate(_) >> {
-      [new EntityTags(id: "aws:servergroup:orca-v001:100:us-east-1", lastModified: 123, lastModifiedBy: "unknown")]
-    }
-    1 * front50Service.getAllEntityTagsById(_) >> []
+    1 * front50Service.batchUpdate(_) >> Calls.response([new EntityTags(id: "aws:servergroup:orca-v001:100:us-east-1", lastModified: 123, lastModifiedBy: "unknown")])
+    1 * front50Service.getAllEntityTagsById(_) >> Calls.response([])
     1 * entityTagsProvider.bulkIndex(description.entityTags)
     1 * entityTagsProvider.verifyIndex(tag)
   }
@@ -225,10 +224,8 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
     result.upserted.size() == 3
     description.entityTags.size() == 3
     4 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
-    1 * front50Service.getAllEntityTagsById(_) >> []
-    1 * front50Service.batchUpdate(_) >> {
-      description.entityTags.findResults { new EntityTags(id: it.id, lastModified: 123, lastModifiedBy: "unknown")}
-    }
+    1 * front50Service.getAllEntityTagsById(_) >> Calls.response([])
+    1 * front50Service.batchUpdate(_) >> {args -> Calls.response(args[0].findResults { new EntityTags(id: it.id, lastModified: 123, lastModifiedBy: "unknown")}) }
     entityTagsProvider.index()
   }
 

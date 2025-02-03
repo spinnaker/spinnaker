@@ -27,6 +27,7 @@ import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.poller.Poller;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -58,7 +59,8 @@ public class AppengineCredentialsConfiguration {
           AppengineConfigurationProperties configurationProperties,
           AppengineJobExecutor jobExecutor,
           ConfigFileService configFileService,
-          String clouddriverUserAgentApplicationName) {
+          String clouddriverUserAgentApplicationName,
+          ServiceClientProvider serviceClientProvider) {
     return new CredentialsTypeBaseConfiguration(
         applicationContext,
         CredentialsTypeProperties
@@ -74,7 +76,7 @@ public class AppengineCredentialsConfiguration {
                     if (StringUtils.isEmpty(gcloudPath)) {
                       gcloudPath = "gcloud";
                     }
-                    a.initialize(jobExecutor, gcloudPath);
+                    a.initialize(jobExecutor, gcloudPath, serviceClientProvider);
 
                     String jsonKey = configFileService.getContents(a.getJsonPath());
                     return new AppengineNamedAccountCredentials.Builder()

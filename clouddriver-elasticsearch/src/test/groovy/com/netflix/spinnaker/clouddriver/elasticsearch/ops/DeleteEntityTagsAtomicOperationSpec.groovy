@@ -23,9 +23,12 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider
 import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import org.springframework.http.HttpStatus
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 class DeleteEntityTagsAtomicOperationSpec extends Specification {
@@ -47,17 +50,12 @@ class DeleteEntityTagsAtomicOperationSpec extends Specification {
   }
 
   void 'should remove entityTag from ElasticSearch if not found in Front50'() {
-    given:
-    RetrofitError notFoundRetrofitError = RetrofitError.httpError("url",
-      new Response("url", HttpStatus.NOT_FOUND.value(), "Application Not Found", [], null),
-      null, null)
-    SpinnakerHttpException spinnakerHttpException = new SpinnakerHttpException(notFoundRetrofitError)
     when:
     description.id = 'abc'
     operation.operate([])
 
     then:
-    1 * front50Service.getEntityTags('abc') >> { throw spinnakerHttpException }
+    1 * front50Service.getEntityTags('abc') >> { throw makeSpinnakerHttpException(404) }
     1 * entityTagsProvider.delete('abc')
     0 * _
   }
@@ -73,9 +71,9 @@ class DeleteEntityTagsAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * front50Service.getEntityTags('abc') >> current
+    1 * front50Service.getEntityTags('abc') >> Calls.response(current)
     1 * entityTagsProvider.delete('abc')
-    1 * front50Service.deleteEntityTags('abc')
+    1 * front50Service.deleteEntityTags('abc') >> Calls.response(null)
     0 * _
   }
 
@@ -89,9 +87,9 @@ class DeleteEntityTagsAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * front50Service.getEntityTags('abc') >> current
+    1 * front50Service.getEntityTags('abc') >> Calls.response(current)
     1 * entityTagsProvider.delete('abc')
-    1 * front50Service.deleteEntityTags('abc')
+    1 * front50Service.deleteEntityTags('abc') >> Calls.response(null)
     0 * _
   }
 
@@ -114,14 +112,32 @@ class DeleteEntityTagsAtomicOperationSpec extends Specification {
     current.tags*.name == ['b']
     current.tags*.value == ['something else']
     current.tagsMetadata*.name == ['b']
-    1 * front50Service.getEntityTags('abc') >> current
+    1 * front50Service.getEntityTags('abc') >> Calls.response(current)
     1 * entityTagsProvider.index(current)
     1 * entityTagsProvider.verifyIndex(current)
-    1 * front50Service.saveEntityTags(current) >> current
+    1 * front50Service.saveEntityTags(current) >> Calls.response(current)
     0 * _
   }
 
   Collection<EntityTags.EntityTag> buildTags(Map<String, String> tags) {
     return tags.collect { k, v -> new EntityTags.EntityTag(name: k, value: v) }
   }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+    String url = "https://some-url";
+    Response retrofit2Response =
+      Response.error(
+        status,
+        ResponseBody.create(
+          MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(url)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
+  }
+
 }

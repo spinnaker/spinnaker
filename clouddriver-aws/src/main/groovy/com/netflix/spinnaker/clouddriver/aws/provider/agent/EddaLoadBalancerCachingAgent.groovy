@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.clouddriver.aws.model.edda.LoadBalancerInstanceState
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
@@ -78,7 +79,7 @@ class EddaLoadBalancerCachingAgent implements CachingAgent, HealthProvidingCachi
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
-    List<LoadBalancerInstanceState> balancerInstances = eddaApi.loadBalancerInstances()
+    List<LoadBalancerInstanceState> balancerInstances = Retrofit2SyncCall.execute(eddaApi.loadBalancerInstances())
 
     List<InstanceLoadBalancers> ilbs = InstanceLoadBalancers.fromLoadBalancerInstanceState(balancerInstances)
     Collection<CacheData> lbHealths = new ArrayList<CacheData>(ilbs.size())

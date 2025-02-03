@@ -60,6 +60,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import com.netflix.spinnaker.clouddriver.google.names.GoogleLabeledResourceNamer;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.io.IOException;
 import java.util.Collection;
@@ -67,6 +68,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 final class GoogleRegionalServerGroupCachingAgentTest {
 
@@ -78,6 +80,8 @@ final class GoogleRegionalServerGroupCachingAgentTest {
   private static final String REGION = "myregion";
   private static final String REGION_URL = "http://compute/regions/" + REGION;
   private static final String ZONE = REGION + "-myzone";
+
+  @Mock private static ServiceClientProvider serviceClientProvider;
 
   private ObjectMapper objectMapper;
 
@@ -636,7 +640,8 @@ final class GoogleRegionalServerGroupCachingAgentTest {
             MoreExecutors.listeningDecorator(Executors.newCachedThreadPool())),
         new DefaultRegistry(),
         REGION,
-        new ObjectMapper());
+        new ObjectMapper(),
+        serviceClientProvider);
   }
 
   private static InstanceGroupManager instanceGroupManager(String name) {

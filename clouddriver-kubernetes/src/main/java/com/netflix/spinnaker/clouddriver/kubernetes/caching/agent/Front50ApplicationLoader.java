@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.model.Front50Application;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Collections;
 import java.util.Set;
@@ -64,7 +65,8 @@ public class Front50ApplicationLoader {
         return;
       }
       Set<Front50Application> response =
-          AuthenticatedRequest.allowAnonymous(front50Service::getAllApplicationsUnrestricted);
+          AuthenticatedRequest.allowAnonymous(
+              () -> Retrofit2SyncCall.execute(front50Service.getAllApplicationsUnrestricted()));
       Set<String> applicationsKnownToFront50 =
           response.stream().map(Front50Application::getName).collect(Collectors.toSet());
       log.info("received {} applications from front50", applicationsKnownToFront50.size());

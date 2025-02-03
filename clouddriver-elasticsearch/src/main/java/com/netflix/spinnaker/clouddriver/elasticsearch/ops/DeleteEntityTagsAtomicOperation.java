@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import java.util.Collection;
 import java.util.List;
@@ -54,7 +55,8 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
             BASE_PHASE, format("Retrieving %s from Front50", entityTagsDescription.getId()));
     EntityTags currentTags;
     try {
-      currentTags = front50Service.getEntityTags(entityTagsDescription.getId());
+      currentTags =
+          Retrofit2SyncCall.execute(front50Service.getEntityTags(entityTagsDescription.getId()));
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
         getTask()
@@ -108,7 +110,8 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
                 entityTagsDescription.getId(), entityTagsDescription.getTags()));
     entityTagsDescription.getTags().forEach(currentTags::removeEntityTag);
 
-    EntityTags durableEntityTags = front50Service.saveEntityTags(currentTags);
+    EntityTags durableEntityTags =
+        Retrofit2SyncCall.execute(front50Service.saveEntityTags(currentTags));
     getTask().updateStatus(BASE_PHASE, format("Updated %s in Front50", durableEntityTags.getId()));
 
     currentTags.setLastModified(durableEntityTags.getLastModified());

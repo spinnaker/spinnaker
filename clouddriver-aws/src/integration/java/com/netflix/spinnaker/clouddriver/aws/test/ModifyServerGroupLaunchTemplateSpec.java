@@ -81,6 +81,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
+import retrofit2.mock.Calls;
 
 /**
  * Test class for general test cases related to CreateServerGroup operation. Note: launch template
@@ -178,7 +179,7 @@ public class ModifyServerGroupLaunchTemplateSpec extends AwsBaseSpec {
     Map applicationMap = new HashMap();
     applicationMap.put("application", "myAwsApp");
     applicationMap.put("legacyUdf", null);
-    when(mockFront50Service.getApplication(ASG_NAME)).thenReturn(applicationMap);
+    when(mockFront50Service.getApplication(ASG_NAME)).thenReturn(Calls.response(applicationMap));
 
     // mock EC2 responses
     when(mockRegionScopedProvider.getAmazonEC2()).thenReturn(mockEc2);

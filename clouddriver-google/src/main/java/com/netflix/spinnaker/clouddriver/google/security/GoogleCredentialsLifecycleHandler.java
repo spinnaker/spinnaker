@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.google.provider.agent.*;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -38,6 +39,7 @@ public class GoogleCredentialsLifecycleHandler
   private final ObjectMapper objectMapper;
   private final Registry registry;
   private final String clouddriverUserAgentApplicationName;
+  private final ServiceClientProvider serviceClientProvider;
 
   @Override
   public void credentialsAdded(GoogleNamedAccountCredentials credentials) {
@@ -99,7 +101,11 @@ public class GoogleCredentialsLifecycleHandler
             clouddriverUserAgentApplicationName, credentials, objectMapper, registry));
     googleCachingAgents.add(
         new GoogleInstanceCachingAgent(
-            clouddriverUserAgentApplicationName, credentials, objectMapper, registry));
+            clouddriverUserAgentApplicationName,
+            credentials,
+            objectMapper,
+            registry,
+            serviceClientProvider));
     googleCachingAgents.add(
         new GoogleImageCachingAgent(
             clouddriverUserAgentApplicationName,
@@ -130,10 +136,20 @@ public class GoogleCredentialsLifecycleHandler
               clouddriverUserAgentApplicationName, credentials, objectMapper, registry, region));
       googleServerGroupAgents.add(
           new GoogleRegionalServerGroupCachingAgent(
-              credentials, googleComputeApiFactory, registry, region, objectMapper));
+              credentials,
+              googleComputeApiFactory,
+              registry,
+              region,
+              objectMapper,
+              serviceClientProvider));
       googleServerGroupAgents.add(
           new GoogleZonalServerGroupCachingAgent(
-              credentials, googleComputeApiFactory, registry, region, objectMapper));
+              credentials,
+              googleComputeApiFactory,
+              registry,
+              region,
+              objectMapper,
+              serviceClientProvider));
     }
 
     googleInfrastructureProvider.addAgents(googleCachingAgents);

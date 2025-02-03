@@ -40,8 +40,8 @@ dependencies {
   implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "io.spinnaker.kork:kork-retrofit"
-  implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.squareup.retrofit:retrofit"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "com.squareup.retrofit2:converter-jackson"
   implementation "io.reactivex:rxjava"
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"
@@ -63,6 +63,7 @@ dependencies {
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework:spring-test"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework:spring-test"

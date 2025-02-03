@@ -32,6 +32,7 @@ import io.searchbox.indices.template.PutTemplate
 import org.springframework.context.ApplicationContext
 import org.testcontainers.DockerClientFactory
 import org.testcontainers.elasticsearch.ElasticsearchContainer
+import retrofit2.mock.Calls
 import spock.lang.Requires
 import spock.lang.Shared
 import spock.lang.Specification
@@ -298,7 +299,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     refreshIndices()
 
     then:
-    1 * front50Service.getAllEntityTags(true) >> { return allEntityTags }
+    1 * front50Service.getAllEntityTags(true) >> Calls.response(allEntityTags)
     1 * entityTagsReconciler.filter(allEntityTags) >> { return [ allEntityTags[1] ] }
 
     entityTagsProvider.verifyIndex(allEntityTags[1])
@@ -346,22 +347,21 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     entityTagsProvider.deleteByNamespace("my_namespace", true, false) // dry-run
 
     then:
-    1 * front50Service.getAllEntityTags(false) >> {
-      return entityTagsProvider.getAll(
+    1 * front50Service.getAllEntityTags(false) >>
+       Calls.response(entityTagsProvider.getAll(
         null, null, null, null, null, null, null, null, [:], 100
-      )
-    }
+      ))
+
     0 * _
 
     when:
     entityTagsProvider.deleteByNamespace("my_namespace", true, true) // dry-run
 
     then:
-    1 * front50Service.getAllEntityTags(false) >> {
-      return entityTagsProvider.getAll(
+    1 * front50Service.getAllEntityTags(false) >> Calls.response( entityTagsProvider.getAll(
         null, null, null, null, null, null, null, null, [:], 100
-      )
-    }
+      ))
+
     0 * _
 
     when:
@@ -373,11 +373,10 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     )
 
     then:
-    1 * front50Service.getAllEntityTags(false) >> {
-      return entityTagsProvider.getAll(
+    1 * front50Service.getAllEntityTags(false) >> Calls.response(entityTagsProvider.getAll(
         null, null, null, null, null, null, null, null, [:], 100
-      )
-    }
+      ))
+
     _ * retrySupport.retry(_, _, _, _) >> { Supplier fn, int maxRetries, long retryBackoff, boolean exponential -> fn.get() }
     0 * _
 
@@ -389,8 +388,8 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     entityTagsProvider.deleteByNamespace("my_namespace", false, true) // remove from elasticsearch and front50
 
     then:
-    1 * front50Service.getAllEntityTags(false) >> { return allEntityTags }
-    1 * front50Service.batchUpdate(_)
+    1 * front50Service.getAllEntityTags(false) >> Calls.response(allEntityTags)
+    1 * front50Service.batchUpdate(_) >> Calls.response(null)
     _ * retrySupport.retry(_, _, _, _) >> { Supplier fn, int maxRetries, long retryBackoff, boolean exponential -> fn.get() }
     0 * _
   }

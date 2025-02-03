@@ -67,6 +67,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.stubbing.Answer;
+import retrofit2.mock.Calls;
 
 final class KubernetesCoreCachingAgentTest {
   private static final String ACCOUNT = "my-account";
@@ -345,7 +346,8 @@ final class KubernetesCoreCachingAgentTest {
             getNamedAccountCredentials(), 1, front50ApplicationLoader, checkApplicationInFront50);
 
     when(front50Service.getAllApplicationsUnrestricted())
-        .thenReturn(getApplicationsFromFront50("applications-response-from-front50.json"));
+        .thenReturn(
+            Calls.response(getApplicationsFromFront50("applications-response-from-front50.json")));
     front50ApplicationLoader.refreshCache();
     verify(front50Service).getAllApplicationsUnrestricted();
 
@@ -378,7 +380,8 @@ final class KubernetesCoreCachingAgentTest {
             getNamedAccountCredentials(deploymentName), 1, front50ApplicationLoader, true);
 
     when(front50Service.getAllApplicationsUnrestricted())
-        .thenReturn(getApplicationsFromFront50("applications-response-from-front50.json"));
+        .thenReturn(
+            Calls.response(getApplicationsFromFront50("applications-response-from-front50.json")));
 
     front50ApplicationLoader.refreshCache();
     verify(front50Service).getAllApplicationsUnrestricted();

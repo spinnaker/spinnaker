@@ -32,6 +32,7 @@ import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.poller.Poller;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -76,7 +77,8 @@ public class DockerRegistryConfiguration {
           DockerRegistryConfigurationProperties accountProperties,
           DockerOkClientProvider dockerOkClientProvider,
           CredentialsRepository<DockerRegistryNamedAccountCredentials>
-              dockerRegistryCredentialsRepository) {
+              dockerRegistryCredentialsRepository,
+          ServiceClientProvider serviceClientProvider) {
 
     if (dockerRegistryCredentialsSource == null) {
       dockerRegistryCredentialsSource = accountProperties::getAccounts;
@@ -110,6 +112,7 @@ public class DockerRegistryConfiguration {
                 .skip(a.getSkip())
                 .permissions(a.getPermissions().build())
                 .dockerOkClientProvider(dockerOkClientProvider)
+                .serviceClientProvider(serviceClientProvider)
                 .build(),
         dockerRegistryCredentialsRepository);
   }

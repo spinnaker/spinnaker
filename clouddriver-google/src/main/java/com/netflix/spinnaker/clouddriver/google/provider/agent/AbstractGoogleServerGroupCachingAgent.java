@@ -101,6 +101,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLo
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
 import java.io.IOException;
@@ -145,13 +146,15 @@ public abstract class AbstractGoogleServerGroupCachingAgent
   private final OnDemandMetricsSupport onDemandMetricsSupport;
   private final ObjectMapper objectMapper;
   private final Namer<GoogleLabeledResource> naming;
+  private final ServiceClientProvider serviceClientProvider;
 
   AbstractGoogleServerGroupCachingAgent(
       GoogleNamedAccountCredentials credentials,
       GoogleComputeApiFactory computeApiFactory,
       Registry registry,
       String region,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      ServiceClientProvider serviceClientProvider) {
     this.credentials = credentials;
     this.computeApiFactory = computeApiFactory;
     this.region = region;
@@ -162,6 +165,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
             .withProvider(GoogleCloudProvider.getID())
             .withAccount(credentials.getName())
             .withResource(GoogleLabeledResource.class);
+    this.serviceClientProvider = serviceClientProvider;
   }
 
   @Override
@@ -457,7 +461,10 @@ public abstract class AbstractGoogleServerGroupCachingAgent
 
     ImmutableList<GoogleInstance> instances =
         retrieveAllInstancesInRegion().stream()
-            .map(instance -> GoogleInstances.createFromComputeInstance(instance, credentials))
+            .map(
+                instance ->
+                    GoogleInstances.createFromComputeInstance(
+                        instance, credentials, serviceClientProvider))
             .collect(toImmutableList());
     return constructServerGroups(
         providerCache,
@@ -493,7 +500,10 @@ public abstract class AbstractGoogleServerGroupCachingAgent
 
       List<GoogleInstance> instances =
           retrieveRelevantInstances(manager).stream()
-              .map(instance -> GoogleInstances.createFromComputeInstance(instance, credentials))
+              .map(
+                  instance ->
+                      GoogleInstances.createFromComputeInstance(
+                          instance, credentials, serviceClientProvider))
               .collect(toImmutableList());
 
       List<Autoscaler> autoscalers =

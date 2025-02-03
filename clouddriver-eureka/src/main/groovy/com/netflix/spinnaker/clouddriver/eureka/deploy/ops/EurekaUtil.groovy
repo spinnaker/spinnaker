@@ -16,38 +16,15 @@
 package com.netflix.spinnaker.clouddriver.eureka.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
-import org.apache.http.impl.client.HttpClients
-import retrofit.RestAdapter
-import retrofit.client.ApacheClient
-import retrofit.converter.JacksonConverter
-
-import java.util.concurrent.atomic.AtomicReference
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import java.util.regex.Pattern
 
 class EurekaUtil {
 
-  static Eureka getWritableEureka(String endpoint, String region) {
+  static Eureka getWritableEureka(String endpoint, String region, ServiceClientProvider serviceClientProvider) {
     String eurekaEndpoint = endpoint.replaceAll(Pattern.quote('{{region}}'), region)
-    new RestAdapter.Builder()
-      .setEndpoint(eurekaEndpoint)
-      .setClient(getApacheClient())
-      .setConverter(new JacksonConverter())
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .build().create(Eureka)
+    serviceClientProvider.getService(Eureka, new DefaultServiceEndpoint("eureka", eurekaEndpoint))
   }
 
-  //Lazy-create apache client on request if there is a discoveryEnabled AmazonCredentials:
-  private static final AtomicReference<ApacheClient> apacheClient = new AtomicReference<>(null)
-
-  private static ApacheClient getApacheClient() {
-    if (apacheClient.get() == null) {
-      synchronized (apacheClient) {
-        if (apacheClient.get() == null) {
-          apacheClient.set(new ApacheClient(HttpClients.createDefault()))
-        }
-      }
-    }
-    return apacheClient.get()
-  }
 }

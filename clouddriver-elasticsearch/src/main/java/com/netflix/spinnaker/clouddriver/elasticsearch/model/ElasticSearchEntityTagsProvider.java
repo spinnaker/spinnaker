@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
 import com.netflix.spinnaker.config.ElasticSearchConfigProperties;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
@@ -324,7 +325,8 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
           "Unable to re-create index '" + activeElasticSearchIndex + "'");
     }
 
-    Collection<EntityTags> entityTags = front50Service.getAllEntityTags(true);
+    Collection<EntityTags> entityTags =
+        Retrofit2SyncCall.execute(front50Service.getAllEntityTags(true));
     Collection<EntityTags> filteredEntityTags =
         getElasticSearchEntityTagsReconciler().filter(entityTags);
 
@@ -343,7 +345,8 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
   @Override
   public Map delta() {
-    Collection<EntityTags> allEntityTagsFront50 = front50Service.getAllEntityTags(false);
+    Collection<EntityTags> allEntityTagsFront50 =
+        Retrofit2SyncCall.execute(front50Service.getAllEntityTags(false));
     Map<String, List<EntityTags>> entityTagsByEntityTypeFront50 =
         allEntityTagsFront50.stream()
             .collect(
@@ -603,7 +606,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     Set<String> entityTagsIdentifiers = new HashSet<>();
 
     List<EntityTags> entityTagsForTag =
-        front50Service.getAllEntityTags(false).stream()
+        Retrofit2SyncCall.execute(front50Service.getAllEntityTags(false)).stream()
             .filter(
                 e ->
                     e.getTags().stream()

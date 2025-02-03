@@ -42,6 +42,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -202,8 +203,8 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     Map<String, List<TargetHealthDescription>> targetGroupArnToHealths
     Map<String, List<TargetGroupAttribute>> targetGroupArnToAttributes
     if (useEdda) {
-      List<TargetGroupAttributes> targetGroupAttributesList = eddaApi.targetGroupAttributes()
-      List<TargetGroupHealth> targetGroupHealthList = eddaApi.targetGroupHealth()
+      List<TargetGroupAttributes> targetGroupAttributesList = Retrofit2SyncCall.execute(eddaApi.targetGroupAttributes())
+      List<TargetGroupHealth> targetGroupHealthList = Retrofit2SyncCall.execute(eddaApi.targetGroupHealth())
       targetGroupArnToAttributes = targetGroupAttributesList.collectEntries { [(it.targetGroupArn): it.attributes] }
       targetGroupArnToHealths = targetGroupHealthList.collectEntries { [(it.targetGroupArn): it.health] }
     } else {
@@ -232,7 +233,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
                                                                        boolean useEdda) {
     Map<String, List<LoadBalancerAttribute>> loadBalancerArnToAttributes
     if (useEdda) {
-      loadBalancerArnToAttributes = eddaApi.applicationLoadBalancerAttributes().collectEntries {
+      loadBalancerArnToAttributes = Retrofit2SyncCall.execute(eddaApi.applicationLoadBalancerAttributes()).collectEntries {
         [(it.loadBalancerArn): it.attributes]
       }
     } else {
@@ -255,7 +256,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     if (useEdda) {
       loadBalancerArnToListeners.putAll(
-        eddaApi.allListeners().flatten().groupBy { Listener listener ->
+        Retrofit2SyncCall.execute(eddaApi.allListeners()).flatten().groupBy { Listener listener ->
           listener.loadBalancerArn
         }
       )
@@ -264,7 +265,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
         [(it.listenerArn): it]
       }
 
-      eddaApi.allRules().flatten().each { EddaRule eddaRule ->
+      Retrofit2SyncCall.execute(eddaApi.allRules()).flatten().each { EddaRule eddaRule ->
         def listener = listenerByListenerArn.get(eddaRule.listenerArn)
         if (listener) {
           listenerToRules[listener].addAll(eddaRule.rules)

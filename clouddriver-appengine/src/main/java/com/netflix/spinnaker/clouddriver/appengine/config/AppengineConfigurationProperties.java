@@ -18,23 +18,21 @@ package com.netflix.spinnaker.clouddriver.appengine.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor;
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
 import org.springframework.util.StringUtils;
-import retrofit.RestAdapter;
-import retrofit.client.Response;
-import retrofit.converter.JacksonConverter;
-import retrofit.http.GET;
-import retrofit.http.Headers;
-import retrofit.mime.TypedByteArray;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Headers;
 
 @Data
 public class AppengineConfigurationProperties {
@@ -63,7 +61,10 @@ public class AppengineConfigurationProperties {
     private List<String> omitVersions;
     private Long cachingIntervalSeconds;
 
-    public void initialize(AppengineJobExecutor jobExecutor, String gcloudPath) {
+    public void initialize(
+        AppengineJobExecutor jobExecutor,
+        String gcloudPath,
+        ServiceClientProvider serviceClientProvider) {
       if (!StringUtils.isEmpty(getJsonPath())) {
         jobExecutor.runCommand(
             List.of(gcloudPath, "auth", "activate-service-account", "--key-file", getJsonPath()));
@@ -83,14 +84,15 @@ public class AppengineConfigurationProperties {
           throw new RuntimeException("Could not find read JSON configuration file.", e);
         }
       } else {
-        MetadataService metadataService = createMetadataService();
+        MetadataService metadataService = createMetadataService(serviceClientProvider);
 
         try {
           if (StringUtils.isEmpty(getProject())) {
-            setProject(responseToString(metadataService.getProject()));
+            setProject(Retrofit2SyncCall.execute(metadataService.getProject()).string());
           }
           this.computedServiceAccountEmail =
-              responseToString(metadataService.getApplicationDefaultServiceAccountEmail());
+              Retrofit2SyncCall.execute(metadataService.getApplicationDefaultServiceAccountEmail())
+                  .string();
         } catch (Exception e) {
           throw new RuntimeException(
               "Could not find application default credentials for App Engine.", e);
@@ -98,30 +100,19 @@ public class AppengineConfigurationProperties {
       }
     }
 
-    static MetadataService createMetadataService() {
-      OkHttpClient okHttpClient = new OkHttpClient.Builder().retryOnConnectionFailure(true).build();
-      RestAdapter restAdapter =
-          new RestAdapter.Builder()
-              .setEndpoint(metadataUrl)
-              .setConverter(new JacksonConverter())
-              .setClient(new Ok3Client(okHttpClient))
-              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-              .build();
-      return restAdapter.create(MetadataService.class);
+    static MetadataService createMetadataService(ServiceClientProvider serviceClientProvider) {
+      return serviceClientProvider.getService(
+          MetadataService.class, new DefaultServiceEndpoint("metadata", metadataUrl));
     }
 
     interface MetadataService {
       @Headers("Metadata-Flavor: Google")
       @GET("/project/project-id")
-      Response getProject();
+      Call<ResponseBody> getProject();
 
       @Headers("Metadata-Flavor: Google")
       @GET("/instance/service-accounts/default/email")
-      Response getApplicationDefaultServiceAccountEmail();
-    }
-
-    static String responseToString(Response response) {
-      return new String(((TypedByteArray) response.getBody()).getBytes());
+      Call<ResponseBody> getApplicationDefaultServiceAccountEmail();
     }
 
     public enum GcloudReleaseTrack {

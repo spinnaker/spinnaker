@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
@@ -52,7 +53,7 @@ class LocalFileUserDataProvider implements UserDataProvider {
   boolean isLegacyUdf(String account, String applicationName) {
     Closure<Boolean> result = {
       try {
-        Map application = front50Service.getApplication(applicationName)
+        Map application = Retrofit2SyncCall.execute(front50Service.getApplication(applicationName))
         if (application.legacyUdf == null) {
           return localFileUserDataProperties.defaultLegacyUdf
         }

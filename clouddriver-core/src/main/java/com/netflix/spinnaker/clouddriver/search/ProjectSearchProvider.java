@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.search;
 
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,8 @@ public class ProjectSearchProvider implements SearchProvider {
     Map<String, String> allFilters = new HashMap<>(Map.of("name", query, "applications", query));
     allFilters.putAll(filters);
 
-    List<Map<String, Object>> projects = front50Service.searchForProjects(allFilters, pageSize);
+    List<Map<String, Object>> projects =
+        Retrofit2SyncCall.execute(front50Service.searchForProjects(allFilters, pageSize));
     projects.forEach(
         project -> {
           project.put("type", PROJECTS_TYPE);

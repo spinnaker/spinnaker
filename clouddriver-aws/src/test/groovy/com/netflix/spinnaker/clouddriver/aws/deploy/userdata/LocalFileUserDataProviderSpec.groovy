@@ -21,9 +21,12 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.asg.LaunchConfigurationBuild
 import com.netflix.spinnaker.clouddriver.aws.userdata.UserDataInput
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import okhttp3.MediaType
+import okhttp3.ResponseBody
 import org.springframework.http.HttpStatus
-import retrofit.RetrofitError
-import retrofit.client.Response
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 
 class LocalFileUserDataProviderSpec extends Specification {
@@ -85,13 +88,10 @@ class LocalFileUserDataProviderSpec extends Specification {
 
   void "return defaultLegacyUdf if front50.getApplication throws SpinnakerHttpException with NOT_FOUND status"() {
     given:
-    RetrofitError notFoundRetrofitError = RetrofitError.httpError("url",
-      new Response("url", HttpStatus.NOT_FOUND.value(), "Application Not Found", [], null),
-      null, null)
     LocalFileUserDataProvider localFileUserDataProvider = new LocalFileUserDataProvider()
     localFileUserDataProvider.localFileUserDataProperties = new LocalFileUserDataProperties()
     localFileUserDataProvider.front50Service = Mock(Front50Service)
-    localFileUserDataProvider.front50Service.getApplication(_) >> {throw new SpinnakerHttpException(notFoundRetrofitError)}
+    localFileUserDataProvider.front50Service.getApplication(_) >> {throw makeSpinnakerHttpException(HttpStatus.NOT_FOUND.value())}
 
     when:
     def useLegacyUdf = localFileUserDataProvider.isLegacyUdf("test_account", "unknown_application")
@@ -103,10 +103,7 @@ class LocalFileUserDataProviderSpec extends Specification {
   void "isLegacyUdf includes the exception from front50 when failing to read the legacyUdf preference"() {
     given:
     // anything other than a 404/not found works here.  On 404, isLegacyUdf falls back to a default.
-    RetrofitError arbitraryRetrofitError = RetrofitError.httpError("url",
-      new Response("url", HttpStatus.INTERNAL_SERVER_ERROR.value(), "some error", [], null),
-      null, null)
-    SpinnakerHttpException spinnakerHttpException = new SpinnakerHttpException(arbitraryRetrofitError)
+    SpinnakerHttpException spinnakerHttpException = makeSpinnakerHttpException(HttpStatus.INTERNAL_SERVER_ERROR.value())
     // To speed up the test by avoiding a bunch of retries, set retryable to
     // false.
     spinnakerHttpException.setRetryable(false)
@@ -163,5 +160,22 @@ class LocalFileUserDataProviderSpec extends Specification {
       "export DETAIL=${DETAIL}",
       "export LAUNCH_CONFIG=${LAUNCH_CONFIG_NAME}",
     ].join('\n')
+  }
+
+  private static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+    String url = "https://some-url";
+    Response retrofit2Response =
+      Response.error(
+        status,
+        ResponseBody.create(
+          MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"));
+
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(url)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

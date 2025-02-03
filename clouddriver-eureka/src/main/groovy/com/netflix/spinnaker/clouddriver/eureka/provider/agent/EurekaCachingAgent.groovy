@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplications
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 
@@ -95,7 +96,7 @@ class EurekaCachingAgent implements CachingAgent, HealthProvidingCachingAgent, C
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
     EurekaApplications disco = AuthenticatedRequest.allowAnonymous({
-      retry.retry({ eurekaApi.loadEurekaApplications() }, 3, 100, false)
+      retry.retry({ Retrofit2SyncCall.execute(eurekaApi.loadEurekaApplications()) }, 3, 100, false)
     })
 
     Map<String, Set<String>> instanceHealthRelationships = [:].withDefault { new HashSet<String>() }

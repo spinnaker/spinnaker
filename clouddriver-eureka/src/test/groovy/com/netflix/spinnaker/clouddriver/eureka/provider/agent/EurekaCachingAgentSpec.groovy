@@ -9,6 +9,7 @@ import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplications
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaInstance
 import com.netflix.spinnaker.clouddriver.model.HealthState
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
@@ -23,12 +24,13 @@ class EurekaCachingAgentSpec extends Specification {
 
   def "it should cache instances"() {
     given:
-    eurekaApi.loadEurekaApplications() >> new EurekaApplications(applications: [
-      new EurekaApplication(name: "foo", instances: [
+    eurekaApi.loadEurekaApplications() >> Calls.response(new EurekaApplications(applications: [
+        new EurekaApplication(name: "foo", instances: [
         instance("foo", "i-1", "UP"),
         instance("foo", "i-2", "UP")
       ])
-    ])
+    ]))
+
 
     when:
     def result = agent.loadData(providerCache)
@@ -43,12 +45,12 @@ class EurekaCachingAgentSpec extends Specification {
 
   def "it should dedupe multiple discovery records prefering HealthState order"() {
     given:
-    eurekaApi.loadEurekaApplications() >> new EurekaApplications(applications: [
+    eurekaApi.loadEurekaApplications() >> Calls.response(new EurekaApplications(applications: [
       new EurekaApplication(name: "foo", instances: [
         instance("foo", "i-1", "UP"),
         instance("foo", "i-1", "DOWN")
       ])
-    ])
+    ]))
 
     when:
     def result = agent.loadData(providerCache)
@@ -63,13 +65,13 @@ class EurekaCachingAgentSpec extends Specification {
 
   def "it should dedupe multiple discovery records preferring newest"() {
     given:
-    eurekaApi.loadEurekaApplications() >> new EurekaApplications(applications: [
+    eurekaApi.loadEurekaApplications() >> Calls.response(new EurekaApplications(applications: [
       new EurekaApplication(name: "foo", instances: [
         instance("foo", "i-1", "UP", 12345),
         instance("foo", "i-1", "UP", 23451),
         instance("foo", "i-1", "UP", 12344)
       ])
-    ])
+    ]))
 
     when:
     def result = agent.loadData(providerCache)

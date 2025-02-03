@@ -23,7 +23,6 @@ dependencies {
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-config"
   implementation "io.spinnaker.kork:kork-moniker"
-  implementation "com.squareup.retrofit:retrofit"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.google.protobuf:protobuf-java"

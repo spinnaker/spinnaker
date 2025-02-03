@@ -32,6 +32,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
   implementation "com.netflix.spectator:spectator-api"
   implementation("com.netflix.spectator:spectator-ext-aws") {

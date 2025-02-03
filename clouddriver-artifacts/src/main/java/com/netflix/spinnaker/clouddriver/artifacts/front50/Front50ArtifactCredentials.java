@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -73,19 +74,23 @@ final class Front50ArtifactCredentials implements ArtifactCredentials {
       pipelineTemplate =
           AuthenticatedRequest.allowAnonymous(
               () ->
-                  front50Service.getV2PipelineTemplate(
-                      result.pipelineTemplateId, "", result.version));
+                  Retrofit2SyncCall.execute(
+                      front50Service.getV2PipelineTemplate(
+                          result.pipelineTemplateId, "", result.version)));
     } else if (artifactId.contains(":")) {
       SplitResult result = splitReferenceOnToken(artifactId, ":");
       pipelineTemplate =
           AuthenticatedRequest.allowAnonymous(
               () ->
-                  front50Service.getV2PipelineTemplate(
-                      result.pipelineTemplateId, result.version, ""));
+                  Retrofit2SyncCall.execute(
+                      front50Service.getV2PipelineTemplate(
+                          result.pipelineTemplateId, result.version, "")));
     } else {
       pipelineTemplate =
           AuthenticatedRequest.allowAnonymous(
-              () -> front50Service.getV2PipelineTemplate(artifactId, "", ""));
+              () ->
+                  Retrofit2SyncCall.execute(
+                      front50Service.getV2PipelineTemplate(artifactId, "", "")));
     }
 
     return new ByteArrayInputStream(objectMapper.writeValueAsBytes(pipelineTemplate));
@@ -93,7 +98,9 @@ final class Front50ArtifactCredentials implements ArtifactCredentials {
 
   @Override
   public List<String> getArtifactNames() {
-    return front50Service.listV2PipelineTemplates(Collections.singletonList("global")).stream()
+    return Retrofit2SyncCall.execute(
+            front50Service.listV2PipelineTemplates(Collections.singletonList("global")))
+        .stream()
         .map(t -> (String) t.get("id"))
         .distinct()
         .collect(Collectors.toList());

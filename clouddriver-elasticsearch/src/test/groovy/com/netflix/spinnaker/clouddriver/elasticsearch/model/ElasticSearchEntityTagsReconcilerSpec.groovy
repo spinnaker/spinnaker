@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.elasticsearch.model
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.clouddriver.model.ServerGroupProvider
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -37,7 +38,7 @@ class ElasticSearchEntityTagsReconcilerSpec extends Specification {
   ]
 
   def front50Service = Mock(Front50Service) {
-    _ * getAllEntityTags(_) >> { return allEntityTags }
+    _ * getAllEntityTags(_) >> { return Calls.response(allEntityTags) }
   }
 
   def amazonServerGroupProvider = Mock(ServerGroupProvider) {

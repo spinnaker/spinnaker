@@ -18,17 +18,18 @@ package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.DockerUserAgent
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryAuthenticationException
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.IOUtils
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
-import retrofit.http.GET
-import retrofit.http.Headers
-import retrofit.http.Path
-import retrofit.http.Query
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Headers
+import retrofit2.http.Path
+import retrofit2.http.Query
 
-import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 @Slf4j
@@ -40,23 +41,25 @@ class DockerBearerTokenService {
   String passwordCommand
   File passwordFile
   String authWarning
+  ServiceClientProvider serviceClientProvider
 
   final static String userAgent = DockerUserAgent.getUserAgent()
 
-  DockerBearerTokenService() {
+  DockerBearerTokenService(ServiceClientProvider serviceClientProvider) {
     realmToService = new HashMap<String, TokenService>()
     cachedTokens = new HashMap<String, DockerBearerToken>()
+    this.serviceClientProvider = serviceClientProvider
   }
 
-  DockerBearerTokenService(String username, String password, String passwordCommand) {
-    this()
+  DockerBearerTokenService(String username, String password, String passwordCommand, ServiceClientProvider serviceClientProvider) {
+    this(serviceClientProvider)
     this.username = username
     this.password = password
     this.passwordCommand = passwordCommand
   }
 
-  DockerBearerTokenService(String username, File passwordFile) {
-    this()
+  DockerBearerTokenService(String username, File passwordFile, ServiceClientProvider serviceClientProvider) {
+    this(serviceClientProvider)
     this.username = username
     this.passwordFile = passwordFile
   }
@@ -190,13 +193,7 @@ class DockerBearerTokenService {
     def tokenService = realmToService.get(realm)
 
     if (tokenService == null) {
-      def builder = new RestAdapter.Builder()
-        .setEndpoint(realm)
-        .setConverter(new JacksonConverter())
-        .setLogLevel(RestAdapter.LogLevel.NONE)
-        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-        .build()
-      tokenService = builder.create(TokenService.class)
+      tokenService = serviceClientProvider.getService(TokenService, new DefaultServiceEndpoint("tokenservice", realm))
       realmToService[realm] = tokenService
     }
 
@@ -219,9 +216,9 @@ class DockerBearerTokenService {
     def token
     try {
       if (basicAuthHeader) {
-        token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, userAgent)
+        token = Retrofit2SyncCall.execute(tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, userAgent))
       } else {
-        token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, userAgent)
+        token = Retrofit2SyncCall.execute(tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, userAgent))
       }
     } catch (Exception e) {
       if (authWarning) {
@@ -244,17 +241,17 @@ class DockerBearerTokenService {
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])
-    DockerBearerToken getToken(@Path(value="path", encode=false) String path,
-                               @Query(value="service") String service, @Query(value="scope") String scope,
-                               @retrofit.http.Header("User-Agent") String agent)
+    Call<DockerBearerToken> getToken(@Path(value="path", encoded=true) String path,
+                                     @Query(value="service") String service, @Query(value="scope") String scope,
+                                     @Header("User-Agent") String agent)
 
     @GET("/{path}")
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])
-    DockerBearerToken getToken(@Path(value="path", encode=false) String path, @Query(value="service") String service,
-                               @Query(value="scope") String scope, @retrofit.http.Header("Authorization") String basic,
-                               @retrofit.http.Header("User-Agent") String agent)
+    Call<DockerBearerToken> getToken(@Path(value="path", encoded=true) String path, @Query(value="service") String service,
+                               @Query(value="scope") String scope, @Header("Authorization") String basic,
+                               @Header("User-Agent") String agent)
   }
 
   private class AuthenticateDetails {

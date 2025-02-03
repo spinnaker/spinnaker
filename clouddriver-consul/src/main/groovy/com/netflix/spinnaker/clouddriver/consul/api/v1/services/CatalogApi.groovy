@@ -17,16 +17,17 @@
 package com.netflix.spinnaker.clouddriver.consul.api.v1.services
 
 import com.netflix.spinnaker.clouddriver.consul.api.v1.model.NodeDefinition
-import retrofit.http.GET
-import retrofit.http.Query
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Query
 
 interface CatalogApi {
   @GET("/v1/catalog/datacenters")
-  List<String> datacenters()
+  Call<List<String>> datacenters()
 
   @GET("/v1/catalog/nodes")
-  List<NodeDefinition> nodes(@Query("dc") String dc)
+  Call<List<NodeDefinition>> nodes(@Query("dc") String dc)
 
   @GET("/v1/catalog/services")
-  Map<String, List<String>> services(@Query("dc") String dc)
+  Call<Map<String, List<String>>> services(@Query("dc") String dc)
 }

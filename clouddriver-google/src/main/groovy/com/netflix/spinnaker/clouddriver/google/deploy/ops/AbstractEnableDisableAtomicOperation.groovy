@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisable
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -55,6 +56,9 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
   @Autowired
   SafeRetry safeRetry
+
+  @Autowired
+  ServiceClientProvider serviceClientProvider
 
   AbstractEnableDisableAtomicOperation(EnableDisableGoogleServerGroupDescription description) {
     this.description = description
@@ -106,7 +110,8 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
                                               GCEUtil.getLocalName(instance.getInstance()),
                                               disable
                                               ? EnableDisableConsulInstance.State.disable
-                                              : EnableDisableConsulInstance.State.enable)
+                                              : EnableDisableConsulInstance.State.enable,
+                                              serviceClientProvider)
         } catch (SpinnakerServerException ignored) {
           // Consul isn't running
         }

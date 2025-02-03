@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.search;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +88,8 @@ public class ApplicationSearchProvider implements SearchProvider {
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-    List<Map<String, Object>> rawResults = front50Service.searchByName(query, pageSize, filters);
+    List<Map<String, Object>> rawResults =
+        Retrofit2SyncCall.execute(front50Service.searchByName(query, pageSize, filters));
     List<Map<String, Object>> results = new ArrayList<>();
     rawResults.forEach(
         application -> {

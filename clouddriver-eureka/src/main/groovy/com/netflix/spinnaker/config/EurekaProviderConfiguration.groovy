@@ -26,8 +26,9 @@ import com.netflix.spinnaker.clouddriver.eureka.provider.EurekaCachingProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaCachingAgent
 import com.netflix.spinnaker.clouddriver.eureka.provider.config.EurekaAccountConfigurationProperties
-import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -40,8 +41,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
-import retrofit.converter.Converter
-import retrofit.converter.JacksonConverter
 
 import java.util.regex.Pattern
 
@@ -76,18 +75,12 @@ class EurekaProviderConfiguration {
     return properties
   }
 
-  private static Converter eurekaConverter() {
-    new JacksonConverter(new ObjectMapper()
+  private static ObjectMapper getObjectMapper() {
+    new ObjectMapper()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
       .enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
-      .enable(MapperFeature.AUTO_DETECT_CREATORS))
-  }
-
-  private EurekaApiFactory eurekaApiFactory(OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
-    OkHttp3ClientConfiguration config = new OkHttp3ClientConfiguration(eurekaClientConfig(),
-      new OkHttp3MetricsInterceptor({ registry }, okHttpMetricsInterceptorProperties))
-    return new EurekaApiFactory(eurekaConverter(), config)
+      .enable(MapperFeature.AUTO_DETECT_CREATORS)
   }
 
   @Value('${eureka.poll-interval-millis:15000}')
@@ -100,9 +93,11 @@ class EurekaProviderConfiguration {
   EurekaCachingProvider eurekaCachingProvider(EurekaAccountConfigurationProperties eurekaAccountConfigurationProperties,
                                               OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties,
                                               List<EurekaAwareProvider> eurekaAwareProviderList,
-                                              ObjectMapper objectMapper) {
+                                              ObjectMapper objectMapper,
+                                              ServiceClientProvider serviceClientProvider,
+                                              SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor) {
     List<EurekaCachingAgent> agents = []
-    def eurekaApiFactory = eurekaApiFactory(okHttpMetricsInterceptorProperties)
+    def eurekaApiFactory = new EurekaApiFactory(serviceClientProvider, getObjectMapper(), spinnakerRequestHeaderInterceptor)
     eurekaAccountConfigurationProperties.accounts.each { EurekaAccountConfigurationProperties.EurekaAccount accountConfig ->
       accountConfig.regions.each { region ->
         String eurekaHost = accountConfig.readOnlyUrl.replaceAll(Pattern.quote('{{region}}'), region)

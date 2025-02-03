@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
-import retrofit.client.Response
+import retrofit2.mock.Calls
 
 class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -82,13 +82,13 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     2 * task.getStatus() >> new DefaultTaskStatus(TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * eureka.getInstanceInfo('i1') >>
-        [
+      Calls.response([
             instance: [
                 app: "asg1",
                 status: "OUT_OF_SERVICE"
             ]
-        ]
-    1 * eureka.resetInstanceStatus("asg1", "i1", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> new Response('http://foo', 200, '', [], null)
+        ])
+    1 * eureka.resetInstanceStatus("asg1", "i1", AbstractEurekaSupport.DiscoveryStatus.OUT_OF_SERVICE.value) >> Calls.response(null)
   }
 
   def 'should skip discovery if not enabled for account'() {

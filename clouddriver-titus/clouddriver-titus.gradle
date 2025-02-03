@@ -29,6 +29,8 @@ dependencies {
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.kork:kork-moniker"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-web"
   implementation "com.squareup.okhttp3:okhttp:3.1.2"
   implementation "io.grpc:grpc-netty-shaded:$grpcVersion"
   implementation "io.grpc:grpc-protobuf:$grpcVersion"

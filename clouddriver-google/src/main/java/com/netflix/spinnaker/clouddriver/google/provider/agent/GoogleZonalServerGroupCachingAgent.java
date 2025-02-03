@@ -39,6 +39,7 @@ import com.netflix.spinnaker.clouddriver.google.compute.ZoneAutoscalers;
 import com.netflix.spinnaker.clouddriver.google.compute.ZoneInstanceGroupManagers;
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -56,8 +57,9 @@ public final class GoogleZonalServerGroupCachingAgent
       GoogleComputeApiFactory computeApiFactory,
       Registry registry,
       String region,
-      ObjectMapper objectMapper) {
-    super(credentials, computeApiFactory, registry, region, objectMapper);
+      ObjectMapper objectMapper,
+      ServiceClientProvider serviceClientProvider) {
+    super(credentials, computeApiFactory, registry, region, objectMapper, serviceClientProvider);
   }
 
   @Override

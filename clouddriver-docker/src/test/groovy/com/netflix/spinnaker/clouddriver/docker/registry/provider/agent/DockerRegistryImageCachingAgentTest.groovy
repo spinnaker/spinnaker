@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProv
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryTags
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials
-import retrofit.RetrofitError
 import spock.lang.Specification
 
 import java.time.Instant
@@ -202,7 +201,7 @@ class DockerRegistryImageCachingAgentTest extends Specification {
       ["repo-1", "tag-2"],
     ]
     client.getCreationDate("repo-1", "tag-1") >> {
-      throw RetrofitError.httpError("", null, null, null)
+      throw new IOException()
     }
     client.getCreationDate("repo-1", "tag-2") >> Instant.EPOCH
 

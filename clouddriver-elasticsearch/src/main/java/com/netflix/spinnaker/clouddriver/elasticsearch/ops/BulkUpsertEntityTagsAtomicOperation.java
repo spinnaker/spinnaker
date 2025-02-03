@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.*;
 import java.util.function.Function;
@@ -111,7 +112,9 @@ public class BulkUpsertEntityTagsAtomicOperation
               getTask()
                   .updateStatus(BASE_PHASE, "Performing batch update to durable tagging service");
               Map<String, EntityTags> durableTags =
-                  front50Service.batchUpdate(new ArrayList<>(modifiedEntityTags)).stream()
+                  Retrofit2SyncCall.execute(
+                          front50Service.batchUpdate(new ArrayList<>(modifiedEntityTags)))
+                      .stream()
                       .collect(Collectors.toMap(EntityTags::getId, Function.identity()));
 
               getTask().updateStatus(BASE_PHASE, "Pushing tags to Elastic Search");
@@ -127,7 +130,7 @@ public class BulkUpsertEntityTagsAtomicOperation
     try {
       return retrySupport.retry(
           () ->
-              front50Service.getAllEntityTagsById(ids).stream()
+              Retrofit2SyncCall.execute(front50Service.getAllEntityTagsById(ids)).stream()
                   .collect(Collectors.toMap(EntityTags::getId, Function.identity())),
           10,
           2000,

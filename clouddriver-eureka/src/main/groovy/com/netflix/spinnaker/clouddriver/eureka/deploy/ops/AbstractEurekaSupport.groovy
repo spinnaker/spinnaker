@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.helpers.EnableDisablePercentageCategorizer
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
@@ -28,7 +29,6 @@ import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Response
 
 @Slf4j
 @Component
@@ -90,7 +90,7 @@ abstract class AbstractEurekaSupport {
         def instanceId = instanceIds[random.nextInt(instanceIds.size())]
         task.updateStatus phaseName, "Looking up discovery application name for instance $instanceId (attempt: $retryCount)"
 
-        def details = eureka.getInstanceInfo(instanceId)
+        def details = Retrofit2SyncCall.execute(eureka.getInstanceInfo(instanceId))
         def appName = details?.instance?.app
         if (!appName) {
           throw new RetryableException("Looking up instance application name in Discovery failed for instance ${instanceId} (attempt: $retryCount)")
@@ -142,16 +142,10 @@ abstract class AbstractEurekaSupport {
         retry(task, phaseName, updateEurekaRetryMax) { retryCount ->
           task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery (attempt: ${retryCount})."
 
-          Response resp
-
           if (discoveryStatus == DiscoveryStatus.OUT_OF_SERVICE) {
-            resp = eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
+            Retrofit2SyncCall.execute(eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value))
           } else {
-            resp = eureka.resetInstanceStatus(applicationName, instanceId, DiscoveryStatus.OUT_OF_SERVICE.value)
-          }
-
-          if (resp?.status != 200) {
-            throw new RetryableException("Non HTTP 200 response from discovery for instance ${instanceId}, will retry (attempt: $retryCount}).")
+            Retrofit2SyncCall.execute(eureka.resetInstanceStatus(applicationName, instanceId, DiscoveryStatus.OUT_OF_SERVICE.value))
           }
         }
       } catch (SpinnakerServerException e) {
