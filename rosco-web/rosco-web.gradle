@@ -28,6 +28,8 @@ dependencies {
   testImplementation "com.squareup.retrofit2:retrofit"
   testImplementation "com.squareup.retrofit2:converter-jackson"
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "org.apache.commons:commons-compress:1.21"
+  testImplementation "org.assertj:assertj-core"
   testCompileOnly "com.squareup.retrofit:retrofit"
 }
 

@@ -1,7 +1,12 @@
 dependencies {
+  testImplementation project(":rosco-manifests")
   testImplementation "com.fasterxml.jackson.core:jackson-databind"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "commons-io:commons-io"
+  testImplementation "io.spinnaker.kork:kork-artifacts"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
   testImplementation "org.slf4j:slf4j-api"
   testImplementation "org.testcontainers:testcontainers"
   testImplementation "org.testcontainers:junit-jupiter"

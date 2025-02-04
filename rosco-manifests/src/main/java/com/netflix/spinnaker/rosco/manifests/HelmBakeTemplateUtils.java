@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.manifests;
 
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigurationProperties;
@@ -70,7 +71,8 @@ public abstract class HelmBakeTemplateUtils<T extends BakeManifestRequest> {
 
   public abstract String getHelmExecutableForRequest(T request);
 
-  protected List<Path> getValuePaths(List<Artifact> artifacts, BakeManifestEnvironment env) {
+  @VisibleForTesting
+  public List<Path> getValuePaths(List<Artifact> artifacts, BakeManifestEnvironment env) {
     List<Path> valuePaths = new ArrayList<>();
 
     try {
@@ -124,12 +126,17 @@ public abstract class HelmBakeTemplateUtils<T extends BakeManifestRequest> {
         .collect(Collectors.toList());
   }
 
+  /** Accessor for whether to expand artifact reference URIs */
+  protected boolean isExpandArtifactReferenceURIs() {
+    return (artifactStore != null && helmConfig.isExpandOverrides());
+  }
+
   /**
    * In the event that we encounter and ArtifactReferenceURI, we want to pull down that artifact
    * instead of using the raw URI as a value for helm.
    */
-  private Object expandArtifactReferenceURIs(Object value) {
-    if (artifactStore == null || !(helmConfig.isExpandOverrides() && value instanceof String)) {
+  protected Object expandArtifactReferenceURIs(Object value) {
+    if (!isExpandArtifactReferenceURIs() || !(value instanceof String)) {
       return value;
     }
 
