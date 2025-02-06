@@ -24,7 +24,7 @@ import com.netflix.spinnaker.q.metrics.NoHandlerCapacity
 import java.time.Duration
 import java.util.Random
 import java.util.concurrent.RejectedExecutionException
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.scheduling.annotation.Scheduled
