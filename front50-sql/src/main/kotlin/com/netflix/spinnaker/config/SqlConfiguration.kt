@@ -23,8 +23,8 @@ import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import java.time.Clock
 import org.jooq.DSLContext
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -58,22 +58,25 @@ class SqlConfiguration {
     )
 
   @Bean
-  @ConditionalOnBean(name = ["secondaryJooq"])
+  @ConditionalOnProperty("sql.enabled", "sql.secondary.enabled")
   fun secondarySqlStorageService(
     objectMapper: ObjectMapper,
     registry: Registry,
-    @Qualifier("secondaryJooq") jooq: DSLContext,
+    @Autowired(required = false) @Qualifier("secondaryJooq") secondaryJooq: DSLContext?,
+    jooq: DSLContext,
     sqlProperties: SqlProperties,
     front50SqlProperties: Front50SqlProperties
-  ): SqlStorageService =
-    SqlStorageService(
+  ): SqlStorageService {
+    val effectiveJooq = secondaryJooq ?: jooq
+    return SqlStorageService(
       objectMapper,
       registry,
-      jooq,
+      effectiveJooq,
       Clock.systemDefaultZone(),
       sqlProperties.retries,
       1000,
       sqlProperties.connectionPools.filter { !it.value.default }.keys.first(),
       front50SqlProperties
     )
+  }
 }

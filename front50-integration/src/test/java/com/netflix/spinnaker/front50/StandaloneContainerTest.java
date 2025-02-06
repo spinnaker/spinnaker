@@ -54,7 +54,7 @@ class StandaloneContainerTest {
 
   // withNetwork/withNetworkAliases return a GenericContainer, so call them elsewhere.
   private static final MySQLContainer mysql =
-      new MySQLContainer(DockerImageName.parse("mysql:5.7.22"));
+      new MySQLContainer(DockerImageName.parse("mysql:8.0.37"));
 
   private static GenericContainer front50Container;
 

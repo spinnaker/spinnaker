@@ -71,9 +71,11 @@ class CompositeStorageServiceConfiguration(
     beanName: String?
   ): StorageService {
     return if (className != null && className.isNotBlank()) {
-      storageServices.first { it.javaClass.canonicalName == className }
+      val storageServiceClass = Class.forName(className)
+      storageServices.find { storageServiceClass.isInstance(it) }
+        ?: throw IllegalStateException("No StorageService bean of class $className found")
     } else {
-      applicationContext.getBean(beanName) as StorageService
+      beanName?.let { applicationContext.getBean(it) } as StorageService
     }
   }
 }

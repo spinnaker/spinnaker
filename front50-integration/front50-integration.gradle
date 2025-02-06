@@ -6,8 +6,10 @@ dependencies {
   testImplementation "org.testcontainers:testcontainers"
   testImplementation "org.testcontainers:junit-jupiter"
   testImplementation "org.testcontainers:mysql"
+  testImplementation "org.testcontainers:postgresql"
   testRuntimeOnly "ch.qos.logback:logback-classic"
   testRuntimeOnly "com.mysql:mysql-connector-j"
+  testRuntimeOnly "org.postgresql:postgresql"
 }
 
 test.configure {
