@@ -57,6 +57,7 @@ public class Retrofit2ServiceFactory implements ServiceClientFactory {
         .baseUrl(Objects.requireNonNull(HttpUrl.parse(serviceEndpoint.getBaseUrl())))
         .client(okHttpClient)
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(type);
   }
