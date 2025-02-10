@@ -45,6 +45,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
+import io.reactivex.rxjava3.core.Observable
 
 import java.time.Clock
 import java.time.Instant
@@ -98,7 +99,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     1 * executionRepository.retrieve(ORCHESTRATION) >> {
-      return rx.Observable.empty()
+      return Observable.empty()
     }
     0 * executionRepository._
   }
@@ -124,7 +125,7 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    1 * executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([orchestration {
+    1 * executionRepository.retrieve(ORCHESTRATION) >> Observable.fromIterable([orchestration {
       id = "1"
       application = "covfefe"
       stage {
@@ -203,7 +204,7 @@ class TaskControllerSpec extends Specification {
     MockHttpServletResponse response = mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    1 * executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([])
+    1 * executionRepository.retrieve(ORCHESTRATION) >> Observable.fromIterable([])
     0 * executionRepository._
     response.status == 200
     response.contentAsString == '[]'
@@ -248,7 +249,7 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    retrieveConfigIdOne * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
+    retrieveConfigIdOne * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> Observable.fromIterable(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       pipeline {
@@ -258,7 +259,7 @@ class TaskControllerSpec extends Specification {
         pipelineConfigId = config.pipelineConfigId
       }
     })
-    retrieveConfigIdTwo * executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
+    retrieveConfigIdTwo * executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> Observable.fromIterable(pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect { config ->
       pipeline {
@@ -326,7 +327,7 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> Observable.fromIterable(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       pipeline {
@@ -336,7 +337,7 @@ class TaskControllerSpec extends Specification {
         pipelineConfigId = config.pipelineConfigId
       }
     })
-    1 * executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> Observable.fromIterable(pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect { config ->
       pipeline {

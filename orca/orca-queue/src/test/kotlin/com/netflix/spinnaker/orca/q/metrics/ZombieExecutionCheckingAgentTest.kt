@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
@@ -38,6 +39,7 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
+import io.reactivex.rxjava3.core.Observable
 import java.time.Duration
 import java.time.Instant.now
 import java.time.temporal.ChronoUnit.HOURS
@@ -48,8 +50,8 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
-import rx.Observable.just
-import rx.schedulers.Schedulers
+import io.reactivex.rxjava3.core.Observable.just
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAgent>({
 
@@ -71,7 +73,7 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
         repository,
         queue,
         clock,
-        Optional.of(Schedulers.immediate())
+        Optional.of(Schedulers.trampoline())
       ),
       registry,
       clock,
@@ -107,6 +109,7 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, criteria)) doReturn just(pipeline)
+          whenever(repository.retrieve(ORCHESTRATION, criteria)) doReturn Observable.empty()
           whenever(queue.containsMessage(any())) doReturn true
         }
 
@@ -140,6 +143,7 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, criteria)) doReturn just(pipeline)
+          whenever(repository.retrieve(ORCHESTRATION, criteria)) doReturn Observable.empty()
           whenever(queue.containsMessage(any())) doReturn true
         }
 
@@ -162,6 +166,7 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
 
         beforeGroup {
           whenever(repository.retrieve(pipeline.type, criteria)) doReturn just(pipeline)
+          whenever(repository.retrieve(ORCHESTRATION, criteria)) doReturn Observable.empty()
           whenever(queue.containsMessage(any())) doReturn true
         }
 
@@ -184,6 +189,7 @@ object ZombieExecutionCheckingAgentTest : SubjectSpek<ZombieExecutionCheckingAge
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, criteria)) doReturn just(pipeline)
+          whenever(repository.retrieve(ORCHESTRATION, criteria)) doReturn Observable.empty()
           whenever(queue.containsMessage(any())) doReturn false
         }
 

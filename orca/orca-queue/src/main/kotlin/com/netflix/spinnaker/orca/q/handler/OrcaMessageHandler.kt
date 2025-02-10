@@ -126,8 +126,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
               .retrievePipelinesForPipelineConfigId(configId, criteria)
               .filter { it.id != id }
               .count()
-              .toBlocking()
-              .first() >= maxConcurrentExecutions
+              .blockingGet() >= maxConcurrentExecutions
           }
           else -> false
         }
@@ -138,8 +137,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
           .retrievePipelinesForPipelineConfigId(configId, criteria)
           .filter { it.id != id }
           .count()
-          .toBlocking()
-          .first() > 0
+          .blockingGet() > 0
       }
     }
   }
