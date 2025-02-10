@@ -127,7 +127,7 @@ public class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
     } catch (HttpStatusCodeException e) {
       var statusCode = e.getStatusCode();
 
-      if (shouldRetry(statusCode, stageData)) {
+      if (shouldRetry(HttpStatus.valueOf(statusCode.value()), stageData)) {
         log.warn(
             "Failed to get webhook status from {} with statusCode={}, will retry",
             stageData.statusEndpoint,
@@ -172,7 +172,7 @@ public class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
     }
 
     monitor.setBody(response.getBody());
-    monitor.setStatusCode(response.getStatusCode());
+    monitor.setStatusCode(HttpStatus.valueOf(response.getStatusCode().value()));
     monitor.setStatusCodeValue(response.getStatusCode().value());
 
     if (!response.getHeaders().isEmpty()) {
