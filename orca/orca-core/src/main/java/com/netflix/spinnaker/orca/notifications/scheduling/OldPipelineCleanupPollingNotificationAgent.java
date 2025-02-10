@@ -25,6 +25,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.functions.Predicate;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -40,8 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
-import rx.Observable;
-import rx.functions.Func1;
 
 @Component
 @ConditionalOnExpression(
@@ -54,10 +55,10 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
   private final Logger log =
       LoggerFactory.getLogger(OldPipelineCleanupPollingNotificationAgent.class);
 
-  private Func1<PipelineExecution, Boolean> filter =
-      new Func1<PipelineExecution, Boolean>() {
+  private Predicate<PipelineExecution> filter =
+      new Predicate<PipelineExecution>() {
         @Override
-        public Boolean call(PipelineExecution execution) {
+        public boolean test(PipelineExecution execution) {
           if (!COMPLETED_STATUSES.contains(execution.getStatus().toString())) {
             return false;
           }
@@ -72,7 +73,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
         }
       };
 
-  private Func1<? super PipelineExecution, PipelineExecutionDetails> mapper =
+  private Function<? super PipelineExecution, PipelineExecutionDetails> mapper =
       execution ->
           new PipelineExecutionDetails(
               execution.getId(),
@@ -162,7 +163,7 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
 
   private void cleanupApp(Observable<PipelineExecution> observable) {
     List<PipelineExecutionDetails> allPipelines =
-        observable.filter(filter).map(mapper).toList().toBlocking().single();
+        observable.filter(filter).map(mapper).toList().blockingGet();
 
     Map<String, List<PipelineExecutionDetails>> groupedPipelines = new HashMap<>();
     allPipelines.forEach(
