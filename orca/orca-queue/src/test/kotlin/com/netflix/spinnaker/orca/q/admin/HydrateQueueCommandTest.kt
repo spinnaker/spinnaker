@@ -59,7 +59,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode
 import org.jetbrains.spek.subject.SubjectSpek
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 
 object HydrateQueueCommandTest : SubjectSpek<HydrateQueueCommand>({
 
