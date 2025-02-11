@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties(Front50ConfigurationProperties.class)
-class RetrofitConfig {
+public class RetrofitConfig {
 
   @Bean
   @ConditionalOnProperty(name = "services.front50.enabled", matchIfMissing = true)

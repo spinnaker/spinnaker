@@ -63,4 +63,5 @@ dependencies {
   testImplementation "com.google.cloud:google-cloud-secretmanager"
   testImplementation "io.spinnaker.kork:kork-cloud-config-server"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 }
