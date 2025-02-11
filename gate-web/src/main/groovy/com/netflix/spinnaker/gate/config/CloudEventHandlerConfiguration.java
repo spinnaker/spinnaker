@@ -19,6 +19,7 @@ import io.cloudevents.spring.mvc.CloudEventHttpMessageConverter;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -27,6 +28,11 @@ public class CloudEventHandlerConfiguration implements WebMvcConfigurer {
 
   @Override
   public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+    converters.add(
+        0,
+        new ByteArrayHttpMessageConverter()); // adding ByteArrayHttpMessageConverter as the first
+    // element to avoid Swagger decode issues. See:
+    // https://github.com/springdoc/springdoc-openapi/issues/2143
     converters.add(cloudEventHttpMessageConverter());
   }
 

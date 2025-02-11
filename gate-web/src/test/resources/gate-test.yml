@@ -72,3 +72,18 @@ spinnaker:
       front50:
         enabled: true
         url: https://front50.net
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: swaggertest
+
+swagger:
+  enabled: true
+  title: Spinnaker Test
+  description:
+  contact:
+  patterns:
+    - /test
