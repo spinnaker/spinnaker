@@ -49,6 +49,7 @@ import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -70,7 +71,7 @@ class DependentPipelineStarterSpec extends Specification {
     }
     def gotMDC = [:]
     def executionLauncher = Stub(ExecutionLauncher) {
-      start(*_) >> { _, p ->
+      start(PIPELINE, _ as Map) >> { _, p ->
         gotMDC.putAll([
           "X-SPINNAKER-USER": MDC.get("X-SPINNAKER-USER"),
           "X-SPINNAKER-ACCOUNTS": MDC.get("X-SPINNAKER-ACCOUNTS"),
@@ -147,7 +148,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> { _, p ->
+    executionLauncher.start(PIPELINE, _ as Map) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
