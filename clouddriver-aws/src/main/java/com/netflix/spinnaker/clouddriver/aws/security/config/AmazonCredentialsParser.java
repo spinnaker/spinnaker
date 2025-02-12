@@ -26,8 +26,13 @@ import com.netflix.spinnaker.clouddriver.aws.security.*;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
+import io.github.resilience4j.retry.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -52,6 +57,7 @@ public class AmazonCredentialsParser<
   // this is used to cache all the regions found while parsing the accounts. This helps in
   // reducing the number of API calls made since known regions are already cached.
   private final ConcurrentMap<String, Region> regionCache;
+  private final RetryRegistry retryRegistry;
   private List<String> defaultRegionNames;
 
   // this is a key used in the regions cache to indicate that default regions have been
@@ -87,6 +93,8 @@ public class AmazonCredentialsParser<
     this.accountsConfig = accountsConfig;
     this.regionCache = Maps.newConcurrentMap();
     this.defaultRegionNames = new ArrayList<>();
+
+    this.retryRegistry = getRetryRegistry();
 
     // look in the credentials config to find default region names
     if (!CollectionUtils.isNullOrEmpty(credentialsConfig.getDefaultRegions())) {
@@ -316,12 +324,15 @@ public class AmazonCredentialsParser<
   }
 
   private V parseAccount(CredentialsConfig config, Account account) throws Throwable {
+    Retry retry = getRetry(retryRegistry, account.getName());
     if (account.getAccountId() == null) {
       if (!credentialTranslator.resolveAccountId()) {
         throw new IllegalArgumentException(
             "accountId is required and not resolvable for this credentials type");
       }
-      account.setAccountId(awsAccountInfoLookup.findAccountId());
+
+      account.setAccountId(
+          Retry.decorateSupplier(retry, awsAccountInfoLookup::findAccountId).get());
     }
 
     if (account.getEnvironment() == null) {
@@ -333,7 +344,9 @@ public class AmazonCredentialsParser<
     }
 
     log.info("Setting regions for aws account: {}", account.getName());
-    account.setRegions(initRegions(account.getRegions()));
+    account.setRegions(
+        Retry.decorateSupplier(retry, () -> initRegions(account.getRegions())).get());
+
     account.setDefaultSecurityGroups(
         account.getDefaultSecurityGroups() != null
             ? account.getDefaultSecurityGroups()
@@ -386,6 +399,40 @@ public class AmazonCredentialsParser<
       }
     }
     return credentialTranslator.translate(credentialsProvider, account);
+  }
+
+  /** Build a RetryRegistry object based on credentials configuration */
+  private RetryRegistry getRetryRegistry() {
+    log.info("initializing retry registry");
+    RetryConfig retryConfig;
+    if (credentialsConfig.getLoadAccounts().isExponentialBackoff()) {
+      retryConfig =
+          RetryConfig.custom()
+              .maxAttempts(credentialsConfig.getLoadAccounts().getMaxRetries())
+              .intervalFunction(
+                  IntervalFunction.ofExponentialBackoff(
+                      Duration.ofMillis(
+                          credentialsConfig.getLoadAccounts().getExponentialBackOffIntervalMs()),
+                      credentialsConfig.getLoadAccounts().getExponentialBackoffMultiplier()))
+              .build();
+    } else {
+      retryConfig =
+          RetryConfig.custom()
+              .maxAttempts(credentialsConfig.getLoadAccounts().getMaxRetries())
+              .waitDuration(Duration.ofMillis(credentialsConfig.getLoadAccounts().getBackOffInMs()))
+              .build();
+    }
+
+    return RetryRegistry.of(retryConfig);
+  }
+
+  /** Build a Retry object with a given identifier */
+  private Retry getRetry(RetryRegistry retryRegistry, String identifier) {
+    Retry retry = retryRegistry.retry(identifier);
+    Retry.EventPublisher publisher = retry.getEventPublisher();
+    publisher.onRetry(event -> log.info(event.toString()));
+    publisher.onSuccess(event -> log.info(event.toString()));
+    return retry;
   }
 
   private static String templateFirstNonNull(Map<String, String> substitutions, String... values) {

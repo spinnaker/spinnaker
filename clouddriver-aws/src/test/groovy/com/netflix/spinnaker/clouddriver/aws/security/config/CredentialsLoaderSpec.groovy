@@ -93,7 +93,7 @@ class CredentialsLoaderSpec extends Specification {
 
         then:
         1 * lookup.findAccountId() >> 696969
-        1 * lookup.listRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1a', 'us-east-1b'])]
+        1 * lookup.listRegions([]) >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1a', 'us-east-1b'])]
         creds.size() == 1
         with (creds.first()) { AmazonCredentials cred ->
             cred.name == 'default'
@@ -106,7 +106,35 @@ class CredentialsLoaderSpec extends Specification {
         }
         0 * _
     }
-//
+
+    def 'retry gets through transient failure on account resolving defaults'() {
+        setup:
+        def config = new CredentialsConfig()
+        def accountsConfig = new AccountsConfiguration(accounts: [new Account(name: 'default')])
+        AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
+        AWSAccountInfoLookup lookup = Mock(AWSAccountInfoLookup)
+        AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(provider, lookup, NetflixAmazonCredentials.class, config, accountsConfig)
+
+        when:
+        List<AmazonCredentials> creds = ci.load(config)
+
+        then:
+        1 * lookup.findAccountId() >> 696969
+        1 * lookup.listRegions([]) >> { throw new RuntimeException() }
+        1 * lookup.listRegions([]) >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1a', 'us-east-1b'])]
+        creds.size() == 1
+        with (creds.first()) { AmazonCredentials cred ->
+            cred.name == 'default'
+            cred.accountId == "696969"
+            cred.credentialsProvider == provider
+            cred.defaultKeyPair == null
+            cred.regions.size() == 1
+            cred.regions.first().name == 'us-east-1'
+            cred.regions.first().availabilityZones.toList().sort() == ['us-east-1a', 'us-east-1b']
+        }
+        0 * _
+    }
+
     def 'availibilityZones are resolved in default regions only once'() {
         setup:
         def config = new CredentialsConfig(defaultRegions: [new Region(name: 'us-east-1'), new Region(name: 'us-west-2')])

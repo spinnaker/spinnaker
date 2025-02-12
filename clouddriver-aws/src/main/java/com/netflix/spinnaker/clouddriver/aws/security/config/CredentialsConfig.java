@@ -162,6 +162,13 @@ public class CredentialsConfig {
      * loading an aws account, after which a timeout exception will occur.
      */
     private int timeoutInSeconds = 180;
+
+    // Retry config
+    int maxRetries = 10;
+    long backOffInMs = 5000;
+    boolean exponentialBackoff = false;
+    int exponentialBackoffMultiplier = 2;
+    long exponentialBackOffIntervalMs = 10000;
   }
 
   private String accessKeyId;
