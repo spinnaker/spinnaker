@@ -80,8 +80,9 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
       @Nonnull StageExecution stage,
       @Nonnull ContextParameterProcessor contextParameterProcessor,
       @Nonnull ExpressionEvaluationSummary summary) {
-    DeployManifestContext context = stage.mapTo(DeployManifestContext.class);
-    if (context.isSkipExpressionEvaluation()) {
+    Boolean isSkipExpressionEvaluation =
+        (Boolean) stage.getContext().getOrDefault("skipExpressionEvaluation", false);
+    if (isSkipExpressionEvaluation) {
       processDefaultEntries(
           stage, contextParameterProcessor, summary, Collections.singletonList("manifests"));
       return false;
@@ -92,7 +93,7 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
   @Override
   public void afterStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
     TrafficManagement trafficManagement =
-        stage.mapTo(DeployManifestContext.class).getTrafficManagement();
+        stage.mapTo("/trafficManagement", TrafficManagement.class);
     if (trafficManagement.isEnabled()) {
       switch (trafficManagement.getOptions().getStrategy()) {
         case RED_BLACK:
