@@ -1,6 +1,6 @@
 FROM ubuntu:jammy
 LABEL maintainer="sig-platform@spinnaker.io"
-RUN apt-get update && apt-get -y install curl openjdk-17-jre-headless wget
+RUN rm /var/lib/dpkg/info/libc-bin.* && apt-get clean && apt-get update && apt-get -y install curl openjdk-17-jre-headless wget
 RUN adduser --system --uid 10111 --group spinnaker
 COPY echo-web/build/install/echo /opt/echo
 RUN mkdir -p /opt/echo/plugins && chown -R spinnaker:nogroup /opt/echo/plugins
