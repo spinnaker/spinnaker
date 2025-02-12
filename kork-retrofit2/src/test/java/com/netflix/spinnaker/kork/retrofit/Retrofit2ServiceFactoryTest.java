@@ -102,7 +102,7 @@ public class Retrofit2ServiceFactoryTest {
         serviceClientProvider.getService(Retrofit2TestService.class, serviceEndpoint);
     Map<String, String> response = Retrofit2SyncCall.execute(retrofit2TestService.getSomething());
 
-    assertEquals(response.get("message"), "success");
+    assertEquals("success", response.get("message"));
   }
 
   @Test
@@ -120,9 +120,9 @@ public class Retrofit2ServiceFactoryTest {
         serviceClientProvider.getService(Retrofit2TestService.class, serviceEndpoint);
     Response<Map<String, String>> response =
         Retrofit2SyncCall.executeCall(retrofit2TestService.getSomething());
-    assertEquals(response.code(), 200);
-    assertEquals(response.headers().get("Content-Type"), "application/json");
-    assertEquals(response.body().get("message"), "success");
+    assertEquals(200, response.code());
+    assertEquals("application/json", response.headers().get("Content-Type"));
+    assertEquals("success", response.body().get("message"));
   }
 
   @Test
@@ -175,10 +175,10 @@ public class Retrofit2ServiceFactoryTest {
         assertThrows(
             SpinnakerHttpException.class,
             () -> Retrofit2SyncCall.executeCall(retrofit2TestService.getSomething()));
-    assertEquals(exception.getResponseCode(), 400);
+    assertEquals(400, exception.getResponseCode());
     assertEquals(
-        exception.getMessage(),
-        "Status: 400, Method: GET, URL: http://localhost:" + port + "/test, Message: error");
+        "Status: 400, Method: GET, URL: http://localhost:" + port + "/test, Message: error",
+        exception.getMessage());
   }
 
   @Test
@@ -200,7 +200,10 @@ public class Retrofit2ServiceFactoryTest {
         assertThrows(
             SpinnakerConversionException.class,
             () -> Retrofit2SyncCall.executeCall(retrofit2TestService.getSomething()));
-    assertEquals(exception.getMessage(), "Failed to process response body");
+    assertEquals(
+        "Failed to process response body: Unexpected end-of-input: was expecting closing quote for a string value\n"
+            + " at [Source: (okhttp3.ResponseBody$BomAwareReader); line: 1, column: 29]",
+        exception.getMessage());
   }
 
   @Configuration

@@ -153,7 +153,7 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
         }
       } catch (JsonProcessingException jpe) {
         throw new SpinnakerConversionException(
-            "Failed to process response body", jpe, delegate.request());
+            "Failed to process response body: " + jpe.getMessage(), jpe, delegate.request());
       } catch (IOException e) {
         throw new SpinnakerNetworkException(e, delegate.request());
       } catch (Exception e) {
