@@ -18,11 +18,17 @@
 package com.netflix.spinnaker.gate.health
 
 import com.netflix.spinnaker.gate.services.internal.HealthCheckableService
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
+import okhttp3.MediaType
+import okhttp3.Request
+import okhttp3.ResponseBody
 import org.springframework.boot.actuate.health.Health
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletWebRequest
-import retrofit.RetrofitError
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -39,7 +45,7 @@ class DownstreamServicesHealthIndicatorSpec extends Specification {
     healthIndicator.checkDownstreamServiceHealth()
 
     then:
-    1 * healthCheckableService.health() >> { [:] }
+    1 * healthCheckableService.health() >> { Calls.response([:]) }
     healthIndicator.skipDownstreamServiceChecks.get()
 
     when:
@@ -59,11 +65,11 @@ class DownstreamServicesHealthIndicatorSpec extends Specification {
 
     then:
     1 * healthCheckableService.health() >> {
-      throw new SpinnakerServerException(new RetrofitError("Unable to connect", "http://localhost", null, null, null, null, null))
+      throw new SpinnakerServerException( "Unable to connect", new SpinnakerServerException(new Request.Builder().url("http://localhost").build()))
     }
 
     healthIndicator.failuresByService.get() == [
-      "test": "Unable to connect (url: http://localhost)"
+      "test": "Unable to connect (url: http://localhost/)"
     ]
     !healthIndicator.skipDownstreamServiceChecks.get()
   }
@@ -136,5 +142,22 @@ class DownstreamServicesHealthIndicatorSpec extends Specification {
 
     then:
     0 * _
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+    String url = "https://some-url";
+    retrofit2.Response retrofit2Response =
+      retrofit2.Response.error(
+        status,
+        ResponseBody.create(
+          MediaType.parse("application/json"), "{ \"message\": \"Unable to connect\" }"));
+
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(url)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

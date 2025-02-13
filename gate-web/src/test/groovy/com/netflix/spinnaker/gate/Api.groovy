@@ -16,19 +16,25 @@
 
 package com.netflix.spinnaker.gate
 
-import retrofit.http.*
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
+
 
 interface Api {
 
   @GET("/applications")
-  List getApplications()
+  Call<List> getApplications()
 
   @GET("/applications/{name}")
-  Map getApplication(@Path("name") String name)
+  Call<Map> getApplication(@Path("name") String name)
 
   @GET("/applications/{name}/tasks")
-  List getTasks(@Path("name") String name, @Query("page") Integer page, @Query("limit") Integer limit, @Query("statuses") String statuses)
+  Call<List> getTasks(@Path("name") String name, @Query("page") Integer page, @Query("limit") Integer limit, @Query("statuses") String statuses)
 
   @POST("/applications/{name}/tasks")
-  Map createTask(@Path("name") String name, @Body Map body)
+  Call<Map> createTask(@Path("name") String name, @Body Map body)
 }

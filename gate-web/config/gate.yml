@@ -62,7 +62,7 @@ redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
 
 slack:
-  baseUrl: https://slack.com/api
+  baseUrl: https://slack.com/api/
 
 swagger:
   enabled: true
@@ -104,7 +104,7 @@ swagger:
 integrations:
   gremlin:
     enabled: false
-    baseUrl: https://api.gremlin.com/v1
+    baseUrl: https://api.gremlin.com/v1/
 
 spring:
   jackson:

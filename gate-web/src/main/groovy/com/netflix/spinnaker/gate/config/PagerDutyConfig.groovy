@@ -16,19 +16,18 @@
 
 package com.netflix.spinnaker.gate.config
 
-import com.jakewharton.retrofit.Ok3Client
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.gate.services.PagerDutyService
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import groovy.transform.CompileStatic
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.Endpoint
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
-
-import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @CompileStatic
@@ -36,31 +35,41 @@ import static retrofit.Endpoints.newFixedEndpoint
 class PagerDutyConfig {
 
   @Value('${pagerDuty.token}')
-  String token
+  String pagerDutyToken
+
+  @Value('${pager-duty.base-url}')
+  String pagerBaseUrl
+
 
   @Bean
-  Endpoint pagerDutyEndpoint(
-    @Value('${pager-duty.base-url}') String pagerBaseUrl) {
-    newFixedEndpoint(pagerBaseUrl)
+  PagerDutyService pagerDutyService(ServiceClientProvider serviceClientProvider) {
+    List<Interceptor> interceptors = [new RequestHeaderInterceptor(pagerDutyToken)] as List<Interceptor>
+
+    return serviceClientProvider.getService(
+      PagerDutyService,
+      new DefaultServiceEndpoint("pagerduty", pagerBaseUrl),
+      new ObjectMapper(),
+      interceptors)
   }
 
-  RequestInterceptor requestInterceptor = new RequestInterceptor() {
+  static class RequestHeaderInterceptor implements Interceptor {
+
+    private final String token;
+
+    RequestHeaderInterceptor(String token ){
+      this.token = token
+    }
+
     @Override
-    void intercept(RequestInterceptor.RequestFacade request) {
-      request.addHeader("Authorization", "Token token=${token}")
-      request.addHeader("Accept", "application/vnd.pagerduty+json;version=2")
+    Response intercept(Chain chain) throws IOException {
+      Request request = chain.request();
+
+      Request newRequest = request.newBuilder()
+        .header("Authorization", "Token token=${token}")
+        .header("Accept", "application/vnd.pagerduty+json;version=2")
+        .build();
+
+      return chain.proceed(newRequest);
     }
   }
-
-  @Bean
-  PagerDutyService pagerDutyService(Endpoint pagerDutyEndpoint) {
-    new RestAdapter.Builder()
-      .setEndpoint(pagerDutyEndpoint)
-      .setClient(new Ok3Client())
-      .setConverter(new JacksonConverter())
-      .setRequestInterceptor(requestInterceptor)
-      .build()
-      .create(PagerDutyService)
-  }
 }
-

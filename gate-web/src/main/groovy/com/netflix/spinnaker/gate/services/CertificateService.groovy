@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,10 +30,10 @@ class CertificateService {
   ClouddriverServiceSelector clouddriverServiceSelector
 
   List<Map> getCertificates(String selectorKey) {
-    clouddriverServiceSelector.select().getCertificates()
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getCertificates())
   }
 
   List<Map> getCertificates(String cloudProvider, String selectorKey) {
-    clouddriverServiceSelector.select().getCertificates(cloudProvider)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getCertificates(cloudProvider))
   }
 }

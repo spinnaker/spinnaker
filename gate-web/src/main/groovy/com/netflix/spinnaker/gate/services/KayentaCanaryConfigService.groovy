@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.KayentaService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -37,7 +38,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
 
   List getCanaryConfigs(String application, String configurationAccountName) {
     try {
-      return kayentaService.getCanaryConfigs(application, configurationAccountName)
+      return Retrofit2SyncCall.execute(kayentaService.getCanaryConfigs(application, configurationAccountName))
     } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }
@@ -45,7 +46,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
 
   Map getCanaryConfig(String id, String configurationAccountName) {
     try {
-      return kayentaService.getCanaryConfig(id, configurationAccountName)
+      return Retrofit2SyncCall.execute(kayentaService.getCanaryConfig(id, configurationAccountName))
     } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }
@@ -53,7 +54,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
 
   Map createCanaryConfig(Map config, String configurationAccountName) {
     try {
-      return kayentaService.createCanaryConfig(config, configurationAccountName)
+      return Retrofit2SyncCall.execute(kayentaService.createCanaryConfig(config, configurationAccountName))
     } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }
@@ -61,7 +62,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
 
   Map updateCanaryConfig(String id, Map config, String configurationAccountName) {
     try {
-      return kayentaService.updateCanaryConfig(id, config, configurationAccountName)
+      return Retrofit2SyncCall.execute(kayentaService.updateCanaryConfig(id, config, configurationAccountName))
     } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }
@@ -69,7 +70,7 @@ class KayentaCanaryConfigService implements CanaryConfigService {
 
   void deleteCanaryConfig(String id, String configurationAccountName) {
     try {
-      kayentaService.deleteCanaryConfig(id, configurationAccountName)
+      Retrofit2SyncCall.execute(kayentaService.deleteCanaryConfig(id, configurationAccountName))
     } catch (SpinnakerServerException e) {
       throw classifyError(e)
     }

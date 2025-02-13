@@ -20,8 +20,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
-import retrofit.http.GET;
-import retrofit.http.Query;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public interface SlackService {
   @JsonIgnoreProperties(ignoreUnknown = true)
@@ -39,5 +40,6 @@ public interface SlackService {
 
   @GET(
       "/conversations.list?limit=1000&exclude_archived=true&pretty=1") // https://api.slack.com/methods/conversations.list
-  SlackChannelsResult getChannels(@Query("token") String token, @Query("cursor") String cursor);
+  Call<SlackChannelsResult> getChannels(
+      @Query("token") String token, @Query("cursor") String cursor);
 }

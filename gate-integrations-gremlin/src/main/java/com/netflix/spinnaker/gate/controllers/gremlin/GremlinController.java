@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.gate.controllers.gremlin;
 
 import com.netflix.spinnaker.gate.services.gremlin.GremlinService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Map;
@@ -26,15 +27,15 @@ class GremlinController {
 
   @Operation(summary = "Retrieve a list of gremlin command templates")
   @RequestMapping(value = "/templates/command", method = RequestMethod.POST)
-  List listCommandTemplates(@RequestBody(required = true) Map apiKeyMap) {
+  List listCommandTemplates(@RequestBody Map apiKeyMap) {
     String apiKeyValue = (String) apiKeyMap.get(APIKEY_KEY);
-    return gremlinService.getCommandTemplates("Key " + apiKeyValue);
+    return Retrofit2SyncCall.execute(gremlinService.getCommandTemplates("Key " + apiKeyValue));
   }
 
   @Operation(summary = "Retrieve a list of gremlin target templates")
   @RequestMapping(value = "/templates/target", method = RequestMethod.POST)
-  List listTargetTemplates(@RequestBody(required = true) Map apiKeyMap) {
+  List listTargetTemplates(@RequestBody Map apiKeyMap) {
     String apiKeyValue = (String) apiKeyMap.get(APIKEY_KEY);
-    return gremlinService.getTargetTemplates("Key " + apiKeyValue);
+    return Retrofit2SyncCall.execute(gremlinService.getTargetTemplates("Key " + apiKeyValue));
   }
 }

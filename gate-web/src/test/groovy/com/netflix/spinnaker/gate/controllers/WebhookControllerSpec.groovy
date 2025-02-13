@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.gate.services.WebhookService
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import io.cloudevents.spring.mvc.CloudEventHttpMessageConverter
+import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockWebServer
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -29,8 +32,8 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.util.NestedServletException
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.Retrofit
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -52,12 +55,13 @@ class WebhooksControllerSpec extends Specification {
     def localPort = sock.localPort
     sock.close()
 
-    EchoService echoService = new RestAdapter.Builder()
-      .setEndpoint("http://localhost:${localPort}")
-      .setClient(new Ok3Client())
-      .setConverter(new JacksonConverter())
+    EchoService echoService = new Retrofit.Builder()
+      .baseUrl("http://localhost:${localPort}")
+      .client(new OkHttpClient())
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+      .addConverterFactory(JacksonConverterFactory.create())
       .build()
-      .create(EchoService)
+      .create(EchoService);
 
     OrcaServiceSelector orcaServiceSelector = Mock(OrcaServiceSelector)
     webhookService = new WebhookService(echoService: echoService, orcaServiceSelector: orcaServiceSelector)
@@ -80,8 +84,8 @@ class WebhooksControllerSpec extends Specification {
     )
 
     then:
-    retrofit.RetrofitError ex = thrown()
-    ex.message.startsWith("Failed to connect to localhost")
+    SpinnakerNetworkException ex = thrown()
+    ex.message.startsWith("java.net.ConnectException: Failed to connect to localhost")
 
   }
 
@@ -95,7 +99,7 @@ class WebhooksControllerSpec extends Specification {
 
     then:
     NestedServletException ex = thrown()
-    ex.message.startsWith("Request processing failed; nested exception is retrofit.RetrofitError: Failed to connect to localhost")
+    ex.message.startsWith("Request processing failed; nested exception is com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException: java.net.ConnectException: Failed to connect to localhost")
   }
 
   void 'handles CDEvents API with BAD_REQUEST'() {
@@ -152,6 +156,6 @@ class WebhooksControllerSpec extends Specification {
 
     then:
     NestedServletException ex = thrown()
-    ex.message.startsWith("Request processing failed; nested exception is retrofit.RetrofitError: Failed to connect to localhost")
+    ex.message.startsWith("Request processing failed; nested exception is com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException: java.net.ConnectException: Failed to connect to localhost")
   }
 }

@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import retrofit2.mock.Calls;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {TaskService.class, TaskServiceProperties.class})
@@ -46,7 +47,8 @@ public class TaskServiceTest {
 
     Map task = Map.of("ref", "apps/bob/someRandomId");
     when(selector.select()).thenReturn(orcaService);
-    when(orcaService.doOperation(operation)).thenReturn(task);
+    when(orcaService.doOperation(operation)).thenReturn(Calls.response(task));
+    when(orcaService.getTask("someRandomId")).thenAnswer(invocation -> Calls.response(task));
     taskService.createAndWaitForCompletion(operation, 32, 1);
     verify(orcaService, times(32)).getTask("someRandomId");
   }

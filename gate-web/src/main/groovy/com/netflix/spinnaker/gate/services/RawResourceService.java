@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ public class RawResourceService {
   }
 
   public List<Map<String, Object>> getApplicationRawResources(String appName) {
-    return clouddriverServiceSelector.select().getApplicationRawResources(appName);
+    return Retrofit2SyncCall.execute(
+        clouddriverServiceSelector.select().getApplicationRawResources(appName));
   }
 }

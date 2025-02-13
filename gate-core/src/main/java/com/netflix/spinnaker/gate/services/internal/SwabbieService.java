@@ -19,35 +19,41 @@ package com.netflix.spinnaker.gate.services.internal;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import java.util.List;
 import java.util.Map;
-import retrofit.http.*;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.Headers;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface SwabbieService {
   @Headers("Accept: application/json")
   @PUT("/resources/state/{namespace}/{resourceId}/optOut")
-  Map optOut(
+  Call<Map> optOut(
       @Path("namespace") String namespace,
       @Path("resourceId") String resourceId,
       @Body String ignored);
 
   @Headers("Accept: application/json")
   @PUT("/resources/state/{namespace}/{resourceId}/restore")
-  void restore(
+  Call<Void> restore(
       @Path("namespace") String namespace,
       @Path("resourceId") String resourceId,
       @Body String ignored);
 
   @Headers("Accept: application/json")
   @GET("/resources/marked/{namespace}/{resourceId}")
-  Map get(@Path("namespace") String namespace, @Path("resourceId") String resourceId);
+  Call<Map> get(@Path("namespace") String namespace, @Path("resourceId") String resourceId);
 
   @Headers("Accept: application/json")
   @GET("/resources/marked")
-  List getMarkedList(@Query("list") Boolean list);
+  Call<List> getMarkedList(@Query("list") Boolean list);
 
   @Headers("Accept: application/json")
   @GET("/resources/deleted")
-  List getDeletedList();
+  Call<List> getDeletedList();
 
   @GET("/installedPlugins")
-  List<SpinnakerPluginDescriptor> getInstalledPlugins();
+  Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 }

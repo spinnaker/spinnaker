@@ -5,23 +5,24 @@ import io.cloudevents.CloudEvent;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
-import retrofit.http.Body;
-import retrofit.http.GET;
-import retrofit.http.Header;
-import retrofit.http.Headers;
-import retrofit.http.POST;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface EchoService {
 
   @Headers("Accept: application/json")
   @POST("/webhooks/{type}/{source}")
-  Map webhooks(@Path("type") String type, @Path("source") String source, @Body Map event);
+  Call<Map> webhooks(@Path("type") String type, @Path("source") String source, @Body Map event);
 
   @Headers("Accept: application/json")
   @POST("/webhooks/cdevents/{source}")
-  ResponseEntity<Void> webhooks(
+  Call<ResponseEntity<Void>> webhooks(
       @Path("source") String source,
       @Body CloudEvent cdevent,
       @Header("Ce-Data") String ceDataJsonString,
@@ -32,7 +33,7 @@ public interface EchoService {
 
   @Headers("Accept: application/json")
   @POST("/webhooks/{type}/{source}")
-  Map webhooks(
+  Call<Map> webhooks(
       @Path("type") String type,
       @Path("source") String source,
       @Body Map event,
@@ -40,20 +41,20 @@ public interface EchoService {
       @Header("X-Event-Key") String bitBucketEventType);
 
   @GET("/validateCronExpression")
-  Map validateCronExpression(@Query("cronExpression") String cronExpression);
+  Call<Map> validateCronExpression(@Query("cronExpression") String cronExpression);
 
   @GET("/pubsub/subscriptions")
-  List<Map<String, String>> getPubsubSubscriptions();
+  Call<List<Map<String, String>>> getPubsubSubscriptions();
 
   @POST("/")
-  String postEvent(@Body Map event);
+  Call<String> postEvent(@Body Map event);
 
   @GET("/quietPeriod")
-  Map getQuietPeriodState();
+  Call<Map> getQuietPeriodState();
 
   @GET("/installedPlugins")
-  List<SpinnakerPluginDescriptor> getInstalledPlugins();
+  Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 
   @GET("/notifications/metadata")
-  List getNotificationTypeMetadata();
+  Call<List> getNotificationTypeMetadata();
 }

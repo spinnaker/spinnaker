@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.IgorService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,9 +44,8 @@ public class CiService {
       throw new UnsupportedOperationException(
           "Operation not supported because igor service is not configured");
     }
-    return igorService
-        .get()
-        .getBuilds(projectKey, repoSlug, completionStatus, buildNumber, commitId);
+    return Retrofit2SyncCall.execute(
+        igorService.get().getBuilds(projectKey, repoSlug, completionStatus, buildNumber, commitId));
   }
 
   public Map<String, Object> getBuildOutput(String buildId) {
@@ -53,6 +53,6 @@ public class CiService {
       throw new UnsupportedOperationException(
           "Operation not supported because igor service is not configured");
     }
-    return igorService.get().getBuildOutput(buildId);
+    return Retrofit2SyncCall.execute(igorService.get().getBuildOutput(buildId));
   }
 }

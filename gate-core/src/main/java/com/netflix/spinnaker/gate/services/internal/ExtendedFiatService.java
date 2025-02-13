@@ -19,14 +19,15 @@ package com.netflix.spinnaker.gate.services.internal;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import java.util.List;
-import retrofit.http.GET;
-import retrofit.http.Path;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
 
 public interface ExtendedFiatService {
 
   @GET("/authorize/{userId}/serviceAccounts?expand=true")
-  List<UserPermission.View> getUserServiceAccounts(@Path("userId") String userId);
+  Call<List<UserPermission.View>> getUserServiceAccounts(@Path("userId") String userId);
 
   @GET("/installedPlugins")
-  List<SpinnakerPluginDescriptor> getInstalledPlugins();
+  Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 }

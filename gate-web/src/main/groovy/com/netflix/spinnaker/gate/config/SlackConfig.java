@@ -16,18 +16,20 @@
 
 package com.netflix.spinnaker.gate.config;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
-import com.jakewharton.retrofit.Ok3Client;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.gate.services.SlackService;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import java.io.IOException;
+import java.util.List;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoint;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
 
 @Configuration
 @EnableConfigurationProperties(SlackConfigProperties.class)
@@ -41,27 +43,35 @@ public class SlackConfig {
   }
 
   @Bean
-  public Endpoint slackEndpoint() {
-    return newFixedEndpoint(slackConfigProperties.getBaseUrl());
+  SlackService slackService(ServiceClientProvider serviceClientProvider) {
+    String token = "Token token=" + slackConfigProperties.token;
+    return serviceClientProvider.getService(
+        SlackService.class,
+        new DefaultServiceEndpoint("slack", slackConfigProperties.getBaseUrl()),
+        new ObjectMapper(),
+        List.of(new RequestHeaderInterceptor(token)));
   }
 
-  private RequestInterceptor requestInterceptor =
-      new RequestInterceptor() {
-        @Override
-        public void intercept(RequestInterceptor.RequestFacade request) {
-          String value = "Token token=" + slackConfigProperties.token;
-          request.addHeader("Authorization", value);
-        }
-      };
+  static class RequestHeaderInterceptor implements Interceptor {
 
-  @Bean
-  SlackService slackService(Endpoint slackEndpoint) {
-    return new RestAdapter.Builder()
-        .setEndpoint(slackEndpoint)
-        .setClient(new Ok3Client())
-        .setConverter(new JacksonConverter())
-        .setRequestInterceptor(requestInterceptor)
-        .build()
-        .create(SlackService.class);
+    private final String token;
+
+    RequestHeaderInterceptor(String token) {
+      this.token = token;
+    }
+
+    @Override
+    public @NotNull Response intercept(Chain chain) throws IOException {
+      Request request = chain.request();
+
+      Request newRequest =
+          request
+              .newBuilder()
+              .header("Authorization", token)
+              .header("Accept", "application/vnd.pagerduty+json;version=2")
+              .build();
+
+      return chain.proceed(newRequest);
+    }
   }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 
 import static com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest.classifyError
@@ -36,7 +37,7 @@ class V2CanaryService {
 
   List getCredentials() {
     try {
-      return kayentaService.getCredentials()
+      return Retrofit2SyncCall.execute(kayentaService.getCredentials())
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -44,7 +45,7 @@ class V2CanaryService {
 
   List listMetricsServiceMetadata(String filter, String metricsAccountName) {
     try {
-      return kayentaService.listMetricsServiceMetadata(filter, metricsAccountName)
+      return Retrofit2SyncCall.execute(kayentaService.listMetricsServiceMetadata(filter, metricsAccountName))
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -52,7 +53,7 @@ class V2CanaryService {
 
   List listJudges() {
     try {
-      return kayentaService.listJudges()
+      return Retrofit2SyncCall.execute(kayentaService.listJudges())
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -64,11 +65,11 @@ class V2CanaryService {
                                String metricsAccountName,
                                String storageAccountName) {
     try {
-      return kayentaService.initiateCanaryWithConfig(adhocExecutionRequest,
+      return Retrofit2SyncCall.execute(kayentaService.initiateCanaryWithConfig(adhocExecutionRequest,
         application,
         parentPipelineExecutionId,
         metricsAccountName,
-        storageAccountName)
+        storageAccountName))
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -82,13 +83,13 @@ class V2CanaryService {
                      String storageAccountName,
                      String configurationAccountName) {
     try {
-      return kayentaService.initiateCanary(canaryConfigId,
+      return Retrofit2SyncCall.execute(kayentaService.initiateCanary(canaryConfigId,
                                            executionRequest,
                                            application,
                                            parentPipelineExecutionId,
                                            metricsAccountName,
                                            storageAccountName,
-                                           configurationAccountName)
+                                           configurationAccountName))
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -96,7 +97,7 @@ class V2CanaryService {
 
   Map getCanaryResults(String canaryExecutionId, String storageAccountName) {
     try {
-      return kayentaService.getCanaryResult(canaryExecutionId, storageAccountName)
+      return Retrofit2SyncCall.execute(kayentaService.getCanaryResult(canaryExecutionId, storageAccountName))
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -104,7 +105,7 @@ class V2CanaryService {
 
   List getCanaryResultsByApplication(String application, int limit, int page, String statuses, String storageAccountName) {
     try {
-      return kayentaService.getCanaryResultsByApplication(application, limit, page, statuses, storageAccountName)
+      return Retrofit2SyncCall.execute(kayentaService.getCanaryResultsByApplication(application, limit, page, statuses, storageAccountName))
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -112,7 +113,7 @@ class V2CanaryService {
 
   List getMetricSetPairList(String metricSetPairListId, String storageAccountName) {
     try {
-      return kayentaService.getMetricSetPairList(metricSetPairListId, storageAccountName)
+      return Retrofit2SyncCall.execute(kayentaService.getMetricSetPairList(metricSetPairListId, storageAccountName))
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }

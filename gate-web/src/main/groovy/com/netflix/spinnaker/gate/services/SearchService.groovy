@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -30,6 +31,6 @@ class SearchService {
   ClouddriverServiceSelector clouddriverServiceSelector
 
   List<Map> search(String query, String type, String platform, String selectorKey, int pageSize = 10000, int page = 1, Map<String, String> filters) {
-    return clouddriverServiceSelector.select().search(query, type, platform, pageSize, page, filters)
+    return Retrofit2SyncCall.execute(clouddriverServiceSelector.select().search(query, type, platform, pageSize, page, filters))
   }
 }

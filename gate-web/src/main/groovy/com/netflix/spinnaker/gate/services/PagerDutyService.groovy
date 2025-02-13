@@ -17,15 +17,17 @@
 package com.netflix.spinnaker.gate.services
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import retrofit.http.GET
-import retrofit.http.Query
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Query
+
 
 interface PagerDutyService {
   @GET('/services?include%5B%5D=integrations&total=true&limit=100') //default limit is 25 & 100 is the max https://v2.developer.pagerduty.com/docs/pagination
-  PagerDutyServiceResult getServices(@Query("offset") int offset)
+  Call<PagerDutyServiceResult> getServices(@Query("offset") int offset)
 
   @GET('/oncalls?limit=100') //default limit is 25 & 100 is the max https://v2.developer.pagerduty.com/docs/pagination
-  PagerDutyOnCallResult getOnCalls(@Query("offset") int offset)
+  Call<PagerDutyOnCallResult> getOnCalls(@Query("offset") int offset)
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   class PagerDutyServiceResult {

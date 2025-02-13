@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services.appengine;
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import groovy.transform.CompileStatic;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,6 @@ public class StorageAccountService {
   @Autowired private ClouddriverServiceSelector clouddriverServiceSelector;
 
   public List<String> getAppengineStorageAccounts(String selectorKey) {
-    return clouddriverServiceSelector.select().getStorageAccounts();
+    return Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getStorageAccounts());
   }
 }

@@ -25,6 +25,7 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -59,7 +60,7 @@ class BuildControllerSpec extends Specification {
   @Unroll
   void 'should get a list of masters'() {
     given:
-    1 * igorService.getBuildMasters() >> [MASTER, "master2"]
+    1 * igorService.getBuildMasters() >> Calls.response([MASTER, "master2"])
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get(endpoint)
@@ -78,7 +79,7 @@ class BuildControllerSpec extends Specification {
     def jenkinsMasters = ['jenkinsX', 'jenkinsY']
 
     given:
-    1 * igorService.getBuildMasters(masterType) >> jenkinsMasters
+    1 * igorService.getBuildMasters(masterType) >> Calls.response(jenkinsMasters)
     0 * igorService.getBuildMasters('wercker') >> _
     0 * igorService.getBuildMasters() >> _
 
@@ -99,7 +100,7 @@ class BuildControllerSpec extends Specification {
     def werckerMasters = ['wercker-prod', 'wercker-staging']
 
     given:
-    1 * igorService.getBuildMasters(masterType) >> werckerMasters
+    1 * igorService.getBuildMasters(masterType) >> Calls.response(werckerMasters)
     0 * igorService.getBuildMasters('jenkins') >> _
     0 * igorService.getBuildMasters() >> _
 
@@ -117,7 +118,7 @@ class BuildControllerSpec extends Specification {
   @Unroll
   void 'should get a list of jobs for a master'() {
     given:
-    1 * igorService.getJobsForBuildMaster(MASTER) >> [JOB_NAME, "another_job"]
+    1 * igorService.getJobsForBuildMaster(MASTER) >> Calls.response([JOB_NAME, "another_job"])
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get(endpoint)
@@ -133,7 +134,7 @@ class BuildControllerSpec extends Specification {
   @Unroll
   void 'should get a list of builds for a job'() {
     given:
-    1 * igorService.getBuilds(MASTER, JOB_NAME_ENCODED) >> [["building": false, "number": 111], ["building": false, "number": 222]]
+    1 * igorService.getBuilds(MASTER, JOB_NAME_ENCODED) >> Calls.response([["building": false, "number": 111], ["building": false, "number": 222]])
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get(endpoint)
@@ -150,7 +151,7 @@ class BuildControllerSpec extends Specification {
   @Unroll
   void 'should get a job config'() {
     given:
-    1 * igorService.getJobConfig(MASTER, JOB_NAME_ENCODED) >> ['name': JOB_NAME, 'url': "http://test.com/job/${JOB_NAME}".toString()]
+    1 * igorService.getJobConfig(MASTER, JOB_NAME_ENCODED) >> Calls.response(['name': JOB_NAME, 'url': "http://test.com/job/${JOB_NAME}".toString()])
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get(endpoint)
@@ -167,7 +168,7 @@ class BuildControllerSpec extends Specification {
   @Unroll
   void 'should get a build'() {
     given:
-    1 * igorService.getBuild(MASTER, JOB_NAME_ENCODED, BUILD_NUMBER.toString()) >> ["building": false, "number": BUILD_NUMBER]
+    1 * igorService.getBuild(MASTER, JOB_NAME_ENCODED, BUILD_NUMBER.toString()) >> Calls.response(["building": false, "number": BUILD_NUMBER])
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get(endpoint)

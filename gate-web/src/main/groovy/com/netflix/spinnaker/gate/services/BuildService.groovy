@@ -20,6 +20,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.GoogleCloudBuildTrigger
 import com.netflix.spinnaker.gate.services.internal.IgorService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,9 +43,9 @@ class BuildService {
       return []
     }
     if (buildServiceType) {
-      return igorService.getBuildMasters(buildServiceType)
+      return Retrofit2SyncCall.execute(igorService.getBuildMasters(buildServiceType))
     } else {
-      return igorService.getBuildMasters()
+      return Retrofit2SyncCall.execute(igorService.getBuildMasters())
     }
   }
 
@@ -52,7 +53,7 @@ class BuildService {
     if (!igorService) {
       return []
     }
-    return igorService.getBuildMasters()
+    return Retrofit2SyncCall.execute(igorService.getBuildMasters())
   }
 
 
@@ -61,7 +62,7 @@ class BuildService {
       return []
     }
     try {
-      igorService.getJobsForBuildMaster(controller)
+      Retrofit2SyncCall.execute(igorService.getJobsForBuildMaster(controller))
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         throw new BuildMasterNotFound("Build master '${controller}' not found")
@@ -75,7 +76,7 @@ class BuildService {
       return []
     }
     try {
-      igorService.getGoogleCloudBuildTriggers(account)
+      Retrofit2SyncCall.execute(igorService.getGoogleCloudBuildTriggers(account))
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         throw new GCBAccountNotFound("Account '${account}' not found")
@@ -90,7 +91,7 @@ class BuildService {
       return [:]
     }
     try {
-      igorService.getJobConfig(controller, encode(job))
+      Retrofit2SyncCall.execute(igorService.getJobConfig(controller, encode(job)))
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         throw new BuildMasterNotFound("Job not found (controller: '${controller}', job: '${job}')")
@@ -105,7 +106,7 @@ class BuildService {
       return []
     }
     try {
-      igorService.getBuilds(controller, encode(job))
+      Retrofit2SyncCall.execute(igorService.getBuilds(controller, encode(job)))
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         throw new BuildMasterNotFound("Builds not found (controller: '${controller}', job: '${job}')")
@@ -120,7 +121,7 @@ class BuildService {
       return [:]
     }
     try {
-      igorService.getBuild(controller, encode(job), number)
+      Retrofit2SyncCall.execute(igorService.getBuild(controller, encode(job), number))
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         throw new BuildMasterNotFound("Build not found (controller: '${controller}', job: '${job}', build: ${number})")

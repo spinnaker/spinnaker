@@ -21,14 +21,14 @@ import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigPro
 import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.json.JsonSlurper
+import okhttp3.ResponseBody
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import retrofit.MockTypedInput
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls;
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
@@ -91,7 +91,7 @@ class PipelineControllerSpec extends Specification {
         ]
       ]
     ]) >> { [id: 'task-id', application: 'application', status: 'SUCCEEDED'] }
-    1 * front50Service.getPipelineConfigsForApplication('application', null, true) >> []
+    1 * front50Service.getPipelineConfigsForApplication('application', null, true) >> Calls.response([])
   }
 
   def "should propagate pipeline template errors"() {
@@ -115,17 +115,12 @@ class PipelineControllerSpec extends Specification {
         .content(new ObjectMapper().writeValueAsString(pipeline))
     ).andDo({
       // thanks groovy
-      throw RetrofitError.httpError(
-        "http://orca",
-        new Response("http://orca", 400, "template invalid", [], new MockTypedInput(new JacksonConverter(), mockedHttpException)),
-        new JacksonConverter(),
-        Object.class
-      )
+      throw makeSpinnakerHttpException(400, mockedHttpException)
     })
 
     then:
-    def e = thrown(RetrofitError)
-    e.body == mockedHttpException
+    def e = thrown(SpinnakerHttpException)
+    e.responseBody == mockedHttpException
   }
 
   def "should bulk save pipelines"() {
@@ -315,5 +310,22 @@ class PipelineControllerSpec extends Specification {
     }
     response.status == 400
     response.contentAsString == ""
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, Map body) {
+    String url = "https://some-url";
+    retrofit2.Response retrofit2Response =
+      retrofit2.Response.error(
+        status,
+        ResponseBody.create(
+          okhttp3.MediaType.parse("application/json"), new ObjectMapper().writeValueAsString(body)));
+
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(url)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

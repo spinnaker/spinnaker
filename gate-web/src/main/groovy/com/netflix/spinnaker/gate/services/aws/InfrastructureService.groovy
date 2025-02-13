@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services.aws
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,28 +30,28 @@ class InfrastructureService {
   ClouddriverServiceSelector clouddriverServiceSelector
 
   List<Map> getInstanceTypes(String selectorKey = null) {
-    clouddriverServiceSelector.select().instanceTypes
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().instanceTypes)
   }
 
   List<Map> getKeyPairs(String selectorKey = null) {
-    clouddriverServiceSelector.select().keyPairs
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().keyPairs)
   }
 
   @Deprecated
   List<Map> getSubnets(String selectorKey = null) {
-    clouddriverServiceSelector.select().getSubnets('aws')
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getSubnets('aws'))
   }
 
   @Deprecated
   List<Map> getVpcs(String selectorKey = null) {
-    clouddriverServiceSelector.select().getNetworks('aws')
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getNetworks('aws'))
   }
 
   List<Map> getFunctions(String selectorKey = null, String functionName, String region, String account) {
-    clouddriverServiceSelector.select().getFunctions(functionName,region, account)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getFunctions(functionName,region, account))
   }
 
   List<Map> getApplicationFunctions(String selectorKey = null, String application) {
-    clouddriverServiceSelector.select().getApplicationFunctions(application)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getApplicationFunctions(application))
   }
 }

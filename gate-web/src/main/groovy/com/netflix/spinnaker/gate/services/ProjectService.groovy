@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,18 +40,18 @@ class ProjectService {
   ClouddriverServiceSelector clouddriverServiceSelector
 
   List<Map> getAll() {
-    return front50Service.getAllProjects() ?: []
+    return Retrofit2SyncCall.execute(front50Service.getAllProjects()) ?: []
   }
 
   Map get(String id) {
-    front50Service.getProject(id)
+    Retrofit2SyncCall.execute(front50Service.getProject(id))
   }
 
   List<Map> getAllPipelines(String projectId, int limit, String statuses) {
-    return orcaServiceSelector.select().getPipelinesForProject(projectId, limit, statuses)
+    return Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipelinesForProject(projectId, limit, statuses))
   }
 
   List getClusters(String projectId, String selectorKey) {
-    return clouddriverServiceSelector.select().getProjectClusters(projectId)
+    return Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getProjectClusters(projectId))
   }
 }

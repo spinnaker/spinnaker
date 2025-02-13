@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -40,7 +41,7 @@ class PipelineServiceSpec extends Specification {
 
     then:
     1 * orcaServiceSelector.select() >> { orcaService }
-    1 * orcaService.startPipeline({ p -> p.notifications.type == ['email', 'sms'] }, _)
+    1 * orcaService.startPipeline({ p -> p.notifications.type == ['email', 'sms'] }, _) >> Calls.response(null)
   }
 
   @Unroll
@@ -61,7 +62,7 @@ class PipelineServiceSpec extends Specification {
 
     then:
     1 * orcaServiceSelector.select() >> { orcaService }
-    1 * orcaService.startPipeline({ p -> p.notifications == expected }, _)
+    1 * orcaService.startPipeline({ p -> p.notifications == expected }, _) >> Calls.response(null)
 
     where:
     config                     | trigger                    || expected
@@ -92,6 +93,7 @@ class PipelineServiceSpec extends Specification {
     )
     when:
     orcaServiceSelector.select() >> { orcaService }
+    (0..1) * orcaService.startPipeline(_ as Map,  _) >> Calls.response(null)
     def didThrow = false
     try {
       service.trigger('app', 'p-id', trigger)

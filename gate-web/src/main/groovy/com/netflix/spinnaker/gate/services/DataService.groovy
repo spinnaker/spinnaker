@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,12 +30,12 @@ class DataService {
   ClouddriverServiceSelector clouddriverServiceSelector
 
   void getStaticData(String id, Map<String, String> filters, OutputStream outputStream) {
-    def response = clouddriverServiceSelector.select().getStaticData(id, filters)
-    outputStream << response.getBody().in()
+    def response = Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getStaticData(id, filters))
+    outputStream << response.byteStream()
   }
 
   void getAdhocData(String groupId, String bucketId, String objectId, OutputStream outputStream) {
-    def response = clouddriverServiceSelector.select().getAdhocData(groupId, bucketId, objectId)
-    outputStream << response.getBody().in()
+    def response = Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getAdhocData(groupId, bucketId, objectId))
+    outputStream << response.byteStream()
   }
 }

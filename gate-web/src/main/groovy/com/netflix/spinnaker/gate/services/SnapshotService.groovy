@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,10 +31,10 @@ class SnapshotService {
   Front50Service front50Service
 
   Map getCurrent(String application, String account) {
-    front50Service.getCurrentSnapshot("$application-$account")
+    Retrofit2SyncCall.execute(front50Service.getCurrentSnapshot("$application-$account"))
   }
 
   List<Map> getHistory(String application, String account, int limit) {
-    front50Service.getSnapshotHistory("$application-$account", limit)
+    Retrofit2SyncCall.execute(front50Service.getSnapshotHistory("$application-$account", limit))
   }
 }

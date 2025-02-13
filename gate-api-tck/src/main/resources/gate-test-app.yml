@@ -30,3 +30,10 @@ services:
   keel:
     enabled: false
     baseUrl: http://localhost:8087
+
+slack:
+  token: test-token
+  baseUrl: https://test-slack-url.com
+
+retrofit:
+  enabled: false

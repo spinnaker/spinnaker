@@ -7,7 +7,6 @@ dependencies {
 
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-web"
-  implementation "com.squareup.retrofit:retrofit"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.google.guava:guava"
 }

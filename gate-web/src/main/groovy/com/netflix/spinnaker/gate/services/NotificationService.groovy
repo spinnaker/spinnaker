@@ -22,6 +22,7 @@ import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
@@ -71,19 +72,19 @@ class NotificationService {
   }
 
   Map getNotificationConfigs(String type, String app) {
-    front50Service.getNotificationConfigs(type, app)
+    Retrofit2SyncCall.execute(front50Service.getNotificationConfigs(type, app))
   }
 
   void saveNotificationConfig(String type, String app, Map notification) {
-    front50Service.saveNotificationConfig(type, app, notification)
+    Retrofit2SyncCall.execute(front50Service.saveNotificationConfig(type, app, notification))
   }
 
   void deleteNotificationConfig(String type, String app) {
-    front50Service.deleteNotificationConfig(type, app)
+    Retrofit2SyncCall.execute(front50Service.deleteNotificationConfig(type, app))
   }
 
   List getNotificationTypeMetadata() {
-    echoService.getNotificationTypeMetadata()
+    Retrofit2SyncCall.execute(echoService.getNotificationTypeMetadata())
   }
 
   /**

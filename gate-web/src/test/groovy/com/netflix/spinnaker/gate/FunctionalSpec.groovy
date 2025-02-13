@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.gate
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ErrorConfiguration
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
@@ -30,6 +30,10 @@ import com.netflix.spinnaker.gate.services.*
 import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import okhttp3.OkHttpClient
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -40,10 +44,9 @@ import org.springframework.context.annotation.Import
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import retrofit.RetrofitError
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
-import retrofit.mime.TypedInput
+import retrofit2.Retrofit
+import retrofit2.mock.Calls
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -110,15 +113,15 @@ class FunctionalSpec extends Specification {
     System.setProperty("spring.profiles.active", "test")
     System.setProperty("retrofit.enabled", "false")
     def spring = new SpringApplication()
-    spring.setSources([FunctionalConfiguration] as Set)
+    spring.setSources([FunctionalConfiguration, OkHttpClientProvider] as Set)
     ctx = spring.run()
 
     def localPort = ctx.environment.getProperty("local.server.port")
-    api = new RestAdapter.Builder()
-        .setEndpoint("http://localhost:${localPort}")
-        .setClient(new Ok3Client())
-        .setConverter(new JacksonConverter())
-        .setLogLevel(RestAdapter.LogLevel.FULL)
+    api = new Retrofit.Builder()
+        .baseUrl("http://localhost:${localPort}")
+        .client(new OkHttpClient())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create())
         .build()
         .create(Api)
   }
@@ -129,7 +132,7 @@ class FunctionalSpec extends Specification {
 
   void "should call ApplicationService for applications"() {
     when:
-      api.applications
+    Retrofit2SyncCall.execute(api.applications)
 
     then:
       1 * applicationService.getAllApplications() >> []
@@ -137,7 +140,7 @@ class FunctionalSpec extends Specification {
 
   void "should call ApplicationService for a single application"() {
     when:
-      api.getApplication(name)
+    Retrofit2SyncCall.execute(api.getApplication(name))
 
     then:
       1 * applicationService.getApplication(name, true) >> [name: name]
@@ -148,13 +151,13 @@ class FunctionalSpec extends Specification {
 
   void "should 404 if ApplicationService does not return an application"() {
     when:
-      api.getApplication(name)
+    Retrofit2SyncCall.execute(api.getApplication(name))
 
     then:
       1 * applicationService.getApplication(name, true) >> null
 
-      RetrofitError exception = thrown()
-      exception.response.status == 404
+      SpinnakerHttpException exception = thrown()
+      exception.responseCode == 404
 
     where:
       name = "foo"
@@ -162,11 +165,11 @@ class FunctionalSpec extends Specification {
 
   void "should call ApplicationService for an application's tasks"() {
     when:
-      api.getTasks(name, null, null, "RUNNING,TERMINAL")
+      Retrofit2SyncCall.execute(api.getTasks(name, null, null, "RUNNING,TERMINAL"))
 
     then:
       1 * orcaServiceSelector.select() >> { orcaService }
-      1 * orcaService.getTasks(name, null, null, "RUNNING,TERMINAL") >> []
+      1 * orcaService.getTasks(name, null, null, "RUNNING,TERMINAL") >> Calls.response([])
 
     where:
       name = "foo"
@@ -174,7 +177,7 @@ class FunctionalSpec extends Specification {
 
   void "should call TaskService to create a task for an application"() {
     when:
-      api.createTask("foo", task)
+    Retrofit2SyncCall.execute(api.createTask("foo", task))
 
     then:
       1 * taskService.createAppTask('foo', task) >> [:]
@@ -182,10 +185,6 @@ class FunctionalSpec extends Specification {
     where:
       name = "foo"
       task = [type: "deploy"]
-  }
-
-  Map toMap(TypedInput typedInput) {
-    return objectMapper.readValue(typedInput.in().text, Map)
   }
 
   @Order(10)
@@ -252,11 +251,6 @@ class FunctionalSpec extends Specification {
     AccountLookupService accountLookupService() {
       accountLookupService
     }
-
-    @Bean
-    RestAdapter.LogLevel retrofitLogLevel() {
-      return RestAdapter.LogLevel.BASIC
-   }
 
     @Bean
     PipelineController pipelineController(PipelineService pipelineService,

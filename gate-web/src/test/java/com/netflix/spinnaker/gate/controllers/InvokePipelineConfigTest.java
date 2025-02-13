@@ -67,6 +67,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.web.context.WebApplicationContext;
+import retrofit2.mock.Calls;
 
 /**
  * This is a bit of an end-to-end test. It demonstrates the behavior of
@@ -158,7 +159,7 @@ class InvokePipelineConfigTest {
     // ApplicationService happy.
     when(clouddriverServiceSelector.select()).thenReturn(clouddriverService);
     when(clouddriverService.getAllApplicationsUnrestricted(anyBoolean()))
-        .thenReturn(Collections.emptyList());
+        .thenReturn(Calls.response(Collections.emptyList()));
 
     // That background thread also calls a front50 endpoint, separate from the ones used in
     // invokePipelineConfig
@@ -207,7 +208,7 @@ class InvokePipelineConfigTest {
                 .reason(
                     "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Pipeline configuration not found (id: "
                         + PIPELINE_NAME
-                        + "): Status: 404, URL: "
+                        + "): Status: 404, Method: GET, URL: "
                         + wmFront50.baseUrl()
                         + "/pipelines/my-pipeline-name/get, Message: message from front50"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
@@ -264,7 +265,7 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 400, URL: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 400, Method: GET, URL: "
                         + wmFront50.baseUrl()
                         + "/pipelines/my-application/name/my-pipeline-name?refresh=true, Message: message from front50"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
@@ -317,7 +318,7 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 500, URL: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 500, Method: GET, URL: "
                         + wmFront50.baseUrl()
                         + "/pipelines/my-application/name/my-pipeline-name?refresh=true, Message: jOOQ; message from front50"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
@@ -337,7 +338,7 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Connection reset"))
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: java.net.SocketException: Connection reset"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
     verifyFront50PipelinesRequest();
@@ -355,8 +356,8 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'this': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')\n"
-                        + " at [Source: (retrofit.ExceptionCatchingTypedInput$ExceptionCatchingInputStream); line: 1, column: 6]"))
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Failed to process response body: Unrecognized token 'this': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')\n"
+                        + " at [Source: (okhttp3.ResponseBody$BomAwareReader); line: 1, column: 5]"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
     verifyFront50PipelinesRequest();
@@ -407,9 +408,9 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 500, URL: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 500, Method: POST, URL: "
                         + wmOrca.baseUrl()
-                        + "/orchestrate?user=some+user, Message: message from orca"))
+                        + "/orchestrate?user=some%20user, Message: message from orca"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
     verifyFront50PipelinesRequest();
@@ -442,9 +443,9 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 400, URL: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Status: 400, Method: POST, URL: "
                         + wmOrca.baseUrl()
-                        + "/orchestrate?user=some+user, Message: message from orca"))
+                        + "/orchestrate?user=some%20user, Message: message from orca"))
         .andExpect(header().string(REQUEST_ID.getHeader(), SUBMITTED_REQUEST_ID));
 
     verifyFront50PipelinesRequest();

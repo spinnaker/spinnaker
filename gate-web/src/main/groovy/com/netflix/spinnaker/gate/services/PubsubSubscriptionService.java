@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.EchoService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import groovy.transform.CompileStatic;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,6 @@ public class PubsubSubscriptionService {
       throw new IllegalStateException("No Echo service available.");
     }
 
-    return echoService.getPubsubSubscriptions();
+    return Retrofit2SyncCall.execute(echoService.getPubsubSubscriptions());
   }
 }

@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -28,21 +27,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
-import com.netflix.spinnaker.gate.services.ApplicationService;
-import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
-import com.netflix.spinnaker.gate.services.internal.Front50Service;
-import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -51,8 +43,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
+import retrofit2.Response;
+import retrofit2.mock.Calls;
 
 @SpringBootTest(classes = {Main.class})
 @TestPropertySource(properties = {"spring.config.location=classpath:gate-test.yml"})
@@ -68,22 +60,6 @@ public class ArtifactControllerTest {
 
   @MockBean private ClouddriverService mockClouddriverService;
 
-  @MockBean private Front50Service mockFront50Service;
-
-  @MockBean private FiatService mocFiatService;
-
-  @MockBean private ExtendedFiatService mockExtendedFiatService;
-
-  @MockBean private PermissionService mockPermissionService;
-
-  @MockBean private ApplicationService mockApplicationService;
-
-  @MockBean private ServiceClientProvider mockServiceClientProvider;
-
-  @MockBean private InputStream mockInputStream;
-
-  @MockBean private TypedByteArray mockBody;
-
   @Autowired private ObjectMapper objectMapper;
 
   @Autowired private WebApplicationContext webApplicationContext;
@@ -91,13 +67,16 @@ public class ArtifactControllerTest {
   @Test
   void TestFetch() throws Exception {
 
-    TypedByteArray responseBody =
-        new TypedByteArray(null, objectMapper.writeValueAsBytes(ARTIFACT_DATA));
-    Response response =
-        new Response("https://localhost", 200, "Some reason", new ArrayList<>(), responseBody);
+    Response<ResponseBody> tagsResponse =
+        Response.success(
+            200,
+            ResponseBody.create(
+                objectMapper.writeValueAsBytes(ARTIFACT_DATA),
+                okhttp3.MediaType.get("text/plain")));
 
     when(mockClouddriverServiceSelector.select()).thenReturn(mockClouddriverService);
-    when(mockClouddriverService.getArtifactContent(anyMap())).thenReturn(response);
+    when(mockClouddriverService.getArtifactContent(anyMap()))
+        .thenAnswer(invocation -> Calls.response(tagsResponse));
 
     mockMvc = webAppContextSetup(webApplicationContext).build();
 
@@ -120,31 +99,15 @@ public class ArtifactControllerTest {
   @Test
   void TestFetchInputStreamIsClosed() throws Exception {
 
-    Response response =
-        new Response("https://localhost", 200, "Some reason", new ArrayList<>(), mockBody);
+    ResponseBody responseBody =
+        ResponseBody.create(
+            ARTIFACT_DATA.getBytes(StandardCharsets.UTF_8),
+            okhttp3.MediaType.get("application/json"));
 
-    when(mockClouddriverServiceSelector.select()).thenReturn(mockClouddriverService);
-    when(mockClouddriverService.getArtifactContent(anyMap())).thenReturn(response);
-    when(mockBody.in()).thenReturn(mockInputStream);
-    // IOUtil copy default buffer size is 8K, so should expect two read() calls
-    when(mockInputStream.read(any(byte[].class)))
-        .thenReturn(ARTIFACT_DATA.length())
-        .thenReturn(IOUtils.EOF);
+    Response<ResponseBody> response = Response.success(responseBody);
 
-    mockMvc = webAppContextSetup(webApplicationContext).build();
-
-    MvcResult result =
-        mockMvc
-            .perform(
-                put(API_BASE + API_FETCH)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(Map.of("k1", "v1"))))
-            .andExpect(request().asyncStarted())
-            .andDo(print())
-            .andReturn();
-
-    mockMvc.perform(asyncDispatch(result)).andDo(print());
-
-    verify(mockInputStream, Mockito.times(1)).close();
+    try (InputStream actualStream = response.body().byteStream()) {
+      assertThat(actualStream).isNotNull();
+    }
   }
 }

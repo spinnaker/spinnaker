@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 class InstanceServiceSpec extends Specification {
@@ -31,8 +32,8 @@ class InstanceServiceSpec extends Specification {
         clouddriverServiceSelector: Mock(ClouddriverServiceSelector) {
           1 * select() >> {
             Mock(ClouddriverService) {
-              1 * getInstanceDetails(_, _, _) >> { return [privateIpAddress: "10.0.0.1", map: [:]] }
-              1 * getAccount(_) >> { return [awsAccount: "prod"] }
+              1 * getInstanceDetails(_, _, _) >> { return Calls.response([privateIpAddress: "10.0.0.1", map: [:]]) }
+              1 * getAccount(_) >> { return Calls.response([awsAccount: "prod"]) }
             }
           }
         },

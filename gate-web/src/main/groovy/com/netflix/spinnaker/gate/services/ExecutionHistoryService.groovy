@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.google.common.base.Preconditions
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,11 +35,11 @@ class ExecutionHistoryService {
   List getTasks(String app, Integer page, Integer limit, String statuses) {
     Preconditions.checkNotNull(app)
 
-    orcaServiceSelector.select().getTasks(app, page, limit, statuses)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().getTasks(app, page, limit, statuses))
   }
 
   List getPipelines(String app, Integer limit, String statuses, Boolean expand) {
     Preconditions.checkNotNull(app)
-    orcaServiceSelector.select().getPipelines(app, limit, statuses, expand)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipelines(app, limit, statuses, expand))
   }
 }

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -43,8 +44,8 @@ class InstanceService {
 
   Map getForAccountAndRegion(String account, String region, String instanceId, String selectorKey) {
     def service = clouddriverServiceSelector.select()
-    def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
-    def instanceDetails = service.getInstanceDetails(account, region, instanceId)
+    def accountDetails = objectMapper.convertValue(Retrofit2SyncCall.execute(service.getAccount(account)), Map)
+    def instanceDetails = Retrofit2SyncCall.execute(service.getInstanceDetails(account, region, instanceId))
     def instanceContext = instanceDetails.collectEntries {
       return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
     } as Map<String, String>
@@ -59,7 +60,7 @@ class InstanceService {
   }
 
   Map getConsoleOutput(String account, String region, String instanceId, String provider, String selectorKey) {
-    return clouddriverServiceSelector.select().getConsoleOutput(account, region, instanceId, provider)
+    return Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getConsoleOutput(account, region, instanceId, provider))
   }
 
   static Map<String, String> getContext(String account, String region, String instanceId) {

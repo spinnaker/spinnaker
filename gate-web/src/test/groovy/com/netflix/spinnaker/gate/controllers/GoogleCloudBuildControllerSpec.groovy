@@ -22,12 +22,15 @@ import com.netflix.spinnaker.gate.services.internal.GoogleCloudBuildTrigger
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.ResponseBody;
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import retrofit.RetrofitError
-import retrofit.client.Response
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -62,7 +65,7 @@ class GoogleCloudBuildControllerSpec extends Specification {
       new GoogleCloudBuildTrigger("trigger2", "myTrigger2", "My desc 2")
       ]
     given:
-    1 * igorService.getGoogleCloudBuildTriggers(ACCOUNT) >> triggers
+    1 * igorService.getGoogleCloudBuildTriggers(ACCOUNT) >> Calls.response(triggers)
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get("/gcb/triggers/${ACCOUNT}")
@@ -75,7 +78,7 @@ class GoogleCloudBuildControllerSpec extends Specification {
 
   void 'should get an empty list when no triggers defined for a given account'() {
     given:
-    1 * igorService.getGoogleCloudBuildTriggers(ACCOUNT) >> []
+    1 * igorService.getGoogleCloudBuildTriggers(ACCOUNT) >> Calls.response([])
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get("/gcb/triggers/${ACCOUNT}")
@@ -87,10 +90,9 @@ class GoogleCloudBuildControllerSpec extends Specification {
   }
 
   void 'Should return correct message when account not found in downstream service'() {
-    def downstreamResponse = new Response("blah", 404, "Not found", [], null)
     given:
-    1 * igorService.getGoogleCloudBuildTriggers(ACCOUNT) >> {String account ->
-      throw new SpinnakerHttpException(RetrofitError.httpError("blah", downstreamResponse, null, null))
+    1 * igorService.getGoogleCloudBuildTriggers(ACCOUNT) >> {
+      throw makeSpinnakerHttpException(404)
     }
 
     when:
@@ -99,6 +101,23 @@ class GoogleCloudBuildControllerSpec extends Specification {
 
     then:
     response.status == 404
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+    String url = "https://some-url";
+    Response retrofit2Response =
+      Response.error(
+        status,
+        ResponseBody.create(
+          okhttp3.MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"));
+
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(url)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 
 }

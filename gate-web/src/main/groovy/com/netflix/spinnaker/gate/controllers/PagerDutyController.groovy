@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.PagerDutyService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
@@ -101,20 +102,20 @@ class PagerDutyController {
   }
 
   List<Map> fetchAllServices() {
-    PagerDutyService.PagerDutyServiceResult response = AuthenticatedRequest.allowAnonymous { pagerDutyService.getServices(0) }
+    PagerDutyService.PagerDutyServiceResult response = AuthenticatedRequest.allowAnonymous { Retrofit2SyncCall.execute(pagerDutyService.getServices(0)) }
     List<Map> services = response?.services
     while (response?.more) {
-      response = AuthenticatedRequest.allowAnonymous { pagerDutyService.getServices(services.size()) }
+      response = AuthenticatedRequest.allowAnonymous { Retrofit2SyncCall.execute(pagerDutyService.getServices(services.size())) }
       services += response?.services
     }
     return services
   }
 
   List<Map> fetchAllOnCalls() {
-    PagerDutyService.PagerDutyOnCallResult response = AuthenticatedRequest.allowAnonymous { pagerDutyService.getOnCalls(0) }
+    PagerDutyService.PagerDutyOnCallResult response = AuthenticatedRequest.allowAnonymous { Retrofit2SyncCall.execute(pagerDutyService.getOnCalls(0)) }
     List<Map> onCalls = response?.oncalls
     while (response?.more) {
-      response = AuthenticatedRequest.allowAnonymous { pagerDutyService.getOnCalls(onCalls.size()) }
+      response = AuthenticatedRequest.allowAnonymous { Retrofit2SyncCall.execute(pagerDutyService.getOnCalls(onCalls.size())) }
       onCalls += response?.oncalls
     }
     return onCalls

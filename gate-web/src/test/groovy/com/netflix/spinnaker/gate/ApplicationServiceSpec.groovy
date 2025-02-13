@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate
 
-import com.google.gson.Gson
 import com.netflix.spinnaker.gate.config.ApplicationConfigurationProperties
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
@@ -26,10 +25,12 @@ import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.GsonConverter
-import retrofit.mime.TypedByteArray
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -71,8 +72,8 @@ class ApplicationServiceSpec extends Specification {
     def app = service.getApplication(name, true)
 
     then:
-    1 * clouddriver.getApplication(name) >> clouddriverApp
-    1 * front50.getApplication(name) >> front50App
+    1 * clouddriver.getApplication(name) >> Calls.response(clouddriverApp)
+    1 * front50.getApplication(name) >> Calls.response(front50App)
 
     app == [name: name, attributes: (clouddriverApp.attributes + front50App), clusters: clouddriverApp.clusters]
 
@@ -99,9 +100,9 @@ class ApplicationServiceSpec extends Specification {
     def app = service.getApplication(name, true)
 
     then:
-    1 * front50.getApplication(name) >> front50App
+    1 * front50.getApplication(name) >> Calls.response(front50App)
 
-    numberOfClouddriverInvocations * clouddriver.getApplication(name) >> clouddriverApp
+    numberOfClouddriverInvocations * clouddriver.getApplication(name) >> { return Calls.response(clouddriverApp) }
 
     assert app == result
 
@@ -132,16 +133,16 @@ class ApplicationServiceSpec extends Specification {
     then:
     1 * front50.getApplication(name) >> { throw exception }
 
-    numberOfClouddriverInvocations * clouddriver.getApplication(name) >> clouddriverApp
+    numberOfClouddriverInvocations * clouddriver.getApplication(name) >> Calls.response(clouddriverApp)
 
     assert app == result
 
     where:
     checkFront50 | numberOfClouddriverInvocations | result | exception
     true         | 0                              | null   | new Exception("fatal exception")
-    true         | 0                              | null   | retrofit404()
+    true         | 0                              | null   | spinnakerHttpException404()
     false        | 1                              | [name:"foo", attributes:[clouddriverName:"foo", name:"foo", accounts: "test"], clusters:["test":["cluster1"]]] | new Exception("fatal exception")
-    false        | 1                              | [name:"foo", attributes:[clouddriverName:"foo", name:"foo", accounts: "test"], clusters:["test":["cluster1"]]] | retrofit404()
+    false        | 1                              | [name:"foo", attributes:[clouddriverName:"foo", name:"foo", accounts: "test"], clusters:["test":["cluster1"]]] | spinnakerHttpException404()
 
     name = "foo"
     email = "bar@baz.bz"
@@ -163,7 +164,7 @@ class ApplicationServiceSpec extends Specification {
     def app = service.getApplication(name, true)
 
     then:
-    1 * front50.getApplication(name) >> front50App
+    1 * front50.getApplication(name) >> Calls.response(front50App)
     1 * clouddriver.getApplication(name) >> { throw exception }
 
     assert app == [name: name, attributes:[name: name, email: email, owner: owner, accounts: account], clusters:[:]]
@@ -171,9 +172,9 @@ class ApplicationServiceSpec extends Specification {
     where:
     checkFront50 | exception
     true         | new Exception("fatal exception")
-    true         | retrofit404()
+    true         | spinnakerHttpException404()
     false        | new Exception("fatal exception")
-    false        | retrofit404()
+    false        | spinnakerHttpException404()
 
     name = "foo"
     email = "bar@baz.bz"
@@ -202,9 +203,9 @@ class ApplicationServiceSpec extends Specification {
     where:
     checkFront50 | numberOfClouddriverInvocations | exception
     true         | 0                              | new Exception("fatal exception")
-    true         | 0                              | retrofit404()
+    true         | 0                              | spinnakerHttpException404()
     false        | 1                              | new Exception("fatal exception")
-    false        | 1                              | retrofit404()
+    false        | 1                              | spinnakerHttpException404()
 
     name = "foo"
   }
@@ -221,8 +222,8 @@ class ApplicationServiceSpec extends Specification {
     def app = service.getApplication(name, true)
 
     then:
-    1 * clouddriver.getApplication(name) >> clouddriverApp
-    1 * front50.getApplication(name) >> front50App
+    1 * clouddriver.getApplication(name) >> Calls.response(clouddriverApp)
+    1 * front50.getApplication(name) >> Calls.response(front50App)
 
     app == [name: name, attributes: (clouddriverApp.attributes + front50App + [accounts: [clouddriverAccount].toSet().sort().join(',')]), clusters: clouddriverApp.clusters]
 
@@ -252,8 +253,8 @@ class ApplicationServiceSpec extends Specification {
     def app = serviceWithDifferentConfig.getApplication(name, true)
 
     then:
-    1 * clouddriver.getApplication(name) >> null
-    1 * front50.getApplication(name) >> [name: name, foo: 'bar', accounts: account]
+    1 * clouddriver.getApplication(name) >> Calls.response(null)
+    1 * front50.getApplication(name) >> Calls.response([name: name, foo: 'bar', accounts: account])
 
     (app == null) == expectedNull
 
@@ -278,8 +279,8 @@ class ApplicationServiceSpec extends Specification {
     def app = service.getApplication(name, true)
 
     then:
-    1 * clouddriver.getApplication(name) >> null
-    1 * front50.getApplication(name) >> null
+    1 * clouddriver.getApplication(name) >> Calls.response(null)
+    1 * front50.getApplication(name) >> Calls.response(null)
 
     app == null
 
@@ -299,8 +300,8 @@ class ApplicationServiceSpec extends Specification {
     def apps = service.getAllApplications()
 
     then:
-    1 * clouddriver.getAllApplicationsUnrestricted(true) >> [clouddriverApp]
-    1 * front50.getAllApplicationsUnrestricted() >> [front50App]
+    1 * clouddriver.getAllApplicationsUnrestricted(true) >> Calls.response([clouddriverApp])
+    1 * front50.getAllApplicationsUnrestricted() >> Calls.response([front50App])
 
     1 == apps.size()
     apps[0].email == email
@@ -325,8 +326,8 @@ class ApplicationServiceSpec extends Specification {
     def apps = service.getAllApplications()
 
     then:
-    1 * clouddriver.getAllApplicationsUnrestricted(true) >> [clouddriverApp1, clouddriverApp2]
-    1 * front50.getAllApplicationsUnrestricted() >> [front50App]
+    1 * clouddriver.getAllApplicationsUnrestricted(true) >> Calls.response([clouddriverApp1, clouddriverApp2])
+    1 * front50.getAllApplicationsUnrestricted() >> Calls.response([front50App])
 
     1 == apps.size()
     apps[0].email == email
@@ -354,8 +355,8 @@ class ApplicationServiceSpec extends Specification {
     def apps = service.getAllApplications()
 
     then:
-    1 * clouddriver.getAllApplicationsUnrestricted(true) >> [clouddriverApp1, clouddriverApp2]
-    1 * front50.getAllApplicationsUnrestricted() >> [front50App]
+    1 * clouddriver.getAllApplicationsUnrestricted(true) >> Calls.response([clouddriverApp1, clouddriverApp2])
+    1 * front50.getAllApplicationsUnrestricted() >> Calls.response([front50App])
 
     assert apps.size() == resultSize
     assert apps == result
@@ -381,7 +382,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     1 * front50.getAllApplicationsUnrestricted() >> { throw exception }
-    1 * clouddriver.getAllApplicationsUnrestricted(true) >> [clouddriverApp1, clouddriverApp2]
+    1 * clouddriver.getAllApplicationsUnrestricted(true) >> Calls.response([clouddriverApp1, clouddriverApp2])
 
     assert apps.size() == resultSize
     assert apps == result
@@ -389,9 +390,9 @@ class ApplicationServiceSpec extends Specification {
     where:
     checkFront50 | resultSize | result                                                                  | exception
     true         | 0          | []                                                                      | new Exception("fatal exception")
-    true         | 0          | []                                                                      | retrofit404()
+    true         | 0          | []                                                                      | spinnakerHttpException404()
     false        | 2          | [[name:"appname1", accounts:"prod"], [name:"appname2", accounts:"dev"]] | new Exception("fatal exception")
-    false        | 2          | [[name:"appname1", accounts:"prod"], [name:"appname2", accounts:"dev"]] | retrofit404()
+    false        | 2          | [[name:"appname1", accounts:"prod"], [name:"appname2", accounts:"dev"]] | spinnakerHttpException404()
   }
 
   @Unroll
@@ -407,7 +408,7 @@ class ApplicationServiceSpec extends Specification {
     def apps = service.getAllApplications()
 
     then:
-    1 * front50.getAllApplicationsUnrestricted() >> [front50App]
+    1 * front50.getAllApplicationsUnrestricted() >> Calls.response([front50App])
     1 * clouddriver.getAllApplicationsUnrestricted(true) >> { throw exception }
 
     assert apps.size() == 1
@@ -416,9 +417,9 @@ class ApplicationServiceSpec extends Specification {
     where:
     checkFront50 | exception
     true         | new Exception("fatal exception")
-    true         | retrofit404()
+    true         | spinnakerHttpException404()
     false        | new Exception("fatal exception")
-    false        | retrofit404()
+    false        | spinnakerHttpException404()
 
     name = "appname1"
     email = "foo@bar.bz"
@@ -446,9 +447,9 @@ class ApplicationServiceSpec extends Specification {
 
     checkFront50 | exception
     true         | new Exception("fatal exception")
-    true         | retrofit404()
+    true         | spinnakerHttpException404()
     false        | new Exception("fatal exception")
-    false        | retrofit404()
+    false        | spinnakerHttpException404()
 
   }
 
@@ -477,7 +478,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     result != null
-    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> [ id: "by-id", name: "by-name" ]
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> Calls.response([ id: "by-id", name: "by-name" ])
     0 * front50.getPipelineConfigById(_)
   }
 
@@ -492,8 +493,8 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     result != null
-    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw http404() }
-    1 * front50.getPipelineConfigById(nameOrId) >> [ id: "by-id", name: "by-name" ]
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw spinnakerHttpException404() }
+    1 * front50.getPipelineConfigById(nameOrId) >> Calls.response([ id: "by-id", name: "by-name" ])
   }
 
   void "getPipelineConfigForApplication throws an exception when neither name nor id match"() {
@@ -508,8 +509,8 @@ class ApplicationServiceSpec extends Specification {
     then:
     def e = thrown SpinnakerHttpException
     e.responseCode == 404
-    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw http404() }
-    1 * front50.getPipelineConfigById(nameOrId) >> { throw http404() }
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw spinnakerHttpException404() }
+    1 * front50.getPipelineConfigById(nameOrId) >> { throw spinnakerHttpException404() }
   }
 
   void "getPipelineConfigForApplication queries by id when response to query by name doesn't match"() {
@@ -523,12 +524,12 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     result != null
-    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> [ id: "arbitrary-id", name: "some-other-name" ]
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> Calls.response([ id: "arbitrary-id", name: "some-other-name" ])
 
     // The key part of this test is that gate queries front50 by id.  The choice
     // of id here needs to match the expectation for result (i.e. throw an exception or not),
     // but is otherwise arbitrary.
-    1 * front50.getPipelineConfigById(nameOrId) >> [ id: nameOrId, name: "arbitrary-name" ]
+    1 * front50.getPipelineConfigById(nameOrId) >> Calls.response([ id: nameOrId, name: "arbitrary-name" ])
   }
 
   void "getPipelineConfigForApplication throws an exception when response to query by id doesn't match"() {
@@ -542,8 +543,8 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     thrown NotFoundException
-    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw http404() }
-    1 * front50.getPipelineConfigById(nameOrId) >> [ id: "some-other-id", name: "arbitrary-name" ]
+    1 * front50.getPipelineConfigByApplicationAndName(app, nameOrId, true) >> { throw spinnakerHttpException404() }
+    1 * front50.getPipelineConfigById(nameOrId) >> Calls.response([ id: "some-other-id", name: "arbitrary-name" ])
   }
 
   void "should skip clouddriver call if expand set to false"() {
@@ -560,20 +561,29 @@ class ApplicationServiceSpec extends Specification {
     then:
     0 * clouddriver.getApplication(name)
     1 * front50.getApplication(name) >> {
-      return [
+      return Calls.response([
           name: name,
           email: "updated@email.com"
-      ]
+      ])
     }
 
     app.attributes.email == "updated@email.com"
   }
 
-  def retrofit404(){
-    RetrofitError.httpError("http://localhost", new Response("http://localhost", 404, "Not Found", [], new TypedByteArray("application/json", new byte[0])), new GsonConverter(new Gson()), Map)
-  }
+  def spinnakerHttpException404() {
+    String url = "https://some-url";
+    Response<Object> retrofit2Response =
+      Response.error(
+        404,
+        ResponseBody.create(
+          MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"));
 
-  def http404(){
-    new SpinnakerHttpException(retrofit404())
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(url)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

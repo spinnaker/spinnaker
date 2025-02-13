@@ -11,75 +11,76 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.DELETE;
-import retrofit.http.GET;
-import retrofit.http.Headers;
-import retrofit.http.POST;
-import retrofit.http.PUT;
-import retrofit.http.Path;
-import retrofit.http.Query;
-import retrofit.http.QueryMap;
-import retrofit.http.Streaming;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.DELETE;
+import retrofit2.http.GET;
+import retrofit2.http.Headers;
+import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
+import retrofit2.http.QueryMap;
+import retrofit2.http.Streaming;
 
 public interface ClouddriverService {
   @GET("/credentials")
-  List<Account> getAccounts();
+  Call<List<Account>> getAccounts();
 
   @GET("/credentials?expand=true")
-  List<AccountDetails> getAccountDetails();
+  Call<List<AccountDetails>> getAccountDetails();
 
   @GET("/credentials/{account}")
-  AccountDetails getAccount(@Path("account") String account);
+  Call<AccountDetails> getAccount(@Path("account") String account);
 
   @GET("/credentials/type/{type}")
-  List<AccountDefinition> getAccountDefinitionsByType(
+  Call<List<AccountDefinition>> getAccountDefinitionsByType(
       @Path("type") String type,
       @Query("limit") Integer limit,
       @Query("startingAccountName") String startingAccountName);
 
   @POST("/credentials")
-  AccountDefinition createAccountDefinition(@Body AccountDefinition accountDefinition);
+  Call<AccountDefinition> createAccountDefinition(@Body AccountDefinition accountDefinition);
 
   @PUT("/credentials")
-  AccountDefinition updateAccountDefinition(@Body AccountDefinition accountDefinition);
+  Call<AccountDefinition> updateAccountDefinition(@Body AccountDefinition accountDefinition);
 
   @DELETE("/credentials/{account}")
-  Response deleteAccountDefinition(@Path("account") String account);
+  Call<ResponseBody> deleteAccountDefinition(@Path("account") String account);
 
   @GET("/task/{taskDetailsId}")
-  Map getTaskDetails(@Path("taskDetailsId") String taskDetailsId);
+  Call<Map> getTaskDetails(@Path("taskDetailsId") String taskDetailsId);
 
   @Headers("Accept: application/json")
   @GET("/applications")
-  List getApplications(@Query("expand") boolean expand);
+  Call<List> getApplications(@Query("expand") boolean expand);
 
   @Headers("Accept: application/json")
   @GET("/applications?restricted=false")
-  List getAllApplicationsUnrestricted(@Query("expand") boolean expand);
+  Call<List> getAllApplicationsUnrestricted(@Query("expand") boolean expand);
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}")
-  Map getApplication(@Path("name") String name);
+  Call<Map> getApplication(@Path("name") String name);
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters")
-  Map getClusters(@Path("name") String name);
+  Call<Map> getClusters(@Path("name") String name);
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters/{account}")
-  List getClustersForAccount(@Path("name") String name, @Path("account") String account);
+  Call<List> getClustersForAccount(@Path("name") String name, @Path("account") String account);
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters/{account}/{cluster}")
-  List getCluster(
+  Call<List> getCluster(
       @Path("name") String name, @Path("account") String account, @Path("cluster") String cluster);
 
   @Headers("Accept: application/json")
   @GET(
       "/applications/{application}/clusters/{account}/{cluster}/{provider}/serverGroups/{serverGroupName}/scalingActivities")
-  List getScalingActivities(
+  Call<List> getScalingActivities(
       @Path("application") String application,
       @Path("account") String account,
       @Path("cluster") String cluster,
@@ -89,7 +90,7 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters/{account}/{cluster}/{type}")
-  Map getClusterByType(
+  Call<Map> getClusterByType(
       @Path("name") String name,
       @Path("account") String account,
       @Path("cluster") String cluster,
@@ -97,7 +98,7 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters/{account}/{cluster}/{type}/serverGroups/{serverGroupName}")
-  List getServerGroup(
+  Call<List> getServerGroup(
       @Path("name") String name,
       @Path("account") String account,
       @Path("cluster") String cluster,
@@ -107,7 +108,7 @@ public interface ClouddriverService {
   @Headers("Accept: application/json")
   @GET(
       "/applications/{name}/clusters/{account}/{cluster}/{type}/{scope}/serverGroups/target/{target}")
-  Map getTargetServerGroup(
+  Call<Map> getTargetServerGroup(
       @Path("name") String application,
       @Path("account") String account,
       @Path("cluster") String cluster,
@@ -119,11 +120,11 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/rawResources")
-  List<Map<String, Object>> getApplicationRawResources(@Path("name") String appName);
+  Call<List<Map<String, Object>>> getApplicationRawResources(@Path("name") String appName);
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/serverGroups")
-  List getServerGroups(
+  Call<List> getServerGroups(
       @Path("name") String name,
       @Query("expand") String expand,
       @Query("cloudProvider") String cloudProvider,
@@ -131,14 +132,14 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/serverGroups")
-  List getServerGroups(
+  Call<List> getServerGroups(
       @Query("applications") List applications,
       @Query("ids") List ids,
       @Query("cloudProvider") String cloudProvider);
 
   @Headers("Accept: application/json")
   @POST("/applications/{name}/jobs/{account}/{region}/{jobName}")
-  Map getJobDetails(
+  Call<Map> getJobDetails(
       @Path("name") String name,
       @Path("account") String account,
       @Path("region") String region,
@@ -147,7 +148,7 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/serverGroups/{account}/{region}/{serverGroupName}")
-  Map getServerGroupDetails(
+  Call<Map> getServerGroupDetails(
       @Path("name") String appName,
       @Path("account") String account,
       @Path("region") String region,
@@ -156,7 +157,7 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters/{account}/{cluster}/{type}/loadBalancers")
-  List getClusterLoadBalancers(
+  Call<List> getClusterLoadBalancers(
       @Path("name") String appName,
       @Path("account") String account,
       @Path("cluster") String cluster,
@@ -164,19 +165,19 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/{provider}/loadBalancers")
-  List<Map> getLoadBalancers(@Path("provider") String provider);
+  Call<List<Map>> getLoadBalancers(@Path("provider") String provider);
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/loadBalancers")
-  List<Map> getApplicationLoadBalancers(@Path("name") String appName);
+  Call<List<Map>> getApplicationLoadBalancers(@Path("name") String appName);
 
   @Headers("Accept: application/json")
   @GET("/{provider}/loadBalancers/{name}")
-  Map getLoadBalancer(@Path("provider") String provider, @Path("name") String name);
+  Call<Map> getLoadBalancer(@Path("provider") String provider, @Path("name") String name);
 
   @Headers("Accept: application/json")
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
-  List<Map> getLoadBalancerDetails(
+  Call<List<Map>> getLoadBalancerDetails(
       @Path("provider") String provider,
       @Path("account") String account,
       @Path("region") String region,
@@ -184,14 +185,14 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/instances/{account}/{region}/{instanceId}")
-  Map getInstanceDetails(
+  Call<Map> getInstanceDetails(
       @Path("account") String account,
       @Path("region") String region,
       @Path("instanceId") String instanceId);
 
   @Headers("Accept: application/json")
   @GET("/instances/{account}/{region}/{instanceId}/console")
-  Map getConsoleOutput(
+  Call<Map> getConsoleOutput(
       @Path("account") String account,
       @Path("region") String region,
       @Path("instanceId") String instanceId,
@@ -199,7 +200,7 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/{provider}/images/{account}/{region}/{imageId}")
-  List<Map> getImageDetails(
+  Call<List<Map>> getImageDetails(
       @Path("provider") String provider,
       @Path("account") String account,
       @Path("region") String region,
@@ -207,19 +208,20 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/projects/{project}/clusters")
-  List<Map> getProjectClusters(@Path("project") String project);
+  Call<List<Map>> getProjectClusters(@Path("project") String project);
 
   @Headers("Accept: application/json")
   @GET("/reports/reservation")
-  List<Map> getReservationReports(@QueryMap Map<String, String> filters);
+  Call<List<Map>> getReservationReports(@QueryMap Map<String, String> filters);
 
   @Headers("Accept: application/json")
   @GET("/reports/reservation/{name}")
-  List<Map> getReservationReports(@Path("name") String name, @QueryMap Map<String, String> filters);
+  Call<List<Map>> getReservationReports(
+      @Path("name") String name, @QueryMap Map<String, String> filters);
 
   @Headers("Accept: application/json")
   @GET("/{provider}/images/find")
-  List<Map> findImages(
+  Call<List<Map>> findImages(
       @Path("provider") String provider,
       @Query("q") String query,
       @Query("region") String region,
@@ -229,14 +231,14 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/{provider}/images/tags")
-  List<String> findTags(
+  Call<List<String>> findTags(
       @Path("provider") String provider,
       @Query("account") String account,
       @Query("repository") String repository);
 
   @Headers("Accept: application/json")
   @GET("/search")
-  List<Map> search(
+  Call<List<Map>> search(
       @Query("q") String query,
       @Query("type") String type,
       @Query("platform") String platform,
@@ -245,17 +247,17 @@ public interface ClouddriverService {
       @QueryMap Map filters);
 
   @GET("/securityGroups")
-  Map getSecurityGroups();
+  Call<Map> getSecurityGroups();
 
   @GET("/securityGroups/{account}/{type}")
-  Map getSecurityGroups(@Path("account") String account, @Path("type") String type);
+  Call<Map> getSecurityGroups(@Path("account") String account, @Path("type") String type);
 
   @GET("/securityGroups/{account}/{type}")
-  List getSecurityGroupsForRegion(
+  Call<List> getSecurityGroupsForRegion(
       @Path("account") String account, @Path("type") String type, @Query("region") String region);
 
   @GET("/securityGroups/{account}/{type}/{region}/{name}")
-  Map getSecurityGroup(
+  Call<Map> getSecurityGroup(
       @Path("account") String account,
       @Path("type") String type,
       @Path("name") String name,
@@ -263,35 +265,35 @@ public interface ClouddriverService {
       @Query("vpcId") String vpcId);
 
   @GET("/applications/{application}/serverGroupManagers")
-  List<Map> getServerGroupManagersForApplication(@Path("application") String application);
+  Call<List<Map>> getServerGroupManagersForApplication(@Path("application") String application);
 
   @GET("/instanceTypes")
-  List<Map> getInstanceTypes();
+  Call<List<Map>> getInstanceTypes();
 
   @GET("/keyPairs")
-  List<Map> getKeyPairs();
+  Call<List<Map>> getKeyPairs();
 
   @GET("/subnets")
-  List<Map> getSubnets();
+  Call<List<Map>> getSubnets();
 
   @GET("/subnets/{cloudProvider}")
-  List<Map> getSubnets(@Path("cloudProvider") String cloudProvider);
+  Call<List<Map>> getSubnets(@Path("cloudProvider") String cloudProvider);
 
   @GET("/networks")
-  Map getNetworks();
+  Call<Map> getNetworks();
 
   @GET("/networks/{cloudProvider}")
-  List<Map> getNetworks(@Path("cloudProvider") String cloudProvider);
+  Call<List<Map>> getNetworks(@Path("cloudProvider") String cloudProvider);
 
   @GET("/cloudMetrics/{cloudProvider}/{account}/{region}")
-  List<Map> findAllCloudMetrics(
+  Call<List<Map>> findAllCloudMetrics(
       @Path("cloudProvider") String cloudProvider,
       @Path("account") String account,
       @Path("region") String region,
       @QueryMap Map<String, String> filters);
 
   @GET("/cloudMetrics/{cloudProvider}/{account}/{region}/{metricName}/statistics")
-  Map getCloudMetricStatistics(
+  Call<Map> getCloudMetricStatistics(
       @Path("cloudProvider") String cloudProvider,
       @Path("account") String account,
       @Path("region") String region,
@@ -301,75 +303,75 @@ public interface ClouddriverService {
       @QueryMap Map<String, String> filters);
 
   @GET("/tags")
-  List<Map> listEntityTags(@QueryMap Map allParameters);
+  Call<List<Map>> listEntityTags(@QueryMap Map allParameters);
 
   @GET("/tags/{id}")
-  Map getEntityTags(@Path("id") String id);
+  Call<Map> getEntityTags(@Path("id") String id);
 
   @GET("/certificates")
-  List<Map> getCertificates();
+  Call<List<Map>> getCertificates();
 
   @GET("/certificates/{cloudProvider}")
-  List<Map> getCertificates(@Path("cloudProvider") String cloudProvider);
+  Call<List<Map>> getCertificates(@Path("cloudProvider") String cloudProvider);
 
   @Streaming
   @GET("/v1/data/static/{id}")
-  Response getStaticData(@Path("id") String id, @QueryMap Map<String, String> filters);
+  Call<ResponseBody> getStaticData(@Path("id") String id, @QueryMap Map<String, String> filters);
 
   @Streaming
   @GET("/v1/data/adhoc/{groupId}/{bucketId}/{objectId}")
-  Response getAdhocData(
-      @Path(value = "groupId", encode = false) String groupId,
-      @Path(value = "bucketId", encode = false) String bucketId,
-      @Path(value = "objectId", encode = false) String objectId);
+  Call<ResponseBody> getAdhocData(
+      @Path(value = "groupId", encoded = true) String groupId,
+      @Path(value = "bucketId", encoded = true) String bucketId,
+      @Path(value = "objectId", encoded = true) String objectId);
 
   @GET("/storage")
-  List<String> getStorageAccounts();
+  Call<List<String>> getStorageAccounts();
 
   @GET("/artifacts/credentials")
-  List<Map> getArtifactCredentials();
+  Call<List<Map>> getArtifactCredentials();
 
   @Streaming
   @PUT("/artifacts/fetch")
-  Response getArtifactContent(@Body Map artifact);
+  Call<ResponseBody> getArtifactContent(@Body Map artifact);
 
   @GET("/artifacts/account/{accountName}/names")
-  List<String> getArtifactNames(
+  Call<List<String>> getArtifactNames(
       @Path("accountName") String accountName, @Query("type") String type);
 
   @GET("/artifacts/account/{accountName}/versions")
-  List<String> getArtifactVersions(
+  Call<List<String>> getArtifactVersions(
       @Path("accountName") String accountName,
       @Query("type") String type,
       @Query("artifactName") String artifactName);
 
   @GET("/roles/{cloudProvider}")
-  List<Map> getRoles(@Path("cloudProvider") String cloudProvider);
+  Call<List<Map>> getRoles(@Path("cloudProvider") String cloudProvider);
 
   @GET("/ecs/ecsClusters")
-  List<Map> getAllEcsClusters();
+  Call<List<Map>> getAllEcsClusters();
 
   @GET("/ecs/cloudMetrics/alarms")
-  List<Map> getEcsAllMetricAlarms();
+  Call<List<Map>> getEcsAllMetricAlarms();
 
   @GET("/ecs/secrets")
-  List<Map> getAllEcsSecrets();
+  Call<List<Map>> getAllEcsSecrets();
 
   @GET("/ecs/ecsClusterDescriptions/{account}/{region}")
-  List<Map> getEcsClusterDescriptions(
+  Call<List<Map>> getEcsClusterDescriptions(
       @Path(value = "account") String account, @Path(value = "region") String region);
 
   @GET("/ecs/serviceDiscoveryRegistries")
-  List<Map> getAllEcsServiceDiscoveryRegistries();
+  Call<List<Map>> getAllEcsServiceDiscoveryRegistries();
 
   @GET("/manifests/{account}/{location}/{name}")
-  Map getManifest(
+  Call<Map> getManifest(
       @Path(value = "account") String account,
       @Path(value = "location") String location,
       @Path(value = "name") String name);
 
   @GET("/applications/{application}/serverGroups/{account}/{serverGroupName}/events")
-  List<Map> getServerGroupEvents(
+  Call<List<Map>> getServerGroupEvents(
       @Path(value = "application") String application,
       @Path(value = "account") String account,
       @Path(value = "serverGroupName") String serverGroupName,
@@ -377,32 +379,32 @@ public interface ClouddriverService {
       @Query("provider") String provider);
 
   @GET("/servicebroker/{account}/services")
-  List<Map> listServices(
+  Call<List<Map>> listServices(
       @Query(value = "cloudProvider") String cloudProvider,
       @Query(value = "region") String region,
       @Path(value = "account") String account);
 
   @GET("/servicebroker/{account}/serviceInstance")
-  Map getServiceInstance(
+  Call<Map> getServiceInstance(
       @Path(value = "account") String account,
       @Query(value = "cloudProvider") String cloudProvider,
       @Query(value = "region") String region,
       @Query(value = "serviceInstanceName") String serviceInstanceName);
 
   @GET(value = "/functions")
-  List<Map> getFunctions(
+  Call<List<Map>> getFunctions(
       @Query(value = "functionName") String functionName,
       @Query(value = "region") String region,
       @Query(value = "account") String account);
 
   @GET("/applications/{name}/functions")
-  List<Map> getApplicationFunctions(@Path("name") String appName);
+  Call<List<Map>> getApplicationFunctions(@Path("name") String appName);
 
   @GET("/installedPlugins")
-  List<SpinnakerPluginDescriptor> getInstalledPlugins();
+  Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 
   @GET("/artifacts/content-address/{application}/{hash}")
-  Artifact.StoredView getStoredArtifact(
+  Call<Artifact.StoredView> getStoredArtifact(
       @Path("application") String application, @Path("hash") String hash);
 
   @JsonIgnoreProperties(ignoreUnknown = true)

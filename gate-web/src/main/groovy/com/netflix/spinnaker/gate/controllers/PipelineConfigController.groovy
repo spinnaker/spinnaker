@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -39,24 +40,24 @@ class PipelineConfigController {
   @Operation(summary = "Get all pipeline configs.")
   @RequestMapping(method = RequestMethod.GET)
   Collection<Map> getAllPipelineConfigs() {
-    return front50Service.getAllPipelineConfigs()
+    return Retrofit2SyncCall.execute(front50Service.getAllPipelineConfigs())
   }
 
   @Operation(summary = "Get pipeline config history.")
   @RequestMapping(value = "/{pipelineConfigId}/history", method = RequestMethod.GET)
   Collection<Map> getPipelineConfigHistory(@PathVariable("pipelineConfigId") String pipelineConfigId,
                                            @RequestParam(value = "limit", defaultValue = "20") int limit) {
-    return front50Service.getPipelineConfigHistory(pipelineConfigId, limit)
+    return Retrofit2SyncCall.execute(front50Service.getPipelineConfigHistory(pipelineConfigId, limit))
   }
 
   @Operation(summary = "Convert a pipeline config to a pipeline template.")
   @RequestMapping(value = "/{pipelineConfigId}/convertToTemplate", method = RequestMethod.GET)
   String convertPipelineConfigToPipelineTemplate(@PathVariable("pipelineConfigId") String pipelineConfigId) {
-    Map pipelineConfig = front50Service.getAllPipelineConfigs().find { (pipelineConfigId == it.get("id")) }
+    Map pipelineConfig = Retrofit2SyncCall.execute(front50Service.getAllPipelineConfigs()).find { (pipelineConfigId == it.get("id")) }
     if (pipelineConfig == null) {
       throw new NotFoundException("Pipeline config '${pipelineConfigId}' could not be found")
     }
-    String template = orcaServiceSelector.select().convertToPipelineTemplate(pipelineConfig).body.in().text
+    String template = Retrofit2SyncCall.execute(orcaServiceSelector.select().convertToPipelineTemplate(pipelineConfig)).byteStream().text
     return template
   }
 }

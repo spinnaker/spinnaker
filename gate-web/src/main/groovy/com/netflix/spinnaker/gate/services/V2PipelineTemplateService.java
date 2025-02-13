@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services;
 import com.netflix.spinnaker.gate.services.PipelineTemplateService.PipelineTemplateDependent;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,26 +43,29 @@ public class V2PipelineTemplateService {
   }
 
   public Map get(String id, String tag, String digest) {
-    return front50Service.getV2PipelineTemplate(id, tag, digest);
+    return Retrofit2SyncCall.execute(front50Service.getV2PipelineTemplate(id, tag, digest));
   }
 
   public Map<String, Object> plan(Map<String, Object> pipeline) {
-    return orcaServiceSelector.select().plan(pipeline);
+    return Retrofit2SyncCall.execute(orcaServiceSelector.select().plan(pipeline));
   }
 
   // TODO(louisjimenez): Deprecated. Will be replaced with /versions endpoint starting with 1.19.
   public List<Map> findByScope(List<String> scopes) {
-    return front50Service.getV2PipelineTemplates(
-        scopes == null ? null : scopes.toArray(String[]::new));
+    return Retrofit2SyncCall.execute(
+        front50Service.getV2PipelineTemplates(
+            scopes == null ? null : scopes.toArray(String[]::new)));
   }
 
   public Map<String, List<Map>> findVersionsByScope(List<String> scopes) {
-    return front50Service.getV2PipelineTemplatesVersions(
-        scopes == null ? null : scopes.toArray(String[]::new));
+    return Retrofit2SyncCall.execute(
+        front50Service.getV2PipelineTemplatesVersions(
+            scopes == null ? null : scopes.toArray(String[]::new)));
   }
 
   public List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId) {
-    return front50Service.getV2PipelineTemplateDependents(templateId).stream()
+    return Retrofit2SyncCall.execute(front50Service.getV2PipelineTemplateDependents(templateId))
+        .stream()
         .map(t -> newDependent(t))
         .collect(Collectors.toList());
   }

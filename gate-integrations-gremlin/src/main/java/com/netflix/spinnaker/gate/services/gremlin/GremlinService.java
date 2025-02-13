@@ -1,12 +1,14 @@
 package com.netflix.spinnaker.gate.services.gremlin;
 
 import java.util.List;
-import retrofit.http.*;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
 
 public interface GremlinService {
   @GET("/templates/command")
-  List getCommandTemplates(@Header("Authorization") String authHeader);
+  Call<List> getCommandTemplates(@Header("Authorization") String authHeader);
 
   @GET("/templates/target")
-  List getTargetTemplates(@Header("Authorization") String authHeader);
+  Call<List> getTargetTemplates(@Header("Authorization") String authHeader);
 }

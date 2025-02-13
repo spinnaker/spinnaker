@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,13 +43,13 @@ class JobService {
   ProviderLookupService providerLookupService
 
   List getPreconfiguredJobs() {
-    orcaServiceSelector.select().getPreconfiguredJobs()
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().getPreconfiguredJobs())
   }
 
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String name, String selectorKey) {
     try {
       def context = getContext(applicationName, account, region, name)
-      return clouddriverServiceSelector.select().getJobDetails(applicationName, account, region, name, "") + [
+      return Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getJobDetails(applicationName, account, region, name, "")) + [
           "insightActions": insightConfiguration.job.collect { it.applyContext(context) }
       ]
     } catch (SpinnakerHttpException e) {

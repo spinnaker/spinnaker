@@ -24,6 +24,7 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -66,7 +67,7 @@ class EcsClusterControllerSpec extends Specification {
       ],
     ]
 
-    1 * cloudDriverService.getEcsClusterDescriptions('ecs-my-aws-devel-acct', 'us-west-2') >> apiResponse
+    1 * cloudDriverService.getEcsClusterDescriptions('ecs-my-aws-devel-acct', 'us-west-2') >> Calls.response(apiResponse)
     when:
     MockHttpServletResponse response = mockMvc.perform(
       get("/ecs/ecsClusterDescriptions/ecs-my-aws-devel-acct/us-west-2").contentType(MediaType.APPLICATION_JSON)
@@ -81,7 +82,7 @@ class EcsClusterControllerSpec extends Specification {
   void 'Describe Cluster API should return 200 with empty response'() {
     def apiResponse = []
 
-    1 * cloudDriverService.getEcsClusterDescriptions('ecs-my-aws-devel-acct', 'us-west-2') >> apiResponse
+    1 * cloudDriverService.getEcsClusterDescriptions('ecs-my-aws-devel-acct', 'us-west-2') >> Calls.response(apiResponse)
     when:
     MockHttpServletResponse response = mockMvc.perform(
       get("/ecs/ecsClusterDescriptions/ecs-my-aws-devel-acct/us-west-2").contentType(MediaType.APPLICATION_JSON)

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,12 +39,12 @@ class StrategyConfigController {
 
   @RequestMapping(method = RequestMethod.GET)
   Collection<Map> getAllStrategyConfigs() {
-    return front50Service.getAllStrategyConfigs()
+    return Retrofit2SyncCall.execute(front50Service.getAllStrategyConfigs())
   }
 
   @RequestMapping(value = "/{strategyConfigId}/history", method = RequestMethod.GET)
   Collection<Map> getPipelineConfigHistory(@PathVariable("strategyConfigId") String strategyConfigId,
                                            @RequestParam(value = "limit", defaultValue = "20") int limit) {
-    return front50Service.getStrategyConfigHistory(strategyConfigId, limit)
+    return Retrofit2SyncCall.execute(front50Service.getStrategyConfigHistory(strategyConfigId, limit))
   }
 }

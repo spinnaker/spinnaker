@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -146,7 +147,7 @@ class ApplicationService {
   }
 
   List<Map> getApplicationHistory(String name, int maxResults) {
-    return front50Service.getApplicationHistory(name, maxResults)
+    return Retrofit2SyncCall.execute(front50Service.getApplicationHistory(name, maxResults))
   }
 
   List<Map> getPipelineConfigsForApplication(String app) {
@@ -154,7 +155,7 @@ class ApplicationService {
   }
 
   List<Map> getPipelineConfigsForApplication(String app, String pipelineNameFilter) {
-    return front50Service.getPipelineConfigsForApplication(app, pipelineNameFilter, true)
+    return Retrofit2SyncCall.execute(front50Service.getPipelineConfigsForApplication(app, pipelineNameFilter, true))
   }
 
   /**
@@ -168,7 +169,7 @@ class ApplicationService {
     // Since the argument can be a pipeline name or id, handle both cases.
     // Query by name first since that's more likely.
     try {
-      Map pipelineConfig = front50Service.getPipelineConfigByApplicationAndName(app, pipelineNameOrId, true)
+      Map pipelineConfig = Retrofit2SyncCall.execute(front50Service.getPipelineConfigByApplicationAndName(app, pipelineNameOrId, true))
       if (pipelineConfig.name == pipelineNameOrId) {
         log.debug("front50 returned a pipeline with name ${pipelineNameOrId} in application ${app}")
         return pipelineConfig
@@ -186,7 +187,7 @@ class ApplicationService {
 
     // query by id
     try {
-      Map pipelineConfig = front50Service.getPipelineConfigById(pipelineNameOrId)
+      Map pipelineConfig = Retrofit2SyncCall.execute(front50Service.getPipelineConfigById(pipelineNameOrId))
       if (pipelineConfig.id == pipelineNameOrId) {
         log.debug("front50 returned a pipeline with id ${pipelineNameOrId}")
         return pipelineConfig
@@ -206,7 +207,7 @@ class ApplicationService {
   }
 
   List<Map> getStrategyConfigsForApplication(String app) {
-    return front50Service.getStrategyConfigs(app)
+    return Retrofit2SyncCall.execute(front50Service.getStrategyConfigs(app))
   }
 
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers(boolean expandClusterNames) {
@@ -417,7 +418,7 @@ class ApplicationService {
       try {
         AuthenticatedRequest.propagate({
           try {
-            return AuthenticatedRequest.allowAnonymous { front50.getAllApplicationsUnrestricted() }
+            return AuthenticatedRequest.allowAnonymous { Retrofit2SyncCall.execute(front50.getAllApplicationsUnrestricted()) }
           } catch (SpinnakerHttpException e) {
             if (e.responseCode == 404) {
               return []
@@ -452,7 +453,7 @@ class ApplicationService {
       try {
         AuthenticatedRequest.propagate({
           try {
-            def metadata = front50.getApplication(name)
+            def metadata = Retrofit2SyncCall.execute(front50.getApplication(name))
             metadata ?: [:]
           } catch (SpinnakerConversionException e) {
             return [:]
@@ -490,7 +491,7 @@ class ApplicationService {
       try {
         AuthenticatedRequest.propagate({
           try {
-            return AuthenticatedRequest.allowAnonymous { clouddriver.getAllApplicationsUnrestricted(expandClusterNames) }
+            return AuthenticatedRequest.allowAnonymous { Retrofit2SyncCall.execute(clouddriver.getAllApplicationsUnrestricted(expandClusterNames)) }
           } catch (SpinnakerHttpException e) {
             if (e.responseCode == 404) {
               return []
@@ -522,7 +523,7 @@ class ApplicationService {
       try {
         AuthenticatedRequest.propagate({
           try {
-            return clouddriver.getApplication(name)
+            return Retrofit2SyncCall.execute(clouddriver.getApplication(name))
           } catch (SpinnakerHttpException e) {
             if (e.responseCode == 404) {
               return [:]

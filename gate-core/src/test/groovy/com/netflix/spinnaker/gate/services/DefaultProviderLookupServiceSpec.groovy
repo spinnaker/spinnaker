@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -24,7 +25,7 @@ class DefaultProviderLookupServiceSpec extends Specification {
     accounts[0].permissions == expected
 
     1 * clouddriverService.getAccountDetails() >> {
-      [new ClouddriverService.AccountDetails(requiredGroupMembership: origRequiredGroupMemberships, permissions: origPerms)]
+      Calls.response([new ClouddriverService.AccountDetails(requiredGroupMembership: origRequiredGroupMemberships, permissions: origPerms)])
     }
     0 * _
 

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Collection;
 import java.util.List;
@@ -53,7 +54,9 @@ public class DefaultProviderLookupService implements ProviderLookupService, Acco
   }
 
   private List<ClouddriverService.AccountDetails> loadAccounts() {
-    var accounts = AuthenticatedRequest.allowAnonymous(clouddriverService::getAccountDetails);
+    var accounts =
+        AuthenticatedRequest.allowAnonymous(
+            () -> Retrofit2SyncCall.execute(clouddriverService.getAccountDetails()));
     // migration support, prefer permissions configuration, translate requiredGroupMembership
     // (for CredentialsService in non fiat mode) into permissions collection.
     //

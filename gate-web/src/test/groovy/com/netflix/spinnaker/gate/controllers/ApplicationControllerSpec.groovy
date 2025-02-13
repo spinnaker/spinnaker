@@ -28,6 +28,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.util.NestedServletException
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -82,7 +83,7 @@ class ApplicationControllerSpec extends Specification {
       .accept(MediaType.APPLICATION_JSON))
 
     then: "we only call front50 once, and do not pass through the pipelineNameFilter"
-    1 * front50Service.getPipelineConfigsForApplication('true-app', null, true) >> configs
+    1 * front50Service.getPipelineConfigsForApplication('true-app', null, true) >> Calls.response(configs)
     0 * front50Service._
 
     and: "we get all configs"
@@ -108,7 +109,7 @@ class ApplicationControllerSpec extends Specification {
       .accept(MediaType.APPLICATION_JSON))
 
     then: "we only call front50 once, and we do pass through the pipelineNameFilter"
-    1 * front50Service.getPipelineConfigsForApplication('true-app', 'pipelineA', true) >> configs
+    1 * front50Service.getPipelineConfigsForApplication('true-app', 'pipelineA', true) >> Calls.response(configs)
     0 * front50Service._
 
     and: "only filtered configs are returned"
@@ -140,7 +141,7 @@ class ApplicationControllerSpec extends Specification {
       .accept(MediaType.APPLICATION_JSON))
 
     then:
-    1 * front50Service.getPipelineConfigsForApplication('true-app', null, true) >> configs
+    1 * front50Service.getPipelineConfigsForApplication('true-app', null, true) >> Calls.response(configs)
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(configs[0]))
 
@@ -162,7 +163,7 @@ class ApplicationControllerSpec extends Specification {
     mockMvc.perform(get(endpoint))
 
     then:
-    1 * front50Service.getPipelineConfigsForApplication('true-app', null, true) >> configs
+    1 * front50Service.getPipelineConfigsForApplication('true-app', null, true) >> Calls.response(configs)
     NestedServletException ex = thrown()
     ex.message.contains('Pipeline config (id: some-fake-pipeline) not found for Application (id: true-app)')
 
@@ -190,7 +191,7 @@ class ApplicationControllerSpec extends Specification {
       .accept(MediaType.APPLICATION_JSON))
 
     then:
-    1 * front50Service.getStrategyConfigs('true-app') >> configs
+    1 * front50Service.getStrategyConfigs('true-app') >> Calls.response(configs)
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(configs[0]))
 
@@ -212,7 +213,7 @@ class ApplicationControllerSpec extends Specification {
     mockMvc.perform(get(endpoint))
 
     then:
-    1 * front50Service.getStrategyConfigs('true-app') >> configs
+    1 * front50Service.getStrategyConfigs('true-app') >> Calls.response(configs)
     NestedServletException ex = thrown()
     ex.message.contains('Strategy config (id: some-fake-strategy) not found for Application (id: true-app)')
 

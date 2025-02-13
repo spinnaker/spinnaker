@@ -19,6 +19,7 @@ import com.netflix.spinnaker.gate.plugins.web.PluginService
 import com.netflix.spinnaker.gate.plugins.web.SpinnakerExtensionsConfigProperties
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -67,7 +68,7 @@ class PluginInfoController(
   @Operation(summary = "Get all plugin info objects")
   @RequestMapping(method = [RequestMethod.GET])
   fun getAllPluginInfo(@RequestParam(value = "service", required = false) service: String?): List<*> {
-    return front50Service.getPluginInfo(service)
+    return Retrofit2SyncCall.execute(front50Service.getPluginInfo(service))
   }
 
   val appName: String

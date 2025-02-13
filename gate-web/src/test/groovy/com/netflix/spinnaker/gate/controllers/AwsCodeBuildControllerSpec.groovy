@@ -23,6 +23,7 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -52,7 +53,7 @@ class AwsCodeBuildControllerSpec extends Specification {
   void 'should get a list of accounts'() {
     given:
     def accounts = ["account1", "account2"]
-    1 * igorService.getAwsCodeBuildAccounts() >> accounts
+    1 * igorService.getAwsCodeBuildAccounts() >> Calls.response(accounts)
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get("/codebuild/accounts")
@@ -65,7 +66,7 @@ class AwsCodeBuildControllerSpec extends Specification {
 
   void 'should get an empty list when no accounts found'() {
     given:
-    1 * igorService.getAwsCodeBuildAccounts() >> []
+    1 * igorService.getAwsCodeBuildAccounts() >> Calls.response([])
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get("/codebuild/accounts")

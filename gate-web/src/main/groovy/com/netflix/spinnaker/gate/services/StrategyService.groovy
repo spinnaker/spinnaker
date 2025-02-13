@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,18 +35,18 @@ class StrategyService {
   ApplicationService applicationService
 
   void deleteForApplication(String applicationName, String strategyName) {
-    front50Service.deleteStrategyConfig(applicationName, strategyName)
+    Retrofit2SyncCall.execute(front50Service.deleteStrategyConfig(applicationName, strategyName))
   }
 
   void save(Map strategy) {
-    front50Service.saveStrategyConfig(strategy)
+    Retrofit2SyncCall.execute(front50Service.saveStrategyConfig(strategy))
   }
 
   Map update(String strategyId, Map strategy) {
-    front50Service.updateStrategy(strategyId, strategy)
+    Retrofit2SyncCall.execute(front50Service.updateStrategy(strategyId, strategy))
   }
 
   void move(Map moveCommand) {
-    front50Service.moveStrategyConfig(moveCommand)
+    Retrofit2SyncCall.execute(front50Service.moveStrategyConfig(moveCommand))
   }
 }

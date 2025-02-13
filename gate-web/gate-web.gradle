@@ -15,9 +15,6 @@ dependencies {
   implementation project(":gate-plugins")
   implementation project(":gate-integrations-gremlin")
 
-  implementation "com.squareup.retrofit:retrofit"
-  implementation "com.squareup.retrofit:converter-jackson"
-  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
@@ -29,6 +26,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-config"
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.netflix.frigga:frigga"
   implementation "redis.clients:jedis"
@@ -67,7 +65,6 @@ dependencies {
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "com.squareup.okhttp3:mockwebserver"
 
-  testImplementation "com.squareup.retrofit:retrofit-mock"
   testImplementation "org.springframework.security:spring-security-test"
   testImplementation "org.springframework.security:spring-security-ldap"
   testImplementation "org.springframework.security:spring-security-oauth2-jose"
@@ -75,6 +72,8 @@ dependencies {
   testImplementation "io.spinnaker.kork:kork-jedis-test"
   testImplementation "io.spinnaker.kork:kork-test"
   testImplementation "org.apache.groovy:groovy-json"
+  testImplementation "com.squareup.retrofit2:converter-jackson"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {

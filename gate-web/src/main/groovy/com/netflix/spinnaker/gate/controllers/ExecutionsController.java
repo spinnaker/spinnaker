@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.Collections;
@@ -68,9 +69,10 @@ public class ExecutionsController {
       return Collections.emptyList();
     }
 
-    return orcaServiceSelector
-        .select()
-        .getSubsetOfExecutions(pipelineConfigIds, executionIds, limit, statuses, expand);
+    return Retrofit2SyncCall.execute(
+        orcaServiceSelector
+            .select()
+            .getSubsetOfExecutions(pipelineConfigIds, executionIds, limit, statuses, expand));
   }
 
   @Operation(
@@ -145,20 +147,21 @@ public class ExecutionsController {
                   "Expands each execution object in the resulting list. If this value is missing, it is defaulted to false.")
           @RequestParam(value = "expand", defaultValue = "false")
           boolean expand) {
-    return orcaServiceSelector
-        .select()
-        .searchForPipelineExecutionsByTrigger(
-            application,
-            triggerTypes,
-            pipelineName,
-            eventId,
-            trigger,
-            triggerTimeStartBoundary,
-            triggerTimeEndBoundary,
-            statuses,
-            startIndex,
-            size,
-            reverse,
-            expand);
+    return Retrofit2SyncCall.execute(
+        orcaServiceSelector
+            .select()
+            .searchForPipelineExecutionsByTrigger(
+                application,
+                triggerTypes,
+                pipelineName,
+                eventId,
+                trigger,
+                triggerTimeStartBoundary,
+                triggerTimeEndBoundary,
+                statuses,
+                startIndex,
+                size,
+                reverse,
+                expand));
   }
 }

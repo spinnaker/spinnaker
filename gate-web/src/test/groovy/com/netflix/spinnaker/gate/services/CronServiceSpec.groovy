@@ -17,24 +17,23 @@
 package com.netflix.spinnaker.gate.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.gson.Gson
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.GsonConverter
-import retrofit.mime.TypedByteArray
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class CronServiceSpec extends Specification {
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-
   void "should return validation message when scheduler service fails with 400 status"() {
     given:
-    def body = new TypedByteArray(null, OBJECT_MAPPER.writeValueAsBytes([message: "Invalid Cron expression!!!"]))
-    def error = new SpinnakerHttpException(RetrofitError.httpError("https://blah", new Response("", 400, "", [], body), new GsonConverter(new Gson()), Map))
+    def msg = "{ \"message\": \"Invalid Cron expression!!!\" }"
+    def error = spinnakerHttpException(400, msg)
     def service = new CronService(
         echoService: Mock(EchoService) {
           1 * validateCronExpression("blah") >> { throw error }
@@ -42,14 +41,14 @@ class CronServiceSpec extends Specification {
     )
 
     expect:
-    service.validateCronExpression("blah") == [ valid: false, message: "Status: 400, URL: https://blah, Message: Invalid Cron expression!!!"]
+    service.validateCronExpression("blah") == [ valid: false, message: "Status: 400, Method: GET, URL: http://localhost/, Message: Invalid Cron expression!!!"]
   }
 
   @Unroll
   void "should propagate Retrofit error when status code is #code"() {
     given:
-    def body = new TypedByteArray(null, OBJECT_MAPPER.writeValueAsBytes([message: "Invalid Cron expression!!!"]))
-    def error = new SpinnakerHttpException(RetrofitError.httpError("", new Response("", code, "", [], body), new GsonConverter(new Gson()), Map))
+    def msg = "{ \"message\": \"Invalid Cron expression!!!\" }"
+    def error = spinnakerHttpException(code, msg)
     def service = new CronService(
         echoService: Mock(EchoService) {
           1 * validateCronExpression("blah") >> { throw error }
@@ -75,7 +74,7 @@ class CronServiceSpec extends Specification {
         ]
     def service = new CronService(
         echoService: Mock(EchoService) {
-          1 * validateCronExpression("totally invalid cron expression") >> response
+          1 * validateCronExpression("totally invalid cron expression") >> Calls.response(response)
         }
     )
 
@@ -89,11 +88,28 @@ class CronServiceSpec extends Specification {
     ]
     def service = new CronService(
         echoService: Mock(EchoService) {
-          1 * validateCronExpression("1 1 1 1 1 1") >> response
+          1 * validateCronExpression("1 1 1 1 1 1") >> Calls.response(response)
         }
     )
 
     expect:
     service.validateCronExpression("1 1 1 1 1 1") == [ valid: true, description: 'LGTM' ]
+  }
+
+  def spinnakerHttpException(int code, String message) {
+    String url = "https://some-url";
+    Response<Object> retrofit2Response =
+      Response.error(
+        code,
+        ResponseBody.create(
+          MediaType.parse("application/json"), message));
+
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(url)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -219,7 +220,7 @@ class PipelineController {
       )
     }
 
-    return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"), null, true)?.find {
+    return Retrofit2SyncCall.execute(front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"), null, true))?.find {
       id == (String) it.get("id")
     }
   }
@@ -258,7 +259,7 @@ class PipelineController {
     String pipelineName = pipelineMap.get("name");
     String application = pipelineMap.get("application");
 
-    List<Map> pipelineConfigs = front50Service.getPipelineConfigsForApplication(application, null, true)
+    List<Map> pipelineConfigs = Retrofit2SyncCall.execute(front50Service.getPipelineConfigsForApplication(application, null, true))
 
     if (pipelineConfigs!=null && !pipelineConfigs.isEmpty()){
       Optional<Map> filterResult = pipelineConfigs.stream()

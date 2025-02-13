@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -31,10 +32,10 @@ class EcsClusterService {
   }
 
   List getAllEcsClusters() {
-    clouddriver.getAllEcsClusters()
+    Retrofit2SyncCall.execute(clouddriver.getAllEcsClusters())
   }
 
   List getEcsClusterDescriptions(String account, String region) {
-    clouddriver.getEcsClusterDescriptions(account, region)
+    Retrofit2SyncCall.execute(clouddriver.getEcsClusterDescriptions(account, region))
   }
 }

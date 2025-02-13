@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services;
 import com.netflix.spinnaker.gate.config.TaskServiceProperties;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.*;
 import lombok.Data;
@@ -47,49 +48,49 @@ public class TaskService {
     this.taskServiceProperties = taskServiceProperties;
   }
 
-  public Map create(Map body) {
+  public Map create(Map<String, Object> body) {
     if (body.containsKey("application")) {
       AuthenticatedRequest.setApplication(body.get("application").toString());
     }
-
-    return orcaServiceSelector.select().doOperation(body);
+    return Retrofit2SyncCall.execute(orcaServiceSelector.select().doOperation(body));
   }
 
-  public Map createAppTask(String app, Map body) {
+  public Map createAppTask(String app, Map<String, Object> body) {
     body.put("application", app);
     AuthenticatedRequest.setApplication(app);
-    return orcaServiceSelector.select().doOperation(body);
+    return Retrofit2SyncCall.execute(orcaServiceSelector.select().doOperation(body));
   }
 
-  public Map createAppTask(Map body) {
+  public Map createAppTask(Map<String, Object> body) {
     if (body.containsKey("application")) {
       AuthenticatedRequest.setApplication(body.get("application").toString());
     }
 
-    return orcaServiceSelector.select().doOperation(body);
+    return Retrofit2SyncCall.execute(orcaServiceSelector.select().doOperation(body));
   }
 
   public Map getTask(final String id) {
-    return getOrcaServiceSelector().select().getTask(id);
+    return Retrofit2SyncCall.execute(getOrcaServiceSelector().select().getTask(id));
   }
 
   public Map deleteTask(final String id) {
     setApplicationForTask(id);
-    return getOrcaServiceSelector().select().deleteTask(id);
+    return Retrofit2SyncCall.execute(getOrcaServiceSelector().select().deleteTask(id));
   }
 
   public Map getTaskDetails(final String taskDetailsId, String selectorKey) {
-    return getClouddriverServiceSelector().select().getTaskDetails(taskDetailsId);
+    return Retrofit2SyncCall.execute(
+        getClouddriverServiceSelector().select().getTaskDetails(taskDetailsId));
   }
 
   public Map cancelTask(final String id) {
     setApplicationForTask(id);
-    return getOrcaServiceSelector().select().cancelTask(id, "");
+    return Retrofit2SyncCall.execute(getOrcaServiceSelector().select().cancelTask(id, ""));
   }
 
   public Map cancelTasks(final List<String> taskIds) {
     setApplicationForTask(taskIds.get(0));
-    return getOrcaServiceSelector().select().cancelTasks(taskIds);
+    return Retrofit2SyncCall.execute(getOrcaServiceSelector().select().cancelTasks(taskIds));
   }
 
   public Map createAndWaitForCompletion(Map body, int maxPolls, int intervalMs) {
@@ -150,7 +151,8 @@ public class TaskService {
   /** @deprecated This pipeline operation does not belong here. */
   @Deprecated
   public Map cancelPipeline(final String id, final String reason) {
-    return getOrcaServiceSelector().select().cancelPipeline(id, reason, false, "");
+    return Retrofit2SyncCall.execute(
+        getOrcaServiceSelector().select().cancelPipeline(id, reason, false, ""));
   }
 
   /**

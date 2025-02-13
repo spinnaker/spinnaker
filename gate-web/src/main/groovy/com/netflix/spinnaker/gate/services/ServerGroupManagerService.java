@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ public class ServerGroupManagerService {
   }
 
   public List<Map> getServerGroupManagersForApplication(String application) {
-    return this.clouddriverService.getServerGroupManagersForApplication(application);
+    return Retrofit2SyncCall.execute(
+        this.clouddriverService.getServerGroupManagersForApplication(application));
   }
 }

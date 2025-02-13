@@ -16,26 +16,19 @@
 
 package com.netflix.spinnaker.config;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.gate.config.Service;
 import com.netflix.spinnaker.gate.config.ServiceConfiguration;
-import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger;
 import com.netflix.spinnaker.gate.services.gremlin.GremlinService;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import groovy.transform.CompileStatic;
 import groovy.util.logging.Slf4j;
-import okhttp3.OkHttpClient;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoint;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
 
 @Slf4j
 @CompileStatic
@@ -44,27 +37,11 @@ import retrofit.converter.JacksonConverter;
 class GremlinConfig {
   @Bean
   GremlinService gremlinService(
-      OkHttpClient okHttpClient,
       ServiceConfiguration serviceConfiguration,
-      RequestInterceptor spinnakerRequestInterceptor,
-      @Value("${retrofit.log-level:BASIC}") String retrofitLogLevel) {
-    return createClient(
-        "gremlin",
-        GremlinService.class,
-        okHttpClient,
-        serviceConfiguration,
-        spinnakerRequestInterceptor,
-        retrofitLogLevel);
-  }
+      SpinnakerRequestHeaderInterceptor spinnakerHeaderRequestInterceptor,
+      ServiceClientProvider serviceClientProvider) {
 
-  private <T> T createClient(
-      String serviceName,
-      Class<T> type,
-      OkHttpClient okHttpClient,
-      ServiceConfiguration serviceConfiguration,
-      RequestInterceptor spinnakerRequestInterceptor,
-      String retrofitLogLevel) {
-    Service service = serviceConfiguration.getService(serviceName);
+    Service service = serviceConfiguration.getService("gremlin");
     if (service == null) {
       throw new IllegalArgumentException(
           "Unknown service ${serviceName} requested of type ${type}");
@@ -74,30 +51,15 @@ class GremlinConfig {
       return null;
     }
 
-    Endpoint endpoint = newFixedEndpoint(service.getBaseUrl());
-    return buildService(
-        okHttpClient, type, endpoint, spinnakerRequestInterceptor, retrofitLogLevel);
-  }
-
-  private <T> T buildService(
-      OkHttpClient client,
-      Class<T> type,
-      Endpoint endpoint,
-      RequestInterceptor spinnakerRequestInterceptor,
-      String retrofitLogLevel) {
     ObjectMapper objectMapper =
         new ObjectMapper()
             .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-    return new RestAdapter.Builder()
-        .setRequestInterceptor(spinnakerRequestInterceptor)
-        .setEndpoint(endpoint)
-        .setClient(new Ok3Client(client))
-        .setConverter(new JacksonConverter(objectMapper))
-        .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
-        .setLog(new Slf4jRetrofitLogger(type))
-        .build()
-        .create(type);
+    return serviceClientProvider.getService(
+        GremlinService.class,
+        new DefaultServiceEndpoint("gremlin", service.getBaseUrl()),
+        objectMapper,
+        List.of(spinnakerHeaderRequestInterceptor));
   }
 }

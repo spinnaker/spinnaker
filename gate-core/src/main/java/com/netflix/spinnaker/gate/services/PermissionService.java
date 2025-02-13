@@ -140,7 +140,7 @@ public class PermissionService {
 
   List<UserPermission.View> lookupServiceAccounts(String userId) {
     try {
-      return extendedFiatService.getUserServiceAccounts(userId);
+      return Retrofit2SyncCall.execute(extendedFiatService.getUserServiceAccounts(userId));
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() == 404) {
         return List.of();

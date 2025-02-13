@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,19 +44,19 @@ class PipelineTemplateService {
   }
 
   Map get(String id) {
-    front50Service.getPipelineTemplate(id)
+    Retrofit2SyncCall.execute(front50Service.getPipelineTemplate(id))
   }
 
   List<Map> findByScope(List<String> scopes) {
-    front50Service.getPipelineTemplates((String[]) scopes?.toArray())
+    Retrofit2SyncCall.execute(front50Service.getPipelineTemplates((String[]) scopes?.toArray()))
   }
 
   Map resolve(String source, String executionId, String pipelineConfigId) {
-    orcaServiceSelector.select().resolvePipelineTemplate(source, executionId, pipelineConfigId)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().resolvePipelineTemplate(source, executionId, pipelineConfigId))
   }
 
   List<PipelineTemplateDependent> getTemplateDependents(@Nonnull String templateId, boolean recursive) {
-    front50Service.getPipelineTemplateDependents(templateId, recursive).collect {
+    Retrofit2SyncCall.execute(front50Service.getPipelineTemplateDependents(templateId, recursive)).collect {
       new PipelineTemplateDependent(
         application: (String) it.application ?: "UNKNOWN",
         pipelineConfigId: (String) it.id ?: "UNKNOWN",

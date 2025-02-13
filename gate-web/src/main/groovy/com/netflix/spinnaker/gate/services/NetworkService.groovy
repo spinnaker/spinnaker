@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -30,10 +31,10 @@ class NetworkService {
   ClouddriverServiceSelector clouddriverServiceSelector
 
   Map getNetworks(String selectorKey) {
-    clouddriverServiceSelector.select().getNetworks()
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getNetworks())
   }
 
   List<Map> getNetworks(String cloudProvider, String selectorKey) {
-    clouddriverServiceSelector.select().getNetworks(cloudProvider)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getNetworks(cloudProvider))
   }
 }

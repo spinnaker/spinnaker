@@ -19,12 +19,8 @@ dependencies {
   api "org.springframework.boot:spring-boot-starter-actuator"
   api "org.springframework.boot:spring-boot-starter-security"
 
-  api "com.squareup.retrofit:retrofit"
-
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-plugins"
-  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
-  implementation "com.squareup.retrofit:converter-jackson"
 
   implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
@@ -40,6 +36,8 @@ dependencies {
   implementation "io.cloudevents:cloudevents-spring:2.5.0"
   implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
   implementation "io.cloudevents:cloudevents-http-basic:2.5.0"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "com.squareup.retrofit2:converter-jackson"
 }
 
 sourceSets {

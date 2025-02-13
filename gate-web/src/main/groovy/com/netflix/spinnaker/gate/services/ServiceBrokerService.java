@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
@@ -30,12 +31,14 @@ public class ServiceBrokerService {
   }
 
   public List<Map> listServices(String cloudProvider, String region, String account) {
-    return this.clouddriverService.listServices(cloudProvider, region, account);
+    return Retrofit2SyncCall.execute(
+        this.clouddriverService.listServices(cloudProvider, region, account));
   }
 
   public Map getServiceInstance(
       String account, String cloudProvider, String region, String serviceInstanceName) {
-    return this.clouddriverService.getServiceInstance(
-        account, cloudProvider, region, serviceInstanceName);
+    return Retrofit2SyncCall.execute(
+        this.clouddriverService.getServiceInstance(
+            account, cloudProvider, region, serviceInstanceName));
   }
 }

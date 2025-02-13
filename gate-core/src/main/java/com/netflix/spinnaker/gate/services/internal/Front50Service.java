@@ -20,137 +20,144 @@ import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import java.util.List;
 import java.util.Map;
-import retrofit.client.Response;
-import retrofit.http.*;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.DELETE;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface Front50Service {
   @GET("/credentials")
-  List<Map> getCredentials();
+  Call<List<Map>> getCredentials();
 
   @GET("/v2/applications?restricted=false")
-  List<Map> getAllApplicationsUnrestricted();
+  Call<List<Map>> getAllApplicationsUnrestricted();
 
   @GET("/v2/applications/{applicationName}")
-  Map getApplication(@Path("applicationName") String applicationName);
+  Call<Map> getApplication(@Path("applicationName") String applicationName);
 
   @GET("/v2/applications/{applicationName}/history")
-  List<Map> getApplicationHistory(
+  Call<List<Map>> getApplicationHistory(
       @Path("applicationName") String applicationName, @Query("limit") int limit);
 
   @GET("/pipelines")
-  List<Map> getAllPipelineConfigs();
+  Call<List<Map>> getAllPipelineConfigs();
 
   @GET("/pipelines/{app}")
-  List<Map> getPipelineConfigsForApplication(
+  Call<List<Map>> getPipelineConfigsForApplication(
       @Path("app") String app,
       @Query("pipelineNameFilter") String pipelineNameFilter,
       @Query("refresh") boolean refresh);
 
   @GET("/pipelines/{app}/name/{name}")
-  Map getPipelineConfigByApplicationAndName(
+  Call<Map> getPipelineConfigByApplicationAndName(
       @Path("app") String app, @Path("name") String name, @Query("refresh") boolean refresh);
 
   @GET("/pipelines/{id}/get")
-  Map getPipelineConfigById(@Path("id") String id);
+  Call<Map> getPipelineConfigById(@Path("id") String id);
 
   @DELETE("/pipelines/{app}/{name}")
-  Response deletePipelineConfig(@Path("app") String app, @Path("name") String name);
+  Call<ResponseBody> deletePipelineConfig(@Path("app") String app, @Path("name") String name);
 
   @POST("/pipelines")
-  Response savePipelineConfig(@Body Map pipelineConfig);
+  Call<ResponseBody> savePipelineConfig(@Body Map pipelineConfig);
 
   @POST("/pipelines/move")
-  Response movePipelineConfig(@Body Map moveCommand);
+  Call<ResponseBody> movePipelineConfig(@Body Map moveCommand);
 
   @GET("/pipelines/{pipelineConfigId}/history")
-  List<Map> getPipelineConfigHistory(
+  Call<List<Map>> getPipelineConfigHistory(
       @Path("pipelineConfigId") String pipelineConfigId, @Query("limit") int limit);
 
   @PUT("/pipelines/{pipelineId}")
-  Map updatePipeline(@Path("pipelineId") String pipelineId, @Body Map pipeline);
+  Call<Map> updatePipeline(@Path("pipelineId") String pipelineId, @Body Map pipeline);
 
   @GET("/strategies")
-  List<Map> getAllStrategyConfigs();
+  Call<List<Map>> getAllStrategyConfigs();
 
   @GET("/strategies/{app}")
-  List<Map> getStrategyConfigs(@Path("app") String app);
+  Call<List<Map>> getStrategyConfigs(@Path("app") String app);
 
   @DELETE("/strategies/{app}/{name}")
-  Response deleteStrategyConfig(@Path("app") String app, @Path("name") String name);
+  Call<ResponseBody> deleteStrategyConfig(@Path("app") String app, @Path("name") String name);
 
   @POST("/strategies")
-  Response saveStrategyConfig(@Body Map strategyConfig);
+  Call<ResponseBody> saveStrategyConfig(@Body Map strategyConfig);
 
   @POST("/strategies/move")
-  Response moveStrategyConfig(@Body Map moveCommand);
+  Call<ResponseBody> moveStrategyConfig(@Body Map moveCommand);
 
   @GET("/strategies/{strategyConfigId}/history")
-  List<Map> getStrategyConfigHistory(
+  Call<List<Map>> getStrategyConfigHistory(
       @Path("strategyConfigId") String strategyConfigId, @Query("limit") int limit);
 
   @PUT("/strategies/{strategyId}")
-  Map updateStrategy(@Path("strategyId") String strategyId, @Body Map strategy);
+  Call<Map> updateStrategy(@Path("strategyId") String strategyId, @Body Map strategy);
 
   @GET("/pipelineTemplates")
-  List<Map> getPipelineTemplates(@Query("scopes") String... scopes);
+  Call<List<Map>> getPipelineTemplates(@Query("scopes") String... scopes);
 
   @GET("/pipelineTemplates/{pipelineTemplateId}")
-  Map getPipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId);
+  Call<Map> getPipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId);
 
   @GET("/pipelineTemplates/{pipelineTemplateId}/dependentPipelines")
-  List<Map<String, Object>> getPipelineTemplateDependents(
+  Call<List<Map<String, Object>>> getPipelineTemplateDependents(
       @Path("pipelineTemplateId") String pipelineTemplateId, @Query("recursive") boolean recursive);
 
   @GET("/v2/pipelineTemplates/{pipelineTemplateId}")
-  Map getV2PipelineTemplate(
+  Call<Map> getV2PipelineTemplate(
       @Path("pipelineTemplateId") String pipelineTemplateId,
       @Query("tag") String tag,
       @Query("digest") String digest);
 
   @GET("/v2/pipelineTemplates")
-  List<Map> getV2PipelineTemplates(@Query("scopes") String... scopes);
+  Call<List<Map>> getV2PipelineTemplates(@Query("scopes") String... scopes);
 
   @GET("/v2/pipelineTemplates/versions")
-  Map<String, List<Map>> getV2PipelineTemplatesVersions(@Query("scopes") String... scopes);
+  Call<Map<String, List<Map>>> getV2PipelineTemplatesVersions(@Query("scopes") String... scopes);
 
   @GET("/v2/pipelineTemplates/{pipelineTemplateId}/dependentPipelines")
-  List<Map<String, Object>> getV2PipelineTemplateDependents(
+  Call<List<Map<String, Object>>> getV2PipelineTemplateDependents(
       @Path("pipelineTemplateId") String pipelineTemplateId);
 
   @GET("/notifications/{type}/{app}")
-  Map getNotificationConfigs(@Path("type") String type, @Path("app") String app);
+  Call<Map> getNotificationConfigs(@Path("type") String type, @Path("app") String app);
 
   @DELETE("/notifications/{type}/{app}")
-  Response deleteNotificationConfig(@Path("type") String type, @Path("app") String app);
+  Call<ResponseBody> deleteNotificationConfig(@Path("type") String type, @Path("app") String app);
 
   @POST("/notifications/{type}/{app}")
-  Response saveNotificationConfig(
+  Call<ResponseBody> saveNotificationConfig(
       @Path("type") String type, @Path("app") String app, @Body Map notificationConfig);
 
   @GET("/v2/projects")
-  List<Map> getAllProjects();
+  Call<List<Map>> getAllProjects();
 
   @GET("/v2/projects/{projectId}")
-  Map getProject(@Path("projectId") String projectId);
+  Call<Map> getProject(@Path("projectId") String projectId);
 
   @GET("/snapshots/{id}")
-  Map getCurrentSnapshot(@Path("id") String id);
+  Call<Map> getCurrentSnapshot(@Path("id") String id);
 
   @GET("/snapshots/{id}/history")
-  List<Map> getSnapshotHistory(@Path("id") String id, @Query("limit") int limit);
+  Call<List<Map>> getSnapshotHistory(@Path("id") String id, @Query("limit") int limit);
 
   @GET("/serviceAccounts")
-  List<ServiceAccount> getServiceAccounts();
+  Call<List<ServiceAccount>> getServiceAccounts();
 
   @GET("/deliveries")
-  List<Map> getDeliveries();
+  Call<List<Map>> getDeliveries();
 
   @GET("/deliveries/{id}")
-  Map getDelivery(@Path("id") String id);
+  Call<Map> getDelivery(@Path("id") String id);
 
   @GET("/pluginInfo")
-  List<Map> getPluginInfo(@Query("service") String service);
+  Call<List<Map>> getPluginInfo(@Query("service") String service);
 
   @GET("/installedPlugins")
-  List<SpinnakerPluginDescriptor> getInstalledPlugins();
+  Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 }

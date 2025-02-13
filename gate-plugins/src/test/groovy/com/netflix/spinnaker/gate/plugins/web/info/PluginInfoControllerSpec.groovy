@@ -46,6 +46,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import retrofit2.mock.Calls;
 import spock.lang.Specification
 
 import static org.mockito.ArgumentMatchers.any
@@ -165,7 +166,7 @@ class PluginInfoControllerSpec extends Specification {
 
   def 'get api should succeed'() {
     setup:
-    when(front50Service.getPluginInfo(any())).thenReturn([['Id': 'test-plugin-id']])
+    when(front50Service.getPluginInfo(any())).thenReturn(Calls.response([['Id': 'test-plugin-id']]))
 
     expect:
     this.mockMvc.perform(MockMvcRequestBuilders.get("/plugins/info")

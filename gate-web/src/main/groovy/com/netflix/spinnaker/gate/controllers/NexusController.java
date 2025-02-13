@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.internal.IgorService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,6 @@ public class NexusController {
   @Operation(summary = "Retrieve the list of nexus names available to triggers")
   @GetMapping(value = "/names")
   List<String> names() {
-    return igorService.get().getNexusNames();
+    return Retrofit2SyncCall.execute(igorService.get().getNexusNames());
   }
 }

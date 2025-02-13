@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.internal.KeelService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import groovy.util.logging.Slf4j;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
@@ -34,6 +35,6 @@ public class HistoryController {
   List<Map<String, Object>> getHistory(
       @PathVariable("name") String name,
       @RequestParam(value = "limit", required = false) Integer limit) {
-    return keelService.getResourceEvents(name, limit);
+    return Retrofit2SyncCall.execute(keelService.getResourceEvents(name, limit));
   }
 }

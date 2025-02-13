@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -32,7 +33,7 @@ class SecurityGroupService {
    * Keyed by account
    */
   Map getAll(String selectorKey) {
-    clouddriverServiceSelector.select().securityGroups
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().securityGroups)
   }
 
   /**
@@ -42,7 +43,7 @@ class SecurityGroupService {
    * @return
    */
   Map getById(String id, String selectorKey) {
-    def result = clouddriverServiceSelector.select().search(id, "securityGroups", null, 10000, 1, [:])[0]
+    def result = Retrofit2SyncCall.execute(clouddriverServiceSelector.select().search(id, "securityGroups", null, 10000, 1, [:]))[0]
     if (result.results) {
       Map firstResult = ((List<Map>)result.results)[0]
       String uriString = firstResult.url
@@ -67,11 +68,11 @@ class SecurityGroupService {
    * @param region optional. nullable
    */
   Map getForAccountAndProvider(String account, String provider, String selectorKey) {
-    clouddriverServiceSelector.select().getSecurityGroups(account, provider)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getSecurityGroups(account, provider))
   }
 
   List getForAccountAndProviderAndRegion(String account, String provider, String region, String selectorKey) {
-    clouddriverServiceSelector.select().getSecurityGroupsForRegion(account, provider, region)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getSecurityGroupsForRegion(account, provider, region))
   }
 
   /**
@@ -81,6 +82,6 @@ class SecurityGroupService {
    * @param region optional. nullable
    */
   Map getSecurityGroup(String account, String provider, String name, String region, String selectorKey, String vpcId = null) {
-    clouddriverServiceSelector.select().getSecurityGroup(account, provider, name, region, vpcId)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getSecurityGroup(account, provider, name, region, vpcId))
   }
 }

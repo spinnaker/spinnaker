@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -33,14 +34,14 @@ class ImageService {
   ProviderLookupService providerLookupService
 
   List<Map> getForAccountAndRegion(String provider, String account, String region, String imageId, String selectorKey) {
-    clouddriverServiceSelector.select().getImageDetails(provider, account, region, imageId)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getImageDetails(provider, account, region, imageId))
   }
 
   List<Map> search(String provider, String query, String region, String account, Integer count, Map<String, Object> additionalFilters, String selectorKey) {
-    clouddriverServiceSelector.select().findImages(provider, query, region, account, count, additionalFilters)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().findImages(provider, query, region, account, count, additionalFilters))
   }
 
   List<String> findTags(String provider, String account, String repository, String selectorKey) {
-    clouddriverServiceSelector.select().findTags(provider, account, repository)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().findTags(provider, account, repository))
   }
 }

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import de.huxhorn.sulky.ulid.ULID
 import groovy.util.logging.Slf4j
@@ -75,19 +76,19 @@ class PipelineService {
   }
 
   void deleteForApplication(String applicationName, String pipelineName) {
-    front50Service.deletePipelineConfig(applicationName, pipelineName)
+    Retrofit2SyncCall.execute(front50Service.deletePipelineConfig(applicationName, pipelineName))
   }
 
   void save(Map pipeline) {
-    front50Service.savePipelineConfig(pipeline)
+    Retrofit2SyncCall.execute(front50Service.savePipelineConfig(pipeline))
   }
 
   Map update(String pipelineId, Map pipeline) {
-    front50Service.updatePipeline(pipelineId, pipeline)
+    Retrofit2SyncCall.execute(front50Service.updatePipeline(pipelineId, pipeline))
   }
 
   void move(Map moveCommand) { //TODO: use update endpoint when front50 is live
-    front50Service.movePipelineConfig(moveCommand)
+    Retrofit2SyncCall.execute(front50Service.movePipelineConfig(moveCommand))
   }
 
   Map trigger(String application, String pipelineNameOrId, Map trigger) {
@@ -111,7 +112,7 @@ class PipelineService {
         }
       }
     }
-    orcaServiceSelector.select().startPipeline(pipelineConfig, trigger.user?.toString())
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().startPipeline(pipelineConfig, trigger.user?.toString()))
   }
 
   Map triggerViaEcho(String application, String pipelineNameOrId, Map parameters) {
@@ -139,7 +140,7 @@ class PipelineService {
     final long startTimeNanos = registry.clock().monotonicTime();
 
     try {
-      echoService.postEvent(eventMap)
+      Retrofit2SyncCall.execute(echoService.postEvent(eventMap))
     } catch (Exception e) {
       echoEventsErrorIntervalCounter.increment();
       log.error("Event processing failure: eventId={}, event={}", eventId, eventMap, e);
@@ -162,53 +163,53 @@ class PipelineService {
   }
 
   Map startPipeline(Map pipelineConfig, String user) {
-    orcaServiceSelector.select().startPipeline(pipelineConfig, user)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().startPipeline(pipelineConfig, user))
   }
 
   Map getPipeline(String id) {
-    orcaServiceSelector.select().getPipeline(id)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(id))
   }
 
   Map cancelPipeline(String id, String reason, boolean force) {
     setApplicationForExecution(id)
-    orcaServiceSelector.select().cancelPipeline(id, reason, force, "")
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().cancelPipeline(id, reason, force, ""))
   }
 
   Map pausePipeline(String id) {
     setApplicationForExecution(id)
-    orcaServiceSelector.select().pausePipeline(id, "")
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().pausePipeline(id, ""))
   }
 
   Map resumePipeline(String id) {
     setApplicationForExecution(id)
-    orcaServiceSelector.select().resumePipeline(id, "")
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().resumePipeline(id, ""))
   }
 
   Map deletePipeline(String id) {
     setApplicationForExecution(id)
-    orcaServiceSelector.select().deletePipeline(id)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().deletePipeline(id))
   }
 
   Map updatePipelineStage(String executionId, String stageId, Map context) {
     setApplicationForExecution(executionId)
-    orcaServiceSelector.select().updatePipelineStage(executionId, stageId, context)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().updatePipelineStage(executionId, stageId, context))
   }
 
   Map restartPipelineStage(String executionId, String stageId, Map context) {
     setApplicationForExecution(executionId)
-    orcaServiceSelector.select().restartPipelineStage(executionId, stageId, context)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().restartPipelineStage(executionId, stageId, context))
   }
 
   Map evaluateExpressionForExecution(String executionId, String pipelineExpression) {
-    orcaServiceSelector.select().evaluateExpressionForExecution(executionId, pipelineExpression)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().evaluateExpressionForExecution(executionId, pipelineExpression))
   }
 
   Map evaluateExpressionForExecutionAtStage(String executionId, String stageId, String pipelineExpression) {
-    orcaServiceSelector.select().evaluateExpressionForExecutionAtStage(executionId, stageId, pipelineExpression)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().evaluateExpressionForExecutionAtStage(executionId, stageId, pipelineExpression))
   }
 
   Map evaluateVariables(String executionId, String requisiteStageRefIds, String spelVersionOverride, List<Map<String, String>> expressions) {
-    orcaServiceSelector.select().evaluateVariables(executionId, requisiteStageRefIds, spelVersionOverride, expressions)
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().evaluateVariables(executionId, requisiteStageRefIds, spelVersionOverride, expressions))
   }
 
   /**

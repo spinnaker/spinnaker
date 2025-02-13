@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,18 +40,18 @@ class LoadBalancerService {
   ObjectMapper objectMapper
 
   List getAll(String provider = "aws", String selectorKey) {
-    clouddriverServiceSelector.select().getLoadBalancers(provider)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getLoadBalancers(provider))
   }
 
   Map get(String name, String selectorKey, String provider = "aws") {
-    clouddriverServiceSelector.select().getLoadBalancer(provider, name)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getLoadBalancer(provider, name))
   }
 
   List getDetailsForAccountAndRegion(String account, String region, String name, String selectorKey, String provider = "aws") {
     try {
       def service = clouddriverServiceSelector.select()
-      def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
-      def loadBalancerDetails = service.getLoadBalancerDetails(provider, account, region, name)
+      def accountDetails = objectMapper.convertValue(Retrofit2SyncCall.execute(service.getAccount(account)), Map)
+      def loadBalancerDetails = Retrofit2SyncCall.execute(service.getLoadBalancerDetails(provider, account, region, name))
 
       loadBalancerDetails = loadBalancerDetails.collect { loadBalancerDetail ->
         def loadBalancerContext = loadBalancerDetail.collectEntries {
@@ -73,10 +74,10 @@ class LoadBalancerService {
   }
 
   List getClusterLoadBalancers(String appName, String account, String provider, String clusterName, String selectorKey) {
-    clouddriverServiceSelector.select().getClusterLoadBalancers(appName, account, clusterName, provider)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getClusterLoadBalancers(appName, account, clusterName, provider))
   }
 
   List getApplicationLoadBalancers(String appName, String selectorKey) {
-    clouddriverServiceSelector.select().getApplicationLoadBalancers(appName)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getApplicationLoadBalancers(appName))
   }
 }

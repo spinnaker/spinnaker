@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.MineService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,7 +35,7 @@ class CanaryService {
 
   void generateCanaryResult(String canaryId, int duration, String durationUnit) {
     try {
-      mineService?.generateCanaryResult(canaryId, duration, durationUnit, "")
+      Retrofit2SyncCall.execute(mineService?.generateCanaryResult(canaryId, duration, durationUnit, ""))
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -42,7 +43,7 @@ class CanaryService {
 
   List<Map> getCanaryAnalysisHistory(String canaryDeploymentId) {
     try {
-      mineService ? mineService.getCanaryAnalysisHistory(canaryDeploymentId) : []
+      mineService ? Retrofit2SyncCall.execute(mineService.getCanaryAnalysisHistory(canaryDeploymentId)) : []
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -50,7 +51,7 @@ class CanaryService {
 
   Map endCanary(String canaryId, String result, String reason) {
     try {
-      mineService ? mineService.endCanary(canaryId, result, reason, "") : [:]
+      mineService ? Retrofit2SyncCall.execute(mineService.endCanary(canaryId, result, reason, "")) : [:]
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -58,7 +59,7 @@ class CanaryService {
 
   Map showCanary(String canaryId) {
     try {
-      mineService ? mineService.showCanary(canaryId) : [:]
+      mineService ? Retrofit2SyncCall.execute(mineService.showCanary(canaryId)) : [:]
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -66,7 +67,7 @@ class CanaryService {
 
   List<String> getCanaryConfigNames(String application) {
     try {
-      mineService ? mineService.getCanaryConfigNames(application) : []
+      mineService ? Retrofit2SyncCall.execute(mineService.getCanaryConfigNames(application)) : []
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }
@@ -74,7 +75,7 @@ class CanaryService {
 
   List<Map> canaryConfigsForApplication(String applicationName) {
     try {
-      mineService ? mineService.canaryConfigsForApplication(applicationName) : []
+      mineService ? Retrofit2SyncCall.execute(mineService.canaryConfigsForApplication(applicationName)) : []
     } catch (SpinnakerServerException error) {
       throw classifyError(error)
     }

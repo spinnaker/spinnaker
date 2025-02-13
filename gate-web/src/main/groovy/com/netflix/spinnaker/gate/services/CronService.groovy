@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.EchoService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -36,7 +37,7 @@ class CronService {
     }
 
     try {
-      Map validationResult = echoService.validateCronExpression(cronExpression)
+      Map validationResult = Retrofit2SyncCall.execute(echoService.validateCronExpression(cronExpression))
       return [ valid: true, description: validationResult.description ]
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 400) {

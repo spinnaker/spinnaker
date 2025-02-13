@@ -30,6 +30,7 @@ import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
 import com.netflix.spinnaker.gate.services.internal.EchoService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -101,7 +102,7 @@ class EchoServiceTest {
     body.put("after", "c2420ce6e341ef0042f2e12591bdbe9eec29a032");
     body.put("id", 105648914);
 
-    echoService.webhooks("git", "github", body);
+    Retrofit2SyncCall.executeCall(echoService.webhooks("git", "github", body));
 
     String expectedBody =
         "{\"ref\":\"refs/heads/main\",\"before\":\"ca7376e4b730f1f2878760abaeaed6c039fc5414\",\"after\":\"c2420ce6e341ef0042f2e12591bdbe9eec29a032\",\"id\":105648914}";

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.controllers;
 import com.netflix.spinnaker.gate.services.BuildService;
 import com.netflix.spinnaker.gate.services.internal.GoogleCloudBuildTrigger;
 import com.netflix.spinnaker.gate.services.internal.IgorService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ public class GoogleCloudBuildController {
   @Operation(summary = "Retrieve the list of Google Cloud Build accounts")
   @GetMapping(value = "/accounts")
   List<String> getAccounts() {
-    return igorService.getGoogleCloudBuildAccounts();
+    return Retrofit2SyncCall.execute(igorService.getGoogleCloudBuildAccounts());
   }
 
   @Operation(summary = "Retrieve the list of Google Cloud Build triggers for a given account")

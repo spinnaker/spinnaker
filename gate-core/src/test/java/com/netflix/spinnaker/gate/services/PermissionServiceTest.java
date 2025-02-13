@@ -45,12 +45,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.converter.ConversionException;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.mock.Calls;
 
 public class PermissionServiceTest {
 
@@ -71,7 +75,7 @@ public class PermissionServiceTest {
   private static Stream<TestCase> testCasesForRetryable() {
     return Stream.of(
         new TestCase(httpError(400), false),
-        new TestCase(conversionError(200), false),
+        new TestCase(conversionError(), false),
         new TestCase(networkError(), null),
         new TestCase(httpError(500), true),
         new TestCase(unexpectedError(), null));
@@ -196,10 +200,13 @@ public class PermissionServiceTest {
       when(user.getUsername()).thenReturn(params.username);
     }
     when(fiatStatus.isEnabled()).thenReturn(params.fiatEnabled);
-    if (!params.lookupResultEmpty) {
-      when(extendedFiatService.getUserServiceAccounts(params.username))
-          .thenReturn(List.of(sa("foo-service-account", params.application, params.auths)));
-    }
+
+    when(extendedFiatService.getUserServiceAccounts(params.username))
+        .thenReturn(
+            Calls.response(
+                params.lookupResultEmpty
+                    ? List.of()
+                    : List.of(sa("foo-service-account", params.application, params.auths))));
 
     PermissionService permissionService =
         new PermissionService(null, extendedFiatService, cfgProps, permissionEvaluator, fiatStatus);
@@ -244,35 +251,36 @@ public class PermissionServiceTest {
     return userPermission.getView();
   }
 
-  private static Throwable conversionError(int code) {
-    RetrofitError re =
-        RetrofitError.conversionError(
-            "http://foo",
-            new Response("http://foo", code, "you are bad", List.of(), null),
-            null,
-            null,
-            new ConversionException("boom"));
-    return new SpinnakerConversionException(re);
+  private static Throwable conversionError() {
+    Request request = new Request.Builder().url("http://some-url").build();
+    return new SpinnakerConversionException("you are bad", new Throwable(), request);
   }
 
   private static SpinnakerNetworkException networkError() {
     return new SpinnakerNetworkException(
-        RetrofitError.networkError("http://foo", new IOException()));
+        new IOException("network error"), new Request.Builder().url("http://some-url").build());
   }
 
   private static Throwable unexpectedError() {
     return new SpinnakerServerException(
-        RetrofitError.unexpectedError("http://foo", new Throwable()));
+        new Throwable(), new Request.Builder().url("http://some-url").build());
   }
 
   private static Throwable httpError(int code) {
-    RetrofitError re =
-        RetrofitError.httpError(
-            "http://foo",
-            new Response("http://foo", code, "you are bad", List.of(), null),
-            null,
-            null);
-    return new SpinnakerHttpException(re);
+    String url = "https://some-url";
+    Response<Object> retrofit2Response =
+        Response.error(
+            code,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"));
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 
   private static class TestCase {

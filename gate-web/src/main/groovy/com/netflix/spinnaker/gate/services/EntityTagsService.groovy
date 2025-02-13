@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -31,10 +32,10 @@ class EntityTagsService {
   ClouddriverServiceSelector clouddriverServiceSelector
 
   List<Map> list(@RequestParam Map<String, Object> allParameters, String selectorKey) {
-    clouddriverServiceSelector.select().listEntityTags(allParameters)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().listEntityTags(allParameters))
   }
 
   Map get(String id, String selectorKey) {
-    clouddriverServiceSelector.select().getEntityTags(id)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getEntityTags(id))
   }
 }

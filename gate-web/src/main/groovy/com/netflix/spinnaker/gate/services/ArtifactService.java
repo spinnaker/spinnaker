@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.gate.services.internal.IgorService;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import groovy.transform.CompileStatic;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,25 +44,30 @@ public class ArtifactService {
   }
 
   public List<Map> getArtifactCredentials(String selectorKey) {
-    return clouddriverServiceSelector.select().getArtifactCredentials();
+    return Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getArtifactCredentials());
   }
 
   public List<String> getArtifactNames(String selectorKey, String accountName, String type) {
-    return clouddriverServiceSelector.select().getArtifactNames(accountName, type);
+    return Retrofit2SyncCall.execute(
+        clouddriverServiceSelector.select().getArtifactNames(accountName, type));
   }
 
   public List<String> getArtifactVersions(
       String selectorKey, String accountName, String type, String artifactName) {
-    return clouddriverServiceSelector.select().getArtifactVersions(accountName, type, artifactName);
+    return Retrofit2SyncCall.execute(
+        clouddriverServiceSelector.select().getArtifactVersions(accountName, type, artifactName));
   }
 
   public InputStream getArtifactContents(String selectorKey, Map<String, String> artifact)
       throws IOException {
-    return clouddriverServiceSelector.select().getArtifactContent(artifact).getBody().in();
+    return Retrofit2SyncCall.execute(
+            clouddriverServiceSelector.select().getArtifactContent(artifact))
+        .byteStream();
   }
 
   public Artifact.StoredView getStoredArtifact(String application, String hash) {
-    return clouddriverServiceSelector.select().getStoredArtifact(application, hash);
+    return Retrofit2SyncCall.execute(
+        clouddriverServiceSelector.select().getStoredArtifact(application, hash));
   }
 
   public List<String> getVersionsOfArtifactForProvider(
@@ -71,7 +77,8 @@ public class ArtifactService {
           "Cannot fetch artifact versions because Igor is not enabled.");
     }
 
-    return igorService.get().getArtifactVersions(provider, packageName, releaseStatus);
+    return Retrofit2SyncCall.execute(
+        igorService.get().getArtifactVersions(provider, packageName, releaseStatus));
   }
 
   public Map<String, Object> getArtifactByVersion(
@@ -81,6 +88,7 @@ public class ArtifactService {
           "Cannot fetch artifact versions because Igor is not enabled.");
     }
 
-    return igorService.get().getArtifactByVersion(provider, packageName, version);
+    return Retrofit2SyncCall.execute(
+        igorService.get().getArtifactByVersion(provider, packageName, version));
   }
 }

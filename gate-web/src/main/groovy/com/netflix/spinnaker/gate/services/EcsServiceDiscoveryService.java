@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,6 @@ public class EcsServiceDiscoveryService {
   }
 
   public List<Map> getAllEcsServiceDiscoveryRegistries() {
-    return clouddriver.getAllEcsServiceDiscoveryRegistries();
+    return Retrofit2SyncCall.execute(clouddriver.getAllEcsServiceDiscoveryRegistries());
   }
 }

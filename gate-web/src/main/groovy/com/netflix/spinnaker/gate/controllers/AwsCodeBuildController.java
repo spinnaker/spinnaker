@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.internal.IgorService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +35,12 @@ public class AwsCodeBuildController {
   @Operation(summary = "Retrieve the list of AWS CodeBuild accounts")
   @GetMapping(value = "/accounts")
   List<String> getAccounts() {
-    return igorService.getAwsCodeBuildAccounts();
+    return Retrofit2SyncCall.execute(igorService.getAwsCodeBuildAccounts());
   }
 
   @Operation(summary = "Retrieve the list of AWS CodeBuild projects in the account")
   @GetMapping(value = "/projects/{account}")
   List<String> getProjects(@PathVariable String account) {
-    return igorService.getAwsCodeBuildProjects(account);
+    return Retrofit2SyncCall.execute(igorService.getAwsCodeBuildProjects(account));
   }
 }

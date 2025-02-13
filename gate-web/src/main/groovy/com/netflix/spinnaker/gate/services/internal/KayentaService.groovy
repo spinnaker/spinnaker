@@ -16,50 +16,58 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-import retrofit.client.Response
-import retrofit.http.*
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
+
 
 interface KayentaService {
   @GET("/credentials")
-  List getCredentials()
+  Call<List> getCredentials()
 
   @GET("/canaryConfig")
-  List getCanaryConfigs(@Query("application") String application,
+  Call<List> getCanaryConfigs(@Query("application") String application,
                         @Query("configurationAccountName") String configurationAccountName)
 
   @GET("/canaryConfig/{id}")
-  Map getCanaryConfig(@Path("id") String id,
+  Call<Map> getCanaryConfig(@Path("id") String id,
                       @Query("configurationAccountName") String configurationAccountName)
 
   @POST("/canaryConfig")
-  Map createCanaryConfig(@Body Map config,
+  Call<Map> createCanaryConfig(@Body Map config,
                          @Query("configurationAccountName") String configurationAccountName)
 
   @PUT("/canaryConfig/{id}")
-  Map updateCanaryConfig(@Path("id") String id,
+  Call<Map> updateCanaryConfig(@Path("id") String id,
                          @Body Map config,
                          @Query("configurationAccountName") String configurationAccountName)
 
   @DELETE("/canaryConfig/{id}")
-  Response deleteCanaryConfig(@Path("id") String id,
-                              @Query("configurationAccountName") String configurationAccountName)
+  Call<ResponseBody> deleteCanaryConfig(@Path("id") String id,
+                                        @Query("configurationAccountName") String configurationAccountName)
 
   @GET("/metadata/metricsService")
-  List listMetricsServiceMetadata(@Query("filter") String filter,
+  Call<List> listMetricsServiceMetadata(@Query("filter") String filter,
                                   @Query("metricsAccountName") String metricsAccountName)
 
   @GET("/judges")
-  List listJudges()
+  Call<List> listJudges()
 
   @POST("/canary")
-  Map initiateCanaryWithConfig(@Body Map adhocExecutionRequest,
+  Call<Map> initiateCanaryWithConfig(@Body Map adhocExecutionRequest,
                                @Query("application") String application,
                                @Query("parentPipelineExecutionId") String parentPipelineExecutionId,
                                @Query("metricsAccountName") String metricsAccountName,
                                @Query("storageAccountName") String storageAccountName)
 
   @POST("/canary/{canaryConfigId}")
-  Map initiateCanary(@Path("canaryConfigId") String canaryConfigId,
+  Call<Map> initiateCanary(@Path("canaryConfigId") String canaryConfigId,
                      @Body Map executionRequest,
                      @Query("application") String application,
                      @Query("parentPipelineExecutionId") String parentPipelineExecutionId,
@@ -68,17 +76,17 @@ interface KayentaService {
                      @Query("configurationAccountName") String configurationAccountName)
 
   @GET("/canary/{canaryExecutionId}")
-  Map getCanaryResult(@Path("canaryExecutionId") String canaryExecutionId,
+  Call<Map> getCanaryResult(@Path("canaryExecutionId") String canaryExecutionId,
                       @Query("storageAccountName") String storageAccountName)
 
   @GET("/canary/executions")
-  List getCanaryResultsByApplication(@Query("application") String application,
+  Call<List> getCanaryResultsByApplication(@Query("application") String application,
                                      @Query("limit") int limit,
                                      @Query("page") int page,
                                      @Query("statuses") String statuses,
                                      @Query("storageAccountName") String storageAccountName)
 
   @GET("/metricSetPairList/{metricSetPairListId}")
-  List getMetricSetPairList(@Path("metricSetPairListId") metricSetPairListId,
+  Call<List> getMetricSetPairList(@Path("metricSetPairListId") metricSetPairListId,
                             @Query("accountName") String storageAccountName)
 }

@@ -13,6 +13,7 @@ import com.netflix.spinnaker.gate.services.internal.SwabbieService
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import io.swagger.v3.oas.annotations.Operation
@@ -48,33 +49,33 @@ class PluginsInstalledController(
   @RequestMapping(method = [RequestMethod.GET])
   fun getInstalledPlugins(@RequestParam(value = "service", required = false) service: String?): Map<String, List<SpinnakerPluginDescriptor>> {
     return when (service) {
-      clouddriver -> mutableMapOf(Pair(service, callService { clouddriverService.installedPlugins }))
+      clouddriver -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(clouddriverService.installedPlugins) }))
       deck -> mutableMapOf(Pair(service, deckPlugins()))
-      echo -> if (echoService.ifAvailable != null) mutableMapOf(Pair(service, callService { echoService.ifAvailable!!.installedPlugins })) else emptyMap()
-      fiat -> mutableMapOf(Pair(service, callService { fiatService.installedPlugins }))
-      front50 -> mutableMapOf(Pair(service, callService { front50Service.installedPlugins }))
+      echo -> if (echoService.ifAvailable != null) mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(echoService.ifAvailable!!.installedPlugins) })) else emptyMap()
+      fiat -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(fiatService.installedPlugins) }))
+      front50 -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(front50Service.installedPlugins) }))
       gate -> mutableMapOf(Pair(service, gatePlugins()))
-      igor -> if (igorService.ifAvailable != null) mutableMapOf(Pair(service, callService { igorService.ifAvailable!!.installedPlugins })) else emptyMap()
-      keel -> if (keelService.ifAvailable != null) mutableMapOf(Pair(service, callService { keelService.ifAvailable!!.installedPlugins })) else emptyMap()
-      orca -> mutableMapOf(Pair(service, callService { orcaServiceSelector.select().installedPlugins }))
-      rosco -> if (roscoService.ifAvailable != null) mutableMapOf(Pair(service, callService { roscoService.ifAvailable!!.installedPlugins })) else emptyMap()
-      swabbie -> if (swabbieService.ifAvailable != null) mutableMapOf(Pair(service, callService { swabbieService.ifAvailable!!.installedPlugins })) else emptyMap()
+      igor -> if (igorService.ifAvailable != null) mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(igorService.ifAvailable!!.installedPlugins) })) else emptyMap()
+      keel -> if (keelService.ifAvailable != null) mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(keelService.ifAvailable!!.installedPlugins) })) else emptyMap()
+      orca -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(orcaServiceSelector.select().installedPlugins) }))
+      rosco -> if (roscoService.ifAvailable != null) mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(roscoService.ifAvailable!!.installedPlugins) })) else emptyMap()
+      swabbie -> if (swabbieService.ifAvailable != null) mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(swabbieService.ifAvailable!!.installedPlugins) })) else emptyMap()
       else -> {
-        val echoPair = if (echoService.ifAvailable != null) Pair(echo, callService { echoService.ifAvailable!!.installedPlugins }) else Pair(echo, emptyList())
-        val igorPair = if (igorService.ifAvailable != null) Pair(igor, callService { igorService.ifAvailable!!.installedPlugins }) else Pair(igor, emptyList())
-        val keelPair = if (keelService.ifAvailable != null) Pair(keel, callService { keelService.ifAvailable!!.installedPlugins }) else Pair(keel, emptyList())
-        val roscoPair = if (roscoService.ifAvailable != null) Pair(rosco, callService { roscoService.ifAvailable!!.installedPlugins }) else Pair(rosco, emptyList())
-        val swabbiePair = if (swabbieService.ifAvailable != null) Pair(swabbie, callService { swabbieService.ifAvailable!!.installedPlugins }) else Pair(swabbie, emptyList())
+        val echoPair = if (echoService.ifAvailable != null) Pair(echo, callService { Retrofit2SyncCall.execute(echoService.ifAvailable!!.installedPlugins) }) else Pair(echo, emptyList())
+        val igorPair = if (igorService.ifAvailable != null) Pair(igor, callService { Retrofit2SyncCall.execute(igorService.ifAvailable!!.installedPlugins) }) else Pair(igor, emptyList())
+        val keelPair = if (keelService.ifAvailable != null) Pair(keel, callService { Retrofit2SyncCall.execute(keelService.ifAvailable!!.installedPlugins) }) else Pair(keel, emptyList())
+        val roscoPair = if (roscoService.ifAvailable != null) Pair(rosco, callService { Retrofit2SyncCall.execute(roscoService.ifAvailable!!.installedPlugins) }) else Pair(rosco, emptyList())
+        val swabbiePair = if (swabbieService.ifAvailable != null) Pair(swabbie, callService { Retrofit2SyncCall.execute(swabbieService.ifAvailable!!.installedPlugins) }) else Pair(swabbie, emptyList())
         mutableMapOf(
-          Pair(clouddriver, callService { clouddriverService.installedPlugins }),
+          Pair(clouddriver, callService { Retrofit2SyncCall.execute(clouddriverService.installedPlugins) }),
           Pair(deck, deckPlugins()),
           echoPair,
-          Pair(fiat, callService { fiatService.installedPlugins }),
-          Pair(front50, callService { front50Service.installedPlugins }),
+          Pair(fiat, callService { Retrofit2SyncCall.execute(fiatService.installedPlugins) }),
+          Pair(front50, callService { Retrofit2SyncCall.execute(front50Service.installedPlugins) }),
           Pair(gate, gatePlugins()),
           igorPair,
           keelPair,
-          Pair(orca, callService { orcaServiceSelector.select().installedPlugins }),
+          Pair(orca, callService { Retrofit2SyncCall.execute(orcaServiceSelector.select().installedPlugins) }),
           roscoPair,
           swabbiePair
         ).toSortedMap()

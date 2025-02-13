@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
@@ -37,16 +38,16 @@ class ClusterService {
   ProviderLookupService providerLookupService
 
   Map getClusters(String app, String selectorKey) {
-    clouddriverServiceSelector.select().getClusters(app)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getClusters(app))
   }
 
   List<Map> getClustersForAccount(String app, String account, String selectorKey) {
-    clouddriverServiceSelector.select().getClustersForAccount(app, account)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getClustersForAccount(app, account))
   }
 
   Map getCluster(String app, String account, String clusterName, String selectorKey) {
     try {
-      clouddriverServiceSelector.select().getCluster(app, account, clusterName)?.getAt(0) as Map
+      Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getCluster(app, account, clusterName))?.getAt(0) as Map
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         return [:]
@@ -60,12 +61,12 @@ class ClusterService {
   }
 
   List<Map> getScalingActivities(String app, String account, String clusterName, String serverGroupName, String provider, String region, String selectorKey) {
-    clouddriverServiceSelector.select().getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getScalingActivities(app, account, clusterName, provider, serverGroupName, region))
   }
 
   Map getTargetServerGroup(String app, String account, String clusterName, String cloudProviderType, String scope, String target, Boolean onlyEnabled, Boolean validateOldest, String selectorKey) {
     try {
-      return clouddriverServiceSelector.select().getTargetServerGroup(app, account, clusterName, cloudProviderType, scope, target, onlyEnabled, validateOldest)
+      return Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getTargetServerGroup(app, account, clusterName, cloudProviderType, scope, target, onlyEnabled, validateOldest))
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         throw new ServerGroupNotFound("unable to find $target in $cloudProviderType/$account/$scope/$clusterName")

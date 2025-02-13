@@ -3,14 +3,14 @@ package com.netflix.spinnaker.gate.services.internal;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import java.util.List;
 import java.util.Map;
-import retrofit.http.EncodedPath;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface IgorService {
   @GET("/masters")
-  List<String> getBuildMasters();
+  Call<List<String>> getBuildMasters();
 
   /**
    * Get build masters
@@ -20,74 +20,76 @@ public interface IgorService {
    * @return
    */
   @GET("/masters")
-  List<String> getBuildMasters(@Query("type") String type);
+  Call<List<String>> getBuildMasters(@Query("type") String type);
 
   @GET("/jobs/{buildMaster}")
-  List<String> getJobsForBuildMaster(@Path("buildMaster") String buildMaster);
+  Call<List<String>> getJobsForBuildMaster(@Path("buildMaster") String buildMaster);
 
   @GET("/jobs/{buildMaster}/{job}")
-  Map getJobConfig(@Path("buildMaster") String buildMaster, @EncodedPath("job") String job);
+  Call<Map> getJobConfig(
+      @Path("buildMaster") String buildMaster, @Path(value = "job", encoded = true) String job);
 
   @GET("/builds/all/{buildMaster}/{job}")
-  List<Map> getBuilds(@Path("buildMaster") String buildMaster, @EncodedPath("job") String job);
+  Call<List<Map>> getBuilds(
+      @Path("buildMaster") String buildMaster, @Path(value = "job", encoded = true) String job);
 
   @GET("/builds/status/{number}/{buildMaster}/{job}")
-  Map getBuild(
+  Call<Map> getBuild(
       @Path("buildMaster") String buildMaster,
-      @EncodedPath("job") String job,
+      @Path(value = "job", encoded = true) String job,
       @Path("number") String number);
 
   @GET("/artifactory/names")
-  List<String> getArtifactoryNames();
+  Call<List<String>> getArtifactoryNames();
 
   @GET("/nexus/names")
-  List<String> getNexusNames();
+  Call<List<String>> getNexusNames();
 
   @GET("/concourse/{buildMaster}/teams")
-  List<String> getConcourseTeams(@Path("buildMaster") String buildMaster);
+  Call<List<String>> getConcourseTeams(@Path("buildMaster") String buildMaster);
 
   @GET("/concourse/{buildMaster}/teams/{team}/pipelines")
-  List<String> getConcoursePipelines(
+  Call<List<String>> getConcoursePipelines(
       @Path("buildMaster") String buildMaster, @Path("team") String team);
 
   @GET("/concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/jobs")
-  List<String> getConcourseJobs(
+  Call<List<String>> getConcourseJobs(
       @Path("buildMaster") String buildMaster,
       @Path("team") String team,
       @Path("pipeline") String pipeline);
 
   @GET("/gcb/accounts")
-  List<String> getGoogleCloudBuildAccounts();
+  Call<List<String>> getGoogleCloudBuildAccounts();
 
   @GET("/gcb/triggers/{account}")
-  List<GoogleCloudBuildTrigger> getGoogleCloudBuildTriggers(@Path("account") String account);
+  Call<List<GoogleCloudBuildTrigger>> getGoogleCloudBuildTriggers(@Path("account") String account);
 
   @GET("/codebuild/accounts")
-  List<String> getAwsCodeBuildAccounts();
+  Call<List<String>> getAwsCodeBuildAccounts();
 
   @GET("/codebuild/projects/{account}")
-  List<String> getAwsCodeBuildProjects(@Path("account") String account);
+  Call<List<String>> getAwsCodeBuildProjects(@Path("account") String account);
 
   @GET("/artifacts/{provider}/{packageName}")
-  List<String> getArtifactVersions(
+  Call<List<String>> getArtifactVersions(
       @Path("provider") String provider,
       @Path("packageName") String packageName,
       @Query("releaseStatus") String releaseStatus);
 
   @GET("/artifacts/{provider}/{packageName}/{version}")
-  Map<String, Object> getArtifactByVersion(
+  Call<Map<String, Object>> getArtifactByVersion(
       @Path("provider") String provider,
       @Path("packageName") String packageName,
       @Path("version") String version);
 
   @GET("/concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/resources")
-  List<String> getConcourseResources(
+  Call<List<String>> getConcourseResources(
       @Path("buildMaster") String buildMaster,
       @Path("team") String team,
       @Path("pipeline") String pipeline);
 
   @GET("/ci/builds")
-  List<Map<String, Object>> getBuilds(
+  Call<List<Map<String, Object>>> getBuilds(
       @Query("projectKey") String projectKey,
       @Query("repoSlug") String repoSlug,
       @Query("completionStatus") String completionStatus,
@@ -95,8 +97,8 @@ public interface IgorService {
       @Query("commitId") String commitId);
 
   @GET("/ci/builds/{buildId}/output")
-  Map<String, Object> getBuildOutput(@Path("buildId") String buildId);
+  Call<Map<String, Object>> getBuildOutput(@Path("buildId") String buildId);
 
   @GET("/installedPlugins")
-  List<SpinnakerPluginDescriptor> getInstalledPlugins();
+  Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 }

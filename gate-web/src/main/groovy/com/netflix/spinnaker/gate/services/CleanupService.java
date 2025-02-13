@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.SwabbieService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +33,7 @@ public class CleanupService {
 
   public Map optOut(String namespace, String resourceId) {
     try {
-      return swabbieService.optOut(namespace, resourceId, "");
+      return Retrofit2SyncCall.execute(swabbieService.optOut(namespace, resourceId, ""));
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() == 404) {
         return Collections.emptyMap();
@@ -43,7 +44,7 @@ public class CleanupService {
 
   public Map get(String namespace, String resourceId) {
     try {
-      return swabbieService.get(namespace, resourceId);
+      return Retrofit2SyncCall.execute(swabbieService.get(namespace, resourceId));
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() == 404) {
         return Collections.emptyMap();
@@ -53,10 +54,10 @@ public class CleanupService {
   }
 
   public List getMarkedList() {
-    return swabbieService.getMarkedList(true);
+    return Retrofit2SyncCall.execute(swabbieService.getMarkedList(true));
   }
 
   public List getDeletedList() {
-    return swabbieService.getDeletedList();
+    return Retrofit2SyncCall.execute(swabbieService.getDeletedList());
   }
 }
