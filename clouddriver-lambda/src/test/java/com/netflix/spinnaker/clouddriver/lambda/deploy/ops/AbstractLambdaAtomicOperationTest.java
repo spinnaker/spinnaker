@@ -37,7 +37,7 @@ class AbstractLambdaAtomicOperationTest {
     InvokeLambdaFunctionDescription desc = new InvokeLambdaFunctionDescription();
     desc.setRegion("someplace");
     NetflixAmazonCredentials creds = mock(NetflixAmazonCredentials.class);
-    when(creds.getLambdaEnabled()).thenReturn(true);
+    when(creds.isLambdaEnabled()).thenReturn(true);
     desc.setCredentials(creds);
     AbstractLambdaAtomicOperation<
             InvokeLambdaFunctionDescription, InvokeLambdaFunctionOutputDescription>
@@ -66,7 +66,7 @@ class AbstractLambdaAtomicOperationTest {
     InvokeLambdaFunctionDescription desc = new InvokeLambdaFunctionDescription();
     desc.setRegion("someplace");
     NetflixAmazonCredentials creds = mock(NetflixAmazonCredentials.class);
-    when(creds.getLambdaEnabled()).thenReturn(true);
+    when(creds.isLambdaEnabled()).thenReturn(true);
     desc.setCredentials(creds);
     AbstractLambdaAtomicOperation<
             InvokeLambdaFunctionDescription, InvokeLambdaFunctionOutputDescription>

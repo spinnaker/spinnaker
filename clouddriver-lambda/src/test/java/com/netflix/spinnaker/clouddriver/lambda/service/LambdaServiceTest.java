@@ -32,7 +32,7 @@ class LambdaServiceTest {
 
   @BeforeEach
   public void makeSureBaseSettings() {
-    when(netflixAmazonCredentials.getLambdaEnabled()).thenReturn(true);
+    when(netflixAmazonCredentials.isLambdaEnabled()).thenReturn(true);
   }
 
   @Test

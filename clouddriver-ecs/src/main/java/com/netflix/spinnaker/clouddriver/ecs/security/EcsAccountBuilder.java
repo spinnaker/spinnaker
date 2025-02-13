@@ -36,18 +36,18 @@ public class EcsAccountBuilder {
     account.setAccountId(netflixAmazonCredentials.getAccountId());
     account.setAllowPrivateThirdPartyImages(
         netflixAmazonCredentials.getAllowPrivateThirdPartyImages());
-    account.setBastionEnabled(netflixAmazonCredentials.getBastionEnabled());
+    account.setBastionEnabled(netflixAmazonCredentials.isBastionEnabled());
     account.setBastionHost(netflixAmazonCredentials.getBastionHost());
     account.setEdda(account.getEdda());
 
-    account.setDiscoveryEnabled(netflixAmazonCredentials.getDiscoveryEnabled());
+    account.setDiscoveryEnabled(netflixAmazonCredentials.isDiscoveryEnabled());
     account.setDiscovery(netflixAmazonCredentials.getDiscovery());
     account.setDefaultKeyPair(netflixAmazonCredentials.getDefaultKeyPair());
     account.setDefaultSecurityGroups(netflixAmazonCredentials.getDefaultSecurityGroups());
-    account.setEddaEnabled(netflixAmazonCredentials.getEddaEnabled());
+    account.setEddaEnabled(netflixAmazonCredentials.isEddaEnabled());
     account.setEnvironment(netflixAmazonCredentials.getEnvironment());
     account.setFront50(netflixAmazonCredentials.getFront50());
-    account.setFront50Enabled(netflixAmazonCredentials.getFront50Enabled());
+    account.setFront50Enabled(netflixAmazonCredentials.isFront50Enabled());
     account.setRequiredGroupMembership(netflixAmazonCredentials.getRequiredGroupMembership());
 
     // TODO - The lines below should be conditional on having an AssumeRole

@@ -62,9 +62,9 @@ class CredentialsLoaderSpec extends Specification {
             cred.defaultKeyPair == 'nf-prod-keypair-a'
             cred.regions.size() == 2
             cred.regions.find { it.name == 'us-east-1' }.availabilityZones.size() == 3
-            cred.regions.find { it.name == 'us-east-1' }.deprecated == false
+          (!cred.regions.find { it.name == 'us-east-1' }.deprecated)
             cred.regions.find { it.name == 'us-west-2' }.availabilityZones.size() == 2
-            cred.regions.find { it.name == 'us-west-2' }.deprecated == false
+          (!cred.regions.find { it.name == 'us-west-2' }.deprecated)
             cred.credentialsProvider == provider
         }
         with(creds.find { it.name == 'test' }) { AmazonCredentials cred ->
@@ -72,7 +72,7 @@ class CredentialsLoaderSpec extends Specification {
           cred.defaultKeyPair == 'nf-test-keypair-a'
           cred.regions.size() == 1
           cred.regions.find { it.name == 'us-west-2' }.availabilityZones.size() == 2
-          cred.regions.find { it.name == 'us-west-2' }.deprecated == true
+          cred.regions.find { it.name == 'us-west-2' }.deprecated
           cred.credentialsProvider == provider
         }
         0 * _
@@ -277,6 +277,7 @@ class CredentialsLoaderSpec extends Specification {
       defaultKeyPairTemplate: 'nf-{{name}}-keypair-a',
       defaultAssumeRole: 'role/asgard',
       defaultSessionName: 'spinnaker',
+      defaultSessionDurationSeconds: 4321,
       defaultLifecycleHookRoleARNTemplate: 'arn:aws:iam::{{accountId}}:role/my-notification-role',
       defaultLifecycleHookNotificationTargetARNTemplate: 'arn:aws:sns:{{region}}:{{accountId}}:my-sns-topic'
     )
@@ -290,6 +291,7 @@ class CredentialsLoaderSpec extends Specification {
         assumeRole: 'role/spinnakerManaged',
         externalId: '56789',
         sessionName: 'spinnakerManaged',
+        sessionDurationSeconds: 1234,
         lifecycleHooks: [
           new LifecycleHook(
             lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
@@ -319,6 +321,7 @@ class CredentialsLoaderSpec extends Specification {
       cred.assumeRole == 'role/spinnakerManaged'
       cred.externalId == '56789'
       cred.sessionName == 'spinnakerManaged'
+      cred.sessionDurationSeconds == 1234
       cred.lifecycleHooks.size() == 1
       cred.lifecycleHooks.first().roleARN == 'arn:aws:iam::12345:role/my-notification-role'
       cred.lifecycleHooks.first().notificationTargetARN == 'arn:aws:sns:{{region}}:12345:my-sns-topic'
@@ -360,12 +363,13 @@ class CredentialsLoaderSpec extends Specification {
       cred.defaultKeyPair == 'nf-prod-keypair-a'
       cred.regions.size() == 2
       cred.regions.find { it.name == 'us-east-1' }.availabilityZones.size() == 3
-      cred.regions.find { it.name == 'us-east-1' }.deprecated == false
+      (!cred.regions.find { it.name == 'us-east-1' }.deprecated)
       cred.regions.find { it.name == 'us-west-2' }.availabilityZones.size() == 2
-      cred.regions.find { it.name == 'us-west-2' }.deprecated == false
+      (!cred.regions.find { it.name == 'us-west-2' }.deprecated)
       cred.assumeRole == 'role/asgard'
       cred.externalId == null
       cred.sessionName == 'spinnaker'
+      cred.sessionDurationSeconds == null
     }
     0 * _
   }

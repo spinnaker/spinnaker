@@ -196,7 +196,7 @@ public class ProviderHelpers {
               new AmazonCloudFormationCachingAgent(
                   amazonClientProvider, credentials, region.getName(), registry));
         }
-        if (credentials.getEddaEnabled()
+        if (credentials.isEddaEnabled()
             && !eddaTimeoutConfig.getDisabledRegions().contains(region.getName())) {
           newlyAddedAgents.add(
               new EddaLoadBalancerCachingAgent(

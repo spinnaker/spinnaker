@@ -70,6 +70,7 @@ public class AccountsConfiguration {
     @Include private Boolean bastionEnabled;
     @Include private String assumeRole;
     @Include private String sessionName;
+    @Include private Integer sessionDurationSeconds;
     @Include private String externalId;
     @Include private List<CredentialsConfig.LifecycleHook> lifecycleHooks;
     @Include private boolean allowPrivateThirdPartyImages;
@@ -238,6 +239,14 @@ public class AccountsConfiguration {
 
     public void setSessionName(String sessionName) {
       this.sessionName = sessionName;
+    }
+
+    public Integer getSessionDurationSeconds() {
+      return sessionDurationSeconds;
+    }
+
+    public void setSessionDurationSeconds(Integer sessionDurationSeconds) {
+      this.sessionDurationSeconds = sessionDurationSeconds;
     }
 
     public String getExternalId() {

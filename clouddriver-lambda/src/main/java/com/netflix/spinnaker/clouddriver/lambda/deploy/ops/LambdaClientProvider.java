@@ -63,7 +63,7 @@ public class LambdaClientProvider {
       clientConfiguration.setMaxErrorRetry(operationsConfig.getRetry().getRetries());
     }
 
-    if (!credentials.getLambdaEnabled()) {
+    if (!credentials.isLambdaEnabled()) {
       throw new InvalidAccountException("AWS Lambda is not enabled for provided account. \n");
     }
     // Note this is a CACHED response call.  AKA the clientConfig is ONLY set when this is first

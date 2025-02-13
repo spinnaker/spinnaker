@@ -20,14 +20,18 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
+import lombok.Getter;
 
 /** @see AssumeRoleAmazonCredentials */
+@Getter
 public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials {
 
   /** The role to assume on the target account. */
   private final String assumeRole;
 
   private final String sessionName;
+
+  private final Integer sessionDurationSeconds;
 
   private final String externalId;
 
@@ -55,6 +59,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
       @JsonProperty("shieldEnabled") Boolean shieldEnabled,
       @JsonProperty("assumeRole") String assumeRole,
       @JsonProperty("sessionName") String sessionName,
+      @JsonProperty("sessionDurationSeconds") Integer sessionDurationSeconds,
       @JsonProperty("lambdaEnabled") Boolean lambdaEnabled,
       @JsonProperty("externalId") String externalId) {
 
@@ -83,6 +88,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
         shieldEnabled,
         assumeRole,
         sessionName,
+        sessionDurationSeconds,
         lambdaEnabled,
         externalId);
   }
@@ -104,17 +110,18 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
         copy.getAllowPrivateThirdPartyImages(),
         credentialsProvider,
         copy.getEdda(),
-        copy.getEddaEnabled(),
+        copy.isEddaEnabled(),
         copy.getDiscovery(),
-        copy.getDiscoveryEnabled(),
+        copy.isDiscoveryEnabled(),
         copy.getFront50(),
-        copy.getFront50Enabled(),
+        copy.isFront50Enabled(),
         copy.getBastionHost(),
-        copy.getBastionEnabled(),
-        copy.getShieldEnabled(),
+        copy.isBastionEnabled(),
+        copy.isShieldEnabled(),
         copy.getAssumeRole(),
         copy.getSessionName(),
-        copy.getLambdaEnabled(),
+        copy.getSessionDurationSeconds(),
+        copy.isLambdaEnabled(),
         copy.getExternalId());
   }
 
@@ -143,6 +150,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
       Boolean shieldEnabled,
       String assumeRole,
       String sessionName,
+      Integer sessionDurationSeconds,
       Boolean lambdaEnabled,
       String externalId) {
     super(
@@ -163,6 +171,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
             accountId,
             assumeRole,
             sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName,
+            sessionDurationSeconds,
             externalId),
         edda,
         eddaEnabled,
@@ -177,18 +186,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
     this.assumeRole = assumeRole;
     this.sessionName =
         sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName;
+    this.sessionDurationSeconds = sessionDurationSeconds;
     this.externalId = externalId;
-  }
-
-  public String getAssumeRole() {
-    return assumeRole;
-  }
-
-  public String getSessionName() {
-    return sessionName;
-  }
-
-  public String getExternalId() {
-    return externalId;
   }
 }

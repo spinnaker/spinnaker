@@ -380,6 +380,10 @@ public class AmazonCredentialsParser<
     account.setSessionName(
         templateFirstNonNull(
             templateContext, account.getSessionName(), config.getDefaultSessionName()));
+    account.setSessionDurationSeconds(
+        account.getSessionDurationSeconds() != null
+            ? account.getSessionDurationSeconds()
+            : config.getDefaultSessionDurationSeconds());
     account.setBastionHost(
         templateFirstNonNull(
             templateContext, account.getBastionHost(), config.getDefaultBastionHostTemplate()));

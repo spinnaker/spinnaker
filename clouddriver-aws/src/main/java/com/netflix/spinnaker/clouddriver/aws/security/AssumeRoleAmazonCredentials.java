@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
 import java.util.Objects;
+import lombok.Getter;
 
 /**
  * Provides an Amazon credential pack that uses Assume Role
@@ -37,11 +38,12 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
       String accountId,
       String assumeRole,
       String sessionName,
+      Integer sessionDurationSeconds,
       String externalId) {
     String assumeRoleValue = Objects.requireNonNull(assumeRole, "assumeRole");
     if (!assumeRoleValue.startsWith("arn:")) {
 
-      /**
+      /*
        * GovCloud and China regions need to have the full arn passed because of differing formats
        * Govcloud: arn:aws-us-gov:iam China: arn:aws-cn:iam Longer term fix is to have separate
        * providers for aws-ec2-gov and aws-ec2-cn since their IAM realms are separate from standard
@@ -58,16 +60,19 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
             credentialsProvider,
             assumeRoleValue,
             Objects.requireNonNull(sessionName, "sessionName"),
+            sessionDurationSeconds,
             accountId,
             externalId);
   }
 
   /** The role to assume on the target account. */
-  private final String assumeRole;
+  @Getter private final String assumeRole;
 
-  private final String sessionName;
+  @Getter private final String sessionName;
 
-  private final String externalId;
+  @Getter private final Integer sessionDurationSeconds;
+
+  @Getter private final String externalId;
 
   public AssumeRoleAmazonCredentials(
       @JsonProperty("name") String name,
@@ -84,6 +89,7 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
       @JsonProperty("allowPrivateThirdPartyImages") boolean allowPrivateThirdPartyImages,
       @JsonProperty("assumeRole") String assumeRole,
       @JsonProperty("sessionName") String sessionName,
+      @JsonProperty("sessionDurationSeconds") Integer sessionDurationSeconds,
       @JsonProperty("externalId") String externalId) {
     this(
         name,
@@ -101,6 +107,7 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
         null,
         assumeRole,
         sessionName,
+        sessionDurationSeconds,
         externalId);
   }
 
@@ -122,6 +129,7 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
         credentialsProvider,
         copy.getAssumeRole(),
         copy.getSessionName(),
+        copy.getSessionDurationSeconds(),
         copy.getExternalId());
   }
 
@@ -141,6 +149,7 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
       AWSCredentialsProvider credentialsProvider,
       String assumeRole,
       String sessionName,
+      Integer sessionDurationSeconds,
       String externalId) {
     super(
         name,
@@ -160,21 +169,11 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
             accountId,
             assumeRole,
             sessionName == null ? DEFAULT_SESSION_NAME : sessionName,
+            sessionDurationSeconds,
             externalId));
     this.assumeRole = assumeRole;
     this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
+    this.sessionDurationSeconds = sessionDurationSeconds;
     this.externalId = externalId;
-  }
-
-  public String getAssumeRole() {
-    return assumeRole;
-  }
-
-  public String getSessionName() {
-    return sessionName;
-  }
-
-  public String getExternalId() {
-    return externalId;
   }
 }

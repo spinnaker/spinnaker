@@ -101,7 +101,7 @@ public class ProxyHandlerBuilder {
               region,
               clientConfiguration);
       if (skipEdda
-          || !amazonCredentials.getEddaEnabled()
+          || !amazonCredentials.isEddaEnabled()
           || eddaTimeoutConfig.getDisabledRegions().contains(region)) {
         return delegate;
       }

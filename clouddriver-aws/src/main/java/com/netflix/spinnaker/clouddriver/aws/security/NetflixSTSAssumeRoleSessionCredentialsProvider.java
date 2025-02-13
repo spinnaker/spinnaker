@@ -24,42 +24,65 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.SpinnakerAwsRegionProvider;
 import java.io.Closeable;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class NetflixSTSAssumeRoleSessionCredentialsProvider
     implements AWSSessionCredentialsProvider, Closeable {
 
   private final String accountId;
+  private final String roleArn;
+  private final String region;
+  private final Integer sessionDurationSeconds;
   private final STSAssumeRoleSessionCredentialsProvider delegate;
 
   public NetflixSTSAssumeRoleSessionCredentialsProvider(
       AWSCredentialsProvider longLivedCredentialsProvider,
       String roleArn,
       String roleSessionName,
+      Integer sessionDurationSeconds,
       String accountId,
       String externalId) {
+
     this.accountId = accountId;
+    this.roleArn = roleArn;
+    this.sessionDurationSeconds = sessionDurationSeconds;
 
     var chain = new SpinnakerAwsRegionProvider();
-    var region = chain.getRegion();
+    this.region = chain.getRegion();
+
+    log.debug(
+        "Setting up a credentials provider session named {} in the region {} for account {} using role {} "
+            + "with {} duration",
+        roleSessionName,
+        this.region,
+        accountId,
+        roleArn,
+        sessionDurationSeconds == null ? "default" : sessionDurationSeconds + "seconds");
 
     var stsClientBuilder =
         AWSSecurityTokenServiceClient.builder().withCredentials(longLivedCredentialsProvider);
 
     if (roleArn.contains("aws-us-gov")) {
       stsClientBuilder.withEndpointConfiguration(
-          new EndpointConfiguration("sts.us-gov-west-1.amazonaws.com", region));
+          new EndpointConfiguration("sts.us-gov-west-1.amazonaws.com", this.region));
     } else if (roleArn.contains("aws-cn")) {
       stsClientBuilder.withEndpointConfiguration(
-          new EndpointConfiguration("sts.cn-north-1.amazonaws.com.cn", region));
+          new EndpointConfiguration("sts.cn-north-1.amazonaws.com.cn", this.region));
     } else {
-      stsClientBuilder.withRegion(region);
+      stsClientBuilder.withRegion(this.region);
     }
 
-    delegate =
+    STSAssumeRoleSessionCredentialsProvider.Builder stsSessionProviderBuilder =
         new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
             .withExternalId(externalId)
-            .withStsClient(stsClientBuilder.build())
-            .build();
+            .withStsClient(stsClientBuilder.build());
+
+    if (sessionDurationSeconds != null) {
+      stsSessionProviderBuilder.withRoleSessionDurationSeconds(sessionDurationSeconds);
+    }
+
+    delegate = stsSessionProviderBuilder.build();
   }
 
   public String getAccountId() {
@@ -68,11 +91,22 @@ public class NetflixSTSAssumeRoleSessionCredentialsProvider
 
   @Override
   public AWSSessionCredentials getCredentials() {
+    log.debug(
+        "Getting AWS Session credentials for account {} with role {} in region {}",
+        accountId,
+        roleArn,
+        region);
     return delegate.getCredentials();
   }
 
   @Override
   public void refresh() {
+    log.debug(
+        "Refreshing AWS Session credentials for account {} with role {} in region {} with {} duration",
+        accountId,
+        roleArn,
+        region,
+        sessionDurationSeconds == null ? "default" : sessionDurationSeconds + "seconds");
     delegate.refresh();
   }
 

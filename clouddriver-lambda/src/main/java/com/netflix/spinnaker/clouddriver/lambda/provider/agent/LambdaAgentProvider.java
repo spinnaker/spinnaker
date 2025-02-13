@@ -60,7 +60,7 @@ public class LambdaAgentProvider implements AgentProvider {
   public Collection<Agent> agents(Credentials credentials) {
     List<Agent> agents = new ArrayList<>();
     NetflixAmazonCredentials netflixAmazonCredentials = (NetflixAmazonCredentials) credentials;
-    if (netflixAmazonCredentials.getLambdaEnabled()) {
+    if (netflixAmazonCredentials.isLambdaEnabled()) {
       agents.add(
           new IamRoleCachingAgent(objectMapper, netflixAmazonCredentials, amazonClientProvider));
 

@@ -20,11 +20,13 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
+import lombok.Getter;
 
 /**
  * An implementation of {@link AmazonCredentials} that is decorated with Netflix concepts like Edda,
  * Discovery, Front50,
  */
+@Getter
 public class NetflixAmazonCredentials extends AmazonCredentials {
   private final String edda;
   private final boolean eddaEnabled;
@@ -108,15 +110,15 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
         copy.getAllowPrivateThirdPartyImages(),
         credentialsProvider,
         copy.getEdda(),
-        copy.getEddaEnabled(),
+        copy.isEddaEnabled(),
         copy.getDiscovery(),
-        copy.getDiscoveryEnabled(),
+        copy.isDiscoveryEnabled(),
         copy.getFront50(),
-        copy.getFront50Enabled(),
+        copy.isFront50Enabled(),
         copy.getBastionHost(),
-        copy.getBastionEnabled(),
-        copy.getShieldEnabled(),
-        copy.getLambdaEnabled());
+        copy.isBastionEnabled(),
+        copy.isShieldEnabled(),
+        copy.isLambdaEnabled());
   }
 
   NetflixAmazonCredentials(
@@ -165,47 +167,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     this.front50Enabled = flagValue(front50, front50Enabled);
     this.bastionHost = bastionHost;
     this.bastionEnabled = flagValue(bastionHost, bastionEnabled);
-    this.shieldEnabled = (shieldEnabled == null) ? false : shieldEnabled;
-    this.lambdaEnabled = (lambdaEnabled == null) ? false : lambdaEnabled;
-  }
-
-  public String getEdda() {
-    return edda;
-  }
-
-  public String getDiscovery() {
-    return discovery;
-  }
-
-  public String getFront50() {
-    return front50;
-  }
-
-  public String getBastionHost() {
-    return bastionHost;
-  }
-
-  public boolean getEddaEnabled() {
-    return eddaEnabled;
-  }
-
-  public boolean getDiscoveryEnabled() {
-    return discoveryEnabled;
-  }
-
-  public boolean getFront50Enabled() {
-    return front50Enabled;
-  }
-
-  public boolean getBastionEnabled() {
-    return bastionEnabled;
-  }
-
-  public boolean getShieldEnabled() {
-    return shieldEnabled;
-  }
-
-  public boolean getLambdaEnabled() {
-    return lambdaEnabled;
+    this.shieldEnabled = shieldEnabled != null && shieldEnabled;
+    this.lambdaEnabled = lambdaEnabled != null && lambdaEnabled;
   }
 }

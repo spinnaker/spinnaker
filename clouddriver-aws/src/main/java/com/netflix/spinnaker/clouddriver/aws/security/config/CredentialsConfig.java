@@ -183,6 +183,7 @@ public class CredentialsConfig {
   private String defaultDiscoveryTemplate;
   private String defaultAssumeRole;
   private String defaultSessionName;
+  private Integer defaultSessionDurationSeconds;
   private String defaultLifecycleHookRoleARNTemplate;
   private String defaultLifecycleHookNotificationTargetARNTemplate;
 
@@ -256,6 +257,14 @@ public class CredentialsConfig {
 
   public void setDefaultSessionName(String defaultSessionName) {
     this.defaultSessionName = defaultSessionName;
+  }
+
+  public Integer getDefaultSessionDurationSeconds() {
+    return defaultSessionDurationSeconds;
+  }
+
+  public void setDefaultSessionDurationSeconds(Integer defaultSessionDurationSeconds) {
+    this.defaultSessionDurationSeconds = defaultSessionDurationSeconds;
   }
 
   public List<LifecycleHook> getDefaultLifecycleHooks() {

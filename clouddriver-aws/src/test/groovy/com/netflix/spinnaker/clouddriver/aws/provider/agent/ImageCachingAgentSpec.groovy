@@ -84,7 +84,7 @@ class ImageCachingAgentSpec extends Specification {
     def creds = Stub(NetflixAmazonCredentials) {
       getName() >> accountName
       it.getAccountId() >> accountId
-      getEddaEnabled() >> eddaEnabled
+      isEddaEnabled() >> eddaEnabled
     }
     def dcs = Stub(DynamicConfigService) {
       isEnabled(_ as String, true) >> true
