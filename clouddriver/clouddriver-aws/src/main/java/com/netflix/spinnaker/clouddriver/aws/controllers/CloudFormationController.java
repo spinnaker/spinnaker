@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.controllers;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormationStack;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonCloudFormationProvider;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

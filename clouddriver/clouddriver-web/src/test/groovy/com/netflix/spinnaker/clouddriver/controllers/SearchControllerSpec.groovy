@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import spock.lang.Specification
 
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 class SearchControllerSpec extends Specification {
 

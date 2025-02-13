@@ -20,7 +20,7 @@ import com.google.api.services.compute.model.Image
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 class GoogleNamedImageLookupControllerSpec extends Specification {
   void "should extract tags from query parameters"() {
