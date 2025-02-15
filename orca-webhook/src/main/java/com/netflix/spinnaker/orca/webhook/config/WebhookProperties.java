@@ -64,6 +64,14 @@ public class WebhookProperties {
   private boolean insecureSkipHostnameVerification = false;
   private boolean insecureTrustSelfSigned = false;
 
+  /** True to enable matching against allowedRequests. */
+  private boolean allowedRequestsEnabled = false;
+
+  /**
+   * Only specified http method + hosts are allowed. An empty list means no requests are allowed.
+   */
+  private List<AllowedRequest> allowedRequests = new ArrayList<>();
+
   @Data
   @NoArgsConstructor
   public static class TrustSettings {
@@ -86,6 +94,16 @@ public class WebhookProperties {
 
     private String identityKeyPem;
     private String identityCertPem;
+  }
+
+  @Data
+  @NoArgsConstructor
+  public static class AllowedRequest {
+    /** The allowed http method(s) (e.g. GET, POST, PUT) */
+    private List<String> httpMethods;
+
+    /** The url must start with this string to be considered valid. */
+    private String urlPrefix;
   }
 
   @Data

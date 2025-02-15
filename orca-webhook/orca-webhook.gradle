@@ -32,8 +32,10 @@ dependencies {
   implementation("com.squareup.okhttp3:okhttp")
   implementation("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
 
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("io.spinnaker.kork:kork-test")
+  testImplementation("org.assertj:assertj-core")
   testImplementation("org.bouncycastle:bcpkix-jdk18on")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.mockito:mockito-core")

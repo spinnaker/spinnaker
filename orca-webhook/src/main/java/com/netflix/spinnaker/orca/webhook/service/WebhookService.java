@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,11 +54,21 @@ public class WebhookService {
           "X-SPINNAKER-REQUEST-ID",
           "X-SPINNAKER-EXECUTION-ID");
 
-  @Autowired private List<RestTemplateProvider> restTemplateProviders = new ArrayList<>();
+  private final List<RestTemplateProvider> restTemplateProviders;
 
-  @Autowired private UserConfiguredUrlRestrictions userConfiguredUrlRestrictions;
+  private final UserConfiguredUrlRestrictions userConfiguredUrlRestrictions;
 
-  @Autowired private WebhookProperties preconfiguredWebhookProperties;
+  private final WebhookProperties webhookProperties;
+
+  @Autowired
+  public WebhookService(
+      List<RestTemplateProvider> restTemplateProviders,
+      UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
+      WebhookProperties webhookProperties) {
+    this.restTemplateProviders = restTemplateProviders;
+    this.userConfiguredUrlRestrictions = userConfiguredUrlRestrictions;
+    this.webhookProperties = webhookProperties;
+  }
 
   public ResponseEntity<Object> callWebhook(StageExecution stageExecution) {
     RestTemplateData restTemplateData = getRestTemplateData(WebhookTaskType.CREATE, stageExecution);
@@ -148,6 +157,15 @@ public class WebhookService {
         URI validatedUri =
             userConfiguredUrlRestrictions.validateURI(
                 provider.getTargetUrl(destinationUrl, stageData));
+
+        if (!isAllowedRequest(httpMethod, validatedUri)) {
+          String message =
+              String.format(
+                  "http method '%s', uri: '%s' not allowed",
+                  httpMethod.toString(), validatedUri.toString());
+          log.info(message);
+          throw new IllegalArgumentException(message);
+        }
         RestTemplate restTemplate = provider.getRestTemplate(destinationUrl);
         return new RestTemplateData(
             restTemplate, validatedUri, httpMethod, payloadEntity, stageData);
@@ -164,9 +182,25 @@ public class WebhookService {
   }
 
   public List<WebhookProperties.PreconfiguredWebhook> getPreconfiguredWebhooks() {
-    return preconfiguredWebhookProperties.getPreconfigured().stream()
+    return webhookProperties.getPreconfigured().stream()
         .filter(WebhookProperties.PreconfiguredWebhook::isEnabled)
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Return true if the allow list is disabled, or if the given httpMethod + uri are in the list of
+   * allowed requests, false otherwise.
+   */
+  private boolean isAllowedRequest(HttpMethod httpMethod, URI uri) {
+    if (!webhookProperties.isAllowedRequestsEnabled()) {
+      return true;
+    }
+
+    return webhookProperties.getAllowedRequests().stream()
+        .anyMatch(
+            allowedRequest ->
+                allowedRequest.getHttpMethods().contains(httpMethod.toString())
+                    && uri.toString().startsWith(allowedRequest.getUrlPrefix()));
   }
 
   private static HttpHeaders buildHttpHeaders(Map<String, Object> customHeaders) {

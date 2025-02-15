@@ -67,10 +67,9 @@ class WebhookServiceSpec extends Specification {
   def server = MockRestServiceServer.createServer(restTemplateProvider.restTemplate)
 
   @Subject
-  def webhookService = new WebhookService(
-    restTemplateProviders: [restTemplateProvider],
-    userConfiguredUrlRestrictions: userConfiguredUrlRestrictions,
-    preconfiguredWebhookProperties: preconfiguredWebhookProperties)
+  def webhookService = new WebhookService(List.of(restTemplateProvider),
+                                          userConfiguredUrlRestrictions,
+                                          preconfiguredWebhookProperties)
 
   @Unroll
   def "Webhook is being called with correct parameters"() {
