@@ -58,6 +58,9 @@ public class WebhookProperties {
 
   private boolean verifyRedirects = true;
 
+  /** If true, follow redirects. If false, don't follow redirects. */
+  private boolean followRedirects = true;
+
   private List<Integer> defaultRetryStatusCodes = List.of(429);
 
   // For testing *only*

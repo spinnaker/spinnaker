@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.temporaryRedirect;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -367,6 +368,31 @@ class WebhookServiceTest {
     assertThat(result).isNotNull();
     assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(result.getBody().toString()).isEqualTo(responseBodyString);
+
+    apiProvider.verify(getRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testDontFollowRedirects() throws Exception {
+    webhookProperties.setFollowRedirects(false);
+
+    String path = "/some/path";
+    String url = apiProvider.baseUrl() + path;
+
+    String redirectUrl = "https://anywhere";
+    apiProvider.stubFor(get(urlMatching(path)).willReturn(temporaryRedirect(redirectUrl)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("redirects disabled, not visiting " + redirectUrl);
 
     apiProvider.verify(getRequestedFor(urlPathEqualTo(path)));
   }
