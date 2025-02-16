@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.orca.webhook.service;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
@@ -76,7 +78,7 @@ class WebhookServiceTest {
 
     ClientHttpRequestFactory requestFactory =
         webhookConfiguration.webhookRequestFactory(
-            okHttpClientConfigurationProperties, userConfiguredUrlRestrictions);
+            okHttpClientConfigurationProperties, userConfiguredUrlRestrictions, webhookProperties);
 
     RestTemplateProvider restTemplateProvider =
         new DefaultRestTemplateProvider(webhookConfiguration.restTemplate(requestFactory));
@@ -199,5 +201,173 @@ class WebhookServiceTest {
         .hasMessageContaining("uri: '" + url + "' not allowed");
 
     apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testRequestHeadersTooBig() throws Exception {
+    // Even with an empty body, even one request header (e.g. Content-Length: 0) is too big.
+    webhookProperties.setMaxRequestBytes(1L);
+
+    String url = apiProvider.baseUrl();
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("rejecting request to " + url);
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testRequestHeadersAndBodyTooBig() throws Exception {
+    // Empirically, this is bigger than the headers in this test, and smaller than headers + body.
+    webhookProperties.setMaxRequestBytes(235L);
+
+    String url = apiProvider.baseUrl();
+
+    String payload = "{ \"foo\": \"bar\" }";
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST, "payload", payload));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("rejecting request to " + url);
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testRequestHeadersAndBodySmallEnough() throws Exception {
+    // Verify that request processing still functions properly after verifying the request size.
+
+    // Empirically, this is bigger than the headers in this test, and bigger
+    // than headers + body.
+    webhookProperties.setMaxRequestBytes(500L);
+
+    String path = "/path/to/some/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    String payload = "{ \"foo\": \"bar\" }";
+
+    String responseBodyStr = "{ \"hello\": \"there\" }";
+    apiProvider.stubFor(
+        post(urlMatching(path))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(responseBodyStr)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST, "payload", payload));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    ResponseEntity<Object> result = webhookService.callWebhook(stage);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    var body = mapper.readValue(result.getBody().toString(), Map.class);
+    assertThat(body.get("hello")).isEqualTo("there");
+
+    apiProvider.verify(postRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testResponseHeadersTooBig() throws Exception {
+    // Even with an empty body, even one response header (e.g. Matched-Stub-Id) is too big.
+    webhookProperties.setMaxResponseBytes(1L);
+
+    String path = "/some/path";
+    String url = apiProvider.baseUrl() + path;
+
+    apiProvider.stubFor(
+        get(urlMatching(path))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody("")));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("rejecting response from " + url);
+
+    apiProvider.verify(getRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testResponseHeadersAndBodyTooBig() throws Exception {
+    // Empirically, this is bigger than the headers in this test, and smaller than headers + body.
+    webhookProperties.setMaxResponseBytes(150L);
+
+    String path = "/some/path";
+    String url = apiProvider.baseUrl() + path;
+
+    apiProvider.stubFor(
+        get(urlMatching(path))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody("test response body")));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("rejecting response from " + url);
+
+    apiProvider.verify(getRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testResponseHeadersAndBodySmallEnough() throws Exception {
+    // Verify that response processing still functions properly after verifying
+    // the response size.
+
+    // Empirically, this is bigger than the headers in this test, and bigger
+    // than headers + body.
+    webhookProperties.setMaxResponseBytes(500L);
+
+    String path = "/some/path";
+    String url = apiProvider.baseUrl() + path;
+
+    String responseBodyString = "test response body";
+    apiProvider.stubFor(
+        get(urlMatching(path))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(responseBodyString)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    ResponseEntity<Object> result = webhookService.callWebhook(stage);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(result.getBody().toString()).isEqualTo(responseBodyString);
+
+    apiProvider.verify(getRequestedFor(urlPathEqualTo(path)));
   }
 }

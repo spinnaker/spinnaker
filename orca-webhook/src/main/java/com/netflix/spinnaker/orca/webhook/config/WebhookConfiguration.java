@@ -40,8 +40,14 @@ import java.util.Map;
 import java.util.Optional;
 import javax.net.ssl.*;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okio.BufferedSource;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -68,6 +74,8 @@ import org.springframework.web.client.RestTemplate;
 public class WebhookConfiguration {
   private final WebhookProperties webhookProperties;
 
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   @Autowired
   public WebhookConfiguration(WebhookProperties webhookProperties) {
     this.webhookProperties = webhookProperties;
@@ -89,7 +97,8 @@ public class WebhookConfiguration {
   @Bean
   public ClientHttpRequestFactory webhookRequestFactory(
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-      UserConfiguredUrlRestrictions userConfiguredUrlRestrictions)
+      UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
+      WebhookProperties webhookProperties)
       throws IOException {
     var trustManager = webhookX509TrustManager();
     var sslSocketFactory = getSSLSocketFactory(trustManager);
@@ -98,7 +107,12 @@ public class WebhookConfiguration {
             .sslSocketFactory(sslSocketFactory, trustManager)
             .addNetworkInterceptor(
                 chain -> {
-                  Response response = chain.proceed(chain.request());
+                  Request request = chain.request();
+                  validateRequestSize(request, webhookProperties.getMaxRequestBytes());
+
+                  Response response = chain.proceed(request);
+
+                  validateResponseSize(response, webhookProperties.getMaxResponseBytes());
 
                   if (webhookProperties.isVerifyRedirects() && response.isRedirect()) {
                     // verify that we are not redirecting to a restricted url
@@ -122,6 +136,127 @@ public class WebhookConfiguration {
     requestFactory.setConnectTimeout(
         Math.toIntExact(okHttpClientConfigurationProperties.getConnectTimeoutMs()));
     return requestFactory;
+  }
+
+  /** Return if the request size is valid. Throw an exception otherwise. */
+  private void validateRequestSize(Request request, long maxRequestBytes) throws IOException {
+    if (maxRequestBytes <= 0L) {
+      return;
+    }
+
+    long headerSize = request.headers().byteCount();
+
+    // If the headers are already too big, no need to deal with the body size
+    if (headerSize > maxRequestBytes) {
+      String message =
+          String.format(
+              "rejecting request to %s with %s byte(s) of headers, maxRequestBytes: %s",
+              request.url(), headerSize, maxRequestBytes);
+      log.info(message);
+      throw new IllegalArgumentException(message);
+    }
+
+    RequestBody requestBody = request.body();
+    if (requestBody == null) {
+      return;
+    }
+
+    long contentLength = 0L;
+    try {
+      contentLength = requestBody.contentLength();
+      if (contentLength == -1) {
+        // Given that OkHttp3ClientHttpRequestFactory.buildRequest (called by
+        // OkHttp3ClientRequest.executeInternal) has a byte array argument, this
+        // doesn't seem possible.  Reject the request in case it ends up being
+        // too big.  Yes, this is paranoid, but seems safer.
+        String message =
+            String.format(
+                "unable to verify size of body in request to %s, content length not set",
+                request.url());
+        log.error(message);
+        throw new IllegalStateException(message);
+      }
+    } catch (IOException e) {
+      log.error("exception retrieving content length of request to {}", request.url(), e);
+      throw e;
+    }
+
+    long totalSize = headerSize + contentLength;
+    if (totalSize > maxRequestBytes) {
+      String message =
+          String.format(
+              "rejecting request to %s with %s byte body, maxRequestBytes: {}",
+              request.url(), totalSize, maxRequestBytes);
+      log.info(message);
+      throw new IllegalArgumentException(message);
+    }
+  }
+
+  /** Return if the response size is valid. Throw an exception otherwise. */
+  private void validateResponseSize(Response response, long maxResponseBytes) throws IOException {
+    if (maxResponseBytes <= 0L) {
+      return;
+    }
+
+    long headerSize = response.headers().byteCount();
+
+    // If the headers are already too big, no need to deal with the body size
+    if (headerSize > maxResponseBytes) {
+      String message =
+          String.format(
+              "rejecting response from %s with %s byte(s) of headers, maxResponseBytes: %s",
+              response.request().url(), headerSize, maxResponseBytes);
+      log.info(message);
+      throw new IllegalArgumentException(message);
+    }
+
+    ResponseBody responseBody = response.body();
+    if (responseBody == null) {
+      return;
+    }
+
+    long contentLength = responseBody.contentLength();
+    if (contentLength == -1) {
+      // Nothing has read the body yet.  This is the likely case.  Peek into the
+      // body to see if it's too long.  See okhttp.Response.peekBody for
+      // inspiration.  Note that e.g.
+      //
+      // contentLength = responseBody.bytes().length
+      //
+      // consumes the response such that future processing fails.  The underlying buffer is closed.
+      BufferedSource peeked = responseBody.source().peek();
+
+      long remainingAllowedBytes = maxResponseBytes - headerSize; // >= 0.  Yes, this could be 0.
+      try {
+        // Request one more than the number of allowed bytes remaining.  If that
+        // succeeds, the response is too long.
+        if (peeked.request(remainingAllowedBytes + 1)) {
+          String message =
+              String.format(
+                  "rejecting response from %s. headers: %s byte(s), body > %s byte(s), maxResponseBytes: %s",
+                  response.request().url(), headerSize, remainingAllowedBytes, maxResponseBytes);
+          log.info(message);
+          throw new IllegalArgumentException(message);
+        }
+
+        // There aren't enough bytes in the response to satisfy the peek
+        // request.  In other words, the response is short enough to be valid.
+        return;
+      } catch (IOException e) {
+        log.error("exception peeking into response from {}", response.request().url(), e);
+        throw e;
+      }
+    }
+
+    long totalSize = headerSize + contentLength;
+    if (totalSize > maxResponseBytes) {
+      String message =
+          String.format(
+              "rejecting %s byte response from %s, maxResponseBytes: %s",
+              totalSize, response.request().url(), maxResponseBytes);
+      log.info(message);
+      throw new IllegalArgumentException(message);
+    }
   }
 
   private X509TrustManager webhookX509TrustManager() {

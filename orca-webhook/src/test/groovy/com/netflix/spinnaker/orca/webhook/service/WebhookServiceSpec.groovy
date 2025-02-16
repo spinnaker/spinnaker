@@ -56,7 +56,8 @@ class WebhookServiceSpec extends Specification {
   @Shared
   def requestFactory = webhookConfiguration.webhookRequestFactory(
     okHttpClientConfigurationProperties,
-    userConfiguredUrlRestrictions
+    userConfiguredUrlRestrictions,
+    webhookProperties
   )
 
   @Shared
