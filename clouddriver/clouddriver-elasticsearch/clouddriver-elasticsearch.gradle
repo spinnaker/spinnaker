@@ -11,7 +11,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-security"
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "org.apache.groovy:groovy"
-  implementation "org.elasticsearch:elasticsearch"
+  implementation "org.elasticsearch:elasticsearch:8.5.3"
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   testImplementation "org.testcontainers:elasticsearch"
