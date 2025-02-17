@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.orca.webhook.config;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 import com.netflix.spinnaker.kork.crypto.TrustStores;
 import com.netflix.spinnaker.kork.crypto.X509Identity;
 import com.netflix.spinnaker.kork.crypto.X509IdentitySource;
@@ -45,6 +47,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.BufferedSource;
+import okio.Okio;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +78,7 @@ import org.springframework.web.client.RestTemplate;
 public class WebhookConfiguration {
   private final WebhookProperties webhookProperties;
 
-  private final Logger log = LoggerFactory.getLogger(getClass());
+  private final Logger log = LoggerFactory.getLogger(WebhookConfiguration.class);
 
   @Autowired
   public WebhookConfiguration(WebhookProperties webhookProperties) {
@@ -110,11 +113,34 @@ public class WebhookConfiguration {
             .addNetworkInterceptor(
                 chain -> {
                   Request request = chain.request();
+
                   validateRequestSize(request, webhookProperties.getMaxRequestBytes());
+
+                  if (webhookProperties.isAuditLoggingEnabled()) {
+                    log.info(
+                        "sending webhook request: {},{},{},{}",
+                        kv("httpMethod", request.method()),
+                        kv("url", request.url()),
+                        kv("headerByteCount", request.headers().byteCount()),
+                        kv("contentLength", getRequestBodyContentLength(request)));
+                  }
 
                   Response response = chain.proceed(request);
 
                   validateResponseSize(response, webhookProperties.getMaxResponseBytes());
+
+                  if (webhookProperties.isAuditLoggingEnabled()) {
+                    log.info(
+                        "received webhook response: {},{},{},{},{},{}",
+                        kv("httpMethod", response.request().method()),
+                        kv("url", response.request().url()),
+                        kv("responseCode", response.code()),
+                        kv("headerByteCount", response.headers().byteCount()),
+                        kv("contentLength", getResponseBodyContentLength(response)),
+                        kv(
+                            "latencyMs",
+                            response.receivedResponseAtMillis() - response.sentRequestAtMillis()));
+                  }
 
                   if (response.isRedirect()) {
                     String redirectLocation = response.header("Location");
@@ -156,6 +182,21 @@ public class WebhookConfiguration {
     return requestFactory;
   }
 
+  /** Return the content length of a request body, or -1 for unknown. */
+  private long getRequestBodyContentLength(Request request) throws IOException {
+    RequestBody requestBody = request.body();
+    if (requestBody == null) {
+      return 0;
+    }
+
+    try {
+      return requestBody.contentLength();
+    } catch (IOException e) {
+      log.error("exception retrieving content length of request to {}", request.url(), e);
+      throw e;
+    }
+  }
+
   /** Return if the request size is valid. Throw an exception otherwise. */
   private void validateRequestSize(Request request, long maxRequestBytes) throws IOException {
     if (maxRequestBytes <= 0L) {
@@ -179,35 +220,54 @@ public class WebhookConfiguration {
       return;
     }
 
-    long contentLength = 0L;
-    try {
-      contentLength = requestBody.contentLength();
-      if (contentLength == -1) {
-        // Given that OkHttp3ClientHttpRequestFactory.buildRequest (called by
-        // OkHttp3ClientRequest.executeInternal) has a byte array argument, this
-        // doesn't seem possible.  Reject the request in case it ends up being
-        // too big.  Yes, this is paranoid, but seems safer.
-        String message =
-            String.format(
-                "unable to verify size of body in request to %s, content length not set",
-                request.url());
-        log.error(message);
-        throw new IllegalStateException(message);
-      }
-    } catch (IOException e) {
-      log.error("exception retrieving content length of request to {}", request.url(), e);
-      throw e;
+    long contentLength = getRequestBodyContentLength(request);
+    if (contentLength == -1) {
+      // Given that OkHttp3ClientHttpRequestFactory.buildRequest (called by
+      // OkHttp3ClientRequest.executeInternal) has a byte array argument, this
+      // doesn't seem possible.  Reject the request in case it ends up being
+      // too big.  Yes, this is paranoid, but seems safer.
+      String message =
+          String.format(
+              "unable to verify size of body in request to %s, content length not set",
+              request.url());
+      log.error(message);
+      throw new IllegalStateException(message);
     }
 
     long totalSize = headerSize + contentLength;
     if (totalSize > maxRequestBytes) {
       String message =
           String.format(
-              "rejecting request to %s with %s byte body, maxRequestBytes: {}",
+              "rejecting request to %s with %s byte body, maxRequestBytes: %s",
               request.url(), totalSize, maxRequestBytes);
       log.info(message);
       throw new IllegalArgumentException(message);
     }
+  }
+
+  /** Return the content length of a response body */
+  private long getResponseBodyContentLength(Response response) throws IOException {
+    ResponseBody responseBody = response.body();
+    if (responseBody == null) {
+      return 0;
+    }
+
+    long contentLength = responseBody.contentLength();
+    if (contentLength != -1) {
+      return contentLength;
+    }
+
+    // Nothing has read the body yet.  This is the likely case.  Peek into the body to get the
+    // length.  See okhttp.Response.peekBody for inspiration.
+    //
+    // contentLength = responseBody.bytes().length
+    //
+    // consumes the response such that future processing fails since the underlying buffer is
+    // closed.
+    //
+    // Note also that responseBody.source().getBuffer().size() doesn't work reliably.
+    BufferedSource peeked = responseBody.source().peek();
+    return peeked.readAll(Okio.blackhole());
   }
 
   /** Return if the response size is valid. Throw an exception otherwise. */

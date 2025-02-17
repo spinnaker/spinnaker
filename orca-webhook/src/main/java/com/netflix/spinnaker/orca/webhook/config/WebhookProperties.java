@@ -99,6 +99,9 @@ public class WebhookProperties {
    */
   private long readTimeoutMs = 20000L;
 
+  /** True to enable audit logging */
+  private boolean auditLoggingEnabled = false;
+
   @Data
   @NoArgsConstructor
   public static class TrustSettings {

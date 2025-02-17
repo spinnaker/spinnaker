@@ -31,6 +31,7 @@ dependencies {
   implementation("com.jayway.jsonpath:json-path")
   implementation("com.squareup.okhttp3:okhttp")
   implementation("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
+  implementation("net.logstash.logback:logstash-logback-encoder")
 
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testImplementation("com.squareup.okhttp3:mockwebserver")
