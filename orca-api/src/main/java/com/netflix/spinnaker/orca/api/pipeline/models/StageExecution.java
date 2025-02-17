@@ -181,6 +181,9 @@ public interface StageExecution {
   @Nonnull
   Optional<Long> getTimeout();
 
+  @Nonnull
+  Optional<Long> getBackoffPeriod();
+
   boolean getAllowSiblingStagesToContinueOnFailure();
 
   void setAllowSiblingStagesToContinueOnFailure(boolean allowSiblingStagesToContinueOnFailure);

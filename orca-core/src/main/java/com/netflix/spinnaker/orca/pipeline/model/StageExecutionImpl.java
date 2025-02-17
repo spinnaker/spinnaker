@@ -756,16 +756,24 @@ public class StageExecutionImpl implements StageExecution, Serializable {
 
   @Nonnull
   @JsonIgnore
-  public Optional<Long> getTimeout() {
-    Object timeout = getContext().get(STAGE_TIMEOUT_OVERRIDE_KEY);
-    if (timeout instanceof Integer) {
-      return Optional.of((Integer) timeout).map(Integer::longValue);
-    } else if (timeout instanceof Long) {
-      return Optional.of((Long) timeout);
-    } else if (timeout instanceof Double) {
-      return Optional.of((Double) timeout).map(Double::longValue);
+  private Optional<Long> getLongFromContext(String key) {
+    Object value = getContext().get(key);
+    if (value instanceof Number) {
+      return Optional.of(((Number) value).longValue());
     }
     return Optional.empty();
+  }
+
+  @Nonnull
+  @JsonIgnore
+  public Optional<Long> getTimeout() {
+    return getLongFromContext(STAGE_TIMEOUT_OVERRIDE_KEY);
+  }
+
+  @Nonnull
+  @JsonIgnore
+  public Optional<Long> getBackoffPeriod() {
+    return getLongFromContext(STAGE_BACKOFF_PERIOD_OVERRIDE_KEY);
   }
 
   /**
@@ -861,5 +869,6 @@ public class StageExecutionImpl implements StageExecution, Serializable {
     return (status == ExecutionStatus.TERMINAL);
   }
 
+  public static final String STAGE_BACKOFF_PERIOD_OVERRIDE_KEY = "backoffPeriodMs";
   public static final String STAGE_TIMEOUT_OVERRIDE_KEY = "stageTimeoutMs";
 }

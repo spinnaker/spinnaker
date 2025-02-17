@@ -316,6 +316,9 @@ class RunTaskHandler(
    * `tasks.aws.backOffPeriod = 80000`
    * `tasks.aws.someAccount.backoffPeriod = 60000`
    * `tasks.aws.backoffPeriod` will be used (given the criteria matches and unless the default dynamicBackOffPeriod is greater).
+   *
+   * This function also considers the `backoffPeriodMs` property in a stage
+   * configuration.  If it's larger than the above, it's used.
    */
   private fun RetryableTask.retryableBackOffPeriod(
     taskModel: TaskExecution,
@@ -332,6 +335,9 @@ class RunTaskHandler(
         dynamicBackOffPeriod
       )
     )
+
+    val stageOverrideBackoffPeriod = stage.getBackoffPeriod()
+    stageOverrideBackoffPeriod.ifPresent { backOffs.add(it) }
 
     if (this is CloudProviderAware && hasCloudProvider(stage)) {
       backOffs.add(

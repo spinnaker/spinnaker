@@ -1494,6 +1494,52 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     }
   }
 
+  given("there is a backoff override") {
+    val backoffOverride = Duration.ofSeconds(30)
+    backoffOverride.toMillis().let { listOf(it.toInt(), it, it.toDouble()) }.forEach { backoffPeriodMs ->
+      and("the backoff is a ${backoffPeriodMs.javaClass.simpleName}") {
+        val pipeline = pipeline {
+          stage {
+            type = "whatever"
+            context["backoffPeriodMs"] = backoffPeriodMs
+            task {
+              id = "1"
+              implementingClass = DummyTimeoutOverrideTask::class.jvmName
+              startTime = clock.instant().toEpochMilli()
+              status = RUNNING
+            }
+          }
+        }
+        val stage = pipeline.stages.first()
+        val taskResult = TaskResult.RUNNING
+        val message = RunTask(pipeline.type, pipeline.id, "foo", stage.id, "1", DummyTimeoutOverrideTask::class.java)
+
+        beforeGroup {
+          tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
+          whenever(timeoutOverrideTask.execute(any())) doReturn taskResult
+          taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(timeoutOverrideTask, stage)) doReturn stage }
+          taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(timeoutOverrideTask, stage, taskResult)) doReturn taskResult }
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          setupRetriableLock(true, retriableLock)
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving $message") {
+          subject.handle(message)
+        }
+
+        it("executes the task") {
+          verify(timeoutOverrideTask).execute(any())
+        }
+
+        it("re-queues the message with the expected backoff") {
+          verify(queue).push(eq(message), eq(backoffOverride))
+        }
+      }
+    }
+  }
+
   describe("expressions in the context") {
     mapOf(
       "\${1 == 2}" to false,
@@ -1810,16 +1856,18 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
   describe("max configurable back off value") {
     setOf(
-      BackOff(5_000L, 10_000L, 20_000L, 30_000L, 30_000L),
-      BackOff(10_000L, 20_000L, 30_000L, 5_000L, 30_000L),
-      BackOff(20_000L, 30_000L, 5_000L, 10_000L, 30_000L),
-      BackOff(30_000L, 5_000L, 10_000L, 20_000L, 30_000L),
-      BackOff(20_000L, 5_000L, 10_000L, 30_002L, 30_001L)
+      BackOff( 2_000L,  5_000L, 10_000L, 20_000L, 30_000L, 30_000L),
+      BackOff( 2_000L, 10_000L, 20_000L, 30_000L,  5_000L, 30_000L),
+      BackOff( 2_000L, 20_000L, 30_000L,  5_000L, 10_000L, 30_000L),
+      BackOff( 2_000L, 30_000L,  5_000L, 10_000L, 20_000L, 30_000L),
+      BackOff(30_000L, 25_000L,  5_000L, 10_000L, 20_000L, 30_000L),
+      BackOff( 2_000L, 20_000L,  5_000L, 10_000L, 30_002L, 30_001L)
     ).forEach { backOff ->
       given("the back off values $backOff") {
         val pipeline = pipeline {
           stage {
             type = "whatever"
+            context["backoffPeriodMs"] = backOff.stageBackoffMs
             task {
               id = "1"
               implementingClass = DummyCloudProviderAwareTask::class.jvmName
@@ -1913,6 +1961,7 @@ fun setupRetriableLock(acquireLock: Boolean, lock: RetriableLock){
 }
 
 data class BackOff(
+  val stageBackoffMs: Long,
   val taskBackOffMs: Long,
   val globalBackOffMs: Long,
   val cloudProviderBackOffMs: Long,
