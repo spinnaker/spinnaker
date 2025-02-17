@@ -26,6 +26,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -43,6 +44,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -79,7 +81,10 @@ class WebhookServiceTest {
 
     ClientHttpRequestFactory requestFactory =
         webhookConfiguration.webhookRequestFactory(
-            okHttpClientConfigurationProperties, userConfiguredUrlRestrictions, webhookProperties);
+            mock(Environment.class),
+            okHttpClientConfigurationProperties,
+            userConfiguredUrlRestrictions,
+            webhookProperties);
 
     RestTemplateProvider restTemplateProvider =
         new DefaultRestTemplateProvider(webhookConfiguration.restTemplate(requestFactory));

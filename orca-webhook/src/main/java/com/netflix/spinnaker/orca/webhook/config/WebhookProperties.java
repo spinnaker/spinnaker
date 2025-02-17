@@ -87,6 +87,18 @@ public class WebhookProperties {
    */
   private long maxResponseBytes = 0L;
 
+  /**
+   * If the timeout expires before a connection can be established, a SocketTimeoutException is
+   * raised. A timeout of 0 is considered infinite.
+   */
+  private long connectTimeoutMs = 15000L;
+
+  /**
+   * If the timeout expires before there is data available in the input stream to read, a
+   * SocketTimeoutException is raised. A timeout of 0 is considered infinite.
+   */
+  private long readTimeoutMs = 20000L;
+
   @Data
   @NoArgsConstructor
   public static class TrustSettings {

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -54,9 +55,8 @@ class WebhookServiceSpec extends Specification {
   def userConfiguredUrlRestrictions = new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).withAllowedHostnamesRegex(".*").build()
 
   @Shared
-  def requestFactory = webhookConfiguration.webhookRequestFactory(
-    okHttpClientConfigurationProperties,
-    userConfiguredUrlRestrictions,
+  def requestFactory = webhookConfiguration.webhookRequestFactory(Mock(Environment),
+    okHttpClientConfigurationProperties, userConfiguredUrlRestrictions,
     webhookProperties
   )
 

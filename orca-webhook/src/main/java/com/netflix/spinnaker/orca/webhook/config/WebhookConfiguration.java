@@ -55,6 +55,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -96,6 +97,7 @@ public class WebhookConfiguration {
 
   @Bean
   public ClientHttpRequestFactory webhookRequestFactory(
+      Environment environment,
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
       UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
       WebhookProperties webhookProperties)
@@ -138,10 +140,19 @@ public class WebhookConfiguration {
 
     var client = builder.build();
     var requestFactory = new OkHttp3ClientHttpRequestFactory(client);
-    requestFactory.setReadTimeout(
-        Math.toIntExact(okHttpClientConfigurationProperties.getReadTimeoutMs()));
-    requestFactory.setConnectTimeout(
-        Math.toIntExact(okHttpClientConfigurationProperties.getConnectTimeoutMs()));
+    long readTimeoutMs =
+        (environment.containsProperty("webhook.readTimeoutMs")
+                || environment.containsProperty("webhook.read-timeout-ms"))
+            ? webhookProperties.getReadTimeoutMs()
+            : okHttpClientConfigurationProperties.getReadTimeoutMs();
+    long connectTimeoutMs =
+        (environment.containsProperty("webhook.connectTimeoutMs")
+                || environment.containsProperty("webhook.connect-timeout-ms"))
+            ? webhookProperties.getConnectTimeoutMs()
+            : okHttpClientConfigurationProperties.getConnectTimeoutMs();
+
+    requestFactory.setReadTimeout(Math.toIntExact(readTimeoutMs));
+    requestFactory.setConnectTimeout(Math.toIntExact(connectTimeoutMs));
     return requestFactory;
   }
 
