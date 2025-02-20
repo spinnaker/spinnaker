@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.policybuilder.iam.IamConditionOperator;
@@ -63,7 +63,7 @@ public class TemporarySQSQueue {
   private final TemporaryQueue temporaryQueue;
 
   public TemporarySQSQueue(
-      SqsClient sqsClient, SnsClient snsClient, String snsTopicName, String instanceId) {
+    SqsClient sqsClient, SnsClient snsClient, String snsTopicName, String instanceId) {
     this.sqsClient = sqsClient;
     this.snsClient = snsClient;
 
@@ -71,19 +71,19 @@ public class TemporarySQSQueue {
     String snsTopicArn = getSnsTopicArn(snsClient, snsTopicName);
     String sqsQueueName = snsTopicName + "__" + sanitizedInstanceId;
     String sqsQueueArn =
-        snsTopicArn.substring(0, snsTopicArn.lastIndexOf(":") + 1).replace("sns", "sqs")
-            + sqsQueueName;
+      snsTopicArn.substring(0, snsTopicArn.lastIndexOf(":") + 1).replace("sns", "sqs")
+        + sqsQueueName;
 
     this.temporaryQueue = createQueue(snsTopicArn, sqsQueueArn, sqsQueueName);
   }
 
   List<Message> fetchMessages() {
     ReceiveMessageRequest receiveMessageRequest =
-        ReceiveMessageRequest.builder()
-            .queueUrl(temporaryQueue.sqsQueueUrl)
-            .maxNumberOfMessages(10)
-            .waitTimeSeconds(1)
-            .build();
+      ReceiveMessageRequest.builder()
+        .queueUrl(temporaryQueue.sqsQueueUrl)
+        .maxNumberOfMessages(10)
+        .waitTimeSeconds(1)
+        .build();
 
     ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);
     return response.messages();
@@ -92,14 +92,14 @@ public class TemporarySQSQueue {
   void markMessageAsHandled(String receiptHandle) {
     try {
       DeleteMessageRequest deleteRequest =
-          DeleteMessageRequest.builder()
-              .queueUrl(temporaryQueue.sqsQueueUrl)
-              .receiptHandle(receiptHandle)
-              .build();
+        DeleteMessageRequest.builder()
+          .queueUrl(temporaryQueue.sqsQueueUrl)
+          .receiptHandle(receiptHandle)
+          .build();
       sqsClient.deleteMessage(deleteRequest);
     } catch (SqsException e) {
       log.warn(
-          "Error deleting message, reason: {} (receiptHandle: {})", e.getMessage(), receiptHandle);
+        "Error deleting message, reason: {} (receiptHandle: {})", e.getMessage(), receiptHandle);
     }
   }
 
@@ -107,89 +107,89 @@ public class TemporarySQSQueue {
   void shutdown() {
     try {
       log.debug(
-          "Removing Temporary S3 Notification Queue: {}",
-          value("queue", temporaryQueue.sqsQueueUrl));
+        "Removing Temporary S3 Notification Queue: {}",
+        value("queue", temporaryQueue.sqsQueueUrl));
       sqsClient.deleteQueue(
-          DeleteQueueRequest.builder().queueUrl(temporaryQueue.sqsQueueUrl).build());
+        DeleteQueueRequest.builder().queueUrl(temporaryQueue.sqsQueueUrl).build());
       log.debug(
-          "Removed Temporary S3 Notification Queue: {}",
-          value("queue", temporaryQueue.sqsQueueUrl));
+        "Removed Temporary S3 Notification Queue: {}",
+        value("queue", temporaryQueue.sqsQueueUrl));
     } catch (Exception e) {
       log.error(
-          "Unable to remove queue: {} (reason: {})",
-          value("queue", temporaryQueue.sqsQueueUrl),
-          e.getMessage(),
-          e);
+        "Unable to remove queue: {} (reason: {})",
+        value("queue", temporaryQueue.sqsQueueUrl),
+        e.getMessage(),
+        e);
     }
 
     try {
       log.debug(
-          "Removing S3 Notification Subscription: {}",
-          value("topic", temporaryQueue.snsTopicSubscriptionArn));
+        "Removing S3 Notification Subscription: {}",
+        value("topic", temporaryQueue.snsTopicSubscriptionArn));
       snsClient.unsubscribe(
-          UnsubscribeRequest.builder()
-              .subscriptionArn(temporaryQueue.snsTopicSubscriptionArn)
-              .build());
+        UnsubscribeRequest.builder()
+          .subscriptionArn(temporaryQueue.snsTopicSubscriptionArn)
+          .build());
       log.debug(
-          "Removed S3 Notification Subscription: {}",
-          value("topic", temporaryQueue.snsTopicSubscriptionArn));
+        "Removed S3 Notification Subscription: {}",
+        value("topic", temporaryQueue.snsTopicSubscriptionArn));
     } catch (Exception e) {
       log.error(
-          "Unable to unsubscribe queue from topic: {} (reason: {})",
-          value("topic", temporaryQueue.snsTopicSubscriptionArn),
-          e.getMessage(),
-          e);
+        "Unable to unsubscribe queue from topic: {} (reason: {})",
+        value("topic", temporaryQueue.snsTopicSubscriptionArn),
+        e.getMessage(),
+        e);
     }
   }
 
   private String getSnsTopicArn(SnsClient snsClient, String topicName) {
     return snsClient.listTopicsPaginator(ListTopicsRequest.builder().build()).topics().stream()
-        .filter(t -> t.topicArn().toLowerCase().endsWith(":" + topicName.toLowerCase()))
-        .map(Topic::topicArn)
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException("No SNS topic found (topicName: " + topicName + ")"));
+      .filter(t -> t.topicArn().toLowerCase().endsWith(":" + topicName.toLowerCase()))
+      .map(Topic::topicArn)
+      .findFirst()
+      .orElseThrow(
+        () ->
+          new IllegalArgumentException("No SNS topic found (topicName: " + topicName + ")"));
   }
 
   private TemporaryQueue createQueue(String snsTopicArn, String sqsQueueArn, String sqsQueueName) {
     CreateQueueRequest createQueueRequest =
-        CreateQueueRequest.builder()
-            .queueName(sqsQueueName)
-            .attributes(Collections.singletonMap(QueueAttributeName.MESSAGE_RETENTION_PERIOD, "60"))
-            .build();
+      CreateQueueRequest.builder()
+        .queueName(sqsQueueName)
+        .attributes(Collections.singletonMap(QueueAttributeName.MESSAGE_RETENTION_PERIOD, "60"))
+        .build();
     CreateQueueResponse createQueueResponse = sqsClient.createQueue(createQueueRequest);
     String sqsQueueUrl = createQueueResponse.queueUrl();
     log.info("Created Temporary S3 Notification Queue: {}", sqsQueueUrl);
 
     SubscribeRequest subscribeRequest =
-        SubscribeRequest.builder()
-            .topicArn(snsTopicArn)
-            .protocol("sqs")
-            .endpoint(sqsQueueArn)
-            .build();
+      SubscribeRequest.builder()
+        .topicArn(snsTopicArn)
+        .protocol("sqs")
+        .endpoint(sqsQueueArn)
+        .build();
     SubscribeResponse subscribeResponse = snsClient.subscribe(subscribeRequest);
     String snsTopicSubscriptionArn = subscribeResponse.subscriptionArn();
 
     IamPolicy allowSnsPolicy =
-        IamPolicy.builder()
-            .addStatement(
-                s ->
-                    s.effect(IamEffect.ALLOW)
-                        .addAction("sqs:SendMessage")
-                        .addResource(sqsQueueArn)
-                        .addPrincipal(IamPrincipal.ALL)
-                        .addCondition(
-                            c ->
-                                c.operator(IamConditionOperator.STRING_EQUALS)
-                                    .key("aws:SourceArn")
-                                    .value(snsTopicArn)))
-            .build();
+      IamPolicy.builder()
+        .addStatement(
+          s ->
+            s.effect(IamEffect.ALLOW)
+              .addAction("sqs:SendMessage")
+              .addResource(sqsQueueArn)
+              .addPrincipal(IamPrincipal.ALL)
+              .addCondition(
+                c ->
+                  c.operator(IamConditionOperator.STRING_EQUALS)
+                    .key("aws:SourceArn")
+                    .value(snsTopicArn)))
+        .build();
 
     Map<QueueAttributeName, String> attributes = new HashMap<>();
     attributes.put(QueueAttributeName.POLICY, allowSnsPolicy.toJson());
     sqsClient.setQueueAttributes(
-        SetQueueAttributesRequest.builder().queueUrl(sqsQueueUrl).attributes(attributes).build());
+      SetQueueAttributesRequest.builder().queueUrl(sqsQueueUrl).attributes(attributes).build());
 
     return new TemporaryQueue(snsTopicArn, sqsQueueArn, sqsQueueUrl, snsTopicSubscriptionArn);
   }
@@ -210,10 +210,10 @@ public class TemporarySQSQueue {
     final String snsTopicSubscriptionArn;
 
     TemporaryQueue(
-        String snsTopicArn,
-        String sqsQueueArn,
-        String sqsQueueUrl,
-        String snsTopicSubscriptionArn) {
+      String snsTopicArn,
+      String sqsQueueArn,
+      String sqsQueueUrl,
+      String snsTopicSubscriptionArn) {
       this.snsTopicArn = snsTopicArn;
       this.sqsQueueArn = sqsQueueArn;
       this.sqsQueueUrl = sqsQueueUrl;
