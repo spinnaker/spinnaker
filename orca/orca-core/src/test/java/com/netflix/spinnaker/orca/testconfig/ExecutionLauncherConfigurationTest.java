@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline;
+package com.netflix.spinnaker.orca.testconfig;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +28,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
+import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
+import com.netflix.spinnaker.orca.pipeline.ExecutionRunner;
+import com.netflix.spinnaker.orca.pipeline.PipelineValidator;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger;
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
@@ -54,10 +57,10 @@ import org.springframework.test.context.ContextConfiguration;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(
     classes = ExecutionConfigurationProperties.class,
-    initializers = ExecutionLauncherTest.class)
+    initializers = ExecutionLauncherConfigurationTest.class)
 @EnableConfigurationProperties
 @SpringBootTest
-public class ExecutionLauncherTest extends YamlFileApplicationContextInitializer {
+public class ExecutionLauncherConfigurationTest extends YamlFileApplicationContextInitializer {
   private ObjectMapper objectMapper;
   @Mock private ExecutionRepository executionRepository;
   @Mock private ExecutionRunner executionRunner;
@@ -453,6 +456,6 @@ public class ExecutionLauncherTest extends YamlFileApplicationContextInitializer
 
   private Map<String, Object> getConfigJson(String resource) throws Exception {
     return objectMapper.readValue(
-        ExecutionLauncherTest.class.getResourceAsStream(resource), Map.class);
+        ExecutionLauncherConfigurationTest.class.getResourceAsStream(resource), Map.class);
   }
 }
