@@ -52,7 +52,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @ComponentScan
@@ -63,7 +63,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
   StorageServiceConfigurationProperties.class,
   PipelineControllerConfig.class
 })
-public class Front50WebConfig extends WebMvcConfigurerAdapter {
+public class Front50WebConfig implements WebMvcConfigurer {
 
   @Autowired private Registry registry;
 
