@@ -78,7 +78,7 @@ class DependentPipelineStarterSpec extends Specification {
         ])
         return pipeline {
           name = p.name
-          id = p.name
+          id = p.id
           trigger = mapper.convertValue(p.trigger, Trigger)
         }
       }
@@ -151,7 +151,7 @@ class DependentPipelineStarterSpec extends Specification {
     1 * executionLauncher.start(PIPELINE, _ as Map) >> { _, p ->
       return pipeline {
         name = p.name
-        id = p.name
+        id = p.id
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
@@ -206,7 +206,7 @@ class DependentPipelineStarterSpec extends Specification {
     1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
-        id = p.name
+        id = p.id
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
@@ -272,7 +272,7 @@ class DependentPipelineStarterSpec extends Specification {
     1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
-        id = p.name
+        id = p.id
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
@@ -329,7 +329,7 @@ class DependentPipelineStarterSpec extends Specification {
     1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
-        id = p.name
+        id = p.id
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
@@ -397,7 +397,7 @@ class DependentPipelineStarterSpec extends Specification {
     1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
-        id = p.name
+        id = p.id
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
@@ -465,7 +465,7 @@ class DependentPipelineStarterSpec extends Specification {
     1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
-        id = p.name
+        id = p.id
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
@@ -539,7 +539,7 @@ class DependentPipelineStarterSpec extends Specification {
     1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
-        id = p.name
+        id = p.id
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
@@ -622,7 +622,7 @@ class DependentPipelineStarterSpec extends Specification {
       error = artifactError
       return pipeline {
         name = processedPipeline.name
-        id = processedPipeline.name
+        id = processedPipeline.id
         trigger = mapper.convertValue(processedPipeline.trigger, Trigger)
       }
     }
