@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -78,12 +79,13 @@ class DependentPipelineStarterTest {
 
     PipelineExecution parentPipeline = pipeline();
     parentPipeline.setName("parent");
+    parentPipeline.setRootId("parent-root-id");
     parentPipeline.setAuthentication(
         new PipelineExecution.AuthenticationDetails("parentUser", "acct1", "acct2"));
 
     Map<String, String> gotMDC = new HashMap<>();
     ExecutionLauncher executionLauncher = mock(ExecutionLauncher.class);
-    when(executionLauncher.start(eq(PIPELINE), any()))
+    when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> p = invocation.getArgument(1);
@@ -93,6 +95,11 @@ class DependentPipelineStarterTest {
               PipelineExecution result = pipeline();
               result.setName((String) p.get("name"));
               result.setId((String) p.get("id"));
+              // Since we're mocking ExecutionLauncher, it's a little artificial
+              // to populate rootId here only to assert on it below, so don't.
+              // What's important is that we verify that executionLauncher.start
+              // was called with the expected rootID argument, and that does
+              // happen below.
               result.setTrigger(mapper.convertValue(p.get("trigger"), Trigger.class));
               return result;
             });
@@ -120,6 +127,9 @@ class DependentPipelineStarterTest {
             buildAuthenticatedUser("user", List.of("acct3", "acct4")));
     MDC.clear();
 
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
+
     assertThat(result.getName()).isEqualTo("triggered");
     assertThat(gotMDC.get("X-SPINNAKER-USER")).isEqualTo("user");
     assertThat(gotMDC.get("X-SPINNAKER-ACCOUNTS")).isEqualTo("acct3,acct4");
@@ -129,6 +139,9 @@ class DependentPipelineStarterTest {
         dependentPipelineStarter.trigger(
             triggeredPipelineConfig, null, parentPipeline, new HashMap<>(), null, null);
     MDC.clear();
+
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher, times(2)).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
 
     assertThat(result.getName()).isEqualTo("triggered");
     assertThat(gotMDC.get("X-SPINNAKER-USER")).isNull();
@@ -144,6 +157,7 @@ class DependentPipelineStarterTest {
 
     PipelineExecution parentPipeline = pipeline();
     parentPipeline.setName("parent");
+    parentPipeline.setRootId("parent-root-id");
     parentPipeline.setTrigger(
         new DefaultTrigger(
             "manual",
@@ -158,7 +172,7 @@ class DependentPipelineStarterTest {
         new PipelineExecution.AuthenticationDetails("parentUser", "acct1", "acct2"));
 
     ExecutionLauncher executionLauncher = mock(ExecutionLauncher.class);
-    when(executionLauncher.start(eq(PIPELINE), any()))
+    when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> p = invocation.getArgument(1);
@@ -192,7 +206,8 @@ class DependentPipelineStarterTest {
             buildAuthenticatedUser("user", new ArrayList<>()));
 
     // then
-    verify(executionLauncher).start(eq(PIPELINE), any());
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
 
     assertThat(result.getTrigger().isDryRun()).isTrue();
   }
@@ -218,13 +233,14 @@ class DependentPipelineStarterTest {
 
     PipelineExecution parentPipeline = pipeline();
     parentPipeline.setName("parent");
+    parentPipeline.setRootId("parent-root-id");
     parentPipeline.setTrigger(
         new DefaultTrigger("webhook", null, "test", new HashMap<>(), List.of(testArtifact)));
     parentPipeline.setAuthentication(
         new PipelineExecution.AuthenticationDetails("parentUser", "acct1", "acct2"));
 
     ExecutionLauncher executionLauncher = mock(ExecutionLauncher.class);
-    when(executionLauncher.start(eq(PIPELINE), any()))
+    when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> p = invocation.getArgument(1);
@@ -258,7 +274,8 @@ class DependentPipelineStarterTest {
             buildAuthenticatedUser("user", new ArrayList<>()));
 
     // then
-    verify(executionLauncher).start(eq(PIPELINE), any());
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
 
     assertThat(result.getTrigger().getArtifacts()).hasSize(1);
     assertThat(result.getTrigger().getArtifacts().get(0).getName())
@@ -301,7 +318,7 @@ class DependentPipelineStarterTest {
             Optional.of(artifactUtils),
             new NoopRegistry());
 
-    when(executionLauncher.start(any(), any()))
+    when(executionLauncher.start(any(), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> config = invocation.getArgument(1);
@@ -319,7 +336,8 @@ class DependentPipelineStarterTest {
             buildAuthenticatedUser("user", Collections.emptyList()));
 
     // then
-    verify(executionLauncher).start(eq(PIPELINE), any());
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
 
     assertThat(result.getTrigger().getArtifacts()).hasSize(1);
     assertThat(result.getTrigger().getArtifacts().get(0).getName())
@@ -349,6 +367,7 @@ class DependentPipelineStarterTest {
 
     PipelineExecution parentPipeline = pipeline();
     parentPipeline.setName("parent");
+    parentPipeline.setRootId("parent-root-id");
     parentPipeline.setTrigger(
         new DefaultTrigger(
             "webhook", null, "test", new HashMap<>(), List.of(testArtifact1, testArtifact2)));
@@ -367,7 +386,7 @@ class DependentPipelineStarterTest {
             Optional.of(artifactUtils),
             new NoopRegistry());
 
-    when(executionLauncher.start(eq(PIPELINE), any()))
+    when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> p = invocation.getArgument(1);
@@ -389,7 +408,8 @@ class DependentPipelineStarterTest {
             buildAuthenticatedUser("user", new ArrayList<>()));
 
     // then
-    verify(executionLauncher).start(eq(PIPELINE), any());
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
 
     assertThat(result.getTrigger().getArtifacts()).hasSize(2);
     assertThat(result.getTrigger().getArtifacts())
@@ -434,6 +454,7 @@ class DependentPipelineStarterTest {
 
     PipelineExecution parentPipeline = pipeline();
     parentPipeline.setName("parent");
+    parentPipeline.setRootId("parent-root-id");
     parentPipeline.setTrigger(
         new DefaultTrigger(
             "webhook", null, "test", new HashMap<>(), List.of(testArtifact1, testArtifact2)));
@@ -453,7 +474,7 @@ class DependentPipelineStarterTest {
             Optional.of(artifactUtils),
             new NoopRegistry());
 
-    when(executionLauncher.start(eq(PIPELINE), any()))
+    when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> p = invocation.getArgument(1);
@@ -475,7 +496,8 @@ class DependentPipelineStarterTest {
             buildAuthenticatedUser("user", new ArrayList<>()));
 
     // then
-    verify(executionLauncher).start(eq(PIPELINE), any());
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
 
     assertThat(result.getTrigger().getArtifacts()).hasSize(2);
     assertThat(result.getTrigger().getArtifacts())
@@ -522,6 +544,7 @@ class DependentPipelineStarterTest {
 
     PipelineExecution parentPipeline = pipeline();
     parentPipeline.setName("parent");
+    parentPipeline.setRootId("parent-root-id");
     parentPipeline.setTrigger(
         new DefaultTrigger(
             "webhook", null, "test", new HashMap<>(), List.of(testArtifact1, testArtifact2)));
@@ -541,7 +564,7 @@ class DependentPipelineStarterTest {
             Optional.of(artifactUtils),
             new NoopRegistry());
 
-    when(executionLauncher.start(eq(PIPELINE), any()))
+    when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> p = invocation.getArgument(1);
@@ -563,7 +586,8 @@ class DependentPipelineStarterTest {
             buildAuthenticatedUser("user", new ArrayList<>()));
 
     // then
-    verify(executionLauncher).start(eq(PIPELINE), any());
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
 
     assertThat(result.getTrigger().getArtifacts()).hasSize(2);
     assertThat(result.getTrigger().getArtifacts())
@@ -597,6 +621,7 @@ class DependentPipelineStarterTest {
             .build();
     PipelineExecution parentPipeline = pipeline();
     parentPipeline.setName("parent");
+    parentPipeline.setRootId("parent-root-id");
     parentPipeline.setTrigger(
         new DefaultTrigger(
             "webhook", null, "test", new HashMap<>(), List.of(testArtifact1, testArtifact2)));
@@ -637,7 +662,7 @@ class DependentPipelineStarterTest {
             Optional.of(artifactUtils),
             new NoopRegistry());
 
-    when(executionLauncher.start(eq(PIPELINE), any()))
+    when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> p = invocation.getArgument(1);
@@ -659,7 +684,8 @@ class DependentPipelineStarterTest {
             buildAuthenticatedUser("user", new ArrayList<>()));
 
     // then
-    verify(executionLauncher).start(eq(PIPELINE), any());
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
 
     assertThat(result.getTrigger().getArtifacts()).hasSize(3);
     assertThat(result.getTrigger().getArtifacts())
@@ -683,6 +709,7 @@ class DependentPipelineStarterTest {
 
     PipelineExecution parentPipeline = pipeline();
     parentPipeline.setName("my-parent-pipeline");
+    parentPipeline.setRootId("parent-root-id");
     parentPipeline.setAuthentication(
         new PipelineExecution.AuthenticationDetails("username", "account1"));
     parentPipeline.setPipelineConfigId("fe0b3537-3101-46a1-8e08-ab57cf65a207");
@@ -721,11 +748,11 @@ class DependentPipelineStarterTest {
 
     // Use a list to be able to extract from within a lambda.
     List<Exception> error = new ArrayList<>();
-    when(executionLauncher.fail(eq(PIPELINE), any(), any()))
+    when(executionLauncher.fail(eq(PIPELINE), any(), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> processedPipeline = invocation.getArgument(1);
-              Exception artifactError = invocation.getArgument(2);
+              Exception artifactError = invocation.getArgument(3);
 
               if (artifactError != null) {
                 error.add(artifactError);
@@ -750,7 +777,8 @@ class DependentPipelineStarterTest {
 
     // then
     verify(executionLauncher, never()).start(eq(PIPELINE), any());
-    verify(executionLauncher).fail(eq(PIPELINE), any(), any());
+    verify(executionLauncher, never()).start(eq(PIPELINE), any(), any());
+    verify(executionLauncher).fail(eq(PIPELINE), any(), eq(parentPipeline.getRootId()), any());
 
     verify(artifactUtils).resolveArtifacts(any());
     assertThat(error).hasSize(1);
@@ -787,7 +815,7 @@ class DependentPipelineStarterTest {
             Optional.of(artifactUtils),
             new NoopRegistry());
 
-    when(executionLauncher.start(eq(PIPELINE), any()))
+    when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
             invocation -> {
               Map<String, Object> config = invocation.getArgument(1);
@@ -805,13 +833,15 @@ class DependentPipelineStarterTest {
             buildAuthenticatedUser("user", Collections.emptyList()));
 
     // then
-    verify(executionLauncher).start(eq(PIPELINE), any());
+    verify(executionLauncher, never()).start(eq(PIPELINE), any());
+    verify(executionLauncher).start(eq(PIPELINE), any(), eq(parentPipeline.getRootId()));
 
     assertThat(result.getTrigger().getParameters()).containsEntry("a", true);
   }
 
   private PipelineExecution createParentPipeline(Artifact testArtifact) {
     PipelineExecution parentPipeline = new PipelineExecutionImpl(PIPELINE, "parent");
+    parentPipeline.setRootId("parent-root-id");
     parentPipeline.setTrigger(new DefaultTrigger("webhook", null, "test"));
     parentPipeline.setAuthentication(
         new PipelineExecution.AuthenticationDetails("parentUser", "acct1", "acct2"));

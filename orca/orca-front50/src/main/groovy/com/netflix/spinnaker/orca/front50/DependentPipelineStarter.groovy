@@ -189,7 +189,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
     Callable<PipelineExecution> callable
     if (artifactError == null) {
       callable = {
-        return executionLauncher().start(PIPELINE, processedPipeline).with {
+        return executionLauncher().start(PIPELINE, processedPipeline, parentPipeline.getRootId()).with {
           Id id = registry.createId("pipelines.triggered")
               .withTag("application", Optional.ofNullable(it.getApplication()).orElse("null"))
               .withTag("monitor", "DependentPipelineStarter")
@@ -199,7 +199,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
       } as Callable<PipelineExecution>
     } else {
       callable = {
-        return executionLauncher().fail(PIPELINE, processedPipeline, artifactError)
+        return executionLauncher().fail(PIPELINE, processedPipeline, parentPipeline.getRootId(), artifactError)
       } as Callable<PipelineExecution>
     }
 
