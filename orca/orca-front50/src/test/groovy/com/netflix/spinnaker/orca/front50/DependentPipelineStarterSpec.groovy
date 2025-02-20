@@ -148,7 +148,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(PIPELINE, _ as Map) >> { _, p ->
+    1 * executionLauncher.start(PIPELINE, _ as Map) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -203,7 +203,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> { _, p ->
+    1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -269,7 +269,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> { _, p ->
+    1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -326,7 +326,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> { _, p ->
+    1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -394,7 +394,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> { _, p ->
+    1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -462,7 +462,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> { _, p ->
+    1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -536,7 +536,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> { _, p ->
+    1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         name = p.name
         id = p.name
@@ -618,7 +618,7 @@ class DependentPipelineStarterSpec extends Specification {
 
     and:
     def error
-    executionLauncher.fail(_, _, _) >> { PIPELINE, processedPipeline, artifactError ->
+    1 * executionLauncher.fail(_, _, _) >> { PIPELINE, processedPipeline, artifactError ->
       error = artifactError
       return pipeline {
         name = processedPipeline.name
@@ -666,7 +666,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> { _, p ->
+    1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
@@ -713,7 +713,7 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     and:
-    executionLauncher.start(*_) >> { _, p ->
+    1 * executionLauncher.start(*_) >> { _, p ->
       return pipeline {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
