@@ -210,9 +210,6 @@ class DependentPipelineStarterSpec extends Specification {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
-    artifactUtils.getArtifactsForPipelineId(*_) >> {
-      return new ArrayList<Artifact>()
-    }
 
     when:
     def result = dependentPipelineStarter.trigger(
@@ -279,9 +276,6 @@ class DependentPipelineStarterSpec extends Specification {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
-    artifactUtils.getArtifactsForPipelineId(*_) >> {
-      return new ArrayList<Artifact>();
-    }
 
     when:
     def result = dependentPipelineStarter.trigger(
@@ -338,9 +332,6 @@ class DependentPipelineStarterSpec extends Specification {
         id = p.name
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
-    }
-    artifactUtils.getArtifactsForPipelineId(*_) >> {
-      return new ArrayList<Artifact>();
     }
 
     when:
@@ -410,9 +401,6 @@ class DependentPipelineStarterSpec extends Specification {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
-    artifactUtils.getArtifactsForPipelineId(*_) >> {
-      return new ArrayList<Artifact>();
-    }
 
     when:
     def result = dependentPipelineStarter.trigger(
@@ -480,9 +468,6 @@ class DependentPipelineStarterSpec extends Specification {
         id = p.name
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
-    }
-    artifactUtils.getArtifactsForPipelineId(*_) >> {
-      return new ArrayList<Artifact>();
     }
 
     when:
@@ -557,9 +542,6 @@ class DependentPipelineStarterSpec extends Specification {
         id = p.name
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
-    }
-    artifactUtils.getArtifactsForPipelineId(*_) >> {
-      return new ArrayList<Artifact>();
     }
 
     when:
@@ -997,10 +979,6 @@ class DependentPipelineStarterSpec extends Specification {
       }
     }
     1 * templateLoader.load(_ as TemplateConfiguration.TemplateSource, _, _) >> [triggeredPipelineTemplate]
-
-    artifactUtils.getArtifactsForPipelineId(*_) >> {
-      return new ArrayList<>()
-    }
 
     when:
     def result = dependentPipelineStarter.trigger(
