@@ -24,6 +24,7 @@ import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.User
 import groovy.json.JsonSlurper
@@ -186,7 +187,7 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
       return false
     }
     try {
-      def serviceAccounts = front50Service.getServiceAccounts()
+      def serviceAccounts = Retrofit2SyncCall.execute(front50Service.getServiceAccounts())
       return serviceAccounts.find { email.equalsIgnoreCase(it.name) }
     } catch (SpinnakerServerException e) {
       log.warn("Could not get list of service accounts.", e)

@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.gate.security.oauth2
 
+import com.netflix.spinnaker.gate.services.PermissionService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -106,5 +109,25 @@ class SpinnakerUserInfoTokenServicesSpec extends Specification {
     ["[\"foo\", \"bar\"]"]    || ["foo", "bar"]
     1                         || []
     [blergh: "blarg"]         || []
+  }
+
+  def "verify SpinnakerUserInfoTokenServices#isServiceAccount"() {
+    given:
+    def permissionService = Mock(PermissionService){
+      1 * isEnabled() >> true
+    }
+    def front50Service = Mock(Front50Service){
+      1 * getServiceAccounts() >> Calls.response([['name':'ex@foo.com']])
+    }
+    def tokenServices = new SpinnakerUserInfoTokenServices(userInfoMapping: new OAuth2SsoConfig.UserInfoMapping(), permissionService: permissionService, front50Service: front50Service)
+    def details = [
+      client_email: 'ex@foo.com'
+    ]
+
+    when:
+    def isServiceAccount = tokenServices.isServiceAccount(details)
+
+    then:
+    isServiceAccount
   }
 }

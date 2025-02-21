@@ -33,13 +33,18 @@ import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
 class PipelineControllerSpec extends Specification {
 
-  def taskSerivce = Mock(TaskService)
-  def front50Service = Mock(Front50Service)
+  def taskSerivce = Mock(TaskService){
+    createAndWaitForCompletion(_) >> { [id: 'task-id', application: 'application', status: 'SUCCEEDED'] }
+  }
+  def front50Service = Mock(Front50Service){
+    getPipelineConfigsForApplication('application', null, true) >> Calls.response([['name': 'testpipeline', 'application': 'application']])
+  }
   def pipelineService = Mock(PipelineService)
   def pipelineControllerConfig = new PipelineControllerConfigProperties()
   def mockMvc = MockMvcBuilders
@@ -91,7 +96,28 @@ class PipelineControllerSpec extends Specification {
         ]
       ]
     ]) >> { [id: 'task-id', application: 'application', status: 'SUCCEEDED'] }
-    1 * front50Service.getPipelineConfigsForApplication('application', null, true) >> Calls.response([])
+  }
+
+  def "verify PipelineController#deletePipeline"() {
+    given:
+    def pipeline = [
+      id: "id",
+      name: "testpipeline",
+      stages: [],
+      triggers: [],
+      limitConcurrent: true,
+      parallel: true,
+      index: 4,
+      application: "application"
+    ]
+
+    when:
+    def response = mockMvc.perform(
+      delete("/pipelines/${pipeline.application}/${pipeline.name}").contentType(MediaType.APPLICATION_JSON)
+    ).andReturn().response
+
+    then:
+    notThrown(Exception)
   }
 
   def "should propagate pipeline template errors"() {

@@ -8,4 +8,6 @@ dependencies {
   implementation "org.apache.groovy:groovy-json"
   implementation "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure"
   implementation "org.springframework.session:spring-session-core"
+
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 }

@@ -75,7 +75,7 @@ class PipelineController {
   @Operation(summary = "Delete a pipeline definition")
   @DeleteMapping("/{application}/{pipelineName:.+}")
   void deletePipeline(@PathVariable String application, @PathVariable String pipelineName) {
-    List<Map> pipelineConfigs = front50Service.getPipelineConfigsForApplication(application, null, true)
+    List<Map> pipelineConfigs = Retrofit2SyncCall.execute(front50Service.getPipelineConfigsForApplication(application, null, true))
     if (pipelineConfigs!=null && !pipelineConfigs.isEmpty()){
       Optional<Map> filterResult = pipelineConfigs.stream().filter({ pipeline -> ((String) pipeline.get("name")) != null && ((String) pipeline.get("name")).trim().equalsIgnoreCase(pipelineName) }).findFirst()
       if (filterResult.isPresent()){
