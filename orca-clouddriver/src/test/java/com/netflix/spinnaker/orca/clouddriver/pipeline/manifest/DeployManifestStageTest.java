@@ -116,6 +116,14 @@ final class DeployManifestStageTest {
   }
 
   @Test
+  void rolloutStrategyMissing() {
+    StageExecutionImpl stage = new StageExecutionImpl();
+    stage.setContext(getContext(DeployManifestContext.builder().build()));
+    stage.getContext().remove("trafficManagement");
+    assertThat(getAfterStages(stage)).isEmpty();
+  }
+
+  @Test
   void rolloutStrategyRedBlack() {
     givenManifestIsStable();
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))

@@ -92,20 +92,22 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
 
   @Override
   public void afterStages(@Nonnull StageExecution stage, @Nonnull StageGraphBuilder graph) {
-    TrafficManagement trafficManagement =
-        stage.mapTo("/trafficManagement", TrafficManagement.class);
-    if (trafficManagement.isEnabled()) {
-      switch (trafficManagement.getOptions().getStrategy()) {
-        case RED_BLACK:
-        case BLUE_GREEN:
-          oldManifestActionAppender.deleteOrDisableOldManifest(stage.getContext(), graph);
-          break;
-        case HIGHLANDER:
-          oldManifestActionAppender.disableOldManifest(stage.getContext(), graph);
-          oldManifestActionAppender.deleteOldManifest(stage.getContext(), graph);
-          break;
-        case NONE:
-          // do nothing
+    if (stage.getContext().get("trafficManagement") != null) {
+      TrafficManagement trafficManagement =
+          stage.mapTo("/trafficManagement", TrafficManagement.class);
+      if (trafficManagement.isEnabled()) {
+        switch (trafficManagement.getOptions().getStrategy()) {
+          case RED_BLACK:
+          case BLUE_GREEN:
+            oldManifestActionAppender.deleteOrDisableOldManifest(stage.getContext(), graph);
+            break;
+          case HIGHLANDER:
+            oldManifestActionAppender.disableOldManifest(stage.getContext(), graph);
+            oldManifestActionAppender.deleteOldManifest(stage.getContext(), graph);
+            break;
+          case NONE:
+            // do nothing
+        }
       }
     }
     if (shouldRemoveStageOutputs(stage)) {
