@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -49,6 +50,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription;
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy;
@@ -75,7 +77,13 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.config.GoogleConfiguration;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -216,6 +224,188 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(machineTypeName, result);
     mockedGCEUtil.verify(
         () -> GCEUtil.queryMachineType(instanceType, location, mockCredentials, mockTask, "DEPLOY"),
+        times(1));
+  }
+
+  @Test
+  void testGetMachineTypeNameFromInput_RegionalNotAvailableInAllZones() {
+    String instanceType = "c4-highcpu-2";
+    String location = "us-central1";
+
+    when(mockDescription.getInstanceType()).thenReturn(instanceType);
+    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
+    when(mockDescription.getRegional()).thenReturn(true);
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.queryMachineType(
+                    eq(instanceType),
+                    eq(location),
+                    eq(mockCredentials),
+                    eq(mockTask),
+                    eq("DEPLOY")))
+        .thenThrow(
+            new GoogleOperationException(
+                "Machine type "
+                    + instanceType
+                    + " not found in zone us-central1. When using Regional distribution without explicit selection of Zones, the machine type must be available in all zones of the region"));
+
+    assertThrowsExactly(
+        GoogleOperationException.class,
+        () -> {
+          basicGoogleDeployHandler.getMachineTypeNameFromInput(mockDescription, mockTask, location);
+        },
+        "Machine type "
+            + instanceType
+            + " not found in zone us-central1. When using Regional distribution without explicit selection of Zones, the machine type must be available in all zones of the region");
+
+    mockedGCEUtil.verify(
+        () -> GCEUtil.queryMachineType(instanceType, location, mockCredentials, mockTask, "DEPLOY"),
+        times(1));
+  }
+
+  @Test
+  void testGetMachineTypeNameFromInput_RegionalAvailableInAllZones() {
+    String instanceType = "c4-highcpu-2";
+    String location = "us-central1";
+    String machineTypeName = "c4-highcpu-2-machine";
+
+    when(mockDescription.getInstanceType()).thenReturn(instanceType);
+    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
+    when(mockDescription.getRegional()).thenReturn(true);
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.queryMachineType(
+                    eq(instanceType),
+                    eq(location),
+                    eq(mockCredentials),
+                    eq(mockTask),
+                    eq("DEPLOY")))
+        .thenReturn(machineTypeName);
+
+    String result =
+        basicGoogleDeployHandler.getMachineTypeNameFromInput(mockDescription, mockTask, location);
+
+    assertEquals(machineTypeName, result);
+    mockedGCEUtil.verify(
+        () -> GCEUtil.queryMachineType(instanceType, location, mockCredentials, mockTask, "DEPLOY"),
+        times(1));
+  }
+
+  @Test
+  void testGetMachineTypeNameFromInput_RegionalNotAvailableInAllSelectedZones() {
+    String instanceType = "c4-highcpu-2";
+    String location = "us-central1";
+    String machineTypeName = "c4-highcpu-2-machine";
+
+    when(mockDescription.getInstanceType()).thenReturn(instanceType);
+    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
+    when(mockDescription.getRegional()).thenReturn(true);
+    when(mockDescription.getSelectZones()).thenReturn(true);
+    when(mockDescription.getDistributionPolicy())
+        .thenReturn(
+            new GoogleDistributionPolicy(List.of("us-central1-a", "us-central1-f"), "EVEN"));
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.queryMachineType(
+                    eq(instanceType),
+                    eq("us-central1-a"),
+                    eq(mockCredentials),
+                    eq(mockTask),
+                    eq("DEPLOY")))
+        .thenReturn(machineTypeName);
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.queryMachineType(
+                    eq(instanceType),
+                    eq("us-central1-f"),
+                    eq(mockCredentials),
+                    eq(mockTask),
+                    eq("DEPLOY")))
+        .thenThrow(
+            new GoogleOperationException(
+                "Machine type "
+                    + instanceType
+                    + " not found in zone us-central1-f. When using selectZones, the machine type must be available in all selected zones."));
+
+    assertThrowsExactly(
+        GoogleOperationException.class,
+        () -> {
+          basicGoogleDeployHandler.getMachineTypeNameFromInput(mockDescription, mockTask, location);
+        },
+        "Machine type "
+            + instanceType
+            + " not found in zone us-central1-f. When using selectZones, the machine type must be available in all selected zones.");
+
+    mockedGCEUtil.verify(
+        () ->
+            GCEUtil.queryMachineType(
+                instanceType, "us-central1-a", mockCredentials, mockTask, "DEPLOY"),
+        times(1));
+    mockedGCEUtil.verify(
+        () ->
+            GCEUtil.queryMachineType(
+                instanceType, "us-central1-f", mockCredentials, mockTask, "DEPLOY"),
+        times(1));
+  }
+
+  @Test
+  void testGetMachineTypeNameFromInput_RegionalAvailableInAllSelectedZones() {
+    String instanceType = "c4-highcpu-2";
+    String location = "us-central1";
+    String machineTypeName = "c4-highcpu-2-machine";
+
+    when(mockDescription.getInstanceType()).thenReturn(instanceType);
+    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
+    when(mockDescription.getRegional()).thenReturn(true);
+    when(mockDescription.getSelectZones()).thenReturn(true);
+    when(mockDescription.getDistributionPolicy())
+        .thenReturn(
+            new GoogleDistributionPolicy(List.of("us-central1-a", "us-central1-b"), "EVEN"));
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.queryMachineType(
+                    eq(instanceType),
+                    eq("us-central1-a"),
+                    eq(mockCredentials),
+                    eq(mockTask),
+                    eq("DEPLOY")))
+        .thenReturn(machineTypeName);
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.queryMachineType(
+                    eq(instanceType),
+                    eq("us-central1-b"),
+                    eq(mockCredentials),
+                    eq(mockTask),
+                    eq("DEPLOY")))
+        .thenReturn(machineTypeName);
+
+    String result =
+        basicGoogleDeployHandler.getMachineTypeNameFromInput(mockDescription, mockTask, location);
+
+    assertEquals(machineTypeName, result);
+
+    mockedGCEUtil.verify(
+        () ->
+            GCEUtil.queryMachineType(
+                instanceType, "us-central1-a", mockCredentials, mockTask, "DEPLOY"),
+        times(1));
+    mockedGCEUtil.verify(
+        () ->
+            GCEUtil.queryMachineType(
+                instanceType, "us-central1-b", mockCredentials, mockTask, "DEPLOY"),
         times(1));
   }
 

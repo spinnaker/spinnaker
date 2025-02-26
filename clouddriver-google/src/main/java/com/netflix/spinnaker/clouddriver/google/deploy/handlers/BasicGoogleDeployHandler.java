@@ -56,6 +56,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription;
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource;
@@ -289,8 +290,46 @@ public class BasicGoogleDeployHandler
     if (description.getInstanceType().contains("custom-")) {
       return description.getInstanceType();
     } else {
-      return GCEUtil.queryMachineType(
-          description.getInstanceType(), location, description.getCredentials(), task, BASE_PHASE);
+      List<String> queryZone =
+          description.getRegional()
+              ? (Optional.ofNullable(description.getSelectZones()).orElse(false)
+                  ? Optional.ofNullable(description.getDistributionPolicy().getZones())
+                      .orElse(Collections.singletonList(location))
+                  : Collections.singletonList(location))
+              : Collections.singletonList(location);
+      String machineTypeName = "";
+      for (String zoneOrLocation : queryZone) {
+        String msg =
+            description.getRegional()
+                ? (description.getSelectZones()
+                    ? "Machine type "
+                        + description.getInstanceType()
+                        + " not found in zone "
+                        + zoneOrLocation
+                        + ". When using selectZones, the machine type must be available in all selected zones."
+                    : "Machine type "
+                        + description.getInstanceType()
+                        + " not found in zone "
+                        + zoneOrLocation
+                        + ". When using Regional distribution without explicit selection of Zones, the machine type must be available in all zones of the region.")
+                : "Machine type "
+                    + description.getInstanceType()
+                    + " not found in region "
+                    + zoneOrLocation
+                    + ".";
+        try {
+          machineTypeName =
+              GCEUtil.queryMachineType(
+                  description.getInstanceType(),
+                  zoneOrLocation,
+                  description.getCredentials(),
+                  task,
+                  BASE_PHASE);
+        } catch (GoogleOperationException e) {
+          throw new GoogleOperationException(msg);
+        }
+      }
+      return machineTypeName;
     }
   }
 
