@@ -119,9 +119,9 @@ public class BuildInfoService {
               igorConfigurationProperties.isJobNameAsQueryParameter()
                   ? Retrofit2SyncCall.execute(
                       igorService.getArtifactsWithJobQueryParameter(
-                          buildNumber, propertyFile, master, job))
+                          buildNumber, master, job, propertyFile))
                   : Retrofit2SyncCall.execute(
-                      igorService.getArtifacts(buildNumber, propertyFile, master, job)));
+                      igorService.getArtifacts(buildNumber, master, job, propertyFile)));
     }
     return Collections.emptyList();
   }

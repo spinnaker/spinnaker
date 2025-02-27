@@ -59,16 +59,16 @@ public interface IgorService {
   @GET("builds/artifacts/{buildNumber}/{master}/{job}")
   Call<List<Artifact>> getArtifacts(
       @Path("buildNumber") Integer buildNumber,
-      @Query("propertyFile") String propertyFile,
       @Path("master") String master,
-      @Path(value = "job", encoded = true) String job);
+      @Path(value = "job", encoded = true) String job,
+      @Query("propertyFile") String propertyFile);
 
   @GET("builds/artifacts/{buildNumber}/{master}")
   Call<List<Artifact>> getArtifactsWithJobQueryParameter(
       @Path("buildNumber") Integer buildNumber,
-      @Query("propertyFile") String propertyFile,
       @Path("master") String master,
-      @Query(value = "job") String job);
+      @Query(value = "job") String job,
+      @Query("propertyFile") String propertyFile);
 
   @GET("artifacts/{provider}/{packageName}")
   Call<List<String>> getVersions(
