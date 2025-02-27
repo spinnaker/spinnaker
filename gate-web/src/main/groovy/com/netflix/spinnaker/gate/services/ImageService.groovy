@@ -37,7 +37,7 @@ class ImageService {
     Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getImageDetails(provider, account, region, imageId))
   }
 
-  List<Map> search(String provider, String query, String region, String account, Integer count, Map<String, Object> additionalFilters, String selectorKey) {
+  List<Map> search(String provider, String query, String region, String account, Integer count, Map<String, String> additionalFilters, String selectorKey) {
     Retrofit2SyncCall.execute(clouddriverServiceSelector.select().findImages(provider, query, region, account, count, additionalFilters))
   }
 

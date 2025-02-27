@@ -38,6 +38,7 @@ dependencies {
   implementation "io.cloudevents:cloudevents-http-basic:2.5.0"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "com.squareup.retrofit2:converter-jackson"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 }
 
 sourceSets {
