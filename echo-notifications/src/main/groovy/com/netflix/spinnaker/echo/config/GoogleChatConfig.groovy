@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.config
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.googlechat.GoogleChatService
 import com.netflix.spinnaker.echo.googlechat.GoogleChatClient
+import com.netflix.spinnaker.echo.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -42,7 +43,7 @@ class GoogleChatConfig {
     log.info("Chat service loaded");
 
     def chatClient = new Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(RetrofitUtils.getBaseUrl(baseUrl))
             .client(okHttpClientConfig.createForRetrofit2().build())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(JacksonConverterFactory.create())

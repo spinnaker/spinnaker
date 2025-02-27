@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +38,7 @@ public class Front50Config {
     log.info("front50 service loaded");
 
     return new Retrofit.Builder()
-        .baseUrl(front50BaseUrl)
+        .baseUrl(RetrofitUtils.getBaseUrl(front50BaseUrl))
         .client(okHttp3ClientConfiguration.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create())

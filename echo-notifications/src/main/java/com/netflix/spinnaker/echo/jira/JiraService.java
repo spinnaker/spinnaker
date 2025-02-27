@@ -28,18 +28,18 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface JiraService {
-  @POST("/rest/api/2/issue/")
+  @POST("rest/api/2/issue/")
   Call<CreateIssueResponse> createIssue(@Body CreateIssueRequest createIssueRequest);
 
-  @GET("/rest/api/2/issue/{issueIdOrKey}/transitions")
+  @GET("rest/api/2/issue/{issueIdOrKey}/transitions")
   Call<IssueTransitions> getIssueTransitions(@Path("issueIdOrKey") String issueIdOrKey);
 
-  @POST("/rest/api/2/issue/{issueIdOrKey}/transitions")
+  @POST("rest/api/2/issue/{issueIdOrKey}/transitions")
   Call<ResponseBody> transitionIssue(
       @Path("issueIdOrKey") String issueIdOrKey,
       @Body TransitionIssueRequest transitionIssueRequest);
 
-  @POST("/rest/api/2/issue/{issueIdOrKey}/comment")
+  @POST("rest/api/2/issue/{issueIdOrKey}/comment")
   Call<ResponseBody> addComment(
       @Path("issueIdOrKey") String issueIdOrKey, @Body CommentIssueRequest commentIssueRequest);
 

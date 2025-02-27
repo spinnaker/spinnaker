@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.cdevents;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
+import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -50,7 +51,7 @@ public class CDEventsSenderService {
 
     CDEventsSenderClient cdEventsSenderClient =
         new Retrofit.Builder()
-            .baseUrl(getEndpointUrl(eventsBrokerUrl))
+            .baseUrl(RetrofitUtils.getBaseUrl(getEndpointUrl(eventsBrokerUrl)))
             .client(okHttpClientConfig.createForRetrofit2().addInterceptor(authInterceptor).build())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(converterFactory)

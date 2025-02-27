@@ -23,7 +23,7 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface MicrosoftTeamsClient {
-  @POST("/{webhookUrl}")
+  @POST("{webhookUrl}")
   Call<ResponseBody> sendMessage(
       @Path(value = "webhookUrl", encoded = true) String webhook,
       @Body MicrosoftTeamsMessage message);

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.github.GithubService;
+import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +44,7 @@ public class GithubConfig {
     log.info("Github service loaded");
 
     return new Retrofit.Builder()
-        .baseUrl(endpoint)
+        .baseUrl(RetrofitUtils.getBaseUrl(endpoint))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create())

@@ -24,6 +24,6 @@ import retrofit2.http.POST;
 
 public interface RestService {
 
-  @POST("/")
+  @POST(".")
   Call<ResponseBody> recordEvent(@Body Map<String, Object> event);
 }

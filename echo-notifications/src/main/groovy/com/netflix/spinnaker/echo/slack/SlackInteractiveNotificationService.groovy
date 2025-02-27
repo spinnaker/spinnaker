@@ -21,6 +21,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.notification.InteractiveNotificationService
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
+import com.netflix.spinnaker.echo.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
@@ -164,7 +165,7 @@ class SlackInteractiveNotificationService extends SlackNotificationService imple
   private SlackHookService getSlackHookService(OkHttp3ClientConfiguration okHttp3ClientConfiguration) {
     log.info("Slack hook service loaded")
     new Retrofit.Builder()
-      .baseUrl(SLACK_WEBHOOK_BASE_URL)
+      .baseUrl(RetrofitUtils.getBaseUrl(SLACK_WEBHOOK_BASE_URL))
       .client(okHttp3ClientConfiguration.createForRetrofit2().build())
       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
       .addConverterFactory(JacksonConverterFactory.create())
@@ -173,7 +174,7 @@ class SlackInteractiveNotificationService extends SlackNotificationService imple
   }
 
   interface SlackHookService {
-    @POST('/{path}')
+    @POST('{path}')
     Call<ResponseBody> respondToMessage(@Path(value = "path", encoded = true) path, @Body Map content)
   }
 }

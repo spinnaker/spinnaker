@@ -33,19 +33,19 @@ import retrofit2.http.Query;
 
 public interface OrcaService {
 
-  @POST("/orchestrate")
+  @POST("orchestrate")
   Call<TriggerResponse> trigger(@Body Pipeline pipeline);
 
-  @POST("/fail")
+  @POST("fail")
   Call<ResponseBody> recordFailure(@Body Pipeline pipeline);
 
-  @POST("/plan")
+  @POST("plan")
   Call<Map> plan(@Body Map pipelineConfig, @Query("resolveArtifacts") boolean resolveArtifacts);
 
-  @POST("/v2/pipelineTemplates/plan")
+  @POST("v2/pipelineTemplates/plan")
   Call<Map<String, Object>> v2Plan(@Body Map pipelineConfig);
 
-  @GET("/pipelines")
+  @GET("pipelines")
   Call<Collection<PipelineResponse>> getLatestPipelineExecutions(
       @Query("pipelineConfigIds") Collection<String> pipelineIds, @Query("limit") Integer limit);
 

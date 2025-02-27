@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.notification;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.api.Notification;
 import com.netflix.spinnaker.echo.api.Notification.InteractiveActionCallback
+import com.netflix.spinnaker.echo.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -126,7 +127,7 @@ class InteractiveNotificationCallbackHandler {
       spinnakerServices.put(
         serviceId,
         new Retrofit.Builder()
-          .baseUrl(baseUrl)
+          .baseUrl(RetrofitUtils.getBaseUrl(baseUrl))
           .client(okHttp3ClientConfiguration.createForRetrofit2().build())
           .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
           .addConverterFactory(JacksonConverterFactory.create())
@@ -139,7 +140,7 @@ class InteractiveNotificationCallbackHandler {
   }
 
   interface SpinnakerService {
-    @POST("/notifications/callback")
+    @POST("notifications/callback")
     Call<ResponseBody> notificationCallback(
         @Body InteractiveActionCallback callback, @Header("X-SPINNAKER-USER") String user);
   }

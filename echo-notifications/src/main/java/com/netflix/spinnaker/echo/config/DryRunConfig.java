@@ -21,6 +21,7 @@ import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.notification.DryRunNotificationAgent;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
+import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import java.util.List;
 import lombok.Data;
@@ -45,7 +46,7 @@ public class DryRunConfig {
     log.info("Pipeline dry runs will execute at {}", properties.getBaseUrl());
     OrcaService orca =
         new Retrofit.Builder()
-            .baseUrl(properties.getBaseUrl())
+            .baseUrl(RetrofitUtils.getBaseUrl(properties.getBaseUrl()))
             .client(
                 clientProvider.getClient(
                     new DefaultServiceEndpoint("orca", properties.getBaseUrl())))

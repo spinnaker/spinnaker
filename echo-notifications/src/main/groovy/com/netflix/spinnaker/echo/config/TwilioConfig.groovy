@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.config
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.twilio.TwilioService
+import com.netflix.spinnaker.echo.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -52,7 +53,7 @@ class TwilioConfig {
         BasicAuthRequestInterceptor interceptor = new BasicAuthRequestInterceptor(auth);
 
         new Retrofit.Builder()
-                .baseUrl(twilioBaseUrl)
+                .baseUrl(RetrofitUtils.getBaseUrl(twilioBaseUrl))
                 .client(okHttpClientConfig.createForRetrofit2().addInterceptor(interceptor).build())
                 .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
                 .addConverterFactory(JacksonConverterFactory.create(EchoObjectMapper.getInstance()))

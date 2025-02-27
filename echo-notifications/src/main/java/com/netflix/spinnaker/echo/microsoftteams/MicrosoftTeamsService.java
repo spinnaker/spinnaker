@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.microsoftteams;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
+import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -41,7 +42,7 @@ public class MicrosoftTeamsService {
     // the incoming webhook base URL and path may be different for each Teams channel
     MicrosoftTeamsClient microsoftTeamsClient =
         new Retrofit.Builder()
-            .baseUrl(webhookUrl)
+            .baseUrl(RetrofitUtils.getBaseUrl(webhookUrl))
             .client(okHttp3ClientConfiguration.createForRetrofit2().build())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(JacksonConverterFactory.create())

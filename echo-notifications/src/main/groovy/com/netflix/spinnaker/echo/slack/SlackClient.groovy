@@ -37,7 +37,7 @@ interface SlackClient {
    * One note: linkUserNames according to slack API is a boolean. But guess what? It doesn't work, it must be an int 0 or 1
    */
   @FormUrlEncoded
-  @POST('/api/chat.postMessage')
+  @POST('api/chat.postMessage')
   Call<ResponseBody> sendMessage(
     @Field('token') String token,
     @Field('attachments') String attachments,
@@ -48,7 +48,7 @@ interface SlackClient {
   /**
    * Documentation: https://api.slack.com/incoming-webhooks
    */
-  @POST('/{token}')
+  @POST('{token}')
   Call<ResponseBody> sendUsingIncomingWebHook(
     @Path(value = "token", encoded = true) String token,
     @Body SlackRequest slackRequest)
@@ -56,7 +56,7 @@ interface SlackClient {
   /**
    * Documentation: https://api.slack.com/methods/users.info
    */
-  @GET('/api/users.info')
+  @GET('api/users.info')
   Call<SlackService.SlackUserInfo> getUserInfo(
     @Query('token') String token,
     @Query('user') String userId

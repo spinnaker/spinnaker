@@ -30,64 +30,64 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface IgorService {
-  @GET("/builds/status/{buildNumber}/{master}/{job}")
+  @GET("builds/status/{buildNumber}/{master}/{job}")
   Call<Map<String, Object>> getBuild(
       @Path("buildNumber") Integer buildNumber,
       @Path("master") String master,
       @Path(value = "job", encoded = true) String job);
 
-  @GET("/builds/status/{buildNumber}/{master}")
+  @GET("builds/status/{buildNumber}/{master}")
   Call<Map<String, Object>> getBuildStatusWithJobQueryParameter(
       @NotNull @Path("buildNumber") Integer buildNumber,
       @NotNull @Path("master") String master,
       @NotNull @Query(value = "job") String job);
 
-  @GET("/builds/properties/{buildNumber}/{fileName}/{master}/{job}")
+  @GET("builds/properties/{buildNumber}/{fileName}/{master}/{job}")
   Call<Map<String, Object>> getPropertyFile(
       @Path("buildNumber") Integer buildNumber,
       @Path("fileName") String fileName,
       @Path("master") String master,
       @Path(value = "job", encoded = true) String job);
 
-  @GET("/builds/properties/{buildNumber}/{fileName}/{master}")
+  @GET("builds/properties/{buildNumber}/{fileName}/{master}")
   Call<Map<String, Object>> getPropertyFileWithJobQueryParameter(
       @Path("buildNumber") Integer buildNumber,
       @Path("fileName") String fileName,
       @Path("master") String master,
       @Query(value = "job") String job);
 
-  @GET("/builds/artifacts/{buildNumber}/{master}/{job}")
+  @GET("builds/artifacts/{buildNumber}/{master}/{job}")
   Call<List<Artifact>> getArtifacts(
       @Path("buildNumber") Integer buildNumber,
       @Query("propertyFile") String propertyFile,
       @Path("master") String master,
       @Path(value = "job", encoded = true) String job);
 
-  @GET("/builds/artifacts/{buildNumber}/{master}")
+  @GET("builds/artifacts/{buildNumber}/{master}")
   Call<List<Artifact>> getArtifactsWithJobQueryParameter(
       @Path("buildNumber") Integer buildNumber,
       @Query("propertyFile") String propertyFile,
       @Path("master") String master,
       @Query(value = "job") String job);
 
-  @GET("/artifacts/{provider}/{packageName}")
+  @GET("artifacts/{provider}/{packageName}")
   Call<List<String>> getVersions(
       @Path("provider") String provider, @Path("packageName") String packageName);
 
-  @GET("/artifacts/{provider}/{packageName}/{version}")
+  @GET("artifacts/{provider}/{packageName}/{version}")
   Call<Artifact> getArtifactByVersion(
       @Path("provider") String provider,
       @Path("packageName") String packageName,
       @Path("version") String version);
 
-  @PUT("/gcb/builds/{account}/{buildId}")
+  @PUT("gcb/builds/{account}/{buildId}")
   Call<ResponseBody> updateBuildStatus(
       @Path("account") String account,
       @Path("buildId") String buildId,
       @Query("status") String status,
       @Body TypedInput build);
 
-  @PUT("/gcb/artifacts/extract/{account}")
+  @PUT("gcb/artifacts/extract/{account}")
   Call<List<Artifact>> extractGoogleCloudBuildArtifacts(
       @Path("account") String account, @Body TypedInput build);
 }

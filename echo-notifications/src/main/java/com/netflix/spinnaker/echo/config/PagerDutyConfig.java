@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.pagerduty.PagerDutyService;
+import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class PagerDutyConfig {
     log.info("Pager Duty service loaded");
 
     return new Retrofit.Builder()
-        .baseUrl(pagerDutyProps.getEndpoint())
+        .baseUrl(RetrofitUtils.getBaseUrl(pagerDutyProps.getEndpoint()))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create())

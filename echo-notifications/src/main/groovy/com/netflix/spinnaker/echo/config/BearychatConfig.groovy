@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.bearychat.BearychatService
+import com.netflix.spinnaker.echo.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
@@ -41,7 +42,7 @@ class BearychatConfig {
     log.info('bearychat service loaded')
 
     new Retrofit.Builder()
-      .baseUrl(BEARYCHAT_BASE_URL)
+      .baseUrl(RetrofitUtils.getBaseUrl(BEARYCHAT_BASE_URL))
       .client(okHttpClientConfig.createForRetrofit2().build())
       .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
       .addConverterFactory(JacksonConverterFactory.create())

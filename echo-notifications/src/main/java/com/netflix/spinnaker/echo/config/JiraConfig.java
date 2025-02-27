@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.config;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.jira.JiraProperties;
 import com.netflix.spinnaker.echo.jira.JiraService;
+import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import java.io.IOException;
 import okhttp3.Interceptor;
@@ -62,7 +63,7 @@ public class JiraConfig {
     }
 
     return new Retrofit.Builder()
-        .baseUrl(jiraProperties.getBaseUrl())
+        .baseUrl(RetrofitUtils.getBaseUrl(jiraProperties.getBaseUrl()))
         .client(okHttpClient)
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create())

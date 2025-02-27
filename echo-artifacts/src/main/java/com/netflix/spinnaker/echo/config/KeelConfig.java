@@ -3,6 +3,7 @@ package com.netflix.spinnaker.echo.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.services.KeelService;
+import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +23,7 @@ public class KeelConfig {
       @Value("${keel.base-url}") String keelBaseUrl,
       OkHttp3ClientConfiguration okHttpClientConfig) {
     return new Retrofit.Builder()
-        .baseUrl(keelBaseUrl)
+        .baseUrl(RetrofitUtils.getBaseUrl(keelBaseUrl))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))

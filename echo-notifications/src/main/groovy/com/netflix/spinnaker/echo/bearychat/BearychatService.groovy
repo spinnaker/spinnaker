@@ -26,14 +26,14 @@ import retrofit2.http.Query
 
 interface BearychatService {
 
-  @GET("/v1/user.list")
+  @GET("v1/user.list")
   Call<List<BearychatUserInfo>> getUserList(@Query("token") String token)
 
-  @POST("/v1/p2p.create")
+  @POST("v1/p2p.create")
   Call<CreateP2PChannelResponse> createp2pchannel(@Query("token") String token,
                                             @Body CreateP2PChannelPara para)
 
-  @POST("/v1/message.create")
+  @POST("v1/message.create")
   Call<Response<ResponseBody>> sendMessage(@Query("token") String token,
                                            @Body SendMessagePara para)
 }

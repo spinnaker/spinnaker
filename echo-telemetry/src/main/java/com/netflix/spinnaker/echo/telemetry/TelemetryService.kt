@@ -22,6 +22,6 @@ import retrofit2.http.POST
 import retrofit2.Call
 
 interface TelemetryService {
-  @POST("/log")
+  @POST("log")
   fun log(@Body body: RequestBody): Call<ResponseBody>
 }

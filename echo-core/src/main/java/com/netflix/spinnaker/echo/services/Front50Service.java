@@ -12,12 +12,12 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface Front50Service {
-  @GET("/pipelines?restricted=false")
+  @GET("pipelines?restricted=false")
   @Headers("Accept: application/json")
   Call<List<Map<String, Object>>>
       getPipelines(); // Return Map here so we don't throw away MPT attributes.
 
-  @GET("/pipelines?restricted=false")
+  @GET("pipelines?restricted=false")
   @Headers("Accept: application/json")
   Call<List<Map<String, Object>>> getPipelines(
       @Query("enabledPipelines") Boolean enabledPipelines,
@@ -25,18 +25,18 @@ public interface Front50Service {
       @Query("triggerTypes")
           String triggerTypes); // Return Map here so we don't throw away MPT attributes.
 
-  @GET("/pipelines/{application}?refresh=false")
+  @GET("pipelines/{application}?refresh=false")
   @Headers("Accept: application/json")
   Call<List<Pipeline>> getPipelines(@Path("application") String application);
 
-  @GET("/pipelines/{pipelineId}/get")
+  @GET("pipelines/{pipelineId}/get")
   Call<Map<String, Object>> getPipeline(@Path("pipelineId") String pipelineId);
 
-  @GET("/pipelines/{application}/name/{name}?refresh=true")
+  @GET("pipelines/{application}/name/{name}?refresh=true")
   Call<Map<String, Object>> getPipelineByName(
       @Path("application") String application, @Path("name") String name);
 
-  @POST("/graphql")
+  @POST("graphql")
   @Headers("Accept: application/json")
   Call<GraphQLQueryResponse> query(@Body GraphQLQuery body);
 }

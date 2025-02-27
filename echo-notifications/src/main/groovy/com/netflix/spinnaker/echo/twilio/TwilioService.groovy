@@ -28,7 +28,7 @@ import retrofit2.Call
 interface TwilioService {
 
     @FormUrlEncoded
-    @POST("/2010-04-01/Accounts/{account}/Messages.json")
+    @POST("2010-04-01/Accounts/{account}/Messages.json")
     Call<ResponseBody> sendMessage(@Path('account') String account,
                                    @Field('From') String from,
                                    @Field('To') String to,

@@ -26,14 +26,14 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface GithubService {
-  @POST("/repos/{repo}/statuses/{sha}")
+  @POST("repos/{repo}/statuses/{sha}")
   Call<Response<ResponseBody>> updateCheck(
       @Header("Authorization") String token,
       @Path(value = "repo", encoded = true) String repo,
       @Path("sha") String sha,
       @Body GithubStatus status);
 
-  @GET("/repos/{repo}/commits/{sha}")
+  @GET("repos/{repo}/commits/{sha}")
   Call<GithubCommit> getCommit(
       @Header("Authorization") String token,
       @Path(value = "repo", encoded = true) String repo,
