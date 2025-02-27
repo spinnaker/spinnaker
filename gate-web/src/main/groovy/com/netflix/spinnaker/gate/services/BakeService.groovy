@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.gate.services.internal.RoscoServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -27,7 +28,6 @@ import org.springframework.stereotype.Component
 @Component
 @ConfigurationProperties('services.rosco.defaults')
 class BakeService {
-  @Autowired(required = false)
   RoscoServiceSelector roscoServiceSelector
 
   // Default bake options from configuration.
@@ -35,14 +35,19 @@ class BakeService {
   // If set, use bake options defined in gate.yml instead of calling rosco
   boolean useDefaultBakeOptions
 
+  @Autowired
+  BakeService(Optional<RoscoServiceSelector> roscoServiceSelector) {
+    this.roscoServiceSelector = roscoServiceSelector.orElse(null);
+  }
+
   def bakeOptions() {
     (roscoServiceSelector && !useDefaultBakeOptions) ?
-      roscoServiceSelector.withLocation().bakeOptions() : bakeOptions
+      Retrofit2SyncCall.execute(roscoServiceSelector.withLocation().bakeOptions()) : bakeOptions
   }
 
   def bakeOptions(String cloudProvider) {
     if (roscoServiceSelector) {
-      return roscoServiceSelector.withLocation().bakeOptions(cloudProvider)
+      return Retrofit2SyncCall.execute(roscoServiceSelector.withLocation().bakeOptions(cloudProvider))
     }
     def bakeOpts = bakeOptions.find { it.cloudProvider == cloudProvider }
     if (bakeOpts) {
@@ -53,7 +58,7 @@ class BakeService {
 
   String lookupLogs(String region, String statusId) {
     if (roscoServiceSelector) {
-      def logsMap = roscoServiceSelector.withLocation(region).lookupLogs(region, statusId)
+      def logsMap = Retrofit2SyncCall.execute(roscoServiceSelector.withLocation(region).lookupLogs(region, statusId))
 
       if (logsMap?.logsContent) {
         return "<pre>$logsMap.logsContent</pre>"
