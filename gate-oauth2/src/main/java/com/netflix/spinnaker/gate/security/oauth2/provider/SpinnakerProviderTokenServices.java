@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.gate.security.oauth2.provider;
 
-package com.netflix.spinnaker.gate.security.oauth2.provider
-
-import org.springframework.stereotype.Component
+import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
-interface SpinnakerProviderTokenServices {
-  boolean hasAllProviderRequirements(String token, Map details)
+public interface SpinnakerProviderTokenServices {
+  boolean hasAllProviderRequirements(String token, Map details);
 }
