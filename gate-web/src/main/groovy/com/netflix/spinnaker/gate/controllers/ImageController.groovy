@@ -49,7 +49,7 @@ class ImageController {
                        @RequestParam(value = "account", required = false) String account,
                        @RequestParam(value = "count", required = false) Integer count,
                        HttpServletRequest httpServletRequest) {
-    def additionalFilters = httpServletRequest.getParameterNames().findAll { String parameterName ->
+    Map<String, String> additionalFilters = httpServletRequest.getParameterNames().findAll { String parameterName ->
       !["provider", "q", "region", "account", "count"].contains(parameterName.toLowerCase())
     }.collectEntries { String parameterName ->
       [parameterName, httpServletRequest.getParameter(parameterName)]
