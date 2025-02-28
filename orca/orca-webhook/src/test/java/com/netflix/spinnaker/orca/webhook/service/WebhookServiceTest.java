@@ -149,11 +149,45 @@ class WebhookServiceTest {
   }
 
   @Test
-  void testAllowedRequestsMatchingMethodAndUrl() throws Exception {
+  void testAllowedRequestsMatchingMethodAndUrlStartsWith() throws Exception {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
     allowedRequest.setUrlPrefix("http://localhost:" + apiProvider.getPort() + "/path/to/an/");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    String bodyStr = "{ \"foo\": \"bar\" }";
+    apiProvider.stubFor(
+        post(urlMatching(path))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(bodyStr)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    ResponseEntity<Object> result = webhookService.callWebhook(stage);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    var body = mapper.readValue(result.getBody().toString(), Map.class);
+    assertThat(body.get("foo")).isEqualTo("bar");
+
+    apiProvider.verify(postRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testAllowedRequestsEmptyUrlPrefix() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
+    allowedRequest.setUrlPrefix("");
     webhookProperties.setAllowedRequests(List.of(allowedRequest));
 
     String path = "/path/to/an/endpoint";
@@ -185,6 +219,7 @@ class WebhookServiceTest {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
     allowedRequest.setUrlPrefix("http://localhost:" + apiProvider.getPort() + "/path/to/an/");
     webhookProperties.setAllowedRequests(List.of(allowedRequest));
 
@@ -216,6 +251,7 @@ class WebhookServiceTest {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
     allowedRequest.setUrlPrefix("http://localhost:" + apiProvider.getPort() + "/path/to/an/");
     webhookProperties.setAllowedRequests(List.of(allowedRequest));
 
