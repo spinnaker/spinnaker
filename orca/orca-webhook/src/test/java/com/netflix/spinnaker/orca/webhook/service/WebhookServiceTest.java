@@ -215,6 +215,121 @@ class WebhookServiceTest {
   }
 
   @Test
+  void testAllowedRequestsEmptyUrlPattern() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    allowedRequest.setUrlPattern("");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("uri: '" + url + "' not allowed");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsNullUrlPattern() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    assertThat(allowedRequest.getUrlPattern()).isNull();
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("urlPattern must not be null with PATTERN_MATCHES strategy");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsInvalidUrlPattern() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    allowedRequest.setUrlPattern("[ is not a valid pattern");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.PUT));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("uri: '" + url + "' not allowed");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsMatchingMethodAndUrlPatternMatches() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    allowedRequest.setUrlPattern(
+        "http://localhost:" + apiProvider.getPort() + "/[a-zA-Z]+-[a-z0-9]+/to/.*");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    String path = "/abcABC-def123/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    String bodyStr = "{ \"foo\": \"bar\" }";
+    apiProvider.stubFor(
+        post(urlMatching(path))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(bodyStr)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    ResponseEntity<Object> result = webhookService.callWebhook(stage);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    var body = mapper.readValue(result.getBody().toString(), Map.class);
+    assertThat(body.get("foo")).isEqualTo("bar");
+
+    apiProvider.verify(postRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
   void testAllowedRequestsUrlMatchesButNotMethod() throws Exception {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();

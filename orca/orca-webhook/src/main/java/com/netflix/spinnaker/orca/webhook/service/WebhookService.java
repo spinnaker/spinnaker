@@ -25,9 +25,11 @@ import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +68,12 @@ public class WebhookService {
   private final OortService oortService;
 
   private final Optional<WebhookAccountProcessor> webhookAccountProcessor;
+
+  /**
+   * The key is a urlPattern property from the allow list. The value is the corresponding compiled
+   * Pattern.
+   */
+  private final Map<String, Pattern> urlPatterns = new HashMap<>();
 
   @Autowired
   public WebhookService(
@@ -243,10 +251,37 @@ public class WebhookService {
     switch (allowedRequest.getMatchStrategy()) {
       case STARTS_WITH:
         return uri.toString().startsWith(allowedRequest.getUrlPrefix());
+      case PATTERN_MATCHES:
+        String patternString = allowedRequest.getUrlPattern();
+
+        // If the urlPattern isn't configured, patternString is null here.
+        // Check for that.  Yes, it would be nicer if orca didn't start.
+        if (patternString == null) {
+          throw new IllegalArgumentException(
+              "urlPattern must not be null with PATTERN_MATCHES strategy");
+        }
+        Pattern pattern = getPatternFor(patternString);
+        boolean retval = pattern.matcher(uri.toString()).matches();
+        log.info(
+            "uri '{}' {} pattern '{}'",
+            uri.toString(),
+            retval ? "matches" : "does not match",
+            pattern.toString());
+        return retval;
       default:
         throw new IllegalArgumentException(
             "unknown match strategy " + allowedRequest.getMatchStrategy());
     }
+  }
+
+  /**
+   * Retrieve an already-compiled Pattern, or compile a regular expression and then return it
+   *
+   * @param urlPattern a regular expression string
+   * @return urlPattern compiled to a Pattern
+   */
+  private Pattern getPatternFor(String urlPattern) {
+    return urlPatterns.computeIfAbsent(urlPattern, Pattern::compile);
   }
 
   private static HttpHeaders buildHttpHeaders(Map<String, Object> customHeaders) {

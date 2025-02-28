@@ -138,7 +138,10 @@ public class WebhookProperties {
   /** Match strategies for the allow list */
   public enum MatchStrategy {
     /** The url must start with the urlPrefix property to be considered valid. */
-    STARTS_WITH;
+    STARTS_WITH,
+
+    /** The url must match the urlPattern property to be considered valid. */
+    PATTERN_MATCHES;
   }
 
   @Data
@@ -153,6 +156,9 @@ public class WebhookProperties {
 
     /** The url must start with this string to be considered valid. */
     private String urlPrefix;
+
+    /** The url must match this pattern to be considered valid */
+    private String urlPattern;
   }
 
   @Data
