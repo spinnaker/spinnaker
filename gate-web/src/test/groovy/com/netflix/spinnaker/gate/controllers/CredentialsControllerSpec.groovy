@@ -28,6 +28,7 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.accept.ContentNegotiationManagerFactoryBean
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -91,7 +92,7 @@ class CredentialsControllerSpec extends Specification {
 
     then:
     response.status == 200
-    1 * clouddriverService.getAccountDefinitionsByType(accountType, _, _)
+    1 * clouddriverService.getAccountDefinitionsByType(accountType, _, _) >> Calls.response(null)
 
     where:
     accountType | _
@@ -110,7 +111,7 @@ class CredentialsControllerSpec extends Specification {
 
     then:
     response.status == 200
-    1 * clouddriverService.getAccountDefinitionsByType(accountType, limit, startingAccountName)
+    1 * clouddriverService.getAccountDefinitionsByType(accountType, limit, startingAccountName) >> Calls.response(null)
 
     where:
     accountType | limit | startingAccountName

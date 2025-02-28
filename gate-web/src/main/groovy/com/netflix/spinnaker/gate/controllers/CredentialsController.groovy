@@ -25,6 +25,7 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.Account
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import com.netflix.spinnaker.kork.annotations.Alpha
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.User
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -101,7 +102,7 @@ class CredentialsController {
     @Parameter(description='Account name to start account definition listing from. Used for pagination.')
     @RequestParam(required = false) String startingAccountName
   ) {
-    clouddriverService.getAccountDefinitionsByType(accountType, limit, startingAccountName)
+    Retrofit2SyncCall.execute(clouddriverService.getAccountDefinitionsByType(accountType, limit, startingAccountName))
   }
 
   @PostMapping
@@ -111,7 +112,7 @@ class CredentialsController {
     @Parameter(description='Account definition body including a discriminator field named "type" with the account type.')
     @RequestBody ClouddriverService.AccountDefinition accountDefinition
   ) {
-    clouddriverService.createAccountDefinition(accountDefinition)
+    Retrofit2SyncCall.execute(clouddriverService.createAccountDefinition(accountDefinition))
   }
 
   @PutMapping
@@ -121,7 +122,7 @@ class CredentialsController {
     @Parameter(description='Account definition body including a discriminator field named "type" with the account type.')
     @RequestBody ClouddriverService.AccountDefinition accountDefinition
   ) {
-    clouddriverService.updateAccountDefinition(accountDefinition)
+    Retrofit2SyncCall.execute(clouddriverService.updateAccountDefinition(accountDefinition))
   }
 
   @DeleteMapping('/{accountName}')
@@ -131,6 +132,6 @@ class CredentialsController {
     @Parameter(description='Name of account definition to delete.')
     @PathVariable String accountName
   ) {
-    clouddriverService.deleteAccountDefinition(accountName)
+    Retrofit2SyncCall.execute(clouddriverService.deleteAccountDefinition(accountName))
   }
 }
