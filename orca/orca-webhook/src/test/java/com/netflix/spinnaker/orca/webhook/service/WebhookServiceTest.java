@@ -212,7 +212,7 @@ class WebhookServiceTest {
   }
 
   @Test
-  void testAllowedRequestsMethodlMatchesButNotUrl() throws Exception {
+  void testAllowedRequestsMethodMatchesButNotUrl() throws Exception {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
