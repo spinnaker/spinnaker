@@ -229,7 +229,24 @@ public class WebhookService {
         .anyMatch(
             allowedRequest ->
                 allowedRequest.getHttpMethods().contains(httpMethod.toString())
-                    && uri.toString().startsWith(allowedRequest.getUrlPrefix()));
+                    && uriMatches(allowedRequest, uri));
+  }
+
+  /**
+   * Determine if an AllowedRequest allows a given uri
+   *
+   * @param allowedRequest the AllowRequest to use
+   * @param uri the URI to consider
+   * @return true if the uri is allowed, false otherwise
+   */
+  private boolean uriMatches(WebhookProperties.AllowedRequest allowedRequest, URI uri) {
+    switch (allowedRequest.getMatchStrategy()) {
+      case STARTS_WITH:
+        return uri.toString().startsWith(allowedRequest.getUrlPrefix());
+      default:
+        throw new IllegalArgumentException(
+            "unknown match strategy " + allowedRequest.getMatchStrategy());
+    }
   }
 
   private static HttpHeaders buildHttpHeaders(Map<String, Object> customHeaders) {

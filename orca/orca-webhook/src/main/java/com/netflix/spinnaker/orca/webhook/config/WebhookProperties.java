@@ -135,11 +135,21 @@ public class WebhookProperties {
     private String identityCertPem;
   }
 
+  /** Match strategies for the allow list */
+  public enum MatchStrategy {
+    /** The url must start with the urlPrefix property to be considered valid. */
+    STARTS_WITH;
+  }
+
   @Data
   @NoArgsConstructor
   public static class AllowedRequest {
+
     /** The allowed http method(s) (e.g. GET, POST, PUT) */
     private List<String> httpMethods;
+
+    /** The match strategy to use */
+    private MatchStrategy matchStrategy = MatchStrategy.STARTS_WITH;
 
     /** The url must start with this string to be considered valid. */
     private String urlPrefix;
