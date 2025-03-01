@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.orca.webhook.service;
 
+import static com.netflix.spinnaker.orca.webhook.config.WebhookProperties.MatchStrategy.PATTERN_MATCHES;
+
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -25,7 +27,6 @@ import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -70,10 +71,10 @@ public class WebhookService {
   private final Optional<WebhookAccountProcessor> webhookAccountProcessor;
 
   /**
-   * The key is a urlPattern property from the allow list. The value is the corresponding compiled
+   * Keys are urlPattern properties from the allow list. Each value is the corresponding compiled
    * Pattern.
    */
-  private final Map<String, Pattern> urlPatterns = new HashMap<>();
+  private final Map<String, Pattern> urlPatterns;
 
   @Autowired
   public WebhookService(
@@ -87,6 +88,41 @@ public class WebhookService {
     this.webhookProperties = webhookProperties;
     this.oortService = oortService;
     this.webhookAccountProcessor = webhookAccountProcessor;
+
+    // If it's enabled, validate the allow list and compile regexes.
+    if (webhookProperties.isAllowedRequestsEnabled()) {
+      webhookProperties.getAllowedRequests().forEach(this::validateAllowedRequest);
+      this.urlPatterns =
+          webhookProperties.getAllowedRequests().stream()
+              .filter(allowedRequest -> allowedRequest.getMatchStrategy() == PATTERN_MATCHES)
+              .collect(
+                  Collectors.toUnmodifiableMap(
+                      WebhookProperties.AllowedRequest::getUrlPattern,
+                      allowedRequest -> Pattern.compile(allowedRequest.getUrlPattern())));
+    } else {
+      this.urlPatterns = Map.of();
+    }
+  }
+
+  /** Validate an allowed request. Throw an exception if it's invalid. */
+  private void validateAllowedRequest(WebhookProperties.AllowedRequest allowedRequest) {
+    switch (allowedRequest.getMatchStrategy()) {
+      case STARTS_WITH:
+        if (allowedRequest.getUrlPrefix() == null) {
+          throw new IllegalArgumentException(
+              "urlPrefix must not be null with STARTS_WITH strategy");
+        }
+        break;
+      case PATTERN_MATCHES:
+        if (allowedRequest.getUrlPattern() == null) {
+          throw new IllegalArgumentException(
+              "urlPattern must not be null with PATTERN_MATCHES strategy");
+        }
+        break;
+      default:
+        throw new IllegalArgumentException(
+            "unknown match strategy " + allowedRequest.getMatchStrategy());
+    }
   }
 
   public ResponseEntity<Object> callWebhook(StageExecution stageExecution) {
@@ -251,11 +287,6 @@ public class WebhookService {
     switch (allowedRequest.getMatchStrategy()) {
       case STARTS_WITH:
         String urlPrefix = allowedRequest.getUrlPrefix();
-
-        if (urlPrefix == null) {
-          throw new IllegalArgumentException(
-              "urlPrefix must not be null with STARTS_WITH strategy");
-        }
         boolean startsWithRetval = uri.toString().startsWith(urlPrefix);
         log.debug(
             "uri '{}' {} '{}'",
@@ -265,14 +296,10 @@ public class WebhookService {
         return startsWithRetval;
       case PATTERN_MATCHES:
         String patternString = allowedRequest.getUrlPattern();
-
-        // If the urlPattern isn't configured, patternString is null here.
-        // Check for that.  Yes, it would be nicer if orca didn't start.
-        if (patternString == null) {
-          throw new IllegalArgumentException(
-              "urlPattern must not be null with PATTERN_MATCHES strategy");
+        Pattern pattern = urlPatterns.get(patternString);
+        if (pattern == null) {
+          throw new IllegalStateException("no compiled Pattern for '" + patternString + "'");
         }
-        Pattern pattern = getPatternFor(patternString);
         boolean patternMatchesRetval = pattern.matcher(uri.toString()).matches();
         log.debug(
             "uri '{}' {} pattern '{}'",
@@ -284,16 +311,6 @@ public class WebhookService {
         throw new IllegalArgumentException(
             "unknown match strategy " + allowedRequest.getMatchStrategy());
     }
-  }
-
-  /**
-   * Retrieve an already-compiled Pattern, or compile a regular expression and then return it
-   *
-   * @param urlPattern a regular expression string
-   * @return urlPattern compiled to a Pattern
-   */
-  private Pattern getPatternFor(String urlPattern) {
-    return urlPatterns.computeIfAbsent(urlPattern, Pattern::compile);
   }
 
   private static HttpHeaders buildHttpHeaders(Map<String, Object> customHeaders) {
