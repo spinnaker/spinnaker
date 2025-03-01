@@ -182,6 +182,38 @@ class WebhookServiceTest {
   }
 
   @Test
+  void testAllowedRequestsNullUrlPrefix() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
+    assertThat(allowedRequest.getUrlPrefix()).isNull();
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    String bodyStr = "{ \"foo\": \"bar\" }";
+    apiProvider.stubFor(
+        post(urlMatching(path))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(bodyStr)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("urlPrefix must not be null with STARTS_WITH strategy");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
   void testAllowedRequestsEmptyUrlPrefix() throws Exception {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();

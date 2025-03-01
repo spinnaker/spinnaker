@@ -250,7 +250,19 @@ public class WebhookService {
   private boolean uriMatches(WebhookProperties.AllowedRequest allowedRequest, URI uri) {
     switch (allowedRequest.getMatchStrategy()) {
       case STARTS_WITH:
-        return uri.toString().startsWith(allowedRequest.getUrlPrefix());
+        String urlPrefix = allowedRequest.getUrlPrefix();
+
+        if (urlPrefix == null) {
+          throw new IllegalArgumentException(
+              "urlPrefix must not be null with STARTS_WITH strategy");
+        }
+        boolean startsWithRetval = uri.toString().startsWith(urlPrefix);
+        log.debug(
+            "uri '{}' {} '{}'",
+            uri.toString(),
+            startsWithRetval ? "starts with" : "does not start with",
+            urlPrefix);
+        return startsWithRetval;
       case PATTERN_MATCHES:
         String patternString = allowedRequest.getUrlPattern();
 
@@ -261,13 +273,13 @@ public class WebhookService {
               "urlPattern must not be null with PATTERN_MATCHES strategy");
         }
         Pattern pattern = getPatternFor(patternString);
-        boolean retval = pattern.matcher(uri.toString()).matches();
-        log.info(
+        boolean patternMatchesRetval = pattern.matcher(uri.toString()).matches();
+        log.debug(
             "uri '{}' {} pattern '{}'",
             uri.toString(),
-            retval ? "matches" : "does not match",
+            patternMatchesRetval ? "matches" : "does not match",
             pattern.toString());
-        return retval;
+        return patternMatchesRetval;
       default:
         throw new IllegalArgumentException(
             "unknown match strategy " + allowedRequest.getMatchStrategy());
