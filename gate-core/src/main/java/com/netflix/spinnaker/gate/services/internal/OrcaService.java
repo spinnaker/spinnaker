@@ -90,7 +90,7 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @PUT("/pipelines/{id}/cancel")
-  Call<Map> cancelPipeline(
+  Call<Void> cancelPipeline(
       @Path("id") String id,
       @Query("reason") String reason,
       @Query("force") boolean force,
@@ -98,15 +98,15 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @PUT("/pipelines/{id}/pause")
-  Call<Map> pausePipeline(@Path("id") String id, @Body String ignored);
+  Call<Void> pausePipeline(@Path("id") String id, @Body String ignored);
 
   @Headers("Accept: application/json")
   @PUT("/pipelines/{id}/resume")
-  Call<Map> resumePipeline(@Path("id") String id, @Body String ignored);
+  Call<Void> resumePipeline(@Path("id") String id, @Body String ignored);
 
   @Headers("Accept: application/json")
   @DELETE("/pipelines/{id}")
-  Call<Map> deletePipeline(@Path("id") String id);
+  Call<Void> deletePipeline(@Path("id") String id);
 
   @Headers("Accept: application/json")
   @PUT("/pipelines/{executionId}/stages/{stageId}/restart")

@@ -275,7 +275,7 @@ class PipelineController {
 
   @Operation(summary = "Delete a pipeline execution")
   @DeleteMapping("{id}")
-  Map deletePipeline(@PathVariable("id") String id) {
+  void deletePipeline(@PathVariable("id") String id) {
     pipelineService.deletePipeline(id);
   }
 

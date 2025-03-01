@@ -130,7 +130,7 @@ class ApplicationController {
   @Deprecated
   @Operation(summary = "Cancel pipeline")
   @RequestMapping(value = "/{application}/pipelines/{id}/cancel", method = RequestMethod.PUT)
-  Map cancelPipeline(@PathVariable("id") String id,
+  void cancelPipeline(@PathVariable("id") String id,
                      @RequestParam(required = false) String reason) {
     taskService.cancelPipeline(id, reason)
   }

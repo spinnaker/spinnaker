@@ -150,8 +150,8 @@ public class TaskService {
 
   /** @deprecated This pipeline operation does not belong here. */
   @Deprecated
-  public Map cancelPipeline(final String id, final String reason) {
-    return Retrofit2SyncCall.execute(
+  public void cancelPipeline(final String id, final String reason) {
+    Retrofit2SyncCall.execute(
         getOrcaServiceSelector().select().cancelPipeline(id, reason, false, ""));
   }
 

@@ -170,22 +170,22 @@ class PipelineService {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(id))
   }
 
-  Map cancelPipeline(String id, String reason, boolean force) {
+  void cancelPipeline(String id, String reason, boolean force) {
     setApplicationForExecution(id)
     Retrofit2SyncCall.execute(orcaServiceSelector.select().cancelPipeline(id, reason, force, ""))
   }
 
-  Map pausePipeline(String id) {
+  void pausePipeline(String id) {
     setApplicationForExecution(id)
     Retrofit2SyncCall.execute(orcaServiceSelector.select().pausePipeline(id, ""))
   }
 
-  Map resumePipeline(String id) {
+  void resumePipeline(String id) {
     setApplicationForExecution(id)
     Retrofit2SyncCall.execute(orcaServiceSelector.select().resumePipeline(id, ""))
   }
 
-  Map deletePipeline(String id) {
+  void deletePipeline(String id) {
     setApplicationForExecution(id)
     Retrofit2SyncCall.execute(orcaServiceSelector.select().deletePipeline(id))
   }
