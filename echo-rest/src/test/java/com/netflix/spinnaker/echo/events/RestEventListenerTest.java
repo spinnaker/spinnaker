@@ -31,12 +31,15 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import retrofit2.mock.Calls;
 
 @ExtendWith(MockitoExtension.class)
 class RestEventListenerTest {
@@ -221,6 +224,8 @@ class RestEventListenerTest {
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
     Mockito.when(restService.recordEvent(expectedEvent)).thenThrow(new RuntimeException());
+    Mockito.when(restService2.recordEvent(expectedEvent))
+        .thenReturn(Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
 
     listener.processEvent(event);
 

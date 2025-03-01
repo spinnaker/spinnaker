@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.events;
 import com.netflix.spinnaker.echo.config.RestProperties;
 import com.netflix.spinnaker.echo.config.RestUrls;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.time.Duration;
@@ -55,7 +56,7 @@ public class RestEventService {
    */
   public void sendEvent(Map<String, Object> event, RestUrls.Service service) {
     retrySupport.retry(
-        () -> service.getClient().recordEvent(event),
+        () -> Retrofit2SyncCall.execute(service.getClient().recordEvent(event)),
         service.getConfig().getRetryCount(),
         Duration.ofMillis(200),
         false);

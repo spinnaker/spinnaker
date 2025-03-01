@@ -31,4 +31,5 @@ dependencies {
   testImplementation project(':echo-test')
   testImplementation "com.github.tomakehurst:wiremock-jre8"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 }
