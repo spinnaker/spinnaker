@@ -47,7 +47,7 @@ public interface EchoService {
   Call<List<Map<String, String>>> getPubsubSubscriptions();
 
   @POST("/")
-  Call<String> postEvent(@Body Map event);
+  Call<Void> postEvent(@Body Map event);
 
   @GET("/quietPeriod")
   Call<Map> getQuietPeriodState();

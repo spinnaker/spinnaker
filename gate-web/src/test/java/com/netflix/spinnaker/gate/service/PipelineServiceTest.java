@@ -24,6 +24,7 @@ import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -58,6 +59,7 @@ import retrofit2.mock.Calls;
 @TestPropertySource(
     properties = {
       "spring.config.location=classpath:gate-test.yml",
+      "services.echo.enabled=true",
       "services.front50.applicationRefreshInitialDelayMs=3600000"
     })
 public class PipelineServiceTest {
@@ -65,6 +67,10 @@ public class PipelineServiceTest {
 
   @RegisterExtension
   static WireMockExtension wmOrca =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
+  @RegisterExtension
+  static WireMockExtension wmEcho =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   @Autowired private WebApplicationContext webApplicationContext;
@@ -90,6 +96,8 @@ public class PipelineServiceTest {
   /** To prevent periodic calls to load accounts from clouddriver */
   @MockBean DefaultProviderLookupService defaultProviderLookupService;
 
+  private static final String APPLICATION_NAME = "my-application";
+  private static final String PIPELINE_NAME = "my-pipeline-name";
   private static final String USERNAME = "some user";
   private static final String ACCOUNT = "my-account";
   private static final String PIPELINE_EXECUTION_ID = "my-pipeline-execution-id";
@@ -99,6 +107,8 @@ public class PipelineServiceTest {
     // Configure wiremock's random ports into gate
     System.out.println("wiremock orca url: " + wmOrca.baseUrl());
     registry.add("services.orca.base-url", wmOrca::baseUrl);
+    System.out.println("wiremock echo url: " + wmEcho.baseUrl());
+    registry.add("services.echo.base-url", wmEcho::baseUrl);
   }
 
   @BeforeEach
@@ -134,6 +144,23 @@ public class PipelineServiceTest {
     webAppMockMvc
         .perform(
             delete("/pipelines/" + PIPELINE_EXECUTION_ID)
+                .header(
+                    USER.getHeader(),
+                    USERNAME) // to silence warning when X-SPINNAKER-USER is missing
+                .header(
+                    ACCOUNTS.getHeader(),
+                    ACCOUNT)) // to silence warning when X-SPINNAKER-ACCOUNTS is missing
+        .andDo(print())
+        .andExpect(status().is2xxSuccessful());
+  }
+
+  @Test
+  void invokePipelineConfigViaEcho() throws Exception {
+    wmEcho.stubFor(WireMock.post(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
+
+    webAppMockMvc
+        .perform(
+            post("/pipelines/v2/" + APPLICATION_NAME + "/" + PIPELINE_NAME)
                 .header(
                     USER.getHeader(),
                     USERNAME) // to silence warning when X-SPINNAKER-USER is missing
