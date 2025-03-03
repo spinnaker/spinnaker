@@ -34,6 +34,6 @@ interface BearychatService {
                                             @Body CreateP2PChannelPara para)
 
   @POST("v1/message.create")
-  Call<Response<ResponseBody>> sendMessage(@Query("token") String token,
+  Call<ResponseBody> sendMessage(@Query("token") String token,
                                            @Body SendMessagePara para)
 }

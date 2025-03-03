@@ -43,6 +43,7 @@ dependencies {
   testImplementation "org.springframework:spring-test"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "com.github.tomakehurst:wiremock-jre8"
+  testImplementation "org.assertj:assertj-core"
   annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 }
 

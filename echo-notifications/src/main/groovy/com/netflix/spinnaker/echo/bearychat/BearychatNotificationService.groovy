@@ -20,6 +20,7 @@ import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.controller.EchoResponse
 import com.netflix.spinnaker.echo.notification.NotificationService
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -47,16 +48,17 @@ class BearychatNotificationService implements NotificationService {
   EchoResponse.Void handle(Notification notification) {
     //TODO: add body templates
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
-    List<BearychatUserInfo> userList = bearychatService.getUserList(token)
+    List<BearychatUserInfo> userList = Retrofit2SyncCall.execute(bearychatService.getUserList(token))
     notification.to.each {
       String userid = getUseridByEmail(userList, it)
-      CreateP2PChannelResponse channelInfo = bearychatService.createp2pchannel(token, new CreateP2PChannelPara(user_id: userid))
+      CreateP2PChannelResponse channelInfo = Retrofit2SyncCall.execute(bearychatService.createp2pchannel(token, new CreateP2PChannelPara(user_id: userid)))
       String channelId = getVChannelid(channelInfo)
       //TODO:add text msg
-      bearychatService.sendMessage(token, new SendMessagePara(vchannel_id: channelId,
+      Retrofit2SyncCall.execute(bearychatService.sendMessage(token, new SendMessagePara(vchannel_id: channelId,
         text: body,
-        attachments: " " ))
+        attachments: " " )))
     }
+    return
   }
 
   private static String getUseridByEmail(List<BearychatUserInfo> userList,String targetEmail) {
