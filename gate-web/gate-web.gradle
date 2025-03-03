@@ -74,6 +74,8 @@ dependencies {
   testImplementation "org.apache.groovy:groovy-json"
   testImplementation "com.squareup.retrofit2:converter-jackson"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "org.springframework.security:spring-security-oauth2-client"
+
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {
