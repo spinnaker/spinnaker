@@ -35,8 +35,8 @@ dependencies {
   implementation "io.cloudevents:cloudevents-json-jackson:3.0.0"
   implementation ("dev.cdevents:cdevents-sdk-java:0.3.1")
   testImplementation project(":echo-test")
-  testImplementation("com.icegreen:greenmail:1.5.14") {
-    exclude group: "com.sun.mail", module: "javax.mail"
+  testImplementation("com.icegreen:greenmail:2.0.1") {
+    exclude group: "com.sun.mail", module: "jakarta.mail"
   }
   testImplementation "org.apache.httpcomponents:httpclient"
   testImplementation "org.spockframework:spock-spring"
