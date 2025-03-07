@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.DockerUserAgent
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryAuthenticationException
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import groovy.util.logging.Slf4j
@@ -236,7 +237,8 @@ class DockerBearerTokenService {
     cachedTokens.remove(repository)
   }
 
-  private interface TokenService {
+  @VisibleForTesting
+  interface TokenService {
     @GET("/{path}")
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"

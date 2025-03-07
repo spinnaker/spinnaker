@@ -17,6 +17,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-web"
 
@@ -36,6 +37,6 @@ dependencies {
   testImplementation "org.springframework.security:spring-security-test"
   testImplementation "com.github.tomakehurst:wiremock-jre8"
   testImplementation "io.spinnaker.kork:kork-core"
-  implementation "io.spinnaker.kork:kork-retrofit2"
-  implementation "io.spinnaker.kork:kork-web"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+
 }

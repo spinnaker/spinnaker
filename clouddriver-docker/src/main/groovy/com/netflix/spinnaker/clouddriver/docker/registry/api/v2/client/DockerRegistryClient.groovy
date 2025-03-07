@@ -41,6 +41,7 @@ import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 import java.time.Instant
 
@@ -242,7 +243,8 @@ class DockerRegistryClient {
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])
-    Call<ResponseBody> getTags(@Path(value="repository", encoded=true) String repository, @Header("Authorization") String token, @Header("User-Agent") String agent)
+    Call<ResponseBody> getTags(@Path(value="repository", encoded=true) String repository, @Header("Authorization") String token, @Header("User-Agent") String agent, @QueryMap Map<String, String> queryParams)
+
 
     @GET("/v2/{name}/manifests/{reference}")
     @Headers([
@@ -261,13 +263,15 @@ class DockerRegistryClient {
     @Headers([
         "Docker-Distribution-API-Version: registry/2.0"
     ])
-    Call<ResponseBody> getCatalog(@Query(value="n") int paginateSize, @Header("Authorization") String token, @Header("User-Agent") String agent)
+    Call<ResponseBody> getCatalog(@Header("Authorization") String token, @Header("User-Agent") String agent, @QueryMap Map<String, String> queryParams)
+
 
     @GET("/{path}")
     @Headers([
         "Docker-Distribution-API-Version: registry/2.0"
     ])
-    Call<ResponseBody> get(@Path(value="path", encoded=true) String path, @Header("Authorization") String token, @Header("User-Agent") String agent)
+    Call<ResponseBody> get(@Path(value="path", encoded=true) String path, @Header("Authorization") String token, @Header("User-Agent") String agent, @QueryMap Map<String, String> queryParams)
+
 
     @GET("/v2/")
     @Headers([
@@ -406,7 +410,7 @@ class DockerRegistryClient {
    * This method will get all repositories available on this registry. It may fail, as some registries
    * don't want you to download their whole catalog (it's potentially a lot of data).
    */
-  public DockerRegistryCatalog getCatalog(String path = null) {
+  public DockerRegistryCatalog getCatalog(String path = null, Map<String, String> queryParams = [:]) {
     if (catalogFile) {
       log.info("Using catalog list at $catalogFile")
       try {
@@ -417,14 +421,15 @@ class DockerRegistryClient {
       }
     }
 
+    queryParams.computeIfAbsent("n", { paginateSize.toString() })
     def response
     try {
       response = request({
-        path ? Retrofit2SyncCall.executeCall(registryService.get(path, tokenService.basicAuthHeader, userAgent)) :
-          Retrofit2SyncCall.executeCall(registryService.getCatalog(paginateSize, tokenService.basicAuthHeader, userAgent))
+        path ? Retrofit2SyncCall.executeCall(registryService.get(path, tokenService.basicAuthHeader, userAgent, queryParams)) :
+          Retrofit2SyncCall.executeCall(registryService.getCatalog(tokenService.basicAuthHeader, userAgent, queryParams))
       }, { token ->
-        path ? Retrofit2SyncCall.executeCall(registryService.get(path, token, userAgent)) :
-          Retrofit2SyncCall.executeCall(registryService.getCatalog(paginateSize, token, userAgent))
+        path ? Retrofit2SyncCall.executeCall(registryService.get(path, token, userAgent, queryParams)) :
+          Retrofit2SyncCall.executeCall(registryService.getCatalog(token, userAgent, queryParams))
       }, "_catalog")
     } catch (Exception e) {
       log.warn("Error encountered during catalog of $path", e)
@@ -438,31 +443,58 @@ class DockerRegistryClient {
       catalog.repositories = catalog.repositories.findAll { it ==~ repositoriesRegex }
     }
     if (nextPath) {
-      def nextCatalog = getCatalog(nextPath)
+      def nextPathNew
+      (nextPathNew, queryParams) = parseForQueryParams(nextPath)
+      def nextCatalog = getCatalog(nextPathNew, queryParams)
       catalog.repositories.addAll(nextCatalog.repositories)
     }
 
     return catalog
   }
 
-  public DockerRegistryTags getTags(String repository, String path = null) {
+  public DockerRegistryTags getTags(String repository, String path = null, Map<String, String> queryParams = [:]) {
     def response = request({
-      path ? Retrofit2SyncCall.executeCall(registryService.get(path, tokenService.basicAuthHeader, userAgent)) :
-        Retrofit2SyncCall.executeCall(registryService.getTags(repository, tokenService.basicAuthHeader, userAgent))
+      path ? Retrofit2SyncCall.executeCall(registryService.get(path, tokenService.basicAuthHeader, userAgent, queryParams)) :
+        Retrofit2SyncCall.executeCall(registryService.getTags(repository, tokenService.basicAuthHeader, userAgent, queryParams))
     }, { token ->
-      path ? Retrofit2SyncCall.executeCall(registryService.get(path, token, userAgent)) :
-        Retrofit2SyncCall.executeCall(registryService.getTags(repository, token, userAgent))
+      path ? Retrofit2SyncCall.executeCall(registryService.get(path, token, userAgent, queryParams)) :
+        Retrofit2SyncCall.executeCall(registryService.getTags(repository, token, userAgent, queryParams))
     }, repository)
 
     def nextPath = findNextLink(response?.headers())
     def tags = convertResponseBody(response.body(), DockerRegistryTags)
 
     if (nextPath) {
-      def nextTags = getTags(repository, nextPath)
+      def nextPathNew
+      (nextPathNew, queryParams) = parseForQueryParams(nextPath)
+      def nextTags = getTags(repository, nextPathNew, queryParams)
       tags.tags.addAll(nextTags.tags)
     }
 
     return tags
+  }
+
+  /**
+   * This method takes a string that might contain a query string and splits it into the path and the query parameters.
+   * @param nextPath the string that might contain a query string
+   * @return a tuple containing the path (without query string) and a map of query parameters
+   */
+  static Tuple2<String, Map<String, String>> parseForQueryParams(String nextPath) {
+    def nextPathNew
+    def queryParamsString
+    Map<String, String> queryParams = [:]
+    if (nextPath.contains("?")) {
+      (nextPathNew, queryParamsString) = nextPath.split("\\?", 2)
+    } else {
+      nextPathNew = nextPath
+    }
+    if (queryParamsString) {
+      queryParams = queryParamsString.split("&").collectEntries { param ->
+        def (key, value) = param.split("=")
+        [key, value]
+      }
+    }
+    [nextPathNew, queryParams]
   }
 
   /*

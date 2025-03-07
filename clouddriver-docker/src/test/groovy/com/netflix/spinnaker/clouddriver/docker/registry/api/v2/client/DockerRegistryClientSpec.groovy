@@ -47,7 +47,7 @@ class DockerRegistryClientSpec extends Specification {
   def stubbedRegistryService = Stub(DockerRegistryClient.DockerRegistryService){
     String tagsJson = "{\"name\":\"library/ubuntu\",\"tags\":[\"latest\",\"xenial\",\"rolling\"]}"
     Response tagsResponse =  Response.success(200, ResponseBody.create(MediaType.parse("application/json"), tagsJson))
-    getTags(_,_,_) >> Calls.response(tagsResponse)
+    getTags(_,_,_,_) >> Calls.response(tagsResponse)
 
     String checkJson = "{}"
     Response checkResponse = Response.success(200, ResponseBody.create(MediaType.parse("application/json"), checkJson))
