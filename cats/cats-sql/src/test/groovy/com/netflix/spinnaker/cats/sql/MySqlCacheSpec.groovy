@@ -21,7 +21,6 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
-import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
 import com.netflix.spinnaker.config.SqlConstraintsInitializer
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
@@ -42,7 +41,7 @@ class MySqlCacheSpec extends SqlCacheSpec {
   @Override
   Cache getSubject() {
     def mapper = new ObjectMapper()
-    def clock = new Clock.FixedClock(Instant.EPOCH, ZoneId.of("UTC"))
+    def clock = Clock.fixed(Instant.EPOCH, ZoneId.of("UTC"))
     def sqlRetryProperties = new SqlRetryProperties(new RetryProperties(1, 10), new RetryProperties(1, 10))
 
     def dynamicConfigService = Mock(DynamicConfigService) {

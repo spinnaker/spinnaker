@@ -53,7 +53,7 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
   @Override
   Cache getSubject() {
     def mapper = new ObjectMapper()
-    def clock = new Clock.FixedClock(Instant.EPOCH, ZoneId.of("UTC"))
+    def clock = Clock.fixed(Instant.EPOCH, ZoneId.of("UTC"))
     def sqlRetryProperties = new SqlRetryProperties(new RetryProperties(1, 10), new RetryProperties(1, 10))
     def sqlMetrics = new SpectatorSqlCacheMetrics(new NoopRegistry())
     def dynamicConfigService = Mock(DynamicConfigService) {

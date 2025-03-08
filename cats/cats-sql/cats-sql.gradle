@@ -62,3 +62,7 @@ dependencies {
   testImplementation "com.mysql:mysql-connector-j"
   testImplementation "org.postgresql:postgresql"
 }
+
+test {
+  useJUnitPlatform()
+}
