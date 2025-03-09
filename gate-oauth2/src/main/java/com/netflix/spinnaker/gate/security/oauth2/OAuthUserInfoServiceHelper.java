@@ -1,7 +1,7 @@
 /*
  * Copyright 2025 OpsMx, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.gate.security.oauth2;
 
 import static net.logstash.logback.argument.StructuredArguments.entries;
@@ -23,13 +24,11 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.security.oauth2.provider.SpinnakerProviderTokenServices;
-import com.netflix.spinnaker.gate.services.CredentialsService;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
-import com.netflix.spinnaker.security.User;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,90 +44,57 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Component;
 
 /**
- * ResourceServerTokenServices is an interface used to manage access tokens. The
- * UserInfoTokenService object is an implementation of that interface that uses an access token to
- * get the logged in user's data (such as email or profile). We want to customize the Authentication
- * object that is returned to include our custom (Kork) User.
+ * A helper class to handle common user loading logic for both OAuth2 and OIDC authentication. This
+ * class extracts shared code to avoid duplication in OAuth2 and OIDC user loading processes.
  */
+@Component
 @Slf4j
-public class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
+public class OAuthUserInfoServiceHelper {
 
-  private final ResourceServerProperties sso;
-  private final UserInfoTokenServices userInfoTokenServices;
-  private final CredentialsService credentialsService;
-  private final OAuth2SsoConfig.UserInfoMapping userInfoMapping;
-  private final OAuth2SsoConfig.UserInfoRequirements userInfoRequirements;
-  private final PermissionService permissionService;
-  private final Front50Service front50Service;
-  private final SpinnakerProviderTokenServices providerTokenServices;
+  @Autowired private OAuth2SsoConfig.UserInfoMapping userInfoMapping;
 
-  private final AllowedAccountsSupport allowedAccountsSupport;
-  private final FiatClientConfigurationProperties fiatClientConfigurationProperties;
-  private final Registry registry;
+  @Autowired private OAuth2SsoConfig.UserInfoRequirements userInfoRequirements;
+
+  @Autowired private PermissionService permissionService;
+
+  @Autowired private Front50Service front50Service;
+
+  @Autowired(required = false)
+  private SpinnakerProviderTokenServices providerTokenServices;
+
+  @Autowired private AllowedAccountsSupport allowedAccountsSupport;
+
+  @Autowired private FiatClientConfigurationProperties fiatClientConfigurationProperties;
+
+  @Autowired private Registry registry;
 
   @Autowired(required = false)
   @Qualifier("spinnaker-oauth2-group-extractor")
-  private BiFunction<String, Map, List<String>> groupExtractor;
+  private BiFunction<String, Map<String, Object>, List<String>> groupExtractor;
 
-  private RetrySupport retrySupport = new RetrySupport();
+  private final RetrySupport retrySupport = new RetrySupport();
 
-  @Autowired
-  public SpinnakerUserInfoTokenServices(
-      ResourceServerProperties sso,
-      UserInfoTokenServices userInfoTokenServices,
-      CredentialsService credentialsService,
-      OAuth2SsoConfig.UserInfoMapping userInfoMapping,
-      OAuth2SsoConfig.UserInfoRequirements userInfoRequirements,
-      PermissionService permissionService,
-      Front50Service front50Service,
-      Optional<SpinnakerProviderTokenServices> providerTokenServices,
-      AllowedAccountsSupport allowedAccountsSupport,
-      FiatClientConfigurationProperties fiatClientConfigurationProperties,
-      Registry registry) {
-    this.sso = sso;
-    this.userInfoTokenServices = userInfoTokenServices;
-    this.credentialsService = credentialsService;
-    this.userInfoMapping = userInfoMapping;
-    this.userInfoRequirements = userInfoRequirements;
-    this.permissionService = permissionService;
-    this.front50Service = front50Service;
-    this.providerTokenServices = providerTokenServices.orElse(null);
-    this.allowedAccountsSupport = allowedAccountsSupport;
-    this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
-    this.registry = registry;
-  }
-
-  @Override
-  public OAuth2Authentication loadAuthentication(final String accessToken)
-      throws AuthenticationException, InvalidTokenException {
-    OAuth2Authentication oAuth2Authentication =
-        userInfoTokenServices.loadAuthentication(accessToken);
-
-    final Map<String, Object> details =
-        (Map<String, Object>) oAuth2Authentication.getUserAuthentication().getDetails();
+  <T extends OAuth2User> T getOAuthSpinnakerUser(T oAuth2User, OAuth2UserRequest userRequest) {
+    Map<String, Object> details = oAuth2User.getAttributes();
 
     if (log.isDebugEnabled()) {
       log.debug("UserInfo details: " + entries(details));
     }
 
     boolean isServiceAccount = isServiceAccount(details);
+    String accessToken = userRequest.getAccessToken().getTokenValue();
+
     if (!isServiceAccount) {
       if (!hasAllUserInfoRequirements(details)) {
         throw new BadCredentialsException("User's info does not have all required fields.");
       }
-
       if (providerTokenServices != null
           && !providerTokenServices.hasAllProviderRequirements(accessToken, details)) {
         throw new BadCredentialsException(
@@ -185,45 +151,38 @@ public class SpinnakerUserInfoTokenServices implements ResourceServerTokenServic
       }
     }
 
-    User spinnakerUser = new User();
-    spinnakerUser.setEmail(toStringOrNull(details.get(userInfoMapping.getEmail())));
-    spinnakerUser.setFirstName(toStringOrNull(details.get(userInfoMapping.getFirstName())));
-    spinnakerUser.setLastName(toStringOrNull(details.get(userInfoMapping.getLastName())));
-    spinnakerUser.setAllowedAccounts(allowedAccountsSupport.filterAllowedAccounts(username, roles));
-    spinnakerUser.setRoles(roles);
-    spinnakerUser.setUsername(username);
+    if (oAuth2User instanceof OidcUser oidcUser) {
+      SpinnakerOIDCUser spinnakerUser =
+          new SpinnakerOIDCUser(
+              toStringOrNull(details.get(userInfoMapping.getEmail())),
+              toStringOrNull(details.get(userInfoMapping.getFirstName())),
+              toStringOrNull(details.get(userInfoMapping.getLastName())),
+              allowedAccountsSupport.filterAllowedAccounts(username, roles),
+              roles,
+              username,
+              oidcUser.getIdToken(),
+              oidcUser.getUserInfo());
+      spinnakerUser.getAttributes().putAll(details);
+      spinnakerUser.getAuthorities().addAll(oAuth2User.getAuthorities());
 
-    PreAuthenticatedAuthenticationToken authentication =
-        new PreAuthenticatedAuthenticationToken(
-            spinnakerUser, null, spinnakerUser.getAuthorities());
+      return (T) spinnakerUser;
+    } else {
+      SpinnakerOAuth2User spinnakerUser =
+          new SpinnakerOAuth2User(
+              toStringOrNull(details.get(userInfoMapping.getEmail())),
+              toStringOrNull(details.get(userInfoMapping.getFirstName())),
+              toStringOrNull(details.get(userInfoMapping.getLastName())),
+              allowedAccountsSupport.filterAllowedAccounts(username, roles),
+              roles,
+              username);
+      spinnakerUser.getAttributes().putAll(details);
+      spinnakerUser.getAuthorities().addAll(oAuth2User.getAuthorities());
 
-    // impl copied from UserInfoTokenServices
-    OAuth2Request storedRequest =
-        new OAuth2Request(null, sso.getClientId(), null, true, null, null, null, null, null);
-
-    return new OAuth2Authentication(storedRequest, authentication);
+      return (T) spinnakerUser;
+    }
   }
 
-  /**
-   * Safely converts an object to a string representation.
-   *
-   * <p>This method checks if the provided object is non-null before calling {@code toString()}. If
-   * the object is {@code null}, it returns {@code null} instead of throwing a {@code
-   * NullPointerException}.
-   *
-   * @param o the object to convert to a string, may be {@code null}
-   * @return the string representation of the object, or {@code null} if the object is {@code null}
-   */
-  private String toStringOrNull(Object o) {
-    return o != null ? o.toString() : null;
-  }
-
-  @Override
-  public OAuth2AccessToken readAccessToken(String accessToken) {
-    return userInfoTokenServices.readAccessToken(accessToken);
-  }
-
-  protected boolean isServiceAccount(Map<String, Object> details) {
+  boolean isServiceAccount(Map<String, Object> details) {
     String email = (String) details.get(userInfoMapping.getServiceAccountEmail());
     if (email == null || !permissionService.isEnabled()) {
       return false;
@@ -251,7 +210,7 @@ public class SpinnakerUserInfoTokenServices implements ResourceServerTokenServic
     return value.equals(requiredVal);
   }
 
-  public boolean hasAllUserInfoRequirements(Map<String, Object> details) {
+  boolean hasAllUserInfoRequirements(Map<String, Object> details) {
     if (userInfoRequirements == null || userInfoRequirements.isEmpty()) {
       return true;
     }
@@ -290,7 +249,7 @@ public class SpinnakerUserInfoTokenServices implements ResourceServerTokenServic
     return invalidFields.isEmpty();
   }
 
-  public static boolean isRegexExpression(String val) {
+  private static boolean isRegexExpression(String val) {
     if (val.startsWith("/") && val.endsWith("/")) {
       try {
         Pattern.compile(val);
@@ -303,12 +262,12 @@ public class SpinnakerUserInfoTokenServices implements ResourceServerTokenServic
     return false;
   }
 
-  public static String mutateRegexPattern(String val) {
+  private static String mutateRegexPattern(String val) {
     // "/expr/" -> "expr"
     return val.substring(1, val.length() - 1);
   }
 
-  protected List<String> getRoles(Map<String, Object> details) {
+  List<String> getRoles(Map<String, Object> details) {
     if (userInfoMapping == null || userInfoMapping.getRoles() == null) {
       return List.of();
     }
@@ -343,5 +302,18 @@ public class SpinnakerUserInfoTokenServices implements ResourceServerTokenServic
       log.warn("Failed to parse JSON roles: {}", jsonString, e);
       return List.of();
     }
+  }
+  /**
+   * Safely converts an object to a string representation.
+   *
+   * <p>This method checks if the provided object is non-null before calling {@code toString()}. If
+   * the object is {@code null}, it returns {@code null} instead of throwing a {@code
+   * NullPointerException}.
+   *
+   * @param o the object to convert to a string, may be {@code null}
+   * @return the string representation of the object, or {@code null} if the object is {@code null}
+   */
+  static String toStringOrNull(Object o) {
+    return o != null ? o.toString() : null;
   }
 }
