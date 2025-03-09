@@ -34,8 +34,8 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 @SpringBootTest(
     properties = {
-      "security.oauth2.client.clientId=Spinnaker-Client",
-      "security.oauth2.resource.userInfoUri=http://localhost/userinfo"
+      "spring.security.oauth2.client.registration.github.client-id=ec415f229e8f06f6ddb",
+      "spring.security.oauth2.client.registration.github.client-secret=53dc2b2125d356c652dfb83fbc0d209de4a9f60"
     })
 @TestPropertySource(properties = {"spring.config.location=classpath:gate-test.yml"})
 public class OAuth2Test {
