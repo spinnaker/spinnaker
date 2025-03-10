@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.config.error.v1;
 
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 
 /**
