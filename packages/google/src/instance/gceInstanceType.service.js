@@ -400,9 +400,16 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
     }
 
     function getAvailableTypesForLocations(locationToInstanceTypesMap, selectedLocations) {
-      // This function is only ever called with one location.
-      const [location] = selectedLocations;
-      return locationToInstanceTypesMap[location].instanceTypes;
+      if (!locationToInstanceTypesMap || !selectedLocations || selectedLocations.length === 0) {
+        console.error('Invalid input parameters');
+        return [];
+      }
+
+      const availableTypes = selectedLocations
+        .filter((location) => locationToInstanceTypesMap[location])
+        .flatMap((location) => locationToInstanceTypesMap[location].instanceTypes || []);
+
+      return availableTypes;
     }
 
     const getAvailableTypesForRegions = getAvailableTypesForLocations;

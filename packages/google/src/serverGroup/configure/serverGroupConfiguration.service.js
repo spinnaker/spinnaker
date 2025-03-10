@@ -234,7 +234,7 @@ angular
         const c = command;
         const result = { dirty: {} };
 
-        const locations = c.regional ? [c.region] : [c.zone];
+        const locations = c.regional ? c.distributionPolicy.zones : [c.zone];
         const { credentialsKeyedByAccount } = c.backingData;
         const { locationToInstanceTypesMap } = credentialsKeyedByAccount[c.credentials];
 
