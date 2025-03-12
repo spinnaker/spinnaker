@@ -1,0 +1,87 @@
+apply plugin: 'io.spinnaker.package'
+
+mainClassName = 'com.netflix.spinnaker.igor.Main'
+
+test {
+  useJUnitPlatform()
+}
+
+
+dependencies {
+    implementation project(":igor-core")
+    implementation project(":igor-monitor-artifactory")
+    implementation project(":igor-monitor-plugins")
+    implementation project(":igor-monitor-travis")
+
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+
+    implementation "javax.xml.bind:jaxb-api"
+    implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
+    implementation "com.sun.xml.bind:jaxb-impl:2.3.2"
+
+    implementation "com.vdurmont:semver4j"
+    implementation "commons-io:commons-io"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.spockframework:spock-core"
+    testImplementation "org.spockframework:spock-spring"
+    testImplementation "org.springframework:spring-test"
+    testImplementation "org.hamcrest:hamcrest-core"
+    testRuntimeOnly "cglib:cglib-nodep"
+    testRuntimeOnly "org.objenesis:objenesis"
+    implementation "org.apache.groovy:groovy"
+
+    implementation "com.fasterxml.jackson.core:jackson-annotations"
+    implementation "com.fasterxml.jackson.core:jackson-core"
+    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
+
+    implementation "com.squareup.retrofit:retrofit"
+    implementation "com.squareup.retrofit:converter-jackson"
+    implementation "com.squareup.okhttp3:okhttp-sse"
+    implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
+    implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+    implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+    implementation "org.springframework.security:spring-security-core"
+    implementation "org.springframework.security:spring-security-config"
+    implementation "org.springframework.security:spring-security-web"
+    implementation "org.springframework.cloud:spring-cloud-context"
+    implementation "org.springframework.cloud:spring-cloud-config-server"
+
+    implementation "com.amazonaws:aws-java-sdk"
+    implementation "com.google.apis:google-api-services-cloudbuild"
+    implementation "com.google.apis:google-api-services-storage"
+    implementation 'com.google.auth:google-auth-library-oauth2-http'
+    implementation "io.spinnaker.kork:kork-config"
+    implementation "io.spinnaker.kork:kork-cloud-config-server"
+    implementation "io.spinnaker.kork:kork-artifacts"
+    implementation "io.spinnaker.kork:kork-exceptions"
+    implementation "io.spinnaker.kork:kork-web"
+    implementation "io.spinnaker.kork:kork-jedis"
+    implementation "io.spinnaker.kork:kork-telemetry"
+    implementation "io.spinnaker.kork:kork-plugins"
+    implementation "io.spinnaker.kork:kork-retrofit"
+
+
+    implementation "io.github.resilience4j:resilience4j-retry"
+
+    implementation "io.projectreactor:reactor-core"
+    implementation "com.google.code.gson:gson"
+    implementation "com.google.guava:guava"
+    implementation "javax.inject:javax.inject:1"
+    implementation "javax.validation:validation-api"
+
+    runtimeOnly "io.spinnaker.kork:kork-runtime"
+
+    testImplementation "com.squareup.okhttp3:mockwebserver"
+    testImplementation "io.spinnaker.kork:kork-jedis-test"
+    testImplementation "org.apache.groovy:groovy-datetime"
+    testImplementation "org.apache.groovy:groovy-json"
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation "org.assertj:assertj-core"
+
+    testImplementation "com.github.tomakehurst:wiremock-jre8"
+}

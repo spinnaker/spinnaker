@@ -1,0 +1,10 @@
+# By default, everything inside .gitignore (as well as the .git directory and
+# the .gitignore file itself) is not uploaded to Google Cloud Build. But there's
+# a bug in gcloud where it interprets '*/build' (i.e. all directories named
+# 'build' that are one level below the root) as '**/build' (i.e. all directories
+# named 'build' anywhere in the project.) This causes a problem because we have
+# a Java package named 'build', so those source files don't get uploaded.
+#
+# Adding this file overrides the default, so everything gets uploaded, but we
+# still want to exclude the large .gradle cache directory.
+.gradle

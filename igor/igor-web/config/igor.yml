@@ -1,0 +1,58 @@
+services.fiat.baseUrl: https://fiat.net
+
+netflix:
+  appinfo:
+    name: 'igor'
+
+spinnaker:
+  build:
+    pollInterval: 30
+  pollingSafeguard:
+    # A lower value can help prevent accidental re-triggers of pipelines, but may require hands-on operations if
+    # set low.
+    # See code documentation for more details. Class [PollingSafeguardProperties] in
+    # https://github.com/spinnaker/igor/blob/master/igor-core/src/main/java/com/netflix/spinnaker/igor/IgorConfigurationProperties.java#L92
+    itemUpperThreshold: 1000
+
+spring.jackson.serialization.write_dates_as_timestamps: false
+
+server.port: 8088
+
+redis:
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
+
+#artifact:
+#  This is a feature toggle for decoration of artifacts.
+#  decorator:
+#    enabled: true
+#    fileDecorators:
+#       - type: mavenUrl
+#         decoratorRegex: /[\/\:.]*\/([a-zA-Z-]+)\-([\d\.]+\-[\d\.]+)[a-z\-\d]+\.[jw]ar$/
+#         identifierRegex: /https?\:\/\/[\/\:.]*\/([a-zA-Z-]+)\-([\d\.]+\-[\d\.]+)[a-z\-\d]+\.[jw]ar$/
+
+#travis:
+#  enabled: true
+#
+#  Repository sync makes a call to travis telling travis to sync repos against github.
+#  This makes new repos with builds in travis the github user has access to tracked by spinnaker.
+#  repositorySyncEnabled: true
+#
+#  This grace period gives travis some time to make the logs available. If a build just finished when we try to fetch
+#  logs, parts of the logs might not be present. Increase this timeout if artifacts are randomly missing.
+#  newBuildGracePeriodSeconds: 10
+#
+#  Travis names are prefixed with travis- inside igor.
+#  masters:
+#    - name: ci # This will show as travis-ci inside spinnaker.
+#      baseUrl: https://travis-ci.com
+#      address: https://api.travis-ci.com
+#      githubToken: XXXXXX
+#      numberOfJobs: 100 # Defines how many jobs the Travis integration should retrieve per polling cycle.
+#                        # Defaults to 100.
+#
+#  Additional regexes to use when parsing build logs in search for uploaded
+#  artifacts, besides the default regexes which match on the output of the
+#  `art` CLI.  The provided example would match on the output from Gradle's
+#  maven-publish plugin.
+#  regexes:
+#  - Upload https?:\/\/.+\/(.+\.(deb|rpm))$

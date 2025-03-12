@@ -1,0 +1,11 @@
+gcb:
+  enabled: true
+  accounts:
+  - name: gcb-account
+    project: spinnaker-gcb-test
+    jsonKey: /path/to/some/file
+locking:
+  enabled: true
+services:
+  fiat:
+    baseUrl: https://fiat.net

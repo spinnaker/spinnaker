@@ -1,0 +1,12 @@
+dependencies {
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-jedis"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "javax.validation:validation-api"
+
+  // TODO(rz): Get rid of this dependency!
+  implementation "com.squareup.retrofit:retrofit"
+
+  testImplementation "com.netflix.spectator:spectator-reg-micrometer"
+}

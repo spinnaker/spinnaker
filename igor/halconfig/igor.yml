@@ -1,0 +1,3 @@
+server:
+  port: ${services.igor.port:8088}
+  address: ${services.igor.host:localhost}

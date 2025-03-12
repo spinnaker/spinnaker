@@ -1,0 +1,9 @@
+[
+  {
+    {% set referenceParts = properties.image.split(':') -%}
+    "reference": "{{ properties.image }}",
+    "name": "{{ referenceParts[0] }}",
+    "version": "{{ referenceParts[1] }}",
+    "type": "docker/image"
+  }
+]
