@@ -1,0 +1,75 @@
+@import (reference) '../less/imports/commonImports.less';
+
+page-navigator,
+.page-navigator {
+  display: flex;
+  .page-navigation {
+    list-style-type: none;
+    text-transform: uppercase;
+    margin: 0;
+    padding: 0;
+    li {
+      display: flex;
+      &:hover,
+      &.current {
+        background-color: var(--color-accent-g2);
+        a {
+          color: var(--color-primary);
+        }
+        font-weight: 600;
+      }
+      a {
+        &:focus {
+          color: var(--color-accent);
+        }
+        display: flex;
+        cursor: pointer;
+        text-decoration: none;
+        line-height: 15px;
+        padding: 10px;
+      }
+    }
+  }
+  page-section,
+  .page-section {
+    display: flex;
+    .page-subheading {
+      display: flex;
+      flex-direction: column;
+
+      .no-wrapper,
+      .section-body {
+        margin: 10px 10px 20px 10px;
+      }
+      .no-wrapper {
+        .add-new {
+          border-radius: 0;
+        }
+      }
+      .section-body {
+        background-color: var(--color-white);
+        border: 1px solid var(--color-cirrus);
+        padding: 15px;
+      }
+      .clearfix();
+      h4.sticky-header {
+        padding: 10px;
+        background-color: var(--color-accent-g2);
+        margin: 0;
+      }
+      .highlighted {
+        animation: 0.5s ease-in-out 0 highlighted;
+        animation-iteration-count: 1;
+      }
+    }
+  }
+}
+
+@keyframes highlighted {
+  0% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 1;
+  }
+}

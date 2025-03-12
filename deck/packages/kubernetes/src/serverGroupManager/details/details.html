@@ -1,0 +1,136 @@
+<div class="details-panel">
+  <div class="header" ng-if="ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <cloud-provider-logo
+        provider="ctrl.serverGroupManager.cloudProvider"
+        height="'36px'"
+        width="'36px'"
+      ></cloud-provider-logo>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{ctrl.serverGroupManager.displayName}}
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            entity="ctrl.serverGroupManager"
+            application="ctrl.app"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="serverGroupManager"
+            page-location="details"
+            on-update="ctrl.app.serverGroupManagers.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
+      </h3>
+    </div>
+    <div class="actions">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle ng-hide="isDisabled">
+          {{ctrl.serverGroupManager.kind | robotToHuman}} Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li>
+            <a href ng-click="ctrl.scaleServerGroupManager()"> Scale </a>
+          </li>
+          <li ng-if="ctrl.canUndoRolloutServerGroupManager()">
+            <a href ng-click="ctrl.undoRolloutServerGroupManager()"> Undo Rollout </a>
+          </li>
+          <li ng-if="ctrl.manifest.status.paused.state">
+            <a href ng-click="ctrl.resumeRolloutServerGroupManager()"> Resume Rollout </a>
+          </li>
+          <li ng-if="!ctrl.manifest.status.paused.state && !ctrl.manifest.status.stable.state">
+            <a href ng-click="ctrl.pauseRolloutServerGroupManager()"> Pause Rollout </a>
+          </li>
+          <kubernetes-rolling-restart
+            ng-if="!ctrl.manifest.status.paused.state"
+            application="ctrl.app"
+            server-group-manager="ctrl.serverGroupManager"
+          ></kubernetes-rolling-restart>
+          <li role="presentation" class="divider"></li>
+          <li>
+            <a href ng-click="ctrl.editServerGroupManager()"> Edit </a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.deleteServerGroupManager()"> Delete </a>
+          </li>
+          <render-if-feature feature="entityTags">
+            <add-entity-tag-links
+              component="ctrl.serverGroupManager"
+              application="ctrl.app"
+              entity-type="serverGroupManager"
+              owner-options="ctrl.entityTagTargets"
+              on-update="ctrl.app.serverGroupManagers.refresh"
+            ></add-entity-tag-links>
+          </render-if-feature>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading">
+    <kubernetes-manifest-status status="ctrl.manifest.status"></kubernetes-manifest-status>
+    <collapsible-section heading="Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Created</dt>
+        <dd>{{ctrl.serverGroupManager.createdTime | timestamp}}</dd>
+        <dt>Account</dt>
+        <dd><account-tag account="ctrl.serverGroupManager.account"></account-tag></dd>
+        <dt>Namespace</dt>
+        <dd>{{ctrl.serverGroupManager.namespace}}</dd>
+        <dt>Kind</dt>
+        <dd>{{ctrl.serverGroupManager.kind}}</dd>
+        <dt ng-if="ctrl.serverGroupManager.serverGroups.length">Managing</dt>
+        <dd>
+          <ul ng-repeat="serverGroup in ctrl.serverGroupManager.serverGroups | orderBy: ['-name']">
+            <a
+              ui-sref="^.serverGroup({region: serverGroup.region,
+                                       accountId: serverGroup.account,
+                                       serverGroup: serverGroup.name,
+                                       provider: 'kubernetes'})"
+            >
+              {{serverGroup.name}}
+            </a>
+          </ul>
+        </dd>
+      </dl>
+    </collapsible-section>
+
+    <collapsible-section heading="Status" expanded="true">
+      <ul ng-repeat="condition in ctrl.manifest.manifest.status.conditions">
+        <kubernetes-manifest-condition condition="condition"></kubernetes-manifest-condition>
+      </ul>
+    </collapsible-section>
+
+    <kubernetes-annotation-custom-sections
+      manifest="ctrl.manifest.manifest"
+      resource="ctrl.serverGroupManager"
+    ></kubernetes-annotation-custom-sections>
+
+    <collapsible-section heading="Events" expanded="true">
+      <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
+    </collapsible-section>
+
+    <collapsible-section heading="Labels" expanded="true">
+      <kubernetes-manifest-labels manifest="ctrl.manifest.manifest"></kubernetes-manifest-labels>
+    </collapsible-section>
+
+    <collapsible-section heading="Artifacts" expanded="true">
+      <ul ng-repeat="artifact in ctrl.manifest.artifacts">
+        <kubernetes-manifest-artifact artifact="artifact"></kubernetes-manifest-artifact>
+      </ul>
+    </collapsible-section>
+  </div>
+</div>

@@ -1,0 +1,50 @@
+{
+  "name": "@spinnaker/pluginsdk",
+  "description": "Provides blessed opinions (rollup, code format, lint) and packages (react, etc) to plugin developers",
+  "version": "0.3.2",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "spinnaker-scripts build",
+    "watch": "spinnaker-scripts start",
+    "prepublishOnly": "npm run build"
+  },
+  "bin": {
+    "check-plugin": "scripts/check-plugin.js",
+    "dev-proxy": "scripts/dev-proxy/server.js",
+    "husky-install": "scripts/husky-install.sh",
+    "restore-scaffold-file": "scripts/restore-scaffold-file.js",
+    "scaffold": "scripts/scaffold.js"
+  },
+  "dependencies": {
+    "@spinnaker/scripts": "^0.4.0",
+    "check-peer-dependencies": "^4.0.0",
+    "chokidar": "^3.5.1",
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^1.0.6",
+    "husky": "^6.0.0",
+    "lint-staged": "^10.5.4",
+    "lodash": "^4.17.20",
+    "readline-sync": "^1.4.10",
+    "selfsigned": "^2.0.1",
+    "strip-json-comments": "^3.1.1",
+    "ws": "^7.4.3",
+    "yargs": "^16.2.0"
+  },
+  "devDependencies": {
+    "@spinnaker/core": "0.0.549",
+    "@types/yargs": "^16.0.0",
+    "typescript": "4.3.5"
+  },
+  "files": [
+    "dist",
+    "scaffold",
+    "scripts",
+    "pluginconfig"
+  ]
+}

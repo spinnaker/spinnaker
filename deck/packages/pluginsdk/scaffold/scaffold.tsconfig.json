@@ -1,0 +1,7 @@
+{
+  "extends": "@spinnaker/pluginsdk/pluginconfig/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "build/dist",
+    "rootDir": "src"
+  }
+}

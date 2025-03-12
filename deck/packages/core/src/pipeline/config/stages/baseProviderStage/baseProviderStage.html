@@ -1,0 +1,12 @@
+<div class="form-horizontal" ng-if="!viewState.loading">
+  <stage-config-field label="Provider" ng-if="providers.length > 1">
+    <provider-selector
+      providers="providers"
+      component="stage"
+      field="cloudProviderType"
+      read-only="!stage.isNew"
+    ></provider-selector>
+  </stage-config-field>
+  <div ng-include="providerStageDetailsUrl"></div>
+  <div class="react-stage-details"></div>
+</div>

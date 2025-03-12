@@ -1,0 +1,106 @@
+@import (reference) '../../../../presentation/less/imports/commonImports.less';
+
+execution-windows,
+.execution-windows {
+  .execution-window-graph {
+    @graph_height: 70px;
+    width: 100%;
+    height: @graph_height;
+    border: 1px solid var(--color-concrete);
+    position: relative;
+    margin: 0 0 0 10px;
+
+    @label-height: 20px;
+    @divider-height: @graph_height - @label-height;
+
+    .execution-window {
+      height: @graph_height - 1;
+      background-color: var(--color-success-light);
+      position: absolute;
+      bottom: 0;
+      z-index: 3;
+      &:after {
+        content: '';
+        width: calc(~'100% + 1px');
+        border: 1px solid var(--color-dovegray);
+        border-bottom-width: 0;
+        height: @graph_height - @label-height - 1;
+        position: absolute;
+        top: 0;
+        left: -1px;
+      }
+    }
+
+    .divider-label-fill {
+      background-color: var(--color-cirrus);
+      height: @label-height;
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      z-index: 1;
+    }
+
+    .dividers {
+      .divider {
+        position: absolute;
+        width: 100% * (1/24);
+        top: 0;
+        height: @graph_height;
+        margin-top: 0;
+        &:first-child {
+          border-left-width: 0;
+        }
+        .divider-filler {
+          width: 100%;
+          position: absolute;
+          height: @divider-height;
+          z-index: 2;
+          border-right: 1px solid var(--color-alto);
+        }
+        .divider-label {
+          font-size: 75%;
+          color: var(--color-dovegray);
+          width: 100%;
+          position: absolute;
+          bottom: 1px;
+          padding: 3px;
+          border-top: 1px solid var(--color-concrete);
+          border-right: 1px solid var(--color-concrete);
+          text-align: center;
+          z-index: 4;
+        }
+        &:last-child {
+          .divider-filler,
+          .divider-label {
+            border-right-width: 0;
+          }
+        }
+      }
+    }
+  }
+
+  .vertical-align-select {
+    vertical-align: bottom;
+  }
+
+  .start-end-divider {
+    padding: 0 15px;
+    font-weight: 600;
+  }
+
+  .window-entry {
+    padding-bottom: 10px;
+  }
+
+  .btn-remove {
+    margin-left: 20px;
+  }
+}
+
+p.execution-window-days-of-week {
+  margin-left: 10px;
+
+  div.button-controls {
+    display: inline-block;
+  }
+}

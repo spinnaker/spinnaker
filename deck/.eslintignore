@@ -1,0 +1,5 @@
+# Built lib files
+/**/*.spec.js
+node_modules
+packages/*/dist/**
+packages/*/lib/**

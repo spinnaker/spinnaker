@@ -1,0 +1,21 @@
+<div class="row">
+  <div class="col-md-4 sm-label-right">
+    <b style="font-family: 'Source Sans 3', sans-serif; font-size: 14px; color: #333">Backend services</b>
+  </div>
+  <div class="col-md-8">
+    <ui-select
+      multiple
+      nested
+      required
+      ng-model="$ctrl.command.backendServices[$ctrl.loadBalancerName]"
+      class="form-control input-sm"
+    >
+      <ui-select-match>{{ $item }}</ui-select-match>
+      <ui-select-choices
+        repeat="backendService in $ctrl.command.backingData.filtered.loadBalancerIndex[$ctrl.loadBalancerName].backendServices | filter: $select.search"
+      >
+        <span ng-bind-html="backendService | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>

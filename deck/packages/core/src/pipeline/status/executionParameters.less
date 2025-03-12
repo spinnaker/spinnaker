@@ -1,0 +1,43 @@
+@import (reference) '../executions/execution/execution.less';
+
+.execution-parameters {
+  font-size: 0.8em;
+  line-height: 12px;
+  overflow: scroll;
+  margin-bottom: 10px;
+  padding-left: @execution-parameters-icon-width - 0.2em;
+}
+
+.execution-parameters-column {
+  width: 50%;
+  float: left;
+}
+
+.params-title {
+  margin-top: 5px;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.an-execution-parameter {
+  display: table-row;
+}
+
+.parameter-key {
+  display: table-cell;
+  color: var(--color-concrete);
+  padding: 1px 2px 1px 1px;
+}
+
+.parameter-value {
+  display: table-cell;
+  padding: 1px;
+  word-break: break-word;
+
+  .truncate-toggle {
+    padding: 0;
+    align-self: flex-start;
+    outline: none;
+    line-height: 30px;
+  }
+}

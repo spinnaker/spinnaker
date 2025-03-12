@@ -1,0 +1,79 @@
+.Environments {
+  width: 100%;
+  padding: 0 var(--l-spacing);
+  --base-horizontal-padding: 20px;
+
+  @media (max-width: 768px) {
+    padding: 0;
+    --base-horizontal-padding: var(--m-spacing);
+  }
+
+  a,
+  .btn-link {
+    color: var(--color-text-link-g1);
+
+    &:focus,
+    &:active {
+      outline: none;
+      box-shadow: none;
+    }
+
+    &:focus {
+      &:active {
+        outline: none;
+        box-shadow: none;
+      }
+    }
+  }
+
+  .env-direction-btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    line-height: 1;
+    padding: var(--xs-spacing);
+    background-color: transparent;
+    color: var(--color-dovegray);
+
+    > i {
+      margin-top: 1px;
+      font-size: 16px;
+    }
+
+    &:focus,
+    &:active:focus {
+      outline: none;
+    }
+
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
+  .environments-list {
+    width: 100%;
+    display: grid;
+    gap: var(--m-spacing);
+    align-items: flex-start;
+    --row-element-icon-width: 32px;
+
+    &.grid-view {
+      gap: var(--xl-spacing) var(--m-spacing);
+      --row-element-icon-width: 26px;
+    }
+  }
+}
+
+.ui-switcher {
+  background-color: var(--color-white);
+  padding: var(--xs-spacing) var(--s-spacing);
+  position: absolute;
+  border-radius: 4px;
+  border: 1px solid var(--color-alto);
+  bottom: 4px;
+  right: 30px;
+
+  @media (max-width: 768px) {
+    right: 8px;
+  }
+}

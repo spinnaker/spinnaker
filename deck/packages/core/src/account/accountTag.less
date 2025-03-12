@@ -1,0 +1,57 @@
+.account-tag {
+  &:empty {
+    display: none;
+  }
+  display: inline;
+  padding: 2px 6px 3px 6px;
+  margin-right: 2px;
+  font-size: 75%;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--color-white);
+  background-color: var(--color-dovegray);
+  white-space: nowrap;
+  font-weight: 600;
+  &.account-tag-prod {
+    background-color: var(--color-danger);
+  }
+}
+
+.heading-tag,
+.heading-tag-overflow-group {
+  display: flex;
+  .account-tag {
+    font-size: 14px;
+    font-weight: 400;
+    display: flex;
+    min-height: 36px;
+    line-height: 16px;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 0 12px;
+    margin-right: 0;
+    border-right: 1px solid var(--color-alabaster);
+    .glyphicon {
+      margin-right: 3px;
+    }
+  }
+}
+
+.heading-tag-overflow-group {
+  pointer-events: none;
+  position: absolute;
+  display: flex;
+  flex-wrap: wrap;
+  top: 100%;
+  left: 0;
+  transition: opacity 0.2s linear;
+  opacity: 0;
+
+  &.shown {
+    opacity: 1;
+  }
+
+  .account-tag {
+    border-top: 1px solid var(--color-white);
+  }
+}

@@ -1,0 +1,39 @@
+<form name="form">
+  <div ng-if="ctrl.state.loading && !ctrl.isNew" style="height: 200px" class="horizontal center middle">
+    <loading-spinner size="'small'"></loading-spinner>
+  </div>
+  <v2-modal-wizard
+    heading="{{::ctrl.heading}}"
+    task-monitor="ctrl.taskMonitor"
+    dismiss="$dismiss()"
+    ng-if="!ctrl.state.loading || ctrl.isNew"
+  >
+    <div ng-if="!ctrl.isNew">
+      <v2-wizard-page key="basic-settings" label="Basic Settings" mark-complete-on-view="false">
+        <cloudrun-load-balancer-basic-settings
+          load-balancer="ctrl.loadBalancer"
+          application="ctrl.application"
+          for-pipeline-config="ctrl.forPipelineConfig"
+        ></cloudrun-load-balancer-basic-settings>
+      </v2-wizard-page>
+    </div>
+  </v2-modal-wizard>
+  <cloudrun-load-balancer-message
+    ng-if="ctrl.isNew"
+    column-offset="1"
+    columns="10"
+    show-create-message="true"
+  ></cloudrun-load-balancer-message>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button
+      ng-if="!ctrl.isNew && ctrl.showSubmitButton()"
+      label="ctrl.submitButtonLabel"
+      is-disabled="cloudrunLoadBalancerForm.$invalid || ctrl.taskMonitor.submitting || ctrl.state.loading"
+      submitting="ctrl.taskMonitor.submitting"
+      on-click="ctrl.submit()"
+      is-new="ctrl.isNew"
+    >
+    </submit-button>
+  </div>
+</form>

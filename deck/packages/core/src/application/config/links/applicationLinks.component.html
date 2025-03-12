@@ -1,0 +1,128 @@
+<div class="row section-body">
+  <div class="col-md-9">
+    <p>
+      Links appear in the instance details panel and provide a shortcut to common features, such as logs, health, etc.
+    </p>
+    <p>
+      Links paths are templates - you can customize them using a number of field attributes available on the instance.
+    </p>
+    <p>
+      <a href="https://www.spinnaker.io/guides/user/instance-links/#customizing-application-links" target="_blank">
+        Check out the guide
+      </a>
+      for examples and to see what fields are available for your cloud provider.
+    </p>
+  </div>
+  <div class="col-md-3 text-right">
+    <button class="btn btn-sm btn-default" ng-click="$ctrl.editJson()">
+      <span class="small glyphicon glyphicon-cog"></span> Edit as JSON
+    </button>
+  </div>
+</div>
+<div class="row" ng-if="!$ctrl.usingDefaultLinks && $ctrl.defaultLinksConfigured">
+  <div class="col-md-9">
+    This application's links have been customized.
+    <a href ng-click="$ctrl.useDefaultLinks()">Revert to default links</a>
+  </div>
+</div>
+<div ui-sortable="$ctrl.sortOptions" ng-model="$ctrl.sections">
+  <div class="link-section section-body" ng-repeat="section in $ctrl.sections">
+    <div class="row row-heading">
+      <div class="col-md-1">
+        <span ng-if="$ctrl.sections.length > 1" class="clickable glyphicon glyphicon-resize-vertical"></span>
+      </div>
+      <div class="col-md-2 sm-label-right heading-label">Section Heading</div>
+      <div class="col-md-8" style="padding-right: 55px">
+        <input type="text" class="form-control input" ng-model="section.title" ng-change="$ctrl.configChanged()" />
+      </div>
+      <div class="col-md-1" style="padding: 5px 10px">
+        <a href ng-click="$ctrl.removeSection($index)" uib-tooltip="Remove section">
+          <span class="glyphicon glyphicon-trash"></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="row" ng-if="$ctrl.cloudProviders.length > 1">
+      <div class="col-md-2 col-md-offset-1 sm-label-right">Cloud Provider(s)</div>
+      <div class="col-md-8" style="padding-right: 55px">
+        <ui-select
+          class="form-control input"
+          search-enabled="false"
+          theme="bootstrap"
+          ng-model="section.cloudProviders"
+          on-select="$ctrl.configChanged()"
+          on-remove="$ctrl.configChanged()"
+          style="height: 30px; width: 100%"
+          multiple
+        >
+          <ui-select-match placeholder="(All Cloud Providers)">{{ $item }}</ui-select-match>
+          <ui-select-choices repeat="provider in $ctrl.cloudProviders">{{ provider }}</ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 10px">
+      <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-9" style="margin-left: -22px">
+          <div class="col-md-4 link-header"><span style="margin-left: 14px">Name</span></div>
+          <div class="col-md-6 link-header">URL</div>
+        </div>
+      </div>
+      <div class="col-md-3 sm-label-right">Links</div>
+      <div class="col-md-9" ui-sortable="$ctrl.sortOptions" ng-model="section.links">
+        <div class="row" ng-repeat="link in section.links" style="padding-bottom: 5px">
+          <div class="col-md-4 link-title" style="padding-right: 0">
+            <span ng-if="section.links.length > 1" class="clickable glyphicon glyphicon-resize-vertical"></span>
+            <span
+              ng-if="section.links.length <= 1"
+              class="glyphicon glyphicon-resize-vertical"
+              style="visibility: hidden"
+            ></span>
+            <input
+              class="form-control input-sm"
+              type="text"
+              placeholder="Label, e.g. Health"
+              ng-change="$ctrl.configChanged()"
+              ng-model="link.title"
+            />
+          </div>
+          <div class="col-md-6">
+            <input
+              class="form-control input-sm"
+              type="text"
+              placeholder="Path, e.g. /health, :7002/alt-port-link"
+              ng-change="$ctrl.configChanged()"
+              ng-model="link.path"
+            />
+          </div>
+          <div class="col-md-2" style="padding: 5px 0">
+            <a href ng-click="$ctrl.removeLink(section, $index)"><span class="glyphicon glyphicon-trash"></span></a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-10" style="padding-right: 20px">
+            <button class="btn btn-block add-new small" ng-click="$ctrl.addLink(section)">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <button class="btn btn-block add-new" ng-click="$ctrl.addSection()">
+      <span class="glyphicon glyphicon-plus-sign"></span> Add Section
+    </button>
+  </div>
+</div>
+
+<config-section-footer
+  application="$ctrl.application"
+  config="$ctrl.sections"
+  view-state="$ctrl.viewState"
+  revert="$ctrl.revert()"
+  config-field="instanceLinks"
+></config-section-footer>

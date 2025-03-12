@@ -1,0 +1,56 @@
+@import (reference) '../../../presentation/less/imports/commonImports.less';
+
+.execution-marker.stage {
+  margin-top: 0;
+  display: inline-block;
+  height: 20px;
+  opacity: 0.65;
+  transition: 0.2s all;
+  text-align: center;
+  padding: 0;
+  color: var(--color-black);
+  font-size: 90%;
+  border: 1px solid transparent;
+  border-left-color: var(--color-white);
+  vertical-align: middle;
+  &:hover,
+  &.active {
+    opacity: 1;
+  }
+  &.after-active {
+    border-left-color: transparent;
+  }
+  &.active {
+    border-color: var(--color-mineshaft);
+    &:first-child {
+      border-left-width: 1px;
+    }
+    &:last-child {
+      border-right-width: 1px;
+    }
+  }
+  &.glowing {
+    .glowing(2.5);
+  }
+  &.requires-attention {
+    background-color: var(--color-alert);
+  }
+  i {
+    color: var(--color-white);
+    margin-left: 3px;
+    font-size: 0.7em;
+    position: relative;
+  }
+}
+
+.execution-marker-waiting {
+  color: var(--color-black);
+  background-color: var(--color-alert) !important;
+  .execution-waiting-link {
+    text-decoration: none;
+    color: var(--color-black);
+    .execution-waiting-fa {
+      color: var(--color-black);
+    }
+  }
+}

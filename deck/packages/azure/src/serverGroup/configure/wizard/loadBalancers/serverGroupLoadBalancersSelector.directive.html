@@ -1,0 +1,41 @@
+<h5 class="text-center" ng-if="!command.viewState.loadBalancersConfigured">Please select an account and region.</h5>
+<div
+  ng-if="command.viewState.loadBalancersConfigured"
+  ng-controller="azureServerGroupLoadBalancersCtrl as loadBalancerCtrl"
+>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right"><b>Load Balancers</b></div>
+    <div class="col-md-7">
+      <label for="useLoadBalancerCheckbox">
+        <input
+          type="checkbox"
+          ng-model="useLoadBalancer"
+          id="useLoadBalancerCheckbox"
+          ng-change="loadBalancerCtrl.loadBalancerChanged(null)"
+        />
+        Use load balancer
+      </label>
+      <ui-select
+        ng-model="command.loadBalancerName"
+        class="form-control input-sm"
+        ng-change="loadBalancerCtrl.loadBalancerChanged($select.selected)"
+        ng-show="useLoadBalancer"
+      >
+        <ui-select-match placeholder="select a loadBalancer">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="loadBalancer in command.loadBalancers | filter: $select.search">
+          <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+
+  <div class="form-group" ng-show="command.loadBalancerName">
+    <div class="col-md-12">
+      <div class="well-compact" ng-class="well">
+        <h5 class="text-center">
+          <p>The load balancer {{command.loadBalancerName}} is an {{command.loadBalancerType}}</p>
+        </h5>
+      </div>
+    </div>
+  </div>
+</div>

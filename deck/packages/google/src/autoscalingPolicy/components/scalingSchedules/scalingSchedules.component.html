@@ -1,0 +1,84 @@
+<ng-form name="scalingSchedulesForm">
+  <div class="section-body" ng-repeat="schedule in $ctrl.policy.scalingSchedules track by $index">
+    <ng-form name="scalingSchedule">
+      <hr ng-if="$index > 0" />
+
+      <div class="row">
+        <div class="col-md-3 sm-label-right">Name</div>
+        <div class="col-md-3 content-fields">
+          <input class="form-control input-sm" required ng-model="schedule.scheduleName" />
+        </div>
+        <div class="col-md-offset-4 col-md-1">
+          <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteSchedule('scalingSchedules', $index)">
+            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+            <span class="visible-lg-inline">Delete</span>
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 sm-label-right">Description</div>
+        <div class="col-md-3 content-fields">
+          <input class="form-control input-sm" ng-model="schedule.scheduleDescription" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 sm-label-right">Enabled</div>
+        <input type="checkbox" class="col-md-1" ng-model="schedule.enabled" value="{schedule.enabled}" />
+      </div>
+      <div class="row">
+        <div class="col-md-3 sm-label-right">Minimum required instances</div>
+        <div class="col-md-3 content-fields">
+          <input
+            type="number"
+            name="minimumRequiredInstances"
+            class="form-control input-sm"
+            min="0"
+            required
+            ng-model="schedule.minimumRequiredInstances"
+          />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 sm-label-right">
+          CRON Expression
+          <help-field key="gce.serverGroup.scalingPolicy.cronExpression"></help-field>
+        </div>
+        <div class="col-md-3 content-fields">
+          <input class="form-control input-sm" required ng-model="schedule.scheduleCron" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 sm-label-right">Time Zone</div>
+        <div class="col-md-3">
+          <gce-timezone-select
+            available-timezones="$ctrl.timezones"
+            selected-timezone="$ctrl.policy.scalingSchedules[$index].timezone"
+            select-timezone="$ctrl.selectTimezone"
+            target="$index"
+          ></gce-timezone-select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 sm-label-right">Duration (seconds)</div>
+        <div class="col-md-3 content-fields">
+          <input
+            type="number"
+            name="duration"
+            class="form-control input-sm"
+            required
+            ng-model="schedule.duration"
+            min="301"
+          />
+        </div>
+        <div class="col-md-4 error-message" ng-if="scalingSchedule.duration.$error.min">
+          Must be greater than 300 seconds.
+        </div>
+      </div>
+    </ng-form>
+  </div>
+  <div class="schedule-container">
+    <button class="add-new col-md-12" ng-click="$ctrl.addSchedule('scalingSchedules')">
+      <span class="glyphicon glyphicon-plus-sign"></span> Add Scaling Schedule
+    </button>
+  </div>
+</ng-form>

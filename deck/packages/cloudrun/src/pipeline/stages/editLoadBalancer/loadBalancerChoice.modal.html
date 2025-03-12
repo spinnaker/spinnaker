@@ -1,0 +1,53 @@
+<div modal-page>
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h4 class="modal-title">Select Load Balancer</h4>
+  </div>
+  <div class="modal-body" ng-if="ctrl.state.loading" style="height: 200px" class="horizontal center middle">
+    <loading-spinner size="'small'"></loading-spinner>
+  </div>
+  <div class="modal-body" ng-if="!ctrl.state.loading">
+    <div class="alert alert-warning" ng-if="ctrl.loadBalancers.length === 0">
+      <p>
+        Spinnaker cannot create a load balancer for Cloud Run. A Spinnaker load balancer maps to a Cloud Run service
+        which along with a Revision are created from Create Server Group page using a
+      </p>
+      <p><code>yaml file</code> <help-field key="cloudrun.serverGroup.file"></help-field></p>
+      <p>
+        If a service does not exist when a Revision is deployed, it will be created. It will then be editable as a load
+        balancer within Spinnaker.
+      </p>
+    </div>
+    <form
+      role="form"
+      name="form"
+      class="form-horizontal"
+      ng-submit="ctrl.submit()"
+      ng-if="ctrl.loadBalancers.length > 0"
+    >
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          <b>Load Balancer</b>
+        </div>
+        <div class="col-md-7">
+          <ui-select class="form-control input-sm" ng-model="ctrl.selectedLoadBalancer">
+            <ui-select-match>
+              <account-tag account="$select.selected.account"></account-tag>
+              <span style="margin-left: 5px">{{$select.selected.name}}</span>
+            </ui-select-match>
+            <ui-select-choices repeat="loadBalancer in ctrl.loadBalancers | filter: $select.search">
+              <account-tag account="loadBalancer.account"></account-tag>
+              <span style="margin-left: 5px" ng-bind-html="loadBalancer.name"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <button class="btn btn-primary" ng-if="ctrl.loadBalancers.length > 0" ng-click="ctrl.submit()">
+      <span class="far fa-check-circle"></span> Edit
+    </button>
+  </div>
+</div>

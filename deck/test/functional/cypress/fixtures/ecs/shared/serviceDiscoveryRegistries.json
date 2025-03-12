@@ -1,0 +1,16 @@
+[
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "arn": "arn:aws:servicediscovery:us-west-2:123456789012:service/srv-4jkorlvjn3c7js6f",
+    "id": "srv-4jkorlvjn3c7js6f",
+    "name": "spinnaker-ecs-demo-svc",
+    "region": "us-west-2"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "arn": "arn:aws:servicediscovery:us-west-2:123456789012:service/srv-q5xbetqpb4useqqi",
+    "id": "srv-q5xbetqpb4useqqi",
+    "name": "spinnaker-ecs-secure-dem-svc",
+    "region": "us-west-2"
+  }
+]

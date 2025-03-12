@@ -1,0 +1,91 @@
+@import (reference) '../search/searchResult/baseTable.less';
+
+.application {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  overflow-y: hidden;
+}
+
+.glyphicon-cloud {
+  top: 4px;
+}
+
+.application-actions {
+  margin-bottom: 10px;
+  padding-top: 5px;
+  display: inline-block;
+  .pull-right;
+}
+
+.filter-tags {
+  padding: 5px 15px 0;
+  .filter-tag {
+    strong {
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    border-radius: 2px;
+    display: inline-block;
+    padding: 3px 5px;
+    margin-right: 10px;
+    margin-bottom: 5px;
+    background-color: var(--color-cirrus);
+    font-size: 90%;
+    a {
+      font-size: 90%;
+      color: var(--color-dovegray);
+    }
+  }
+  .filter-toggle {
+    background-color: var(--color-accent);
+    border-radius: 2px;
+    color: var(--color-white);
+    cursor: pointer;
+    display: inline-block;
+    font-size: 90%;
+    font-weight: 600;
+    margin-bottom: 5px;
+    margin-right: 10px;
+    padding: 3px 5px;
+    text-transform: uppercase;
+  }
+  .clear-filters {
+    display: inline-block;
+    margin-left: 5px;
+    color: var(--color-mineshaft);
+    font-size: 90%;
+  }
+}
+
+.select2-highlighted {
+  .icon {
+    color: inherit;
+  }
+}
+
+.glyphicon-none:before {
+  content: '\e113';
+  color: transparent !important;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  cursor: pointer;
+}
+
+.table-search-results-application {
+  .table-header,
+  .table-row {
+    .col-application {
+      width: 200px;
+    }
+    .col-account,
+    .col-accounts {
+      width: 250px;
+    }
+    .col-email {
+      width: 250px;
+    }
+  }
+}

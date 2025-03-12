@@ -1,0 +1,193 @@
+@blurEffect: saturate(1.3) blur(5px);
+
+@backdropColor: rgba(0, 0, 0, 0.7);
+
+@backdropInOpacity: 1;
+@backdropOutOpacity: 0;
+@backdropAnimationDuration: 300ms;
+
+@dialogInTransform: scale3d(1, 1, 1);
+@dialogOutTransform: scale3d(0.8, 0.8, 0.8);
+@dialogInOpacity: 1;
+@dialogOutOpacity: 0;
+@dialogAnimationDuration: 300ms;
+
+@enterTimingFunction: cubic-bezier(0.4, 0, 0, 1);
+@exitTimingFunction: cubic-bezier(0.76, 0.18, 0.4, 0.92);
+
+@lightSteel15PercentOpacity: rgba(160, 180, 220, 0.15);
+
+@keyframes backdropEnter {
+  from {
+    opacity: @backdropOutOpacity;
+  }
+
+  to {
+    opacity: @backdropInOpacity;
+  }
+}
+
+@keyframes backdropLeave {
+  from {
+    opacity: @backdropInOpacity;
+  }
+
+  to {
+    opacity: @backdropOutOpacity;
+  }
+}
+
+@keyframes dialogEnter {
+  from {
+    transform: @dialogOutTransform;
+    opacity: @dialogOutOpacity;
+  }
+
+  to {
+    transform: @dialogInTransform;
+    opacity: @dialogInOpacity;
+  }
+}
+
+@keyframes dialogLeave {
+  from {
+    transform: @dialogInTransform;
+    opacity: @dialogInOpacity;
+  }
+
+  to {
+    transform: @dialogOutTransform;
+    opacity: @dialogOutOpacity;
+  }
+}
+
+/********************************************************
+  Shared set of properties for both the tinted backdrop
+  and the full screen container that holds a dialog
+********************************************************/
+.fullscreenOverlay() {
+  display: flex;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: var(--layer-critical);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/**********************************
+  Tinted backdrop (behind dialog)
+***********************************/
+// Need to namespace with sp- to avoid collision with other modal styles
+.sp-modal-backdrop {
+  .fullscreenOverlay();
+  background-color: @backdropColor;
+  will-change: opacity;
+}
+
+.sp-modal-backdrop.enter {
+  animation-name: backdropEnter;
+  animation-duration: @backdropAnimationDuration;
+  animation-timing-function: @enterTimingFunction;
+}
+
+.sp-modal-backdrop.exit {
+  animation-name: backdropLeave;
+  animation-duration: @backdropAnimationDuration;
+  animation-timing-function: @exitTimingFunction;
+}
+
+.sp-modal-backdrop.enter-active,
+.sp-modal-backdrop.enter-done {
+  opacity: @backdropInOpacity;
+}
+
+.sp-modal-backdrop.exit-active,
+.sp-modal-backdrop.exit-done {
+  opacity: @backdropOutOpacity;
+}
+
+.sp-modal-backdrop-blur-effect {
+  transition: filter @backdropAnimationDuration @enterTimingFunction;
+  filter: @blurEffect;
+}
+
+/************************************************
+  Modal dialog and associated layout container
+************************************************/
+.Modal {
+  .fullscreenOverlay();
+  justify-content: center;
+  align-items: center;
+
+  .sp-dialog-sizer {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    max-height: ~'calc(100vh - 64px)';
+    min-height: 320px;
+    width: ~'calc(100vw - 128px)';
+    margin: 0 64px;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .sp-dialog-sizer {
+      max-height: ~'calc(100vh - 32px)';
+      width: ~'calc(100vw - 48px)';
+      margin: 0 24px;
+    }
+  }
+
+  /* for large screens, place an eventual cap on the height of a modal */
+  @media screen and (min-height: 1164px) {
+    .sp-dialog-sizer {
+      max-height: 1100px;
+    }
+  }
+
+  .sp-dialog-content {
+    display: flex;
+    position: relative;
+    grid-column: ~'1 / -1';
+    grid-row: ~'1 / -1';
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
+    will-change: transform, opacity;
+  }
+
+  &.enter {
+    .sp-dialog-content {
+      animation-name: dialogEnter;
+      animation-duration: @dialogAnimationDuration;
+      animation-timing-function: @enterTimingFunction;
+    }
+  }
+
+  &.exit {
+    .sp-dialog-content {
+      animation-name: dialogLeave;
+      animation-duration: @dialogAnimationDuration;
+      animation-timing-function: @exitTimingFunction;
+    }
+  }
+
+  &.enter-active,
+  &.enter-done {
+    .sp-dialog-content {
+      transform: @dialogInTransform;
+      opacity: @dialogInOpacity;
+    }
+  }
+
+  &.exit-active,
+  &.exit-done {
+    .sp-dialog-content {
+      transform: @dialogOutTransform;
+      opacity: @dialogOutOpacity;
+    }
+  }
+}

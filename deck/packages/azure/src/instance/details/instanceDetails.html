@@ -1,0 +1,43 @@
+<div class="details-panel">
+  <div class="header">
+    <instance-details-header
+      health-state="instance.healthState"
+      instance-id="instance ? instance.instanceId : instanceIdNotFound"
+      loading="state.loading"
+      standalone="state.standalone"
+    ></instance-details-header>
+  </div>
+  <div class="content" ng-if="!state.loading && instance">
+    <collapsible-section heading="Instance Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Launched</dt>
+        <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
+        <dd ng-if="!instance.launchTime">(Unknown)</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="instance.account" provider="instance.provider" pad="right"></account-tag>
+          {{instance.region || '(Unknown)'}}
+        </dd>
+        <dt>Type</dt>
+        <dd>{{instance.instanceType || '(Unknown)'}}</dd>
+        <dt ng-if="instance.serverGroup">Server Group</dt>
+        <dd ng-if="instance.serverGroup">
+          <a
+            ui-sref="^.serverGroup({region: instance.region,
+              accountId: instance.account,
+              serverGroup: instance.serverGroup,
+              provider: instance.provider})"
+            >{{instance.serverGroup}}</a
+          >
+        </dd>
+      </dl>
+    </collapsible-section>
+  </div>
+  <div class="content" ng-if="!state.loading && !instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,114 @@
+<div class="form-horizontal">
+  <stage-config-field label="Application">
+    <input
+      ng-model="stage.application"
+      class="form-control input-sm"
+      ng-if="pipelineStageCtrl.hasSpel(stage.application)"
+    />
+    <ui-select
+      ng-model="stage.application"
+      class="form-control input-sm"
+      ng-if="!pipelineStageCtrl.hasSpel(stage.application)"
+    >
+      <ui-select-match placeholder="None">{{$select.selected}}</ui-select-match>
+
+      <ui-select-choices
+        repeat="application in applications | filter: $select.search | limitTo: viewState.infiniteScroll.currentItems"
+        infinite-scroll="pipelineStageCtrl.addMoreItems()"
+        infinite-scroll-distance="2"
+      >
+        <div ng-bind-html="application | highlight: $select.search"></div>
+      </ui-select-choices>
+    </ui-select>
+  </stage-config-field>
+  <stage-config-field label="Pipeline">
+    <input
+      ng-model="stage.pipeline"
+      class="form-control input-sm"
+      ng-if="pipelineStageCtrl.hasSpel(stage.pipeline) || pipelineStageCtrl.hasSpel(stage.application)"
+    />
+    <div
+      ng-if="stage.application && viewState.pipelinesLoaded && stage !== null && !pipelineStageCtrl.hasSpel(stage.pipeline) && !pipelineStageCtrl.hasSpel(stage.application)"
+    >
+      <ui-select class="form-control input-sm" ng-model="stage.pipeline">
+        <ui-select-match placeholder="Select a pipeline...">{{$select.selected.name}}</ui-select-match>
+        <ui-select-choices repeat="pipeline.id as pipeline in pipelines | filter: $select.search | orderBy: 'index'"
+          ><span ng-bind-html="pipeline.name | highlight: $select.search"></span
+        ></ui-select-choices>
+      </ui-select>
+    </div>
+  </stage-config-field>
+  <div class="well well-sm clearfix ng-scope col-md-offset-1 col-md-10" ng-if="pipelineParameters.length">
+    <h4 class="text-left">Pipeline Parameters</h4>
+
+    <div class="form-group" ng-repeat="parameter in pipelineParameters | orderBy:'name' ">
+      <div class="col-md-3 sm-label-right">
+        <b>{{parameter.name}}</b>
+        <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
+      </div>
+      <div class="col-md-5">
+        <input
+          disabled
+          ng-if="useDefaultParameters[parameter.name]"
+          type="text"
+          class="form-control input-sm"
+          value="{{parameter.default}}"
+        />
+        <input
+          ng-if="!useDefaultParameters[parameter.name] && !parameter.hasOptions"
+          type="text"
+          class="form-control input-sm"
+          ng-model="userSuppliedParameters[parameter.name]"
+          ng-change="updateParam(parameter.name)"
+        />
+
+        <spel-select
+          ng-if="!useDefaultParameters[parameter.name] && parameter.hasOptions"
+          model="userSuppliedParameters[parameter.name]"
+        >
+          <ui-select
+            ng-model="userSuppliedParameters[parameter.name]"
+            ng-change="updateParam(parameter.name)"
+            style="width: 100%"
+            class="form-control input-sm"
+          >
+            <ui-select-match>
+              <strong>{{$select.selected.value}}</strong>
+            </ui-select-match>
+            <ui-select-choices repeat="option.value as option in parameter.options | filter: $select.search">
+              <div><strong>{{option.value}}</strong></div>
+            </ui-select-choices>
+          </ui-select>
+        </spel-select>
+      </div>
+      <div class="checkbox col-md-4" ng-if="parameter.default!==null">
+        <label>
+          <input
+            type="checkbox"
+            ng-model="useDefaultParameters[parameter.name]"
+            ng-change="pipelineStageCtrl.updateParam(parameter.name)"
+          />Use default
+        </label>
+      </div>
+    </div>
+    <div ng-if="hasInvalidParameters()" class="horizontal center sp-margin-l-top" style="width: 100%">
+      <div class="alert alert-danger vertical">
+        <p>
+          <i class="fa fa-exclamation-triangle"></i>
+          The following parameters are not accepted by the pipeline but are still set in the stage configuration:
+        </p>
+        <div ng-repeat="(paramName, paramValue) in invalidParameters" class="flex-container-h" style="margin: 0.5em">
+          <label class="col-md-2">{{paramName}}</label>
+          <input class="flex-grow" type="text" style="width: 100%" disabled value="{{paramValue}}" />
+        </div>
+        <button class="self-right passive" ng-click="pipelineStageCtrl.removeInvalidParameters()">Remove all</button>
+      </div>
+    </div>
+  </div>
+  <stage-config-field label="Skip downstream output" help-key="pipeline.skipDownstreamOutput">
+    <input type="checkbox" class="input-sm" name="skipDownstreamOutput" ng-model="stage.skipDownstreamOutput" />
+  </stage-config-field>
+  <stage-config-field label="Wait for results" help-key="pipeline.waitForCompletion">
+    <input type="checkbox" class="input-sm" name="waitForCompletion" ng-model="stage.waitForCompletion" />
+  </stage-config-field>
+</div>

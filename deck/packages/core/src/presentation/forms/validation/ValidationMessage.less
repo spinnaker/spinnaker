@@ -1,0 +1,42 @@
+.ValidationMessage {
+  min-height: 40px;
+  display: flex;
+  margin-bottom: 2px;
+
+  &.errorMessage {
+    color: var(--color-validation-error);
+    background-color: var(--color-validation-error-light);
+  }
+
+  &.infoMessage {
+    color: var(--color-validation-info);
+    background-color: var(--color-validation-info-light);
+  }
+
+  &.previewMessage {
+    color: var(--color-validation-info);
+    background-color: var(--color-validation-info-light);
+  }
+
+  &.successMessage {
+    color: var(--color-validation-success);
+    background-color: var(--color-validation-success-light);
+  }
+
+  &.warningMessage {
+    color: var(--color-validation-black);
+    background-color: var(--color-validation-warning-light);
+  }
+
+  i {
+    flex: 0 0 40px;
+    height: 40px;
+    font-size: 24px;
+    padding: 7px;
+  }
+
+  .message {
+    margin: 8px 8px 8px 0;
+    align-self: center;
+  }
+}

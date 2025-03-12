@@ -1,0 +1,160 @@
+a.spelLink {
+  margin-left: 10px;
+  animation: fadein 1s;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+input.borderless,
+.borderless select {
+  border: none;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+}
+
+.button-input {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border: 1px var(--color-alto) solid;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  background: var(--color-white);
+}
+
+.button-input .input {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+}
+
+.button-input.invalid {
+  border-color: var(--color-danger);
+  outline: 0;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
+}
+
+.button-input.focus {
+  border-color: var(--color-accent);
+  outline: 0;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+}
+
+.button-input .input select,
+.button-input input {
+  flex-grow: 1;
+}
+
+.button-input.number {
+  width: 245px;
+}
+
+.button-input:focus {
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+}
+
+.button-input .btn-group {
+  margin-left: 5px;
+}
+
+.button-input .btn-group button.active {
+  font-weight: 700;
+}
+
+.button-input .btn-group button:focus {
+  outline: none;
+}
+
+.button-input .form-control:focus {
+  box-shadow: none;
+}
+
+.button-input .select2-container .select2-choice,
+.button-input .select2-dropdown-open .select2-choice,
+.button-input .select2-container-active {
+  border: none;
+  background-image: none;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+}
+
+span.marker {
+  display: inline;
+  padding: 0.2em 0.6em 0.3em;
+  font-size: 75%;
+  font-weight: bold;
+  line-height: 1;
+  color: var(--color-white);
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25em;
+}
+
+span.marker.param {
+  background-color: var(--color-alert);
+  color: var(--color-dovegray);
+}
+
+span.marker.stage {
+  background-color: var(--color-accessory-light);
+  color: var(--color-mineshaft);
+}
+
+span.marker.function {
+  background-color: var(--color-accent-g1);
+  color: var(--color-primary);
+}
+
+span.marker.value {
+  background-color: var(--color-accent-g1);
+  color: var(--color-primary);
+}
+
+span.marker.param:before {
+  content: 'p';
+}
+
+span.marker.stage:before {
+  content: 'stage';
+}
+
+span.marker.function:before {
+  content: 'fn';
+}
+
+.spel-dropdown {
+  max-height: 400px;
+  overflow-y: scroll;
+}
+
+.spel-value-separator {
+  font-size: 70%;
+  color: var(--color-primary);
+}
+
+.textcomplete-item.active .spel-value-separator {
+  color: var(--color-white);
+}
+
+.monospace {
+  font-family: monospace;
+}

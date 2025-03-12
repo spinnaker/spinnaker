@@ -1,0 +1,65 @@
+<dl class="dl-horizontal" ng-if="(vm.application.attributes && vm.application.attributes.email)">
+  <dt>Owner</dt>
+  <dd>{{vm.application.attributes.email}}</dd>
+  <dt ng-if="vm.application.attributes.appGroup">App Group <help-field key="application.group"></help-field></dt>
+  <dd ng-if="vm.application.attributes.appGroup">{{vm.application.attributes.appGroup}}</dd>
+  <dt ng-if="vm.application.attributes.aliases">Alias(es)</dt>
+  <dd ng-if="vm.application.attributes.aliases">{{vm.application.attributes.aliases}}</dd>
+  <render-if-feature feature="pagerDuty">
+    <dt ng-if="vm.application.attributes.pdApiKey">Pager Duty</dt>
+    <dd ng-if="vm.application.attributes.pdApiKey">
+      <pager-duty-tag api-key="vm.application.attributes.pdApiKey"></pager-duty-tag>
+    </dd>
+  </render-if-feature>
+  <render-if-feature feature="slack">
+    <dt ng-if="vm.application.attributes.slackChannel && vm.application.attributes.slackChannel.name">Slack Channel</dt>
+    <dd ng-if="vm.application.attributes.slackChannel && vm.application.attributes.slackChannel.name">
+      <a target="_blank" href="{{vm.slackBaseUrl}}/app_redirect?channel={{vm.application.attributes.slackChannel.id}}"
+        >#{{vm.application.attributes.slackChannel.name}}</a
+      >
+    </dd>
+  </render-if-feature>
+  <dt ng-if="vm.application.attributes.repoType">Source Repo Type</dt>
+  <dd ng-if="vm.application.attributes.repoType">{{vm.application.attributes.repoType}}</dd>
+  <dt ng-if="vm.application.attributes.repoProjectKey">Source Repo Project</dt>
+  <dd ng-if="vm.application.attributes.repoProjectKey">{{vm.application.attributes.repoProjectKey}}</dd>
+  <dt ng-if="vm.application.attributes.repoSlug">Source Repo</dt>
+  <dd ng-if="vm.application.attributes.repoSlug">{{vm.application.attributes.repoSlug}}</dd>
+  <dt>Description</dt>
+  <dd>{{vm.application.attributes.description}}</dd>
+  <dt>Account(s)</dt>
+  <dd>{{vm.application.attributes.accounts.join(', ')}}</dd>
+  <dt ng-if="vm.application.attributes.cloudProviders.length">Cloud Provider(s)</dt>
+  <dd ng-if="vm.application.attributes.cloudProviders.length">
+    {{vm.application.attributes.cloudProviders.join(', ')}}
+  </dd>
+  <dt ng-if="vm.application.attributes.platformHealthOnly || vm.application.attributes.platformHealthOnlyShowOverride">
+    Instance health
+  </dt>
+  <dd ng-if="vm.application.attributes.platformHealthOnly || vm.application.attributes.platformHealthOnlyShowOverride">
+    {{vm.healthMessage}}
+  </dd>
+  <dt>Instance Port</dt>
+  <dd>{{vm.application.attributes.instancePort}}</dd>
+  <dt
+    ng-if="vm.application.attributes.enableRestartRunningExecutions || vm.application.attributes.enableRerunActiveExecutions"
+  >
+    Pipeline Behavior
+  </dt>
+  <dd ng-if="vm.application.attributes.enableRestartRunningExecutions">Allows restarting running pipelines</dd>
+  <dd ng-if="vm.application.attributes.enableRerunActiveExecutions">Allows re-running active executions</dd>
+  <dt ng-if="vm.application.attributes.legacyUdf">User Data Format</dt>
+  <dd ng-if="vm.application.attributes.legacyUdf">This application requires legacy user data format.</dd>
+  <render-if-feature feature="fiatEnabled" ng-if="vm.permissions">
+    <dt>Permissions</dt>
+    <dd>{{vm.permissions}}</dd>
+  </render-if-feature>
+</dl>
+<p ng-if="(!vm.application.attributes || !vm.application.attributes.email)">
+  This application has not been configured.
+</p>
+<button class="btn btn-link" ng-click="vm.editApplication()">
+  <span class="glyphicon glyphicon-cog"></span>
+  {{ (!vm.application.attributes || !vm.application.attributes.email) ? "Create Application" : "Edit Application
+  Attributes"}}
+</button>

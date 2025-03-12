@@ -1,0 +1,35 @@
+@import (reference) '../presentation/less/imports/commonImports.less';
+
+.glyphicon,
+.fa {
+  &.healthy {
+    color: var(--color-success);
+  }
+  &.unhealthy {
+    color: var(--color-danger);
+  }
+  &.unknown {
+    color: var(--color-dovegray);
+  }
+}
+
+health-counts {
+  display: inherit; // Since health-counts wraps a react component with a .health-counts class that does all the layout now, make this component not have layout
+}
+
+.health-counts {
+  .instance-health-counts {
+    .glyphicon {
+      top: 0;
+    }
+    .healthy {
+      color: var(--color-success);
+    }
+    .unhealthy {
+      color: var(--color-alert);
+    }
+    .dead {
+      color: var(--color-danger);
+    }
+  }
+}

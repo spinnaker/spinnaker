@@ -1,0 +1,20 @@
+{
+  parser: '@typescript-eslint/parser',
+  "rules": {
+  },
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true,
+    "jasmine": true,
+  },
+  "globals": {
+    "angular": true,
+    "$": true,
+    "_": true,
+  }
+}

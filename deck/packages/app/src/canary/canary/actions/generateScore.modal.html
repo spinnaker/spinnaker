@@ -1,0 +1,54 @@
+<div modal-page>
+  <form role="form">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h4 class="modal-title">Generate Canary Analysis Result</h4>
+    </div>
+    <div class="modal-body container-fluid form-inline">
+      <div class="form-group">
+        <label> Generate a score for the past </label>
+        <input
+          style="width: 60px"
+          type="number"
+          class="form-control input-sm"
+          min="0"
+          required
+          ng-model="command.duration"
+        />
+        <select style="width: 90px" class="form-control input-sm" ng-model="command.durationUnit">
+          <option value="h">hours</option>
+          <option value="m">minutes</option>
+        </select>
+      </div>
+      <div class="form-group" ng-if="state === 'success'" style="margin-top: 30px">
+        <uib-alert type="success">
+          <p>
+            <span class="far fa-check-circle"></span>
+            Successfully requested a new canary analysis
+          </p>
+        </uib-alert>
+      </div>
+      <div class="form-group" ng-if="state === 'error'" style="margin-top: 30px">
+        <uib-alert type="danger">
+          <p>There was an error with this request. Please try again later.</p>
+        </uib-alert>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="ctrl.cancel()">
+        <span ng-if="state !== 'success'">Cancel</span>
+        <span ng-if="state === 'success'">Close</span>
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-if="state !== 'success'"
+        ng-click="ctrl.generateCanaryScore()"
+        ng-disabled="state === 'submitting' || !command.duration || command.duration < 1"
+      >
+        <loading-spinner ng-if="state === 'submitting'"></loading-spinner>
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

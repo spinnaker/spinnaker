@@ -1,0 +1,265 @@
+<div class="form-horizontal">
+  <div class="alert alert-info" ng-if="$ctrl.preconfiguredProperties.length">
+    <strong>Note:</strong> {{$ctrl.noUserConfigurableFields ? 'All' : 'Some'}} of the settings of this stage are
+    preconfigured, and cannot be changed.
+  </div>
+  <stage-config-field label="Webhook URL" ng-if="$ctrl.displayField('url')">
+    <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.url" />
+  </stage-config-field>
+  <stage-config-field label="Method" ng-if="$ctrl.displayField('method')">
+    <ui-select ng-model="$ctrl.stage.method" class="form-control input-sm">
+      <ui-select-match placeholder="Select a method...">{{$select.selected}}</ui-select-match>
+      <ui-select-choices repeat="method in $ctrl.methods | filter: $select.search">
+        <span ng-bind-html="method | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </stage-config-field>
+  <stage-config-field
+    label="Fail Fast HTTP Statuses"
+    help-key="pipeline.config.webhook.failFastCodes"
+    ng-if="$ctrl.displayField('failFastStatusCodes')"
+  >
+    <input
+      type="text"
+      class="form-control input-sm"
+      ng-model="$ctrl.viewState.failFastStatusCodes"
+      ng-change="$ctrl.failFastCodesChanged()"
+    />
+  </stage-config-field>
+  <stage-config-field label="Parameters" ng-if="$ctrl.parameters.length">
+    <div class="form-group" ng-repeat="parameter in $ctrl.parameters | orderBy:['order','name']">
+      <div class="col-md-3 sm-label-right">
+        <b class="break-word">{{ parameter.label }}</b>
+        <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
+      </div>
+      <div class="col-md-5">
+        <input ng-model="$ctrl.stage.parameterValues[parameter.name]" type="text" class="form-control input-sm" />
+      </div>
+    </div>
+  </stage-config-field>
+  <stage-config-field
+    label="Payload"
+    help-key="pipeline.config.webhook.payload"
+    ng-if="$ctrl.stage.method !== 'GET' && $ctrl.stage.method !== 'HEAD' && $ctrl.displayField('payload')"
+  >
+    <textarea
+      class="code form-control flex-fill"
+      rows="5"
+      ng-model="$ctrl.command.payloadJSON"
+      ng-change="$ctrl.updatePayload()"
+    ></textarea>
+
+    <div class="form-group row slide-in" ng-if="$ctrl.command.invalid">
+      <div class="col-sm-9 col-sm-offset-3 error-message">Error: {{$ctrl.command.errorMessage}}</div>
+    </div>
+  </stage-config-field>
+  <stage-config-field
+    label="Custom Headers"
+    help-key="pipeline.config.webhook.customHeaders"
+    ng-if="$ctrl.displayField('customHeaders')"
+  >
+    <table class="table table-condensed packed" ng-if="$ctrl.customHeaderCount() > 0">
+      <thead>
+        <tr>
+          <th style="width: 40%">Key</th>
+          <th style="width: 60%">Value</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="(key, value) in $ctrl.stage.customHeaders">
+          <td>
+            <strong class="small">{{key}}</strong>
+          </td>
+          <td>
+            <input type="text" required ng-model="$ctrl.stage.customHeaders[key]" class="form-control input-sm" />
+          </td>
+          <td class="text-right">
+            <a class="small" href ng-click="$ctrl.removeCustomHeader(key)">Remove</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addCustomHeader()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Custom Header
+        </button>
+      </div>
+    </div>
+  </stage-config-field>
+  <div class="form-group" ng-if="$ctrl.displayField('waitForCompletion')">
+    <div class="col-md-8 col-md-offset-1">
+      <div class="checkbox pull-left">
+        <label>
+          <input
+            type="checkbox"
+            name="waitForCompletion"
+            ng-model="$ctrl.viewState.waitForCompletion"
+            ng-change="$ctrl.waitForCompletionChanged()"
+          />
+          <strong>Wait for completion</strong>
+          <help-field key="pipeline.config.webhook.waitForCompletion"></help-field>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div
+    ng-class="{collapse: $ctrl.viewState.waitForCompletion !== true, 'collapse.in': !$ctrl.viewState.waitForCompletion === true}"
+  >
+    <div class="form-group" ng-if="$ctrl.displayField('statusUrlResolution')">
+      <div class="col-md-3 sm-label-right">Status URL</div>
+      <div class="col-md-9 radio">
+        <label>
+          <input
+            type="radio"
+            ng-model="$ctrl.viewState.statusUrlResolution"
+            ng-change="$ctrl.statusUrlResolutionChanged()"
+            value="getMethod"
+            id="statusUrlResolutionIsGetMethod"
+          />
+          GET method against webhook URL
+          <help-field key="pipeline.config.webhook.statusUrlResolutionIsGetMethod"></help-field>
+        </label>
+      </div>
+      <div class="col-md-9 col-md-offset-3 radio">
+        <label>
+          <input
+            type="radio"
+            ng-model="$ctrl.viewState.statusUrlResolution"
+            ng-change="$ctrl.statusUrlResolutionChanged()"
+            value="locationHeader"
+            id="statusUrlResolutionIsLocationHeader"
+          />
+          From the Location header
+          <help-field key="pipeline.config.webhook.statusUrlResolutionIsLocationHeader"></help-field>
+        </label>
+      </div>
+      <div class="col-md-9 col-md-offset-3 radio">
+        <label>
+          <input
+            type="radio"
+            ng-model="$ctrl.viewState.statusUrlResolution"
+            ng-change="$ctrl.statusUrlResolutionChanged()"
+            value="webhookResponse"
+            id="statusUrlResolutionIsWebhookResponse"
+          />
+          From webhook's response
+          <help-field key="pipeline.config.webhook.useStatusUrlFromLocationHeaderFalse"></help-field>
+        </label>
+      </div>
+      <div
+        class="form-group"
+        ng-if="$ctrl.viewState.statusUrlResolution === 'webhookResponse' && $ctrl.displayField('statusUrlJsonPath')"
+      >
+        <div class="col-md-offset-3">
+          <stage-config-field label="Status URL path" help-key="pipeline.config.webhook.statusUrlJsonPath">
+            <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.statusUrlJsonPath" required />
+          </stage-config-field>
+        </div>
+      </div>
+    </div>
+    <stage-config-field
+      label="Delay before monitoring"
+      help-key="pipeline.config.webhook.waitBeforeMonitor"
+      ng-if="$ctrl.displayField('waitBeforeMonitor')"
+    >
+      <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.waitBeforeMonitor" />
+    </stage-config-field>
+    <stage-config-field
+      label="Retry HTTP Statuses"
+      help-key="pipeline.config.webhook.retryStatusCodes"
+      ng-if="$ctrl.displayField('retryStatusCodes')"
+    >
+      <input
+        type="text"
+        class="form-control input-sm"
+        ng-model="$ctrl.viewState.retryStatusCodes"
+        ng-change="$ctrl.retryCodesChanged()"
+      />
+    </stage-config-field>
+    <stage-config-field
+      label="Status JsonPath"
+      help-key="pipeline.config.webhook.statusJsonPath"
+      ng-if="$ctrl.displayField('statusJsonPath')"
+    >
+      <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.statusJsonPath" />
+    </stage-config-field>
+    <stage-config-field
+      label="Progress location"
+      help-key="pipeline.config.webhook.progressJsonPath"
+      ng-if="$ctrl.displayField('progressJsonPath')"
+    >
+      <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.progressJsonPath" />
+    </stage-config-field>
+    <stage-config-field
+      label="SUCCESS status mapping"
+      help-key="pipeline.config.webhook.successStatuses"
+      ng-if="$ctrl.displayField('successStatuses')"
+    >
+      <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.successStatuses" />
+    </stage-config-field>
+    <stage-config-field
+      label="CANCELED status mapping"
+      help-key="pipeline.config.webhook.canceledStatuses"
+      ng-if="$ctrl.displayField('canceledStatuses')"
+    >
+      <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.canceledStatuses" />
+    </stage-config-field>
+    <stage-config-field
+      label="TERMINAL status mapping"
+      help-key="pipeline.config.webhook.terminalStatuses"
+      ng-if="$ctrl.displayField('terminalStatuses')"
+    >
+      <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.terminalStatuses" />
+    </stage-config-field>
+
+    <div class="form-group" ng-if="$ctrl.displayField('signalCancellation')">
+      <div class="col-md-8 col-md-offset-1">
+        <div class="checkbox pull-left">
+          <label>
+            <input
+              type="checkbox"
+              name="signalCancellation"
+              ng-model="$ctrl.viewState.signalCancellation"
+              ng-change="$ctrl.signalCancellationChanged()"
+            />
+            <strong>Signal on cancellation</strong>
+            <help-field key="pipeline.config.webhook.signalCancellation"></help-field>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      ng-class="{collapse: $ctrl.viewState.signalCancellation !== true, 'collapse.in': !$ctrl.viewState.signalCancellation === true}"
+    >
+      <stage-config-field label="Cancellation URL" ng-if="$ctrl.displayField('cancelEndpoint')">
+        <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.cancelEndpoint" />
+      </stage-config-field>
+      <stage-config-field label="Method" ng-if="$ctrl.displayField('cancelMethod')">
+        <ui-select ng-model="$ctrl.stage.cancelMethod" class="form-control input-sm">
+          <ui-select-match placeholder="Select a method...">{{$select.selected}}</ui-select-match>
+          <ui-select-choices repeat="method in $ctrl.methods | filter: $select.search">
+            <span ng-bind-html="method | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
+      </stage-config-field>
+      <stage-config-field
+        label="Cancellation payload"
+        help-key="pipeline.config.webhook.cancelPayload"
+        ng-if="$ctrl.stage.cancelMethod !== 'GET' && $ctrl.stage.cancelMethod !== 'HEAD' && $ctrl.displayField('cancelPayload')"
+      >
+        <textarea
+          class="code form-control flex-fill"
+          rows="5"
+          ng-model="$ctrl.cancelCommand.payloadJSON"
+          ng-change="$ctrl.updateCancelPayload()"
+        ></textarea>
+
+        <div class="form-group row slide-in" ng-if="$ctrl.cancelCommand.invalid">
+          <div class="col-sm-9 col-sm-offset-3 error-message">Error: {{$ctrl.cancelCommand.errorMessage}}</div>
+        </div>
+      </stage-config-field>
+    </div>
+  </div>
+</div>

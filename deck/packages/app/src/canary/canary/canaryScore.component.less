@@ -1,0 +1,38 @@
+@import (reference) 'coreImports';
+
+.score.label {
+  font-size: 110%;
+  padding: 3px 6px;
+  display: inline-block;
+  height: 20px;
+  line-height: 14px;
+  &.label-failing {
+    background-color: var(--color-alert-light);
+    &.inverse {
+      color: var(--color-alert);
+    }
+  }
+  &.label-healthy {
+    background-color: var(--color-success);
+    &.inverse {
+      color: var(--color-success);
+    }
+  }
+  &.label-unhealthy {
+    background-color: var(--color-danger);
+    &.inverse {
+      color: var(--color-danger);
+    }
+  }
+  &.label-unknown {
+    background-color: var(--color-text-caption);
+    &.inverse {
+      color: var(--color-text-caption);
+    }
+  }
+  &.inverse {
+    background-color: transparent;
+    font-size: 100%;
+    padding: 0;
+  }
+}

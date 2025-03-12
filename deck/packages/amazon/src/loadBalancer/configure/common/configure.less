@@ -1,0 +1,131 @@
+.wizard-pod {
+  padding-bottom: 15px;
+  > div {
+    border: 1px solid var(--color-cirrus);
+  }
+  .wizard-pod-row {
+    display: flex;
+    padding: 5px;
+    border-bottom: 1px solid var(--color-cirrus);
+
+    label {
+      font-weight: 400;
+      padding-right: 5px;
+    }
+
+    &.header {
+      .glyphicon-trash {
+        padding: 0 8px;
+      }
+      .wizard-pod-row-contents {
+        .wizard-pod-row-title {
+          font-weight: 800;
+        }
+        .wizard-pod-row-data {
+          flex-wrap: nowrap;
+          padding: 0;
+          label {
+            font-weight: 600;
+          }
+          .wizard-pod-content {
+            padding: 0 10px 0 0;
+          }
+        }
+      }
+      background-color: var(--color-cirrus);
+    }
+    .wizard-pod-row-title {
+      display: flex;
+      align-items: center;
+      max-height: 37px;
+      flex-basis: 120px;
+      flex-direction: row-reverse;
+      font-weight: 600;
+      text-align: right;
+      margin-right: 10px;
+      width: 100px;
+    }
+    .wizard-pod-row-contents {
+      display: flex;
+      width: 100%;
+      .wizard-pod-row-data {
+        display: flex;
+        width: 100%;
+        align-items: baseline;
+        flex-wrap: wrap;
+        padding: 5px 0;
+        &.spread {
+          justify-content: space-between;
+        }
+        .wizard-pod-content {
+          padding: 0 10px 5px 0;
+          display: flex;
+          align-items: center;
+        }
+        .group-name-prefix {
+          flex-grow: 2;
+          white-space: nowrap;
+        }
+        .rules-table {
+          thead {
+            th {
+              font-weight: 600;
+            }
+          }
+          td {
+            vertical-align: middle;
+          }
+          > tbody {
+            > tr:first-child {
+              > td {
+                border-top: none;
+              }
+            }
+          }
+        }
+      }
+      .wizard-pod-row-errors {
+        display: flex;
+        width: 100%;
+      }
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+  }
+
+  .listener-rule {
+    .handle {
+      cursor: move;
+      width: 10px;
+      padding: 0;
+    }
+    .listener-rule-condition {
+      display: flex;
+      label {
+        white-space: nowrap;
+      }
+      .help-field {
+        > span {
+          top: 4px;
+          padding: 0 2px;
+        }
+      }
+      .remove-condition {
+        min-width: 15px;
+        padding-top: 4px;
+      }
+    }
+    .add-new-container {
+      display: flex;
+      .add-new {
+        padding: 2px;
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+.rule-sortable-helper {
+  z-index: 99999;
+  width: 500px;
+}

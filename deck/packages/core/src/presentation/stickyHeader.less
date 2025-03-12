@@ -1,0 +1,33 @@
+@import (reference) './less/imports/commonImports.less';
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: 36px;
+
+  .shadowed {
+    margin: 0;
+    display: flex;
+    flex: 1 1 auto;
+    background-color: var(--color-accent-g2);
+    align-items: center;
+
+    &.in-migration {
+      background-color: var(--color-status-warning-light);
+    }
+  }
+  .clearfix();
+}
+
+.sticky-header-2 {
+  position: sticky;
+  top: 36px;
+  z-index: 2;
+}
+
+.sticky-header-3 {
+  position: sticky;
+  top: 67px;
+  z-index: 1;
+}

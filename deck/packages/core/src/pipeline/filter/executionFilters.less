@@ -1,0 +1,46 @@
+execution-filters,
+.execution-filters {
+  display: flex;
+  height: 100%;
+
+  ::-webkit-scrollbar {
+    background: transparent;
+    width: 0;
+  }
+
+  @media (min-width: 768px) and (max-width: 992px) {
+    width: 104px;
+  }
+
+  @media (min-width: 992px) {
+    width: 124px;
+  }
+  @media (min-width: 1200px) {
+    width: 154px;
+  }
+  @media (min-width: 1400px) {
+    width: 184px;
+  }
+  @media (min-width: 1600px) {
+    width: 214px;
+  }
+  @media (min-width: 1800px) {
+    width: 224px;
+  }
+  @media (min-width: 2000px) {
+    width: 254px;
+  }
+
+  .sortable {
+    .pipeline-drag-handle {
+      display: inline-block;
+      margin-left: -14px;
+      margin-right: 3px;
+      opacity: 0.7;
+      font-size: 80%;
+    }
+    &.disable-user-select {
+      user-select: none;
+    }
+  }
+}

@@ -1,0 +1,50 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-12">
+      <table class="table table-condensed packed">
+        <thead>
+          <tr>
+            <th>Protocol</th>
+            <th>External Port</th>
+            <th></th>
+            <th>Internal Port</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="rule in loadBalancer.loadBalancingRules">
+            <td>
+              <select
+                class="form-control input-sm"
+                ng-model="rule.protocol"
+                ng-init="rule.protocol = (isALB ? 'TCP' : 'HTTP')"
+                ng-options="protocol for protocol in (isALB ? ['TCP', 'UDP'] : ['HTTP'])"
+              ></select>
+            </td>
+            <td>
+              <input class="form-control input-sm" type="number" min="0" ng-model="rule.externalPort" required />
+            </td>
+            <td class="small" style="padding-top: 10px">&rarr;</td>
+            <td>
+              <input class="form-control input-sm" type="number" min="0" ng-model="rule.backendPort" required />
+            </td>
+            <td>
+              <a href class="sm-label" ng-click="ctrl.removeListener($index)"
+                ><span class="glyphicon glyphicon-trash"></span
+              ></a>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">
+              <button class="add-new col-md-12" ng-click="ctrl.addListener()">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add new port mapping
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+.ModalBody {
+  display: flex;
+  flex: 1 1 auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  --webkit-overflow-scrolling: touch;
+  background-color: var(--color-smoke);
+  padding: 0 64px;
+}
+
+@media screen and (max-width: 1024px) {
+  .ModalBody {
+    padding: 0 8px;
+  }
+}

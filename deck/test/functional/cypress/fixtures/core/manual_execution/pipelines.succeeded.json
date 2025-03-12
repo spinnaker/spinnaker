@@ -1,0 +1,47 @@
+[
+  {
+    "application": "compute",
+    "authentication": { "allowedAccounts": [], "user": "anonymous" },
+    "buildTime": 1551205788975,
+    "canceled": false,
+    "id": "01D4NH3V9D1RK8GX4036M8BAXV",
+    "initialConfig": {},
+    "keepWaitingPipelines": false,
+    "limitConcurrent": true,
+    "name": "Simple Wait Pipeline",
+    "notifications": [],
+    "origin": "api",
+    "pipelineConfigId": "d6e7e0bc-83f5-461f-a95c-568080b49b6e",
+    "stages": [
+      {
+        "context": {},
+        "id": "01D4NH3V9D832XGZJE5G6R49RK",
+        "name": "Wait",
+        "outputs": {},
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "startTime": 1551205789013,
+        "status": "SUCCEEDED",
+        "tasks": [],
+        "type": "wait"
+      }
+    ],
+    "startTime": 1551205789001,
+    "status": "SUCCEEDED",
+    "systemNotifications": [],
+    "trigger": {
+      "artifacts": [],
+      "dryRun": false,
+      "enabled": false,
+      "eventId": "c34674fd-12f8-4a40-9cb8-a9a16fdf7bcc",
+      "notifications": [],
+      "parameters": {},
+      "rebake": false,
+      "resolvedExpectedArtifacts": [],
+      "strategy": false,
+      "type": "manual",
+      "user": "[anonymous]"
+    },
+    "type": "PIPELINE"
+  }
+]

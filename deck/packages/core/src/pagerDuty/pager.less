@@ -1,0 +1,311 @@
+@import (reference) '../presentation/less/imports/commonImports.less';
+
+.on-call {
+  flex-direction: column;
+  display: flex;
+
+  input[type='text'] {
+    padding: 0 5px;
+  }
+  input::placeholder {
+    color: var(--color-titanium);
+    font-size: 12px;
+  }
+  .hide-checkbox {
+    padding-left: 15px;
+    padding-top: 4px;
+    font-weight: 400;
+  }
+
+  .on-call-table {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    height: 100%;
+    margin-bottom: 50px;
+
+    .highlighted {
+      background-color: var(--color-warning-light);
+    }
+
+    .table-header {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .ReactVirtualized__Table__row.on-call-row {
+      align-items: stretch;
+      &:focus {
+        outline: none;
+      }
+    }
+
+    .ReactVirtualized__Grid.ReactVirtualized__Table__Grid:focus {
+      outline: 0;
+    }
+
+    .on-call-row {
+      &:before {
+        content: ' ';
+        left: 0;
+        right: 0;
+        top: 5px;
+        bottom: 5px;
+        position: absolute;
+        background-color: var(--color-white);
+        border: 1px solid var(--color-seashell);
+        z-index: -99999;
+      }
+      &:hover:before {
+        border-color: var(--color-concrete);
+      }
+      &.selected {
+        &:before {
+          border-color: var(--color-accent);
+        }
+      }
+      &.disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+        &:hover:before {
+          border-color: var(--color-seashell);
+        }
+        .page-checkbox {
+          .fa {
+            cursor: not-allowed;
+            &:hover {
+              background: var(--color-cirrus);
+              color: var(--color-cirrus);
+            }
+          }
+        }
+      }
+    }
+
+    .col-page {
+      overflow: hidden;
+    }
+
+    .col-service {
+      font-size: 15px;
+      font-weight: 600;
+      a {
+        color: var(--color-black);
+        &:hover {
+          color: var(--color-primary);
+        }
+      }
+    }
+
+    .col-application {
+      white-space: normal;
+      color: var(--color-concrete);
+      font-size: 12px;
+      a {
+        color: var(--color-concrete);
+        &:hover {
+          color: var(--color-primary);
+        }
+      }
+    }
+
+    .col-on-call {
+      font-size: 12px;
+    }
+
+    .col-incident {
+      font-size: 12px;
+    }
+
+    .users {
+      display: flex;
+      margin: 3px 0;
+
+      > div {
+        > a {
+          display: block;
+        }
+      }
+
+      .user-level {
+        flex: 0 1 auto;
+        color: var(--color-titanium);
+        padding-right: 3px;
+        margin-right: 5px;
+        border-right: 1px solid var(--color-alto);
+      }
+      .user-names {
+        flex: 1 1 auto;
+      }
+    }
+
+    .page-checkbox {
+      width: 20px;
+      height: 20px;
+      position: relative;
+      border: 2px solid var(--color-titanium);
+      border-radius: 50%;
+      background-color: var(--color-cirrus);
+      &.checked {
+        border-color: var(--color-accent);
+        .fa {
+          color: var(--color-accent);
+        }
+      }
+      .fa {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--color-cirrus);
+
+        &:hover {
+          color: var(--color-titanium);
+        }
+      }
+    }
+  }
+
+  .on-call-filter {
+    max-height: 40px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--color-accent-g2);
+
+    > span {
+      margin-top: 4px;
+      margin-right: 10px;
+    }
+
+    > input {
+      width: 250px;
+    }
+  }
+
+  .page-actions {
+    height: 60px;
+    padding: 5px;
+    align-self: flex-end;
+  }
+}
+
+.infrastructure {
+  .fa-bullhorn {
+    .encircled;
+    margin-right: 5px;
+    width: 32px;
+    height: 32px;
+    line-height: 29px;
+    font-size: 14px;
+    margin-left: 5px;
+    text-align: center;
+  }
+  .pager-header {
+    background-color: var(--color-accent-g2);
+    flex: 0 0 auto;
+    .pager {
+      display: flex;
+      align-content: center;
+      margin-top: 22px;
+    }
+  }
+  .pager-label {
+    font-size: 24px;
+    padding: 0 5px;
+    line-height: 29px;
+    color: var(--color-primary);
+  }
+}
+
+.main-footer {
+  border-top: 1px solid var(--color-alto);
+  padding-top: 10px;
+  margin-top: 10px;
+
+  .alert {
+    display: inline-block;
+    margin-bottom: 0;
+    padding: 6px 12px;
+    vertical-align: middle;
+  }
+}
+
+.on-call-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px;
+  background-color: var(--color-white);
+  margin: 0;
+  border-top: 1px solid var(--color-alto);
+  .col-md-9,
+  .col-md-3 {
+    padding: 0;
+  }
+  display: flex;
+  justify-content: space-between;
+}
+
+.selected-policies {
+  display: flex;
+  flex-direction: row;
+
+  .selected-count {
+    padding-top: 4px;
+    font-weight: 600;
+    width: 125px;
+  }
+
+  .selected-pills {
+    margin-top: 3px;
+    margin-right: 5px;
+    .pill {
+      margin-left: 5px;
+    }
+  }
+}
+
+.page-app-list {
+  display: inline;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: inline;
+  }
+
+  li:not(:last-child):after {
+    content: ', ';
+  }
+}
+
+.page-modal {
+  .modal-body {
+    > div {
+      display: flex;
+      flex-direction: column;
+      > div:not(:first-child) {
+        margin-top: 15px;
+      }
+    }
+  }
+  .service-to-page:not(:last-child):after {
+    content: ', ';
+  }
+}
+
+.table.on-call-table {
+  .table-header {
+    .fa {
+      padding-left: 2px;
+      &.disabled {
+        color: var(--color-alto);
+      }
+    }
+  }
+}

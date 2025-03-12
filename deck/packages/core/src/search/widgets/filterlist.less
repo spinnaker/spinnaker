@@ -1,0 +1,66 @@
+@import 'bootstrap/less/mixins/vendor-prefixes.less';
+@import (reference) '../../presentation/main.less';
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+.secondary-text() {
+  color: var(--color-concrete);
+  margin-left: 5px;
+}
+
+.filter-list {
+  background-color: var(--color-white);
+  border: 1px solid @dropdown-border;
+  border-radius: @border-radius-base;
+  .box-shadow(0 6px 12px rgba(0, 0, 0, 0.175));
+  cursor: default;
+  margin-top: 40px;
+  position: absolute;
+  white-space: pre;
+  width: 200px;
+  z-index: @zindex-dropdown;
+
+  &.filter-list__open {
+    display: block;
+  }
+
+  &.filter-list__closed {
+    display: none;
+  }
+
+  .filter-list__header {
+    .secondary-text();
+    margin-top: 10px;
+    margin-left: 10px;
+  }
+
+  .filter {
+    align-items: center;
+    .clickable();
+    display: flex;
+    padding: 5px 5px 5px 10px;
+
+    .filter__text {
+      font-size: 14px;
+      color: var(--color-mineshaft);
+    }
+
+    .filter__modifier {
+      font-size: 14px;
+      .secondary-text();
+    }
+
+    &.filter--focus {
+      border-color: var(--color-accent-g1);
+      background-color: var(--color-accent-g2);
+    }
+
+    &.filter--blur {
+      background-color: var(--color-white);
+    }
+
+    &:hover {
+      background-color: var(--color-accent-g2);
+      border-color: var(--color-accent-g1);
+    }
+  }
+}

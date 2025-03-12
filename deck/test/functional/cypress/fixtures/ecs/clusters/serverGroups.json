@@ -1,0 +1,574 @@
+[
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "application": "ecsapp",
+    "capacity": {
+      "desired": 0,
+      "max": 0,
+      "min": 0,
+      "pinned": true
+    },
+    "cloudProvider": "ecs",
+    "cluster": "aws-new-sg-spinnaker",
+    "createdTime": 1582674214156,
+    "instanceCounts": {
+      "down": 0,
+      "outOfService": 0,
+      "starting": 0,
+      "total": 0,
+      "unknown": 0,
+      "up": 0
+    },
+    "instances": [],
+    "isDisabled": true,
+    "moniker": {
+      "app": "ecsapp",
+      "cluster": "aws-new-sg-spinnaker",
+      "detail": "sg-spinnaker",
+      "sequence": 1,
+      "stack": "new"
+    },
+    "name": "aws-new-sg-spinnaker-v000",
+    "region": "us-west-2",
+    "securityGroups": [],
+    "serverGroupManagers": [],
+    "type": "ecs",
+    "vpcId": "None"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "application": "ecsapp",
+    "capacity": {
+      "desired": 3,
+      "max": 6,
+      "min": 2,
+      "pinned": false
+    },
+    "cloudProvider": "ecs",
+    "cluster": "aws-prod-fargatedemo",
+    "createdTime": 1597853878409,
+    "instanceCounts": {
+      "down": 0,
+      "outOfService": 0,
+      "starting": 0,
+      "total": 3,
+      "unknown": 0,
+      "up": 3
+    },
+    "instances": [
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "3f2c447c-3be4-4de4-bb61-3e16c845e952",
+        "launchTime": 1597853909012,
+        "name": "3f2c447c-3be4-4de4-bb61-3e16c845e952"
+      },
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "11e33d35-6b22-4813-a443-6ae7a28b2fd2",
+        "launchTime": 1597853908548,
+        "name": "11e33d35-6b22-4813-a443-6ae7a28b2fd2"
+      },
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "3afb6db7-7255-4121-8bc8-c6ec39acee2f",
+        "launchTime": 1597853929369,
+        "name": "3afb6db7-7255-4121-8bc8-c6ec39acee2f"
+      }
+    ],
+    "isDisabled": false,
+    "moniker": {
+      "app": "ecsapp",
+      "cluster": "aws-prod-fargatedemo",
+      "detail": "fargatedemo",
+      "sequence": 1,
+      "stack": "prod"
+    },
+    "name": "aws-prod-fargatedemo-v001",
+    "region": "us-west-2",
+    "securityGroups": ["sg-0fd7ba18d92eb6fe8"],
+    "serverGroupManagers": [],
+    "type": "ecs",
+    "vpcId": "vpc-0a9ccfd1cba7bc715"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "application": "ecsapp",
+    "capacity": {
+      "desired": 0,
+      "max": 0,
+      "min": 0,
+      "pinned": true
+    },
+    "cloudProvider": "ecs",
+    "cluster": "aws-prod-fargatedemo",
+    "createdTime": 1595539393195,
+    "instanceCounts": {
+      "down": 0,
+      "outOfService": 0,
+      "starting": 0,
+      "total": 0,
+      "unknown": 0,
+      "up": 0
+    },
+    "instances": [],
+    "isDisabled": true,
+    "moniker": {
+      "app": "ecsapp",
+      "cluster": "aws-prod-fargatedemo",
+      "detail": "fargatedemo",
+      "sequence": 0,
+      "stack": "prod"
+    },
+    "name": "aws-prod-fargatedemo-v000",
+    "region": "us-west-2",
+    "securityGroups": [],
+    "serverGroupManagers": [],
+    "type": "ecs",
+    "vpcId": "None"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "application": "ecsapp",
+    "capacity": {
+      "desired": 3,
+      "max": 6,
+      "min": 2,
+      "pinned": false
+    },
+    "cloudProvider": "ecs",
+    "cluster": "aws-fix-sg-spinnaker",
+    "createdTime": 1582744633771,
+    "instanceCounts": {
+      "down": 0,
+      "outOfService": 0,
+      "starting": 0,
+      "total": 3,
+      "unknown": 0,
+      "up": 3
+    },
+    "instances": [
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "be3d1266-6ad2-41a7-90e8-b473496495f7",
+        "launchTime": 1595241710401,
+        "name": "be3d1266-6ad2-41a7-90e8-b473496495f7"
+      },
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "338180ed-ca7a-4026-8140-97ed086e7e93",
+        "launchTime": 1595241711171,
+        "name": "338180ed-ca7a-4026-8140-97ed086e7e93"
+      },
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "9cebcf94-4e7e-41aa-92a6-27b56a1719e7",
+        "launchTime": 1595241713498,
+        "name": "9cebcf94-4e7e-41aa-92a6-27b56a1719e7"
+      }
+    ],
+    "isDisabled": false,
+    "moniker": {
+      "app": "ecsapp",
+      "cluster": "aws-fix-sg-spinnaker",
+      "detail": "sg-spinnaker",
+      "sequence": 2,
+      "stack": "fix"
+    },
+    "name": "aws-fix-sg-spinnaker-v002",
+    "region": "us-west-2",
+    "securityGroups": ["sg-0fd7ba18d92eb6fe8"],
+    "serverGroupManagers": [],
+    "type": "ecs",
+    "vpcId": "vpc-0a9ccfd1cba7bc715"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "application": "ecsapp",
+    "capacity": {
+      "desired": 0,
+      "max": 0,
+      "min": 0,
+      "pinned": true
+    },
+    "cloudProvider": "ecs",
+    "cluster": "aws-fix-sg-spinnaker",
+    "createdTime": 1582682098908,
+    "instanceCounts": {
+      "down": 0,
+      "outOfService": 0,
+      "starting": 0,
+      "total": 0,
+      "unknown": 0,
+      "up": 0
+    },
+    "instances": [],
+    "isDisabled": true,
+    "moniker": {
+      "app": "ecsapp",
+      "cluster": "aws-fix-sg-spinnaker",
+      "detail": "sg-spinnaker",
+      "sequence": 1,
+      "stack": "fix"
+    },
+    "name": "aws-fix-sg-spinnaker-v001",
+    "region": "us-west-2",
+    "securityGroups": [],
+    "serverGroupManagers": [],
+    "type": "ecs",
+    "vpcId": "None"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "application": "ecsapp",
+    "capacity": {
+      "desired": 3,
+      "max": 6,
+      "min": 2,
+      "pinned": false
+    },
+    "cloudProvider": "ecs",
+    "cluster": "aws-final-test",
+    "createdTime": 1582744643159,
+    "instanceCounts": {
+      "down": 0,
+      "outOfService": 0,
+      "starting": 0,
+      "total": 3,
+      "unknown": 0,
+      "up": 3
+    },
+    "instances": [
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "f8757e00-184d-4288-b535-4124a739e7be",
+        "launchTime": 1595241663680,
+        "name": "f8757e00-184d-4288-b535-4124a739e7be"
+      },
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "09cbbdb0-811e-4911-b4e3-8488ce62564c",
+        "launchTime": 1595241666046,
+        "name": "09cbbdb0-811e-4911-b4e3-8488ce62564c"
+      },
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "e438aa1c-80c1-44a6-9494-4325fe11c3ac",
+        "launchTime": 1595241683666,
+        "name": "e438aa1c-80c1-44a6-9494-4325fe11c3ac"
+      }
+    ],
+    "isDisabled": false,
+    "moniker": {
+      "app": "ecsapp",
+      "cluster": "aws-final-test",
+      "detail": "test",
+      "sequence": 0,
+      "stack": "final"
+    },
+    "name": "aws-final-test-v000",
+    "region": "us-west-2",
+    "securityGroups": ["sg-0fd7ba18d92eb6fe8"],
+    "serverGroupManagers": [],
+    "type": "ecs",
+    "vpcId": "vpc-0a9ccfd1cba7bc715"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "application": "ecsapp",
+    "capacity": {
+      "desired": 3,
+      "max": 6,
+      "min": 2,
+      "pinned": false
+    },
+    "cloudProvider": "ecs",
+    "cluster": "aws-prod-ecsdemoec2",
+    "createdTime": 1586477048662,
+    "instanceCounts": {
+      "down": 0,
+      "outOfService": 0,
+      "starting": 0,
+      "total": 3,
+      "unknown": 0,
+      "up": 3
+    },
+    "instances": [
+      {
+        "availabilityZone": "us-west-2b",
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "13ef2108-0e25-4808-b7a2-17c2de3df851",
+        "launchTime": 1600354184627,
+        "name": "13ef2108-0e25-4808-b7a2-17c2de3df851"
+      },
+      {
+        "availabilityZone": "us-west-2b",
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "44862c99-245e-4a04-9c1e-af30d73a68cf",
+        "launchTime": 1600354186048,
+        "name": "44862c99-245e-4a04-9c1e-af30d73a68cf"
+      },
+      {
+        "availabilityZone": "us-west-2b",
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "08629b59-5d43-45ba-8b9d-ec61913fe2cf",
+        "launchTime": 1600354180569,
+        "name": "08629b59-5d43-45ba-8b9d-ec61913fe2cf"
+      }
+    ],
+    "isDisabled": false,
+    "moniker": {
+      "app": "ecsapp",
+      "cluster": "aws-prod-ecsdemoec2",
+      "detail": "ecsdemoec2",
+      "sequence": 19,
+      "stack": "prod"
+    },
+    "name": "aws-prod-ecsdemoec2-v013",
+    "region": "us-west-2",
+    "securityGroups": ["sg-072481d94d04338ec"],
+    "serverGroupManagers": [],
+    "type": "ecs",
+    "vpcId": "vpc-0a9ccfd1cba7bc715"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "application": "ecsapp",
+    "capacity": {
+      "desired": 0,
+      "max": 0,
+      "min": 0,
+      "pinned": true
+    },
+    "cloudProvider": "ecs",
+    "cluster": "aws-prod-ecsdemoec2",
+    "createdTime": 1582581624760,
+    "instanceCounts": {
+      "down": 0,
+      "outOfService": 0,
+      "starting": 0,
+      "total": 0,
+      "unknown": 0,
+      "up": 0
+    },
+    "instances": [],
+    "isDisabled": true,
+    "moniker": {
+      "app": "ecsapp",
+      "cluster": "aws-prod-ecsdemoec2",
+      "detail": "ecsdemoec2",
+      "sequence": 18,
+      "stack": "prod"
+    },
+    "name": "aws-prod-ecsdemoec2-v012",
+    "region": "us-west-2",
+    "securityGroups": [],
+    "serverGroupManagers": [],
+    "type": "ecs",
+    "vpcId": "None"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "application": "ecsapp",
+    "capacity": {
+      "desired": 3,
+      "max": 6,
+      "min": 2,
+      "pinned": false
+    },
+    "cloudProvider": "ecs",
+    "cluster": "aws-prod-ecsdemo",
+    "createdTime": 1600701284469,
+    "instanceCounts": {
+      "down": 0,
+      "outOfService": 0,
+      "starting": 0,
+      "total": 3,
+      "unknown": 0,
+      "up": 3
+    },
+    "instances": [
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "630cbec0-afa2-4529-80dd-5d84c9f7f4fa",
+        "launchTime": 1600701322415,
+        "name": "630cbec0-afa2-4529-80dd-5d84c9f7f4fa"
+      },
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "f46861e5-ae1f-48df-ae26-52eeefa85423",
+        "launchTime": 1600701322419,
+        "name": "f46861e5-ae1f-48df-ae26-52eeefa85423"
+      },
+      {
+        "health": [
+          {
+            "state": "Up",
+            "type": "loadBalancer"
+          },
+          {
+            "state": "Up",
+            "type": "ecs"
+          }
+        ],
+        "healthState": "Up",
+        "id": "97c4f01c-6bba-4ba0-a0bb-a4d20d39a6d7",
+        "launchTime": 1600701322264,
+        "name": "97c4f01c-6bba-4ba0-a0bb-a4d20d39a6d7"
+      }
+    ],
+    "isDisabled": false,
+    "moniker": {
+      "app": "ecsapp",
+      "cluster": "aws-prod-ecsdemo",
+      "detail": "ecsdemo",
+      "sequence": 0,
+      "stack": "prod"
+    },
+    "name": "aws-prod-ecsdemo-v000",
+    "region": "us-west-2",
+    "securityGroups": ["sg-0fd7ba18d92eb6fe8"],
+    "serverGroupManagers": [],
+    "type": "ecs",
+    "vpcId": "vpc-0a9ccfd1cba7bc715"
+  }
+]

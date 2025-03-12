@@ -1,0 +1,56 @@
+.Resource {
+  .resource-metadata {
+    margin-top: var(--xs-spacing);
+    color: var(--color-nobel);
+  }
+
+  .resource-status {
+    margin-top: var(--s-spacing);
+    display: grid;
+    grid-template-columns: 14px auto;
+    column-gap: 6px;
+
+    & > i {
+      line-height: 20px;
+    }
+
+    .event {
+      word-break: break-word;
+    }
+
+    .tasks-list {
+      margin-top: var(--xs-spacing);
+      padding-left: 0;
+      margin-bottom: 0;
+      list-style-type: none;
+    }
+
+    .task-runtime {
+      font-size: 12px;
+      margin-right: var(--xs-spacing);
+    }
+
+    .resource-task {
+      display: grid;
+      grid-template-columns: 14px auto;
+      column-gap: 6px;
+      align-items: flex-start;
+
+      & > i {
+        margin-top: 2px;
+      }
+
+      .task-progress {
+        width: 70px;
+        height: 10px;
+        margin-bottom: 0;
+        margin-left: var(--s-spacing);
+        display: inline-flex;
+      }
+
+      .task-metadata {
+        color: var(--color-concrete);
+      }
+    }
+  }
+}

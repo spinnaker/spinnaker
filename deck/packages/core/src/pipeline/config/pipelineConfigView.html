@@ -1,0 +1,21 @@
+<div class="row horizontal">
+  <div class="col-md-12">
+    <triggers
+      ng-if="viewState.section === 'triggers'"
+      application="application"
+      field-updated="stageFieldUpdated"
+      pipeline="isV2TemplatedPipeline ? pipeline : pipelineConfig"
+      update-pipeline-config="updatePipelineConfig"
+      revert-count="viewState.revertCount"
+    >
+    </triggers>
+    <pipeline-config-stage
+      ng-if="viewState.section === 'stage'"
+      application="application"
+      view-state="viewState"
+      stage-field-updated="stageFieldUpdated"
+      pipeline="pipeline"
+    >
+    </pipeline-config-stage>
+  </div>
+</div>

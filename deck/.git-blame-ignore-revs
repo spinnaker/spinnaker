@@ -1,0 +1,37 @@
+# Ignores sweeping changes in `git blame` output
+# See: https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame
+# 
+# INSTRUCTIONS:
+#
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Commits to ignore: 
+#
+# chore(prettier): Format code using prettier
+b6364c820c106ee54e5bd5770e44c81fa3af06e9
+# chore(modules): Reformat package.json with prettier (#8679)
+0b1e29778521da03673dc2aff083e490164ce616
+# chore(prettier): Just Update Prettier™ (#8644)
+8532bdd4c08d59c38a0adde70ccac4f163c9dd97
+# chore(core): upgrade to latest prettier (#7713)
+6291f858cb111d9c65affeb82ddd840f05c57b65
+# chore(package): Just Update Prettier™
+cdd6f2379859d3c2b13bac59aa470c08b391a865
+# chore(prettier): Just Use Prettier™ (#6600)
+7d5fc346bca54c5d53f9eb46d823cd993c102058
+# chore(prettier): Just Use Prettier™
+5cf6c79da63404bb7238291d38bb7f5cfd10c26b
+# chore(prettier): Just Use Prettier™
+b6bab1e16bb46697fec347cd30934f00fb2e9807
+# chore(package): Just Update Prettier™
+a8c174925f64045f70c11b2bfc11fe1fdd558660
+# chore(prettier): Just Update Prettier™ (#5802)
+acfab9c8ea03298353ce4c7be284a96f78717129
+# chore(prettier): Just Update Prettier™ (#5754)
+709f30f6eff0c8862cb8736465e4fd152abd693c
+# Just Use Prettier™
+532ab7784ca93569308c8f2ab80a18d313b910f9
+# chore(tslint): ❯ npx tslint --fix -p tsconfig.json
+b1ddb67c2c7a74f451baac070a65c985c2b6fb8e
+# chore(angularjs): Explicitly annotate all AngularJS injection pointsv
+f3fd790e20a4c3056edcb2c41282517e1cf35004

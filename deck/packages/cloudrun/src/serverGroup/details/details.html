@@ -1,0 +1,94 @@
+<div class="details-panel" ng-class="{disabled: ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled}">
+  <div class="header" ng-if="ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <cloud-provider-logo provider="ctrl.serverGroup.type" height="'36px'" width="'36px'"></cloud-provider-logo>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>{{ctrl.serverGroup.name}}</h3>
+    </div>
+    <div class="actions">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+          Server Group Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li
+            ng-if="ctrl.serverGroup.tags.isLatest"
+            uib-tooltip="You cannot destroy the latest server group (revision) . 
+                       You may be able to delete this server group's load balancer."
+            class="disabled"
+          >
+            <a href>Destroy</a>
+          </li>
+          <li ng-if="ctrl.canDestroyServerGroup() && !ctrl.serverGroup.tags.isLatest">
+            <a href ng-click="ctrl.destroyServerGroup()">Destroy</a>
+          </li>
+          <li
+            ng-if="(!ctrl.canDestroyServerGroup() && !ctrl.serverGroup.tags.isLatest)"
+            uib-tooltip="You cannot destroy this server group while it is receiving traffic. 
+                         You may be able to delete this server group's load balancer."
+            class="disabled"
+          >
+            <a href>Destroy</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading">
+    <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled">Disabled</div>
+    <server-group-running-tasks-details
+      server-group="ctrl.serverGroup"
+      application="ctrl.app"
+    ></server-group-running-tasks-details>
+    <collapsible-section heading="Server Group Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Created</dt>
+        <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd><account-tag account="ctrl.serverGroup.account"></account-tag></dd>
+        <dt>Region</dt>
+        <dd>{{ctrl.serverGroup.region}}</dd>
+      </dl>
+    </collapsible-section>
+
+    <collapsible-section heading="Size" expanded="true">
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max">
+        <dt>Min/Max</dt>
+        <dd>{{ctrl.serverGroup.capacity.min}}</dd>
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup.capacity.min !== ctrl.serverGroup.capacity.max">
+        <dt>Min</dt>
+        <dd>{{ctrl.serverGroup.capacity.min}}</dd>
+        <dt>Max</dt>
+        <dd>{{ctrl.serverGroup.capacity.max}}</dd>
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Health" expanded="true">
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup">
+        <dt>Instances</dt>
+        <dd>
+          <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
+        </dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

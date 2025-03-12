@@ -1,0 +1,169 @@
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+.vertical-navigation {
+  background-color: var(--color-accent-g2);
+  box-shadow: 2px 0 3px 1px var(--color-alto);
+  min-width: 226px;
+  max-width: 300px;
+  display: grid;
+  height: 100%;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+
+  grid-template-areas:
+    'nav-header'
+    'nav-content'
+    'nav-bottom';
+
+  @media (max-width: 1640px) {
+    max-width: 226px;
+  }
+
+  .nav-header {
+    grid-area: nav-header;
+    color: var(--color-primary);
+    // override
+    margin-bottom: unset;
+
+    .application-header-icon {
+      display: flex;
+      justify-content: center;
+      border-radius: 50%;
+      background-color: var(--color-primary);
+      color: var(--color-white);
+      text-align: center;
+      width: 36px;
+      height: 36px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .app-fresh-icon {
+      width: 20px;
+    }
+
+    .header-icon-pulsing {
+      .pulsing(4);
+    }
+    .application-name {
+      word-break: break-word;
+    }
+  }
+
+  .nav-content {
+    grid-area: nav-content;
+    overflow: auto;
+
+    .nav-section {
+      font-size: 16px;
+      text-transform: uppercase;
+
+      .nav-category {
+        color: var(--color-accent);
+        padding-left: 12px;
+        align-items: center;
+
+        .badge-running-count {
+          min-width: 16px;
+          height: 16px;
+          margin-right: -12px;
+          margin-top: 18px;
+          border-radius: 3px;
+          color: var(--color-white);
+          background-color: var(--color-primary);
+          line-height: 16px;
+          text-align: center;
+          font-size: 12px;
+          z-index: 100;
+        }
+
+        .badge-none {
+          min-width: 16px;
+          margin-right: -12px;
+          margin-top: 18px;
+        }
+
+        .nav-row-item {
+          min-width: 16px;
+          margin-right: 8px;
+          line-height: 10px;
+          padding: 0;
+          font-size: 16px;
+
+          .bs-tooltip-right {
+            display: none;
+          }
+        }
+      }
+
+      a {
+        text-decoration: none;
+      }
+
+      .active.nav-category {
+        background: #bbdee8;
+        color: var(--color-primary);
+
+        .nav-icon {
+          color: var(--color-primary);
+        }
+
+        .nav-name {
+          color: var(--color-primary);
+        }
+      }
+
+      .page-category {
+        color: var(--color-accent);
+        padding-left: 16px;
+        margin-top: -4px;
+
+        .nav-row-item {
+          min-width: 16px;
+          line-height: 10px;
+          padding: 0;
+          font-size: 16px;
+        }
+      }
+    }
+
+    .nav-section:not(:first-of-type) {
+      border-top: 1px solid var(--color-white);
+    }
+  }
+
+  .nav-bottom {
+    max-height: 100px;
+    grid-area: nav-bottom;
+    overflow: auto;
+  }
+}
+
+.vertical-nav-collapsed {
+  min-width: 60px;
+  // override expanded state
+  max-width: 60px;
+
+  .nav-header {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .application-name {
+    display: none;
+  }
+
+  .nav-section {
+    .nav-category,
+    .page-category {
+      .nav-name,
+      .HoverablePopover {
+        display: none;
+      }
+
+      .tooltip {
+        color: red;
+      }
+    }
+  }
+}

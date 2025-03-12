@@ -1,0 +1,43 @@
+# OS Generated Files #
+*.swp
+.DS_Store
+ehthumbs.db
+# This "Icon" entry needs its invisible carriage return character preserved
+# to avoid ignoring *any* directory that starts with the name 'icon':
+# https://stackoverflow.com/questions/17556250/how-to-ignore-icon-in-git
+Icon
+Thumbs.db
+
+# IDE Files
+*.ipr
+*.iws
+*.iml
+.idea/
+.vscode/
+.classpath
+.project
+.settings/
+
+# Node Files #
+npm-debug.log
+**/node_modules
+
+# Build Files
+.gradle/
+.cache-loader
+**/.yalc
+**/yalc.lock
+**/build/
+**/dist/
+**/yarn-error.log
+
+# Test Results
+test-results.xml
+
+# Functional Test Artifacts
+*.browser.log
+test/functional/cypress/videos/**/*
+test/functional/cypress/screenshots/**/*
+
+# vite local files
+**/.env.local

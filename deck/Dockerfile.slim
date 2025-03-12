@@ -1,0 +1,12 @@
+FROM debian:stable-slim
+LABEL maintainer="sig-platform@spinnaker.io"
+
+WORKDIR /opt/deck
+COPY docker        /opt/deck/docker
+RUN docker/setup-apache2.sh
+
+COPY build/webpack /opt/deck/html
+RUN chown -R www-data:www-data /opt/deck
+USER www-data
+
+CMD docker/run-apache2.sh

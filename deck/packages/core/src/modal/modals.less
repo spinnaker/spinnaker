@@ -1,0 +1,372 @@
+@import (reference) '../presentation/less/imports/commonImports.less';
+
+.modal-backdrop {
+  z-index: 8999;
+}
+
+.modal {
+  z-index: var(--layer-critical);
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-weight: 600;
+  }
+  .modal-close,
+  modal-close {
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 5px;
+    z-index: 6;
+  }
+}
+
+.modal-header {
+  background-color: var(--color-alabaster);
+  h3 {
+    margin: 0;
+  }
+}
+
+.modal-fullscreen {
+  height: calc(~'100% - 60px');
+  .modal-content {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    .modal-body {
+      flex: 1;
+      height: 0;
+      overflow-y: scroll;
+    }
+  }
+  .flex-fill {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  // Fill the flex parent without being flex yourself
+  .fill-no-flex {
+    flex: 1;
+  }
+}
+
+.modal-body {
+  h3,
+  h4 {
+    margin-top: 0;
+  }
+
+  .section-heading {
+    color: var(--color-mineshaft);
+    background-color: var(--color-accent-g2);
+    padding: 10px;
+    margin-bottom: 0;
+  }
+  .section-body {
+    padding: 10px 0 20px 0;
+  }
+}
+
+/* Fixes an unfortunate Chrome bug where a single selection on a multi-select select2 field
+   causes the backwards navigation animation to hang. */
+select.select2 {
+  option {
+    display: none !important;
+  }
+}
+
+.select2-results {
+  .select2-highlighted {
+    ul {
+      background-color: transparent;
+      color: var(--color-white);
+    }
+  }
+}
+
+.modal-body {
+  .select2-container {
+    abbr {
+      top: 8px;
+    }
+    .select2-drop {
+      position: fixed;
+      top: auto;
+      width: inherit;
+      background: var(--color-white);
+      .select2-results {
+        margin: -1px 0 0 0;
+        border-top: none;
+        padding-right: 4px;
+      }
+    }
+    &.select2-container-multi {
+      .select2-drop {
+        padding-right: 29px;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+      }
+      .select2-results {
+        background-color: var(--color-white);
+        border: 1px solid var(--color-accent-g1);
+        border-top: none;
+        border-left-width: 2px;
+      }
+    }
+    .select2-result-single {
+      padding-left: 0;
+      h5 {
+        margin: 3px 0;
+      }
+      .select2-highlighted {
+        ul {
+          background-color: transparent;
+          color: var(--color-white);
+        }
+      }
+    }
+  }
+}
+
+.select2-container {
+  &.form-control {
+    box-shadow: none;
+  }
+}
+
+.ui-select-highlight {
+  font-weight: bold;
+}
+
+.ui-select-choices-content {
+  background: var(--color-white);
+}
+
+li.ui-select-choices-row {
+  &:hover {
+    background-color: var(--color-accent-g1);
+    color: var(--color-white);
+  }
+  &.select2-highlighted {
+    background-color: var(--color-accent);
+  }
+}
+
+abbr.select2-search-choice-close {
+  margin-top: 0;
+}
+
+html .select2-container-multi {
+  &.select2-container-active {
+    .select2-choices {
+      border: 0;
+      box-shadow: none;
+      background-color: transparent;
+      .select2-search-field {
+        border: 1px solid var(--color-accent);
+
+        &:before {
+          content: '';
+        }
+      }
+    }
+  }
+  .select2-choices {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background-image: none;
+    .select2-search-field {
+      width: calc(~'100% - 40px');
+      float: none;
+      border: 1px dashed var(--color-concrete);
+      color: var(--color-concrete);
+      padding: 0;
+      margin: 4px 0 0 1px;
+      cursor: pointer;
+      background-color: transparent;
+
+      &:before {
+        content: 'Select...';
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        opacity: 0.5;
+        z-index: 2;
+      }
+
+      input {
+        position: relative;
+        z-index: 3;
+        background-color: var(--color-white);
+      }
+    }
+
+    .select2-search-choice {
+      float: none;
+      margin: 0 0 5px 1px;
+      border: 0;
+      padding: 0;
+      background-image: none;
+      background-color: transparent;
+      box-shadow: none;
+      div,
+      span {
+        cursor: text;
+        user-select: auto;
+        padding: 5px;
+        width: calc(~'100% - 40px');
+        display: inline-block;
+        border: 1px solid var(--color-alto);
+        background-color: var(--color-white);
+        font-family: 'Source Sans 3', sans-serif;
+        border-radius: 4px;
+      }
+      .select2-search-choice-close {
+        float: none;
+        position: relative;
+        top: 50%;
+        display: inline-block;
+        margin-top: 4px;
+        &:before {
+          content: '\e020';
+          font-size: 12px;
+          font-family: 'Glyphicons Halflings';
+          width: 13px;
+          display: inline-block;
+        }
+        width: 2px;
+      }
+    }
+  }
+}
+
+.task-progress {
+  list-style-type: none;
+  li {
+    margin-bottom: 5px;
+    .fa-check-circle {
+      color: var(--color-success);
+    }
+    .fa-exclamation-triangle {
+      color: var(--color-danger);
+    }
+  }
+  &.task-progress-refresh {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid var(--color-concrete);
+  }
+  &.task-progress-running {
+    margin-top: 20px;
+    text-align: center;
+    .glyphicon {
+      font-size: 150%;
+      color: var(--color-success);
+    }
+  }
+}
+
+.overlay-modal-appear {
+  transform: scaleY(0);
+}
+
+.overlay-modal-appear-active {
+  transform: scaleY(1);
+}
+
+.overlay-modal {
+  transition: transform 0.25s ease-in-out;
+  height: 100%;
+  min-height: 450px;
+  overflow-y: auto;
+  border-bottom: 2px solid var(--color-primary);
+  background-color: var(--color-white);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 6;
+
+  .overlay-modal-status {
+    padding: 0 30px;
+  }
+  .overlay-modal-error {
+    padding: 30px 30px 0 30px;
+    color: var(--color-danger);
+  }
+  .modal-body {
+    overflow-y: auto;
+    margin: 0;
+    padding-top: 20px;
+    flex: 1;
+  }
+  .modal-header,
+  .modal-footer {
+    position: relative;
+    width: 100%;
+    background-color: var(--color-white);
+    flex: 0;
+  }
+  .modal-header {
+    top: 0;
+    z-index: 2;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+  }
+  .modal-footer {
+    bottom: 0;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+}
+.slide-in {
+  .slide-down(0.3s);
+}
+
+.actions-popover {
+  text-align: right;
+  .glyphicon {
+    padding: 0 5px;
+  }
+}
+
+.card-choices {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  .card {
+    border: 1px solid var(--color-alto);
+    border-radius: 2px;
+    width: 200px;
+    margin: 15px;
+    padding: 30px 15px;
+    cursor: pointer;
+    &.active {
+      border: 1px solid var(--color-accent);
+      background-color: var(--color-accent-g2);
+      box-shadow: 0 0 5px 0 var(--color-accent);
+      h3 {
+        color: var(--color-primary);
+      }
+    }
+    &:hover {
+      border: 1px solid var(--color-accent);
+    }
+    h3 {
+      &.card-label {
+        margin-bottom: 1px;
+      }
+      text-align: center;
+      flex: 1 1 auto;
+    }
+    div {
+      text-align: center;
+      flex: 1 1 auto;
+    }
+  }
+}

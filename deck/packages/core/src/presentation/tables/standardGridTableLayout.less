@@ -1,0 +1,203 @@
+.StandardGridTableLayout {
+  display: grid;
+
+  .standard-grid-table-header {
+    display: grid;
+    position: sticky;
+    top: 0;
+    font-weight: 600;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: var(--color-regal);
+    font-size: 13px;
+    z-index: 100;
+    align-items: flex-end;
+    min-height: 48px;
+    grid-column: 1 / -1;
+    background-color: var(--color-smoke);
+    border-bottom: 2px solid var(--color-blumine);
+
+    .standard-grid-table-cell {
+      align-items: flex-end;
+      padding-bottom: 6px;
+
+      &.sortable {
+        border-radius: 16px 16px 0 0;
+        cursor: pointer;
+        height: 32px;
+
+        &:hover {
+          background-color: rgba(160, 180, 220, 0.15);
+        }
+
+        & > .sort-indicator {
+          border-radius: 16px;
+          background-color: var(--color-blumine);
+          width: 16px;
+          height: 16px;
+          margin-left: 6px;
+          margin-bottom: 1px;
+          position: relative;
+
+          &:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            margin-left: -4px;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+          }
+
+          &.ascending:after {
+            margin-top: -2px;
+            border-bottom: 4px solid var(--color-smoke);
+          }
+
+          &.descending:after {
+            margin-top: -1px;
+            border-top: 4px solid var(--color-smoke);
+          }
+        }
+      }
+
+      &.header-expand-toggle {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        cursor: pointer;
+        padding-left: 0;
+        border-radius: 16px 16px 0 0;
+        height: 32px;
+
+        &:hover {
+          background-color: rgba(160, 180, 220, 0.15);
+        }
+
+        & > i {
+          font-size: 24px;
+          margin-bottom: -4px;
+        }
+      }
+    }
+  }
+
+  .standard-grid-table-row-container {
+    display: grid;
+  }
+
+  .standard-grid-table-row {
+    display: grid;
+    min-height: 40px;
+    overflow: hidden;
+    align-items: center;
+    font-size: 13px;
+    padding: 8px 0;
+    grid-column: 1 / -1;
+    grid-row: 1;
+
+    &.expandable {
+      cursor: pointer;
+
+      &:hover {
+        /*
+          Since this becomes a sticky header when rows are expanded
+          and the color we want is semi-transparent, let's use a gradient
+          that grabs the right color but puts a white backdrop behind it
+          so the things scrolling below it don't come through.
+        */
+        background-image: linear-gradient(180deg, rgba(160, 180, 220, 0.15), rgba(160, 180, 220, 0.15));
+      }
+    }
+
+    &.expanded {
+      background-color: var(--color-white);
+      position: sticky;
+      top: 48px;
+    }
+
+    .row-expand-toggle {
+      justify-content: center;
+      padding-left: 0;
+      color: var(--color-nobel);
+
+      & > i {
+        font-size: 24px;
+      }
+    }
+  }
+
+  .expanded-row-content {
+    /* stretch across entire table width */
+    grid-column: 1 / -1;
+    grid-row: 2;
+    background-color: var(--color-white);
+    padding: 16px;
+    overflow-x: scroll;
+  }
+
+  .standard-grid-table-cell,
+  .cell-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .standard-grid-table-cell {
+    padding-left: 16px;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .standard-grid-table-row-container {
+      &:first-child {
+        margin-top: 16px;
+      }
+    }
+
+    .standard-grid-table-row {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 0 8px 16px;
+      margin: 0 0 16px;
+      border-bottom: 1px solid var(--color-porcelain);
+
+      &.expanded {
+        position: static;
+        margin-bottom: 0;
+        padding-left: 6px;
+        /*for border */
+        border-left: 2px solid var(--color-regal);
+        border-bottom: none;
+      }
+
+      &.expanded:hover {
+        background-color: var(--color-white);
+      }
+    }
+
+    .expanded-row-content {
+      border-left: 2px solid var(--color-regal);
+    }
+
+    .standard-grid-table-cell {
+      flex: 0 0 100%;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .mobile-cell-header {
+      font-weight: 900;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: var(--color-regal);
+      margin-top: 9px;
+    }
+
+    .cell-content {
+      margin-top: 4px;
+      margin-left: 4px;
+    }
+  }
+}

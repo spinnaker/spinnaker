@@ -1,0 +1,287 @@
+<div class="container-fluid form-horizontal" ng-controller="appengineServerGroupBasicSettingsCtrl as basicSettingsCtrl">
+  <ng-form name="basicSettings">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Account</div>
+      <div class="col-md-7">
+        <account-select-field
+          read-only="command.viewState.readOnlyFields.credentials"
+          component="command"
+          field="credentials"
+          on-change="basicSettingsCtrl.onAccountChange()"
+          accounts="command.backingData.accounts"
+          provider="'appengine'"
+        ></account-select-field>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Region</div>
+      <div class="col-md-7">
+        <input type="text" readonly class="form-control input-sm" name="region" ng-model="command.region" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Stack
+        <help-field key="aws.serverGroup.stack"></help-field>
+      </div>
+      <div class="col-md-7">
+        <input
+          type="text"
+          class="form-control input-sm no-spel"
+          ng-pattern="basicSettingsCtrl.stackPattern"
+          name="stack"
+          ng-model="command.stack"
+        />
+      </div>
+    </div>
+    <div class="form-group row slide-in" ng-if="basicSettings.stack.$error.pattern">
+      <div class="col-sm-9 col-sm-offset-2 error-message">
+        <span>Only dot(.) and underscore(_) special characters are allowed in the Stack field.</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Detail
+        <help-field key="aws.serverGroup.detail"></help-field>
+      </div>
+      <div class="col-md-7">
+        <input
+          type="text"
+          class="form-control input-sm no-spel"
+          ng-pattern="basicSettingsCtrl.detailPattern"
+          name="details"
+          ng-model="command.freeFormDetails"
+        />
+      </div>
+    </div>
+
+    <div class="form-group row slide-in" ng-if="basicSettings.details.$error.pattern">
+      <div class="col-sm-9 col-sm-offset-2 error-message">
+        <span>Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.</span>
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <label class="col-md-3 sm-label-right">Source Type</label>
+      <div class="col-md-7">
+        <div class="radio radio-inline">
+          <label> <input type="radio" ng-model="command.sourceType" value="git" /> Git </label>
+        </div>
+        <div class="radio radio-inline">
+          <label> <input type="radio" ng-model="command.sourceType" value="gcs" /> GCS </label>
+        </div>
+        <div class="radio radio-inline">
+          <label> <input type="radio" ng-model="command.sourceType" value="containerImage" /> Container Image </label>
+        </div>
+      </div>
+    </div>
+
+    <div ng-if="basicSettingsCtrl.isGcsSource()">
+      <div class="form-group row">
+        <label class="col-md-3 sm-label-right">Resolve URL</label>
+        <div class="col-md-7">
+          <div class="radio radio-inline">
+            <label> <input type="radio" ng-model="command.fromArtifact" ng-value="false" /> via text input </label>
+          </div>
+          <div class="radio radio-inline" ng-if="command.viewState.pipeline">
+            <label>
+              <input type="radio" ng-model="command.fromArtifact" ng-value="true" /> via pipeline artifact
+            </label>
+          </div>
+        </div>
+      </div>
+      <stage-artifact-selector-delegate
+        ng-if="command.fromArtifact"
+        artifact="command.expectedArtifact"
+        excluded-artifact-type-patterns="basicSettingsCtrl.excludedGcsArtifactTypes"
+        expected-artifact-id="command.expectedArtifactId"
+        field-columns="7"
+        label="'Expected Artifact'"
+        on-artifact-edited="basicSettingsCtrl.onExpectedArtifactEdited"
+        on-expected-artifact-selected="basicSettingsCtrl.onExpectedArtifactSelected"
+        pipeline="command.viewState.pipeline"
+        stage="command.viewState.stage"
+      >
+      </stage-artifact-selector-delegate>
+      <div class="form-group" ng-if="!command.fromArtifact">
+        <div class="col-md-3 sm-label-right">
+          GCS URL
+          <help-field class="help-field-absolute" key="appengine.serverGroup.gcs.repositoryUrl"></help-field>
+        </div>
+        <div class="col-md-7">
+          <input type="text" required class="form-control input-sm" name="gcsUrl" ng-model="command.repositoryUrl" />
+        </div>
+      </div>
+    </div>
+
+    <div ng-if="basicSettingsCtrl.isGitSource()">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Git Repository URL
+          <help-field class="help-field-absolute" key="appengine.serverGroup.git.repositoryUrl"></help-field>
+        </div>
+        <div class="col-md-7">
+          <input type="text" required class="form-control input-sm" name="gitRepo" ng-model="command.repositoryUrl" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Git Credential Type
+          <help-field class="help-field-absolute" key="appengine.serverGroup.gitCredentialType"></help-field>
+        </div>
+        <div class="col-md-7">
+          <select
+            class="form-control input-sm"
+            ng-options="basicSettingsCtrl.humanReadableGitCredentialType(type) for type in basicSettingsCtrl.getSupportedGitCredentialTypes()"
+            ng-model="command.gitCredentialType"
+          ></select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">Branch <help-field key="appengine.serverGroup.branch"></help-field></div>
+        <div class="col-md-7">
+          <input
+            ng-if="!command.fromTrigger"
+            type="text"
+            required
+            class="form-control input-sm"
+            name="branch"
+            ng-model="command.branch"
+          />
+
+          <ui-select
+            ng-if="command.fromTrigger"
+            ng-model="command.trigger"
+            class="form-control input-sm"
+            on-select="basicSettingsCtrl.onTriggerChange()"
+            required
+          >
+            <ui-select-match allow-clear>
+              <appengine-dynamic-branch-label trigger="command.trigger"></appengine-dynamic-branch-label>
+            </ui-select-match>
+            <ui-select-choices repeat="trigger in command.backingData.triggerOptions">
+              <appengine-dynamic-branch-label trigger="trigger"></appengine-dynamic-branch-label>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+
+        <div
+          class="col-md-7 col-md-offset-3"
+          ng-if="command.viewState.mode === 'createPipeline' || command.viewState.mode === 'editPipeline'"
+        >
+          <span class="pull-right small" ng-if="!command.fromTrigger">
+            <a href ng-click="basicSettingsCtrl.toggleResolveViaTrigger()">Resolve via trigger</a>
+          </span>
+          <span class="pull-right small" ng-if="command.fromTrigger">
+            <a href ng-click="basicSettingsCtrl.toggleResolveViaTrigger()">Click for text input</a>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div ng-if="basicSettingsCtrl.isContainerImageSource()">
+      <div class="form-group">
+        <label class="col-md-3 sm-label-right">Resolve URL</label>
+        <div class="col-md-7">
+          <div class="radio radio-inline">
+            <label> <input type="radio" ng-model="command.fromArtifact" ng-value="false" /> via text input </label>
+          </div>
+          <div class="radio radio-inline" ng-if="command.viewState.pipeline">
+            <label>
+              <input type="radio" ng-model="command.fromArtifact" ng-value="true" /> via pipeline artifact
+            </label>
+          </div>
+        </div>
+      </div>
+      <stage-artifact-selector-delegate
+        ng-if="command.fromArtifact"
+        artifact="command.expectedArtifact"
+        excluded-artifact-type-patterns="basicSettingsCtrl.excludedContainerArtifactTypes"
+        expected-artifact-id="command.expectedArtifactId"
+        field-columns="7"
+        label="'Expected Artifact'"
+        on-artifact-edited="basicSettingsCtrl.onExpectedArtifactEdited"
+        on-expected-artifact-selected="basicSettingsCtrl.onExpectedArtifactSelected"
+        pipeline="command.viewState.pipeline"
+        stage="command.viewState.stage"
+      >
+      </stage-artifact-selector-delegate>
+      <div class="form-group" ng-if="!command.fromArtifact">
+        <div class="col-md-3 sm-label-right">
+          Image URL
+          <help-field key="appengine.serverGroup.containerImageUrl"></help-field>
+        </div>
+        <div class="col-md-7">
+          <input
+            type="text"
+            required
+            class="form-control input-sm"
+            name="containerImageUrl"
+            ng-model="command.containerImageUrl"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div ng-if="command.trigger.type === 'jenkins'" class="form-group">
+      <div class="col-md-7 col-md-offset-3">
+        <div class="form-inline">
+          <small>Match branch from trigger on regex</small>
+          <help-field key="appengine.serverGroup.matchBranchOnRegex"></help-field>
+          <input
+            type="text"
+            style="width: 140px"
+            class="form-control input-sm pull-right"
+            name="matchOnRegex"
+            ng-model="command.trigger.matchBranchOnRegex"
+          />
+        </div>
+      </div>
+    </div>
+
+    <deployment-strategy-selector
+      field-columns="7"
+      ng-if="!command.viewState.disableStrategySelection"
+      command="command"
+    ></deployment-strategy-selector>
+
+    <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
+      <div class="col-md-12">
+        <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
+          <h5 class="text-center">
+            <p>Your server group will be in the cluster:</p>
+            <p>
+              <strong>
+                {{basicSettingsCtrl.getNamePreview()}}
+                <span ng-if="basicSettingsCtrl.createsNewCluster()"> (new cluster)</span>
+              </strong>
+            </p>
+            <div
+              class="text-left"
+              ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup"
+            >
+              <p>There is already a server group in this cluster. Do you want to clone it?</p>
+              <p>
+                Cloning copies the entire configuration from the selected server group, allowing you to modify whichever
+                fields (e.g. image) you need to change in the new server group.
+              </p>
+              <p>
+                To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the
+                server group.
+              </p>
+              <p>
+                <a href ng-click="basicSettingsCtrl.navigateToLatestServerGroup()">
+                  Go to details for {{latestServerGroup.name}}
+                </a>
+              </p>
+            </div>
+          </h5>
+        </div>
+      </div>
+    </div>
+  </ng-form>
+</div>

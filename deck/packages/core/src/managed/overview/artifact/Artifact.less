@@ -1,0 +1,74 @@
+.Artifact {
+  .artifact-current-version {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .artifact-section {
+    margin-left: -16px;
+  }
+
+  .artifact-section-title {
+    text-transform: uppercase;
+    color: rgb(45%, 45%, 45%);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+
+    .section-heading-chevron {
+      margin-top: -1px;
+    }
+
+    .in-progress-dot {
+      margin-left: 6px;
+      margin-top: -1px;
+    }
+  }
+
+  .artifact-versions {
+    position: relative;
+
+    .artifact-pending-versions-list {
+      .show-more-versions {
+        display: flex;
+        padding: 0;
+        flex-direction: row;
+        width: fit-content;
+      }
+
+      .artifact-pending-version {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+
+        &:not(:last-of-type) {
+          padding-bottom: 32px;
+        }
+
+        .artifact-pending-version-commit {
+          font-weight: 600;
+          display: flex;
+          flex-direction: row;
+          white-space: pre-wrap;
+        }
+      }
+    }
+  }
+
+  .another-version-pinned-warning {
+    margin-top: var(--s-spacing);
+    font-weight: 600;
+
+    > i {
+      color: var(--color-warning);
+    }
+  }
+
+  .VersionTitle {
+    display: grid;
+    grid-template-columns: minmax(auto, max-content) auto;
+    align-items: baseline;
+    column-gap: 20px;
+    justify-content: flex-start;
+  }
+}

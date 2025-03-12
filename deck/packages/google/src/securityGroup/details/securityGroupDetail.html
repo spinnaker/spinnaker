@@ -1,0 +1,171 @@
+<div class="details-panel">
+  <div class="header">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div ng-if="state.loading" class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
+    <div class="header-text horizontal middle" ng-if="!state.loading">
+      <span class="glyphicon glyphicon-transfer"></span>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{securityGroup.name || '(not found)'}}
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            ng-if="!state.loading"
+            entity="securityGroup"
+            application="ctrl.application"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="securityGroup"
+            page-location="details"
+            on-update="ctrl.application.securityGroups.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
+      </h3>
+    </div>
+    <div class="actions">
+      <div ng-if="!securityGroup.id.includes('/')" class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+          <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li><a href ng-click="ctrl.editInboundRules()">Edit Inbound Rules</a></li>
+          <li>
+            <a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+          <render-if-feature feature="entityTags">
+            <add-entity-tag-links
+              component="securityGroup"
+              application="ctrl.application"
+              entity-type="securityGroup"
+              on-update="ctrl.application.securityGroups.refresh"
+            ></add-entity-tag-links>
+          </render-if-feature>
+        </ul>
+      </div>
+      <div ng-if="securityGroup.id.includes('/')" class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+          <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
+        </button>
+        <ul
+          uib-tooltip="You cannot modify shared VPC host project firewall rules."
+          class="dropdown-menu"
+          uib-dropdown-menu
+          role="menu"
+        >
+          <li class="disabled"><a>Edit Inbound Rules</a></li>
+          <li class="disabled">
+            <a>Delete <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+          <li class="disabled">
+            <a>Clone <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!state.loading">
+    <collapsible-section heading="{{firewallLabel}} Details" expanded="true">
+      <dl class="dl-horizontal dl-medium">
+        <dt>ID</dt>
+        <dd>{{securityGroup.id}}</dd>
+        <dt>Account</dt>
+        <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
+        <dt>Region</dt>
+        <dd>{{securityGroup.region}}</dd>
+        <dt>Network</dt>
+        <dd>{{securityGroup.network}}</dd>
+        <dt>Description</dt>
+        <dd>{{securityGroup.description}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section
+      heading="IP Range Rules ({{securityGroup.sourceRanges.length || 0}})"
+      expanded="{{!!(securityGroup.sourceRanges && securityGroup.sourceRanges.length)}}"
+    >
+      <div ng-if="!securityGroup.sourceRanges.length">None</div>
+
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="sourceRange in securityGroup.sourceRanges"
+      >
+        <dt>IP Range</dt>
+        <dd>{{sourceRange}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section
+      heading="Protocol/Port Ranges ({{securityGroup.protocolPortRangeCount || 0}})"
+      expanded="{{!!(securityGroup.protocolPortRangeCount)}}"
+    >
+      <div ng-if="!securityGroup.ipIngressRules.length">None</div>
+
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="ipIngressRule in securityGroup.ipIngressRules"
+      >
+        <dt ng-if="ipIngressRule.portRanges.length === 0">Protocol</dt>
+        <dd ng-if="ipIngressRule.portRanges.length === 0">{{ipIngressRule.protocol}}</dd>
+        <dt
+          ng-if="ipIngressRule.portRanges && ipIngressRule.portRanges.length === 1 && ipIngressRule.portRanges[0].startPort"
+        >
+          Port Range
+        </dt>
+        <dt
+          ng-if="ipIngressRule.portRanges && ipIngressRule.portRanges.length > 1 && ipIngressRule.portRanges[0].startPort"
+        >
+          Port Ranges
+        </dt>
+        <dd ng-repeat="portRange in ipIngressRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
+          {{ipIngressRule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Target Tags ({{securityGroup.targetTags.length || 0}})">
+      <ul ng-if="securityGroup.targetTags.length">
+        <li ng-repeat="tag in securityGroup.targetTags">
+          {{tag}} <help-field content="{{ctrl.getTagHelpText(tag, 'target')}}"></help-field>
+        </li>
+      </ul>
+      <div ng-if="!securityGroup.targetTags.length">None</div>
+    </collapsible-section>
+    <collapsible-section heading="Source Tags ({{securityGroup.sourceTags.length || 0}})">
+      <ul ng-if="securityGroup.sourceTags.length">
+        <li ng-repeat="tag in securityGroup.sourceTags">
+          {{tag}} <help-field content="{{ctrl.getTagHelpText(tag, 'source')}}"></help-field>
+        </li>
+      </ul>
+      <div ng-if="!securityGroup.sourceTags.length">None</div>
+    </collapsible-section>
+    <collapsible-section heading="Target Service Accounts ({{securityGroup.targetServiceAccounts.length || 0}})">
+      <ul ng-if="securityGroup.targetServiceAccounts.length">
+        <li ng-repeat="serviceAccount in securityGroup.targetServiceAccounts">{{serviceAccount}}</li>
+      </ul>
+      <div ng-if="!securityGroup.targetServiceAccounts.length">None</div>
+    </collapsible-section>
+    <collapsible-section heading="Source Service Accounts ({{securityGroup.sourceServiceAccounts.length || 0}})">
+      <ul ng-if="securityGroup.sourceServiceAccounts.length">
+        <li ng-repeat="serviceAccount in securityGroup.sourceServiceAccounts">{{serviceAccount}}</li>
+      </ul>
+      <div ng-if="!securityGroup.sourceServiceAccounts.length">None</div>
+    </collapsible-section>
+    <collapsible-section heading="Logs">
+      <ul>
+        <li ng-if="securityGroup.logsLink">
+          <a href="{{securityGroup.logsLink}}" target="_blank">Cloud Console Logs</a>
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="securityGroup.logsLink"
+            tool-tip="'Copy to clipboard'"
+          >
+          </copy-to-clipboard>
+        </li>
+      </ul>
+    </collapsible-section>
+  </div>
+</div>

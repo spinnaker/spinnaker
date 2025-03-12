@@ -1,0 +1,138 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">Number of Instances</div>
+      <div class="col-md-2">
+        <input
+          type="number"
+          class="form-control input-sm"
+          ng-model="adv.command.sku.capacity"
+          min="0"
+          max="100"
+          required
+        />
+      </div>
+    </div>
+    <div></div>
+    <div class="form-group">
+      <div class="col-xs-4 sm-label-right">
+        <b>Custom Data</b>
+        <help-field key="azure.serverGroup.customData"></help-field>
+      </div>
+      <div class="col-md-7">
+        <input type="text" class="form-control input-sm" ng-model="adv.command.osConfig.customData" />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        <b>Custom Script</b>
+        <help-field key="azure.serverGroup.scriptLocation"></help-field>
+      </div>
+      <div class="col-md-7">
+        <input type="text" class="form-control input-sm" ng-model="adv.command.customScriptsSettings.fileUris" />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        <b>Command To Execute</b>
+        <help-field key="azure.serverGroup.commandToExecute"></help-field>
+      </div>
+      <div class="col-md-7">
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-model="adv.command.customScriptsSettings.commandToExecute"
+        />
+      </div>
+    </div>
+    <div class="form-group" ng-if="adv.command.loadBalancerType === 'Azure Application Gateway'">
+      <div class="col-md-4 sm-label-right">
+        <input type="checkbox" ng-model="adv.command.enableInboundNAT" ng-disabled="adv.command.zonesEnabled" />
+      </div>
+      <div class="col-md-7">
+        <b>Enable inbound NAT port-forwarding rules to connect to VM instances</b>
+        <help-field key="azure.serverGroup.enableInboundNAT"></help-field>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        <b>User-Assigned Identities</b>
+        <help-field key="azure.serverGroup.userAssignedIdentities"></help-field>
+      </div>
+      <div class="col-md-7">
+        <input type="text" class="form-control input-sm" ng-model="adv.command.userAssignedIdentities" />
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-4 sm-label-left">Data Disks</div>
+    <div class="col-md-11">
+      <table class="table table-condensed packed tags">
+        <thead>
+          <tr>
+            <th>
+              LUN
+              <help-field key="azure.serverGroup.lun"></help-field>
+            </th>
+            <th>
+              Size (GB)
+              <help-field key="azure.serverGroup.diskSizeGB"></help-field>
+            </th>
+            <th>
+              Type
+              <help-field key="azure.serverGroup.managedDisk.storageAccountType"></help-field>
+            </th>
+            <th>
+              Caching
+              <help-field key="azure.serverGroup.caching"></help-field>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="disk in adv.command.dataDisks">
+            <td>
+              <input type="number" class="form-control input-sm" ng-model="disk.lun" required min="0" />
+            </td>
+            <td>
+              <input type="number" class="form-control input-sm" ng-model="disk.diskSizeGB" required min="1" />
+            </td>
+            <td>
+              <ui-select ng-model="disk.managedDisk.storageAccountType" class="form-control input-sm" required>
+                <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+                <ui-select-choices
+                  repeat="dataDiskType in adv.command.backingData.dataDiskTypes | filter: $select.search"
+                >
+                  <span ng-bind-html="dataDiskType | highlight: $select.search"></span>
+                </ui-select-choices>
+              </ui-select>
+            </td>
+            <td>
+              <ui-select ng-model="disk.caching" class="form-control input-sm" required>
+                <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+                <ui-select-choices
+                  repeat="dataDiskCachingType in adv.command.backingData.dataDiskCachingTypes | filter: $select.search"
+                >
+                  <span ng-bind-html="dataDiskCachingType | highlight: $select.search"></span>
+                </ui-select-choices>
+              </ui-select>
+            </td>
+            <td>
+              <a class="btn btn-link sm-label" style="margin-top: 0" ng-click="adv.removeDataDisk($index)">
+                <span class="glyphicon glyphicon-trash"></span>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">
+              <button class="btn btn-block btn-sm add-new" ng-click="adv.addDataDisk()">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add New Data Disk
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>

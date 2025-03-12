@@ -1,0 +1,118 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-4 sm-label-right">
+      <b>Compute options</b>
+      <help-field key="ecs.computeOptions"></help-field>
+    </div>
+    <div class="col-md-2 radio">
+      <label>
+        <input
+          data-test-id="ServerGroup.computeOptionsLaunchType"
+          type="radio"
+          ng-model="$ctrl.capacityProviderState.useCapacityProviders"
+          ng-value="false"
+          ng-click="$ctrl.capacityProviderState.updateComputeOption('launchType')"
+          id="computeOptionsLaunchType"
+        />
+        Launch type
+      </label>
+    </div>
+    <div class="col-md-1 radio">
+      <label>
+        <input
+          data-test-id="ServerGroup.computeOptionsCapacityProviders"
+          type="radio"
+          ng-model="$ctrl.capacityProviderState.useCapacityProviders"
+          ng-value="true"
+          ng-click="$ctrl.capacityProviderState.updateComputeOption('capacityProviders')"
+          id="computeOptionsCapacityProviders"
+        />
+        Capacity Providers
+      </label>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="$ctrl.capacityProviderState.useCapacityProviders">
+    <ecs-capacity-provider-react
+      command="$ctrl.command"
+      notify-angular="$ctrl.notifyAngular"
+      configure-command="$ctrl.configureCommand"
+    ></ecs-capacity-provider-react>
+  </div>
+
+  <div class="form-group" ng-if="!$ctrl.capacityProviderState.useCapacityProviders" style="padding-top: 10px">
+    <div class="col-md-5 sm-label-right">
+      Launch Type
+      <help-field key="ecs.launchtype"></help-field>
+    </div>
+    <div class="col-md-3" data-test-id="ServerGroup.launchType">
+      <ui-select ng-model="$ctrl.command.launchType" class="form-control input-sm">
+        <ui-select-match placeholder="Select...">{{ $select.selected }}</ui-select-match>
+        <ui-select-choices repeat="launchType in $ctrl.command.backingData.launchTypes | filter: $select.search">
+          <span ng-bind-html="launchType | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+
+  <hr />
+
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right">
+      Desired capacity
+      <help-field key="ecs.capacity.desired"></help-field>
+    </div>
+    <div class="col-md-2">
+      <input
+        type="number"
+        class="form-control input-sm no-spel"
+        name="capacity"
+        ng-model="$ctrl.command.capacity.desired"
+      />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right">
+      Minimum
+      <help-field key="ecs.capacity.minimum"></help-field>
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm no-spel" name="min" ng-model="$ctrl.command.capacity.min" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-5 sm-label-right">
+      Maximum
+      <help-field key="ecs.capacity.maximum"></help-field>
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm no-spel" name="max" ng-model="$ctrl.command.capacity.max" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-12 checkbox">
+      <label>
+        <input
+          type="checkbox"
+          ng-model="$ctrl.command.useSourceCapacity"
+          ng-change="$ctrl.command.preferSourceCapacity=$ctrl.command.useSourceCapacity"
+        />
+        <b>If available, use the previous server group's capacity</b>
+      </label>
+      <help-field key="ecs.capacity.overwrite"></help-field>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-12 checkbox">
+      <label>
+        <input type="checkbox" ng-model="$ctrl.command.copySourceScalingPoliciesAndActions" />
+        <b>If available, copy the previous server group's autoscaling policies</b>
+      </label>
+      <help-field key="ecs.capacity.copySourceScalingPoliciesAndActions"></help-field>
+    </div>
+  </div>
+</div>

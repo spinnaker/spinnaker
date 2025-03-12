@@ -1,0 +1,187 @@
+<div class="details-panel">
+  <div ng-if="ctrl.state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <cloud-provider-logo
+        provider="ctrl.loadBalancer.cloudProvider"
+        height="'36px'"
+        width="'36px'"
+      ></cloud-provider-logo>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{ctrl.loadBalancer.displayName}}
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            ng-if="!state.loading"
+            entity="ctrl.loadBalancer"
+            application="ctrl.app"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="loadBalancer"
+            page-location="details"
+            on-update="ctrl.app.loadBalancers.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
+      </h3>
+    </div>
+    <div class="actions">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle ng-hide="isDisabled">
+          {{ctrl.loadBalancer.kind | robotToHuman}} Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li>
+            <a href ng-click="ctrl.deleteLoadBalancer()">Delete</a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.editLoadBalancer()">Edit</a>
+          </li>
+          <render-if-feature feature="entityTags">
+            <add-entity-tag-links
+              component="ctrl.loadBalancer"
+              application="ctrl.app"
+              entity-type="loadBalancer"
+              on-update="ctrl.app.loadBalancers.refresh"
+            ></add-entity-tag-links>
+          </render-if-feature>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="!ctrl.state.loading" class="content">
+    <collapsible-section heading="Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Created</dt>
+        <dd>{{ctrl.loadBalancer.createdTime | timestamp}}</dd>
+        <dt>Account</dt>
+        <dd><account-tag account="ctrl.loadBalancer.account" pad="right"></account-tag></dd>
+        <dt>Namespace</dt>
+        <dd>{{ctrl.loadBalancer.namespace}}</dd>
+        <dt>Kind</dt>
+        <dd>{{ctrl.loadBalancer.kind}}</dd>
+        <dt>Service Type</dt>
+        <dd>{{ctrl.manifest.manifest.spec.type}}</dd>
+        <dt>Sess. Affinity</dt>
+        <dd>{{ctrl.manifest.manifest.spec.sessionAffinity}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <div ng-if="!ctrl.loadBalancer.serverGroups.length">
+          No workloads associated with this {{ctrl.loadBalancer.kind | robotToHuman}}.
+        </div>
+        <dt ng-if="ctrl.loadBalancer.serverGroups.length">Workloads</dt>
+        <dd ng-if="ctrl.loadBalancer.serverGroups.length">
+          <ul>
+            <li ng-repeat="serverGroup in ctrl.loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
+              <a
+                ui-sref="^.serverGroup({region: serverGroup.region,
+                                         accountId: serverGroup.account,
+                                         serverGroup: serverGroup.name,
+                                         provider: 'kubernetes'})"
+              >
+                {{serverGroup.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+        <div ng-if="ctrl.loadBalancer.serverGroups.length">
+          <dt>Pod status</dt>
+          <dd>
+            <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
+          </dd>
+        </div>
+        <div ng-if="ctrl.manifest.manifest.spec.clusterIP">
+          <dt>Cluster IP</dt>
+          <dd>
+            <a target="_blank" href="//{{ctrl.manifest.manifest.spec.clusterIP}}">
+              {{ctrl.manifest.manifest.spec.clusterIP}}
+            </a>
+            <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ctrl.manifest.manifest.spec.clusterIP"
+              tool-tip="'Copy Cluster IP to clipboard'"
+            >
+            </copy-to-clipboard>
+          </dd>
+        </div>
+        <div ng-if="ctrl.manifest.manifest.spec.loadBalancerIP">
+          <dt>Load Balancer IP</dt>
+          <dd>
+            <a target="_blank" href="//{{ctrl.manifest.manifest.spec.loadBalancerIP}}">
+              {{ctrl.manifest.manifest.spec.loadBalancerIP}}
+            </a>
+            <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ctrl.manifest.manifest.spec.loadBalancerIP"
+              tool-tip="'Copy Load Balancer IP to clipboard'"
+            >
+            </copy-to-clipboard>
+          </dd>
+        </div>
+        <div ng-if="ctrl.manifest.manifest.spec.rules.length">
+          <dt>Host Rules</dt>
+          <dd ng-repeat="ingressRule in ctrl.manifest.manifest.spec.rules">
+            <a ng-if="ingressRule.host" target="_blank" href="//{{ingressRule.host}}"> {{ingressRule.host}} </a>
+            <copy-to-clipboard
+              ng-if="ingressRule.host"
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ingressRule.host"
+              tool-tip="'Copy ingress rule host to clipboard'"
+            >
+            </copy-to-clipboard>
+          </dd>
+        </div>
+        <div ng-if="ctrl.manifest.manifest.status.loadBalancer.ingress.length">
+          <dt>Ingress</dt>
+          <dd ng-repeat="ingress in ctrl.manifest.manifest.status.loadBalancer.ingress">
+            <a ng-if="ingress.hostname" target="_blank" href="//{{ingress.hostname}}"> {{ingress.hostname}} </a>
+            <copy-to-clipboard
+              ng-if="ingress.hostname"
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ingress.hostname"
+              tool-tip="'Copy Ingress hostname to clipboard'"
+            >
+            </copy-to-clipboard>
+            <a ng-if="ingress.ip" target="_blank" href="//{{ingress.ip}}"> {{ingress.ip}} </a>
+            <copy-to-clipboard
+              ng-if="ingress.ip"
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ingress.ip"
+              tool-tip="'Copy Ingress IP to clipboard'"
+            >
+            </copy-to-clipboard>
+          </dd>
+        </div>
+      </dl>
+    </collapsible-section>
+
+    <kubernetes-annotation-custom-sections
+      manifest="ctrl.manifest.manifest"
+      resource="ctrl.loadBalancer"
+    ></kubernetes-annotation-custom-sections>
+
+    <collapsible-section heading="Events" expanded="true">
+      <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
+    </collapsible-section>
+
+    <collapsible-section heading="Labels" expanded="true">
+      <kubernetes-manifest-labels manifest="ctrl.manifest.manifest"></kubernetes-manifest-labels>
+    </collapsible-section>
+  </div>
+</div>

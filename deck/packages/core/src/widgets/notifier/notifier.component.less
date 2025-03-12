@@ -1,0 +1,32 @@
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+.Toastify__toast-container {
+  .Toastify__toast {
+    color: var(--color-text-primary);
+  }
+
+  .Toastify__toast-body {
+    overflow: hidden;
+    overflow-wrap: break-word;
+  }
+
+  .Toastify__toast--info {
+    background-color: var(--color-status-info-light);
+
+    .Toastify__close-button {
+      color: var(--color-dovegray);
+    }
+  }
+
+  .Toastify__toast--warning {
+    background-color: var(--color-status-warning-light);
+
+    .Toastify__close-button {
+      color: var(--color-dovegray);
+    }
+  }
+
+  .Toastify__toast--error {
+    color: var(--color-white);
+  }
+}

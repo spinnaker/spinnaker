@@ -1,0 +1,17 @@
+[
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "cloudProvider": "aws",
+    "deprecated": false,
+    "id": "vpc-0a9ccfd1cba7bc715",
+    "name": "SpinnakerVPC",
+    "region": "us-west-2"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "cloudProvider": "aws",
+    "deprecated": false,
+    "id": "vpc-0c47d074",
+    "region": "us-west-2"
+  }
+]

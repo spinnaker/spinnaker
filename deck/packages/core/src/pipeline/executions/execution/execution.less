@@ -1,0 +1,142 @@
+@import (reference) '../../../presentation/less/imports/commonImports.less';
+
+@execution-parameters-icon-width: 1.4em;
+
+.execution {
+  .label {
+    text-transform: uppercase;
+    border-radius: 0;
+    color: var(--color-white);
+    font-weight: 600;
+    .glyphicon {
+      color: var(--color-white);
+    }
+    &.label-succeeded {
+      background-color: var(--color-success);
+    }
+    &.label-terminal,
+    &.label-terminated {
+      background-color: var(--color-danger);
+    }
+    &.label-failed_continue {
+      background-color: var(--color-alert);
+      color: var(--color-mineshaft);
+    }
+    &.label-running,
+    &.label-launched {
+      background-color: var(--color-accent);
+    }
+    &.label-stopped {
+      background-color: var(--color-danger-light);
+      color: var(--color-mineshaft);
+    }
+  }
+  .timestamp {
+    color: var(--color-dovegray);
+    font-size: 0.8em;
+    padding-top: 22px;
+  }
+  .panel {
+    .summary {
+      background-color: var(--color-alto);
+      cursor: pointer;
+      padding-bottom: 0px;
+      h5 {
+        font-weight: bold;
+        display: inline-block;
+      }
+    }
+    .summary.current {
+      background-color: var(--color-white);
+    }
+
+    .details {
+      .tr {
+        background-color: var(--color-accent-g1);
+      }
+    }
+  }
+}
+
+.execution-actions {
+  display: inline-block;
+  width: 42px;
+  vertical-align: top;
+  padding-top: 20px;
+  margin-left: 6px;
+  .fa-times-circle {
+    color: var(--color-danger);
+  }
+
+  button.link {
+    padding: 2px 3px 0;
+    &:first-child {
+      padding-right: 5px;
+    }
+  }
+}
+
+.execution-summary {
+  padding: 0 5px 5px;
+  font-size: 90%;
+}
+
+execution-details-section-nav {
+  display: block;
+}
+
+.execution-bar {
+  display: inline-block;
+  width: calc(~'100% - 235px');
+  vertical-align: top;
+  .stage {
+    .fa {
+      // .fa is "font-awesome" - the only icon set we're using for custom stage icons
+      display: inline-block;
+    }
+    .duration {
+      font-weight: 600;
+      line-height: 20px;
+      visibility: hidden;
+      width: 0;
+      display: inline-block;
+      overflow: hidden;
+    }
+  }
+}
+.show-durations {
+  .stage {
+    .fa + .duration {
+      margin-left: 3px;
+    }
+    .duration {
+      visibility: visible;
+      width: auto;
+    }
+    min-width: 50px;
+  }
+}
+
+.execution-parameters-button,
+.execution-details-button,
+.execution-cancellation-reason-button {
+  font-size: 0.8em;
+  line-height: 12px;
+
+  span.glyphicon {
+    width: @execution-parameters-icon-width;
+  }
+}
+
+.execution-parameters-button,
+.execution-cancellation-reason-button {
+  margin-bottom: 6px;
+}
+
+.execution-breadcrumbs {
+  margin-bottom: 5px;
+}
+
+.execution-breadcrumb-marker {
+  margin: 0px 3px;
+}

@@ -1,0 +1,25 @@
+.GitLink {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  .git-link-inner {
+    display: flex;
+    flex-direction: row;
+    align-self: flex-start;
+    max-width: 100%;
+  }
+
+  .commit-message {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+    color: var(--color-text-link-g1);
+  }
+}
+
+.git-commit-tooltip {
+  max-height: 300px;
+  overflow: auto;
+}

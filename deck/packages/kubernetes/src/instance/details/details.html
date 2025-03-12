@@ -1,0 +1,80 @@
+<div class="details-panel">
+  <div class="header">
+    <instance-details-header
+      cloud-provider="ctrl.instance.cloudProvider"
+      health-state="instance.healthState"
+      instance-id="ctrl.instance.displayName"
+      loading="ctrl.state.loading"
+      standalone="false"
+    ></instance-details-header>
+    <div class="actions" ng-if="!ctrl.state.loading">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle ng-hide="isDisabled">
+          {{ctrl.instance.kind | robotToHuman}} Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li>
+            <a href ng-click="ctrl.deleteInstance()">Delete</a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.editInstance()">Edit</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="!ctrl.state.loading" class="content">
+    <collapsible-section heading="Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Created</dt>
+        <dd>{{ctrl.instance.createdTime | timestamp}}</dd>
+        <dt>Account</dt>
+        <dd><account-tag account="ctrl.instance.account" pad="right"></account-tag></dd>
+        <dt>Namespace</dt>
+        <dd>{{ctrl.instance.namespace}}</dd>
+        <dt>Kind</dt>
+        <dd>{{ctrl.instance.kind}}</dd>
+        <dt>QOS Class</dt>
+        <dd><kubernetes-manifest-qos manifest="ctrl.manifest.manifest"></kubernetes-manifest-qos></dd>
+        <dt>Logs</dt>
+        <dd>
+          <console-output-link instance="ctrl.consoleOutputInstance" uses-multi-output="true"></console-output-link>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <ul ng-repeat="condition in ctrl.manifest.manifest.status.conditions">
+        <kubernetes-manifest-condition condition="condition"></kubernetes-manifest-condition>
+      </ul>
+    </collapsible-section>
+
+    <kubernetes-annotation-custom-sections
+      manifest="ctrl.manifest.manifest"
+      resource="ctrl.instance"
+    ></kubernetes-annotation-custom-sections>
+
+    <collapsible-section heading="Events" expanded="true">
+      <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
+    </collapsible-section>
+
+    <collapsible-section heading="Resources" expanded="true">
+      <kubernetes-manifest-resources
+        manifest="ctrl.manifest.manifest"
+        metrics="ctrl.manifest.metrics"
+      ></kubernetes-manifest-resources>
+    </collapsible-section>
+
+    <collapsible-section heading="Labels" expanded="true">
+      <kubernetes-manifest-labels manifest="ctrl.manifest.manifest"></kubernetes-manifest-labels>
+    </collapsible-section>
+
+    <instance-links
+      address="ctrl.instance.publicDnsName"
+      application="ctrl.app"
+      instance="ctrl.instance"
+      moniker="ctrl.instance.moniker"
+      environment="ctrl.environment"
+    ></instance-links>
+  </div>
+</div>

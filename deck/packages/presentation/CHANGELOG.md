@@ -1,0 +1,106 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## [0.3.1](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.3.0...@spinnaker/presentation@0.3.1) (2023-10-16)
+
+
+### Bug Fixes
+
+* **publish:** set access config in deck libraries ([#10049](https://github.com/spinnaker/deck/issues/10049)) ([2a5ebe2](https://github.com/spinnaker/deck/commit/2a5ebe25662eeb9d41b5071749266bf9d6d51104))
+
+
+
+
+
+# [0.3.0](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.2.1...@spinnaker/presentation@0.3.0) (2023-06-02)
+
+
+### Features
+
+* **icons:** allow plugins to provide custom icon components ([#10001](https://github.com/spinnaker/deck/issues/10001)) ([e436465](https://github.com/spinnaker/deck/commit/e436465778437895446d0e36094296d7b96fb58d))
+
+
+
+
+
+## [0.2.1](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.2.0...@spinnaker/presentation@0.2.1) (2022-10-06)
+
+**Note:** Version bump only for package @spinnaker/presentation
+
+
+
+
+
+# [0.2.0](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.1.0...@spinnaker/presentation@0.2.0) (2022-08-03)
+
+
+### Features
+
+* **dependencies:** Update vulnerable dependencies ([#9875](https://github.com/spinnaker/deck/issues/9875)) ([bf92932](https://github.com/spinnaker/deck/commit/bf92932c9396a88fb902050b52f504e4ac01aaa0))
+
+
+
+
+
+# [0.1.0](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.0.14...@spinnaker/presentation@0.1.0) (2021-10-01)
+
+
+### Features
+
+* **scripts:** make yarn clean delegate to all lerna packages ([3793778](https://github.com/spinnaker/deck/commit/3793778dfefdefd496cf3a9f6032d5c7ff210da9))
+
+
+
+
+
+## [0.0.14](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.0.12...@spinnaker/presentation@0.0.14) (2021-09-30)
+
+**Note:** Version bump only for package @spinnaker/presentation
+
+
+
+
+
+## [0.0.13](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.0.12...@spinnaker/presentation@0.0.13) (2021-09-30)
+
+**Note:** Version bump only for package @spinnaker/presentation
+
+
+
+
+
+## [0.0.12](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.0.11...@spinnaker/presentation@0.0.12) (2021-09-23)
+
+
+### Bug Fixes
+
+* **aws/lambda:** Fix functions icon on menu ([#9686](https://github.com/spinnaker/deck/issues/9686)) ([9e6aae3](https://github.com/spinnaker/deck/commit/9e6aae34af206ea6d280fac1b892d7aba7f38abc))
+
+
+
+
+
+## [0.0.11](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.0.10...@spinnaker/presentation@0.0.11) (2021-08-20)
+
+**Note:** Version bump only for package @spinnaker/presentation
+
+
+
+
+
+## [0.0.10](https://github.com/spinnaker/deck/compare/@spinnaker/presentation@0.0.9...@spinnaker/presentation@0.0.10) (2021-08-13)
+
+**Note:** Version bump only for package @spinnaker/presentation
+
+
+
+
+
+## 0.0.9 (2021-07-17)
+
+
+### Bug Fixes
+
+* **publishing:** Auto approve instead of adding "ready to merge" label ([51f536c](https://github.com/spinnaker/deck/commit/51f536c275e77854d8f173aeec86412ffbd66b6d))

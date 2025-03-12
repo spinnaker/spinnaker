@@ -1,0 +1,9 @@
+<div class="form-group">
+  <label class="col-md-3 sm-label-right">
+    <span class="label-text" ng-bind="vm.label"></span>
+    <help-field key="{{vm.helpKey}}" expand="vm.helpKeyExpand"></help-field>
+  </label>
+  <div class="col-md-{{vm.fieldColumns}}">
+    <ng-transclude></ng-transclude>
+  </div>
+</div>

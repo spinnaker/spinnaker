@@ -1,0 +1,59 @@
+.ObjectRow {
+  display: flex;
+  align-items: center;
+  flex: auto;
+  height: 44px;
+  font-size: 14px;
+
+  .object-row-content {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding-left: 8px;
+    color: #666666;
+  }
+
+  .object-row-content:hover {
+    background-image: linear-gradient(to bottom, rgba(160, 180, 220, 0.15), rgba(160, 180, 220, 0.15));
+  }
+
+  .object-row-column {
+    align-items: center;
+    display: flex;
+    margin-right: 16px;
+  }
+
+  .object-row-title-column {
+    flex-basis: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .object-row-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
+  }
+
+  &:hover {
+    .resource-events-link {
+      display: flex;
+    }
+  }
+
+  .resource-events-link {
+    display: none;
+    padding: 6px;
+    margin-right: -6px;
+    border-radius: 999px;
+    &:not(:last-child) {
+      margin-right: 12px;
+    }
+    &:hover {
+      background-color: var(--color-accent-g2);
+    }
+  }
+}

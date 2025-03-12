@@ -1,0 +1,82 @@
+<div class="header row header-clusters" ng-if="ctrl.initialized">
+  <div class="col-lg-9 col-md-10 col-sm-10">
+    <div class="form-inline clearfix filters">
+      <div class="form-group">
+        <button
+          class="btn btn-xs btn-default"
+          ng-class="{active: filterModel.sortFilter.multiselect}"
+          ng-click="ctrl.toggleMultiselect()"
+          ng-hide="isDisabled"
+        >
+          <span class="glyphicon glyphicon-list visible-lg-inline"></span>
+          <span class="glyphicon glyphicon-list visible-md-inline visible-sm-inline" uib-tooltip="Edit multiple"></span>
+          <span class="visible-lg-inline">Edit multiple</span>
+        </button>
+      </div>
+      <div class="form-group">
+        <label class="checkbox">Show </label>
+        <div class="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              ng-model="filterModel.sortFilter.showAllInstances"
+              ng-change="ctrl.syncUrlAndUpdateClusterGroups()"
+            />
+            Instances
+          </label>
+        </div>
+        <div class="checkbox" is-visible="filterModel.sortFilter.showAllInstances">
+          <label>
+            <input
+              type="checkbox"
+              ng-model="filterModel.sortFilter.listInstances"
+              ng-change="ctrl.syncUrlAndUpdateClusterGroups()"
+            />
+            with details
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-3 col-md-2 col-sm-2">
+    <div class="application-actions">
+      <button class="btn btn-sm btn-default" ng-click="ctrl.createServerGroup()" ng-hide="isDisabled">
+        <span class="glyphicon glyphicon-plus-sign visible-lg-inline"></span>
+        <span
+          class="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline"
+          uib-tooltip="Create Server Group"
+        ></span>
+        <span class="visible-lg-inline">{{ctrl.createLabel}}</span>
+      </button>
+    </div>
+  </div>
+  <filter-tags
+    ng-if="!ctrl.dataSource.fetchOnDemand"
+    tags="tags"
+    tag-cleared="ctrl.updateClusterGroups"
+    clear-filters="ctrl.clearFilters"
+  ></filter-tags>
+</div>
+
+<div ng-if="ctrl.dataSource.fetchOnDemand">
+  <on-demand-cluster-picker application="ctrl.application"></on-demand-cluster-picker>
+</div>
+
+<div ng-if="ctrl.loadError">
+  <h4 class="text-center">There was an error loading the clusters for this application. We'll try again shortly.</h4>
+</div>
+
+<!-- overflow-y is set to avoid flickering when scrollbars are set to always show (react virtualized thing) -->
+<div ng-if="!ctrl.initialized">
+  <loading-spinner size="medium"></loading-spinner>
+</div>
+<div ng-if="ctrl.initialized">
+  <banner-container app="ctrl.application" />
+</div>
+
+<all-clusters-groupings
+  class="content"
+  app="ctrl.application"
+  style="overflow-y: hidden"
+  initialized="ctrl.initialized"
+></all-clusters-groupings>

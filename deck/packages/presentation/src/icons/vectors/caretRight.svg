@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24">
+  <defs>
+    <style>
+      .a {
+        clip-path: url(#a);
+      }
+    </style>
+    <clipPath id="a">
+      <polygon points="15 12 9 16 9 8 15 12"/>
+    </clipPath>
+  </defs>
+  <title>Artboard 1</title>
+  <g>
+    <polygon points="15 12 9 16 9 8 15 12"/>
+    <g class="a">
+      <rect x="4" y="3" width="16" height="18"/>
+    </g>
+  </g>
+</svg>

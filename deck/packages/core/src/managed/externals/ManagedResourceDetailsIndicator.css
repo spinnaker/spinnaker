@@ -1,0 +1,20 @@
+.ManagedResourceDetailsIndicator {
+  background-color: var(--color-mineshaft);
+  color: var(--color-white);
+}
+
+.ManagedResourceDetailsIndicator .md-logo {
+  background-color: var(--color-black);
+  padding: 18px;
+}
+
+.ManagedResourceDetailsIndicator .summary-message {
+  font-size: 12px;
+  font-weight: 300;
+}
+
+.ManagedResourceDetailsIndicator .resource-actions > .dropdown-toggle {
+  color: var(--color-white);
+  background-color: transparent;
+  padding: 3px 10px;
+}

@@ -1,0 +1,34 @@
+.history-header {
+  padding-bottom: 10px;
+  align-items: stretch;
+}
+
+.show-history {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: calc(~'100vh - 220px');
+  display: flex;
+}
+
+.diff-section {
+  padding-left: 0;
+}
+
+.diff-summary {
+  vertical-align: middle;
+  display: inline-block;
+  margin-right: 20px;
+  font-size: 120%;
+  font-weight: 600;
+  letter-spacing: -1px;
+
+  .footer-additions {
+    color: var(--color-success);
+  }
+
+  .footer-removals {
+    color: var(--color-danger);
+    display: inline-block;
+    margin-left: 5px;
+  }
+}

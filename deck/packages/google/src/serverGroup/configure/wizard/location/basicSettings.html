@@ -1,0 +1,167 @@
+<div class="container-fluid form-horizontal" ng-controller="gceServerGroupBasicSettingsCtrl as basicSettingsCtrl">
+  <ng-form name="basicSettings">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Account</div>
+      <div class="col-md-7">
+        <account-select-field
+          component="command"
+          field="credentials"
+          accounts="command.backingData.accounts"
+          provider="'gce'"
+          on-change="basicSettingsCtrl.accountUpdated()"
+        ></account-select-field>
+      </div>
+    </div>
+    <gce-region-select-field
+      label-columns="3"
+      component="command"
+      field="region"
+      account="command.credentials"
+      regions="command.backingData.filtered.regions"
+    ></gce-region-select-field>
+    <gce-network-select-field
+      label-columns="3"
+      component="command"
+      field="network"
+      account="command.credentials"
+      networks="command.backingData.filtered.networks"
+    ></gce-network-select-field>
+    <gce-subnet-select-field
+      label-columns="3"
+      help-key="gce.serverGroup.subnet"
+      component="command"
+      field="subnet"
+      account="command.credentials"
+      region="command.region"
+      subnets="command.backingData.filtered.subnets"
+      subnet-placeholder="basicSettingsCtrl.getSubnetPlaceholder()"
+      auto-create-subnets="command.viewState.autoCreateSubnets"
+    >
+    </gce-subnet-select-field>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Stack
+        <help-field key="aws.serverGroup.stack"></help-field>
+      </div>
+      <div class="col-md-7">
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-pattern="basicSettingsCtrl.stackPattern"
+          name="stack"
+          ng-model="command.stack"
+        />
+      </div>
+    </div>
+    <div class="form-group row slide-in" ng-if="basicSettings.stack.$error.pattern">
+      <div class="col-sm-9 col-sm-offset-2 error-message">
+        <span>Stack can only contain letters and numbers.</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Detail
+        <help-field key="aws.serverGroup.detail"></help-field>
+      </div>
+      <div class="col-md-7">
+        <input
+          type="text"
+          class="form-control input-sm"
+          ng-pattern="basicSettingsCtrl.detailPattern"
+          name="details"
+          ng-model="command.freeFormDetails"
+        />
+      </div>
+    </div>
+    <div class="form-group row slide-in" ng-if="basicSettings.details.$error.pattern">
+      <div class="col-sm-9 col-sm-offset-2 error-message">
+        <span>Detail can only contain letters, numbers, and dashes(-).</span>
+      </div>
+    </div>
+    <div ng-if="command.viewState.showImageSourceSelector">
+      <image-source-selector
+        command="command"
+        id-field="imageSource"
+        image-sources="basicSettingsCtrl.imageSources"
+        image-source-text="command.viewState.imageSourceText"
+        help-field-key="gce.image.source"
+      >
+      </image-source-selector>
+      <stage-artifact-selector-delegate
+        ng-if="command.imageSource === 'artifact'"
+        artifact="command.imageArtifact"
+        excluded-artifact-type-patterns="basicSettingsCtrl.excludedImageArtifactTypes"
+        expected-artifact-id="command.imageArtifactId"
+        field-columns="7"
+        help-key="'gce.image.artifact'"
+        label="'Expected Artifact'"
+        on-artifact-edited="basicSettingsCtrl.onImageArtifactEdited"
+        on-expected-artifact-selected="basicSettingsCtrl.onImageArtifactSelected"
+        pipeline="command.viewState.pipeline"
+        stage="command.viewState.stage"
+      >
+      </stage-artifact-selector-delegate>
+    </div>
+    <div class="form-group" ng-if="!command.viewState.disableImageSelection">
+      <div class="col-md-3 sm-label-right">
+        Image
+        <help-field key="gce.serverGroup.imageName"></help-field>
+      </div>
+      <div class="col-md-7">
+        <gce-image-select
+          available-images="command.backingData.allImages"
+          selected-image="command.image"
+          select-image="basicSettingsCtrl.selectImage"
+        ></gce-image-select>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Traffic <help-field key="gce.serverGroup.traffic"></help-field></div>
+      <div class="col-md-9 checkbox">
+        <label>
+          <input type="checkbox" ng-model="command.enableTraffic" />
+          Send client requests to new instances
+        </label>
+      </div>
+    </div>
+    <deployment-strategy-selector
+      ng-if="!command.viewState.disableStrategySelection && command.selectedProvider"
+      command="command"
+    ></deployment-strategy-selector>
+    <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
+      <div class="col-md-12">
+        <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
+          <h5 class="text-center">
+            <p>Your server group will be in the cluster:</p>
+            <p>
+              <strong>
+                {{basicSettingsCtrl.getNamePreview()}}
+                <span ng-if="basicSettingsCtrl.createsNewCluster()"> (new cluster)</span>
+              </strong>
+            </p>
+            <div
+              class="text-left"
+              ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup"
+            >
+              <p>There is already a server group in this cluster. Do you want to clone it?</p>
+              <p>
+                Cloning copies the entire configuration from the selected server group, allowing you to modify whichever
+                fields (e.g. image) you need to change in the new server group.
+              </p>
+              <p>
+                To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the
+                server group.
+              </p>
+              <p>
+                <a href ng-click="basicSettingsCtrl.navigateToLatestServerGroup()">
+                  Go to details for {{latestServerGroup.name}}
+                </a>
+              </p>
+            </div>
+          </h5>
+        </div>
+      </div>
+    </div>
+  </ng-form>
+  <task-reason command="command"></task-reason>
+</div>

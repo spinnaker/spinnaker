@@ -1,0 +1,51 @@
+<div class="well well-sm clearfix" ng-if="!pipeline.strategy">
+  <div class="row">
+    <div class="col-md-12">
+      <h4 class="text-left">Load Balancers</h4>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th>Name</th>
+            <th>Region</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="loadBalancer in stage.loadBalancers">
+            <td>
+              <account-tag account="loadBalancer.credentials"></account-tag>
+            </td>
+            <td>{{ loadBalancer.name }}</td>
+            <td>{{ loadBalancer.region }}</td>
+            <td class="condensed-actions">
+              <a class="btn btn-sm btn-link" href ng-click="editLoadBalancerStageCtrl.editLoadBalancer($index)">
+                <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span
+              ></a>
+              <a
+                class="btn btn-sm btn-link pad-left"
+                href
+                ng-click="editLoadBalancerStageCtrl.removeLoadBalancer($index)"
+              >
+                <span class="glyphicon glyphicon-trash" uib-tooltip="Remove"></span>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="8">
+              <button class="btn btn-block btn-sm add-new" ng-click="editLoadBalancerStageCtrl.addLoadBalancer()">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add load balancer
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>

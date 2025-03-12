@@ -1,0 +1,47 @@
+.HorizontalTabs {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  border-bottom: 1px solid var(--color-alto);
+  margin-bottom: var(--xl-spacing);
+
+  @tab-border-width: 3px;
+
+  .tab {
+    background: none;
+    border: none;
+    padding: 0;
+    min-width: 150px;
+    max-width: 33%;
+    padding: var(--xs-spacing) var(--m-spacing);
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    border-bottom: @tab-border-width solid transparent;
+    color: var(--color-concrete);
+    text-align: center;
+
+    @media (max-width: 768px) {
+      min-width: 80px;
+    }
+
+    &:focus:active {
+      text-decoration: none;
+    }
+
+    &:hover {
+      text-decoration: none;
+      color: var(--color-dovegray);
+      border-bottom: @tab-border-width solid var(--color-accent-g2);
+    }
+  }
+
+  .tab.selected-tab {
+    border-bottom: @tab-border-width solid var(--color-accent);
+    color: var(--color-black);
+  }
+
+  .right-element {
+    margin-left: auto;
+    align-self: center;
+  }
+}

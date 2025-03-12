@@ -1,0 +1,65 @@
+<div class="text-center" ng-if="state.notFoundStandalone">
+  <h3>Could not find instance {{instanceIdNotFound}}.</h3>
+  <a ui-sref="home.infrastructure">Back to search results</a>
+</div>
+<div class="details-panel" ng-if="!state.notFoundStandalone">
+  <div class="header">
+    <instance-details-header
+      health-state="instance.healthState"
+      instance-id="instance.instanceId || instanceIdNotFound"
+      loading="state.loading"
+      standalone="state.standalone"
+    ></instance-details-header>
+    <div ng-if="!state.loading" ng-hide="isDisabled">
+      <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
+        <instance-actions actions="instanceActions"></instance-actions>
+        <instance-insights insights="instance.insightActions" instance="instance"></instance-insights>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!state.loading && instance">
+    <amazon-instance-information instance="instance"></amazon-instance-information>
+    <instance-status
+      health-metrics="healthMetrics"
+      health-state="instance.healthState"
+      metric-types="['LoadBalancer', 'TargetGroup']"
+      private-ip-address="instance.privateIpAddress"
+    >
+    </instance-status>
+    <collapsible-section heading="DNS">
+      <instance-dns
+        instance-port="state.instancePort"
+        ipv6-addresses="instance.ipv6Addresses"
+        permanent-ips="instance.permanentIps"
+        private-dns-name="instance.privateDnsName"
+        private-ip-address="instance.privateIpAddress"
+        public-dns-name="instance.publicDnsName"
+        public-ip-address="instance.publicIpAddress"
+      >
+      </instance-dns>
+    </collapsible-section>
+    <instance-security-groups instance="instance"></instance-security-groups>
+    <instance-tags tags="instance.tags"></instance-tags>
+    <collapsible-section heading="Console Output" ng-if="baseIpAddress">
+      <ul>
+        <li>
+          <console-output-link instance="instance"></console-output-link>
+        </li>
+      </ul>
+    </collapsible-section>
+    <instance-links
+      address="baseIpAddress"
+      application="application"
+      instance="instance"
+      moniker="moniker"
+      environment="environment"
+    ></instance-links>
+  </div>
+  <div class="content" ng-if="!state.loading && !instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
+  </div>
+</div>

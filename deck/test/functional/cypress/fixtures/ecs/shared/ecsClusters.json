@@ -1,0 +1,20 @@
+[
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "arn": "arn:aws:ecs:us-west-2:123456789012:cluster/spinnaker-deployment-cluster",
+    "name": "spinnaker-deployment-cluster",
+    "region": "us-west-2"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "arn": "arn:aws:ecs:us-west-2:123456789012:cluster/TestCluster",
+    "name": "TestCluster",
+    "region": "us-west-2"
+  },
+  {
+    "account": "ecs-my-aws-devel-acct",
+    "arn": "arn:aws:ecs:us-west-2:123456789012:cluster/example-app-test-Cluster-NSnYsTXmCfV2",
+    "name": "example-app-test-Cluster-NSnYsTXmCfV2",
+    "region": "us-west-2"
+  }
+]

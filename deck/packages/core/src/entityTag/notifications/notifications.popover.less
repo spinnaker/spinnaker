@@ -1,0 +1,82 @@
+@import '../../presentation/less/imports/commonImports.less';
+
+.popover.notifications-popover {
+  padding: 0;
+  min-width: 200px;
+  max-width: 500px;
+  text-align: left;
+
+  .popover-title {
+    padding: 0.6em 0.8em;
+    margin: 0;
+    border-bottom: none;
+  }
+
+  .list-group-item {
+    padding: 0.333em 1em;
+    border-radius: 0;
+    background-color: var(--color-alabaster);
+    border-left: none;
+    border-right: none;
+  }
+
+  .notification-categories {
+    margin: 0;
+
+    background-color: var(--color-alabaster);
+    border-right: 1px solid var(--color-alto);
+
+    .notification-category-label {
+      padding: 0 1em;
+    }
+
+    .badge {
+      border-radius: 3px;
+      padding: 3px 6px;
+    }
+  }
+
+  .notification-list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    max-height: 15em;
+    padding: 1em;
+  }
+
+  .server-group-list {
+    margin: 0.75em 0;
+  }
+
+  .entityname {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    .account-region {
+      flex: 1 1 auto;
+      text-align: end;
+    }
+
+    span {
+      white-space: nowrap;
+    }
+  }
+
+  .notification-message {
+    min-width: 150px;
+
+    .notification-title {
+      font-weight: bold;
+      margin-bottom: 0.25em;
+    }
+
+    &:not(:first-child) {
+      padding-top: 10px;
+      margin-top: 5px;
+      border-top: 1px solid var(--color-alto);
+    }
+
+    .notification-tagline > *:not(:first-child) {
+      margin-left: 0.5em;
+    }
+  }
+}

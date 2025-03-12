@@ -1,0 +1,90 @@
+<div class="execution-details-summary">
+  <h5 class="execution-details-title">
+    Stage details: {{stageSummary.name || stageSummary.type }}
+
+    <div ng-if="$ctrl.isRestartable(stage) || $ctrl.canManuallySkip()" uib-dropdown class="btn-group pull-right">
+      <button
+        type="button"
+        class="btn btn-default btn-sm dropdown-toggle"
+        analytics-on="click"
+        analytics-category="Pipeline"
+        analytics-event="Execution actions menu toggled"
+        aria-expanded="false"
+        uib-dropdown-toggle
+      >
+        Actions
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" uib-dropdown-menu uib-dropdown-append-to-body="true" role="menu">
+        <li ng-if="$ctrl.isRestartable(stage)">
+          <a
+            href
+            ng-controller="RestartStageCtrl as restartCtrl"
+            analytics-on="click"
+            analytics-category="Pipeline"
+            analytics-event="Execution restart clicked"
+            ng-click="restartCtrl.restart()"
+            >Restart {{ stageSummary.name }}</a
+          >
+        </li>
+        <li ng-if="$ctrl.canManuallySkip()">
+          <a
+            href
+            analytics-on="click"
+            analytics-category="Pipeline"
+            analytics-event="Stage skip clicked"
+            ng-click="$ctrl.openManualSkipStageModal()"
+            >Skip {{ $ctrl.getTopLevelStage().name }}</a
+          >
+        </li>
+      </ul>
+    </div>
+  </h5>
+  <h6 class="duration">Duration: {{stageSummary.runningTimeInMs | duration}}</h6>
+  <h6 ng-if="stage.context.restartDetails">
+    Restarted by {{stage.context.restartDetails.restartedBy}} &mdash; {{stage.context.restartDetails.restartTime |
+    timestamp}}
+  </h6>
+  <h6 ng-if="$ctrl.getTopLevelStage().context.manualSkip" uib-tooltip="{{$ctrl.getTopLevelStage().context.reason}}">
+    Manually skipped by {{$ctrl.getTopLevelStage().lastModified.user}} &mdash;
+    {{$ctrl.getTopLevelStage().lastModified.lastModifiedTime | timestamp}}
+  </h6>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th width="30%">Step</th>
+        <th>Started</th>
+        <th>Completed</th>
+        <th>Duration</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="clickable"
+        analytics-on="click"
+        analytics-category="Pipeline"
+        analytics-event="Execution step selected"
+        analytics-label="{{$ctrl.getStepLabel(step)}}"
+        ng-repeat="step in stageSummary.stages"
+        ng-class="{ info: $ctrl.isStepCurrent($index) }"
+        ng-click="$ctrl.toggleDetails($index)"
+      >
+        <td><span ng-include="$ctrl.getStepLabel(step)"></span></td>
+        <td>{{ step.startTime | timestamp }}</td>
+        <td>{{ step.endTime | timestamp }}</td>
+        <td>{{ step.runningTimeInMs | duration }}</td>
+        <td>
+          <span class="label label-default label-{{ step.status | lowercase }}">
+            {{ step.status | lowercase | robotToHuman }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div ng-if="stageSummary.comments" class="execution-details-comments">
+    <strong>Comments</strong>
+    <p ng-bind-html="$ctrl.getComments()"></p>
+  </div>
+</div>

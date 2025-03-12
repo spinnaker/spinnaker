@@ -1,0 +1,138 @@
+<div class="details-panel">
+  <div ng-if="ctrl.state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
+  </div>
+
+  <div ng-if="!ctrl.state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <i class="fa fa-crosshairs icon" aria-hidden="true"></i>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>{{ctrl.targetGroup.name}}</h3>
+    </div>
+  </div>
+  <managed-resource-details-indicator
+    ng-if="!ctrl.state.loading && ctrl.loadBalancer.isManaged"
+    resource-summary="ctrl.loadBalancer.managedResourceSummary"
+    application="ctrl.application"
+  >
+  </managed-resource-details-indicator>
+  <div ng-if="!ctrl.state.loading" class="content">
+    <collapsible-section heading="Target Group Details" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>In</dt>
+        <dd><account-tag account="ctrl.targetGroup.account" pad="right"></account-tag> {{ctrl.targetGroup.region}}</dd>
+        <dt>VPC</dt>
+        <dd>
+          <vpc-tag vpc-id="ctrl.targetGroup.vpcId"></vpc-tag>
+        </dd>
+        <dt>Protocol</dt>
+        <dd>{{ctrl.targetGroup.protocol}}</dd>
+        <dt>Port</dt>
+        <dd>{{ctrl.targetGroup.port}}</dd>
+        <dt>Target Type</dt>
+        <dd>{{ctrl.targetGroup.targetType}}</dd>
+      </dl>
+      <dl ng-if="ctrl.loadBalancer" class="horizontal-when-filters-collapsed">
+        <dt>Load Balancer</dt>
+        <dd>
+          <ul class="collapse-margin-on-filter-collapse">
+            <li>
+              <a
+                ui-sref="^.loadBalancerDetails({ name: ctrl.loadBalancer.name,
+                                                  region: ctrl.loadBalancer.region,
+                                                  accountId: ctrl.loadBalancer.account,
+                                                  vpcId: ctrl.loadBalancer.vpcId,
+                                                  provider: 'aws'})"
+              >
+                {{ctrl.loadBalancer.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+      <dl class="horizontal-when-filters-collapsed">
+        <dt ng-if="ctrl.loadBalancer.dnsname">Load Balancer DNS Name</dt>
+        <dd ng-if="ctrl.loadBalancer.dnsname">
+          <a target="_blank" href="{{ctrl.elbProtocol}}//{{ctrl.loadBalancer.dnsname}}"
+            >{{ctrl.loadBalancer.dnsname}}</a
+          >
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ctrl.loadBalancer.dnsname"
+            tool-tip="'Copy DNS Name to clipboard'"
+          >
+          </copy-to-clipboard>
+        </dd>
+      </dl>
+      <dl
+        ng-if="ctrl.targetGroup.serverGroups && ctrl.targetGroup.serverGroups.length"
+        class="horizontal-when-filters-collapsed"
+      >
+        <dt>Server Groups</dt>
+        <dd>
+          <ul class="collapse-margin-on-filter-collapse">
+            <li ng-repeat="serverGroup in ctrl.targetGroup.serverGroups | orderBy: ['isDisabled', '-name']">
+              <a
+                ui-sref="^.serverGroup({region: serverGroup.region,
+                                          accountId: serverGroup.account,
+                                          serverGroup: serverGroup.name,
+                                          provider: serverGroup.cloudProvider})"
+              >
+                {{serverGroup.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <health-counts class="pull-left" container="ctrl.targetGroup.instanceCounts"></health-counts>
+    </collapsible-section>
+    <collapsible-section heading="Health Checks">
+      <dl class="horizontal-when-filters-collapsed">
+        <dt>Target</dt>
+        <dd>
+          {{ctrl.targetGroup.healthCheckProtocol}}:{{ctrl.targetGroup.healthCheckPort}}
+          {{ctrl.targetGroup.healthCheckPath}}
+        </dd>
+        <dt>Timeout</dt>
+        <dd>{{ctrl.targetGroup.healthCheckTimeoutSeconds}} seconds</dd>
+        <dt>Interval</dt>
+        <dd>{{ctrl.targetGroup.healthCheckIntervalSeconds}} seconds</dd>
+        <dt>Healthy Threshold</dt>
+        <dd>{{ctrl.targetGroup.healthyThresholdCount}}</dd>
+        <dt>Unhealthy Threshold</dt>
+        <dd>{{ctrl.targetGroup.unhealthyThresholdCount}}</dd>
+        <dt>Matcher</dt>
+        <dd>HTTP Code(s): {{ctrl.targetGroup.matcher.httpCode}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Attributes" expanded="true">
+      <dl class="horizontal-when-filters-collapsed">
+        <dt>Deregistration Delay Timeout</dt>
+        <dd>{{ctrl.targetGroup.attributes['deregistration_delay.timeout_seconds']}} seconds</dd>
+        <dt>Stickiness Enabled</dt>
+        <dd>{{ctrl.targetGroup.attributes['stickiness.enabled']}}</dd>
+        <dt ng-if-start="ctrl.targetGroup.attributes['stickiness.enabled'] === 'true'">
+          Stickiness Load Balancer Cookie Duration
+        </dt>
+        <dd>{{ctrl.targetGroup.attributes['stickiness.lb_cookie.duration_seconds']}} seconds</dd>
+        <dt>Stickiness Type</dt>
+        <dd ng-if-end>{{ctrl.targetGroup.attributes['stickiness.type']}}</dd>
+        <dt ng-if-start="ctrl.loadBalancer.loadBalancerType === 'network'">Preserve Client IP</dt>
+        <dd ng-if-end>{{ctrl.targetGroup.attributes['preserve_client_ip.enabled']}}</dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

@@ -1,0 +1,115 @@
+@import (reference) '../presentation/less/imports/commonImports.less';
+
+.tasks-wrapper {
+  display: flex;
+}
+
+.tasks {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-right: 24px;
+
+  > .tasks-header {
+    h3 {
+      margin-top: 0;
+      font-weight: 600;
+    }
+    flex: 0 0 auto;
+    display: flex;
+    z-index: 4;
+    box-shadow: 0 20px 10px -10px var(--color-alabaster);
+    padding-bottom: 0;
+    .btn-group {
+      a {
+        text-decoration: none;
+        color: var(--color-mineshaft);
+        &:active,
+        &:focus,
+        &:hover {
+          color: var(--color-mineshaft);
+        }
+      }
+    }
+  }
+
+  > .tasks-content {
+    padding: 10px 15px;
+    flex: 1 1 auto;
+    overflow-y: auto;
+  }
+
+  .pagination-footer {
+    margin-bottom: 15px;
+    margin-top: 5px;
+    .pagination {
+      margin: 0;
+    }
+    z-index: 4;
+    box-shadow: 0 -15px 8px -8px var(--color-alabaster);
+  }
+
+  .task-name {
+    text-indent: -14px;
+    margin-left: 20px;
+    .glyphicon {
+      font-size: 75%;
+      color: var(--color-concrete);
+      display: inline;
+    }
+  }
+  .task-step {
+    background-color: var(--color-cirrus);
+    font-size: 90%;
+  }
+
+  .task-step,
+  .task-error-message {
+    word-break: break-all;
+    > :first-child {
+      padding-left: 20px;
+    }
+  }
+
+  .task-reason {
+    background-color: var(--color-white);
+    td {
+      padding-top: 5px;
+      padding-left: 40px;
+    }
+  }
+
+  .progress {
+    height: 10px;
+    margin-bottom: 0;
+    margin-top: 5px;
+    .progress-bar-danger {
+      background-color: var(--color-danger);
+    }
+    .progress-bar-success {
+      background-color: var(--color-success);
+    }
+    .progress-bar-disabled {
+      background-color: var(--color-concrete);
+    }
+  }
+}
+
+.status-glyph {
+  &.fa-check {
+    color: var(--color-success);
+  }
+  &.fa-exclamation-triangle {
+    color: var(--color-danger);
+  }
+  &.glyphicon-play {
+    color: var(--color-accent);
+  }
+  &.glyphicon-stop,
+  &.glyphicon-pause,
+  &.glyphicon-time {
+    color: var(--color-concrete);
+  }
+}

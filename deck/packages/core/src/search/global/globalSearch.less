@@ -1,0 +1,112 @@
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+global-search {
+  position: relative;
+}
+
+.global-search {
+  form {
+    margin: 5px;
+
+    @media (min-width: 768px) {
+      padding: 0 15px;
+    }
+
+    input[type='search'] {
+      width: 200px;
+    }
+  }
+  .glyphicon-search {
+    color: var(--color-text-link);
+  }
+  .spinner-section {
+    min-height: 30px;
+  }
+  .dropdown-menu {
+    width: 400px;
+    top: 34px;
+    right: 0;
+    margin: 2px 19px;
+    border-radius: 0;
+    z-index: 10001;
+    overflow-y: auto;
+
+    li {
+      color: var(--color-concrete);
+      strong {
+        font-weight: 600;
+      }
+
+      &.category-heading {
+        padding: 10px 0 0 15px;
+        margin-top: 10px;
+        border-top: 1px solid var(--color-cirrus);
+        span {
+          text-transform: uppercase;
+          white-space: nowrap;
+          flex: 1;
+        }
+      }
+
+      a {
+        padding-left: 15px;
+        padding-right: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-variant: normal;
+        color: var(--color-black);
+        transition: background-color 0.2s, outline-width 0.2s;
+        .expand-results {
+          font-weight: bold;
+        }
+        &.sublinked,
+        &.sublink {
+          display: inline-block;
+          padding-right: 5px;
+        }
+        &.sublink {
+          padding: 3px 4px;
+        }
+        &.query-match {
+          background-color: var(--color-primary-g1);
+        }
+      }
+      .sublink-label {
+        display: inline-block;
+        padding: 3px 0;
+        overflow: hidden;
+      }
+      &:first-child {
+        margin-top: 0;
+        border: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      position: static;
+      margin: 2px 4px;
+    }
+
+    @media (min-width: 480px) {
+      max-height: 600px;
+    }
+  }
+  .glyphicon-search {
+    pointer-events: initial;
+  }
+}
+
+.global-search-header {
+  top: 48px;
+  margin-top: 10px;
+  border-bottom: 1px solid var(--color-alto);
+  h2 {
+    font-weight: 700;
+  }
+}
+
+.keyboard-key {
+  color: var(--color-alert);
+  font-family: monospace;
+  font-weight: bold;
+}

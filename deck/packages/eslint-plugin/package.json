@@ -1,0 +1,53 @@
+{
+  "name": "@spinnaker/eslint-plugin",
+  "version": "3.0.2",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "create-rule": "create-rule.js",
+    "dev": "npm run test:debug",
+    "test": "jest",
+    "test:debug": "node --inspect ./node_modules/.bin/jest --runInBand --watch"
+  },
+  "dependencies": {
+    "lodash": "^4.17.20",
+    "ts-node": "*"
+  },
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.15.0",
+    "@types/eslint": "^7.28.0",
+    "@types/estree": "*",
+    "@types/jest": "^26.0.24",
+    "@types/lodash": "^4.14.165",
+    "@types/node": "^16.4.13",
+    "@typescript-eslint/parser": "^4.29.1",
+    "@typescript-eslint/types": "^4.29.1",
+    "eslint": "^7.32.0",
+    "fast-glob": "^3.2.7",
+    "jest": "^27.0.6",
+    "prettier": "*",
+    "typescript": "^4.3.5"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": "4.4.0",
+    "@typescript-eslint/parser": "4.4.0",
+    "eslint": "7.10.0",
+    "eslint-config-prettier": "6.12.0",
+    "eslint-plugin-react-hooks": "4.1.2"
+  },
+  "peerDevDependencies": [
+    "@typescript-eslint/eslint-plugin",
+    "@typescript-eslint/parser",
+    "eslint",
+    "eslint-config-prettier",
+    "eslint-plugin-react-hooks"
+  ],
+  "jest": {
+    "testPathIgnorePatterns": [
+      "<rootDir>/template"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "attributes": {
+    "accounts": "gce",
+    "cloudProviders": "gce",
+    "createTs": "1519160914577",
+    "dataSources": { "disabled": [], "enabled": ["canaryConfigs", "serverGroups", "loadBalancers", "securityGroups"] },
+    "email": "sbws@google.com",
+    "instancePort": 80,
+    "lastModifiedBy": "anonymous",
+    "name": "compute",
+    "platformHealthOnly": true,
+    "providerSettings": { "gce": { "associatePublicIpAddress": false } },
+    "updateTs": "1544636963981",
+    "user": "[anonymous]"
+  },
+  "clusters": {},
+  "name": "compute"
+}

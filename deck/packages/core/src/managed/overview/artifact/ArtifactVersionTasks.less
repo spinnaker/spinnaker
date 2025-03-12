@@ -1,0 +1,33 @@
+.ArtifactVersionTasks {
+  margin-top: var(--xs-spacing);
+  color: var(--color-dovegray);
+
+  .version-task {
+    display: grid;
+    grid-template-columns: 14px auto;
+    column-gap: 6px;
+    align-items: center;
+
+    & > i {
+      font-size: 14px;
+      margin-top: 4px;
+      align-self: flex-start;
+    }
+
+    .task-runtime {
+      & > i {
+        font-size: 12px;
+        margin-right: var(--xs-spacing);
+      }
+    }
+
+    .retry-task {
+      margin-top: var(--xs-spacing);
+      button {
+        padding: var(~'--2xs-spacing') var(--s-spacing);
+        //   background-color: transparent;
+        //   border-color: var(--color-primary);
+      }
+    }
+  }
+}

@@ -1,0 +1,80 @@
+[
+  {
+    "account": "compute-engine",
+    "application": "compute",
+    "buildInfo": null,
+    "capacity": { "desired": 1, "max": 1, "min": 1 },
+    "cloudProvider": "gce",
+    "cluster": "compute",
+    "createdTime": 1536334904089,
+    "instanceCounts": { "down": 0, "outOfService": 0, "starting": 0, "total": 1, "unknown": 1, "up": 0 },
+    "instanceType": "f1-micro",
+    "instances": [
+      {
+        "availabilityZone": "us-central1-f",
+        "health": [{ "state": "Unknown", "type": "Google" }],
+        "healthState": "Unknown",
+        "id": "compute-v000-f7r0",
+        "launchTime": 1537187888834,
+        "name": "compute-v000-f7r0"
+      }
+    ],
+    "isDisabled": false,
+    "loadBalancers": [],
+    "moniker": { "app": "compute", "cluster": "compute", "detail": null, "sequence": 0, "stack": null },
+    "name": "compute-v000",
+    "providerMetadata": { "networkName": "default" },
+    "region": "us-central1",
+    "securityGroups": [
+      "default-rpeifunzrsxxfwyacvtmctpr",
+      "default-xgvwmqb2xzqu3re4mj5ljnqd",
+      "default-2wnao3jebww7ldrn463stwke",
+      "gke-deathstar-c22e2326-all",
+      "default-pjf5geul3rfwfyd5mynbasya"
+    ],
+    "serverGroupManagers": [],
+    "tags": null,
+    "targetGroups": null,
+    "type": "gce",
+    "vpcId": null
+  },
+  {
+    "account": "gce",
+    "application": "compute",
+    "buildInfo": null,
+    "capacity": { "desired": 1, "max": 1, "min": 1 },
+    "cloudProvider": "gce",
+    "cluster": "compute",
+    "createdTime": 1536334904089,
+    "instanceCounts": { "down": 0, "outOfService": 0, "starting": 0, "total": 1, "unknown": 1, "up": 0 },
+    "instanceType": "f1-micro",
+    "instances": [
+      {
+        "availabilityZone": "us-central1-f",
+        "health": [{ "state": "Unknown", "type": "Google" }],
+        "healthState": "Unknown",
+        "id": "compute-v000-f7r0",
+        "launchTime": 1537187888834,
+        "name": "compute-v000-f7r0"
+      }
+    ],
+    "isDisabled": false,
+    "loadBalancers": [],
+    "moniker": { "app": "compute", "cluster": "compute", "detail": null, "sequence": 0, "stack": null },
+    "name": "compute-v000",
+    "providerMetadata": { "networkName": "default" },
+    "region": "us-central1",
+    "securityGroups": [
+      "gke-deathstar-c22e2326-all",
+      "default-xgvwmqb2xzqu3re4mj5ljnqd",
+      "default-pjf5geul3rfwfyd5mynbasya",
+      "default-2wnao3jebww7ldrn463stwke",
+      "default-rpeifunzrsxxfwyacvtmctpr"
+    ],
+    "serverGroupManagers": [],
+    "tags": null,
+    "targetGroups": null,
+    "type": "gce",
+    "vpcId": null
+  }
+]

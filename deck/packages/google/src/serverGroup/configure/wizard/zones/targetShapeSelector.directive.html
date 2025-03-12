@@ -1,0 +1,13 @@
+<div class="form-group">
+  <div class="col-md-3 sm-label-right"><b>Target Shape</b></div>
+  <div class="col-md-3">
+    <ui-select ng-model="vm.command.distributionPolicy.targetShape" class="form-control input-sm" required>
+      <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+      <ui-select-choices
+        repeat="targetShape in vm.command.backingData.distributionPolicyTargetShapes | filter: $select.search"
+      >
+        <span ng-bind-html="targetShape | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>

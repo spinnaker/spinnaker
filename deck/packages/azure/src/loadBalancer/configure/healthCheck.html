@@ -1,0 +1,74 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-12">
+      <table class="table table-condensed packed" ng-if="!isALB">
+        <thead>
+          <tr>
+            <th width="35%">Protocol</th>
+            <th width="30%">Host</th>
+            <th><span ng-if="ctrl.requiresHealthCheckPath()">Path</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <select
+                class="form-control input-sm"
+                ng-model="loadBalancer.probes[0].probeProtocol"
+                required
+                ng-options="protocol for protocol in ['HTTP']"
+              ></select>
+            </td>
+            <td>
+              <input class="form-control input-sm" type="text" ng-model="loadBalancer.probes[0].probePort" />
+            </td>
+            <td>
+              <input
+                ng-if="ctrl.requiresHealthCheckPath()"
+                class="form-control input-sm"
+                type="text"
+                ng-model="loadBalancer.probes[0].probePath"
+                required
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="table table-condensed packed" ng-if="isALB">
+        <thead>
+          <tr>
+            <th width="35%">Protocol</th>
+            <th width="30%">Port</th>
+            <th><span ng-if="ctrl.requiresHealthCheckPath()">Path</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <select
+                class="form-control input-sm"
+                ng-model="loadBalancer.probes[0].probeProtocol"
+                ng-init="loadBalancer.probes[0].probeProtocol = 'TCP'"
+                required
+                ng-options="protocol for protocol in ['TCP', 'HTTP']"
+              ></select>
+            </td>
+            <td>
+              <input class="form-control input-sm" type="text" ng-model="loadBalancer.probes[0].probePort" />
+            </td>
+            <td>
+              <input
+                ng-if="ctrl.requiresHealthCheckPath()"
+                class="form-control input-sm"
+                type="text"
+                ng-model="loadBalancer.probes[0].probePath"
+                required
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

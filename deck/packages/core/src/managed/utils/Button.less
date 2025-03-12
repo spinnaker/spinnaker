@@ -1,0 +1,56 @@
+// TODO (erik): this is a bunch of custom styles for a button.
+// really it should be a real button component we put somewhere central.
+// for now it's entirely experimental and might totally go away
+// or be replaced.
+@baseColor: rgb(90, 95, 180);
+
+.action-button {
+  color: @baseColor;
+  background-color: transparent;
+  font-size: 14px;
+  border: 1px solid @baseColor;
+  border-radius: 2px;
+  padding: 4px 20px;
+  transition: all 90ms ease-in;
+}
+
+.action-button-primary {
+  background-color: @baseColor;
+  color: var(--color-white);
+}
+
+.action-button:not([disabled]) {
+  cursor: pointer;
+}
+
+.action-button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.66;
+}
+
+.action-button:not([disabled]):hover {
+  background-color: fade(@baseColor, 15%);
+}
+
+.action-button-primary:not([disabled]):hover {
+  background-color: darken(@baseColor, 15%);
+}
+
+.action-button:not([disabled]):focus,
+.action-button:not([disabled]):active {
+  outline: none;
+}
+
+.action-button:not([disabled]):focus {
+}
+
+.action-button:not([disabled]):active {
+  box-shadow: none !important;
+  background-color: fade(@baseColor, 80%);
+  color: var(--color-white);
+}
+
+.action-button-primary:not([disabled]):active {
+  background-color: fade(@baseColor, 20%);
+  color: @baseColor;
+}

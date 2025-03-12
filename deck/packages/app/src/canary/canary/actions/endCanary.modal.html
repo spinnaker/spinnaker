@@ -1,0 +1,50 @@
+<div modal-page>
+  <form role="form">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h4 class="modal-title">End Canary</h4>
+    </div>
+    <div class="modal-body container-fluid">
+      <div class="form-group">
+        <label>Set result to</label>
+        <select class="form-control input-sm" ng-model="command.result">
+          <option value="SUCCESS">SUCCESS</option>
+          <option value="FAILURE">FAILURE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Reason for ending canary</label>
+        <textarea class="form-control" rows="4" ng-model="command.reason"></textarea>
+      </div>
+      <div class="form-group" ng-if="state === 'success'" style="margin-top: 30px">
+        <uib-alert type="success">
+          <p>
+            <span class="far fa-check-circle"></span>
+            Successfully requested canary completion
+          </p>
+        </uib-alert>
+      </div>
+      <div class="form-group" ng-if="state === 'error'" style="margin-top: 30px">
+        <uib-alert type="danger">
+          <p>There was an error with this request. Please try again later.</p>
+        </uib-alert>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="ctrl.cancel()">
+        <span ng-if="state !== 'success'">Cancel</span>
+        <span ng-if="state === 'success'">Close</span>
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-if="state !== 'success'"
+        ng-click="ctrl.endCanary()"
+        ng-disabled="state === 'submitting' || !command.reason"
+      >
+        <loading-spinner ng-if="state === 'submitting'"></loading-spinner>
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

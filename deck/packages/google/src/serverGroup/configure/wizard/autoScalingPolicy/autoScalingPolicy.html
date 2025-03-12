@@ -1,0 +1,20 @@
+<ng-form name="autoScalingPolicySubForm">
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      <b>Enable Autoscaling</b>
+    </div>
+    <div class="col-md-6 checkbox">
+      <label>
+        <input type="checkbox" ng-model="command.enableAutoScaling" ng-change="ctrl.onEnableAutoScalingChange()" />
+      </label>
+    </div>
+  </div>
+  <div>
+    <gce-auto-scaling-policy-Selector-Component
+      ng-if="command.enableAutoScaling"
+      enabled="command.enableAutoScaling"
+      auto-scaling-policy="command.autoscalingPolicy"
+      set-auto-scaling-policy="ctrl.setAutoScalingPolicy(autoscalingPolicy)"
+    ></gce-auto-scaling-policy-Selector-Component>
+  </div>
+</ng-form>

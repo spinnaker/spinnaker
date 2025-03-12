@@ -1,0 +1,50 @@
+@import 'bootstrap/less/mixins/clearfix.less';
+
+.multiple-instance-types-subsection {
+  a.subsection-heading {
+    color: var(--color-black);
+  }
+
+  h4.collapsible-subheading {
+    padding: 10px 0px;
+    background-color: var(--color-alabaster);
+    margin: 0;
+
+    .glyphicon {
+      font-size: 10px;
+      opacity: 0.5;
+      margin-right: 4px;
+    }
+
+    font-size: 103%;
+    font-weight: 600;
+    text-transform: none;
+  }
+
+  .content-body {
+    .fade-in(0.15);
+    .clearfix;
+    padding-left: 17px;
+    margin: 10px 0 20px 0;
+
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+  }
+
+  padding: 0;
+
+  &:last-child {
+    border-bottom-width: 0;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  .fade-in(@duration:0.25s; @delay: 0) {
+    animation: @duration ease-in @delay fadeIn;
+    animation-iteration-count: 1;
+  }
+}

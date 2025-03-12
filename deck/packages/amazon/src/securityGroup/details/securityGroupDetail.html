@@ -1,0 +1,114 @@
+<div class="text-center" ng-if="state.notFound">
+  <h3>Could not find <firewall-label label="firewall"></firewall-label> {{group}}.</h3>
+  <a ui-sref="home.infrastructure">Back to search results</a>
+</div>
+<div class="details-panel" ng-if="!state.notFound">
+  <div class="header">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div ng-if="state.loading" class="horizontal center middle">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
+    <div class="header-text horizontal middle" ng-if="!state.loading">
+      <span class="glyphicon glyphicon-transfer"></span>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{securityGroup.name || '(not found)'}}
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            entity="securityGroup"
+            application="ctrl.application"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="securityGroup"
+            page-location="details"
+            on-update="ctrl.application.securityGroups.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
+      </h3>
+    </div>
+    <div class="actions" ng-hide="isDisabled">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
+          <firewall-label label="Firewall"></firewall-label> Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li><a href ng-click="ctrl.editInboundRules()">Edit Inbound Rules</a></li>
+          <li>
+            <a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.cloneSecurityGroup()">Clone <firewall-label label="Firewall"></firewall-label></a>
+          </li>
+          <render-if-feature feature="entityTags">
+            <add-entity-tag-links
+              component="securityGroup"
+              application="ctrl.application"
+              entity-type="securityGroup"
+              on-update="ctrl.application.securityGroups.refresh"
+            ></add-entity-tag-links>
+          </render-if-feature>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <managed-resource-details-indicator
+    ng-if="!state.loading && securityGroup.isManaged"
+    resource-summary="securityGroup.managedResourceSummary"
+    application="ctrl.application"
+  >
+  </managed-resource-details-indicator>
+  <div class="content" ng-if="!state.loading">
+    <collapsible-section heading="{{ctrl.firewallLabel}} Details" expanded="true">
+      <dl class="dl-horizontal dl-medium">
+        <dt>ID</dt>
+        <dd>{{securityGroup.id}}</dd>
+        <dt>Account</dt>
+        <dd>
+          <account-tag account="securityGroup.accountName"></account-tag>
+        </dd>
+        <dt>Region</dt>
+        <dd>{{securityGroup.region}}</dd>
+        <dt>VPC</dt>
+        <dd>
+          <vpc-tag vpc-id="securityGroup.vpcId"></vpc-tag>
+        </dd>
+        <dt>Description</dt>
+        <dd>{{securityGroup.description}}</dd>
+      </dl>
+    </collapsible-section>
+    <ip-range-rules ip-rules="ipRules"></ip-range-rules>
+    <collapsible-section
+      heading="{{ctrl.firewallLabel}} Rules ({{securityGroupRules.length || 0}})"
+      expanded="{{securityGroupRules.length > 0}}"
+    >
+      <div ng-if="!securityGroupRules.length">None</div>
+
+      <dl
+        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+        ng-repeat="rule in securityGroupRules | orderBy: 'securityGroup.name' "
+      >
+        <dt>
+          <firewall-label label="Firewall"></firewall-label>
+        </dt>
+        <dd ng-if="rule.securityGroup.name">
+          <a
+            ui-sref="^.firewallDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'aws'})"
+          >
+            <account-tag
+              account="rule.securityGroup.accountName || rule.securityGroup.accountId"
+              ng-if="rule.securityGroup.accountName !== securityGroup.accountName"
+            ></account-tag>
+            {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
+          </a>
+        </dd>
+        <dt>Port Ranges</dt>
+        <dd ng-repeat="portRange in rule.rules">
+          {{portRange.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
+        </dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

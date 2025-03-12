@@ -1,0 +1,177 @@
+{
+  "asg": { "desiredCapacity": 1, "maxSize": 1, "minSize": 1 },
+  "canIpForward": false,
+  "capacity": { "desired": 1, "max": 1, "min": 1 },
+  "cloudProvider": "gce",
+  "createdTime": 1536334904089,
+  "currentActions": {
+    "abandoning": 0,
+    "creating": 0,
+    "creatingWithoutRetries": 0,
+    "deleting": 0,
+    "none": 1,
+    "recreating": 0,
+    "refreshing": 0,
+    "restarting": 0,
+    "verifying": 0
+  },
+  "disabled": false,
+  "discovery": false,
+  "insightActions": [],
+  "instanceCounts": { "down": 0, "outOfService": 0, "starting": 0, "total": 1, "unknown": 1, "up": 0 },
+  "instanceTemplateLabels": { "spinnaker-region": "us-central1", "spinnaker-server-group": "compute-v000" },
+  "instanceTemplateTags": [],
+  "instances": [
+    {
+      "cloudProvider": "gce",
+      "consulNode": null,
+      "cpuPlatform": "Intel Ivy Bridge",
+      "disks": [
+        {
+          "autoDelete": true,
+          "boot": true,
+          "deviceName": "persistent-disk-0",
+          "index": 0,
+          "interface": "SCSI",
+          "kind": "compute#attachedDisk",
+          "licenses": ["https://compute.googleapis.com/compute/beta/projects/centos-cloud/global/licenses/centos-6"],
+          "mode": "READ_WRITE",
+          "source": "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/zones/us-central1-f/disks/compute-v000-f7r0",
+          "type": "PERSISTENT"
+        }
+      ],
+      "gceId": "7927534192038125250",
+      "health": [{ "healthClass": "platform", "state": "Unknown", "type": "Google" }],
+      "healthState": "Unknown",
+      "humanReadableName": "compute-v000-f7r0",
+      "instanceId": "compute-v000-f7r0",
+      "instanceType": "f1-micro",
+      "labels": { "spinnaker-region": "us-central1", "spinnaker-server-group": "compute-v000" },
+      "launchTime": 1537187888834,
+      "metadata": {
+        "fingerprint": "Rm0rlC3G6xo=",
+        "items": [
+          {
+            "key": "instance-template",
+            "value": "projects/564945042514/global/instanceTemplates/compute-v000-1536334900361"
+          },
+          {
+            "key": "created-by",
+            "value": "projects/564945042514/zones/us-central1-f/instanceGroupManagers/compute-v000"
+          }
+        ],
+        "kind": "compute#metadata"
+      },
+      "name": "compute-v000-f7r0",
+      "networkInterfaces": [
+        {
+          "fingerprint": "jwf_WH3KfIQ=",
+          "kind": "compute#networkInterface",
+          "name": "nic0",
+          "network": "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/global/networks/default",
+          "networkIP": "10.128.0.5",
+          "subnetwork": "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/regions/us-central1/subnetworks/default"
+        }
+      ],
+      "placement": { "availabilityZone": "us-central1-f" },
+      "providerType": "gce",
+      "region": "us-central1",
+      "securityGroups": [
+        { "groupId": "default-rpeifunzrsxxfwyacvtmctpr", "groupName": "default-rpeifunzrsxxfwyacvtmctpr" },
+        { "groupId": "default-xgvwmqb2xzqu3re4mj5ljnqd", "groupName": "default-xgvwmqb2xzqu3re4mj5ljnqd" },
+        { "groupId": "default-2wnao3jebww7ldrn463stwke", "groupName": "default-2wnao3jebww7ldrn463stwke" },
+        { "groupId": "gke-deathstar-c22e2326-all", "groupName": "gke-deathstar-c22e2326-all" },
+        { "groupId": "default-pjf5geul3rfwfyd5mynbasya", "groupName": "default-pjf5geul3rfwfyd5mynbasya" }
+      ],
+      "selfLink": "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/zones/us-central1-f/instances/compute-v000-f7r0",
+      "serverGroup": "compute-v000",
+      "serviceAccounts": [
+        {
+          "email": "564945042514-compute@developer.gserviceaccount.com",
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
+            "https://www.googleapis.com/auth/devstorage.read_only",
+            "https://www.googleapis.com/auth/logging.write",
+            "https://www.googleapis.com/auth/monitoring.write"
+          ]
+        }
+      ],
+      "tags": { "fingerprint": "42WmSpB8rSM=" },
+      "zone": "us-central1-f"
+    }
+  ],
+  "launchConfig": {
+    "createdTime": 1536334904089,
+    "imageId": "centos-6-v20180815",
+    "instanceTemplate": {
+      "creationTimestamp": "2018-09-07T08:41:41.477-07:00",
+      "description": "",
+      "id": 1196035088639271642,
+      "kind": "compute#instanceTemplate",
+      "name": "compute-v000-1536334900361",
+      "properties": {
+        "canIpForward": false,
+        "disks": [
+          {
+            "autoDelete": true,
+            "boot": true,
+            "deviceName": "persistent-disk-0",
+            "index": 0,
+            "initializeParams": {
+              "diskSizeGb": 10,
+              "diskType": "pd-standard",
+              "sourceImage": "https://compute.googleapis.com/compute/beta/projects/centos-cloud/global/images/centos-6-v20180815"
+            },
+            "kind": "compute#attachedDisk",
+            "mode": "READ_WRITE",
+            "type": "PERSISTENT"
+          }
+        ],
+        "labels": { "spinnaker-region": "us-central1", "spinnaker-server-group": "compute-v000" },
+        "machineType": "f1-micro",
+        "metadata": { "fingerprint": "xDx3ErLFX80=", "kind": "compute#metadata" },
+        "networkInterfaces": [
+          {
+            "kind": "compute#networkInterface",
+            "network": "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/global/networks/default"
+          }
+        ],
+        "scheduling": { "automaticRestart": true, "onHostMaintenance": "MIGRATE", "preemptible": false },
+        "serviceAccounts": [
+          {
+            "email": "default",
+            "scopes": [
+              "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
+              "https://www.googleapis.com/auth/devstorage.read_only",
+              "https://www.googleapis.com/auth/logging.write",
+              "https://www.googleapis.com/auth/monitoring.write"
+            ]
+          }
+        ]
+      },
+      "selfLink": "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/global/instanceTemplates/compute-v000-1536334900361"
+    },
+    "instanceType": "f1-micro",
+    "launchConfigurationName": "compute-v000-1536334900361"
+  },
+  "loadBalancers": [],
+  "moniker": { "app": "compute", "cluster": "compute", "detail": null, "sequence": 0, "stack": null },
+  "name": "compute-v000",
+  "namedPorts": {},
+  "networkName": "default",
+  "providerMetadata": { "networkName": "default" },
+  "region": "us-central1",
+  "regional": false,
+  "securityGroups": [
+    "default-rpeifunzrsxxfwyacvtmctpr",
+    "default-xgvwmqb2xzqu3re4mj5ljnqd",
+    "default-2wnao3jebww7ldrn463stwke",
+    "gke-deathstar-c22e2326-all",
+    "default-pjf5geul3rfwfyd5mynbasya"
+  ],
+  "selfLink": "https://compute.googleapis.com/compute/beta/projects/hebridean-sun/zones/us-central1-f/instanceGroupManagers/compute-v000",
+  "serverGroupManagers": [],
+  "type": "gce",
+  "zone": "us-central1-f",
+  "zones": ["us-central1-f"]
+}

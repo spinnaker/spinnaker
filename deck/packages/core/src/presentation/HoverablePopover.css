@@ -1,0 +1,4 @@
+.HoverablePopover {
+  display: inline;
+  text-decoration: dotted underline var(--color-dovegray);
+}

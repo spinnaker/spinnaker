@@ -1,0 +1,39 @@
+<div class="details-panel">
+  <div class="header">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="glyphicon glyphicon-th {{vm.healthState}}"></span>
+      <h3>{{vm.serverGroups.length}} Server Group<span ng-if="vm.serverGroups.length !== 1">s</span></h3>
+    </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary dropdown-toggle"
+            ng-disabled="disabled"
+            ng-hide="isDisabled"
+            uib-dropdown-toggle
+          >
+            Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-click="vm.destroyServerGroups()">Destroy</a></li>
+            <li><a href ng-click="vm.disableServerGroups()" ng-if="vm.canDisable()">Disable</a></li>
+            <li><a href ng-click="vm.enableServerGroups()" ng-if="vm.canEnable()">Enable</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="content">
+    <multiple-server-group
+      ng-repeat="serverGroup in vm.serverGroups"
+      server-group="serverGroup"
+    ></multiple-server-group>
+  </div>
+</div>

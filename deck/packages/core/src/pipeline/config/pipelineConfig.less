@@ -1,0 +1,229 @@
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+.stage-choice {
+  .ui-select-highlight {
+    text-decoration: underline;
+  }
+}
+.stage-choice-heading {
+  display: flex;
+  strong {
+    flex: 1 1 auto;
+  }
+  .available-providers {
+    flex: 1 1 auto;
+    text-align: right;
+  }
+}
+
+pipeline-configurer {
+  margin-top: 15px;
+  display: block;
+  background-color: transparent;
+
+  .band {
+    margin: 0;
+  }
+
+  .pipeline-config-heading {
+    margin-left: -15px;
+    margin-right: -15px;
+    border: 1px solid var(--color-alto);
+    background-color: var(--color-white);
+    margin-bottom: 15px;
+    .config-heading-row {
+      padding: 10px;
+      display: flex;
+      h3 {
+        margin: 0;
+        display: inline-block;
+        flex: 1 1 auto;
+      }
+      .config-heading-actions {
+        flex: 1 1 auto;
+        display: inline-block;
+        text-align: right;
+      }
+      border-bottom: 1px solid var(--color-alto);
+    }
+    .config-heading-body {
+      padding: 15px;
+      .add-new {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  pipeline-config-view {
+    display: block;
+    margin-left: -15px;
+    margin-right: -15px;
+    padding-bottom: 60px;
+    h4 {
+      font-weight: 600;
+    }
+    .glyphicon.glyphicon-resize-vertical {
+      padding-top: 3px;
+    }
+    .condensed-actions {
+      a.btn-link {
+        padding: 0;
+      }
+    }
+  }
+
+  .pipeline-stage-config-heading {
+    margin-bottom: 15px;
+    padding: 10px 0 0 10px;
+    h4 {
+      margin: 0;
+      font-weight: 600;
+    }
+    .select2-container-multi {
+      box-shadow: none;
+      .select2-choices {
+        background-color: transparent;
+      }
+    }
+  }
+
+  .pipeline-stage-config-heading p {
+    margin-bottom: 0;
+  }
+
+  .stage-details {
+    background-color: var(--color-white);
+  }
+
+  .pipeline-actions,
+  .create-action,
+  .permalink {
+    display: inline-block;
+  }
+
+  .permalink {
+    margin-right: 30px;
+    font-size: 80%;
+    line-height: 30px;
+  }
+}
+
+triggers,
+.triggers {
+  .add-new {
+    margin: 0;
+  }
+  h4 {
+    font-weight: 600;
+    margin-top: 25px;
+    margin-bottom: 10px;
+  }
+  trigger,
+  expected-artifact,
+  .trigger-config {
+    display: block;
+    padding: 10px 20px;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-cirrus);
+    margin-bottom: 15px;
+  }
+}
+
+.expected-artifact {
+  display: block;
+  padding: 10px 20px;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-cirrus);
+  margin-bottom: 15px;
+}
+
+.config-section {
+  padding: 0;
+  display: inline-block;
+
+  &:last-child {
+    border-right-width: 0;
+  }
+
+  a,
+  h4 {
+    display: inline-block;
+    padding-left: 15px;
+  }
+  .add-new {
+    margin: 0;
+    padding: 7px;
+  }
+  a {
+    padding: 5px 15px;
+  }
+  h4 {
+    background-color: transparent;
+    padding-right: 5px;
+    vertical-align: middle;
+    height: 32px;
+    line-height: 32px;
+  }
+}
+
+.panel-pipeline-phase {
+  margin-bottom: 15px;
+  &.no-border {
+    border-width: 0;
+  }
+  .select2-result-label {
+    h5 {
+      margin: 5px 0 0 0;
+    }
+  }
+}
+
+.pipeline-graph-container {
+  position: relative;
+  overflow-x: hidden;
+  &::before,
+  &::after {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 12px;
+    content: ' ';
+    z-index: 2;
+  }
+  &::before {
+    left: 0;
+    box-shadow: inset 5px 0 7px var(--color-white);
+  }
+  &::after {
+    right: 0;
+    box-shadow: inset -5px 0 7px var(--color-white);
+  }
+}
+
+parameter,
+.parameter-config {
+  display: block;
+  background-color: var(--color-white);
+  margin-bottom: 10px;
+  border: 1px solid var(--color-cirrus);
+  .name-field {
+    padding-bottom: 10px;
+    margin: 10px 0;
+    border-bottom: 1px solid var(--color-alto);
+    .sm-label-right {
+      margin-left: -8px;
+    }
+    .glyphicon-resize-vertical {
+      padding-top: 7px;
+    }
+  }
+}
+
+.templated-pipeline-item {
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.templated-pipeline-item__status {
+  pointer-events: auto;
+}

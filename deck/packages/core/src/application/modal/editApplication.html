@@ -1,0 +1,262 @@
+<div class="modal-page">
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h4 class="modal-title">{{editApp.isNew ? "Create" : "Edit"}} Application</h4>
+  </div>
+
+  <form role="form" class="container-fluid" novalidate name="editApplicationForm">
+    <div class="modal-body">
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Name</div>
+        <div class="col-sm-9">
+          <p class="form-control-static">{{editApp.applicationAttributes.name}}</p>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Owner Email *</div>
+        <div class="col-sm-9">
+          <input
+            type="email"
+            name="email"
+            ng-class="{'ng-invalid ng-dirty':editApp.emailErrorMsg.length > 0 }"
+            class="form-control input-sm"
+            data-purpose="application-email"
+            ng-model="editApp.applicationAttributes.email"
+            placeholder="Enter an email address"
+            required
+          />
+        </div>
+      </div>
+
+      <div
+        class="form-group row slide-in"
+        ng-if="editApplicationForm.email.$dirty && editApplicationForm.email.$invalid"
+      >
+        <div class="col-sm-9 col-sm-offset-3 error-message">
+          <span>Please enter a valid email address</span>
+        </div>
+      </div>
+
+      <div class="form-group row slide-in" ng-if="editApp.emailErrorMsg">
+        <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in editApp.emailErrorMsg">
+          {{errorMsg}}
+          <small
+            ><span
+              class="glyphicon glyphicon-remove"
+              ng-click="editApp.clearEmailMsg()"
+              style="cursor: pointer; padding-left: 10px"
+            ></span
+          ></small>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-md-3 sm-label-right">Alias(es)</div>
+        <div class="col-md-9">
+          <input
+            class="form-control input-sm"
+            type="text"
+            placeholder="List of aliases"
+            ng-model="editApp.applicationAttributes.aliases"
+          />
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Repo Type</div>
+        <div class="col-sm-9">
+          <select
+            class="form-control input-sm"
+            ng-options="repoType for repoType in editApp.data.gitSources"
+            ng-model="editApp.applicationAttributes.repoType"
+          >
+            <option value="">Select Repo Type</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group row" ng-if="editApp.applicationAttributes.repoType">
+        <div class="col-sm-3 sm-label-right">Repo Project</div>
+        <div class="col-sm-9">
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="editApp.applicationAttributes.repoProjectKey"
+            placeholder="Enter your source repository project name"
+          />
+        </div>
+      </div>
+      <div class="form-group row" ng-if="editApp.applicationAttributes.repoType">
+        <div class="col-sm-3 sm-label-right">Repo Name</div>
+        <div class="col-sm-9">
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="editApp.applicationAttributes.repoSlug"
+            placeholder="Enter your source repository name (not the url)"
+            pattern="^((?!:\/\/).)*$"
+            name="repoSlug"
+          />
+        </div>
+      </div>
+
+      <div class="form-group row slide-in" ng-messages="editApplicationForm.repoSlug.$error">
+        <div class="col-sm-9 col-sm-offset-3 error-message" ng-message="pattern">
+          Enter your source repository name (not the URL).
+        </div>
+      </div>
+
+      <render-if-feature feature="pagerDuty">
+        <pager-duty-select-field component="editApp.applicationAttributes"></pager-duty-select-field>
+      </render-if-feature>
+
+      <render-if-feature feature="slack">
+        <slack-channel-selector
+          channel="editApp.applicationAttributes.slackChannel"
+          callback="editApp.setAttribute"
+        ></slack-channel-selector>
+      </render-if-feature>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Description</div>
+        <div class="col-sm-9">
+          <textarea
+            class="form-control input-sm"
+            ng-model="editApp.applicationAttributes.description"
+            placeholder="Enter a description"
+            data-purpose="application-description"
+          >
+          </textarea>
+        </div>
+      </div>
+
+      <div class="form-group row" ng-if="editApp.data.cloudProviders.length > 1">
+        <div class="col-md-3 sm-label-right">Cloud Provider</div>
+        <div class="col-md-9">
+          <ui-select multiple ng-model="editApp.applicationAttributes.cloudProviders" class="form-control input-sm">
+            <ui-select-match> {{$item}} </ui-select-match>
+            <ui-select-choices repeat="provider in editApp.data.cloudProviders | filter: $select.search">
+              {{provider}}
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+
+      <application-provider-fields
+        cloud-providers="editApp.data.cloudProviders"
+        application="editApp.applicationAttributes"
+      >
+      </application-provider-fields>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Instance Health</div>
+        <div class="col-sm-9 sm-control-field checkbox">
+          <label>
+            <input
+              type="checkbox"
+              ng-model="editApp.applicationAttributes.platformHealthOnly"
+              ng-click="editApp.updateCloudProviderHealthWarning(false)"
+            />
+            Consider only cloud provider health when executing tasks
+            <help-field key="application.platformHealthOnly"></help-field>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-9 col-sm-offset-3 sm-control-field checkbox">
+          <label>
+            <input
+              type="checkbox"
+              ng-model="editApp.applicationAttributes.platformHealthOnlyShowOverride"
+              ng-click="editApp.updateCloudProviderHealthWarning(true)"
+            />
+            Show health override option for each operation
+            <help-field key="application.showPlatformHealthOverride"></help-field>
+          </label>
+        </div>
+      </div>
+
+      <div class="col-md-12" ng-if="editApp.data.showOverrideWarning">
+        <div class="alert alert-warning">
+          <p>
+            <i class="fa fa-exclamation-triangle"></i>
+            {{editApp.data.showOverrideWarning}}
+          </p>
+          <p class="text-right">
+            <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="editApp.data.showOverrideWarning = null"
+              >Okay</a
+            >
+          </p>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">
+          Instance Port
+          <help-field key="application.instance.port"></help-field>
+        </div>
+        <div class="col-sm-2">
+          <input
+            type="number"
+            min="0"
+            max="65536"
+            class="form-control input-sm"
+            ng-model="editApp.applicationAttributes.instancePort"
+            name="instancePort"
+          />
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Pipeline Behavior</div>
+        <div class="col-sm-9 sm-control-field checkbox">
+          <label>
+            <input type="checkbox" ng-model="editApp.applicationAttributes.enableRestartRunningExecutions" />
+            Enable restarting running pipelines
+          </label>
+          <help-field key="application.enableRestartRunningExecutions"></help-field>
+          <label>
+            <input type="checkbox" ng-model="editApp.applicationAttributes.enableRerunActiveExecutions" />
+            Enable re-run button on active pipelines
+          </label>
+          <help-field key="application.enableRerunActiveExecutions"></help-field>
+        </div>
+      </div>
+
+      <render-if-feature feature="fiatEnabled">
+        <div class="form-group row">
+          <div class="col-sm-3 sm-label-right">Permissions <help-field key="application.permissions"></help-field></div>
+          <div class="col-sm-9">
+            <permissions-configurer
+              permissions="editApp.applicationAttributes.permissions"
+              on-permissions-change="editApp.handlePermissionsChange"
+              required-group-membership="editApp.applicationAttributes.requiredGroupMembership"
+            >
+            </permissions-configurer>
+          </div>
+        </div>
+      </render-if-feature>
+
+      <div class="form-group row slide-in" ng-if="editApp.errorMsgs">
+        <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in editApp.errorMsgs">{{errorMsg}}</div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-md-12">
+          <em>* Required</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
+      <submit-button
+        is-new="editApp.isNew"
+        is-disabled="!editApplicationForm.$valid || editApp.state.submitting || editApp.data.showOverrideWarning || editApp.state.permissionsInvalid"
+        submitting="editApp.state.submitting"
+        on-click="editApp.submit()"
+      ></submit-button>
+    </div>
+  </form>
+</div>

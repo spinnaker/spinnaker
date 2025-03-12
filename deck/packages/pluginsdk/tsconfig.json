@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.tools.base.json",
+  "exclude": ["scaffold", "dist"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true
+  }
+}

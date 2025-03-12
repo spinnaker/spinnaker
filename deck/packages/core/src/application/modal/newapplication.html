@@ -1,0 +1,287 @@
+<div class="modal-page">
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h4 class="modal-title">New Application</h4>
+  </div>
+  <div ng-if="newAppModal.state.initializing" style="height: 200px">
+    <loading-spinner size="'medium'"></loading-spinner>
+  </div>
+  <div ng-if="newAppModal.state.initializeFailed" style="...">
+    <div
+      class="horizontal middle center heading-4"
+      style="padding-left: 15px; padding-right: 15px; margin-bottom: 250px; height: 150px"
+    >
+      <i class="fa fa-exclamation-triangle" style="padding-right: 8px"></i>
+      <span>
+        Error initializing dialog. Check that your gate endpoint is accessible. Further information on troubleshooting
+        this error is available <a href="https://www.spinnaker.io/setup/quickstart/faq/">here</a>.
+      </span>
+    </div>
+  </div>
+  <form
+    role="form"
+    class="container-fluid"
+    novalidate
+    name="newApplicationForm"
+    ng-if="!(newAppModal.state.initializing || newAppModal.state.initializeFailed)"
+  >
+    <div class="modal-body">
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Name *</div>
+        <div class="col-sm-9">
+          <input
+            type="text"
+            autofocus
+            name="name"
+            class="form-control input-sm"
+            data-purpose="application-name"
+            ng-model="newAppModal.application.name"
+            placeholder="Enter an application name"
+            validate-unique="newAppModal.data.appNameList"
+            ng-model-options="{allowInvalid: true}"
+            validate-application-name
+            cloud-providers="newAppModal.application.cloudProviders"
+            required
+          />
+        </div>
+      </div>
+
+      <application-name-validation-messages
+        name="newAppModal.application.name"
+        cloud-providers="newAppModal.application.cloudProviders"
+      ></application-name-validation-messages>
+
+      <div class="form-group row slide-in" ng-if="newApplicationForm.name.$error.validateUnique">
+        <div class="col-sm-9 col-sm-offset-3 error-message">
+          <span>Application name must be unique.</span>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Owner Email *</div>
+        <div class="col-sm-9">
+          <input
+            type="email"
+            name="email"
+            class="form-control input-sm"
+            data-purpose="application-email"
+            ng-model="newAppModal.application.email"
+            placeholder="Enter an email address"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group row slide-in" ng-if="newApplicationForm.email.$dirty && newApplicationForm.email.$invalid">
+        <div class="col-sm-9 col-sm-offset-3 error-message">
+          <span>Please enter a valid email address</span>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Repo Type</div>
+        <div class="col-sm-9">
+          <select
+            class="form-control input-sm"
+            ng-options="repoType for repoType in newAppModal.data.gitSources"
+            ng-model="newAppModal.application.repoType"
+          >
+            <option value="">Select Repo Type</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group row" ng-if="newAppModal.application.repoType">
+        <div class="col-sm-3 sm-label-right">Repo Project</div>
+        <div class="col-sm-9">
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="newAppModal.application.repoProjectKey"
+            placeholder="Enter your source repository project name"
+          />
+        </div>
+      </div>
+      <div class="form-group row" ng-if="newAppModal.application.repoType">
+        <div class="col-sm-3 sm-label-right">Repo Name</div>
+        <div class="col-sm-9">
+          <input
+            type="text"
+            class="form-control input-sm"
+            ng-model="newAppModal.application.repoSlug"
+            placeholder="Enter your source repository name (not the URL)"
+            pattern="^((?!:\/\/).)*$"
+            name="repoSlug"
+          />
+        </div>
+      </div>
+
+      <div class="form-group row slide-in" ng-messages="newApplicationForm.repoSlug.$error">
+        <div class="col-sm-9 col-sm-offset-3 error-message" ng-message="pattern">
+          Enter your source repository name (not the URL).
+        </div>
+      </div>
+
+      <chaos-monkey-new-application-config
+        application-config="newAppModal.application"
+      ></chaos-monkey-new-application-config>
+
+      <render-if-feature feature="pagerDuty">
+        <pager-duty-select-field component="newAppModal.application"></pager-duty-select-field>
+      </render-if-feature>
+
+      <render-if-feature feature="slack">
+        <slack-channel-selector
+          channel="newAppModal.application.slackChannel"
+          callback="newAppModal.setAttribute"
+        ></slack-channel-selector>
+      </render-if-feature>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Description</div>
+        <div class="col-sm-9">
+          <textarea
+            class="form-control input-sm"
+            ng-model="newAppModal.application.description"
+            placeholder="Enter a description"
+            data-purpose="application-description"
+          >
+          </textarea>
+        </div>
+      </div>
+
+      <div class="form-group row" ng-if="newAppModal.data.cloudProviders.length > 1">
+        <div class="col-md-3 sm-label-right">Cloud Providers</div>
+        <div class="col-md-5">
+          <ui-select multiple ng-model="newAppModal.application.cloudProviders" class="form-control input-sm">
+            <ui-select-match> {{$item}} </ui-select-match>
+            <ui-select-choices repeat="provider in newAppModal.data.cloudProviders | filter: $select.search">
+              {{provider}}
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+
+      <application-provider-fields
+        cloud-providers="newAppModal.data.cloudProviders"
+        application="newAppModal.application"
+      >
+      </application-provider-fields>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Instance Health</div>
+        <div class="col-sm-9 sm-control-field checkbox">
+          <label>
+            <input type="checkbox" ng-model="newAppModal.application.platformHealthOnly" />
+            Consider only cloud provider health when executing tasks
+            <help-field key="application.platformHealthOnly"></help-field>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right"></div>
+        <div class="col-sm-9 sm-control-field checkbox">
+          <label>
+            <input
+              type="checkbox"
+              ng-model="newAppModal.application.platformHealthOnlyShowOverride"
+              ng-click="newAppModal.updateCloudProviderHealthWarning()"
+            />
+            Show health override option for each operation
+            <help-field key="application.showPlatformHealthOverride"></help-field>
+          </label>
+        </div>
+      </div>
+
+      <div class="col-md-12" ng-if="newAppModal.data.showOverrideWarning">
+        <div class="alert alert-warning">
+          <p>
+            <i class="fa fa-exclamation-triangle"></i>
+            {{newAppModal.data.showOverrideWarning}}
+          </p>
+          <p class="text-right">
+            <a
+              class="btn btn-sm btn-default dirty-flag-dismiss"
+              href
+              ng-click="newAppModal.data.showOverrideWarning = null"
+              >Okay</a
+            >
+          </p>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">
+          Instance Port
+          <help-field key="application.instance.port"></help-field>
+        </div>
+        <div class="col-sm-2">
+          <input
+            type="number"
+            min="0"
+            max="65536"
+            class="form-control input-sm"
+            ng-model="newAppModal.application.instancePort"
+            name="instancePort"
+          />
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Pipeline Behavior</div>
+        <div class="col-sm-9 sm-control-field checkbox">
+          <label>
+            <input type="checkbox" ng-model="editApp.applicationAttributes.enableRestartRunningExecutions" />
+            Enable restarting running pipelines
+          </label>
+          <help-field key="application.enableRestartRunningExecutions"></help-field>
+          <label>
+            <input type="checkbox" ng-model="editApp.applicationAttributes.enableRerunActiveExecutions" />
+            Enable re-run button on active pipelines
+          </label>
+          <help-field key="application.enableRerunActiveExecutions"></help-field>
+        </div>
+      </div>
+
+      <render-if-feature feature="fiatEnabled">
+        <div class="form-group row">
+          <div class="col-sm-3 sm-label-right">Permissions <help-field key="application.permissions"></help-field></div>
+          <div class="col-sm-9">
+            <permissions-configurer
+              permissions="newAppModal.application.permissions"
+              on-permissions-change="newAppModal.handlePermissionsChange"
+              required-group-membership="newAppModal.application.requiredGroupMembership"
+            >
+            </permissions-configurer>
+          </div>
+        </div>
+      </render-if-feature>
+
+      <div class="form-group row slide-in" ng-if="newAppModal.state.errorMessages.length">
+        <div class="col-md-12">
+          <div class="alert alert-danger">
+            <div ng-repeat="errorMessage in newAppModal.state.errorMessages">
+              <status-glyph item="{isFailed: true}"></status-glyph> {{errorMessage}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-md-12">
+          <em>* Required</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
+      <submit-button
+        is-new="true"
+        is-disabled="newApplicationForm.$invalid || newAppModal.state.submitting || newAppModal.data.showOverrideWarning || newAppModal.state.permissionsInvalid"
+        submitting="newAppModal.state.submitting"
+        on-click="newAppModal.submit()"
+      ></submit-button>
+    </div>
+  </form>
+</div>

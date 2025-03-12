@@ -1,0 +1,42 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="ctrl.taskMonitor"></task-monitor>
+  <form role="form" name="deleteForm">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h4 class="modal-title">Delete {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}</h4>
+    </div>
+    <div ng-if="ctrl.manifestController">
+      <div class="alert alert-warning">
+        Manifest is controlled by
+        <a
+          ui-sref="^.serverGroupManager({
+                      accountId: ctrl.command.account,
+                      region: ctrl.command.location,
+                      serverGroupManager: ctrl.manifestController,
+                      provider: 'kubernetes'})"
+        >
+          {{ctrl.manifestController | robotToHuman }}
+        </a>
+        and may be recreated after deletion.
+      </div>
+    </div>
+    <div class="modal-body confirmation-modal">
+      <kubernetes-delete-manifest-options-form options="ctrl.command.options"></kubernetes-delete-manifest-options-form>
+      <task-reason command="ctrl.command"></task-reason>
+    </div>
+    <div class="modal-footer">
+      <user-verification account="ctrl.command.account" verification="ctrl.verification"></user-verification>
+      <button type="submit" ng-click="ctrl.delete()" style="display: none"></button>
+      <!-- Allows form submission via enter keypress-->
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-click="ctrl.delete()"
+        ng-disabled="!ctrl.isValid() || !deleteForm.$valid"
+      >
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

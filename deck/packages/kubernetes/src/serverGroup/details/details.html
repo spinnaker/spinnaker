@@ -1,0 +1,153 @@
+<div class="details-panel" ng-class="{disabled: ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled}">
+  <div class="header" ng-if="ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <cloud-provider-logo
+        provider="ctrl.serverGroup.cloudProvider"
+        height="'36px'"
+        width="'36px'"
+      ></cloud-provider-logo>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{ctrl.serverGroup.displayName}}
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            entity="ctrl.serverGroup"
+            application="ctrl.app"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="serverGroup"
+            page-location="details"
+            on-update="ctrl.app.serverGroups.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
+      </h3>
+    </div>
+    <div class="actions">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle ng-hide="isDisabled">
+          {{ctrl.serverGroup.kind | robotToHuman}} Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li ng-if="ctrl.canEditServerGroup()">
+            <a href ng-click="ctrl.editServerGroup()"> Edit </a>
+          </li>
+          <li ng-if="ctrl.canScaleServerGroup()">
+            <a href ng-click="ctrl.scaleServerGroup()"> Scale </a>
+          </li>
+          <li ng-if="ctrl.canEnable()">
+            <a href ng-click="ctrl.enableServerGroup()"> Enable </a>
+          </li>
+          <li ng-if="ctrl.canDisable()">
+            <a href ng-click="ctrl.disableServerGroup()"> Disable </a>
+          </li>
+          <li>
+            <a href ng-click="ctrl.deleteServerGroup()"> Delete </a>
+          </li>
+          <render-if-feature feature="entityTags">
+            <add-entity-tag-links
+              component="ctrl.serverGroup"
+              application="ctrl.app"
+              entity-type="serverGroup"
+              owner-options="ctrl.entityTagTargets"
+              on-update="ctrl.app.serverGroups.refresh"
+            ></add-entity-tag-links>
+          </render-if-feature>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading">
+    <kubernetes-manifest-status status="ctrl.manifest.status"></kubernetes-manifest-status>
+    <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled">Disabled</div>
+    <server-group-running-tasks-details
+      server-group="ctrl.serverGroup"
+      application="ctrl.app"
+    ></server-group-running-tasks-details>
+    <collapsible-section heading="Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Created</dt>
+        <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
+        <dt>Account</dt>
+        <dd><account-tag account="ctrl.serverGroup.account"></account-tag></dd>
+        <dt>Namespace</dt>
+        <dd>{{ctrl.serverGroup.namespace}}</dd>
+        <dt>Kind</dt>
+        <dd>{{ctrl.serverGroup.kind}}</dd>
+        <dt ng-if="ctrl.manifestController()">Controller</dt>
+        <dd>
+          <a
+            ui-sref="^.serverGroupManager({
+                        accountId: ctrl.serverGroup.account,
+                        region: ctrl.serverGroup.region,
+                        serverGroupManager: ctrl.manifestController(),
+                        provider: 'kubernetes'})"
+          >
+            {{ctrl.manifestController() | robotToHuman }}
+          </a>
+        </dd>
+      </dl>
+    </collapsible-section>
+
+    <kubernetes-annotation-custom-sections
+      manifest="ctrl.manifest.manifest"
+      resource="ctrl.serverGroup"
+    ></kubernetes-annotation-custom-sections>
+
+    <collapsible-section heading="Images" expanded="true">
+      <kubernetes-manifest-image-details manifest="ctrl.manifest.manifest"></kubernetes-manifest-image-details>
+    </collapsible-section>
+
+    <collapsible-section heading="Events" expanded="true">
+      <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
+    </collapsible-section>
+    <collapsible-section heading="Labels" expanded="true">
+      <kubernetes-manifest-labels manifest="ctrl.manifest.manifest"></kubernetes-manifest-labels>
+    </collapsible-section>
+    <collapsible-section heading="Size" expanded="true">
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup.capacity.min == null">
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+      <dl
+        class="dl-horizontal dl-narrow"
+        ng-if="ctrl.serverGroup.capacity.min != null && ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max"
+      >
+        <dt>Min/Max</dt>
+        <dd>{{ctrl.serverGroup.capacity.min}}</dd>
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup.capacity.min !== ctrl.serverGroup.capacity.max">
+        <dt>Min</dt>
+        <dd>{{ctrl.serverGroup.capacity.min}}</dd>
+        <dt>Max</dt>
+        <dd>{{ctrl.serverGroup.capacity.max}}</dd>
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Health" expanded="true">
+      <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup">
+        <dt>Instances</dt>
+        <dd>
+          <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
+        </dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

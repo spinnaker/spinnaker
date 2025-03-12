@@ -1,0 +1,238 @@
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+.build-detail {
+  margin-left: 20px;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  .auto-scroll-header {
+    height: 0;
+
+    .glyphicon {
+      margin: 10px 20px;
+      background-color: var(--color-white);
+      border-radius: 50%;
+      border: 1px solid var(--color-white);
+      font-size: 20px;
+      color: var(--color-dovegray);
+
+      &.enabled {
+        color: var(--color-success);
+      }
+    }
+
+    a {
+      cursor: pointer;
+    }
+  }
+
+  .row.heading-sticky {
+    box-shadow: none;
+  }
+}
+
+.build-details-loader {
+  height: 165px;
+}
+
+.configuration-error {
+  width: 100%;
+  text-align: left;
+  display: block;
+  font-weight: 600;
+}
+
+.ci-build-box {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-mineshaft);
+  font-size: 14px;
+  margin-bottom: 8px;
+  padding: 16px;
+  cursor: pointer;
+  max-width: 310px;
+}
+
+.ci-build-box:hover {
+  box-shadow: 0 0 4px 2px rgb(171, 215, 224);
+}
+
+.ci-build-box.active {
+  border: 1px solid var(--color-accent-g1);
+  background-color: var(--color-seashell);
+}
+
+.ci-build-box-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ci-build-box-pr {
+  overflow: hidden;
+  align-items: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ci-build-box-title-left {
+  font-size: 16px;
+  display: flex;
+}
+
+.ci-build-box-title-left i {
+  font-size: 24px;
+  margin-right: 8px;
+}
+
+.commit {
+  font-size: 24px;
+  color: var(--color-concrete);
+  vertical-align: middle;
+}
+
+.note {
+  font-style: italic;
+  color: var(--color-concrete);
+}
+
+.ci-pass {
+  color: var(--color-success);
+  font-weight: bold;
+}
+
+.ci-fail {
+  color: var(--color-danger);
+  font-weight: bold;
+}
+
+.ci-building {
+  color: var(--color-concrete);
+  font-weight: bold;
+}
+
+.ci-canceled {
+  color: var(--color-concrete);
+  font-weight: bold;
+}
+
+.ci-builds-details {
+  flex: 8 0 600px;
+  margin-left: 16px;
+}
+
+.ci-builds-details-header {
+  display: flex;
+}
+
+.ci-builds-details-header-left {
+  flex: 2 0 1px;
+}
+
+.ci-builds-details-header-right {
+  flex: 3 0 1px;
+  margin-top: 16px;
+}
+
+.ci-pill {
+  border-radius: 32px;
+  padding: 2px 10px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  color: var(--color-white);
+  display: inline-block;
+
+  &.pass {
+    background-color: var(--color-success);
+  }
+
+  &.fail {
+    background-color: var(--color-danger);
+  }
+
+  &.building {
+    background-color: var(--color-concrete);
+  }
+
+  &.canceled {
+    background-color: var(--color-concrete);
+  }
+}
+
+.ci-output-tabs {
+  display: flex;
+  margin-top: 32px;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: var(--color-dovegray);
+  border-bottom: 1px solid var(--color-mineshaft);
+}
+
+.ci-output-tab {
+  padding: 8px 16px;
+  border-top: 1px solid var(--color-mineshaft);
+  border-left: 1px solid var(--color-mineshaft);
+  border-right: 1px solid var(--color-mineshaft);
+  background-color: var(--color-cirrus);
+  margin-left: -1px;
+  cursor: pointer;
+}
+
+.ci-output-tab:hover {
+  box-shadow: 0 -3px 3px 0 rgb(171, 215, 224);
+}
+
+.ci-output-tab:first-child {
+  margin-left: 0;
+}
+
+.ci-output-tab.active {
+  background-color: var(--color-white);
+  margin-bottom: -1px;
+  padding-bottom: 9px;
+}
+
+.ci-output-main {
+  padding: 16px;
+  min-height: 200px;
+  background-color: var(--color-white);
+  border-left: 1px solid var(--color-mineshaft);
+  border-right: 1px solid var(--color-mineshaft);
+  border-bottom: 1px solid var(--color-mineshaft);
+  margin-bottom: 64px;
+}
+
+i.ci-building {
+  animation-name: building;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes building {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.ci-pill-branch {
+  border-radius: 16px;
+  position: relative;
+  padding: 2px 10px;
+  margin-right: 1px;
+  margin-left: auto;
+  margin-bottom: 4px;
+  color: var(--color-mineshaft);
+  background-color: var(--color-alto);
+  display: inline-block;
+  text-overflow: ellipsis;
+  font-size: 12px;
+}

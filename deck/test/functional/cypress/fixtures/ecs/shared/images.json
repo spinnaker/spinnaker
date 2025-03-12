@@ -1,0 +1,32 @@
+[
+  {
+    "account": "my-us-west-2-devel-registry",
+    "artifact": {
+      "metadata": {
+        "registry": "123456789012.dkr.ecr.us-west-2.amazonaws.com"
+      },
+      "name": "spinnaker-deployment-images",
+      "reference": "123456789012.dkr.ecr.us-west-2.amazonaws.com/spinnaker-deployment-images:nyancat",
+      "type": "docker",
+      "version": "nyancat"
+    },
+    "registry": "123456789012.dkr.ecr.us-west-2.amazonaws.com",
+    "repository": "spinnaker-deployment-images",
+    "tag": "nyancat"
+  },
+  {
+    "account": "my-us-west-2-devel-registry",
+    "artifact": {
+      "metadata": {
+        "registry": "123456789012.dkr.ecr.us-west-2.amazonaws.com"
+      },
+      "name": "spinnaker-deployment-images",
+      "reference": "123456789012.dkr.ecr.us-west-2.amazonaws.com/spinnaker-deployment-images:nginx",
+      "type": "docker",
+      "version": "nginx"
+    },
+    "registry": "123456789012.dkr.ecr.us-west-2.amazonaws.com",
+    "repository": "spinnaker-deployment-images",
+    "tag": "nginx"
+  }
+]

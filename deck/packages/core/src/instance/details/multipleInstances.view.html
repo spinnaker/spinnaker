@@ -1,0 +1,67 @@
+<div class="details-panel">
+  <div class="header">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="glyphicon glyphicon-hdd {{vm.healthState}}"></span>
+      <h3>{{vm.instancesCount}} Instance<span ng-if="vm.instancesCount !== 1">s</span></h3>
+    </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary dropdown-toggle"
+            ng-disabled="disabled"
+            ng-hide="isDisabled"
+            uib-dropdown-toggle
+          >
+            Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li>
+              <a href ng-click="vm.registerWithDiscovery()" ng-if="vm.canRegisterWithDiscovery()"
+                >Enable in Discovery</a
+              >
+            </li>
+            <li>
+              <a href ng-click="vm.deregisterWithDiscovery()" ng-if="vm.canDeregisterWithDiscovery()"
+                >Disable in Discovery</a
+              >
+            </li>
+            <li>
+              <a href ng-click="vm.registerWithLoadBalancers()" ng-if="vm.canRegisterWithLoadBalancers()"
+                >Register with Load Balancer</a
+              >
+            </li>
+            <li>
+              <a href ng-click="vm.deregisterFromLoadBalancers()" ng-if="vm.canDeregisterFromLoadBalancers()"
+                >Deregister from Load Balancer</a
+              >
+            </li>
+            <li role="presentation" class="divider"></li>
+            <li><a href ng-click="vm.rebootInstances()">Reboot</a></li>
+            <li><a href ng-click="vm.terminateInstances()">Terminate</a></li>
+            <li>
+              <a
+                href
+                ng-click="vm.terminateInstancesAndShrinkServerGroups()"
+                ng-if="vm.canTerminateInstancesAndShrinkServerGroups()"
+                >Terminate and Shrink Server Groups</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="content">
+    <collapsible-section heading="Server Groups" expanded="true">
+      <multiple-instance-server-group ng-repeat="instanceGroup in vm.selectedGroups" instance-group="instanceGroup">
+      </multiple-instance-server-group>
+    </collapsible-section>
+  </div>
+</div>

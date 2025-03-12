@@ -1,0 +1,175 @@
+.Environments,
+.ActionModal {
+  .environment-row-element {
+    display: grid;
+    grid-template-columns: [icon] var(--row-element-icon-width) [details] 1fr;
+    position: relative;
+
+    &.with-padding {
+      padding: var(--l-spacing) var(--base-horizontal-padding) var(--s-spacing) var(--base-horizontal-padding);
+    }
+
+    @media (max-width: 768px) {
+      grid-template-columns: [icon] 30px [details] 1fr;
+    }
+
+    .no-items-message {
+      grid-column: ~'1 / 3';
+    }
+
+    .row-details {
+      grid-column: details;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .row-icon {
+      grid-column: icon;
+      display: flex;
+      align-self: flex-start;
+      padding-top: var(~'--2xs-spacing');
+
+      &.small {
+        padding-top: var(~'--3xs-spacing');
+      }
+    }
+
+    .row-title {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--color-charcoal);
+      display: grid;
+      grid-template-columns: 1fr auto;
+
+      &.small {
+        font-size: 14px;
+      }
+
+      & > a {
+        color: inherit;
+      }
+    }
+  }
+
+  .md-icon-success {
+    color: var(--color-status-success);
+  }
+
+  .md-icon-pending {
+    color: var(--color-titanium);
+  }
+
+  .md-icon-fail {
+    color: var(--color-status-error);
+  }
+
+  .delimited-element {
+    &:not(:last-child) {
+      margin-right: 6px;
+    }
+    &:not(:first-child)::before {
+      content: '•';
+      margin-right: 6px;
+    }
+  }
+
+  .delimited-elements {
+    > * {
+      .delimited-element();
+    }
+  }
+
+  .truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  button.md-btn {
+    background-color: transparent;
+    &:hover {
+      background-color: var(--color-cirrus);
+    }
+    box-shadow: 1px 2px 2px 0px rgb(0 0 0 / 6%), 0px 1px 3px 0px rgb(0 0 0 / 3%);
+
+    &:active,
+    &:focus {
+      outline: none;
+    }
+  }
+
+  button.md-btn-accent,
+  button.md-btn-accent:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  button.md-btn-success,
+  button.md-btn-success:hover {
+    color: var(--color-validation-success);
+    border-color: var(--color-validation-success);
+  }
+
+  button.md-btn-danger,
+  button.md-btn-danger:hover {
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+  }
+
+  .md-action-button {
+    padding: 0 var(--xs-spacing);
+    text-transform: uppercase;
+    color: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px var(--s-spacing);
+    color: var(--color-primary-g1);
+    letter-spacing: 0.2px;
+
+    &:hover {
+      background-color: var(--color-alabaster);
+    }
+  }
+
+  .no-underline {
+    text-decoration: none;
+  }
+
+  .md-actions-gap {
+    gap: var(--s-spacing);
+  }
+
+  .in-progress-dot {
+    height: 8px;
+    width: 8px;
+    border-radius: 999px;
+    display: flex;
+    animation: deployingAnimation 2s infinite;
+  }
+}
+
+@keyframes deployingAnimation {
+  0% {
+    background-color: var(--color-status-success);
+  }
+  50% {
+    background-color: var(--color-status-success-light);
+  }
+  100% {
+    background-color: var(--color-status-success);
+  }
+}
+
+@keyframes deletingAnimation {
+  0% {
+    background-color: var(--color-danger);
+  }
+  50% {
+    background-color: var(--color-danger-medium);
+  }
+  100% {
+    background-color: var(--color-danger);
+  }
+}

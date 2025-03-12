@@ -1,0 +1,68 @@
+@import 'bootstrap/less/mixins/vendor-prefixes.less';
+@import 'bootstrap/less/variables.less';
+@import (reference) '../../presentation/main.less';
+
+.search {
+  align-items: center;
+  display: flex;
+
+  .search__icon {
+    flex: 1 0 auto;
+  }
+
+  .search__input {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 46px;
+    padding: 10px 16px;
+    font-size: 18px;
+    line-height: 1.3333333;
+    color: var(--color-mineshaft);
+    background: var(--color-white) none;
+    border: 1px solid;
+    border-radius: @border-radius-base;
+    .transition(~'border-color ease-in-out .15s, box-shadow ease-in-out .15s');
+
+    .search__input-wrapper {
+      align-items: baseline;
+      display: flex;
+      flex: 1 1;
+      width: 100%;
+
+      .search__input-control {
+        border: none;
+        max-width: 100%;
+        outline: 0;
+        padding-right: 10px;
+        width: 100%;
+      }
+
+      .search__input-control::-moz-placeholder {
+        color: var(--color-concrete);
+        opacity: 1;
+      }
+      .search__input-control:-ms-input-placeholder {
+        color: var(--color-concrete);
+      }
+      .search__input-control::-webkit-input-placeholder {
+        color: var(--color-concrete);
+      }
+
+      .fa.fa-times {
+        .clickable();
+      }
+    }
+
+    &.search__input--focus {
+      border-color: var(--color-accent);
+      outline: 0;
+      .box-shadow(~'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px -2px var(--color-accent)');
+    }
+
+    &.search__input--blur {
+      border-color: var(--color-alto);
+      .box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075));
+    }
+  }
+}

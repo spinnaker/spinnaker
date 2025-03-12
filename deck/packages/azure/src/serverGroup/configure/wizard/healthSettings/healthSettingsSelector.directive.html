@@ -1,0 +1,32 @@
+<div class="container-fluid form-horizontal" ng-controller="azureServerGroupHealthSettingsCtrl as healthCtrl">
+  <div class="form-group">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Protocol</div>
+      <div class="col-md-7">
+        <select
+          class="form-control input-sm"
+          ng-model="command.healthSettings.protocol"
+          ng-options="protocol.name as protocol.displayName for protocol in healthCtrl.healthCheckProtocols"
+          ng-change="healthCtrl.changeHealthCheckProtocol(command.healthSettings.protocol)"
+        ></select>
+      </div>
+    </div>
+    <div class="form-group" ng-if="command.healthSettings.protocol">
+      <div class="col-md-3 sm-label-right">Port</div>
+      <div class="col-md-7">
+        <input class="form-control input-sm" type="text" ng-model="command.healthSettings.port" required />
+      </div>
+    </div>
+    <div class="form-group" ng-if="healthCtrl.requiresHealthCheckPath()">
+      <div class="col-md-3 sm-label-right">Path</div>
+      <div class="col-md-7">
+        <input class="form-control input-sm" type="text" ng-model="command.healthSettings.requestPath" required />
+      </div>
+    </div>
+  </div>
+  <div class="form-group small" style="margin-top: 20px">
+    <div class="col-md-9 col-md-offset-3">
+      <p>Health settings here will be applied directly to the VM Scale Set.</p>
+    </div>
+  </div>
+</div>

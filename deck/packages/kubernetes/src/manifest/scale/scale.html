@@ -1,0 +1,32 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="ctrl.taskMonitor"></task-monitor>
+  <form role="form" name="scaleForm">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h4 class="modal-title">
+        Scale {{ctrl.$scope.command.manifestName | robotToHuman}} in {{ctrl.$scope.command.location}}
+      </h4>
+    </div>
+    <div class="modal-body confirmation-modal">
+      <kubernetes-scale-manifest-settings-form
+        options="ctrl.$scope.command"
+        on-change="ctrl.$scope.onChange"
+      ></kubernetes-scale-manifest-settings-form>
+      <task-reason command="ctrl.$scope.command"></task-reason>
+    </div>
+    <div class="modal-footer">
+      <user-verification account="ctrl.$scope.command.account" verification="ctrl.verification"></user-verification>
+      <button type="submit" ng-click="ctrl.scale()" style="display: none"></button>
+      <!-- Allows form submission via enter keypress-->
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-click="ctrl.scale()"
+        ng-disabled="!ctrl.isValid() || !scaleForm.$valid"
+      >
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

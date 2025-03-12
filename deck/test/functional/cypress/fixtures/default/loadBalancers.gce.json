@@ -1,0 +1,88 @@
+[
+  {
+    "accounts": [
+      {
+        "name": "gce",
+        "regions": [
+          {
+            "loadBalancers": [
+              {
+                "account": "gce",
+                "backendServices": null,
+                "loadBalancerType": "NETWORK",
+                "name": "a8b833573bb4911e8938d42010a96011",
+                "region": "us-east4",
+                "type": "gce",
+                "urlMapName": null
+              }
+            ],
+            "name": "us-east4"
+          }
+        ]
+      },
+      {
+        "name": "compute-engine",
+        "regions": [
+          {
+            "loadBalancers": [
+              {
+                "account": "compute-engine",
+                "backendServices": null,
+                "loadBalancerType": "NETWORK",
+                "name": "a8b833573bb4911e8938d42010a96011",
+                "region": "us-east4",
+                "type": "gce",
+                "urlMapName": null
+              }
+            ],
+            "name": "us-east4"
+          }
+        ]
+      }
+    ],
+    "name": "a8b833573bb4911e8938d42010a96011"
+  },
+  {
+    "accounts": [
+      {
+        "name": "compute-engine",
+        "regions": [
+          {
+            "loadBalancers": [
+              {
+                "account": "compute-engine",
+                "backendServices": null,
+                "loadBalancerType": "NETWORK",
+                "name": "a8b893be3bb4911e8938d42010a96011",
+                "region": "us-east4",
+                "type": "gce",
+                "urlMapName": null
+              }
+            ],
+            "name": "us-east4"
+          }
+        ]
+      },
+      {
+        "name": "gce",
+        "regions": [
+          {
+            "loadBalancers": [
+              {
+                "account": "gce",
+                "backendServices": null,
+                "loadBalancerType": "NETWORK",
+                "name": "a8b893be3bb4911e8938d42010a96011",
+                "region": "us-east4",
+                "type": "gce",
+                "urlMapName": null
+              }
+            ],
+            "name": "us-east4"
+          }
+        ]
+      }
+    ],
+    "name": "a8b893be3bb4911e8938d42010a96011"
+  }
+]

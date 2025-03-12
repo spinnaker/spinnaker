@@ -1,0 +1,123 @@
+<div class="container-fluid form-horizontal">
+  <div class="modal-body">
+    <div class="form-group">
+      <div
+        class="col-md-12 well"
+        ng-class="{'alert-danger': form.securityGroupName.$error.validateUnique, 'alert-info': !form.securityGroupName.$error.validateUnique}"
+      >
+        <strong>Your <firewall-label label="firewall"></firewall-label> will be named:</strong>
+        <span ng-bind="namePreview"></span>
+        <help-field key="aws.securityGroup.name"></help-field>
+        <input
+          type="hidden"
+          class="form-control input-sm"
+          ng-model="securityGroup.name"
+          ng-model-options="{allowInvalid: true}"
+          validate-unique="{{allowDuplicateNames ? '' : 'existingSecurityGroupNames'}}"
+          validate-ignore-case="true"
+          name="securityGroupName"
+          ng-pattern="ctrl.namePattern"
+          trigger-validation="securityGroup.subnet"
+          required
+        />
+        <validation-error
+          ng-if="form.securityGroupName.$error.validateUnique && securityGroup.credentials"
+          message="A {{ctrl.translate('firewall')}} named '{{namePreview}}' already exists in one or more of the selected regions. Use a unique stack and detail to create a new {{ctrl.translate('firewall')}}."
+        ></validation-error>
+        <validation-error
+          ng-if="form.securityGroupName.$error.pattern"
+          message="Name must match {{ctrl.getCurrentNamePattern().toString()}}"
+        ></validation-error>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Account</div>
+      <div class="col-md-8">
+        <account-select-field
+          component="securityGroup"
+          field="credentials"
+          accounts="accounts"
+          provider="'aws'"
+          on-change="ctrl.accountUpdated()"
+        ></account-select-field>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Regions</div>
+      <div class="col-md-8">
+        <input type="hidden" ng-model="securityGroup.regions[0]" required />
+        <checklist
+          ng-if="securityGroup.credentials"
+          items="regions"
+          model="securityGroup.regions"
+          inline="true"
+          on-change="ctrl.regionUpdated()"
+        ></checklist>
+        <p class="form-control-static" ng-if="!securityGroup.credentials">(Select an account)</p>
+        <validation-error
+          ng-if="state.regionError"
+          message="A security group cannot be cloned into a region it already exists in. Please deselect '{{state.originRegion}}' to clear this error."
+        ></validation-error>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Stack</div>
+      <div class="col-md-3">
+        <input
+          type="text"
+          class="form-control input-sm no-spel"
+          ng-model="securityGroup.stack"
+          ng-change="ctrl.updateName()"
+        />
+      </div>
+      <div class="col-md-2 sm-label-right">Detail</div>
+      <div class="col-md-3">
+        <input
+          type="text"
+          class="form-control input-sm no-spel"
+          ng-model="securityGroup.detail"
+          ng-change="ctrl.updateName()"
+        />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Description (required)</div>
+      <div class="col-md-8">
+        <textarea required cols="2" class="form-control input-sm no-spel" ng-model="securityGroup.description">
+        </textarea>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">VPC <help-field key="aws.securityGroup.vpc"></help-field></div>
+      <div class="col-md-8">
+        <select
+          class="form-control input-sm"
+          ng-model="securityGroup.vpcId"
+          ng-change="ctrl.vpcUpdated()"
+          ng-if="securityGroup.regions.length"
+        >
+          <option value="" ng-if="!hideClassic">None (EC2 Classic)</option>
+          <option
+            ng-repeat="vpc in activeVpcs | orderBy: 'label'"
+            value="{{vpc.ids[0]}}"
+            ng-selected="securityGroup.vpcId === vpc.ids[0]"
+          >
+            {{vpc.label}}
+          </option>
+          <option ng-if="activeVpcs.length && deprecatedVpcs.length" disabled>---------------</option>
+          <option
+            ng-repeat="vpc in deprecatedVpcs | orderBy: 'label'"
+            value="{{vpc.ids[0]}}"
+            ng-selected="securityGroup.vpcId === vpc.ids[0]"
+          >
+            {{vpc.label}}
+          </option>
+        </select>
+        <p class="form-control-static" ng-if="!securityGroup.credentials">(Select an account)</p>
+        <p class="form-control-static" ng-if="securityGroup.credentials && !securityGroup.regions.length">
+          (Select at least one region)
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

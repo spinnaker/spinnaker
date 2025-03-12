@@ -1,0 +1,82 @@
+<div ng-controller="WebhookExecutionDetailsCtrl as ctrl">
+  <execution-details-section-nav sections="ctrl.configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="ctrl.detailsSection === 'webhookConfig'">
+    <div class="row">
+      <div class="col-md-12">
+        <h5>Webhook Stage Configuration</h5>
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Url</dt>
+          <dd>{{ctrl.stage.context.url}}</dd>
+          <dt>
+            <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="ctrl.payload"
+              tool-tip="'Copy response to clipboard'"
+            >
+            </copy-to-clipboard>
+            Payload
+          </dt>
+          <dd>
+            <pre class="ng-binding" style="border: unset; background: unset; padding: 0">{{ctrl.payload}}</pre>
+          </dd>
+        </dl>
+        <dl class="dl-narrow dl-horizontal" ng-if="ctrl.stage.context.waitForCompletion">
+          <dt>Status endpoint</dt>
+          <dd><p ng-bind-html="ctrl.stage.context.statusEndpoint | linky:'_blank'"></p></dd>
+        </dl>
+      </div>
+      <div class="col-md-12" ng-if="ctrl.stage.context.parameterValues">
+        <h5>Parameters</h5>
+        <dl class="dl-narrow dl-horizontal">
+          <dt ng-repeat-start="(key, val) in ctrl.stage.context.parameterValues">{{key}}</dt>
+          <dd ng-repeat-end>{{val}}</dd>
+        </dl>
+      </div>
+    </div>
+    <stage-failure-message
+      stage="ctrl.stage"
+      is-failed="ctrl.stage.isFailed"
+      message="ctrl.getException(stage) || ctrl.failureMessage"
+    ></stage-failure-message>
+    <div class="well alert-info" ng-if="ctrl.progressMessage || ctrl.stage.status">
+      <h4>Results</h4>
+      <dl class="dl-narrow dl-horizontal ng-scope">
+        <dt>Status</dt>
+        <dd class="ng-binding">{{ctrl.stage.status}}</dd>
+        <dt>Info</dt>
+        <dd class="ng-binding">
+          <p ng-bind-html="ctrl.progressMessage | linky:'_blank'" style="white-space: pre-line"></p>
+        </dd>
+        <dt>Code</dt>
+        <dd class="ng-binding">
+          {{ctrl.stage.context.webhook.monitor.statusCodeValue || ctrl.stage.context.webhook.statusCodeValue}}
+        </dd>
+        <dt>
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ctrl.body"
+            tool-tip="'Copy response to clipboard'"
+          >
+          </copy-to-clipboard>
+          Response
+        </dt>
+        <dd>
+          <pre
+            class="ng-binding"
+            style="max-height: 400px; overflow-y: auto; border: unset; background: unset; padding: 0"
+          >
+{{ctrl.body}}</pre
+          >
+        </dd>
+      </dl>
+    </div>
+  </div>
+  <div class="step-section-details" ng-if="ctrl.detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="ctrl.stage"></execution-step-details>
+    </div>
+  </div>
+  <div ng-if="ctrl.detailsSection == 'artifactStatus'">
+    <execution-artifact-tab stage="ctrl.stage" execution=""></execution-artifact-tab>
+  </div>
+</div>

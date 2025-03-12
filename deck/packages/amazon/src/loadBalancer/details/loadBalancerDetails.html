@@ -1,0 +1,266 @@
+<div class="details-panel">
+  <div ng-if="ctrl.state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="horizontal center middle spinner-container">
+      <loading-spinner size="'small'"></loading-spinner>
+    </div>
+  </div>
+
+  <div ng-if="!ctrl.state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <i class="fa icon-sitemap"></i>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{ctrl.loadBalancer.name}}
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            entity="ctrl.loadBalancer"
+            application="ctrl.application"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="loadBalancer"
+            page-location="details"
+            on-update="ctrl.application.loadBalancers.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
+      </h3>
+    </div>
+    <div>
+      <div class="actions">
+        <load-balancer-actions
+          app="ctrl.application"
+          load-balancer="ctrl.loadBalancer"
+          load-balancer-from-params="ctrl.loadBalancerFromParams"
+        ></load-balancer-actions>
+        <div
+          class="dropdown"
+          ng-if="ctrl.loadBalancer.elb.insightActions.length > 0"
+          uib-dropdown
+          dropdown-append-to-body
+        >
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li ng-repeat="action in ctrl.loadBalancer.elb.insightActions">
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <managed-resource-details-indicator
+    ng-if="!ctrl.state.loading && ctrl.loadBalancer.isManaged"
+    resource-summary="ctrl.loadBalancer.managedResourceSummary"
+    application="ctrl.application"
+  >
+  </managed-resource-details-indicator>
+  <div ng-if="!ctrl.state.loading" class="content">
+    <collapsible-section heading="Load Balancer Details" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Created</dt>
+        <dd>{{ctrl.loadBalancer.elb.createdTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="ctrl.loadBalancer.account" pad="right"></account-tag> {{ctrl.loadBalancer.region}}
+        </dd>
+        <dt>VPC</dt>
+        <dd>
+          <vpc-tag vpc-id="ctrl.loadBalancer.elb.vpcId"></vpc-tag>
+        </dd>
+        <dt>Subnet</dt>
+        <dd>{{ctrl.getFirstSubnetPurpose(ctrl.loadBalancer.subnetDetails)}}</dd>
+        <dt>Scheme</dt>
+        <dd>{{ ctrl.loadBalancer.scheme }}</dd>
+        <dt ng-if="ctrl.loadBalancer.loadBalancerType">Type</dt>
+        <dd ng-if="ctrl.loadBalancer.loadBalancerType">{{ctrl.loadBalancer.loadBalancerType}}</dd>
+        <dt ng-if="ctrl.ipAddressTypeDescription">IP Type</dt>
+        <dd ng-if="ctrl.ipAddressTypeDescription">{{ctrl.ipAddressTypeDescription}}</dd>
+      </dl>
+      <dl class="horizontal-when-filters-collapsed">
+        <dt>Availability Zones</dt>
+        <dd>
+          <ul class="collapse-margin-on-filter-collapse">
+            <li ng-repeat="availabilityZone in ctrl.loadBalancer.elb.availabilityZones">{{availabilityZone}}</li>
+          </ul>
+        </dd>
+      </dl>
+      <dl
+        ng-if="ctrl.loadBalancer.serverGroups && ctrl.loadBalancer.serverGroups.length"
+        class="horizontal-when-filters-collapsed"
+      >
+        <dt>Server Groups</dt>
+        <dd>
+          <ul class="collapse-margin-on-filter-collapse">
+            <li ng-repeat="serverGroup in ctrl.loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
+              <a
+                ui-sref="^.serverGroup({region: serverGroup.region,
+                                          accountId: serverGroup.account,
+                                          serverGroup: serverGroup.name,
+                                          provider: 'aws'})"
+              >
+                {{serverGroup.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+      <dl
+        ng-if="ctrl.loadBalancer.targetGroups && ctrl.loadBalancer.targetGroups.length"
+        class="horizontal-when-filters-collapsed"
+      >
+        <dt>Target Groups</dt>
+        <dd>
+          <ul class="collapse-margin-on-filter-collapse">
+            <li ng-repeat="targetGroup in ctrl.loadBalancer.targetGroups | orderBy: ['isDisabled', '-name']">
+              <a
+                ui-sref="^.targetGroupDetails({region: targetGroup.region,
+                                          loadBalancerName: ctrl.loadBalancer.name,
+                                          accountId: targetGroup.account,
+                                          name: targetGroup.name,
+                                          vpcId: targetGroup.vpcId,
+                                          provider: 'aws'})"
+              >
+                {{targetGroup.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+      <dl class="horizontal-when-filters-collapsed">
+        <dt ng-if="ctrl.loadBalancer.elb.dnsname">DNS Name</dt>
+        <dd>
+          <a target="_blank" href="{{ctrl.elbProtocol}}//{{ctrl.loadBalancer.elb.dnsname}}"
+            >{{ctrl.loadBalancer.elb.dnsname}}</a
+          >
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="ctrl.loadBalancer.elb.dnsname"
+            tool-tip="'Copy DNS Name to clipboard'"
+          >
+          </copy-to-clipboard>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true" ng-if="ctrl.loadBalancer.loadBalancerType === 'classic'">
+      <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="false" ng-if="ctrl.loadBalancer.loadBalancerType !== 'classic'">
+      Select a target group to check the instance health status from the view of the target group.
+    </collapsible-section>
+    <collapsible-section ng-if="ctrl.loadBalancer.loadBalancerType === 'classic'" heading="Listeners">
+      <dl>
+        <dt>Load Balancer &rarr; Instance</dt>
+        <dd ng-repeat="listener in ctrl.loadBalancer.elb.listenerDescriptions">
+          {{listener.listener.protocol}}:{{listener.listener.loadBalancerPort}} &rarr;
+          {{listener.listener.instanceProtocol}}:{{listener.listener.instancePort}}
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section ng-if="ctrl.loadBalancer.loadBalancerType !== 'classic'" heading="Listeners">
+      <div ng-repeat="listener in ctrl.listeners">
+        <div class="listener-targets">{{listener.in}} &rarr;</div>
+        <div class="listener-targets">
+          <div ng-repeat="action in listener.actions">
+            <!-- redirect -->
+            <span ng-if="action.type === 'redirect'">
+              <span ng-if="action.redirectConfig.protocol !== listener.protocol">
+                {{action.redirectConfig.protocol}}:
+              </span>
+              <span ng-if="action.redirectConfig.host !== '#{host}'"> {{action.redirectConfig.host}} </span>
+              <span ng-if="action.redirectConfig.port !== '#{port}'"> {{action.redirectConfig.port}} </span>
+              <span ng-if="action.redirectConfig.path !== '/#{path}'"> {{action.redirectConfig.path}} </span>
+              <span ng-if="action.redirectConfig.query !== '#{query}'"> ?{{action.redirectConfig.query}} </span>
+              ({{action.redirectConfig.statusCode}})
+            </span>
+            <!-- authenticate-oidc -->
+            <span ng-if="action.type === 'authenticate-oidc'">
+              <i class="fas fa-fw fa-user-lock"></i>
+              <a
+                ng-if="ctrl.oidcConfigPath"
+                href="{{ctrl.oidcConfigPath}}{{action.authenticateOidcConfig.clientId}}"
+                target="_blank"
+              >
+                {{action.authenticateOidcConfig.clientId}}
+              </a>
+              <span ng-if="!ctrl.oidcConfigPath"> {{action.authenticateOidcConfig.clientId}} </span>
+            </span>
+            <!-- forward -->
+            <span ng-if="action.targetGroupName && action.targetGroup">
+              <i class="fa fa-fw fa-crosshairs icon" aria-hidden="true"></i>
+              <a
+                ui-sref="^.targetGroupDetails({region: action.targetGroup.region,
+                              loadBalancerName: ctrl.loadBalancer.name,
+                              accountId: action.targetGroup.account,
+                              name: action.targetGroup.name,
+                              vpcId: action.targetGroup.vpcId,
+                              provider: 'aws'})"
+              >
+                {{action.targetGroupName}}
+              </a>
+            </span>
+            <span ng-if="action.targetGroupName && !action.targetGroup">
+              <i class="fa fa-fw fa-crosshairs icon" aria-hidden="true"></i>
+              {{action.targetGroupName}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </collapsible-section>
+    <collapsible-section
+      heading="{{ctrl.firewallsLabel}}"
+      ng-if="ctrl.loadBalancer.loadBalancerType !== 'network' || (ctrl.loadBalancer.loadBalancerType === 'network' && ctrl.securityGroups && ctrl.securityGroups.length > 0)"
+    >
+      <ul>
+        <li ng-repeat="securityGroup in ctrl.securityGroups | orderBy:'name'">
+          <a
+            ui-sref="^.firewallDetails({name:securityGroup.name, accountId: ctrl.loadBalancer.account, region: ctrl.loadBalancer.region, vpcId: ctrl.loadBalancer.vpcId, provider: ctrl.loadBalancer.provider})"
+          >
+            {{securityGroup.name}} ({{securityGroup.id}})
+          </a>
+        </li>
+      </ul>
+    </collapsible-section>
+    <collapsible-section heading="Subnets">
+      <div ng-if="ctrl.loadBalancer.subnetDetails.length === 0">
+        <h5>No subnets</h5>
+      </div>
+      <div ng-repeat="subnet in ctrl.loadBalancer.subnetDetails" ng-class="{'bottom-border': !$last}">
+        <h5><strong>{{subnet.id}}</strong></h5>
+        <dl class="dl-horizontal dl-narrow">
+          <dt>Purpose</dt>
+          <dd>{{subnet.purpose}}</dd>
+
+          <dt>State</dt>
+          <dd>{{subnet.state}}</dd>
+
+          <dt>Cidr Block</dt>
+          <dd>{{subnet.cidrBlock}}</dd>
+        </dl>
+      </div>
+    </collapsible-section>
+    <collapsible-section ng-if="ctrl.loadBalancer.loadBalancerType === 'classic'" heading="Health Checks">
+      <dl class="horizontal-when-filters-collapsed">
+        <dt>Target</dt>
+        <dd>{{ctrl.loadBalancer.elb.healthCheck.target}}</dd>
+        <dt>Timeout</dt>
+        <dd>{{ctrl.loadBalancer.elb.healthCheck.timeout}} seconds</dd>
+        <dt>Interval</dt>
+        <dd>{{ctrl.loadBalancer.elb.healthCheck.interval}} seconds</dd>
+        <dt>Healthy Threshold</dt>
+        <dd>{{ctrl.loadBalancer.elb.healthCheck.healthyThreshold}}</dd>
+        <dt>Unhealthy Threshold</dt>
+        <dd>{{ctrl.loadBalancer.elb.healthCheck.unhealthyThreshold}}</dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

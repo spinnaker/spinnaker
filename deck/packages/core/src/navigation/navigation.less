@@ -1,0 +1,90 @@
+@import (reference) '../presentation/less/imports/commonImports.less';
+
+.secondary-panel {
+  > div {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .nav {
+    margin: 52px 24px 32px 4px;
+
+    h3 {
+      margin-right: 10px;
+      font-weight: 600;
+    }
+
+    h4 {
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 0;
+      font-size: 16px;
+    }
+
+    .list-group-item {
+      &.active {
+        font-weight: 700;
+      }
+    }
+
+    .nav-search {
+      margin-top: 10px;
+    }
+  }
+  .nav-content {
+    .header {
+      border-bottom: none;
+      padding: 0;
+      position: relative;
+      z-index: 10;
+      background-color: var(--color-alabaster);
+      h3 {
+        display: inline-block;
+        font-weight: 600;
+      }
+      .actions {
+        display: inline-block;
+      }
+      .filters {
+        display: inline-block;
+        label {
+          font-weight: normal;
+          margin-bottom: 0;
+          margin-left: 10px;
+        }
+      }
+      &.header-clusters {
+        padding-top: 0;
+        h3 {
+          @media (min-width: 708px) and (max-width: 992px) {
+            font-size: 110%;
+          }
+          padding-bottom: 5px;
+        }
+        .filters {
+          height: 40px;
+          line-height: 40px;
+          vertical-align: top;
+          font-size: 90%;
+        }
+      }
+    }
+    .content {
+      padding: 0 0 10px;
+      @media (min-width: 708px) and (max-width: 992px) {
+        padding: 0 5px;
+      }
+    }
+  }
+}
+
+.nav.navbar-nav {
+  .remove-border-top:hover,
+  .remove-border-top:active {
+    border-top-color: transparent;
+    transition: none;
+  }
+  .glyphicon {
+    padding-right: 4px;
+  }
+}

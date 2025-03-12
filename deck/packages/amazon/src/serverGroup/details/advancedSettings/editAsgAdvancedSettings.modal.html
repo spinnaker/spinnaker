@@ -1,0 +1,79 @@
+<div modal-page>
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form" name="form">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h4 class="modal-title">Edit Advanced Settings for {{serverGroup.name}}</h4>
+    </div>
+    <div class="modal-body container-fluid form-horizontal">
+      <div class="form-group">
+        <div class="col-md-5 sm-label-right"><b>Cooldown</b></div>
+        <div class="col-md-2">
+          <input type="number" required class="form-control input-sm" ng-model="command.cooldown" />
+        </div>
+        &nbsp;seconds
+      </div>
+      <div class="form-group">
+        <div class="col-md-5 sm-label-right">
+          <b>Enabled Metrics</b>
+          <help-field key="aws.serverGroup.enabledMetrics"></help-field>
+        </div>
+        <div class="col-md-6">
+          <ui-select multiple ng-model="command.enabledMetrics" class="form-control input-sm">
+            <ui-select-match>{{$item}}</ui-select-match>
+            <ui-select-choices
+              repeat="enabledMetric in command.backingData.enabledMetrics | filter: $select.search | orderBy: 'toString()'"
+            >
+              <span ng-bind-html="enabledMetric | highlight: $select.search"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-5 sm-label-right"><b>Health Check Type</b></div>
+        <div class="col-md-6">
+          <ui-select ng-model="command.healthCheckType" class="form-control input-sm">
+            <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+            <ui-select-choices
+              repeat="healthCheckType in command.backingData.healthCheckTypes | filter: $select.search"
+            >
+              <span ng-bind-html="healthCheckType | highlight: $select.search"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-5 sm-label-right"><b>Health Check Grace Period</b></div>
+        <div class="col-md-2">
+          <input type="text" required class="form-control input-sm" ng-model="command.healthCheckGracePeriod" />
+        </div>
+        &nbsp;seconds
+      </div>
+      <div class="form-group">
+        <div class="col-md-5 sm-label-right"><b>Termination Policies</b></div>
+        <div class="col-md-6">
+          <ui-select multiple ng-model="command.terminationPolicies" class="form-control input-sm">
+            <ui-select-match>{{$item}}</ui-select-match>
+            <ui-select-choices
+              repeat="terminationPolicy in command.backingData.terminationPolicies | filter: $select.search | orderBy: 'toString()'"
+            >
+              <span ng-bind-html="terminationPolicy | highlight: $select.search"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-5 sm-label-right">
+          <b>Capacity Rebalance</b><help-field key="aws.serverGroup.capacityRebalance" />
+        </div>
+        <div class="col-md-6">
+          <input type="checkbox" ng-model="command.capacityRebalance" /> Enable capacity rebalance
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit" class="btn btn-primary" ng-disabled="form.$invalid" ng-click="ctrl.submit()">Submit</button>
+    </div>
+  </form>
+</div>

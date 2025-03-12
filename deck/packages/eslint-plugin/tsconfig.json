@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "module": "CommonJS",
+    "noEmit": true,
+    "lib": ["ES2020"],
+    "skipLibCheck": true,
+    "downlevelIteration": true,
+    "types": ["node", "jest"]
+  },
+  "include": ["rules/**/*.ts", "utils/**/*.ts"],
+  "ts-node": {
+    "transpileOnly": true
+  }
+}

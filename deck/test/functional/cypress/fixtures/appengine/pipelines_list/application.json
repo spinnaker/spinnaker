@@ -1,0 +1,16 @@
+{
+  "attributes": {
+    "accounts": "gae",
+    "cloudProviders": "appengine",
+    "createTs": "1534427928238",
+    "email": "sbws@google.com",
+    "instancePort": 80,
+    "lastModifiedBy": "anonymous",
+    "name": "gae",
+    "providerSettings": { "gce": { "associatePublicIpAddress": true } },
+    "updateTs": "1534427928639",
+    "user": "[anonymous]"
+  },
+  "clusters": {},
+  "name": "gae"
+}

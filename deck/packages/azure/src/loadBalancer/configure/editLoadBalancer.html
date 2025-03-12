@@ -1,0 +1,26 @@
+<form name="form" novalidate validate-on-submit>
+  <v2-modal-wizard
+    heading="Edit {{loadBalancerType}} {{loadBalancer.name}}"
+    task-monitor="taskMonitor"
+    dismiss="$dismiss()"
+  >
+    <v2-wizard-page key="Listeners" label="Listeners" done="true">
+      <ng-include src="pages.listeners"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="Health Check" label="Health Check" done="true" hide-subheading="true">
+      <ng-include src="pages.healthCheck"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="Advanced Settings" label="Advanced Settings" done="true">
+      <ng-include src="pages.advancedSettings"></ng-include>
+    </v2-wizard-page>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button
+      is-disabled="taskMonitor.submitting"
+      submitting="taskMonitor.submitting"
+      on-click="form.$valid && ctrl.submit()"
+      is-new="isNew"
+    ></submit-button>
+  </div>
+</form>

@@ -1,0 +1,96 @@
+<div ng-controller="CanaryExecutionSummaryCtrl as canaryExecutionSummaryCtrl">
+  <h5 class="execution-details-title">
+    {{stageSummary.name || stageSummary.type }} Details
+
+    <div
+      ng-if="stageSummary.masterStage.context.canary.status.status === 'LAUNCHED' ||
+                stageSummary.masterStage.context.canary.status.status === 'RUNNING' ||
+                stageSummary.masterStage.context.canary.status.status === 'DISABLED'"
+      uib-dropdown
+      class="btn-group pull-right"
+    >
+      <button type="button" class="btn btn-default btn-sm dropdown-toggle" aria-expanded="false" uib-dropdown-toggle>
+        Actions
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+        <li><a href ng-click="canaryExecutionSummaryCtrl.generateCanaryScore()">Generate Canary Result</a></li>
+        <li><a href ng-click="canaryExecutionSummaryCtrl.endCanary()">End Canary</a></li>
+      </ul>
+    </div>
+
+    <div
+      ng-if="(!stage.isRunning && !stage.isCompleted) && canaryExecutionSummaryCtrl.isRestartable(stage)"
+      uib-dropdown
+      class="btn-group pull-right"
+    >
+      <button
+        type="button"
+        class="btn btn-default btn-sm dropdown-toggle"
+        analytics-on="click"
+        analytics-category="Pipeline"
+        analytics-event="Execution actions menu toggled"
+        aria-expanded="false"
+        uib-dropdown-toggle
+      >
+        Actions
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+        <li>
+          <a
+            href
+            ng-controller="RestartStageCtrl as restartCtrl"
+            analytics-on="click"
+            analytics-category="Pipeline"
+            analytics-event="Execution restart clicked"
+            ng-click="restartCtrl.restart()"
+            >Restart {{ stageSummary.name }}</a
+          >
+        </li>
+      </ul>
+    </div>
+  </h5>
+  <h6 class="duration">Duration: {{stageSummary.runningTimeInMs | duration}}</h6>
+  <table class="table canary-summary">
+    <thead>
+      <tr>
+        <th width="40%">Deployment</th>
+        <th>Started</th>
+        <th>Completed</th>
+        <th>Running Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="clickable"
+        ng-class="{ info: ctrl.isStepCurrent(stageSummary.masterStageIndex) }"
+        ng-click="ctrl.toggleDetails(stageSummary.masterStageIndex)"
+      >
+        <td>
+          <status-glyph item="{isFailed: true}" ng-if="stageSummary.masterStage.exceptions.length"></status-glyph>
+          <strong>Canary Summary</strong>
+        </td>
+        <td>{{stageSummary.startTime | timestamp}}</td>
+        <td>{{stageSummary.endTime | timestamp}}</td>
+        <td>{{stageSummary.runningTimeInMs | duration}}</td>
+      </tr>
+      <tr
+        class="clickable canary-deployment-row"
+        ng-repeat="stage in stageSummary.stages"
+        ng-class="{ info: ctrl.isStepCurrent($index) }"
+        ng-if="stage.type === 'monitorAcaTask'"
+        ng-click="ctrl.toggleDetails($index)"
+      >
+        <td>{{stage.name}}</td>
+        <td>{{stage.startTime | timestamp}}</td>
+        <td>{{stageSummary.endTime | timestamp}}</td>
+        <td>{{stage.runningTimeInMs | duration}}</td>
+      </tr>
+    </tbody>
+  </table>
+  <div ng-if="stageSummary.comments">
+    <strong>Comments</strong>
+    <p ng-bind-html="stageSummary.comments"></p>
+  </div>
+</div>

@@ -1,0 +1,122 @@
+.execution-marker-information-popover {
+  .modal-dialog {
+    max-width: calc(100vw - 20%);
+    width: calc(100vw - 20%);
+    min-width: 800px;
+  }
+  .pipeline-name {
+    color: var(--color-accent);
+    text-transform: uppercase;
+  }
+
+  .bottom-margin {
+    margin-bottom: 10px;
+  }
+
+  .status {
+    color: var(--color-danger);
+  }
+
+  .parameters {
+    color: var(--color-accent);
+    font-size: 12px;
+  }
+
+  .execution-marker-information-popver-footer {
+    margin-top: 15px;
+    border-top: 1px solid var(--color-status-neutral-light);
+
+    a {
+      font-size: 14px;
+    }
+  }
+
+  .graph-all-buttons {
+    padding-left: 6px;
+  }
+
+  .information-history-note {
+    font-style: italic;
+    font-size: smaller;
+  }
+
+  .information-pipeline-execution-history {
+    width: 100%;
+
+    thead {
+      background-color: var(--color-alabaster);
+    }
+
+    th {
+      line-height: 25px;
+      padding: 2px;
+    }
+
+    .information-section {
+      .fa-circle {
+        color: var(--color-danger);
+        font-size: 0.5em;
+        line-height: 25px;
+      }
+
+      .information-app {
+        color: var(--color-primary);
+        font-weight: 600;
+      }
+
+      .information-execution {
+        text-transform: uppercase;
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+
+      .information-stage-status {
+        padding: 2px;
+
+        .information-terminal-stage {
+          color: var(--color-white);
+          padding: 2px;
+          background-color: var(--color-danger);
+          font-size: 10px;
+        }
+      }
+    }
+
+    tr {
+      line-height: 25px;
+
+      &:hover {
+        background-color: var(--color-accent-g2);
+        cursor: pointer;
+      }
+    }
+
+    tr:nth-child(even) {
+      background: var(--color-accent-g3);
+
+      &:hover {
+        background-color: var(--color-accent-g2);
+      }
+    }
+
+    td {
+      padding: 1px 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      .color-white {
+        a {
+          color: var(--color-white);
+        }
+      }
+    }
+  }
+
+  .information-back {
+    margin-right: 4px;
+  }
+
+  .information-stage-details {
+    font-size: 0.9em;
+  }
+}

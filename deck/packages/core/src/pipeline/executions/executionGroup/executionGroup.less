@@ -1,0 +1,138 @@
+@import (reference) '../../../presentation/less/imports/commonImports.less';
+
+.execution-group-container {
+  padding: 10px 30px 0;
+}
+
+.execution-group-header {
+  .clearfix();
+}
+
+.execution-name {
+  .account-tag {
+    height: 20px;
+    line-height: 20px;
+    min-width: 50px;
+    font-size: 14px;
+    padding: 0 12px;
+    margin-right: 5px;
+  }
+}
+.execution-group-heading {
+  display: flex;
+  padding: 0;
+  color: var(--color-primary);
+  height: 37px;
+  .pipeline-toggle {
+    background-color: var(--color-alabaster);
+    display: inline-block;
+    padding: 10px 10px 10px 0;
+    height: 36px;
+    flex: 0 0 auto;
+  }
+  .inline-spinner .load {
+    margin: 2px 2px 0 0;
+  }
+  a {
+    font-weight: 600;
+  }
+  h4 {
+    font-weight: 600;
+    font-size: 16px;
+    display: inline-block;
+    flex: 1 1 auto;
+    padding: 0 10px;
+    margin: 0;
+    .disabled {
+      color: var(--color-concrete);
+    }
+    .badge {
+      margin-left: 5px;
+    }
+    cursor: pointer;
+    .glyphicon {
+      font-size: 13px;
+
+      &.glyphicon-certificate,
+      &.glyphicon-play {
+        margin-left: 5px;
+        padding: 2px 0 0 0;
+        font-size: 80%;
+      }
+    }
+    @media (max-width: 1400px) {
+      font-size: 14px;
+    }
+  }
+  .badge {
+    background-color: var(--color-primary);
+    color: var(--color-alabaster);
+    border-radius: 3px;
+  }
+  &.inactive {
+    color: var(--color-accessory-light);
+    .shadowed,
+    .execution-group-actions {
+      background-color: var(--color-accent-g3);
+    }
+    .label-retired {
+      background-color: transparent;
+      color: var(--color-cirrus);
+      padding: 3px 10px;
+      font-size: 12px;
+    }
+  }
+}
+
+.triggers-toggle,
+.next-run-tag {
+  display: inline-block;
+  font-weight: 400;
+  font-size: 85%;
+  position: relative;
+  color: var(--color-success);
+  &.disabled {
+    color: var(--color-dovegray);
+  }
+}
+
+.next-run-tag {
+  margin: 0 0 0 5px;
+  vertical-align: middle;
+}
+
+.migration-tag {
+  background-color: var(--color-warning);
+  border-radius: 8px;
+  color: var(--color-white);
+  font-size: 10px;
+  padding: 2px 8px;
+}
+
+.execution-group-actions {
+  background-color: var(--color-accent-g2);
+  flex: 0 0 auto;
+  h4 {
+    margin-left: 20px;
+    @media (min-width: 1200px) {
+      margin-left: 40px;
+    }
+  }
+  &.in-migration {
+    background-color: var(--color-status-warning-light);
+  }
+}
+
+.execution-group {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.account-tag-wrapper {
+  max-width: 250px;
+  .account-tag-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

@@ -1,0 +1,33 @@
+insight-layout {
+  display: flex;
+
+  insight-filter,
+  cluster-filter,
+  load-balancer-filter,
+  security-group-filter,
+  .insight-filter-content {
+    display: flex;
+    overflow-x: hidden;
+    margin-top: var(--m-spacing);
+
+    .content {
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  }
+
+  insight-filter,
+  .insight-filter-content {
+    flex-direction: column;
+    margin-top: var(--m-spacing);
+  }
+}
+
+ui-view[name='insight'],
+react-ui-view-adapter[name='insight'],
+react-ui-view-adapter[name='insight'] > .AngularJSAdapter,
+react-ui-view-adapter[name='detail'] > .AngularJSAdapter {
+  flex: 1 1 auto;
+  display: flex;
+  overflow-x: hidden;
+}

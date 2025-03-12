@@ -1,0 +1,84 @@
+@import (reference) '../presentation/less/imports/commonImports.less';
+
+.pipelines {
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  > .header {
+    flex: none;
+  }
+
+  > .execution-groups {
+    padding: 0 0 0 10px;
+    flex: 1 0 100px;
+    overflow-y: auto;
+  }
+}
+
+.canary-config-view {
+  h4 {
+    margin: 20px 0 20px 0px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-concrete);
+  }
+  h5 {
+    margin: 20px 0 0px 30px;
+    font-weight: 600;
+  }
+  .horizontal-rule {
+    border-top: 1px solid var(--color-alto);
+    margin-top: 5px;
+    margin-left: 30px;
+    margin-bottom: 10px;
+  }
+  .sm-label-right,
+  label {
+    padding-right: 5px;
+    b {
+      font-weight: 600;
+    }
+  }
+}
+
+.canary-summary-alert {
+  padding-left: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-right: 4px;
+  margin-bottom: 10px;
+  margin-top: 4px;
+}
+
+.stage-label {
+  .tests-pass-count {
+    color: var(--color-success);
+  }
+  .tests-fail-count {
+    color: var(--color-danger);
+  }
+  .tests-skip-count {
+    color: var(--color-concrete);
+  }
+}
+
+.execution-details {
+  .test-results {
+    .test-result-section {
+      display: inline-block;
+      text-align: right;
+      width: 65px;
+      .fa-check {
+        color: var(--color-success);
+      }
+      .glyphicon-remove {
+        color: var(--color-danger);
+        &.informational {
+          color: var(--color-danger) !important;
+          cursor: default;
+        }
+      }
+    }
+  }
+}

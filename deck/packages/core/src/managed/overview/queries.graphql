@@ -1,0 +1,390 @@
+fragment actionDetails on MdAction {
+  id
+  actionId
+  actionType
+  status
+  startedAt
+  completedAt
+  link
+}
+
+fragment detailedVersionFields on MdArtifactVersionInEnvironment {
+  id
+  buildNumber
+  version
+  createdAt
+  status
+  isCurrent
+  gitMetadata {
+    commit
+    author
+    branch
+    commitInfo {
+      sha
+      link
+      message
+    }
+    pullRequest {
+      number
+      link
+    }
+    comparisonLinks {
+      toPreviousVersion
+      toCurrentVersion
+    }
+  }
+  deployedAt
+  lifecycleSteps {
+    startedAt
+    completedAt
+    type
+    status
+    link
+  }
+  constraints {
+    type
+    status
+    judgedBy
+    judgedAt
+    attributes
+  }
+  verifications {
+    ...actionDetails
+  }
+  postDeploy {
+    ...actionDetails
+  }
+  veto {
+    vetoedBy
+    vetoedAt
+    comment
+  }
+}
+
+fragment artifactPinnedVersionFields on MdArtifact {
+  pinnedVersion {
+    id
+    version
+    buildNumber
+    pinnedAt
+    pinnedBy
+    comment
+    gitMetadata {
+      commitInfo {
+        message
+      }
+    }
+  }
+}
+
+fragment baseEnvironmentFields on MdEnvironment {
+  id
+  name
+  isPreview
+  gitMetadata {
+    branch
+    pullRequest {
+      link
+    }
+  }
+  basedOn
+}
+
+fragment baesResourceFields on MdResource {
+  id
+  kind
+  displayName
+  moniker {
+    app
+    stack
+    detail
+  }
+  location {
+    account
+    regions
+  }
+  rawDefinition
+}
+
+query fetchApplication($appName: String!, $statuses: [MdArtifactStatusInEnvironment!]) {
+  application(appName: $appName) {
+    id
+    name
+    config {
+      id
+      previewEnvironmentsConfigured
+    }
+    environments {
+      ...baseEnvironmentFields
+      isDeleting
+      state {
+        id
+        artifacts {
+          id
+          name
+          environment
+          type
+          reference
+          versions(statuses: $statuses) {
+            ...detailedVersionFields
+          }
+          ...artifactPinnedVersionFields
+          resources {
+            ...baesResourceFields
+          }
+        }
+        resources {
+          ...baesResourceFields
+        }
+      }
+    }
+  }
+}
+
+query fetchCurrentVersion($appName: String!) {
+  application(appName: $appName) {
+    id
+    name
+    environments {
+      id
+      name
+      state {
+        artifacts {
+          id
+          name
+          reference
+          environment
+          versions(statuses: [CURRENT]) {
+            id
+            version
+            buildNumber
+            createdAt
+            gitMetadata {
+              commit
+              commitInfo {
+                sha
+                message
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+query fetchVersionsHistory($appName: String!, $limit: Int) {
+  application(appName: $appName) {
+    id
+    name
+    environments {
+      ...baseEnvironmentFields
+      state {
+        id
+        artifacts {
+          id
+          name
+          environment
+          type
+          reference
+          versions(limit: $limit) {
+            id
+            buildNumber
+            version
+            createdAt
+            status
+            isCurrent
+            gitMetadata {
+              commit
+              author
+              branch
+              commitInfo {
+                sha
+                link
+                message
+              }
+              pullRequest {
+                number
+                link
+              }
+            }
+          }
+          ...artifactPinnedVersionFields
+        }
+      }
+    }
+  }
+}
+
+query fetchPinnedVersions($appName: String!) {
+  application(appName: $appName) {
+    id
+    name
+    account
+    environments {
+      id
+      name
+      state {
+        id
+        artifacts {
+          id
+          name
+          environment
+          type
+          reference
+          ...artifactPinnedVersionFields
+        }
+      }
+    }
+  }
+}
+
+query fetchVersion($appName: String!, $versions: [String!]) {
+  application(appName: $appName) {
+    id
+    name
+    account
+    environments {
+      id
+      name
+      state {
+        id
+        artifacts {
+          id
+          name
+          environment
+          type
+          reference
+          versions(versions: $versions) {
+            ...detailedVersionFields
+          }
+        }
+      }
+    }
+  }
+}
+
+query fetchResourceStatus($appName: String!) {
+  application(appName: $appName) {
+    id
+    name
+    environments {
+      id
+      name
+      state {
+        id
+        resources {
+          id
+          kind
+          state {
+            status
+            reason
+            event
+            tasks {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+query fetchNotifications($appName: String!) {
+  application(appName: $appName) {
+    id
+    name
+    notifications {
+      id
+      level
+      message
+      triggeredAt
+      link
+      id
+    }
+  }
+}
+
+query fetchApplicationManagementData($appName: String!) {
+  application(appName: $appName) {
+    id
+    name
+    isPaused
+    config {
+      id
+      updatedAt
+      rawConfig
+      processedConfig
+    }
+    gitIntegration {
+      id
+      repository
+      branch
+      isEnabled
+      link
+      manifestPath
+    }
+  }
+}
+
+query fetchApplicationManagementStatus($appName: String!) {
+  application(appName: $appName) {
+    id
+    name
+    isPaused
+  }
+}
+
+mutation UpdateConstraint($payload: MdConstraintStatusPayload!) {
+  updateConstraintStatus(payload: $payload)
+}
+
+mutation ToggleManagement($application: ID!, $isPaused: Boolean!) {
+  toggleManagement(application: $application, isPaused: $isPaused)
+}
+
+mutation PinVersion($payload: MdArtifactVersionActionPayload!) {
+  pinArtifactVersion(payload: $payload)
+}
+
+mutation UnpinVersion($payload: MdUnpinArtifactVersionPayload!) {
+  unpinArtifactVersion(payload: $payload)
+}
+
+mutation MarkVersionAsBad($payload: MdArtifactVersionActionPayload!) {
+  markArtifactVersionAsBad(payload: $payload)
+}
+
+mutation MarkVersionAsGood($payload: MdMarkArtifactVersionAsGoodPayload!) {
+  markArtifactVersionAsGood(payload: $payload)
+}
+
+mutation RetryVersionAction($payload: MdRetryArtifactActionPayload!) {
+  retryArtifactVersionAction(payload: $payload) {
+    ...actionDetails
+  }
+}
+
+mutation UpdateGitIntegration($payload: MdUpdateGitIntegrationPayload!) {
+  updateGitIntegration(payload: $payload) {
+    id
+    isEnabled
+  }
+}
+
+mutation DismissNotification($payload: MdDismissNotificationPayload!) {
+  dismissNotification(payload: $payload)
+}
+
+mutation ImportDeliveryConfig($application: String!) {
+  importDeliveryConfig(application: $application)
+}
+
+mutation ToggleResourceManagement($payload: MdToggleResourceManagementPayload) {
+  toggleResourceManagement(payload: $payload)
+}
+
+mutation RestartConstraintEvaluation($payload: MdRestartConstraintEvaluationPayload!) {
+  restartConstraintEvaluation(payload: $payload)
+}

@@ -1,0 +1,62 @@
+[
+  {
+      "application": "cloudfoundryapp",
+      "id": "9b9d29df-2c0c-40f5-9f3e-02e59198bu7e",
+      "index": 0,
+      "name": "bake-cf-manifest",
+      "keepWaitingPipelines": false,
+      "lastModifiedBy": "anonymous",
+      "limitConcurrent": true,
+      "stages": [
+        {
+          "expectedArtifacts": [
+            {
+              "defaultArtifact": {
+                "customKind": true,
+                "id": "51f73090-15b6-4046-9846-a327cb72eed5"
+              },
+              "displayName": "baked-manifest-name",
+              "id": "11b9d248-db8c-4a48-9bc8-1b213461f40d",
+              "matchArtifact": {
+                "artifactAccount": "embedded-artifact",
+                "id": "94cdff29-067e-47c7-b350-231af54c6d80",
+                "name": "baked-manifest-name",
+                "type": "embedded/base64"
+              },
+              "useDefaultArtifact": false,
+              "usePriorArtifact": false
+            }
+          ],
+          "inputArtifacts": [
+            {
+              "account": "embedded-artifact",
+              "artifact": {
+                "artifactAccount": "embedded-artifact",
+                "id": "dd2aee49-1eac-448d-a0d7-dab29936b17b",
+                "name": "manifest",
+                "reference": "LS0tCmFwcGxpY2F0aW9uczoKLSBuYW1lOiB0ZXN0LWFwcAogIGluc3RhbmNlczogMgogIG1lbW9yeTogKChtZW1vcnkpKQogIGJ1aWxkcGFja3M6CiAgLSBnb19idWlsZHBhY2sKICBlbnY6CiAgICBHT1BBQ0tBR0VOQU1FOiBnb19jYWxsc19ydWJ5CiAgY29tbWFuZDogZ29fY2FsbHNfcnVieQ==",
+                "type": "embedded/base64"
+              }
+            },
+            {
+              "account": "embedded-artifact",
+              "artifact": {
+                "artifactAccount": "embedded-artifact",
+                "id": "0a72dc34-bbfa-42cf-b80e-1d75aec7929d",
+                "name": "variables",
+                "reference": "bWVtb3J5OiAxRw==",
+                "type": "embedded/base64"
+              }
+            }
+          ],
+          "name": "Bake CloudFoundry Manifest",
+          "outputName": "baked-manifest-name",
+          "refId": "1",
+          "requisiteStageRefIds": [],
+          "type": "bakeCloudFoundryManifest"
+        }
+      ],
+      "triggers": [],
+      "updateTs": "1621623071000"
+    }
+]

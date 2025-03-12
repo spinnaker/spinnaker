@@ -1,0 +1,58 @@
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+.infrastructure-project {
+  display: block;
+  border: 1px solid var(--color-mineshaft);
+  background-color: var(--color-white);
+  margin-bottom: 15px;
+  a {
+    color: var(--color-mineshaft);
+    display: block;
+    &:active,
+    &:hover {
+      font-weight: 600;
+    }
+  }
+
+  .project-summary {
+    padding: 10px;
+    background-color: var(--color-primary);
+    color: var(--color-alabaster);
+    .remove-result-link {
+      opacity: 0;
+    }
+    &:hover {
+      .remove-result-link {
+        opacity: 1;
+        transition: opacity 0.25s ease-in;
+        color: var(--color-concrete);
+        &:hover,
+        &:active {
+          color: var(--color-accent);
+        }
+      }
+    }
+    .project-name {
+      text-transform: uppercase;
+      font-weight: 600;
+      font-size: 120%;
+      a {
+        color: var(--color-accessory-light);
+        display: inline-block;
+        width: calc(~'100% - 20px');
+      }
+    }
+  }
+  .application-list {
+    padding: 10px 15px;
+    margin-bottom: 0;
+    border-top: 1px solid var(--color-mineshaft);
+    background-color: var(--color-cirrus);
+    li {
+      a {
+        color: var(--color-mineshaft);
+      }
+      list-style-type: none;
+    }
+  }
+}

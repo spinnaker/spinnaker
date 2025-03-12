@@ -1,0 +1,54 @@
+<h5 class="text-center" ng-if="!command.viewState.networkSettingsConfigured">
+  Please select an account, a region and a load balancer first.
+</h5>
+<div
+  ng-if="command.viewState.networkSettingsConfigured"
+  ng-controller="azureServerGroupNetworkSettingsCtrl as networkSettingCtrl"
+>
+  <div class="form-group" ng-if="command.loadBalancerType === 'Azure Load Balancer' || !command.loadBalancerType">
+    <div class="col-md-3 sm-label-right">Virtual Network</div>
+    <div class="col-md-7">
+      <ui-select
+        required
+        class="form-control input-sm"
+        ng-model="command.selectedVnet"
+        on-select="networkSettingCtrl.vnetChanged($item)"
+      >
+        <ui-select-match placeholder="Select from existing virtual networks">{{$select.selected.name}}</ui-select-match>
+        <ui-select-choices repeat="selectVnet in command.allVnets">
+          <span ng-bind-html="selectVnet.name"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right"><b>Subnets</b></div>
+    <div class="col-md-7">
+      <ui-select
+        required
+        ng-model="command.selectedSubnet"
+        class="form-control input-sm"
+        on-select="networkSettingCtrl.networkSettingsChanged($item)"
+      >
+        <ui-select-match placeholder="Select from an existing subnet">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="subnet in command.selectedVnetSubnets | filter: $select.search">
+          <span ng-bind-html="subnet | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
+    <div class="col-md-12">
+      <div class="well-compact" ng-class="well">
+        <h5 class="text-center">
+          <p>Your server group will be using a subnet in virtual network:</p>
+          <p>
+            <strong> {{networkSettingCtrl.getVnetName()}} </strong>
+          </p>
+        </h5>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+<div class="details-panel">
+  <div class="header" ng-if="!state.loading">
+    <instance-details-header
+      health-state="instance.healthState"
+      instance-id="instance.name || instance.id || instance.instanceId"
+      loading="state.loading"
+      standalone="state.standalone"
+    ></instance-details-header>
+    <div class="content" ng-if="!state.loading">
+      <collapsible-section heading="Instance Information" expanded="true">
+        <dl class="dl-horizontal dl-narrow">
+          <dt>Launched</dt>
+          <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
+          <dd ng-if="!instance.launchTime">(Unknown)</dd>
+
+          <dt ng-if="instance.availabilityZone">In</dt>
+          <dd ng-if="instance.availabilityZone">{{instance.availabilityZone}}</dd>
+
+          <dt ng-if="instance.instanceType">Type</dt>
+          <dd ng-if="instance.instanceType">{{instance.instanceType | customInstanceFilter}}</dd>
+
+          <dt ng-if="instance.serverGroup">Server Group</dt>
+          <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
+
+          <dt ng-if="instance.network">Network</dt>
+          <dd ng-if="instance.network">{{instance.network}}</dd>
+        </dl>
+      </collapsible-section>
+    </div>
+  </div>
+</div>

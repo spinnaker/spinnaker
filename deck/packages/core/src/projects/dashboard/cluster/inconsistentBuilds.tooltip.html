@@ -1,0 +1,3 @@
+<span ng-repeat="build in application.regions[region].inconsistentBuilds">
+  Build #{{build.buildNumber}}: deployed {{build.deployed | relativeTime }}
+</span>

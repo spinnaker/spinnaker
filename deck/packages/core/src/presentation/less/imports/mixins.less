@@ -1,0 +1,57 @@
+/* Common mixins extracted from Bootstrap */
+
+.text-right() {
+  text-align: right;
+}
+
+.pull-right() {
+  float: right !important;
+}
+
+.pull-left() {
+  float: left !important;
+}
+
+.fade-in(@duration:0.25s; @delay: 0) {
+  animation: @duration ease-in @delay fadeIn;
+  animation-iteration-count: 1;
+}
+
+.slide-down(@duration:0.25s) {
+  animation: @duration ease-in-out 0 slideDown;
+  animation-iteration-count: 1;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    height: 0;
+    opacity: 0;
+  }
+  100% {
+    height: 100%;
+    opacity: 1;
+  }
+}
+
+.encircled() {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  line-height: 29px;
+  font-size: 14px;
+  border-radius: 50%;
+  margin-left: 5px;
+  background-color: var(--color-primary);
+  border: 2px solid var(--color-white);
+  color: var(--color-white);
+  text-align: center;
+}

@@ -1,0 +1,84 @@
+<div ng-if="ctrl.state.loaded" class="clearfix">
+  <div class="container-fluid form-horizontal">
+    <h4>Basic Settings</h4>
+    <div ng-if="!pipeline.strategy">
+      <account-region-cluster-selector
+        application="application"
+        component="stage"
+        accounts="ctrl.accounts"
+        show-cluster-select="ctrl.showClusterSelect"
+      >
+      </account-region-cluster-selector>
+    </div>
+    <h4>Template Configuration</h4>
+    <ng-form name="amazonCloudFormationTemplateSource">
+      <stage-config-field label="Stack name">
+        <label class="sm-label-right">
+          <input type="text" class="form-control input-sm" required ng-model="stage.stackName" />
+        </label>
+        <br />
+        <label>
+          <input type="checkbox" ng-checked="stage.isChangeSet" ng-click="ctrl.toggleChangeSet()" />
+          <strong>Create CloudFormation ChangeSet</strong>
+        </label>
+      </stage-config-field>
+
+      <stage-config-field label="IAM role ARN">
+        <label class="sm-label-right">
+          <input type="text" class="form-control input-sm" ng-model="stage.roleARN" />
+        </label>
+      </stage-config-field>
+      <stage-config-field label="Source" help-key="aws.cloudformation.source">
+        <label class="sm-label-right">
+          <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}" />
+          {{ ctrl.textSource | robotToHuman }}
+          <span ng-if="stage.source === ctrl.textSource"> </span> </label
+        ><br />
+        <label class="sm-label-right">
+          <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}" />
+          {{ ctrl.artifactSource | robotToHuman }}
+        </label>
+      </stage-config-field>
+    </ng-form>
+    <cloud-formation-template-entry
+      ng-if="stage.source === ctrl.textSource"
+      templateBody="stage.templateBody"
+      command="stage"
+    >
+    </cloud-formation-template-entry>
+    <stage-artifact-selector-delegate
+      ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+      artifact="stage.stackArtifact"
+      excluded-artifact-type-patterns="[]"
+      expected-artifact-id="stage.stackArtifactId"
+      field-columns="8"
+      help-key="'aws.cloudformation.expectedArtifact'"
+      label="'Expected Artifact'"
+      on-artifact-edited="ctrl.onStackArtifactEdited"
+      on-expected-artifact-selected="ctrl.onStackArtifactSelected"
+      pipeline="pipeline"
+      stage="stage"
+    >
+    </stage-artifact-selector-delegate>
+    <div ng-if="stage.isChangeSet">
+      <cloud-formation-change-set-info stage="stage" stageconfig="stageConfigCtrl"> </cloud-formation-change-set-info>
+    </div>
+    <hr />
+    <stage-config-field label="Parameters" field-columns="6">
+      <map-editor model="ctrl.$scope.stage.parameters" add-button-label="Add parameter"></map-editor>
+    </stage-config-field>
+    <hr />
+    <stage-config-field label="Tags" field-columns="6">
+      <map-editor model="ctrl.$scope.stage.tags" add-button-label="Add tag"></map-editor>
+    </stage-config-field>
+    <hr />
+    <stage-config-field label="Capabilities" field-columns="6">
+      <ui-select multiple ng-model="stage.capabilities" class="form-control input-sm">
+        <ui-select-match>{{$item}}</ui-select-match>
+        <ui-select-choices repeat="capability in ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM', 'CAPABILITY_AUTO_EXPAND']">
+          <span>{{ capability }}</span>
+        </ui-select-choices>
+      </ui-select>
+    </stage-config-field>
+  </div>
+</div>

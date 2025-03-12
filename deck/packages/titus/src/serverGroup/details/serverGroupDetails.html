@@ -1,0 +1,191 @@
+<div class="details-panel" ng-class="{ disabled: serverGroup.isDisabled }">
+  <div class="header" ng-if="state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!state.loading">
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text horizontal middle">
+      <cloud-provider-logo provider="serverGroup.type" height="'36px'" width="'36px'"></cloud-provider-logo>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
+        {{serverGroup.name}}
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            entity="serverGroup"
+            application="ctrl.application"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="serverGroup"
+            page-location="details"
+            on-update="ctrl.application.serverGroups.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
+      </h3>
+    </div>
+    <div>
+      <div class="actions" ng-class="{ insights: serverGroup.insightActions.length > 0 }">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+            Server Group Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-if="ctrl.isRollbackEnabled()" ng-click="ctrl.rollbackServerGroup()">Rollback</a></li>
+            <li role="presentation" class="divider" ng-if="ctrl.isRollbackEnabled()"></li>
+            <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
+            <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
+            <li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
+            <li><a href ng-click="ctrl.cloneServerGroup()">Clone</a></li>
+            <add-entity-tag-links
+              component="serverGroup"
+              application="ctrl.application"
+              entity-type="serverGroup"
+              owner-options="ctrl.entityTagTargets"
+              on-update="ctrl.application.serverGroups.refresh"
+            ></add-entity-tag-links>
+          </ul>
+        </div>
+        <div class="dropdown" ng-if="serverGroup.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li
+              ng-repeat="action in serverGroup.insightActions"
+              analytics-on="click"
+              analytics-category="Insight Menu (Server Group)"
+              analytics-event="{{action.label}} clicked"
+              analytics-label="{{serverGroup.account}}/{{serverGroup.region}}/{{serverGroup.name}}"
+            >
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!state.loading">
+    <div class="band band-info" ng-if="serverGroup.isDisabled">Job is Disabled</div>
+    <managed-resource-details-indicator
+      ng-if="!state.loading && serverGroup.isManaged"
+      resource-summary="serverGroup.managedResourceSummary"
+      application="ctrl.application"
+    ></managed-resource-details-indicator>
+    <server-group-running-tasks-details
+      server-group="serverGroup"
+      application="ctrl.application"
+    ></server-group-running-tasks-details>
+    <collapsible-section heading="Server Group Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Created</dt>
+        <dd>{{serverGroup.createdTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="serverGroup.account" pad="right"></account-tag>
+          {{serverGroup.region}}
+        </dd>
+        <dt>Job Id</dt>
+        <dd><a href="{{titusUiEndpoint}}jobs/{{serverGroup.id}}" target="_blank">{{serverGroup.id}}</a></dd>
+        <entity-source metadata="serverGroup.entityTags.creationMetadata"></entity-source>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Capacity" expanded="true">
+      <titus-capacity-details-section
+        app="ctrl.application"
+        server-group="serverGroup"
+      ></titus-capacity-details-section>
+    </collapsible-section>
+    <collapsible-section heading="Health" expanded="true" ng-if="serverGroup.instanceCounts.total > 0">
+      <dl class="dl-horizontal dl-narrow" ng-if="serverGroup">
+        <dt>Tasks</dt>
+        <dd>
+          <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Launch Configuration">
+      <titus-launch-config-section server-group="serverGroup"></titus-launch-config-section>
+    </collapsible-section>
+
+    <titus-security-groups
+      app="ctrl.application"
+      server-group="serverGroup"
+      class="collapsible-section"
+      style="display: block"
+    ></titus-security-groups>
+
+    <collapsible-section heading="Service Job Processes">
+      <titus-service-job-processes-section
+        app="ctrl.application"
+        server-group="serverGroup"
+      ></titus-service-job-processes-section>
+    </collapsible-section>
+
+    <collapsible-section heading="Scaling Policies">
+      <scaling-policy-summary
+        ng-repeat="policy in serverGroup.scalingPolicies"
+        policy="policy"
+        server-group="serverGroup"
+        application="ctrl.application"
+      ></scaling-policy-summary>
+      <titus-create-scaling-policy-button
+        server-group="serverGroup"
+        application="ctrl.application"
+      ></titus-create-scaling-policy-button>
+      <div ng-if="ctrl.awsAccountId">
+        <config-bin-link
+          application="ctrl.application"
+          aws-account-id="ctrl.awsAccountId"
+          cluster-name="serverGroup.cluster"
+          region="serverGroup.region"
+          env="ctrl.env"
+          cloud-provider="'titus'"
+        ></config-bin-link>
+      </div>
+      <titus-custom-scaling-policy
+        application="ctrl.application"
+        server-group="serverGroup"
+      ></titus-custom-scaling-policy>
+    </collapsible-section>
+    <titus-package-details-section build-info="buildInfo"></titus-package-details-section>
+    <collapsible-section heading="Job Disruption Budget">
+      <titus-disruption-budget-section
+        app="ctrl.application"
+        server-group="serverGroup"
+      ></titus-disruption-budget-section>
+    </collapsible-section>
+    <collapsible-section heading="Job Attributes">
+      <div ng-if="!serverGroup.labels">No job attributes associated with this server group</div>
+      <dl ng-if="labels">
+        <dt ng-repeat-start="(key, val) in labels">{{key}}</dt>
+        <dd ng-repeat-end>{{val}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Container Attributes">
+      <div ng-if="!serverGroup.containerAttributes">No container attributes associated with this server group</div>
+      <dl ng-if="serverGroup.containerAttributes">
+        <dt ng-repeat-start="(key, val) in serverGroup.containerAttributes">{{key}}</dt>
+        <dd ng-repeat-end>{{val}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Environment Variables">
+      <div ng-if="!serverGroup.env">No environment variables associated with this server group</div>
+      <dl ng-if="serverGroup.env">
+        <dt ng-repeat-start="(key, val) in serverGroup.env">{{key}}</dt>
+        <dd ng-repeat-end>{{val}}</dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+.table-search-results {
+  width: auto;
+  overflow-x: auto;
+  white-space: nowrap;
+  word-break: break-all;
+
+  .table-header {
+    position: sticky;
+    top: 0;
+    font-weight: 600;
+    background-color: var(--color-alabaster);
+    z-index: 2;
+    .fa {
+      padding-left: 2px;
+      &.disabled {
+        color: var(--color-alto);
+      }
+    }
+    .table-header {
+      background-color: var(--color-alabaster);
+    }
+  }
+
+  .table-header,
+  .table-row {
+    display: flex;
+    flex: 1 1 auto;
+    > div {
+      flex: 1 1 auto;
+      padding: 10px;
+      display: inline-block;
+      width: 150px;
+      word-break: break-all;
+      white-space: normal;
+      border-bottom: 1px solid var(--color-alto);
+    }
+  }
+
+  .table-row {
+    > div {
+      background-color: var(--color-alabaster);
+      flex: 1 1 auto;
+    }
+    &:nth-child(even) {
+      > div {
+        background-color: var(--color-white);
+      }
+    }
+    &:hover {
+      > div {
+        background-color: var(--color-cirrus);
+      }
+    }
+    &.active {
+      > div {
+        background-color: var(--color-accent-g2);
+      }
+    }
+  }
+}

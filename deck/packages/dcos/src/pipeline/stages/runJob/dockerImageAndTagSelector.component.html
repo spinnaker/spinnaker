@@ -1,0 +1,97 @@
+<div class="form-group" ng-if="$ctrl.showRegistry">
+  <div ng-class="$ctrl.labelClass" class="sm-label-right">Registry Name</div>
+  <div ng-class="$ctrl.fieldClass">
+    <ui-select
+      ng-model="$ctrl.account"
+      ng-disabled="$ctrl.viewState.imagesRefreshing"
+      ng-change="$ctrl.changeAccount()"
+      class="form-control input-sm"
+    >
+      <ui-select-match>{{ $ctrl.account }}</ui-select-match>
+      <ui-select-choices repeat="account in $ctrl.accounts | filter: $select.search | orderBy">
+        <span ng-bind-html="account | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+  <div class="col-md-1 text-center">
+    <a
+      href
+      ng-click="$ctrl.refreshImages()"
+      tooltip-placement="right"
+      uib-tooltip="{{ $ctrl.viewState.imagesRefreshing ? 'Images refreshing.' : 'Refresh images list' }}"
+    >
+      <span ng-class="{ 'fa-spin': $ctrl.viewState.imagesRefreshing }" class="fa fa-sync-alt"></span>
+    </a>
+  </div>
+</div>
+<div class="form-group">
+  <div ng-class="$ctrl.labelClass" class="sm-label-right">Organization</div>
+  <div ng-class="$ctrl.fieldClass">
+    <input class="form-control input-sm" ng-if="$ctrl.hasTag($ctrl.organization)" ng-model="$ctrl.organization" />
+    <ui-select
+      ng-model="$ctrl.organization"
+      ng-if="!$ctrl.hasTag($ctrl.organization)"
+      ng-disabled="$ctrl.viewState.imagesRefreshing"
+      ng-change="$ctrl.updateRepositoryList()"
+      class="form-control input-sm"
+    >
+      <ui-select-match placeholder="No organization">{{ $ctrl.organization }}</ui-select-match>
+      <ui-select-choices repeat="organization in $ctrl.organizations | filter: $select.search | orderBy">
+        <span ng-bind-html="organization || 'No organization' | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+<div class="form-group">
+  <div ng-class="$ctrl.labelClass" class="sm-label-right">Image</div>
+  <div ng-class="$ctrl.fieldClass">
+    <input class="form-control input-sm" ng-if="$ctrl.hasTag($ctrl.repository)" ng-model="$ctrl.repository" />
+    <ui-select
+      ng-model="$ctrl.repository"
+      ng-if="!$ctrl.hasTag($ctrl.repository)"
+      ng-disabled="$ctrl.viewState.imagesRefreshing"
+      ng-change="$ctrl.updateTag()"
+      class="form-control input-sm"
+      required
+    >
+      <ui-select-match>{{ $ctrl.repository }}</ui-select-match>
+      <ui-select-choices repeat="repository in $ctrl.repositories | filter: $select.search | orderBy">
+        <span ng-bind-html="repository | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+<div class="form-group" ng-if="$ctrl.specifyTagByRegex">
+  <div ng-class="$ctrl.labelClass" class="sm-label-right">
+    Tag
+    <help-field key="pipeline.config.docker.trigger.tag"></help-field>
+  </div>
+  <div ng-class="$ctrl.fieldClass">
+    <input
+      type="text"
+      class="form-control input-sm"
+      ng-model="$ctrl.tag"
+      ng-disabled="$ctrl.viewState.imagesRefreshing || !$ctrl.repository"
+      ng-change="$ctrl.updateTag()"
+    />
+  </div>
+</div>
+<div class="form-group" ng-if="!$ctrl.specifyTagByRegex">
+  <div ng-class="$ctrl.labelClass" class="sm-label-right">Tag</div>
+  <div ng-class="$ctrl.fieldClass">
+    <input class="form-control input-sm" ng-if="$ctrl.hasSpel($ctrl.tag)" ng-model="$ctrl.tag" />
+    <ui-select
+      ng-model="$ctrl.tag"
+      ng-if="!$ctrl.hasSpel($ctrl.tag)"
+      ng-disabled="$ctrl.viewState.imagesRefreshing || !$ctrl.repository"
+      ng-change="$ctrl.updateTag()"
+      class="form-control input-sm"
+      required
+    >
+      <ui-select-match placeholder="No tag">{{ $ctrl.tag }}</ui-select-match>
+      <ui-select-choices repeat="tag in $ctrl.tags | filter: $select.search | orderBy">
+        <span ng-bind-html="tag || 'No tag' | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>

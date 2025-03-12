@@ -1,0 +1,95 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-12">
+      <div class="form-group">
+        <div class="col-md-3">
+          <b>Custom DNS Label</b>
+          <help-field key="azure.loadBalancer.dnsName"></help-field>
+        </div>
+        <div class="col-md-6">
+          <input class="form-control input-sm" type="text" ng-model="loadBalancer.dnsName" />
+          <span>.{{loadBalancer.region}}.cloudapp.azure.com</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3">
+          <b>Health Check</b>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-4 sm-label-right">
+          <b>Interval</b>
+          <help-field key="azure.loadBalancer.probes.probeInterval"></help-field>
+        </div>
+        <div class="col-md-4">
+          <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.probes[0].probeInterval" />
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-4 sm-label-right">
+          <b>Unhealthy Threshold</b>
+          <help-field key="azure.loadBalancer.probes.unhealthyThreshold"></help-field>
+        </div>
+        <div class="col-md-4">
+          <input
+            class="form-control input-sm"
+            type="number"
+            min="0"
+            ng-model="loadBalancer.probes[0].unhealthyThreshold"
+          />
+        </div>
+      </div>
+      <div class="form-group" ng-if="isALB">
+        <div class="col-md-4 sm-label-right">
+          <b>Idle Timeout</b>
+          <help-field key="azure.loadBalancer.loadBalancingRules.idleTimeout"></help-field>
+        </div>
+        <div class="col-md-4">
+          <input
+            class="form-control input-sm"
+            type="number"
+            min="0"
+            ng-model="loadBalancer.loadBalancingRules[0].idleTimeout"
+          />
+        </div>
+      </div>
+      <div class="form-group" ng-if="!isALB">
+        <div class="col-md-4 sm-label-right">
+          <b>Timeout</b>
+          <help-field key="azure.loadBalancer.probes.timeout"></help-field>
+        </div>
+        <div class="col-md-4">
+          <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.probes[0].timeout" />
+        </div>
+      </div>
+      <div class="form-group" ng-if="isNew && !isALB">
+        <div class="col-md-4 sm-label-right">
+          <b>SKU</b>
+          <help-field key="azure.loadBalancer.sku"></help-field>
+        </div>
+        <div class="col-md-4">
+          <select
+            class="form-control input-sm"
+            ng-model="loadBalancer.sku"
+            ng-options="sku for sku in validSkus"
+          ></select>
+        </div>
+      </div>
+      <div class="form-group" ng-if="isALB">
+        <div class="col-md-4 sm-label-right">
+          <b>Session persistence</b>
+          <help-field key="azure.loadBalancer.loadBalancingRules.sessionPersistence"></help-field>
+        </div>
+        <div class="col-md-4">
+          <select
+            class="form-control input-sm"
+            ng-model="loadBalancer.sessionPersistence"
+            ng-init="loadBalancer.sessionPersistence = 'None'"
+            required
+            ng-options="p for p in ['None', 'Client IP', 'Client IP and protocol']"
+          ></select>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

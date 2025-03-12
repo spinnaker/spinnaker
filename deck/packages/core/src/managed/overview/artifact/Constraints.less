@@ -1,0 +1,67 @@
+.Constraints {
+  margin-top: var(--s-spacing);
+  color: var(--color-dovegray);
+
+  .constraints-icon {
+    margin-top: 3px;
+    align-self: flex-start;
+  }
+
+  .version-constraint {
+    display: grid;
+    grid-template-columns: 14px auto;
+    column-gap: 6px;
+    align-items: center;
+
+    .constraint-toggle {
+      color: inherit;
+      display: flex;
+      width: fit-content;
+    }
+
+    .constraint-title {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      color: inherit;
+      padding: 0;
+      margin: 0;
+      border: 0;
+
+      & > svg {
+        margin-left: var(~'--2xs-spacing');
+        padding-top: 2px;
+        transition: transform 0.15s ease;
+      }
+    }
+
+    .constraint-icon {
+      margin-top: 5px;
+      align-self: flex-start;
+    }
+
+    &.single-constraint {
+      grid-template-columns: 12px auto;
+    }
+  }
+
+  .single-constraint {
+    .constraint-content {
+      margin-top: var(--s-spacing);
+      margin-bottom: var(--m-spacing);
+
+      .constraint-action-button {
+        min-width: 80px;
+        font-size: 13px;
+        padding: var(~'--2xs-spacing') var(--s-spacing);
+        margin-right: var(--s-spacing);
+      }
+    }
+
+    &:last-child {
+      .constraint-content {
+        margin-bottom: 0;
+      }
+    }
+  }
+}

@@ -1,0 +1,85 @@
+@import 'bootstrap/less/mixins/vendor-prefixes.less';
+@import (reference) '../../presentation/main.less';
+@import (reference) '../../presentation/less/imports/commonImports.less';
+@import './baseTable.less';
+
+.search-results {
+  .faded {
+    opacity: 0.2;
+  }
+
+  display: flex;
+  margin-top: 10px;
+  height: 100%;
+  overflow: hidden;
+
+  .search-groups {
+    background-color: var(--color-alabaster);
+    cursor: default;
+    min-width: 275px;
+    width: 275px;
+
+    .search-group {
+      .clickable();
+      padding: 10px;
+      margin-bottom: 1px;
+
+      .search-group-icon {
+        background-color: var(--color-primary);
+        border: 2px solid var(--color-white);
+        border-radius: 50%;
+        color: var(--color-white);
+        display: inline-block;
+        height: 32px;
+        line-height: 29px;
+        margin-right: 10px;
+        text-align: center;
+        width: 32px;
+      }
+
+      .search-group-name {
+        color: var(--color-primary);
+        font-size: 110%;
+        font-weight: 600;
+        text-transform: uppercase;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .badge {
+        background-color: var(--color-primary);
+        border-radius: 3px;
+      }
+
+      &.search-group--focus {
+        background-color: var(--color-accent-g2);
+      }
+
+      &.search-group--blur {
+        background-color: var(--color-alabaster);
+      }
+
+      &:hover {
+        background-color: var(--color-accent-g2);
+        transition: all 0.15s ease-in-out;
+
+        &.faded {
+          background-color: var(--color-alabaster);
+        }
+      }
+    }
+  }
+
+  .search-result-grid {
+    padding-left: 15px;
+
+    .small {
+      font-size: 90%;
+    }
+
+    .table-contents.flex-fill {
+      height: inherit; // overrides flex-fill: height 100%, which causes issues on firefox when the table has a sticky header
+    }
+  }
+}

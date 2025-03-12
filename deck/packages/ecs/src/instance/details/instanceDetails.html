@@ -1,0 +1,204 @@
+<div class="text-center" ng-if="state.notFoundStandalone">
+  <h3>Could not find instance {{instanceIdNotFound}}.</h3>
+  <a ui-sref="home.infrastructure">Back to search results</a>
+</div>
+<div class="details-panel" ng-if="!state.notFoundStandalone">
+  <div class="header">
+    <instance-details-header
+      health-state="instance.healthState"
+      instance-id="instance ? instance.name : instanceIdNotFound"
+      loading="state.loading"
+      standalone="state.standalone"
+    ></instance-details-header>
+    <div ng-if="!state.loading">
+      <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }">
+        <!-- TODO - find out what I should do with ng-if="instance.placement" -->
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary dropdown-toggle"
+            ng-disabled="disabled"
+            uib-dropdown-toggle
+          >
+            Instance Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li>
+              <a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()"
+                >Enable in Discovery</a
+              >
+            </li>
+            <li>
+              <a
+                href
+                ng-click="ctrl.disableInstanceInDiscovery()"
+                ng-if="ctrl.hasHealthState('Discovery', 'Up') || ctrl.hasHealthState('Discovery', 'Down')"
+                >Disable in Discovery</a
+              >
+            </li>
+            <li>
+              <a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="ctrl.canRegisterWithLoadBalancer()"
+                >Register with Load Balancer</a
+              >
+            </li>
+            <li>
+              <a href ng-click="ctrl.deregisterInstanceFromLoadBalancer()" ng-if="ctrl.canDeregisterFromLoadBalancer()"
+                >Deregister from Load Balancer</a
+              >
+            </li>
+            <li>
+              <a href ng-click="ctrl.registerInstanceWithTargetGroup()" ng-if="ctrl.canRegisterWithTargetGroup()"
+                >Register with Target Group</a
+              >
+            </li>
+            <li>
+              <a href ng-click="ctrl.deregisterInstanceFromTargetGroup()" ng-if="ctrl.canDeregisterFromTargetGroup()"
+                >Deregister from Target Group</a
+              >
+            </li>
+            <!--<li role="presentation" class="divider" ng-if="instance.health.length > 0"></li>-->
+          </ul>
+        </div>
+        <div class="dropdown" ng-if="instance.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li ng-repeat="action in instance.insightActions">
+              <a target="_blank" href="{{action.url}}">{{action.label}}</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="content" data-test-id="instanceDetails.content" ng-if="!state.loading && instance">
+    <collapsible-section heading="Instance Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Launched</dt>
+        <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
+        <dd ng-if="!instance.launchTime">(Unknown)</dd>
+        <dt ng-if="instance.serverGroup">Server Group</dt>
+        <dd ng-if="instance.serverGroup">
+          <a
+            ui-sref="^.serverGroup({region: instance.region,
+              accountId: instance.account,
+              serverGroup: instance.serverGroup,
+              provider: instance.provider})"
+            >{{instance.serverGroup}}</a
+          >
+        </dd>
+        <dt ng-if="instance.imageId">Image ID</dt>
+        <dd ng-if="instance.imageId">{{instance.imageId}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <p ng-if="instance.healthState !== 'Starting' && !healthMetrics.length">
+        No health metrics found for this instance
+      </p>
+      <p ng-if="instance.healthState === 'Starting' && !healthMetrics.length">
+        <span class="glyphicon glyphicon-Starting-triangle"></span> <strong>Starting</strong>
+      </p>
+
+      <dl class="horizontal-when-filters-collapsed">
+        <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
+        <dd ng-repeat-end>
+          <div ng-if="metric.type !== 'LoadBalancer' && metric.type !== 'TargetGroup'">
+            <span
+              uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}"
+              tooltip-placement="left"
+            >
+              <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
+              {{metric.state | robotToHuman}}
+            </span>
+            <span class="pad-left small">
+              <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">Health Check</a>
+              <span ng-if="metric.healthCheckUrl && metric.statusPageUrl"> | </span>
+              <a ng-if="metric.statusPageUrl" target="_blank" href="{{metric.statusPageUrl}}">Status</a>
+            </span>
+          </div>
+          <div
+            ng-if="metric.type === 'LoadBalancer' && metric.loadBalancers.length"
+            ng-repeat="loadBalancer in metric.loadBalancers"
+          >
+            <instance-load-balancer-health load-balancer="loadBalancer"></instance-load-balancer-health>
+          </div>
+          <div
+            ng-if="metric.type === 'TargetGroup' && metric.targetGroups.length"
+            ng-repeat="targetGroup in metric.targetGroups"
+          >
+            <instance-load-balancer-health
+              load-balancer="targetGroup"
+              ip-address="baseIpAddress"
+            ></instance-load-balancer-health>
+          </div>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Networking">
+      <dl class="horizontal-when-filters-collapsed">
+        <dt ng-if="instance.vpcId">VPC</dt>
+        <dd ng-if="instance.vpcId"><vpc-tag vpc-id="instance.vpcId"></vpc-tag></dd>
+        <dt ng-if="instance.subnetId">Subnet</dt>
+        <dd ng-if="instance.subnetId"><subnet-tag subnet-id="instance.subnetId"></subnet-tag></dd>
+
+        <dt ng-if="instance.privateAddress || instance.networkInterface">IP</dt>
+        <dd ng-if="instance.networkInterface.privateIpv4Address">
+          Private address (ENI):
+          <a href="http://{{instance.networkInterface.privateIpv4Address}}" target="_blank"
+            >{{instance.networkInterface.privateIpv4Address}}</a
+          >
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="instance.networkInterface.privateIpv4Address"
+            tool-tip="'Copy to clipboard'"
+          >
+          </copy-to-clipboard>
+        </dd>
+        <dd ng-if="instance.networkInterface.ipv6Address">
+          Private address (ENI):
+          <a href="http://{{instance.networkInterface.ipv6Address}}" target="_blank"
+            >{{instance.networkInterface.ipv6Address}}</a
+          >
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="instance.networkInterface.ipv6Address"
+            tool-tip="'Copy to clipboard'"
+          >
+          </copy-to-clipboard>
+        </dd>
+        <dd ng-if="instance.privateAddress">
+          Private address (Bridge):
+          <a href="http://{{instance.privateAddress}}" target="_blank">{{instance.privateAddress}}</a>
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="instance.privateAddress"
+            tool-tip="'Copy to clipboard'"
+          >
+          </copy-to-clipboard>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Console Output" ng-if="baseIpAddress">
+      <ul>
+        <li>
+          <console-output-link instance="instance"></console-output-link>
+        </li>
+      </ul>
+    </collapsible-section>
+    <instance-links
+      address="baseIpAddress"
+      application="application"
+      instance="instance"
+      moniker="moniker"
+      environment="environment"
+    ></instance-links>
+  </div>
+  <div class="content" ng-if="!state.loading && !instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,70 @@
+<div style="overflow-y: auto" sticky-headers>
+  <page-navigator
+    scrollable-container="[sticky-headers]"
+    deep-link-param="section"
+    ng-if="(!config.application.attributes || !config.application.attributes.email)"
+  >
+    <page-section key="location" label="Application Attributes">
+      <application-attributes application="config.application"></application-attributes>
+    </page-section>
+  </page-navigator>
+  <page-navigator
+    scrollable-container="[sticky-headers]"
+    deep-link-param="section"
+    ng-if="(config.application.attributes && config.application.attributes.email)"
+  >
+    <page-section key="location" label="Application Attributes">
+      <application-attributes application="config.application"></application-attributes>
+    </page-section>
+    <page-section
+      key="managed-resources"
+      label="Managed Resources"
+      visible="(config.feature.managedResources && config.hasManagedResources) || false"
+    >
+      <managed-resource-config application="config.application"> </managed-resource-config>
+    </page-section>
+    <page-section key="notifications" label="Notifications">
+      <application-notifications
+        application="config.application"
+        notifications="config.notifications"
+        update-notifications="config.updateNotifications"
+      ></application-notifications>
+    </page-section>
+    <page-section key="features" label="Features">
+      <application-data-source-editor application="config.application"></application-data-source-editor>
+    </page-section>
+    <page-section key="links" label="Links" no-wrapper="true">
+      <application-links application="config.application"></application-links>
+    </page-section>
+    <page-section key="chaos" label="Chaos Monkey" visible="config.feature.chaosMonkey">
+      <chaos-monkey-config application="config.application"></chaos-monkey-config>
+    </page-section>
+    <page-section key="traffic-guards" label="Traffic Guards">
+      <traffic-guard-config application="config.application"></traffic-guard-config>
+    </page-section>
+    <page-section key="snapshot" label="Serialize Application" visible="config.feature.snapshots">
+      <application-snapshot-section application="config.application"></application-snapshot-section>
+    </page-section>
+    <page-section key="banner" label="Custom Banners">
+      <custom-banner-config
+        banner-configs="config.application.attributes.customBanners"
+        is-saving="config.bannerConfigProps.isSaving"
+        save-error="config.bannerConfigProps.saveError"
+        update-banner-configs="config.updateBannerConfigs"
+      >
+      </custom-banner-config>
+    </page-section>
+    <page-section key="default-filters" label="Default Filters">
+      <default-tag-filter-config
+        default-tag-filter-configs="config.application.attributes.defaultFilteredTags"
+        is-saving="config.defaultTagFilterProps.isSaving"
+        save-error="config.defaultTagFilterProps.saveError"
+        update-default-tag-filter-configs="config.updateDefaultTagFilterConfigs"
+      >
+      </default-tag-filter-config>
+    </page-section>
+    <page-section key="delete" label="Delete Application">
+      <delete-application-section application="config.application"></delete-application-section>
+    </page-section>
+  </page-navigator>
+</div>

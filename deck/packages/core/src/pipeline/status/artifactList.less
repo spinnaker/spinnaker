@@ -1,0 +1,47 @@
+@import (reference) '../executions/execution/execution.less';
+
+.artifact-list {
+  ul {
+    padding: 0;
+  }
+
+  li {
+    list-style: none;
+    margin-bottom: 4px;
+  }
+}
+
+.resolved-artifacts {
+  font-size: 0.8em;
+  line-height: 12px;
+  margin-bottom: 10px;
+  padding-left: @execution-parameters-icon-width - 0.2em;
+}
+
+.resolved-artifact-list {
+  display: inline-block;
+  width: 100%;
+  overflow-y: hidden;
+
+  .resolved-artifact-list::after {
+    clear: both;
+    content: '';
+  }
+}
+
+.artifacts-title {
+  margin-top: 5px;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.artifact-list-column {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+
+  width: 50%;
+
+  float: left;
+}

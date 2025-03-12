@@ -1,0 +1,110 @@
+{
+  "main": "./dist/bundle.js",
+  "name": "deck",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spinnaker/deck.git"
+  },
+  "publishConfig": {
+    "registry": "http://artifacts.netflix.com/api/npm/npm-local"
+  },
+  "engines": {
+    "node": ">=14.21.3",
+    "npm": ">=6.14.18",
+    "yarn": ">=1.21.1"
+  },
+  "private": true,
+  "scripts": {
+    "clean": "lerna run clean --parallel",
+    "fixup": "scripts/monorepo_fixup.sh",
+    "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --mode=production --config packages/app/webpack.config.js",
+    "lint": "eslint --max-warnings=0 --ext js,jsx,ts,tsx packages",
+    "start": "sh ./start.sh",
+    "start-dev-server": "webpack-dev-server --config packages/app/webpack.config.js --mode=development",
+    "dev:experimental": "cd packages/app && npm run dev:experimental",
+    "test": "karma start",
+    "modules": "./scripts/buildModules.js",
+    "prettier": "prettier --write 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
+    "prettier:check": "prettier --check 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
+    "functional": "npm run build && cd test/functional && yarn && npm run test",
+    "functional:debug": "npm run build && cd test/functional && yarn && npm run open",
+    "storybook": "start-storybook -p 9001",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@spinnaker/eslint-plugin": "^3.0.0",
+    "@types/jasmine": "3.6.9",
+    "angular-mocks": "1.8.0",
+    "babel-loader": "8.1.0",
+    "enzyme-adapter-react-16": "1.15.1",
+    "eslint": "7.27.0",
+    "eslint-config-prettier": "6.10.0",
+    "eslint-plugin-react-hooks": "2.5.0",
+    "eslint-webpack-plugin": "2.5.4",
+    "husky": "6.0.0",
+    "jasmine": "3.7.0",
+    "jasmine-core": "3.7.1",
+    "karma": "6.3.16",
+    "karma-chrome-launcher": "3.1.0",
+    "karma-jasmine": "4.0.1",
+    "karma-junit-reporter": "2.0.1",
+    "karma-mocha-reporter": "2.2.5",
+    "karma-sourcemap-loader": "0.3.8",
+    "karma-super-dots-reporter": "0.2.0",
+    "karma-webpack": "5.0.0",
+    "kleur": "^4.1.4",
+    "lerna": "^4.0.0",
+    "prettier": "2.1.2",
+    "prompts": "^2.4.1",
+    "rimraf": "2.6.1",
+    "sisteransi": "^1.0.5",
+    "yargs": "^17.0.1"
+  },
+  "optionalDependencies": {
+    "fsevents": "1.2.11"
+  },
+  "resolutionsPurpose": "This temporarily chooses the right versions of these libs, which are specified in both deck AND deck-kayenta",
+  "resolutions": {
+    "@types/angular": "1.6.26",
+    "@uirouter/react-hybrid": "1.0.2",
+    "@uirouter/react": "1.0.7",
+    "@uirouter/angularjs": "1.0.26",
+    "@uirouter/core": "6.0.8",
+    "angular": "1.8.0",
+    "cheerio": "=1.0.0-rc.3",
+    "nth-check": "2.0.1",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "rxjs": "6.6.7",
+    "typescript": "4.3.5"
+  },
+  "workspaces": [
+    "packages/app",
+    "packages/amazon",
+    "packages/appengine",
+    "packages/azure",
+    "packages/cloudfoundry",
+    "packages/cloudrun",
+    "packages/core",
+    "packages/dcos",
+    "packages/docker",
+    "packages/ecs",
+    "packages/eslint-plugin",
+    "packages/google",
+    "packages/huaweicloud",
+    "packages/kubernetes",
+    "packages/oracle",
+    "packages/pluginsdk",
+    "packages/pluginsdk-peerdeps",
+    "packages/presentation",
+    "packages/scripts",
+    "packages/tencentcloud",
+    "packages/titus"
+  ],
+  "lint-staged": {
+    "packages/**/*.{js,jsx,ts,tsx}": "eslint --fix",
+    "packages/**/*.{js,jsx,ts,tsx,html,css,less}": "prettier --write"
+  }
+}

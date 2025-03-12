@@ -1,0 +1,10 @@
+<span>
+  <span ng-hide="showOcid">
+    {{ocid | truncateOcid}}
+    <a href="" ng-click="showOcid = true">Show</a>
+  </span>
+  <span ng-show="showOcid">
+    {{ocid}}
+    <a href="" ng-click="showOcid = false">Hide</a>
+  </span>
+</span>

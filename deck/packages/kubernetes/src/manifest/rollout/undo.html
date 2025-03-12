@@ -1,0 +1,44 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="ctrl.taskMonitor"></task-monitor>
+  <form role="form" name="undoRolloutForm">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h4 class="modal-title">
+        Undo rollout of {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}
+      </h4>
+    </div>
+    <div class="modal-body confirmation-modal">
+      <div class="form-horizontal">
+        <div class="form-group form-inline">
+          <div class="col-md-3 sm-label-right">Revision</div>
+          <div class="col-md-7">
+            <select style="width: 100%" class="form-control input-sm" ng-model="ctrl.command.revision">
+              <option
+                ng-repeat="revision in ctrl.revisions"
+                value="{{revision.revision}}"
+                ng-selected="ctrl.command.revisions === revision.revision"
+              >
+                {{revision.label}}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <task-reason command="ctrl.command"></task-reason>
+    </div>
+    <div class="modal-footer">
+      <user-verification account="ctrl.command.account" verification="ctrl.verification"></user-verification>
+      <button type="submit" ng-click="ctrl.undoRollout()" style="display: none"></button>
+      <!-- Allows form submission via enter keypress-->
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        ng-click="ctrl.undoRollout()"
+        ng-disabled="!ctrl.isValid() || !undoRolloutForm.$valid"
+      >
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

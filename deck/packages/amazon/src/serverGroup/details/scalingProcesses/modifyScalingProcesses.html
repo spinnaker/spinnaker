@@ -1,0 +1,30 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h4 class="modal-title">Modify Scaling Processes for {{serverGroup.name}}</h4>
+    </div>
+    <div class="modal-body container-fluid form-horizontal">
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <div class="checkbox" ng-repeat="process in command">
+            <label>
+              <input type="checkbox" ng-model="process.enabled" />
+              {{process.name}}
+            </label>
+            <help-field content="{{process.description}}" placement="right"></help-field>
+          </div>
+        </div>
+      </div>
+    </div>
+    <task-reason command="command"></task-reason>
+    <aws-footer
+      action="ctrl.submit()"
+      cancel="ctrl.cancel()"
+      is-valid="ctrl.isValid()"
+      account="serverGroup.account"
+      verification="verification"
+    ></aws-footer>
+  </form>
+</div>

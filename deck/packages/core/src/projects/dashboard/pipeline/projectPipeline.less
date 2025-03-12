@@ -1,0 +1,34 @@
+@import (reference) '../../../presentation/less/imports/commonImports.less';
+
+project-pipeline {
+  display: block;
+  a {
+    color: var(--color-mineshaft);
+    text-decoration: none;
+  }
+  .execution-title {
+    font-weight: 600;
+    display: inline-block;
+    margin: 5px 0 0 0;
+  }
+
+  .build-label.execution-build-number {
+    display: none;
+  }
+  a.execution-build-number {
+    display: inline;
+  }
+
+  .execution-bar {
+    width: 100%;
+    padding-top: 0;
+    .stage {
+      display: inline-block;
+      height: 15px;
+      opacity: 0.65;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}

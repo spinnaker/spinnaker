@@ -1,0 +1,19 @@
+<ng-form role="form" name="form" novalidate>
+  <v2-modal-wizard heading="Clone {{ctrl.firewallLabel}}" task-monitor="taskMonitor" dismiss="$dismiss()">
+    <v2-wizard-page key="Location" label="Location">
+      <ng-include src="pages.location"></ng-include>
+    </v2-wizard-page>
+    <v2-wizard-page key="Ingress" label="Ingress" done="true" mark-clean-on-view="false">
+      <ng-include src="pages.ingress"></ng-include>
+    </v2-wizard-page>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button
+      is-disabled="form.$invalid || !wizard.isComplete() || state.submitting || state.removedRules.length > 0 || !customComponentIsvalid || state.regionError"
+      submitting="state.submitting"
+      on-click="ctrl.upsert()"
+      is-new="isNew"
+    ></submit-button>
+  </div>
+</ng-form>

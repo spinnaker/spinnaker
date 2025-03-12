@@ -1,0 +1,187 @@
+<div ng-controller="azureBakeStageCtrl as bakeStageCtrl">
+  <div ng-if="viewState.loading" class="horizontal center middle">
+    <loading-spinner size="'small'"></loading-spinner>
+  </div>
+  <div ng-if="!viewState.loading">
+    <stage-config-field label="Account">
+      <account-select-field
+        component="stage"
+        field="account"
+        accounts="accounts"
+        provider="'azure'"
+        on-change="bakeStageCtrl.onChangeAccount()"
+      />
+    </stage-config-field>
+
+    <stage-config-field label="Regions">
+      <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+    </stage-config-field>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <label class="col-md-3 sm-label-right"></label>
+        <div class="btn-group btn-group-xs" role="group" aria-label="Source Image">
+          <button
+            class="btn btn-default"
+            aria-pressed="true"
+            ng-click="bakeStageCtrl.showDefaultImages()"
+            ng-class="{active: defaultImagesWasChosen}"
+          >
+            Default Images
+          </button>
+          <button
+            class="btn btn-default"
+            aria-pressed="true"
+            ng-click="bakeStageCtrl.showManagedImages()"
+            ng-class="{active: managedImagesWasChosen}"
+          >
+            Managed Images
+          </button>
+          <button
+            class="btn btn-default"
+            aria-pressed="true"
+            ng-click="bakeStageCtrl.showCustomImages()"
+            ng-class="{active: customImagesWasChosen}"
+          >
+            Custom Image
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <stage-config-field label="Base OS" ng-show="defaultImagesWasChosen">
+          <bake-stage-choose-os model="stage.baseOs" base-os-options="baseOsOptions"></bake-stage-choose-os>
+        </stage-config-field>
+
+        <stage-config-field label="Managed Image" ng-show="managedImagesWasChosen">
+          <bake-stage-choose-managed-image
+            model="stage.managedImage"
+            managed-image-options="managedImageOptions"
+            on-change="onChangeManagedImage"
+          ></bake-stage-choose-managed-image>
+        </stage-config-field>
+
+        <stage-config-field label="Publisher" ng-show="customImagesWasChosen">
+          <input type="text" class="form-control input-sm" ng-model="stage.publisher" />
+        </stage-config-field>
+        <stage-config-field label="Offer" ng-show="customImagesWasChosen">
+          <input type="text" class="form-control input-sm" ng-model="stage.offer" />
+        </stage-config-field>
+        <stage-config-field label="SKU" ng-show="customImagesWasChosen">
+          <input type="text" class="form-control input-sm" ng-model="stage.sku" />
+        </stage-config-field>
+
+        <stage-config-field label="OS Type" ng-show="customImagesWasChosen">
+          <label class="radio-inline" ng-repeat="osType in osTypeOptions">
+            <input
+              type="radio"
+              ng-model="stage.osType"
+              ng-value="osType"
+              name="osType"
+              ng-change="bakeStageCtrl.onChangeOsType(value)"
+            />
+            {{osType}}
+          </label>
+        </stage-config-field>
+
+        <stage-config-field label="Package Type" ng-show="stage.osType === 'linux'">
+          <label class="radio-inline" ng-repeat="packageType in packageTypeOptions">
+            <input type="radio" ng-model="stage.packageType" ng-value="packageType" name="packageType" />
+            {{packageType}}
+          </label>
+        </stage-config-field>
+      </div>
+    </div>
+
+    <stage-config-field label="Package" help-key="pipeline.config.bake.package">
+      <input type="text" class="form-control input-sm" ng-model="stage.package" />
+    </stage-config-field>
+
+    <stage-config-field label="Base Label">
+      <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
+        <input type="radio" ng-model="stage.baseLabel" ng-value="baseLabel" />
+        {{baseLabel}}
+      </label>
+    </stage-config-field>
+    <!-- Even if the roscoMode flag is false, we should show the control if rebake is set. -->
+    <stage-config-field label="Rebake" ng-if="viewState.roscoMode || stage.rebake">
+      <div class="checkbox" style="margin-bottom: 0">
+        <label>
+          <input type="checkbox" ng-model="stage.rebake" />
+          Rebake image without regard to the status of any existing bake
+        </label>
+      </div>
+    </stage-config-field>
+    <stage-config-field label="Base Name">
+      <input type="text" class="form-control input-sm" ng-model="stage.baseName" />
+    </stage-config-field>
+    <div class="form-group">
+      <div class="col-md-9 col-md-offset-1">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="showAdvancedOptions" />
+            <strong>Show Advanced Options</strong>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div ng-class="{collapse: showAdvancedOptions !== true, 'collapse.in': showAdvancedOptions === true}">
+      <stage-config-field
+        label="Template File Name"
+        help-key="pipeline.config.bake.templateFileName"
+        ng-if="bakeStageCtrl.showTemplateFileName()"
+      >
+        <input type="text" class="form-control input-sm" ng-model="stage.templateFileName" />
+      </stage-config-field>
+      <stage-config-field
+        label="Extended Attributes"
+        help-key="pipeline.config.bake.extendedAttributes"
+        ng-if="bakeStageCtrl.showExtendedAttributes()"
+      >
+        <table class="table table-condensed packed">
+          <thead>
+            <tr>
+              <th style="width: 40%">Key</th>
+              <th style="width: 60%">Value</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="(key,value) in stage.extendedAttributes">
+              <td>
+                <strong class="small">{{key}}</strong>
+              </td>
+              <td>
+                <input
+                  type="text"
+                  ng-model="stage.extendedAttributes[key]"
+                  value="{{value}}"
+                  class="form-control input-sm"
+                />
+              </td>
+              <td class="text-right">
+                <a class="small" href ng-click="bakeStageCtrl.removeExtendedAttribute(key)">Remove</a>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="7">
+                <button class="btn btn-block btn-sm add-new" ng-click="bakeStageCtrl.addExtendedAttribute()">
+                  <span class="glyphicon glyphicon-plus-sign"></span> Add Extended Attribute
+                </button>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </stage-config-field>
+      <stage-config-field
+        label="Var File Name"
+        help-key="pipeline.config.bake.varFileName"
+        ng-if="bakeStageCtrl.showVarFileName()"
+      >
+        <input type="text" class="form-control input-sm" ng-model="stage.varFileName" />
+      </stage-config-field>
+    </div>
+  </div>
+</div>

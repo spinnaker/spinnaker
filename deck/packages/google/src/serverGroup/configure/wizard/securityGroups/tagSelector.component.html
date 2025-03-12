@@ -1,0 +1,26 @@
+<div class="row">
+  <div class="col-md-4 sm-label-right">
+    <b style="font-family: 'Source Sans 3', sans-serif; font-size: 14px; color: #333"
+      >Target Tags
+      <help-field
+        ng-if="!$ctrl.securityGroup.selectedTags.length"
+        key="gce.serverGroup.securityGroups.targetTags"
+      ></help-field>
+    </b>
+  </div>
+  <div class="col-md-8">
+    <ui-select
+      multiple
+      on-remove="$ctrl.onRemove($item)"
+      on-select="$ctrl.onSelect($item)"
+      nested
+      ng-model="$ctrl.securityGroup.selectedTags"
+      class="form-control input-sm"
+    >
+      <ui-select-match>{{ $item }}</ui-select-match>
+      <ui-select-choices repeat="tag in $ctrl.securityGroup.tagsArray | filter: $select.search">
+        <span ng-bind-html="tag | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>

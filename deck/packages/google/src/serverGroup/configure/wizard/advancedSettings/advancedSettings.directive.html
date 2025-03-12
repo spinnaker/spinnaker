@@ -1,0 +1,277 @@
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
+    <b>Minimum CPU Platform</b>
+    <help-field key="gce.serverGroup.minCpuPlatform"></help-field>
+  </div>
+  <div class="col-md-6">
+    <ui-select ng-model="vm.command.minCpuPlatform" class="form-control input-sm" required>
+      <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+      <ui-select-choices
+        repeat="minCpuPlatform in vm.command.backingData.filtered.cpuPlatforms | filter: $select.search"
+      >
+        <span ng-bind-html="minCpuPlatform | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+
+<gce-disk-configurer
+  command="vm.command"
+  disks="vm.command.disks"
+  update-disks="vm.setDisks(disks)"
+></gce-disk-configurer>
+
+<gce-accelerator-configurer
+  accelerator-configs="vm.command.acceleratorConfigs"
+  regional="vm.command.regional"
+  set-accelerator-configs="vm.setAcceleratorConfigs"
+  zone="vm.command.zone"
+  available-accelerators="vm.command.viewState.acceleratorTypes"
+></gce-accelerator-configurer>
+
+<div class="form-group">
+  <div class="sm-label-left" style="margin-bottom: 5px">
+    User Data <help-field key="gce.serverGroup.userData"></help-field>
+  </div>
+  <div class="col-md-12">
+    <textarea class="form-control" ng-model="vm.command.userData" rows="3" placeholder="Plaintext custom user data">
+    </textarea>
+  </div>
+</div>
+<div class="form-group">
+  <div class="sm-label-left">
+    <b>Custom Metadata</b>
+    <help-field key="gce.serverGroup.customMetadata"></help-field>
+  </div>
+  <map-editor model="vm.command.instanceMetadata" add-button-label="Add New Metadata" allow-empty="true"></map-editor>
+</div>
+<div class="form-group">
+  <div class="sm-label-left">
+    <table class="table table-condensed packed tags">
+      <b>Tags</b>
+      <tbody>
+        <tr ng-repeat="tag in vm.command.tags">
+          <td>
+            <input
+              class="form-control input-sm"
+              type="text"
+              ng-model="tag.value"
+              ng-change="vm.inferSelectedSecurityGroupFromTag(tag.value)"
+              required
+            />
+          </td>
+          <td>
+            <help-field ng-if="vm.showToolTip(tag.value)" content="{{vm.getToolTipContent(tag.value)}}"></help-field>
+            <a class="btn btn-link sm-label" ng-click="vm.removeTag($index)"
+              ><span class="glyphicon glyphicon-trash"></span
+            ></a>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="1">
+            <button class="btn btn-block btn-sm add-new" ng-click="vm.addTag()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add New Tag
+            </button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+<div class="form-group">
+  <div class="sm-label-left">
+    <b>Labels</b>
+    <help-field key="gce.serverGroup.labels"></help-field>
+  </div>
+  <map-editor model="vm.command.labels" add-button-label="Add New Label" allow-empty="true"></map-editor>
+</div>
+<div class="form-group">
+  <div class="sm-label-left">
+    <b>Resource Manager Tags</b>
+    <help-field key="gce.serverGroup.resourceManagerTags"></help-field>
+  </div>
+  <map-editor model="vm.command.resourceManagerTags" add-button-label="Add New Tag" allow-empty="false"></map-editor>
+</div>
+<div class="form-group">
+  <div class="sm-label-left">
+    <b>Partner Metadata</b>
+    <help-field key="gce.serverGroup.partnerMetadata"></help-field>
+  </div>
+  <map-object-editor
+    model="vm.command.partnerMetadata"
+    add-button-label="Add New Metadata"
+    allow-empty="false"
+  ></map-object-editor>
+</div>
+<div class="form-group">
+  <div class="sm-label-left">
+    Shielded VMs
+    <help-field key="gce.serverGroup.shieldedVmConfig"></help-field>
+  </div>
+  <div class="col-md-9 checkbox">
+    <label>
+      <input type="checkbox" ng-model="vm.command.enableSecureBoot" />
+      Turn on Secure Boot
+      <help-field key="gce.serverGroup.shieldedVmSecureBoot"></help-field>
+    </label>
+  </div>
+  <div class="col-md-9 checkbox">
+    <label>
+      <input type="checkbox" ng-model="vm.command.enableVtpm" ng-change="vm.setEnableVtpm()" />
+      Turn on vTPM
+      <help-field key="gce.serverGroup.shieldedVmVtpm"></help-field>
+    </label>
+  </div>
+  <div class="col-md-9 checkbox">
+    <label>
+      <input type="checkbox" ng-model="vm.command.enableIntegrityMonitoring" ng-disabled="!vm.command.enableVtpm" />
+      Turn on Integrity Monitoring
+      <help-field key="gce.serverGroup.shieldedVmIntegrityMonitoring"></help-field>
+    </label>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
+    <b>Preemptibility</b>
+    <help-field key="gce.serverGroup.preemptibility"></help-field>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input
+        type="radio"
+        ng-model="vm.command.preemptible"
+        ng-value="false"
+        id="preemptibleFalse"
+        ng-change="vm.setPreemptible()"
+      />
+      Off
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input
+        type="radio"
+        ng-model="vm.command.preemptible"
+        ng-value="true"
+        id="preemptibleTrue"
+        ng-change="vm.setPreemptible()"
+      />
+      On
+    </label>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
+    <b>Automatic Restart</b>
+    <help-field key="gce.serverGroup.automaticRestart"></help-field>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="vm.command.automaticRestart" ng-value="false" id="automaticRestartFalse" />
+      Off
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="vm.command.automaticRestart" ng-value="true" id="automaticRestartTrue" />
+      On
+    </label>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
+    <b>On Host Maintenance</b>
+    <help-field key="gce.serverGroup.onHostMaintenance"></help-field>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="vm.command.onHostMaintenance" ng-value="'MIGRATE'" id="onHostMaintenanceMigrate" />
+      Migrate
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input
+        type="radio"
+        ng-model="vm.command.onHostMaintenance"
+        ng-value="'TERMINATE'"
+        id="onHostMaintenanceTerminate"
+      />
+      Terminate
+    </label>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right"><b>Associate Public IP Address</b></div>
+  <div class="col-md-2 radio">
+    <label>
+      <input
+        type="radio"
+        ng-model="vm.command.associatePublicIpAddress"
+        ng-value="true"
+        id="associatePublicIpAddressTrue"
+      />
+      Yes
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input
+        type="radio"
+        ng-model="vm.command.associatePublicIpAddress"
+        ng-value="false"
+        id="associatePublicIpAddressFalse"
+      />
+      No
+    </label>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
+    <b>Can IP Forward</b>
+    <help-field key="gce.serverGroup.canIpForward"></help-field>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="vm.command.canIpForward" ng-value="true" id="canIpForwardTrue" />
+      Yes
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="vm.command.canIpForward" ng-value="false" id="canIpForwardFalse" />
+      No
+    </label>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
+    <b>Service Account</b>
+    <help-field key="gce.instance.serviceAccount"></help-field>
+  </div>
+  <div class="col-md-6">
+    <input type="text" class="form-control input-sm" ng-model="vm.command.serviceAccountEmail" />
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
+    <b>Auth Scopes</b>
+    <help-field key="gce.instance.authScopes"></help-field>
+  </div>
+  <div class="col-md-6">
+    <ui-select
+      multiple
+      tagging
+      tagging-label="(custom auth scope)"
+      ng-model="vm.command.authScopes"
+      class="form-control input-sm"
+    >
+      <ui-select-match>{{$item}}</ui-select-match>
+      <ui-select-choices repeat="authScope in vm.command.backingData.authScopes | filter: $select.search">
+        <span ng-bind-html="authScope | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>

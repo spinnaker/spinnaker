@@ -1,0 +1,191 @@
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+.execution {
+  .execution-details {
+    width: 100%;
+  }
+  .execution-details-container {
+    background-color: var(--color-white);
+    padding: 0 0 0 20px;
+    margin: -20px 50px 0;
+    border: 1px solid var(--color-alto);
+    box-shadow: 0 0 4px 2px var(--color-accent-g1);
+    border-radius: 1px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    .execution-details {
+      display: flex;
+      align-items: stretch;
+      flex-wrap: wrap;
+      .stage-summary,
+      .stage-details {
+        flex: 1 0 50%;
+        min-width: 400px;
+      }
+      .stage-details {
+        padding-left: 20px;
+        background-color: var(--color-accent-g2);
+        box-shadow: none;
+      }
+    }
+    th {
+      font-weight: 600;
+    }
+
+    .nav.nav-pills {
+      background-color: transparent;
+      border: 0;
+      width: auto;
+      margin: 0;
+      padding: 0;
+      a {
+        margin: 10px 0 0;
+        border-radius: 0;
+        padding: 5px 15px;
+        border-bottom-width: 0;
+        font-weight: 600;
+        color: var(--color-mineshaft);
+        background-color: var(--color-alabaster);
+        &:hover {
+          background-color: var(--color-concrete);
+          transition: background-color 0.15s;
+        }
+        &.active {
+          color: var(--color-white);
+          background-color: var(--color-accent);
+        }
+      }
+    }
+
+    .step-section-details {
+      padding: 15px;
+      margin-bottom: 5px;
+    }
+
+    .execution-details-summary {
+      h6.duration {
+        margin-top: 0;
+      }
+    }
+    .execution-details-title {
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 0;
+      padding-bottom: 5px;
+      .btn-group {
+        margin-left: 20px;
+        text-transform: none;
+        margin-right: 10px;
+      }
+    }
+    .execution-details-comments {
+      word-break: break-all;
+      margin-right: 10px;
+    }
+
+    tbody {
+      tr.stage-summary {
+        font-weight: 600;
+      }
+      tr {
+        font-size: 85%;
+      }
+      tr.clickable {
+        cursor: pointer;
+        &:hover {
+          background-color: var(--color-alabaster);
+        }
+      }
+    }
+    .glyphicon-remove {
+      cursor: pointer;
+      color: var(--color-dovegray);
+    }
+    h5 {
+      font-weight: 600;
+      padding-bottom: 0;
+    }
+    .stage-name {
+      margin-top: 5px;
+    }
+    .well,
+    .alert-info {
+      margin-top: 10px;
+      background-color: var(--color-alabaster);
+      padding: 10px;
+      border: 1px solid var(--color-accent);
+      border-radius: 2px;
+      color: var(--color-mineshaft);
+    }
+    .alert-danger {
+      border: 1px solid var(--color-danger);
+      color: var(--color-mineshaft);
+    }
+  }
+
+  .stage-details {
+    .stage-details-heading {
+      .status-glyph {
+        margin-right: 3px;
+      }
+      text-transform: uppercase;
+      margin-top: 0;
+      h4 {
+        font-weight: 600;
+      }
+    }
+    .stage-details-section-heading {
+      border-bottom: 1px solid var(--color-primary);
+      margin-bottom: 5px;
+      h4 {
+        font-weight: 600;
+      }
+    }
+    h4 {
+      margin-top: 0;
+    }
+  }
+
+  .subinput-note {
+    font-style: italic;
+    font-size: 11px;
+    color: var(--color-dovegray);
+  }
+
+  .hide-details-link {
+    display: block;
+    text-align: right;
+    padding-top: 5px;
+    color: var(--color-mineshaft);
+    text-transform: none;
+    font-size: 90%;
+    .glyphicon {
+      top: 2px;
+    }
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
+
+.execution-details {
+  .action-buttons {
+    margin: 10px -10px 0;
+    button {
+      margin: 0 10px;
+    }
+  }
+}
+
+.popover-content {
+  .action-buttons {
+    display: flex;
+    align-items: stretch;
+    margin: 10px -5px 0;
+    button {
+      flex: 1 0 auto;
+      margin: 0 5px;
+    }
+  }
+}

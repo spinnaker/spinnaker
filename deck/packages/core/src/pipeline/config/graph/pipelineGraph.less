@@ -1,0 +1,181 @@
+@import (reference) '../../../presentation/less/imports/commonImports.less';
+
+.pipeline-config-graph {
+  svg {
+    g {
+      &.active,
+      &.highlighted {
+        circle,
+        rect {
+          fill: var(--color-success);
+        }
+      }
+    }
+  }
+}
+
+pipeline-graph,
+.pipeline-graph {
+  display: block;
+  overflow-x: auto;
+  .pipeline-loading {
+    padding: 0px 0px 10px 0px;
+  }
+  svg {
+    path.link {
+      fill: none;
+      transition: stroke 0.2s, stroke-width 0.2s;
+      stroke: var(--color-alto);
+      stroke-width: 1px;
+      stroke-opacity: 0.3;
+      &.active,
+      &.highlighted {
+        stroke-opacity: 1;
+        &.has-status {
+          stroke-width: 4px;
+        }
+      }
+      &.active {
+        &.target {
+          stroke: var(--color-success-light);
+        }
+        &.source {
+          stroke: var(--color-accent);
+        }
+        stroke-width: 4px;
+      }
+      &.highlighted {
+        &.target {
+          stroke: var(--color-success-light);
+        }
+        &.source {
+          stroke: var(--color-accent-g1);
+        }
+        &.has-status {
+          stroke-width: 4px;
+        }
+        stroke-width: 2.5px;
+      }
+      &.running {
+        stroke: var(--color-accent);
+      }
+      &.failed {
+        stroke: var(--color-danger);
+      }
+      &.completed {
+        stroke: var(--color-success);
+      }
+      &.not_started,
+      &.suspended,
+      &.canceled,
+      &.unknown {
+        stroke: var(--color-alto);
+      }
+    }
+
+    g {
+      rect {
+        fill: var(--color-alto);
+      }
+      .label-component {
+        transition: all 0.1s;
+        display: inline-block;
+      }
+      &.active,
+      &.highlighted {
+        circle,
+        rect,
+        path.graph-node {
+          transition: fill 0.2s;
+        }
+        &.has-status {
+          circle.graph-node,
+          path.graph-node {
+            fill-opacity: 1;
+            stroke-width: 1px;
+            stroke: var(--color-dovegray);
+          }
+        }
+      }
+      &.warning {
+        circle,
+        rect {
+          fill: var(--color-danger);
+        }
+      }
+      a {
+        color: var(--color-mineshaft);
+      }
+      a:hover {
+        color: var(--color-mineshaft);
+        font-weight: 600;
+        letter-spacing: 0;
+        text-decoration: none;
+      }
+      div.execution-stage-label {
+        color: var(--color-dovegray);
+        font-weight: 400;
+        padding: 0 5px 0 0;
+        border: 2px solid transparent;
+        min-height: 25px;
+      }
+      div.label-body,
+      div.execution-stage-label {
+        line-height: 17px;
+        text-shadow: 0 1px 0 var(--color-white), 1px 0 0 var(--color-white), 0 -1px 0 var(--color-white),
+          -1px 0 0 var(--color-white);
+        word-wrap: break-word;
+        transition: color 0.2s;
+        letter-spacing: 0.015em;
+      }
+      &.active,
+      &.highlighted {
+        div.label-body {
+          color: var(--color-mineshaft);
+          font-weight: 600;
+          letter-spacing: 0;
+        }
+        div.execution-stage-label {
+          .label-component {
+            padding: 3px;
+            margin: -3px;
+            color: var(--color-white);
+            background-color: var(--color-accent);
+            border-radius: 2px;
+            text-shadow: none;
+          }
+          font-weight: 600;
+          letter-spacing: 0;
+          margin-left: -12px;
+          padding-left: 12px;
+        }
+      }
+      &.highlighted {
+        div.label-body {
+          font-weight: 400;
+          letter-spacing: 0.015em;
+        }
+      }
+    }
+  }
+}
+
+svg.pipeline-graph {
+  &:not(:root) {
+    overflow: visible;
+  }
+}
+
+.stage-group {
+  .label-component {
+    cursor: default;
+  }
+}
+
+.execution-graph {
+  margin: 0 20px;
+  padding: 10px 10px 20px 10px;
+  background-color: var(--color-cirrus);
+  border: 1px solid var(--color-alto);
+  border-top: none;
+}

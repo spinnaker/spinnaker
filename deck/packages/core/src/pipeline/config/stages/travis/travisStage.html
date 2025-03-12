@@ -1,0 +1,156 @@
+<div class="form-horizontal">
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-right">Build Service</label>
+    <div class="col-md-6">
+      <p class="form-control-static" ng-if="$ctrl.viewState.masterIsParameterized">{{$ctrl.stage.master}}</p>
+      <ui-select
+        class="form-control input-sm"
+        ng-if="!$ctrl.viewState.masterIsParameterized"
+        ng-model="$ctrl.stage.master"
+      >
+        <ui-select-match placeholder="Select a build service...">{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="master in $ctrl.masters | filter: $select.search">
+          <span ng-bind-html="master | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+    <div class="col-md-1 text-center" ng-if="!$ctrl.viewState.masterIsParameterized">
+      <a
+        href
+        ng-click="$ctrl.refreshMasters()"
+        tooltip-placement="right"
+        uib-tooltip="{{$ctrl.viewState.mastersRefreshing ? 'Masters refreshing.' : 'Refresh masters list' }}"
+      >
+        <span ng-class="{'fa-spin':$ctrl.viewState.mastersRefreshing}" class="fa fa-sync-alt"></span>
+      </a>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-right"
+      >Job<help-field key="pipeline.config.travis.job.isFiltered" ng-if="$ctrl.shouldFilter()"></help-field
+    ></label>
+    <div class="col-md-6">
+      <p class="form-control-static" ng-if="!$ctrl.stage.master">(Select a build service)</p>
+      <p
+        class="form-control-static"
+        ng-if="$ctrl.viewState.masterIsParameterized || $ctrl.viewState.jobIsParameterized"
+      >
+        {{$ctrl.stage.job}}
+      </p>
+      <div ng-if="$ctrl.stage.master && $ctrl.viewState.jobsLoaded">
+        <ui-select
+          class="form-control input-sm"
+          ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.jobIsParameterized"
+          ng-model="$ctrl.stage.job"
+        >
+          <ui-select-match placeholder="{{$ctrl.shouldFilter() ? 'Start typing...' : 'Select a job...'}}"
+            >{{$select.selected}}</ui-select-match
+          >
+          <ui-select-choices
+            repeat="job in $ctrl.jobs | filter: $select.search | limitTo: $ctrl.shouldFilter() ? $ctrl.filterLimit : undefined"
+            ><span ng-bind-html="job | highlight: $select.search"></span
+          ></ui-select-choices>
+        </ui-select>
+      </div>
+      <div class="horizontal center" ng-if="$ctrl.stage.master && !$ctrl.viewState.jobsLoaded">
+        <loading-spinner size="'small'"></loading-spinner>
+      </div>
+    </div>
+    <div
+      class="col-md-1 text-center"
+      ng-if="!$ctrl.viewState.masterIsParameterized && !$ctrl.viewState.jobIsParameterized"
+    >
+      <a
+        href
+        ng-click="$ctrl.refreshJobs()"
+        tooltip-placement="right"
+        uib-tooltip="{{$ctrl.viewState.jobsRefreshing ? 'Jobs refreshing.' : 'Refresh job list' }}"
+      >
+        <span ng-class="{'fa-spin':$ctrl.viewState.jobsRefreshing}" class="fa fa-sync-alt"></span>
+      </a>
+    </div>
+  </div>
+  <stage-config-field label="Parameters" help-key="pipeline.config.travis.parameters">
+    <table class="table table-condensed packed" ng-if="$ctrl.stage.parameters">
+      <thead>
+        <tr>
+          <th style="width: 40%">Key</th>
+          <th style="width: 60%">Value</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="(key, value) in $ctrl.stage.parameters">
+          <td>
+            <strong class="small">{{key}}</strong>
+          </td>
+          <td>
+            <input type="text" required ng-model="$ctrl.stage.parameters[key]" class="form-control input-sm" />
+          </td>
+          <td class="text-center">
+            <a href ng-click="$ctrl.removeParameter(key)">
+              <span class="glyphicon glyphicon-trash"></span>
+              <span class="sr-only">Remove</span>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addParameter()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Parameter
+        </button>
+      </div>
+    </div>
+  </stage-config-field>
+
+  <stage-config-field label="Wait for results" help-key="travis.waitForCompletion">
+    <input
+      type="checkbox"
+      class="input-sm"
+      name="waitForCompletion"
+      ng-model="$ctrl.viewState.waitForCompletion"
+      ng-change="$ctrl.waitForCompletionChanged()"
+    />
+  </stage-config-field>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-right">If build is unstable</label>
+    <div class="col-md-9">
+      <div class="radio">
+        <label>
+          <input
+            type="radio"
+            ng-model="$ctrl.viewState.markUnstableAsSuccessful"
+            ng-change="$ctrl.markUnstableChanged()"
+            ng-value="false"
+          />
+          fail the stage
+          <help-field key="pipeline.config.travis.markUnstableAsSuccessful.false"></help-field>
+        </label>
+      </div>
+      <div class="radio">
+        <label>
+          <input
+            type="radio"
+            ng-model="$ctrl.viewState.markUnstableAsSuccessful"
+            ng-change="$ctrl.markUnstableChanged()"
+            ng-value="true"
+          />
+          consider stage successful
+          <help-field key="pipeline.config.travis.markUnstableAsSuccessful.true"></help-field>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="well alert alert-info" role="alert">
+  <p>You can read properties from Travis builds by logging them in the build log using one of the following formats:</p>
+  <pre>
+echo SPINNAKER_PROPERTY_key1=value1
+echo SPINNAKER_PROPERTY_key2=value2
+echo SPINNAKER_CONFIG_JSON={"key3": "value3", "key4": "value4"}</pre
+  >
+  The properties will be available in the stage context under the key <code>propertyFileContents</code>.<br />Example
+  using SpEL: <code>$&lbrace; #stage('{{ stage.name }}').context.propertyFileContents.key2 &rbrace;</code>
+</div>

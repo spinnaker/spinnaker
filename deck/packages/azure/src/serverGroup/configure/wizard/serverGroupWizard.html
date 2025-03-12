@@ -1,0 +1,61 @@
+<div>
+  <div ng-if="state.requiresTemplateSelection">
+    <ng-include src="pages.templateSelection"></ng-include>
+  </div>
+  <div ng-if="!state.loaded" style="height: 200px" class="horizontal center middle">
+    <loading-spinner size="'small'"></loading-spinner>
+  </div>
+  <div>
+    <form name="serverGroupWizardForm" class="form-horizontal" novalidate validate-on-submit>
+      <v2-modal-wizard
+        ng-show="state.loaded && !state.requiresTemplateSelection"
+        heading="{{title}}"
+        task-monitor="taskMonitor"
+        dismiss="$dismiss()"
+      >
+        <v2-wizard-page key="basic-settings" label="Basic Settings" hide-subheading="true">
+          <ng-include src="pages.basicSettings"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="image-settings" label="Image">
+          <ng-include src="pages.imageSettings"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="load-balancers" label="Load Balancers" mark-complete-on-view="false">
+          <ng-include src="pages.loadBalancers"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="network-settings" label="Network Settings" mark-complete-on-view="false">
+          <ng-include src="pages.networkSettings"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="health-settings" label="Health" mark-complete-on-view="false">
+          <ng-include src="pages.healthSettings"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="security-groups" label="{{firewallsLabel}}" mark-complete-on-view="false" done="true">
+          <ng-include src="pages.securityGroups"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="instance-type" label="Instance Type" mark-complete-on-view="false" done="false">
+          <ng-include src="pages.instanceType"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="zones" label="Zones" mark-complete-on-view="false" done="false">
+          <ng-include src="pages.zones"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="tags" label="Tags" mark-complete-on-view="false" done="true">
+          <ng-include src="pages.tags"></ng-include>
+        </v2-wizard-page>
+        <v2-wizard-page key="advanced-settings" label="Advanced Settings" mark-complete-on-view="false" done="true">
+          <ng-include src="pages.advancedSettings"></ng-include>
+        </v2-wizard-page>
+      </v2-modal-wizard>
+      <div class="modal-footer" ng-if="state.loaded">
+        <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">
+          Cancel
+        </button>
+        <submit-button
+          is-disabled="taskMonitor.submitting || !ctrl.isValid()"
+          label="command.viewState.submitButtonLabel"
+          submitting="taskMonitor.submitting"
+          on-click="serverGroupWizardForm.$valid && ctrl.submit()"
+          is-new="true"
+        ></submit-button>
+      </div>
+    </form>
+  </div>
+</div>

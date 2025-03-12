@@ -1,0 +1,184 @@
+@import (reference) '../../presentation/less/imports/commonImports.less';
+
+[ui-view='pipelines'] {
+  padding-top: 0 !important;
+}
+.executions-section {
+  display: flex;
+  width: 100%;
+  margin-top: 6px;
+
+  .insight {
+    margin-left: 0;
+    margin-top: 6px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+
+    .nav {
+      flex-shrink: 0;
+      margin-top: 40px;
+    }
+
+    .nav-content {
+      margin-left: 12px;
+      max-width: 80%;
+
+      .execution-groups-header {
+        margin-left: -8px;
+        position: relative;
+        z-index: 20;
+        padding: 30px 0 0 0;
+        margin-top: -30px;
+        background-color: var(--color-alabaster);
+        h3 {
+          display: inline-block;
+          font-weight: 600;
+          margin-top: 0;
+        }
+        .execution-filters {
+          padding-bottom: 5px;
+        }
+        .form-group {
+          margin-right: 17px;
+          label {
+            font-weight: 600;
+          }
+        }
+        .checkbox {
+          height: 24px;
+          label {
+            font-weight: normal;
+          }
+        }
+        font-size: 90%;
+        @media (min-width: 1400px) {
+          font-size: 100%;
+        }
+      }
+    }
+  }
+
+  .insight.filters-collapsed {
+    .execution-groups-header {
+      margin-left: 84px;
+    }
+    .nav-content {
+      max-width: 100%;
+    }
+  }
+
+  .form-group > * {
+    margin-right: 3px;
+  }
+  .fa.from-template {
+    font-size: 1.25rem;
+    padding-right: 0.4rem;
+  }
+}
+
+.executions {
+  padding-top: 0 !important;
+  &.showing-details {
+    .execution-group {
+      &.details-hidden {
+        opacity: 0.66;
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+  .permalinks {
+    font-size: 80%;
+    flex: 0 0 100%;
+    text-align: right;
+    .permalinks-content {
+      display: inline-block;
+      width: 50%;
+      background-color: var(--color-accent-g2);
+    }
+  }
+
+  .execution {
+    margin-bottom: 10px;
+    background-color: var(--color-alabaster);
+
+    .execution-overview {
+      padding: 10px;
+      background-color: var(--color-white);
+      border: 1px solid var(--color-alto);
+      .execution-name {
+        margin-top: 0;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+// default
+.execution-status {
+  color: var(--color-concrete);
+}
+
+// overrides
+.execution-status-executing,
+.execution-status-running {
+  color: var(--color-accent);
+}
+.execution-status-terminal {
+  color: var(--color-danger);
+}
+.execution-status-succeeded {
+  color: var(--color-success);
+}
+
+.execution-marker {
+  fill: var(--color-alto);
+  background-color: var(--color-alto);
+  overflow: hidden;
+  &.execution-marker-terminal {
+    fill: var(--color-danger);
+    background-color: var(--color-danger);
+  }
+  &.execution-marker-failed_continue {
+    fill: var(--color-alert);
+    background-color: var(--color-alert);
+  }
+  &.execution-marker-succeeded {
+    fill: var(--color-success);
+    background-color: var(--color-success);
+  }
+  &.execution-marker-running {
+    fill: var(--color-accent);
+    background-color: var(--color-accent);
+  }
+  &.execution-marker-stopped {
+    fill: var(--color-danger-light);
+    background-color: var(--color-danger-light);
+  }
+  &.execution-marker-not_started,
+  &.execution-marker-canceled {
+    fill: var(--color-alto);
+    background-color: var(--color-alto);
+  }
+  &.execution-marker-paused {
+    fill: var(--color-accent);
+    background-color: var(--color-accent);
+  }
+  &.execution-marker-skipped {
+    fill: var(--color-titanium);
+    background-color: var(--color-titanium);
+  }
+  &.execution-marker-stopped {
+    fill: var(--color-danger-light);
+    background-color: var(--color-danger-light);
+  }
+  &.execution-marker-stopped {
+    &.stage-type-checkpreconditions,
+    &.stage-type-manualjudgment {
+      fill: var(--color-titanium);
+      background-color: var(--color-titanium);
+    }
+  }
+}
