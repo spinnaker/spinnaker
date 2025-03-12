@@ -1,0 +1,107 @@
+apply plugin: 'io.spinnaker.package'
+
+mainClassName = 'com.netflix.spinnaker.gate.Main'
+
+repositories {
+  maven {
+    url 'https://repo.spring.io/libs-snapshot'
+  }
+}
+
+dependencies {
+  implementation project(":gate-api")
+  implementation project(":gate-core")
+  implementation project(":gate-proxy")
+  implementation project(":gate-plugins")
+  implementation project(":gate-integrations-gremlin")
+
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-config"
+  implementation "io.spinnaker.kork:kork-plugins"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "com.netflix.frigga:frigga"
+  implementation "redis.clients:jedis"
+
+  implementation "commons-io:commons-io"
+  implementation "org.apache.groovy:groovy-templates"
+  implementation "org.springframework.session:spring-session-data-redis"
+  implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
+  implementation "org.apache.commons:commons-lang3"
+
+  implementation "org.springframework:spring-web"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-aop"
+  implementation "io.github.resilience4j:resilience4j-spring-boot2"
+
+  implementation "com.graphql-java-kickstart:graphql-spring-boot-starter:7.0.1"
+  implementation "com.graphql-java-kickstart:graphql-java-tools:6.0.2"
+  implementation ("com.graphql-java:graphql-java:14.0") { // To avoid version bump with spring boot 2.7.x upgrade.
+      force = true					   // Unpin it after adoption of spring-boot-starter-graphql
+   }
+
+  implementation "org.springdoc:springdoc-openapi-ui:1.8.0"
+
+  implementation "io.cloudevents:cloudevents-spring:2.5.0"
+  implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
+  implementation "io.cloudevents:cloudevents-http-basic:2.5.0"
+
+  runtimeOnly "io.spinnaker.kork:kork-runtime"
+  runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
+
+  testImplementation "com.graphql-java-kickstart:graphql-spring-boot-starter-test:7.0.1"
+
+  testImplementation project(":gate-ldap") // TODO: Move system tests to own module
+  testImplementation project(":gate-basic")
+  testImplementation project(":gate-oauth2")
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
+
+  testImplementation "org.springframework.security:spring-security-test"
+  testImplementation "org.springframework.security:spring-security-ldap"
+  testImplementation "org.springframework.security:spring-security-oauth2-jose"
+  testImplementation "com.unboundid:unboundid-ldapsdk"
+  testImplementation "io.spinnaker.kork:kork-jedis-test"
+  testImplementation "io.spinnaker.kork:kork-test"
+  testImplementation "org.apache.groovy:groovy-json"
+  testImplementation "com.squareup.retrofit2:converter-jackson"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "org.springframework.security:spring-security-oauth2-client"
+
+
+  // Add each included authz provider as a runtime dependency
+  gradle.includedProviderProjects.each {
+    runtimeOnly project(it)
+  }
+}
+
+configurations.all {
+  exclude group: 'javax.servlet', module: 'servlet-api'
+  exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
+test {
+  //The Implementation-Version is set in the MANIFEST.MF for the JAR produced via testing so that
+  //assertions can be made against the version (see gate-plugins-test, for example).
+  jar {
+    manifest {
+      String implementationVersion = getAttributes()["Implementation-Version"]
+      if (implementationVersion == null
+        || implementationVersion.isEmpty()
+        || implementationVersion == "undefined"
+        || implementationVersion.endsWith("SNAPSHOT")) {
+        attributes(
+          'Implementation-Version': '1.0.0'
+        )
+      }
+    }
+  }
+}

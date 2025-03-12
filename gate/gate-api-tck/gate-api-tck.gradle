@@ -1,0 +1,11 @@
+apply from: "${project.rootDir}/gradle/kotlin.gradle"
+apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+
+dependencies {
+  implementation(project(":gate-web"))
+  implementation("io.spinnaker.kork:kork-jedis-test")
+  implementation("org.springframework.session:spring-session-data-redis")
+
+  api("org.springframework.boot:spring-boot-starter-test")
+  api("dev.minutest:minutest")
+}

@@ -1,0 +1,72 @@
+plugins {
+  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
+  id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
+  id "org.jetbrains.kotlin.plugin.allopen" version "$kotlinVersion" apply false
+  id "org.jetbrains.dokka" version "0.10.1" apply false
+
+}
+
+allprojects {
+  apply plugin: 'io.spinnaker.project'
+
+  group = "io.spinnaker.gate"
+  if ([korkVersion, fiatVersion].find { it.endsWith('-SNAPSHOT') }) {
+    repositories {
+      mavenLocal()
+    }
+  }
+
+  if (name != "gate-bom" && name != "gate-api") {
+    apply plugin: 'java-library'
+    apply plugin: 'groovy'
+
+    repositories {
+      maven { url 'https://build.shibboleth.net/nexus/content/repositories/releases/' }
+      maven { url 'https://repository.mulesoft.org/releases/' }
+    }
+
+    dependencies {
+
+      implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+      testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+      compileOnly "org.projectlombok:lombok"
+      annotationProcessor "org.projectlombok:lombok"
+      testAnnotationProcessor "org.projectlombok:lombok"
+
+      implementation "org.apache.groovy:groovy"
+      implementation "net.logstash.logback:logstash-logback-encoder"
+      implementation "org.jetbrains.kotlin:kotlin-reflect"
+
+      testImplementation "org.spockframework:spock-core"
+      testImplementation "org.spockframework:spock-spring"
+      testImplementation "org.springframework.boot:spring-boot-starter-test"
+      testImplementation "org.hamcrest:hamcrest-core"
+      testRuntimeOnly "cglib:cglib-nodep"
+      testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+      testRuntimeOnly "org.objenesis:objenesis"
+    }
+
+    configurations.all {
+      exclude group: 'javax.servlet', module: 'servlet-api'
+      exclude group: 'javax.servlet', module: 'javax.servlet-api'
+    }
+  }
+
+  tasks.withType(JavaExec) {
+    if (System.getProperty('DEBUG', 'false') == 'true') {
+      jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8184'
+    }
+  }
+
+  test {
+    testLogging {
+      exceptionFormat = 'full'
+    }
+    useJUnitPlatform()
+    maxHeapSize = "1g"
+  }
+}
+
+defaultTasks ':gate-web:run'

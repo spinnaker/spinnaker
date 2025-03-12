@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: gate
+
+services:
+  clouddriver.baseUrl: "http://localhost:7002"
+
+  deck.baseUrl: "http://localhost:9000"
+
+  echo.enabled: false
+  echo.baseUrl: "http://echo"
+
+  fiat.enabled: false
+
+  fiat.baseUrl: "http://localhost:8080"
+
+  front50.baseUrl: "http://localhost:8080"
+
+  igor.enabled: false
+
+  kayenta.enabled: false
+
+  rosco.enabled: false
+
+  orca.baseUrl: "http://localhost:8083"
+
+  mine.enabled: false
+
+  swabbie.enabled: false
+
+  keel.baseUrl: "http://localhost:8087"
+
+slack:
+  baseUrl: "https://slack.com"
+
+spinnaker:
+  extensibility:
+    framework:
+      version: v2
+    plugins-root-path: build/plugins
+    plugins:
+      com.netflix.gate.enabled.plugin:
+        enabled: true
+        api-extension.config:
+          id: test
+      com.netflix.gate.disabled.plugin:
+        enabled: false
+      com.netflix.gate.version.not.supported.plugin:
+        enabled: true

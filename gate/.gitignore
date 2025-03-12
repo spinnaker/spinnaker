@@ -1,0 +1,16 @@
+build/
+/.gradle/
+*.iml
+*.ipr
+*.iws
+out/
+/.idea/
+*.rdb
+
+.classpath
+.project
+.settings
+swagger.json
+swagger/swagger.json
+bin/
+plugins/**

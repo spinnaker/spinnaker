@@ -1,0 +1,12 @@
+type Query {
+  node(id: ID!): Node
+}
+
+type Mutation {
+
+}
+
+# https://relay.dev/graphql/objectidentification.htm
+interface Node {
+  id: ID!
+}

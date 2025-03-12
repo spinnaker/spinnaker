@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: gate
+
+services:
+  clouddriver.baseUrl: "http://localhost:7002"
+
+  deck.baseUrl: "http://localhost:9000"
+
+  echo.enabled: false
+
+  echo.baseUrl: "http://echo"
+
+  fiat.enabled: false
+
+  fiat.baseUrl: "http://localhost:8082"
+
+  front50.baseUrl: "http://localhost:8080"
+
+  igor.enabled: false
+
+  kayenta.enabled: false
+
+  rosco.enabled: false
+
+  orca.baseUrl: "http://localhost:8083"
+
+  mine.enabled: false
+
+  swabbie.enabled: false
+
+  keel.baseUrl: "http://localhost:8087"
+
+slack:
+  baseUrl: "https://slack.com"
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: alloworigincors
+
+cors:
+  allow-mode: "list"
+  allowed-origins: >
+    https://testblah.domain.net,
+    https://testblah.somewhere.net
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: regexcors
+
+cors:
+  allowedOriginsPattern: '^https?://(?:localhost|[^/]+\.somewhere\.net)(?::[1-9]\d*)?/?$'
+  expectLocalhost: true
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: test
+
+spinnaker:
+  extensions:
+    applicationName: spinnakerpluginstest
+    repositories:
+      front50:
+        enabled: true
+        url: https://front50.net
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: swaggertest
+
+swagger:
+  enabled: true
+  title: Spinnaker Test
+  description:
+  contact:
+  patterns:
+    - /test

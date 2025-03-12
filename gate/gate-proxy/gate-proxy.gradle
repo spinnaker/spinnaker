@@ -1,0 +1,12 @@
+apply from: "${project.rootDir}/gradle/kotlin.gradle"
+apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+
+dependencies {
+  implementation project(":gate-api")
+  implementation project(":gate-core")
+
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.google.guava:guava"
+}

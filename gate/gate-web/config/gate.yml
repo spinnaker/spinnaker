@@ -1,0 +1,188 @@
+server:
+  port: 8084
+  compression:
+    enabled: true
+
+services:
+  deck:
+    baseUrl: http://localhost:9000
+  orca:
+    baseUrl: http://localhost:8083
+  front50:
+    canaryConfigStore: false
+    baseUrl: http://localhost:8080
+  clouddriver:
+    baseUrl: http://localhost:7002
+# semi-optional services (Everybody except Netflix needs these):
+  rosco:
+    enabled: true
+    baseUrl: http://localhost:8087
+    # These are here only for Netflix, whose bakery does not support dynamically fetching these properties.
+    # Modifying the details below when rosco.enabled is true will have no effect (do it in the Rosco config).
+    defaults:
+      bakeOptions:
+        - cloudProvider: aws
+          baseImages:
+          - id: trusty
+            shortDescription: v14.04
+            detailedDescription: Ubuntu Trusty Tahr v14.04
+            packageType: DEB
+            vmTypes: [ 'hvm', 'pv' ]
+          - id: ubuntu
+            shortDescription: v12.04
+            detailedDescription: Ubuntu Precise Pangolin v12.04
+            packageType: DEB
+            vmTypes: [ 'hvm', 'pv' ]
+          - id: centos
+            shortDescription: deprecated
+            detailedDescription: CentOS v5.11
+            packageType: RPM
+            vmTypes: [ 'hvm', 'pv' ]
+# optional services:
+  echo:
+    baseUrl: http://localhost:8089
+    enabled: true
+  keel:
+    baseUrl: http://localhost:8087
+    enabled: false
+  fiat:
+    enabled: false
+  flapjack:
+    enabled: false
+  igor:
+    enabled: false
+  mahe:
+    enabled: false
+  kayenta:
+    enabled: false
+    canaryConfigStore: true
+    baseUrl: http://localhost:8090
+
+redis:
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
+
+slack:
+  baseUrl: https://slack.com/api/
+
+swagger:
+  enabled: true
+  title: Spinnaker API
+  description:
+  contact:
+  patterns:
+    - .*tasks.*
+    - .*auth.*
+    - .*applications.*
+    - .*securityGroups.*
+    - /search
+    - .*pipeline.*
+    - .*pipelineConfigs.*
+    - .*pipelines.*
+    - .*loadBalancers.*
+    - .*instances.*
+    - .*images.*
+    - .*elasticIps.*
+    - .*credentials.*
+    - .*events.*
+    - .*builds.*
+    - .*instanceTypes.*
+    - .*vpcs.*
+    - .*subnets.*
+    - .*networks.*
+    - .*bakery.*
+    - .*executions.*
+    - .*webhooks.*
+    - /v2/.*
+    - .*firewalls.*
+    - .*version.*
+    - .*pubsub.*
+    - .*projects.*
+    - .*functions.*
+    - .*managed.*
+    - .*plugins.*
+
+integrations:
+  gremlin:
+    enabled: false
+    baseUrl: https://api.gremlin.com/v1/
+
+spring:
+  jackson:
+    mapper:
+      SORT_PROPERTIES_ALPHABETICALLY: true
+    serialization:
+      ORDER_MAP_ENTRIES_BY_KEYS: true
+
+spring.session.store-type: redis
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: googleOAuth
+
+security:
+  oauth2:
+    client:
+      # Set these values in your own config file (e.g. spinnaker-local.yml or gate-googleOAuth.yml).
+      # clientId:
+      # clientSecret:
+      accessTokenUri: https://www.googleapis.com/oauth2/v4/token
+      userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
+      scope: "profile email"
+    resource:
+      userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+    userInfoMapping:
+      email: email
+      firstName: given_name
+      lastName: family_name
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: azureOAuth
+
+security:
+  oauth2:
+    client:
+      # Set these values in your own config file (e.g. spinnaker-local.yml or gate-azureOAuth.yml).
+      # clientId:
+      # clientSecret:
+      accessTokenUri: https://login.microsoftonline.com/${azureTenantId}/oauth2/token
+      userAuthorizationUri: https://login.microsoftonline.com/${azureTenantId}/oauth2/authorize?resource=https://graph.windows.net
+      scope: "profile"
+      clientAuthenticationScheme: query
+    resource:
+      userInfoUri: https://graph.windows.net/me?api-version=1.6
+    userInfoMapping:
+      username: userPrincipalName
+      email: userPrincipalName
+      firstName: givenName
+      lastName: surname
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: githubOAuth
+
+security:
+  oauth2:
+    client:
+      # Set these values in your own config file (e.g. spinnaker-local.yml or gate-githubOAuth.yml).
+      # clientId:
+      # clientSecret:
+      userAuthorizationUri: https://github.com/login/oauth/authorize
+      accessTokenUri: https://github.com/login/oauth/access_token
+      scope: user:email
+    resource:
+      userInfoUri: https://api.github.com/user
+    userInfoMapping:
+      email: email
+      firstName:
+      lastName: name
+      username: login
