@@ -1,0 +1,67 @@
+# NOTE: Copy this file to ~/.spin/config
+
+gate:
+  endpoint: https://my-spinnaker-gate:8084
+  retryTimeout: 300
+auth:
+  enabled: true
+  x509:
+    # See https://www.spinnaker.io/setup/security/ssl/ and
+    # https://www.spinnaker.io/setup/security/authentication/x509/ for guides on creating
+    # the key and cert files.
+    certPath: "~/.spin/certpath"
+    keyPath: "~/.spin/keypath" # This should point to an _unencrypted_ keyfile.
+
+    # Pipe to start a multi-line string. This is necessary to import the b64 cert/key value.
+    cert: |
+      -----BEGIN CERTIFICATE-----
+      BLAHBLAHBLAHBLAHBLAHBLAH==
+      -----END RSA PRIVATE KEY-----
+    # Pipe to start a multi-line string. This is necessary to import the b64 cert/key value.
+    key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      BLAHBLAHBLAHBLAHBLAHBLAH==
+      -----END RSA PRIVATE KEY-----
+
+  oauth2:
+    # The following is an example for Google's OAuth2 endpoints.
+    # The values for these are specific to your OAuth2 provider.
+    authUrl: https://accounts.google.com/o/oauth2/auth
+    tokenUrl: https://accounts.google.com/o/oauth2/token
+
+    # See https://spinnaker.io/setup/security/authentication/oauth/#oauth-20-providers
+    # for examples acquiring clientId/clientSecret.
+    clientId:
+    clientSecret:
+    scopes:
+      - scope1
+      - scope2
+
+    # To set a cached token, follow the following format:
+    # note that these yaml keys must match the golang struct tags exactly because of yaml.UnmarshalStrict
+    cachedToken:
+      access_token: <token>
+      token_type: bearer
+      refresh_token: <token>
+
+  iap:
+    # check detailed config in https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app
+    # The following three entries are mandatory.
+    oauthClientId: "xxxx-xxxx.apps.googleusercontent.com"
+    oauthClientSecret: "oauth client secret"
+    iapClientId: "yyyy-yyyy.apps.googleusercontent.com"
+    # Optional field containing an offline refresh token.
+    # Filling this enables spin to refresh the access token
+    # for a user.
+    # This would be the token received from the `Signing in to the application` step
+    # of https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app
+    iapClientRefresh: "1/blah-blah-blah"
+    # Optional field containing an offline access token.
+    # If it's filled in spin will not try to refresh/interactively
+    # fetch a token for the user.
+    # This would be the `id_token` received from the `Accessing the application` stage of
+    # https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app
+    iapIdToken: "example-token-blah-blah"
+    # Optional field containing a serviceAccount json key.
+    # If filled in the serviceAccount id will be used to authenticate spin.
+    serviceAccountKeyPath: "$HOME/.spin/key.json"

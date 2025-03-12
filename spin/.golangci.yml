@@ -1,0 +1,15 @@
+run:
+  modules-download-mode: readonly
+  skip-dirs:
+      - gateapi
+linters:
+  disable-all: true
+  enable:
+    - gofmt
+    - goimports
+    - govet
+    # TODO(jan25): Enable this along with all violation fixes
+    # - golint
+linters-settings:
+  goimports:
+    local-prefixes: github.com/spinnaker/spin

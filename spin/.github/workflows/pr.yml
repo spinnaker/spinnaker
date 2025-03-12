@@ -1,0 +1,68 @@
+name: PR Build
+
+on: [ pull_request ]
+
+env:
+  CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: false
+    - name: Ensure code formatting and style is consistent
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: v1.45.2
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare build variables
+        id: build_variables
+        run: |
+          echo REPO="${GITHUB_REPOSITORY##*/}" >> $GITHUB_OUTPUT
+          echo VERSION="$(git rev-parse --short HEAD)-$(date --utc +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Fetch dependencies
+        run: go get -d -v
+      - name: Test
+        run: go test -v ./...
+      - name: Build binaries
+        env:
+          LDFLAGS: "-X github.com/spinnaker/spin/version.Version=${{ steps.build_variables.outputs.VERSION }}"
+        run: |
+          GOARCH=amd64 GOOS=darwin go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/darwin/amd64/spin .
+          GOARCH=amd64 GOOS=linux go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/linux/amd64/spin .
+          GOARCH=arm64 GOOS=linux go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/linux/arm64/spin .
+          GOARCH=amd64 GOOS=windows go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/windows/amd64/spin.exe .
+          GOARCH=arm64 GOOS=darwin go build -ldflags "${LDFLAGS}" -o dist/${{ steps.build_variables.outputs.VERSION }}/darwin/arm64/spin .
+          dist/${{ steps.build_variables.outputs.VERSION }}/linux/amd64/spin --version
+
+      - name: Build container image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          build-args: |
+            "VERSION=${{ steps.build_variables.outputs.VERSION }}"
+          tags: |
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:latest"
+            "${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}"
