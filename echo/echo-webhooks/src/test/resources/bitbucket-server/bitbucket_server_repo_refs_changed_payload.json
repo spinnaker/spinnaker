@@ -1,0 +1,75 @@
+{
+  "eventKey": "repo:refs_changed",
+  "date": "2022-11-17T18:49:15+0000",
+  "actor": {
+    "name": "generic-username",
+    "emailAddress": "generic.username@email.com",
+    "id": 52,
+    "displayName": "Generic Username",
+    "active": true,
+    "slug": "generic-username",
+    "type": "NORMAL",
+    "links": {
+      "self": [
+        {
+          "href": "http://localhost:7990/users/generic-username"
+        }
+      ]
+    }
+  },
+  "repository": {
+    "slug": "repo-test",
+    "id": 1,
+    "name": "repo-test",
+    "hierarchyId": "3415a20adbadb58372c2",
+    "scmId": "git",
+    "state": "AVAILABLE",
+    "statusMessage": "Available",
+    "forkable": true,
+    "project": {
+      "key": "RT",
+      "id": 1,
+      "name": "repo-test",
+      "public": false,
+      "type": "NORMAL",
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:7990/projects/RT"
+          }
+        ]
+      }
+    },
+    "public": false,
+    "links": {
+      "clone": [
+        {
+          "href": "http://localhost:7990/scm/rt/repo-test.git",
+          "name": "http"
+        },
+        {
+          "href": "ssh://git@localhost:7999/rt/repo-test.git",
+          "name": "ssh"
+        }
+      ],
+      "self": [
+        {
+          "href": "http://localhost:7990/projects/RT/repos/repo-test/browse"
+        }
+      ]
+    }
+  },
+  "changes": [
+    {
+      "ref": {
+        "id": "refs/heads/feature-branch",
+        "displayId": "feature-branch",
+        "type": "BRANCH"
+      },
+      "refId": "refs/heads/feature-branch",
+      "fromHash": "1eb0b0f6e1725c4040f2605e1d58c9f9d2095658",
+      "toHash": "9065c394975cf8750a83abb6e54ba27245a38926",
+      "type": "UPDATE"
+    }
+  ]
+}

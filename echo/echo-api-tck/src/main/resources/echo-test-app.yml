@@ -1,0 +1,16 @@
+front50:
+  baseUrl: http://localhost:8080
+
+orca:
+  baseUrl: http://localhost:8083
+
+services:
+  fiat:
+    baseUrl: http://localhost:7003
+
+spring:
+  application:
+    name: echo
+
+spinnaker:
+  baseUrl: http://localhost:9000

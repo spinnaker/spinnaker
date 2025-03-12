@@ -1,0 +1,11 @@
+# halconfig
+
+server:
+  port: ${services.echoScheduler.port:8089}
+  address: ${services.echoScheduler.host:localhost}
+
+scheduler:
+  enabled: true
+
+redis:
+  connection: ${services.redis.baseUrl:redis://localhost:6379}

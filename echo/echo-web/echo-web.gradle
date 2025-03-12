@@ -1,0 +1,80 @@
+/*
+ * Copyright 2015 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'io.spinnaker.package'
+
+mainClassName = 'com.netflix.spinnaker.echo.Application'
+
+dependencies {
+    implementation project(':echo-artifacts')
+    implementation project(':echo-core')
+    implementation project(':echo-model')
+    implementation project(':echo-notifications')
+    implementation project(':echo-pipelinetriggers')
+    implementation project(':echo-scheduler')
+    implementation project(':echo-rest')
+    implementation project(':echo-webhooks')
+    implementation project(':echo-pubsub-core')
+    implementation project(':echo-pubsub-aws')
+    implementation project(':echo-pubsub-google')
+    implementation project(':echo-telemetry')
+    implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+    implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "io.spinnaker.kork:kork-artifacts"
+    implementation "io.spinnaker.kork:kork-cloud-config-server"
+    implementation "io.spinnaker.kork:kork-core"
+    implementation "io.spinnaker.kork:kork-config"
+    implementation "io.spinnaker.kork:kork-retrofit"
+    implementation "io.spinnaker.kork:kork-web"
+    implementation "com.squareup.retrofit2:retrofit"
+    implementation "com.squareup.retrofit2:converter-jackson"
+    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.netflix.spectator:spectator-api"
+    implementation "javax.validation:validation-api"
+    implementation 'net.redhogs.cronparser:cron-parser-core:2.8'
+    implementation "org.springframework.data:spring-data-rest-webmvc"
+    implementation "org.springframework:spring-context-support"
+    implementation("org.quartz-scheduler:quartz") {
+      exclude group: 'com.zaxxer', module: 'HikariCP-java7'
+    }
+
+    runtimeOnly "io.spinnaker.kork:kork-runtime"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.spockframework:spock-spring"
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testImplementation "com.squareup.retrofit2:retrofit-mock"
+}
+
+test {
+  //The Implementation-Version is set in the MANIFEST.MF for the JAR produced via testing so that
+  //assertions can be made against the version (see echo-plugins-test, for example).
+  jar {
+    manifest {
+      String implementationVersion = getAttributes()["Implementation-Version"]
+      if (implementationVersion == null
+        || implementationVersion.isEmpty()
+        || implementationVersion == "undefined") {
+        attributes(
+          'Implementation-Version': '1.0.0'
+        )
+      }
+    }
+  }
+}

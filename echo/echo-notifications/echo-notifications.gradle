@@ -1,0 +1,55 @@
+/*
+ * Copyright 2015 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+dependencies {
+  implementation project(':echo-core')
+  implementation project(':echo-model')
+  implementation project(":echo-pipelinetriggers")
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "commons-codec:commons-codec"
+  implementation "org.springframework.boot:spring-boot-starter-mail"
+  implementation "org.springframework.boot:spring-boot-starter-freemarker"
+  implementation "org.jsoup:jsoup:1.8.3"
+  implementation "com.atlassian.commonmark:commonmark:0.9.0"
+  implementation "org.apache.groovy:groovy-json"
+  implementation "io.cloudevents:cloudevents-http-basic:3.0.0"
+  implementation "io.cloudevents:cloudevents-json-jackson:3.0.0"
+  implementation ("dev.cdevents:cdevents-sdk-java:0.3.1")
+  testImplementation project(":echo-test")
+  testImplementation("com.icegreen:greenmail:1.5.14") {
+    exclude group: "com.sun.mail", module: "javax.mail"
+  }
+  testImplementation "org.apache.httpcomponents:httpclient"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "com.github.tomakehurst:wiremock-jre8"
+  testImplementation "org.assertj:assertj-core"
+  annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+}
+
+sourceSets {
+  main {
+    java { srcDirs = [] }    // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/java", "src/main/groovy"] }  // compile everything in src/ with groovy
+  }
+}

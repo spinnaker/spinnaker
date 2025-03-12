@@ -1,0 +1,1 @@
+generic ${baseUrl} ${notification.source.application}

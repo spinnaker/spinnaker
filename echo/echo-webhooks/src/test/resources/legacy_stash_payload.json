@@ -1,0 +1,76 @@
+{
+    "eventKey": "repo:refs_changed",
+    "date": "2021-07-09T11:59:12-0400",
+    "actor": {
+      "name": "blah",
+      "emailAddress": "blah@company.com",
+      "id": 54183,
+      "displayName": "Blah, Blah",
+      "active": true,
+      "slug": "blah",
+      "type": "NORMAL",
+      "links": {
+        "self": [
+          {
+            "href": "https://some.endpoint.com/stash/users/blah"
+          }
+        ]
+      }
+    },
+    "repository": {
+      "slug": "sample-manifests",
+      "id": 32163,
+      "name": "sample-manifests",
+      "hierarchyId": "7663bf10753d48192d5b",
+      "scmId": "git",
+      "state": "AVAILABLE",
+      "statusMessage": "Available",
+      "forkable": true,
+      "project": {
+        "key": "E-BLAH",
+        "id": 4611,
+        "name": "Blah-Platform",
+        "description": "This is a fake description",
+        "public": false,
+        "type": "NORMAL",
+        "links": {
+          "self": [
+            {
+              "href": "https://some.endpoint.com/stash/projects/E-BLAH"
+            }
+          ]
+        }
+      },
+      "public": false,
+      "links": {
+        "clone": [
+          {
+            "href": "ssh://git@some.endpoint.com/e-blah/sample-manifests.git",
+            "name": "ssh"
+          },
+          {
+            "href": "https://some.endpoint.com/stash/scm/e-blah/sample-manifests.git",
+            "name": "http"
+          }
+        ],
+        "self": [
+          {
+            "href": "https://some.endpoint.com/stash/projects/E-BLAH/repos/sample-manifests/browse"
+          }
+        ]
+      }
+    },
+    "changes": [
+      {
+        "ref": {
+          "id": "refs/heads/master",
+          "displayId": "master",
+          "type": "BRANCH"
+        },
+        "refId": "refs/heads/master",
+        "fromHash": "7e3701f9bdf88997254610726be874cb315725f7",
+        "toHash": "6701da6ba49197208319f3ecad71ec9c449172fa",
+        "type": "UPDATE"
+      }
+    ]
+  }
