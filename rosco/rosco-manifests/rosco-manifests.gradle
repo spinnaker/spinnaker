@@ -1,0 +1,23 @@
+dependencies {
+  implementation project(":rosco-core")
+
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-security"
+  implementation "commons-io:commons-io"
+  implementation "org.apache.commons:commons-compress:1.21"
+  implementation "org.yaml:snakeyaml"
+
+  implementation "com.squareup.retrofit2:retrofit"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "com.squareup.okhttp3:okhttp"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testImplementation "com.squareup.retrofit2:converter-jackson"
+  testCompileOnly "com.squareup.retrofit:retrofit"
+}

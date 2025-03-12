@@ -1,0 +1,25 @@
+dependencies {
+  api "io.spinnaker.kork:kork-artifacts"
+  api "io.spinnaker.kork:kork-plugins"
+  api "org.apache.groovy:groovy"
+
+  implementation "com.netflix.frigga:frigga"
+  implementation "io.spinnaker.kork:kork-jedis"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.swagger.core.v3:swagger-annotations"
+  implementation "io.spinnaker.kork:kork-swagger"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "io.reactivex:rxjava"
+  implementation "org.apache.commons:commons-exec"
+  implementation "org.apache.groovy:groovy"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "redis.clients:jedis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation project(":rosco-web")
+}

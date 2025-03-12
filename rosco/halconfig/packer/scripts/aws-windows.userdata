@@ -1,0 +1,30 @@
+<powershell>
+
+# Turn off PowerShell execution policy restrictions.
+$Policy = "Bypass"
+$CurrentExecutionPolicy = (Get-ExecutionPolicy)
+If ($CurrentExecutionPolicy -ne $Policy -OR $CurrentExecutionPolicy -ne "Unrestricted") {
+   Set-ExecutionPolicy $Policy -Scope Process -Force
+}
+
+# Configure WinRM.
+winrm quickconfig -q
+winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="2048"}'
+winrm set winrm/config/winrs '@{MaxConcurrentUsers="100"}'
+winrm set winrm/config/winrs '@{MaxProcessesPerShell="0"}'
+winrm set winrm/config/winrs '@{MaxShellsPerUser="0"}'
+winrm set winrm/config '@{MaxTimeoutms="7200000"}'
+winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+winrm set winrm/config/service/auth '@{Basic="true"}'
+winrm set winrm/config/service/auth '@{CredSSP="true"}'
+winrm set winrm/config/client '@{TrustedHosts="*"}'
+
+
+# Open port 5985 in the internal Windows firewall to allow WinRM communication.
+netsh advfirewall firewall add rule name="WinRM 5985" protocol=TCP dir=in localport=5985 action=allow
+
+Stop-Service winrm
+Set-Service winrm -startuptype "automatic"
+Start-Service winrm
+
+</powershell>

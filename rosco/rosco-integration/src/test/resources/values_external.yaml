@@ -1,0 +1,8 @@
+  foo: "bar_external"
+  foo1:
+    test: "bar1_external"
+  foo2:
+    -  "bar2_external"
+  foo3.foo4:  "bar3_external"
+  foo5:
+      -  "bar5_external"

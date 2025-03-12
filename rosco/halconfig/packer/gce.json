@@ -1,0 +1,62 @@
+{
+  "variables": {
+    "gce_project_id": null,
+    "gce_account_file": "",
+    "gce_zone": null,
+    "gce_network": null,
+    "gce_network_project_id": "",
+    "gce_subnetwork": "",
+    "gce_source_image": "",
+    "gce_source_image_family": "",
+    "gce_target_image": null,
+    "gce_use_internal_ip": "false",
+    "appversion": "",
+    "build_host": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null,
+    "manifestFile": null,
+    "artifactFile": null
+  },
+  "builders": [{
+    "type": "googlecompute",
+    "project_id": "{{user `gce_project_id`}}",
+    "account_file": "{{user `gce_account_file`}}",
+    "zone": "{{user `gce_zone`}}",
+    "network": "{{user `gce_network`}}",
+    "network_project_id": "{{user `gce_network_project_id`}}",
+    "subnetwork": "{{user `gce_subnetwork`}}",
+    "state_timeout": "15m",
+    "ssh_username": "packerio",
+    "ssh_pty": true,
+    "source_image": "{{user `gce_source_image`}}",
+    "source_image_family": "{{user `gce_source_image_family`}}",
+    "image_name": "{{user `gce_target_image`}}",
+    "use_internal_ip": "{{user `gce_use_internal_ip`}}",
+    "image_description": "appversion: {{user `appversion`}}, build_host: {{user `build_host`}}, build_info_url: {{user `build_info_url`}}"
+  }],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "{{user `artifactFile`}}",
+      "destination": "/tmp/artifacts.json",
+      "pause_before": "30s"
+    },
+    {
+      "type": "shell",
+      "script": "{{user `configDir`}}/install_packages.sh",
+      "environment_vars": [
+        "repository={{user `repository`}}",
+        "package_type={{user `package_type`}}",
+        "packages={{user `packages`}}",
+        "upgrade={{user `upgrade`}}"
+      ]
+    }
+  ],
+  "post-processors": [{
+      "type": "manifest",
+      "output": "{{user `manifestFile`}}"
+  }]
+}

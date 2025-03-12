@@ -1,0 +1,26 @@
+['kork'].each { prj ->
+  String propName = "${prj}Composite"
+  String projectPath = "../$prj"
+  if (settings.ext.has(propName) && Boolean.parseBoolean(settings.ext.get(propName) as String)) {
+    includeBuild projectPath
+  }
+}
+
+rootProject.name = 'rosco'
+
+include 'rosco-bom',
+  'rosco-core',
+  'rosco-integration',
+  'rosco-manifests',
+  'rosco-web'
+
+def setBuildFile(project) {
+  project.buildFileName = "${project.name}.gradle"
+  project.children.each {
+    setBuildFile(it)
+  }
+}
+
+rootProject.children.each {
+  setBuildFile(it)
+}

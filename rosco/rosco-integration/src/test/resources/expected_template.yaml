@@ -1,0 +1,10 @@
+---
+# Source: example/templates/foo.yaml
+labels:
+  helm.sh/chart: example-0.1
+foo: %s
+foo1:
+  test: %s
+foo2: %s
+foo3.foo4: %s
+foo5: %s

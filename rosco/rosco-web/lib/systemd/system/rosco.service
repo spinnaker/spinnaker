@@ -1,0 +1,14 @@
+[Unit]
+Description=Spinnaker Rosco
+PartOf=spinnaker.service
+
+[Service]
+ExecStart=/opt/rosco/bin/rosco
+WorkingDirectory=/opt/rosco/bin
+SuccessExitStatus=143
+User=spinnaker
+Group=spinnaker
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

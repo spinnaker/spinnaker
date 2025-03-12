@@ -1,0 +1,46 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_subnet_id": "{{env `AWS_SUBNET_ID`}}",
+    "aws_vpc_id": "{{env `AWS_VPC_ID`}}",
+    "aws_region": null,
+    "aws_ssh_username": null,
+    "aws_instance_type": null,
+    "aws_source_ami": null,
+    "aws_target_ami": null,
+    "aws_associate_public_ip_address": "true",
+    "aws_ena_support": "false",
+    "appversion": "",
+    "build_host": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null
+  },
+  "builders": [{
+    "type": "amazon-chroot",
+    "ami_virtualization_type": "hvm",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "source_ami": "{{user `aws_source_ami`}}",
+    "ami_name": "{{user `aws_target_ami`}}",
+    "tags": {
+      "appversion": "{{user `appversion`}}",
+      "build_host": "{{user `build_host`}}",
+      "build_info_url": "{{user `build_info_url`}}"
+    }
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "script": "{{user `configDir`}}/install_packages.sh",
+    "environment_vars": [
+      "repository='{{user `repository`}}'",
+      "package_type={{user `package_type`}}",
+      "packages='{{user `packages`}}'",
+      "upgrade={{user `upgrade`}}",
+      "disable_services=true"
+    ]
+  }]
+}

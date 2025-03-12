@@ -1,0 +1,58 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_subnet_id": "{{env `AWS_SUBNET_ID`}}",
+    "aws_vpc_id": "{{env `AWS_VPC_ID`}}",
+    "aws_region": null,
+    "aws_ssh_username": null,
+    "aws_instance_type": null,
+    "aws_source_ami": null,
+    "aws_target_ami": null,
+    "aws_associate_public_ip_address": "true",
+    "aws_ena_support": "false",
+    "aws_spot_price": "0",
+    "aws_spot_price_auto_product": "",
+    "appversion": "",
+    "build_host": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "subnet_id": "{{user `aws_subnet_id`}}",
+    "vpc_id": "{{user `aws_vpc_id`}}",
+    "region": "{{user `aws_region`}}",
+    "ssh_username": "{{user `aws_ssh_username`}}",
+    "ssh_pty": true,
+    "instance_type": "{{user `aws_instance_type`}}",
+    "source_ami": "{{user `aws_source_ami`}}",
+    "ami_name": "{{user `aws_target_ami`}}",
+    "associate_public_ip_address": "{{user `aws_associate_public_ip_address`}}",
+    "ena_support": "{{user `aws_ena_support`}}",
+    "spot_price": "{{user `aws_spot_price`}}",
+    "spot_price_auto_product": "{{user `aws_spot_price_auto_product`}}",
+    "tags": {
+      "appversion": "{{user `appversion`}}",
+      "build_host": "{{user `build_host`}}",
+      "build_info_url": "{{user `build_info_url`}}"
+    },
+    "run_tags": {"Packages": "{{user `packages`}}"}
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "script": "{{user `configDir`}}/install_packages.sh",
+    "environment_vars": [
+      "repository={{user `repository`}}",
+      "package_type={{user `package_type`}}",
+      "packages={{user `packages`}}",
+      "upgrade={{user `upgrade`}}"
+    ],
+    "pause_before": "30s"
+  }]
+}

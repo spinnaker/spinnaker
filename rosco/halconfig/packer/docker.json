@@ -1,0 +1,40 @@
+{
+  "variables": {
+    "docker_source_image": null,
+    "docker_target_image": null,
+    "docker_target_image_tag": "latest",
+    "docker_target_repository": null,
+    "appversion": "",
+    "build_info_url": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "configDir": null
+  },
+  "builders": [{
+    "type": "docker",
+    "image": "{{user `docker_source_image`}}",
+    "commit": true,
+    "run_command": ["-d", "-i", "-t",
+      "--label", "appversion={{user `appversion`}}",
+      "--label", "build_info_url={{user `build_info_url`}}",
+      "{{.Image}}", "/bin/bash"]
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "script": "{{user `configDir`}}/install_packages.sh",
+    "environment_vars": [
+      "repository={{user `repository`}}",
+      "package_type={{user `package_type`}}",
+      "packages={{user `packages`}}"
+    ]
+  }],
+  "post-processors": [[
+    {
+      "type": "docker-tag",
+      "repository": "{{user `docker_target_repository`}}/{{user `docker_target_image`}}",
+      "tag": "{{user `docker_target_image_tag`}}"
+    },
+    "docker-push"
+  ]]
+}

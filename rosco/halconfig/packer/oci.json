@@ -1,0 +1,57 @@
+{
+  "variables": {
+    "oracle_availability_domain": null,
+    "oracle_region": null,
+    "oracle_base_image_id": null,
+    "oracle_compartment_id": null,
+    "oracle_image_name": null,
+    "oracle_instance_shape": null,
+    "oracle_ssh_user_name": null,
+    "oracle_subnet_id": null,
+    "oracle_tenancy_id": null,
+    "oracle_user_id": null,
+    "oracle_fingerprint": null,
+    "oracle_ssh_private_key_file_path": null,
+    "oracle_pass_phrase": "",
+
+    "appversion": "",
+    "build_host": "",
+    "build_info_url": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null
+  },
+  "builders": [
+    {
+      "type": "oracle-oci",
+      "availability_domain": "{{user `oracle_availability_domain`}}",
+      "region": "{{user `oracle_region`}}",
+      "base_image_ocid": "{{user `oracle_base_image_id`}}",
+      "compartment_ocid": "{{user `oracle_compartment_id`}}",
+      "image_name": "{{user `oracle_image_name`}}",
+      "shape": "{{user `oracle_instance_shape`}}",
+      "ssh_username": "{{user `oracle_ssh_user_name`}}",
+      "subnet_ocid": "{{user `oracle_subnet_id`}}",
+      "tenancy_ocid": "{{user `oracle_tenancy_id`}}",
+      "user_ocid": "{{user `oracle_user_id`}}",
+      "fingerprint": "{{user `oracle_fingerprint`}}",
+      "key_file": "{{user `oracle_ssh_private_key_file_path`}}",
+      "pass_phrase": "{{user `oracle_pass_phrase`}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "{{user `configDir`}}/install_packages.sh",
+      "environment_vars": [
+        "repository={{user `repository`}}",
+        "package_type={{user `package_type`}}",
+        "packages={{user `packages`}}",
+        "upgrade={{user `upgrade`}}"
+      ],
+      "pause_before": "30s"
+    }
+  ]
+}

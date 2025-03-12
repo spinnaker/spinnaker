@@ -1,0 +1,8 @@
+foo: "bar_default"
+foo1:
+  test: "bar1_default"
+foo2:
+  - "bar2_default"
+foo3.foo4:  "bar3_default"
+foo5:
+  - "bar5_default"

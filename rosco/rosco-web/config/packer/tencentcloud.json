@@ -1,0 +1,46 @@
+{
+  "variables": {
+    "tencentcloud_secret_id": "{{env `TENCENTCLOUD_SECRET_ID`}}",
+    "tencentcloud_secret_key": "{{env `TENCENTCLOUD_SECRET_KEY`}}",
+    "tencentcloud_region": null,
+    "tencentcloud_zone": null,
+    "tencentcloud_target_image": null,
+    "tencentcloud_instance_type": null,
+    "tencentcloud_source_image_id": null,
+    "tencentcloud_ssh_username": null,
+    "tencentcloud_disk_type": "CLOUD_PREMIUM",
+    "tencentcloud_associate_public_ip_address": "true",
+    "appversion": "",
+    "build_host": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null
+  },
+  "builders": [{
+    "type": "tencentcloud-cvm",
+    "secret_id": "{{user `tencentcloud_secret_id`}}",
+    "secret_key": "{{user `tencentcloud_secret_key`}}",
+    "region": "{{user `tencentcloud_region`}}",
+    "zone": "{{user `tencentcloud_zone`}}",
+    "instance_type": "{{user `tencentcloud_instance_type`}}",
+    "source_image_id": "{{user `tencentcloud_source_image_id`}}",
+    "image_name": "{{user `tencentcloud_target_image`}}",
+    "image_description": "{{user `tencentcloud_image_description`}}",
+    "ssh_username" : "{{user `tencentcloud_ssh_username`}}",
+    "disk_type": "{{user `tencentcloud_disk_type`}}",
+    "associate_public_ip_address": "{{user `tencentcloud_associate_public_ip_address`}}"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "script": "{{user `configDir`}}/install_packages.sh",
+    "environment_vars": [
+      "repository={{user `repository`}}",
+      "package_type={{user `package_type`}}",
+      "packages={{user `packages`}}",
+      "upgrade={{user `upgrade`}}"
+    ],
+    "pause_before": "30s"
+  }]
+}

@@ -1,0 +1,86 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_subnet_id": "{{env `AWS_SUBNET_ID`}}",
+    "aws_vpc_id": "{{env `AWS_VPC_ID`}}",
+    "aws_region": null,
+    "aws_winrm_username": null,
+    "aws_instance_type": null,
+    "aws_source_ami": null,
+    "aws_target_ami": null,
+    "aws_security_group": "",
+    "aws_associate_public_ip_address": "false",
+    "aws_ena_support": "false",
+    "aws_spot_price": "0",
+    "aws_spot_price_auto_product": "",
+    "aws_userdata_file": "scripts/aws-windows.userdata",
+    "appversion": "",
+    "build_host": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null,
+    "chocolateyVersion": ""
+  },
+
+  "builders": [
+    {
+      "type": "amazon-ebs",
+
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+
+      "communicator": "winrm",
+      "winrm_username": "{{user `aws_winrm_username`}}",
+      "user_data_file": "{{user `configDir`}}/{{user `aws_userdata_file`}}",
+
+      "vpc_id": "{{user `aws_vpc_id`}}",
+
+      "region": "{{user `aws_region`}}",
+
+      "instance_type": "{{user `aws_instance_type`}}",
+
+      "source_ami": "{{user `aws_source_ami`}}",
+
+      "ami_name": "{{user `aws_target_ami` | clean_resource_name}}",
+
+      "associate_public_ip_address": "{{user `aws_associate_public_ip_address`}}",
+
+      "security_group_id": "{{user `aws_security_group`}}",
+
+      "subnet_id": "{{user `aws_subnet_id`}}",
+
+      "ena_support": "{{user `aws_ena_support`}}",
+      "spot_price": "{{user `aws_spot_price`}}",
+      "spot_price_auto_product": "{{user `aws_spot_price_auto_product`}}",
+
+      "tags": {
+        "appversion": "{{user `appversion`}}",
+        "build_host": "{{user `build_host`}}",
+        "build_info_url": "{{user `build_info_url`}}"
+      },
+      "run_tags": {"Packages": "{{user `packages`}}"}
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type":"powershell",
+      "scripts": [
+        "{{user `configDir`}}/scripts/aws-windows-2012-configure-ec2service.ps1",
+        "{{user `configDir`}}/scripts/windows-configure-chocolatey.ps1",
+        "{{user `configDir`}}/scripts/windows-install-packages.ps1"
+      ],
+      "environment_vars": [
+        "repository={{user `repository`}}",
+        "package_type={{user `package_type`}}",
+        "packages={{user `packages`}}",
+        "upgrade={{user `upgrade`}}",
+        "chocolateyVersion={{user `chocolateyVersion`}}"
+      ],
+      "pause_before": "30s"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+apply plugin: 'io.spinnaker.package'
+
+mainClassName = 'com.netflix.spinnaker.rosco.Main'
+
+configurations.all {
+  exclude group: 'javax.servlet', module: 'servlet-api'
+  exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
+dependencies {
+  implementation project(":rosco-core")
+  implementation project(":rosco-manifests")
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "io.swagger.core.v3:swagger-annotations"
+
+  implementation "org.apache.groovy:groovy"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-config"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "net.logstash.logback:logstash-logback-encoder"
+
+  runtimeOnly "io.spinnaker.kork:kork-runtime"
+
+  testImplementation "io.spinnaker.kork:kork-retrofit"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "com.squareup.retrofit2:retrofit"
+  testImplementation "com.squareup.retrofit2:converter-jackson"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "org.apache.commons:commons-compress:1.21"
+  testImplementation "org.assertj:assertj-core"
+  testCompileOnly "com.squareup.retrofit:retrofit"
+}
+
+ospackage {
+  from('../halconfig/packer') {
+    into '/opt/rosco/config/packer'
+  }
+
+  configurationFile('/opt/rosco/config/rosco.yml')
+  configurationFile('/opt/rosco/config/packer/alicloud.json')
+  configurationFile('/opt/rosco/config/packer/aws-chroot.json')
+  configurationFile('/opt/rosco/config/packer/aws-ebs.json')
+  configurationFile('/opt/rosco/config/packer/azure-linux.pkr.hcl')
+  configurationFile('/opt/rosco/config/packer/gce.json')
+  configurationFile('/opt/rosco/config/packer/huaweicloud.json')
+  configurationFile('/opt/rosco/config/packer/oci.json')
+  configurationFile('/opt/rosco/config/packer/tencentcloud.json')
+  configurationFile('/opt/rosco/config/packer/install_packages.sh')
+
+  from('../docker') {
+    into "/opt/${project.applicationName}/docker"
+  }
+}
+
+buildDeb {
+  requires('unzip')
+}
+
+buildRpm {
+  requires('unzip')
+}

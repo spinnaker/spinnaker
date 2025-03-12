@@ -1,0 +1,80 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "aws_subnet_id": "{{env `AWS_SUBNET_ID`}}",
+    "aws_vpc_id": "{{env `AWS_VPC_ID`}}",
+    "aws_region": null,
+    "aws_ssh_username": null,
+    "aws_instance_type": null,
+    "aws_source_ami": null,
+    "aws_target_ami": null,
+    "aws_associate_public_ip_address": "true",
+    "aws_ena_support": "false",
+    "appversion": "",
+    "build_host": "",
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null,
+    "share_with_1": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "share_with_2": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "share_with_3": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "share_with_4": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "share_with_5": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "share_with_6": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "share_with_7": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "share_with_8": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "share_with_9": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "share_with_10": "{{env `SPINNAKER_AWS_DEFAULT_ACCOUNT`}}",
+    "copy_to_1": "{{env `SPINNAKER_AWS_DEFAULT_REGION`}}",
+    "copy_to_2": "{{env `SPINNAKER_AWS_DEFAULT_REGION`}}",
+    "copy_to_3": "{{env `SPINNAKER_AWS_DEFAULT_REGION`}}",
+    "copy_to_4": "{{env `SPINNAKER_AWS_DEFAULT_REGION`}}",
+    "copy_to_5": "{{env `SPINNAKER_AWS_DEFAULT_REGION`}}"
+  },
+  "builders": [{
+    "type": "amazon-chroot",
+    "ami_virtualization_type": "hvm",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "source_ami": "{{user `aws_source_ami`}}",
+    "ami_name": "{{user `aws_target_ami`}}",
+    "ami_users": [
+      "{{user `share_with_1`}}",
+      "{{user `share_with_2`}}",
+      "{{user `share_with_3`}}",
+      "{{user `share_with_4`}}",
+      "{{user `share_with_5`}}",
+      "{{user `share_with_6`}}",
+      "{{user `share_with_7`}}",
+      "{{user `share_with_8`}}",
+      "{{user `share_with_9`}}",
+      "{{user `share_with_10`}}"
+    ],
+    "ami_regions": [
+      "{{user `copy_to_1`}}",
+      "{{user `copy_to_2`}}",
+      "{{user `copy_to_3`}}",
+      "{{user `copy_to_4`}}",
+      "{{user `copy_to_5`}}"
+    ],
+    "tags": {
+      "appversion": "{{user `appversion`}}",
+      "build_host": "{{user `build_host`}}",
+      "build_info_url": "{{user `build_info_url`}}"
+    }
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "script": "{{user `configDir`}}/install_packages.sh",
+    "environment_vars": [
+      "repository='{{user `repository`}}'",
+      "package_type={{user `package_type`}}",
+      "packages='{{user `packages`}}'",
+      "upgrade={{user `upgrade`}}",
+      "disable_services=true"
+    ]
+  }]
+}
