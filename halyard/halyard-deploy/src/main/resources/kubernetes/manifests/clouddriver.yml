@@ -1,0 +1,25 @@
+apiVersion: apps/v1 # As of Kubernetes 1.16, apps/v1beta2 has been deprecated
+kind: Deployment
+metadata:
+  name: spin-clouddriver
+  namespace: spinnaker
+  labels:
+    app: spin
+    cluster: spin-clouddriver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spin
+      cluster: spin-clouddriver
+  template:
+    metadata:
+      labels:
+        app: spin
+        cluster: spin-clouddriver
+    spec:
+      containers:
+      - name: clouddriver
+        image: {{ image }}
+        ports:
+        - containerPort: 80

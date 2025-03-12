@@ -1,0 +1,8 @@
+{
+  "httpGet": {
+    "port": {{ port }},
+    "path": "{{ path }}",
+    "scheme": "{{ scheme }}"
+  },
+  "initialDelaySeconds": {{ initialDelaySeconds }}
+}

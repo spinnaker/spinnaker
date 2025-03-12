@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+set -e
+
+HALYARD_DAEMON_PID_FILE=/opt/halyard/pid
+HALYARD_DAEMON_PID=""
+HALYARD_STARTUP_TIMEOUT_SECONDS=120
+
+HAL=/opt/halyard/bin/hal 
+
+function start_daemon() {
+    printf "The halyard daemon isn't running yet... starting it manually"
+
+    /opt/halyard/bin/halyard \
+      2> /var/log/spinnaker/halyard/halyard.err \
+      > /var/log/spinnaker/halyard/halyard.log &
+
+    echo $! > $HALYARD_DAEMON_PID_FILE 
+
+    local wait_start=$(date +%s)
+
+    set +e
+    $HAL --ready &> /dev/null
+    while [ "$?" != "0" ]; do
+        local wait_now=$(date +%s)
+        local wait_time=$(( $wait_now - $wait_start ))
+
+        if [ "$wait_time" -gt "$HALYARD_STARTUP_TIMEOUT_SECONDS" ]; then
+            >&2 echo ""
+            >&2 echo "Waiting for halyard to start timed out after $wait_time seconds"
+            exit 1
+        fi
+
+        printf '.'
+        sleep 2
+        $HAL --ready &> /dev/null
+    done
+    set -e
+
+    echo ""
+}
+
+function kill_daemon() {
+    pkill -f '/opt/halyard/lib/halyard-web' || true
+}
+
+if [ -f "$HALYARD_DAEMON_PID_FILE" ]; then
+    HALYARD_DAEMON_PID=$(cat $HALYARD_DAEMON_PID_FILE)
+fi
+
+if [ -z "$HALYARD_DAEMON_PID" ]; then
+    kill_daemon
+    start_daemon
+else
+    set +e
+    ps $HALYARD_DAEMON_PID &> /dev/null
+    exit_code=$?
+    set -e
+
+    if [ "$exit_code" != "0" ]; then
+        kill_daemon
+        start_daemon
+    fi
+fi
+
+$HAL "$@"

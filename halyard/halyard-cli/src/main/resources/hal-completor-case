@@ -1,0 +1,28 @@
+
+    ptr="${COMP_WORDS[{%depth%}]}"
+
+    if [ "${ptr}" = "{%command%}" ]; then
+
+        if [ "{%next%}" -eq "$COMP_CWORD" ]; then
+
+            local flags subcommands
+
+            flags="{%flags%}"
+            subcommands="{%subcommands%}"
+
+            if [[ "${cur}" == -* ]]; then
+                COMPREPLY=( $(compgen -W "${flags}" -- ${cur}) )
+                return 0
+            fi
+
+            COMPREPLY=( $(compgen -W "${subcommands}" -- ${cur}) )
+            return 0
+
+        else
+
+        {%recurse%}
+
+        fi
+
+    fi
+

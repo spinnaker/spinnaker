@@ -1,0 +1,48 @@
+apiVersion: apps/v1 # As of Kubernetes 1.16, apps/v1beta2 has been deprecated
+kind: Deployment
+metadata:
+  name: spin-{{ name }}
+  namespace: "{{ namespace }}"
+  annotations:
+    moniker.spinnaker.io/application: '"spin"'
+    moniker.spinnaker.io/cluster: '"{{ name }}"'
+  labels:
+    app: spin
+    cluster: spin-{{ name }}
+    app.kubernetes.io/name: {{ name }}
+    app.kubernetes.io/managed-by: halyard
+    app.kubernetes.io/part-of: spinnaker
+    app.kubernetes.io/version: {{ version }}
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: spin
+      cluster: spin-{{ name }}
+  {% if deploymentStrategy != null %}
+  strategy:
+    {% if deploymentStrategy.type == "rollingUpdate" and deploymentStrategy.strategySettings|length > 0 %}
+    {{ deploymentStrategy.type }}:
+      {% for key, value in deploymentStrategy.strategySettings.items() %}
+      {{ key }} : {{ value }}
+      {% endfor %}
+    {% endif %}
+    type: {% if deploymentStrategy.type == "recreate" %} Recreate {% else %} RollingUpdate {% endif %}
+  {% endif %}
+  template:
+    metadata:
+      annotations:
+        {% for key, value in podAnnotations.items() %}
+        "{{ key }}": "{{ value }}"
+        {% endfor %}
+      labels:
+        app: spin
+        cluster: spin-{{ name }}
+        app.kubernetes.io/name: {{ name }}
+        app.kubernetes.io/managed-by: halyard
+        app.kubernetes.io/part-of: spinnaker
+        app.kubernetes.io/version: {{ version }}
+        {% for key, value in podLabels.items() %}
+        "{{ key }}": "{{ value }}"
+        {% endfor %}
+    spec: {{ podSpec }}

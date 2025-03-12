@@ -1,0 +1,68 @@
+dependencies {
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
+
+  implementation 'org.springframework.boot:spring-boot'
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation 'io.spinnaker.kork:kork-secrets'
+  implementation 'org.apache.commons:commons-lang3'
+  implementation 'org.apache.commons:commons-text:1.10.0'
+  implementation 'ch.qos.logback:logback-classic'
+  implementation 'com.squareup.retrofit:retrofit'
+  implementation 'com.squareup.retrofit:converter-jackson'
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
+  implementation 'com.fasterxml.jackson.core:jackson-annotations'
+  implementation 'com.fasterxml.jackson.core:jackson-core'
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
+  implementation 'org.aspectj:aspectjweaver'
+  implementation 'org.yaml:snakeyaml:1.24'
+  implementation 'org.apache.groovy:groovy'
+  implementation 'com.beust:jcommander:1.81'
+  implementation 'org.nibor.autolink:autolink:0.10.0'
+
+  implementation project(':halyard-config')
+  implementation project(':halyard-core')
+  implementation project(':halyard-deploy')
+  implementation project(':halyard-proto')
+
+  testImplementation 'org.assertj:assertj-core'
+  testImplementation 'uk.org.webcompere:system-stubs-jupiter:1.2.0'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api'
+  testImplementation 'org.junit.jupiter:junit-jupiter-params'
+  testImplementation 'org.spockframework:spock-core'
+  testImplementation 'org.springframework:spring-test'
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
+
+apply plugin: 'application'
+
+mainClassName = 'com.netflix.spinnaker.halyard.cli.Main'
+
+task generateDocs(type: Exec, dependsOn: installDist) {
+  workingDir "$projectDir"
+  commandLine './hal', '--docs'
+  standardOutput new ByteArrayOutputStream()
+  doLast {
+    ext.output = standardOutput.toString()
+  }
+}
+
+task checkDocs(dependsOn: generateDocs) {
+  doLast {
+    def newDocs = tasks.generateDocs.output
+    def currentDocs = new File("$projectDir/../docs/commands.md").text
+    if (newDocs != currentDocs) {
+      throw new GradleException('The docs for halyard-cli are out of date. Regenerate them by running the :halyard-cli:updateDocs gradle task.')
+    }
+  }
+}
+
+task updateDocs(dependsOn: generateDocs) {
+  doLast {
+    new File("$projectDir/../docs/commands.md").withWriter { writer ->
+      writer.write(tasks.generateDocs.output)
+    }
+  }
+}
+
+tasks.check.dependsOn(checkDocs)

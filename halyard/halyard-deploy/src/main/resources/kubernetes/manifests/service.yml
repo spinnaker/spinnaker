@@ -1,0 +1,27 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: spin-{{ name }}
+  namespace: "{{ namespace }}"
+  labels:
+    app: spin
+    cluster: spin-{{ name }}
+    {% for key, value in serviceLabels.items() %}
+    "{{ key }}": "{{ value }}"
+    {% endfor %}
+  annotations:
+    {% for key, value in serviceAnnotations.items() %}
+    "{{ key }}": "{{ value }}"
+    {% endfor %}
+spec:
+  selector:
+    app: spin
+    cluster: spin-{{ name }}
+  type: {{ type }}
+  ports:
+  - protocol: TCP
+    port: {{ port }}
+    targetPort: {{ port }}
+  {% if nodePort and type == "NodePort" %}
+    nodePort: {{ nodePort }}
+  {% endif %}

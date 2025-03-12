@@ -1,0 +1,30 @@
+# halyard-cli command completion
+
+_hal() {
+    local cur prev ptr
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    if [[ "${prev}" == -* ]]; then
+        local options sublen
+        if [ -z "${cur}" ]; then
+            # strip just the --flag from the query
+            sublen=$(($COMP_CWORD - 1))
+        else
+            # strip the --flag and value from the query
+            sublen=$(($COMP_CWORD - 2))
+        fi
+
+        options=$( ${COMP_WORDS[@]:0:$sublen} --options $prev --color false --quiet )
+
+        if [ "$?" = "0" ]; then
+            COMPREPLY=( $(compgen -W "${options}" -- ${cur}) )
+            return 0
+        fi
+    fi
+
+{%body%}
+}
+
+complete -F _hal hal

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./build/install/halyard-cli/bin/halyard-cli "$@"

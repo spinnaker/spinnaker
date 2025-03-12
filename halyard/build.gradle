@@ -1,0 +1,78 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
+  id 'com.google.protobuf' version "0.8.12" apply false
+}
+
+allprojects {
+  apply plugin: "io.spinnaker.project"
+}
+
+subprojects {
+  group = "io.spinnaker.halyard"
+  apply plugin: 'java-library'
+  apply plugin: 'groovy'
+
+  test {
+    useJUnitPlatform()
+    testLogging {
+      showStandardStreams = false
+      exceptionFormat = 'full'
+    }
+    minHeapSize = "512m"
+    maxHeapSize = "512m"
+  }
+
+  if ([korkVersion, fiatVersion, clouddriverVersion, front50Version].any { it.endsWith("-SNAPSHOT") }) {
+    logger.info("Enabling mavenLocal")
+    repositories {
+      mavenLocal()
+    }
+  }
+
+  dependencies {
+    implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+
+    annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+    annotationProcessor "org.projectlombok:lombok"
+    testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+    testAnnotationProcessor "org.projectlombok:lombok"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  }
+}
+
+defaultTasks ':halyard-web:run'
+
+// Creates scripts for entry points
+// Subproject must apply application plugin to be able to call this method.
+def createScript(project, mainClass, name) {
+  project.tasks.create(name: name, type: CreateStartScripts) {
+    outputDir       = new File(project.buildDir, 'scripts')
+    mainClassName   = mainClass
+    applicationName = name
+    classpath       = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
+  }
+  project.tasks[name].dependsOn(project.jar)
+
+  project.applicationDistribution.with {
+    into("bin") {
+      from(project.tasks[name])
+      fileMode = 0755
+    }
+  }
+}

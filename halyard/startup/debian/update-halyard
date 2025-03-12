@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ `/usr/bin/id -u` -ne 0 ]]; then
+  echo "$0 must be executed with root permissions; exiting"
+  exit 1
+fi
+
+function process_args() {
+  while [ "$#" -gt "0" ]
+  do
+    local key="$1"
+    shift
+    case $key in
+      --version)
+        echo "version"
+        HALYARD_VERSION="$1"
+        shift
+        ;;
+      --help|-help|-h)
+        print_usage
+        exit 13
+        ;;
+      *)
+        echo "ERROR: Unknown argument '$key'"
+        exit -1
+    esac
+  done
+}
+
+function get_home() {
+  getent passwd $HAL_USER | cut -d: -f6
+}
+
+function configure_defaults() {
+  if [ -z "$HALYARD_VERSION" ]; then
+    HALYARD_VERSION="stable"
+  fi
+
+  HAL_USER=$(cat /opt/spinnaker/config/halyard-user)
+
+  if [ -z "$HAL_USER" ]; then
+    echo >&2 "Unable to derive halyard user, likely a corrupted install. Aborting."
+    exit 1
+  fi
+}
+
+
+function print_usage() {
+  cat <<EOF
+usage: $0 [-y] [--version=<version>] [--user=<user>]
+    --version <version>             Specify the exact version of Halyard to
+                                    install. Default is 'stable'.
+EOF
+}
+
+function configure_bash_completion() {
+  completion_script="/etc/bash_completion.d/hal"
+
+  if [ -f $completion_script ]; then
+    hal --print-bash-completion | tee $completion_script  > /dev/null
+
+    echo "Bash auto-completion updated."
+    echo "$(tput bold)To use the updated auto-completion restart your shell.$(tput sgr0)"
+  else
+    echo "No completion file found at '/etc/bash_completion.d/hal'."
+    echo "Assuming no bash completion is configured, skipping."
+  fi
+}
+
+function kill_daemon() {
+    pkill -f '/opt/halyard/lib/halyard-web' || true
+}
+
+function install_halyard() {
+  TEMPDIR=$(mktemp -d installhalyard.XXXX)
+  pushd $TEMPDIR
+
+  curl -O https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/debian/halyard.tar.gz
+  rm -rf /opt/halyard
+  tar --no-same-owner -xvf halyard.tar.gz -C /opt
+
+  chown $HAL_USER:halyard /opt/halyard
+
+  mv /opt/hal /usr/local/bin
+  mv /opt/update-halyard /usr/local/bin
+  chmod a+rx /usr/local/bin/hal
+  chmod a+rx /usr/local/bin/update-halyard
+
+  popd
+  rm -rf $TEMPDIR
+}
+
+process_args $@
+configure_defaults
+
+install_halyard
+
+echo "Install completed... restarting Halyard"
+kill_daemon
+
+su -l -c "hal -v" -s /bin/bash $HAL_USER
+
+configure_bash_completion

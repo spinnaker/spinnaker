@@ -1,0 +1,49 @@
+apply plugin: 'com.google.protobuf'
+
+dependencies {
+  implementation 'com.google.protobuf:protobuf-java'
+  implementation 'com.google.guava:guava:23.5-jre'
+  api 'com.google.api.grpc:grpc-google-common-protos:1.0.5'
+  implementation 'io.grpc:grpc-all:1.8.0'
+
+  // requirement when targeting java 11
+  implementation 'javax.annotation:javax.annotation-api:1.3.2'
+}
+
+protobuf {
+  protoc {
+    artifact = 'com.google.protobuf:protoc:3.19.4'
+  }
+  plugins {
+    grpc {
+      artifact = "io.grpc:protoc-gen-grpc-java:1.45.1"
+    }
+  }
+
+  generateProtoTasks {
+    ofSourceSet('main').each { task ->
+      task.builtins {
+        java{
+          outputSubDir = 'java'
+        }
+      }
+      task.plugins {
+        grpc {
+          outputSubDir = 'java'
+        }
+      }
+      task.descriptorSetOptions.includeImports = true
+    }
+  }
+  generatedFilesBaseDir = "${projectDir}/build-gen/proto"
+}
+
+idea {
+  module {
+    sourceDirs += file("${projectDir}/build-gen/proto/main/java")
+  }
+}
+
+clean {
+  delete "${projectDir}/build-gen"
+}

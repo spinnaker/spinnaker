@@ -1,0 +1,17 @@
+/.gradle/
+build/
+build-gen/
+*.iml
+*.ipr
+*.iws
+out/
+/.idea/
+/.shelf/
+*/bin/
+*/.settings/
+*/.classpath
+*/.project
+.settings/
+.classpath
+.project
+.DS_Store

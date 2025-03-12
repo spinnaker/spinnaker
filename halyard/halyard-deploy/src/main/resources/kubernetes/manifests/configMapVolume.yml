@@ -1,0 +1,6 @@
+{
+  "name": "{{ name }}",
+  "configMap": {
+    "name": "{{ name }}"
+  }
+}

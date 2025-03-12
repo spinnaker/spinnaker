@@ -1,0 +1,12 @@
+{
+  "requests": {
+      {% for key, value in requests.items() %}
+      "{{ key }}": "{{ value }}"{% if not loop.last %}, {% endif %}
+      {% endfor %}
+  },
+  "limits": {
+      {% for key, value in limits.items() %}
+      "{{ key }}": "{{ value }}"{% if not loop.last %}, {% endif %}
+      {% endfor %}
+  }
+}

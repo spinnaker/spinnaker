@@ -1,0 +1,17 @@
+# Names should be added to this file with this pattern:
+#
+# For individuals:
+#   Name <email address>
+#
+# For organizations:
+#   Organization <fnmatch pattern>
+
+Netflix, Inc <*@netflix.com>
+Google, Inc <*@google.com>
+Microsoft, Inc <*@microsoft.com>
+Schibsted ASA <*@schibsted.com>
+Veritas Technologies, LLC <*@veritas.com>
+Oracle America, Inc <*@oracle.com>
+Cerner Corporation <*@cerner.com>
+Target Corporation <*@target.com>
+Pivotal, Inc <*@pivotal.io>

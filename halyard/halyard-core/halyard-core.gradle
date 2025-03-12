@@ -1,0 +1,25 @@
+dependencies {
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
+
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.springframework.boot:spring-boot-gradle-plugin:1.4.7.RELEASE'
+  implementation "io.spinnaker.clouddriver:clouddriver-aws:$clouddriverVersion"
+  implementation 'io.spinnaker.kork:kork-secrets'
+  implementation 'io.spinnaker.kork:kork-secrets-aws'
+  implementation 'io.spinnaker.kork:kork-secrets-gcp'
+  implementation 'com.google.apis:google-api-services-storage'
+  implementation 'com.google.api.grpc:grpc-google-common-protos:1.0.5'
+  implementation 'com.google.auth:google-auth-library-oauth2-http'
+  implementation 'org.apache.commons:commons-exec'
+  implementation 'org.apache.commons:commons-compress:1.20'
+  implementation 'commons-io:commons-io'
+  implementation 'io.reactivex:rxjava'
+  implementation 'com.hubspot.jinjava:jinjava:2.2.3'
+  implementation 'org.spockframework:spock-spring'
+  implementation 'org.yaml:snakeyaml:1.24'
+
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.springframework:spring-test'
+}

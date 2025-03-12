@@ -1,0 +1,48 @@
+{
+  "name": "{{ name }}",
+
+  "image": "{{ imageId }}",
+
+  "ports": [{{ port }}],
+
+  {% if command != null %}
+  "command": [
+    {% for c in command %}
+    {{ c }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
+  {% if args != null %}
+  "args": [
+    {% for arg in args %}
+    {{ arg }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
+  "readinessProbe": {{ readinessProbe }},
+
+  "livenessProbe": {{ livenessProbe }},
+
+  "securityContext": {{ securityContext }},
+
+  "volumeMounts": [
+    {% for volumeMount in volumeMounts %}
+    {{ volumeMount }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+
+  "lifecycle": {{ lifecycle }},
+
+  "env": [
+    {% for key, value in env.items() %}
+    {
+      "name": "{{ key }}",
+      "value": "{{ value }}"
+    } {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+
+  "resources":  {{ resources }}
+}

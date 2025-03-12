@@ -1,0 +1,56 @@
+dependencies {
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
+
+  // TODO(plumpy): remove version once added to kork
+  implementation "com.google.cloud:google-cloud-storage:1.108.0"
+  implementation "io.spinnaker.clouddriver:clouddriver-api:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-docker:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-appengine:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-azure:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-cloudfoundry:$clouddriverVersion"
+  implementation "io.spinnaker.clouddriver:clouddriver-security:$clouddriverVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.front50:front50-core:$front50Version"
+  implementation "io.spinnaker.front50:front50-gcs:$front50Version"
+  implementation "io.spinnaker.front50:front50-s3:$front50Version"
+  implementation 'io.spinnaker.kork:kork-secrets'
+  implementation 'io.spinnaker.kork:kork-secrets-aws'
+  implementation 'io.spinnaker.kork:kork-secrets-gcp'
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-cloud-config-server"
+  implementation 'com.amazonaws:aws-java-sdk-core:1.11.534'
+  implementation 'com.amazonaws:aws-java-sdk-s3:1.11.534'
+  implementation 'com.google.apis:google-api-services-compute'
+  implementation 'com.google.apis:google-api-services-appengine:v1-rev92-1.25.0'
+  implementation 'com.google.apis:google-api-services-run:v2-rev20220429-1.32.1'
+  implementation "com.azure.resourcemanager:azure-resourcemanager:2.19.0"
+  implementation "com.azure:azure-storage-blob:12.19.1"
+  implementation 'commons-collections:commons-collections:3.2.2'
+  implementation 'org.apache.commons:commons-lang3'
+  implementation 'commons-io:commons-io'
+  implementation 'io.fabric8:kubernetes-client'
+
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
+  implementation 'com.squareup.retrofit:retrofit'
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation 'com.jcraft:jsch'
+  implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
+  implementation "net.logstash.logback:logstash-logback-encoder"
+  implementation "javax.validation:validation-api"
+
+//  TODO: add clouddriverDCOS once that's merged
+  implementation project(':halyard-core')
+
+  testImplementation 'org.assertj:assertj-core'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api'
+  testImplementation 'org.spockframework:spock-core'
+  testImplementation 'org.springframework:spring-test'
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.apache.groovy:groovy'
+  testRuntimeOnly 'net.bytebuddy:byte-buddy'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}

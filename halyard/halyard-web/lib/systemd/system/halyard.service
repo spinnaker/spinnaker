@@ -1,0 +1,12 @@
+[Unit]
+Description=A tool for managing the lifecycle of a Spinnaker installation
+
+[Service]
+Restart=always
+RestartSec=10
+Type=simple
+ExecStart=/opt/halyard/bin/halyard
+User=spinnaker
+
+[Install]
+WantedBy=multi-user.target

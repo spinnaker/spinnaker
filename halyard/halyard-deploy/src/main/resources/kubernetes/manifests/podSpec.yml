@@ -1,0 +1,70 @@
+{
+  "containers": [
+    {% for container in containers %}
+    {{ container }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+
+  {% if imagePullSecrets != null %}
+  "imagePullSecrets": [
+    {% for secret in imagePullSecrets %}
+    "name": "{{ secret }}" {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
+  {% if initContainers %}
+  "initContainers": [
+    {% for c in initContainers %}
+    {{ c }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
+  {% if hostAliases %}
+  "hostAliases": [
+    {% for h in hostAliases %}
+    {{ h }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+
+  {% if serviceAccountName != null %}
+  "serviceAccountName": {{ serviceAccountName }},
+  {% endif %}
+
+  "terminationGracePeriodSeconds": {{ terminationGracePeriodSeconds }},
+
+  {% if nodeSelector %}
+    "nodeSelector": {
+      {% for key, value in nodeSelector.items() %}
+      "{{ key }}": "{{ value }}" {% if not loop.last %} , {% endif %}
+      {% endfor %}
+    },
+  {% endif %}
+
+  {% if affinity %}
+    "affinity": {{ affinity }},
+  {% endif %}
+
+  {% if tolerations %}
+    "tolerations": {{ tolerations }},
+  {% endif %}
+
+  {% if securityContext != null %}
+  "securityContext": {
+    {% if securityContext.runAsUser != null %}
+    "runAsUser": {{ securityContext.runAsUser }} {% if securityContext.fsGroup != null %} , {% endif %}
+    {% endif %}
+    {% if securityContext.fsGroup != null %}
+    "fsGroup": {{ securityContext.fsGroup }}
+    {% endif %}
+  },
+  {% endif %}
+
+  "volumes": [
+    {% for volume in volumes %}
+    {{ volume }} {% if not loop.last %} , {% endif %}
+    {% endfor %}
+  ]
+}
