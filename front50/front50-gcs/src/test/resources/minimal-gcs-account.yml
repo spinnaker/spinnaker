@@ -1,0 +1,5 @@
+spinnaker:
+  gcs:
+    enabled: true
+    project: my-project
+    bucket: my-bucket

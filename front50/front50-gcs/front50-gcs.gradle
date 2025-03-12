@@ -1,0 +1,44 @@
+/*
+ * Copyright 2016 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+dependencies {
+  implementation project(":front50-core")
+  implementation project(":front50-api")
+
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.google.apis:google-api-services-storage"
+  implementation "com.google.auth:google-auth-library-oauth2-http"
+  implementation "com.google.cloud:google-cloud-storage"
+  implementation "com.google.guava:guava"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.github.resilience4j:resilience4j-circuitbreaker"
+  implementation "io.reactivex:rxjava"
+  implementation "net.logstash.logback:logstash-logback-encoder"
+  implementation "org.slf4j:slf4j-api"
+  implementation "org.springframework:spring-beans"
+  implementation "org.springframework:spring-context"
+  implementation "org.springframework:spring-web"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.springframework.boot:spring-boot"
+  testImplementation "com.google.http-client:google-http-client"
+  testImplementation "com.google.cloud:google-cloud-core"
+  testImplementation "io.strikt:strikt-core"
+  testImplementation "io.mockk:mockk"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+}

@@ -1,0 +1,41 @@
+spring:
+  profiles: default
+
+spinnaker:
+  migration:
+    enabled: true
+    primaryName: secondarySqlStorageService
+    previousName: sqlStorageService
+    compositeStorageService:
+      enabled: true
+      reads:
+        primary: true
+        previous: false
+    entityTags:
+      enabled: true
+
+sql:
+  enabled: true
+  secondary:
+    enabled: true
+    poolName: secondary
+  connectionPools:
+    default:
+      jdbcUrl: "jdbc:h2:mem:test"
+      default: true
+      user:
+      password:
+    secondary:
+      enabled: true
+      jdbcUrl: "jdbc:h2:mem:test"
+      dialect: H2
+      user:
+      password:
+  migration:
+    jdbcUrl: "jdbc:h2:mem:test"
+    user:
+    password:
+  secondaryMigration:
+    jdbcUrl: "jdbc:h2:mem:test"
+    user:
+    password:

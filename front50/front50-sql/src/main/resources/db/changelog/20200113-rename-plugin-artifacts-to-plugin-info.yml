@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: rename-plugin-artifacts-to-plugin-info
+      author: jonsie
+      changes:
+        - renameTable:
+            newTableName: plugin_info
+            oldTableName: plugin_artifacts
+      rollback:
+        - renameTable:
+            newTableName: plugin_artifacts
+            oldTableName: plugin_info

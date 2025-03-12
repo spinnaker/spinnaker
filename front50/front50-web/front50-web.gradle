@@ -1,0 +1,61 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'io.spinnaker.package'
+
+mainClassName = 'com.netflix.spinnaker.front50.Main'
+
+configurations.all {
+  exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+}
+
+dependencies {
+  implementation project(":front50-api")
+  implementation project(":front50-core")
+  implementation project(":front50-migrations")
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-config"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "io.swagger.core.v3:swagger-annotations"
+  implementation "commons-codec:commons-codec"
+  implementation "javax.validation:validation-api"
+
+  runtimeOnly "io.spinnaker.kork:kork-runtime"
+
+  testImplementation project(":front50-api")
+  testImplementation project(":front50-test")
+  testImplementation project(":front50-sql")
+  testImplementation "io.spinnaker.kork:kork-sql-test"
+  testImplementation "io.reactivex:rxjava"
+  testImplementation "org.apache.groovy:groovy-json"
+
+  // Add each included cloud provider project as a runtime dependency
+  gradle.includedProviderProjects.each {
+    runtimeOnly project(it)
+  }
+}
+
+test {
+  environment "AWS_ACCESS_KEY_ID", "null"
+  environment "AWS_SECRET_KEY", "null"
+}

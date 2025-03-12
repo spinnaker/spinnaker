@@ -1,0 +1,14 @@
+[Unit]
+Description=Spinnaker Front50
+PartOf=spinnaker.service
+
+[Service]
+ExecStart=/opt/front50/bin/front50
+WorkingDirectory=/opt/front50/bin
+SuccessExitStatus=143
+User=spinnaker
+Group=spinnaker
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

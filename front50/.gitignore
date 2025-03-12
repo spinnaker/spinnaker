@@ -1,0 +1,13 @@
+.DS_Store
+build/
+front50.i*
+out/
+.gradle/
+.vagrant/
+.vagrant
+vendor/
+.bundle/
+*.iml
+.idea
+
+front50-oracle-bmcs/bmcs-sdk

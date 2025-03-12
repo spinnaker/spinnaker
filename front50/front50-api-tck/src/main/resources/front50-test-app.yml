@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: front50
+  test:
+    database:
+      replace: none
+
+services:
+  fiat:
+    enabled: false
+    baseUrl: http://localhost:7003
+
+sql:
+  enabled: true
+  connectionPools:
+    default:
+      default: true
+      jdbcUrl: jdbc:h2:mem:testdb
+      user: sa
+  migration:
+    user: sa
+    jdbcUrl: jdbc:h2:mem:testdb
