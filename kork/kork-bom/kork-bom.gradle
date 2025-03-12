@@ -1,0 +1,15 @@
+apply plugin: "java-platform"
+
+javaPlatform {
+  allowDependencies()
+}
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+  constraints {
+    rootProject
+      .subprojects
+      .findAll { it.name.startsWith("kork-") && it != project }
+      .each { api(project(it.path)) }
+  }
+}

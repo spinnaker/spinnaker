@@ -1,0 +1,30 @@
+apply plugin: "java-library"
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  api project(":kork-core")
+  api project(":kork-security")
+  api "org.springframework:spring-jdbc"
+  api "org.springframework:spring-tx"
+  api "org.jooq:jooq"
+  api "org.liquibase:liquibase-core"
+  api "com.zaxxer:HikariCP"
+
+  implementation 'com.github.blagerweij:liquibase-sessionlock:1.5.0'
+  implementation "javax.validation:validation-api"
+  implementation "org.hibernate.validator:hibernate-validator"
+
+  testImplementation project(":kork-sql-test")
+  testImplementation "org.springframework.boot:spring-boot-starter-actuator"
+  testImplementation "org.springframework.boot:spring-boot-starter-web"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+
+  testRuntimeOnly project(":kork-web")
+  testRuntimeOnly "com.mysql:mysql-connector-j"
+}
+
+detekt {
+  ignoreFailures = false
+}

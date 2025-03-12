@@ -1,0 +1,45 @@
+/*
+ * Copyright 2018 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+apply plugin: "java-library"
+apply plugin: "groovy"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  api "org.springframework.boot:spring-boot-autoconfigure"
+  api "com.netflix.spectator:spectator-api"
+  api "com.amazonaws:aws-java-sdk-core"
+  api "com.amazonaws:aws-java-sdk-sns"
+  api "com.amazonaws:aws-java-sdk-sqs"
+  api "org.apache.groovy:groovy"
+  api "com.hubspot.jinjava:jinjava"
+  api "com.jcraft:jsch.agentproxy.jsch"
+  api "com.jcraft:jsch.agentproxy.connector-factory"
+
+  implementation("com.netflix.spectator:spectator-ext-aws") {
+    // exclude transitives to keep spectator's version of the aws sdk from
+    // overriding what we specify elsewhere.  It's not so much the aws sdk that
+    // causes problems, but its transitive dependencies -- jackson and then
+    // kotlin.
+    transitive = false
+  }
+
+  runtimeOnly "com.amazonaws:aws-java-sdk-sts"
+
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-engine"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+}

@@ -1,0 +1,39 @@
+/*
+ * Copyright 2016 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+apply plugin: "java-library"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  api "io.reactivex:rxjava"
+  api "com.netflix.spectator:spectator-api"
+  api "com.google.apis:google-api-services-monitoring"
+
+  implementation("com.netflix.spectator:spectator-web-spring") {
+    // exclude transitives since this brings in a newer version of spring (boot)
+    // dependencies than we're compatible with (2.2.x for spring boot and 5.2.x
+    // for spring as of version 1.0.5 of spectator).
+    transitive = false
+  }
+  implementation "org.slf4j:slf4j-api"
+
+  // Force component bringing this in to already support spring boot configure.
+  compileOnly "org.springframework.boot:spring-boot-autoconfigure"
+
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}

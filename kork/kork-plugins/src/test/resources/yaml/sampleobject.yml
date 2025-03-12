@@ -1,0 +1,8 @@
+parentAttr1: "PA1"
+parentAttr2: "PA2"
+children:
+  - childAttr1: "CA11"
+    childAttr2: "CA12"
+  - childAttr1: "CA21"
+    childAttr2: "CA22"
+    childAttr3: "CA23"

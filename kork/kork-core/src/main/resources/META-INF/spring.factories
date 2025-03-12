@@ -1,0 +1,3 @@
+org.springframework.context.ApplicationListener=\
+  com.netflix.spinnaker.kork.spring.SpringBoot1CompatibilityApplicationListener,\
+  com.netflix.spinnaker.kork.web.exceptions.DefaultThreadUncaughtExceptionHandler

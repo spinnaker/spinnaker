@@ -1,0 +1,15 @@
+apply plugin: "java-library"
+apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+  api "com.google.code.findbugs:jsr305"
+
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+
+  testImplementation "com.hubspot.jinjava:jinjava"
+}

@@ -1,0 +1,57 @@
+apply plugin: "java-library"
+apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+sourceSets {
+  main {
+    java { srcDirs = [] }
+    groovy { srcDirs += ['src/main/java'] }
+  }
+}
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  api project(":kork-core")
+  api project(":kork-crypto")
+  api project(":kork-security")
+  api project(":kork-exceptions")
+  api "org.apache.groovy:groovy"
+  api "org.springframework.boot:spring-boot-starter-web"
+  api "org.springframework.boot:spring-boot-starter-webflux"
+  api "org.springframework.boot:spring-boot-starter-security"
+  api "org.springframework.security:spring-security-core"
+  api "com.netflix.spectator:spectator-api"
+  api "com.fasterxml.jackson.core:jackson-annotations"
+  api "com.squareup.okhttp3:logging-interceptor"
+  api "com.squareup.okhttp3:okhttp"
+  api "com.squareup.retrofit:retrofit"
+
+  implementation "com.google.guava:guava"
+  implementation "javax.inject:javax.inject:1"
+  implementation("com.netflix.spectator:spectator-web-spring") {
+    // exclude transitives since this brings in a newer version of spring (boot)
+    // dependencies than we're compatible with (2.2.x for spring boot and 5.2.x
+    // for spring as of version 1.0.5 of spectator).
+    transitive = false
+  }
+  implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
+
+  compileOnly "org.springframework.boot:spring-boot-starter-actuator"
+
+  runtimeOnly "org.hibernate.validator:hibernate-validator"
+
+  testImplementation project(":kork-test")
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "ch.qos.logback:logback-classic"
+  testImplementation "ch.qos.logback:logback-core"
+  testImplementation "com.squareup.retrofit2:retrofit"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.netflix.spectator:spectator-reg-micrometer"
+  testImplementation testFixtures(project(":kork-crypto"))
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+}

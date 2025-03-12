@@ -1,0 +1,62 @@
+apply plugin: "java-library"
+apply plugin: "groovy"
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+  api project(":kork-api")
+
+  implementation project(":kork-core")
+  implementation project(":kork-exceptions")
+  implementation project(":kork-security")
+  implementation project(":kork-telemetry")
+
+  implementation "com.github.ben-manes.caffeine:caffeine"
+  implementation "com.netflix.spectator:spectator-api"
+
+  implementation project(":kork-plugins-spring-api")
+
+  implementation project(":kork-web")
+  implementation("com.squareup.retrofit2:retrofit")
+  implementation("com.squareup.retrofit2:converter-jackson")
+  implementation("com.squareup.okhttp3:logging-interceptor")
+
+  implementation "org.pf4j:pf4j"
+  implementation "org.pf4j:pf4j-update"
+
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation("com.google.guava:guava")
+  implementation "javax.inject:javax.inject:1"
+
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties")
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+
+  testImplementation project(":kork-plugins-tck")
+  testImplementation project(":kork-secrets")
+  testImplementation("org.mockito:mockito-core")
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation("com.github.tomakehurst:wiremock:2.15.0")
+
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+}
+
+compileJava {
+  options.compilerArgs << '-parameters'
+}
+
+detekt {
+  // Ignore tests since there are a number of warnings.  As of version 1.17.0,
+  // detekt scans test code (i.e. src/test/java and src/test/kotlin) by default.
+  // See https://detekt.github.io/detekt/changelog.html#notable-changes-2 and
+  // https://github.com/detekt/detekt/pull/3649.
+  input = files(
+    "src/main/java",
+    "src/main/kotlin"
+  )
+  ignoreFailures = false
+}

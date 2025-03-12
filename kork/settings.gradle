@@ -1,0 +1,85 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+if (spinnakerGradleVersion.endsWith('-SNAPSHOT')) {
+  pluginManagement {
+    repositories {
+      mavenLocal()
+      gradlePluginPortal()
+    }
+  }
+}
+
+include(
+  "spinnaker-dependencies",
+  "kork-actuator",
+  "kork-annotations",
+  "kork-api",
+  "kork-artifacts",
+  "kork-aws",
+  "kork-bom",
+  "kork-cloud-config-server",
+  "kork-config",
+  "kork-core",
+  "kork-core-tck",
+  "kork-credentials",
+  "kork-credentials-api",
+  "kork-crypto",
+  "kork-eureka",
+  "kork-exceptions",
+  "kork-expressions",
+  "kork-jedis",
+  "kork-jedis-test",
+  "kork-moniker",
+  "kork-plugins",
+  "kork-plugins-api",
+  "kork-plugins-tck",
+  "kork-plugins-spring-api",
+  "kork-proto",
+  "kork-pubsub",
+  "kork-pubsub-aws",
+  "kork-runtime",
+  "kork-secrets",
+  "kork-secrets-aws",
+  "kork-secrets-gcp",
+  "kork-security",
+  "kork-retrofit",
+  "kork-retrofit2",
+  "kork-sql",
+  "kork-sql-test",
+  "kork-stackdriver",
+  "kork-swagger",
+  "kork-telemetry",
+  "kork-test",
+  "kork-tomcat",
+  "kork-web",
+)
+
+rootProject.name = "kork"
+
+def setBuildFile(project) {
+  project.buildFileName = "${project.name}.gradle"
+  project.children.forEach {
+    setBuildFile(it)
+  }
+}
+
+rootProject.children.forEach {
+  setBuildFile(it)
+}
+
+// Set as an ext variable so that build scripts can access it
+gradle.ext.includedRuntimeProjects = includeRuntimes.split(',').collect{ ':kork-' + it.toLowerCase() }

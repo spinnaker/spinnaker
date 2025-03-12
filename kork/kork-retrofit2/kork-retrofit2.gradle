@@ -1,0 +1,21 @@
+apply plugin: "java-library"
+apply from: "$rootDir/gradle/kotlin-test.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+  implementation project(":kork-web")
+  implementation project(":kork-retrofit")
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "com.squareup.okhttp3:logging-interceptor"
+  implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
+
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+
+  testImplementation "com.squareup.okhttp3:mockwebserver"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "com.github.tomakehurst:wiremock-jre8"
+
+}

@@ -1,0 +1,36 @@
+apply plugin: "java-library"
+apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+  implementation project(":kork-exceptions")
+
+  api project(":kork-api")
+  api project(":kork-annotations")
+  api project(":kork-exceptions")
+  api "org.springframework.boot:spring-boot-autoconfigure"
+  api "org.springframework.boot:spring-boot-starter-aop"
+  api "org.springframework.boot:spring-boot-starter-actuator"
+  api "com.netflix.spectator:spectator-api"
+  api "com.google.code.findbugs:jsr305"
+  api "io.github.resilience4j:resilience4j-annotations"
+  api "io.github.resilience4j:resilience4j-retry"
+  api "io.github.resilience4j:resilience4j-spring-boot2"
+
+  implementation "org.apache.logging.log4j:log4j-api"
+  implementation "com.fasterxml.jackson.core:jackson-annotations"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.netflix.spectator:spectator-ext-gc"
+  implementation "com.netflix.spectator:spectator-ext-jvm"
+  implementation "com.netflix.spectator:spectator-reg-micrometer"
+
+  testImplementation project(":kork-test")
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation("org.mockito:mockito-core")
+  testImplementation "org.spockframework:spock-core"
+  testRuntimeOnly "cglib:cglib-nodep"
+  testRuntimeOnly "org.objenesis:objenesis"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
