@@ -1,0 +1,40 @@
+{
+  "name": "integration-test-canary-config",
+  "description": "A very simple config for integration testing",
+  "judge": {
+    "judgeConfigurations": {},
+    "name": "NetflixACAJudge-v1.0"
+  },
+  "metrics": [
+    {
+      "name": "CPU usage for service",
+      "query": {
+        "type": "prometheus",
+        "metricName": "integration_test_cpu",
+        "customFilterTemplate": "standard-template"
+      },
+      "analysisConfigurations": {
+        "canary": {
+          "critical": true,
+          "direction": "increase"
+        }
+      },
+      "groups": [
+        "pod-group"
+      ],
+      "scopeName": "default"
+    }
+  ],
+  "templates": {
+    "standard-template": "namespace='${namespace}', scope='${scope}'"
+  },
+  "classifier": {
+    "groupWeights": {
+      "pod-group": 100
+    },
+    "scoreThresholds": {
+      "marginal": 50,
+      "pass": 75
+    }
+  }
+}

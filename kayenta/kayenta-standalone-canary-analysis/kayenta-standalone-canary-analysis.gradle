@@ -1,0 +1,10 @@
+dependencies {
+  implementation project(":kayenta-core")
+
+}
+
+test {
+  testLogging {
+    events "passed", "skipped", "failed"
+  }
+}

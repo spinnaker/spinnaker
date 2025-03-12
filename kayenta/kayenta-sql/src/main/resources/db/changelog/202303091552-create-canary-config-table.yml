@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-canary-config-table
+      author: alexey.bedonik
+      changes:
+        - createTable:
+            tableName: canary_config
+            columns:
+              - column:
+                  name: id
+                  type: VARCHAR(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: content
+                  type: JSON
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: datetime
+                  constraints:
+                    nullable: false

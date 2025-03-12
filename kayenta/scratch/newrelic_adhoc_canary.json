@@ -1,0 +1,77 @@
+{
+  "canaryConfig": {
+    "name": "MySampleNewrelicCanaryConfig",
+    "description": "Example Kayenta Configuration using Newrelic",
+    "configVersion": "1.0",
+    "applications": [
+      "kayentatest"
+    ],
+    "judge": {
+      "name": "NetflixACAJudge-v1.0",
+      "judgeConfigurations": { }
+    },
+    "metrics": [
+      {
+        "name": "errorRate",
+        "query": {
+          "type": "newrelic",
+          "select": "SELECT count(*)/uniqueCount(host) FROM Transaction",
+          "q": "httpResponseCode >= '500'"
+        },
+        "groups": ["err"],
+        "analysisConfigurations": { },
+        "scopeName": "default"
+      },
+      {
+        "name": "transactionTime",
+        "query": {
+          "type": "newrelic",
+          "select": "SELECT average(totalTime*1000) FROM Transaction"
+        },
+        "groups": ["app"],
+        "analysisConfigurations": { },
+        "scopeName": "default"
+      }
+    ],
+    "classifier": {
+      "groupWeights": {
+        "err": 70.0,
+        "app": 30.0
+      }
+    }
+  },
+  "executionRequest": {
+    "scopes": {
+      "default": {
+        "controlScope": {
+          "type": "node",
+          "scope": "",
+          "start": "",
+          "end": "",
+          "step": "1",
+          "extendedScopeParams": {
+            "_scope_key": "build_version",
+            "appName": "PROD - MyComponent"
+          }
+        },
+        "experimentScope": {
+          "type": "node",
+          "scope": "",
+          "start": "",
+          "end": "",
+          "step": "1",
+          "extendedScopeParams": {
+            "_scope_key": "build_version",
+            "appName": "PROD - MyComponent"
+          }
+        }
+      }
+    },
+    "thresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+
+  }
+
+}

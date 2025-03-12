@@ -1,0 +1,14 @@
+[Unit]
+Description=Kayenta
+PartOf=spinnaker.service
+
+[Service]
+ExecStart=/opt/kayenta/bin/kayenta
+WorkingDirectory=/opt/kayenta/bin
+SuccessExitStatus=143
+User=spinnaker
+Group=spinnaker
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

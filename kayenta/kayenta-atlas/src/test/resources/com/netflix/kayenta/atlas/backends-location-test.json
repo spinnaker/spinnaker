@@ -1,0 +1,49 @@
+[
+  {
+    "cname": "atlas-global.$(env).example.com",
+    "target": "$(env).$(dataset)",
+    "vip": "atlas_global-main:7001",
+    "deployment": "main",
+    "dataset": "global",
+    "port": 7001,
+    "environments": [
+      "test",
+      "prod"
+    ],
+    "accounts": [
+      "12345",
+      "23456"
+    ],
+    "regions": null,
+    "step": "PT1M",
+    "publishLatency": "PT5M",
+    "retention": "P2W",
+    "description": "Global endpoint that aggregates data from all supported regions."
+  },
+  {
+    "cname": "atlas-main.$(region).$(env).example.com",
+    "target": "$(env).$(region)",
+    "vip": "atlas_regional-$(deployment):7001",
+    "deployment": "main",
+    "dataset": "regional",
+    "port": 7001,
+    "environments": [
+      "test",
+      "prod"
+    ],
+    "accounts": [
+      "34567",
+      "45678"
+    ],
+    "regions": [
+      "us-west-1",
+      "us-west-2",
+      "us-east-1",
+      "eu-west-1"
+    ],
+    "step": "PT1M",
+    "publishLatency": "PT5M",
+    "retention": "P2W",
+    "description": "Main regional endpoint for the primary account with data for $(env).$(region)."
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "configVersion": 1.0,
+  "description": "Example Automated Canary Analysis (ACA) Configuration",
+  "metrics": [
+    {
+      "name": "CPU",
+      "query": {
+        "type": "graphite",
+        "metricName": "system.cpu.user"
+      },
+      "groups": [
+        "system"
+      ],
+      "analysisConfigurations": {},
+      "scopeName": "default"
+    }
+  ],
+  "services": {
+    "graphite": {
+      "type": "graphite",
+      "name": "graphite"
+    }
+  },
+  "classifier": {
+    "groupWeights": {
+      "requests": 50.0,
+      "system": 50.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}

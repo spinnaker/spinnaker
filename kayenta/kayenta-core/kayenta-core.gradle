@@ -1,0 +1,20 @@
+dependencies {
+  api "redis.clients:jedis"
+  api "io.spinnaker.kork:kork-core"
+  api "io.spinnaker.kork:kork-web"
+  api "io.spinnaker.kork:kork-retrofit"
+  api "com.netflix.spectator:spectator-api"
+
+  api "io.spinnaker.orca:orca-core"
+  api "io.spinnaker.orca:orca-retrofit"
+
+  api "org.apache.commons:commons-text:1.11.0"
+  api "org.springframework.boot:spring-boot-starter-actuator"
+  api "org.springframework.boot:spring-boot-starter-json"
+  api "net.logstash.logback:logstash-logback-encoder"
+
+  api "javax.validation:validation-api"
+  api "io.swagger.core.v3:swagger-annotations"
+
+  testImplementation "io.spinnaker.kork:kork-jedis-test"
+}

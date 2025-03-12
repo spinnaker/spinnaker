@@ -1,0 +1,114 @@
+{
+  "name": "MySampleNewrelicCanaryConfig",
+  "description": "Example Kayenta Configuration using Newrelic",
+  "configVersion": "1.0",
+  "applications": [
+    "kayentatest"
+  ],
+  "judge": {
+    "name": "NetflixACAJudge-v1.0",
+    "judgeConfigurations": {}
+  },
+  "metrics": [
+    {
+      "name": "Apdex",
+      "query": {
+        "type": "newrelic",
+        "select": "SELECT apdex(duration, 0.2) FROM Transaction"
+      },
+      "groups": [
+        "apdex"
+      ],
+      "analysisConfigurations": {
+        "canary": {
+          "direction": "decrease",
+          "nanStrategy": "remove",
+          "critical": false,
+          "effectSize": {
+            "allowedDecrease": 1.00,
+            "criticalDecrease": 1.00
+          }
+        }
+      },
+      "scopeName": "default"
+    },
+    {
+      "name": "Transaction Time",
+      "query": {
+        "type": "newrelic",
+        "select": "average(totalTime*1000)"
+      },
+      "groups": [
+        "app"
+      ],
+      "analysisConfigurations": {
+        "canary": {
+          "direction": "increase",
+          "nanStrategy": "remove",
+          "critical": false,
+          "effectSize": {
+            "allowedIncrease": 1.0,
+            "criticalIncrease": 1.0
+          }
+        }
+      },
+      "scopeName": "default"
+    },
+    {
+      "name": "Error Rate",
+      "query": {
+        "type": "newrelic",
+        "select": "SELECT percentage(count(*), WHERE error IS true) FROM Transaction"
+      },
+      "groups": [
+        "err"
+      ],
+      "analysisConfigurations": {
+        "canary": {
+          "direction": "increase",
+          "nanStrategy": "replace",
+          "critical": false,
+          "effectSize": {
+            "allowedIncrease": 1.0,
+            "criticalIncrease": 1.0
+          }
+        }
+      },
+      "scopeName": "default"
+    },
+    {
+      "name": "Average Database Call Duration",
+      "query": {
+        "type": "newrelic",
+        "select": "SELECT average(databaseDuration*1000) FROM Transaction"
+      },
+      "groups": [
+        "database"
+      ],
+      "analysisConfigurations": {
+        "canary": {
+          "direction": "increase",
+          "nanStrategy": "remove",
+          "critical": false,
+          "effectSize": {
+            "allowedIncrease": 1.0,
+            "criticalIncrease": 1.0
+          }
+        }
+      },
+      "scopeName": "default"
+    }
+  ],
+  "classifier": {
+    "groupWeights": {
+      "apdex": 25,
+      "err": 25,
+      "app": 25,
+      "database": 25
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}

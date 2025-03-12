@@ -1,0 +1,36 @@
+{
+  "name": "MySampleStackdriverCanaryConfig",
+  "description": "Example Automated Canary Analysis (ACA) Configuration using Stackdriver",
+  "configVersion": 1.0,
+  "applications": [
+    "myapp"
+  ],
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": {
+    }
+  },
+  "metrics": [
+    {
+      "name": "cpu",
+      "query": {
+        "type": "stackdriver",
+        "metricType": "compute.googleapis.com/instance/cpu/utilization"
+      },
+      "analysisConfigurations": {
+      },
+      "groups": [
+        "system"
+      ]
+    }
+  ],
+  "classifier": {
+    "groupWeights": {
+      "system": 100.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}

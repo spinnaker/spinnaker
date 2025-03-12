@@ -1,0 +1,24 @@
+{
+  "name": "broken-config",
+  "applications": [
+    "some-application"
+  ],
+  "metrics": [
+    {
+      "name": "mem",
+      "groups": [
+        "System"
+      ],
+      "analysisConfigurations": {},
+      "scopeName": "default"
+    },
+    {
+      "name": "mem",
+      "groups": [
+        "System"
+      ],
+      "analysisConfigurations": {},
+      "scopeName": "default"
+    }
+  ]
+}

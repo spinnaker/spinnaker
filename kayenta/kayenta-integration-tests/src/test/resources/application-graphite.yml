@@ -1,0 +1,16 @@
+kayenta:
+  graphite:
+    enabled: true
+    accounts:
+      - name: graphite-account
+        endpoint:
+          baseUrl: http://localhost:${embedded.graphite.httpPort}
+        supportedTypes:
+          - METRICS_STORE
+
+management:
+  metrics:
+    export:
+      graphite:
+        step: 1s
+        port: ${embedded.graphite.picklePort}

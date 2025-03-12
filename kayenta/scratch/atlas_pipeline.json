@@ -1,0 +1,73 @@
+{
+  "application": "kayentatest",
+  "executionEngine": "v3",
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "name": "TestFetchFromAtlas",
+  "parallel": true,
+  "stages": [
+    {
+      "name": "Fetch Baseline from Atlas",
+      "refId": "1",
+      "requisiteStageRefIds": [
+
+      ],
+      "type": "atlasFetch",
+      "user": "[anonymous]",
+      "metricsAccountName": "atlas-acct-1",
+      "storageAccountName": "my-account-name-1",
+      "canaryConfigId": "MySampleAtlasCanaryConfig",
+      "atlasCanaryScope": {
+        "type": "node",
+        "scope": "duftler-mac",
+        "start": "1496436680000",
+        "end": "now",
+        "step": "PT10S"
+      }
+    },
+    {
+      "name": "Fetch Canary from Atlas",
+      "refId": "2",
+      "requisiteStageRefIds": [
+
+      ],
+      "type": "atlasFetch",
+      "user": "[anonymous]",
+      "metricsAccountName": "atlas-acct-1",
+      "storageAccountName": "my-account-name-1",
+      "canaryConfigId": "MySampleAtlasCanaryConfig",
+      "atlasCanaryScope": {
+        "type": "node",
+        "scope": "duftler-mac",
+        "start": "1496436680000",
+        "end": "now",
+        "step": "PT10S"
+      }
+    },
+    {
+      "name": "Mix Baseline and Canary Results",
+      "refId": "3",
+      "requisiteStageRefIds": [
+        "1",
+        "2"
+      ],
+      "type": "metricSetMixer",
+      "user": "[anonymous]",
+      "storageAccountName": "my-account-name-1",
+      "controlMetricSetListIds": "${ #stage('Fetch Baseline from Atlas')['context']['metricSetListIds']}",
+      "experimentMetricSetListIds": "${ #stage('Fetch Canary from Atlas')['context']['metricSetListIds']}"
+    },
+    {
+      "name": "Perform Analysis",
+      "refId": "4",
+      "requisiteStageRefIds": [
+        "3"
+      ],
+      "type": "canaryJudge",
+      "user": "[anonymous]",
+      "canaryConfigId": "MySampleAtlasCanaryConfig",
+      "metricSetPairListId": "${ #stage('Mix Baseline and Canary Results')['context']['metricSetPairListId']}"
+    }
+  ]
+}

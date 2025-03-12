@@ -1,0 +1,21 @@
+apply plugin: 'java-library'
+apply plugin: 'scala'
+
+dependencies {
+  api "org.apache.commons:commons-math3"
+
+  api 'org.scala-lang:scala-library-all'
+  api 'org.scala-lang:scala-reflect'
+  api 'com.typesafe.scala-logging:scala-logging_2.12'
+
+  testImplementation 'org.scalatest:scalatest_2.12'
+  testRuntimeOnly 'org.scalatestplus:junit-5-9_2.12'
+}
+
+task scalaTest(dependsOn: ['testClasses'], type: JavaExec) {
+    main = 'org.scalatest.tools.Runner'
+    args = ['-R', 'build/classes/scala/test', '-o']
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+test.dependsOn scalaTest // so that running "test" would run this first, then the JUnit tests

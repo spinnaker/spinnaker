@@ -1,0 +1,9 @@
+dependencies {
+  implementation project(":kayenta-core")
+
+  api "com.squareup.retrofit:retrofit"
+  api "com.squareup.retrofit:converter-jackson"
+  api "org.apache.commons:commons-io:1.3.2"
+
+  implementation "io.spinnaker.kork:kork-retrofit"
+}

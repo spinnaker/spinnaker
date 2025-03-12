@@ -1,0 +1,896 @@
+event: control-message
+data: {
+data:   "event" : "STREAM_START",
+data:   "timestampMs" : 1537567314915
+data: }
+
+event: control-message
+data: {
+data:   "event" : "JOB_START",
+data:   "handle" : "Dnpkj7dAYAA",
+data:   "timestampMs" : 1537567315267
+data: }
+
+event: metadata
+data: {
+data:   "properties" : {
+data:     "canary-scope" : "control",
+data:     "computationId" : "Dnpkj7dAYAA",
+data:     "env" : "integration",
+data:     "sf_createdOnMs" : 1537140753712,
+data:     "sf_isPreQuantized" : true,
+data:     "sf_key" : [ "test-id", "canary-scope", "sf_metric", "env", "sf_originatingMetric", "computationId" ],
+data:     "sf_metric" : "_SF_COMP_Dnpkj7dAYAA_02-PUBLISH_METRIC",
+data:     "sf_organizationID" : "Chi3pifAcAc",
+data:     "sf_originatingMetric" : "kayenta.integration-test.some-gauge",
+data:     "sf_resolutionMs" : 1000,
+data:     "sf_singletonFixedDimensions" : [ "test-id", "canary-scope", "sf_metric" ],
+data:     "sf_type" : "MetricTimeSeries",
+data:     "test-id" : "3e9c6e4a-e9fd-4ed3-ae1b-a362831e0a29"
+data:   },
+data:   "tsId" : "AAAAAFOJhJg"
+data: }
+
+event: data
+id: data-1537140751000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140751000,
+data:   "maxDelayMs" : 3438
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140751000,
+data:   "message" : {
+data:     "blockContexts" : [ ],
+data:     "blockSerialNumbers" : [ ],
+data:     "contents" : {
+data:       "resolutionMs" : 1000
+data:     },
+data:     "messageCode" : "JOB_RUNNING_RESOLUTION",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 0,
+data:     "timestampMs" : 1537140750000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140751000,
+data:   "message" : {
+data:     "blockContexts" : [ ],
+data:     "blockSerialNumbers" : [ ],
+data:     "contents" : {
+data:       "deadlineType" : "AUTOMATIC",
+data:       "maxDelayMs" : 2000
+data:     },
+data:     "messageCode" : "JOB_INITIAL_MAX_DELAY",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 0,
+data:     "timestampMs" : 1537140750000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140751000,
+data:   "message" : {
+data:     "blockContexts" : [ {
+data:       "column" : 1,
+data:       "line" : 1
+data:     } ],
+data:     "blockSerialNumbers" : [ 0 ],
+data:     "contents" : {
+data:       "dimensionCounts" : [ {
+data:         "count" : 1,
+data:         "dimensions" : [ "test-id", "canary-scope", "sf_metric", "env" ]
+data:       } ]
+data:     },
+data:     "messageCode" : "FIND_MATCHED_DIMENSIONS",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 1,
+data:     "timestampMs" : 1537140751000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140751000,
+data:   "message" : {
+data:     "blockContexts" : [ {
+data:       "column" : 1,
+data:       "line" : 1
+data:     } ],
+data:     "blockSerialNumbers" : [ 0 ],
+data:     "messageCode" : "FETCH_NUM_TIMESERIES",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 1,
+data:     "timestampMs" : 1537140751000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140751000,
+data:   "message" : {
+data:     "blockContexts" : [ {
+data:       "column" : 1,
+data:       "line" : 1
+data:     } ],
+data:     "blockSerialNumbers" : [ 0 ],
+data:     "contents" : {
+data:       "maxExtrapolations" : -1,
+data:       "numInactiveMembers" : 1
+data:     },
+data:     "messageCode" : "FETCH_INACTIVE_EMITTERS",
+data:     "messageLevel" : "WARNING",
+data:     "numInputTimeSeries" : 1,
+data:     "timestampMs" : 1537140751000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140751000,
+data:   "message" : {
+data:     "blockContexts" : [ {
+data:       "column" : 165,
+data:       "line" : 1
+data:     } ],
+data:     "blockSerialNumbers" : [ 2 ],
+data:     "messageCode" : "ID_NUM_TIMESERIES",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 1,
+data:     "timestampMs" : 1537140751000
+data:   }
+data: }
+
+event: data
+id: data-1537140752000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140752000,
+data:   "maxDelayMs" : 3438
+data: }
+
+event: data
+id: data-1537140753000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140753000,
+data:   "maxDelayMs" : 3438
+data: }
+
+event: data
+id: data-1537140754000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.333333333333336
+data:   } ],
+data:   "logicalTimestampMs" : 1537140754000,
+data:   "maxDelayMs" : 3438
+data: }
+
+event: data
+id: data-1537140755000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140755000,
+data:   "maxDelayMs" : 3438
+data: }
+
+event: data
+id: data-1537140756000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140756000,
+data:   "maxDelayMs" : 3438
+data: }
+
+event: data
+id: data-1537140757000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140757000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140758000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140758000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140759000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 54.333333333333336
+data:   } ],
+data:   "logicalTimestampMs" : 1537140759000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140760000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140760000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140761000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.333333333333336
+data:   } ],
+data:   "logicalTimestampMs" : 1537140761000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140762000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.666666666666664
+data:   } ],
+data:   "logicalTimestampMs" : 1537140762000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140763000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140763000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140764000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140764000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140765000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 51.333333333333336
+data:   } ],
+data:   "logicalTimestampMs" : 1537140765000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140766000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140766000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140767000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.333333333333336
+data:   } ],
+data:   "logicalTimestampMs" : 1537140767000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140768000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.666666666666664
+data:   } ],
+data:   "logicalTimestampMs" : 1537140768000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140769000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140769000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140770000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140770000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140771000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140771000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140772000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140772000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140773000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 51.666666666666664
+data:   } ],
+data:   "logicalTimestampMs" : 1537140773000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140774000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140774000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140775000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.333333333333336
+data:   } ],
+data:   "logicalTimestampMs" : 1537140775000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140776000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.666666666666664
+data:   } ],
+data:   "logicalTimestampMs" : 1537140776000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140777000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140777000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140778000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.333333333333336
+data:   } ],
+data:   "logicalTimestampMs" : 1537140778000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140779000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140779000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140780000
+data: {
+data:   "data" : [ ],
+data:   "logicalTimestampMs" : 1537140780000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140781000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 51.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140781000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140782000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140782000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140783000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.5
+data:   } ],
+data:   "logicalTimestampMs" : 1537140783000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140784000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.333333333333336
+data:   } ],
+data:   "logicalTimestampMs" : 1537140784000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140785000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140785000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140786000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.5
+data:   } ],
+data:   "logicalTimestampMs" : 1537140786000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140787000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 54.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140787000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140788000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 55.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140788000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140789000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 50.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140789000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140790000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.5
+data:   } ],
+data:   "logicalTimestampMs" : 1537140790000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140791000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.5
+data:   } ],
+data:   "logicalTimestampMs" : 1537140791000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140792000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.5
+data:   } ],
+data:   "logicalTimestampMs" : 1537140792000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140793000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 50.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140793000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140794000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140794000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140795000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140795000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140796000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140796000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140797000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.5
+data:   } ],
+data:   "logicalTimestampMs" : 1537140797000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140798000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140798000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140799000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 55.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140799000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140800000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 51.5
+data:   } ],
+data:   "logicalTimestampMs" : 1537140800000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140801000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 53.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140801000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140802000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 51.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140802000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140803000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 55.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140803000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140804000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 51.333333333333336
+data:   } ],
+data:   "logicalTimestampMs" : 1537140804000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140805000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140805000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140806000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 54.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140806000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140807000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 51.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140807000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140808000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 50.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140808000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140809000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.5
+data:   } ],
+data:   "logicalTimestampMs" : 1537140809000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140810000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 51.666666666666664
+data:   } ],
+data:   "logicalTimestampMs" : 1537140810000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140811000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 55.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140811000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: data
+id: data-1537140812000
+data: {
+data:   "data" : [ {
+data:     "tsId" : "AAAAAFOJhJg",
+data:     "value" : 52.0
+data:   } ],
+data:   "logicalTimestampMs" : 1537140812000,
+data:   "maxDelayMs" : 3491
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140812000,
+data:   "message" : {
+data:     "blockContexts" : [ ],
+data:     "blockSerialNumbers" : [ ],
+data:     "contents" : {
+data:       "resolutionMs" : 1000
+data:     },
+data:     "messageCode" : "JOB_RUNNING_RESOLUTION",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 0,
+data:     "timestampMs" : 1537140750000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140812000,
+data:   "message" : {
+data:     "blockContexts" : [ ],
+data:     "blockSerialNumbers" : [ ],
+data:     "contents" : {
+data:       "deadlineType" : "AUTOMATIC",
+data:       "maxDelayMs" : 2000
+data:     },
+data:     "messageCode" : "JOB_INITIAL_MAX_DELAY",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 0,
+data:     "timestampMs" : 1537140750000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140812000,
+data:   "message" : {
+data:     "blockContexts" : [ {
+data:       "column" : 1,
+data:       "line" : 1
+data:     } ],
+data:     "blockSerialNumbers" : [ 0 ],
+data:     "contents" : {
+data:       "dimensionCounts" : [ {
+data:         "count" : 1,
+data:         "dimensions" : [ "test-id", "canary-scope", "sf_metric", "env" ]
+data:       } ]
+data:     },
+data:     "messageCode" : "FIND_MATCHED_DIMENSIONS",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 1,
+data:     "timestampMs" : 1537140751000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140812000,
+data:   "message" : {
+data:     "blockContexts" : [ {
+data:       "column" : 1,
+data:       "line" : 1
+data:     } ],
+data:     "blockSerialNumbers" : [ 0 ],
+data:     "messageCode" : "FETCH_NUM_TIMESERIES",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 1,
+data:     "timestampMs" : 1537140751000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140812000,
+data:   "message" : {
+data:     "blockContexts" : [ {
+data:       "column" : 1,
+data:       "line" : 1
+data:     } ],
+data:     "blockSerialNumbers" : [ 0 ],
+data:     "contents" : {
+data:       "maxExtrapolations" : -1,
+data:       "numInactiveMembers" : 1
+data:     },
+data:     "messageCode" : "FETCH_INACTIVE_EMITTERS",
+data:     "messageLevel" : "WARNING",
+data:     "numInputTimeSeries" : 1,
+data:     "timestampMs" : 1537140751000
+data:   }
+data: }
+
+event: message
+data: {
+data:   "logicalTimestampMs" : 1537140812000,
+data:   "message" : {
+data:     "blockContexts" : [ {
+data:       "column" : 165,
+data:       "line" : 1
+data:     } ],
+data:     "blockSerialNumbers" : [ 2 ],
+data:     "messageCode" : "ID_NUM_TIMESERIES",
+data:     "messageLevel" : "INFO",
+data:     "numInputTimeSeries" : 1,
+data:     "timestampMs" : 1537140812000
+data:   }
+data: }
+
+event: control-message
+data: {
+data:   "event" : "END_OF_CHANNEL",
+data:   "timestampMs" : 1537567316609
+data: }
+

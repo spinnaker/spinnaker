@@ -1,0 +1,7 @@
+dependencies {
+    implementation project(":kayenta-core")
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.liquibase:liquibase-core"
+    runtimeOnly "com.mysql:mysql-connector-j"
+    runtimeOnly "org.postgresql:postgresql"
+}
