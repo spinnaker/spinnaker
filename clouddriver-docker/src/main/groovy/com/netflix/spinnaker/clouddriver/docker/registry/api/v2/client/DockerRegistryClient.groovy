@@ -243,7 +243,7 @@ class DockerRegistryClient {
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])
-    Call<ResponseBody> getTags(@Path(value="repository", encoded=true) String repository, @Header("Authorization") String token, @Header("User-Agent") String agent, @QueryMap Map<String, String> queryParams)
+    Call<ResponseBody> getTags(@Path(value="repository", encoded=true) String repository, @Header("Authorization") String token, @Header("User-Agent") String agent, @QueryMap(encoded=true) Map<String, String> queryParams)
 
 
     @GET("/v2/{name}/manifests/{reference}")
@@ -263,14 +263,14 @@ class DockerRegistryClient {
     @Headers([
         "Docker-Distribution-API-Version: registry/2.0"
     ])
-    Call<ResponseBody> getCatalog(@Header("Authorization") String token, @Header("User-Agent") String agent, @QueryMap Map<String, String> queryParams)
+    Call<ResponseBody> getCatalog(@Header("Authorization") String token, @Header("User-Agent") String agent, @QueryMap(encoded=true) Map<String, String> queryParams)
 
 
     @GET("/{path}")
     @Headers([
         "Docker-Distribution-API-Version: registry/2.0"
     ])
-    Call<ResponseBody> get(@Path(value="path", encoded=true) String path, @Header("Authorization") String token, @Header("User-Agent") String agent, @QueryMap Map<String, String> queryParams)
+    Call<ResponseBody> get(@Path(value="path", encoded=true) String path, @Header("Authorization") String token, @Header("User-Agent") String agent, @QueryMap(encoded=true) Map<String, String> queryParams)
 
 
     @GET("/v2/")
@@ -394,7 +394,6 @@ class DockerRegistryClient {
     }
 
     def headerValues = caseInsensitiveHeaders["link"]
-    headers.values("link")
 
     // We are at the end of the pagination.
     if (!headerValues || headerValues.size() == 0) {
@@ -453,6 +452,7 @@ class DockerRegistryClient {
   }
 
   public DockerRegistryTags getTags(String repository, String path = null, Map<String, String> queryParams = [:]) {
+    queryParams.computeIfAbsent("n", { paginateSize.toString() })
     def response = request({
       path ? Retrofit2SyncCall.executeCall(registryService.get(path, tokenService.basicAuthHeader, userAgent, queryParams)) :
         Retrofit2SyncCall.executeCall(registryService.getTags(repository, tokenService.basicAuthHeader, userAgent, queryParams))

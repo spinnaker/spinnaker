@@ -110,7 +110,7 @@ final class DockerRegistryNamedAccountCredentialsTest {
             .build();
     when(mockTagListCall.execute()).thenReturn(tagListResponse);
     when(okHttpClient.newCall(
-            argThat(r -> r.url().toString().equals("https://gcr.io/v2/myrepo/tags/list"))))
+            argThat(r -> r.url().toString().equals("https://gcr.io/v2/myrepo/tags/list?n=100"))))
         .thenReturn(mockTagListCall);
 
     doAnswer(
