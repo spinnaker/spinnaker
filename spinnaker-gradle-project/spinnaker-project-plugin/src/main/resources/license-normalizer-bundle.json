@@ -1,0 +1,29 @@
+{
+  "bundles" : [
+    { "bundleName" : "apache1", "licenseName" : "Apache Software License, Version 1.1", "licenseUrl" : "http://www.apache.org/licenses/LICENSE-1.1" },
+    { "bundleName" : "apache2", "licenseName" : "Apache License, Version 2.0", "licenseUrl" : "http://www.apache.org/licenses/LICENSE-2.0" },
+    { "bundleName" : "cddl1", "licenseName" : "COMMON DEVELOPMENT AND DISTRIBUTION LICENSE Version 1.0 (CDDL-1.0)", "licenseUrl" : "http://opensource.org/licenses/CDDL-1.0" },
+    { "bundleName" : "cddl+gpl", "licenseName" : "CDDL+GPL License", "licenseUrl" : "http://glassfish.java.net/public/CDDL+GPL_1_1.html" },
+    { "bundleName" : "mit", "licenseName" : "The MIT License (MIT)", "licenseUrl" : "http://opensource.org/licenses/MIT" },
+    { "bundleName" : "epl", "licenseName" : "Eclipse Public License - Version 1.0", "licenseUrl" : "http://www.eclipse.org/org/documents/epl-v10.php" },
+    { "bundleName" : "lgpl2.1", "licenseName" : "LGPL 2.1", "licenseUrl" : "http://www.gnu.org/licenses/lgpl-2.1.html" },
+    { "bundleName" : "bsd", "licenseName" : "BSD", "licenseUrl" : "http://www.opensource.org/licenses/bsd-license.php" }
+  ],
+  "transformationRules" : [
+    { "bundleName" : "apache2", "licenseNamePattern" : ".*The Apache Software License, Version 2.0.*" },
+    { "bundleName" : "apache2", "licenseNamePattern" : "Apache 2" },
+    { "bundleName" : "apache2", "licenseNamePattern" : "Apache License 2.0" },
+    { "bundleName" : "apache2", "licenseUrlPattern" : "http://www.apache.org/licenses/LICENSE-2.0" },
+    { "bundleName" : "apache2", "licenseNamePattern" : "Special Apache", "transformUrl" : false },
+    { "bundleName" : "apache2", "licenseNamePattern" : "Keep this name", "transformName" : false },
+    { "bundleName" : "mit", "licenseNamePattern" : ".*MIT.*", "transformUrl" : false },
+    { "bundleName" : "cddl+gpl", "licenseUrlPattern" : ".*CDDL+GPL.*", "transformUrl" : false },
+    { "bundleName" : "cddl+gpl", "licenseNamePattern" : "CDDL 1.1", "transformUrl" : false },
+    { "bundleName" : "cddl+gpl", "licenseNamePattern" : "GPLv2+CE", "transformUrl" : false },
+    { "bundleName" : "epl", "licenseUrlPattern" : "http://www.eclipse.org/org/documents/epl-v10.*"},
+    { "bundleName" : "epl", "licenseNamePattern" : ".*Eclipse Public License.*"},
+    { "bundleName" : "lgpl2.1", "licenseNamePattern" : "LGPL.*2.1", "transformUrl" : false},
+    { "bundleName" : "bsd", "licenseUrlPattern" : "http://www.opensource.org/licenses/bsd-license.*", "transformUrl" : false},
+    { "bundleName" : "bsd", "licenseNamePattern" : ".*BSD.*", "transformUrl" : false}
+  ]
+}

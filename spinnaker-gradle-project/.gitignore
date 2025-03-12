@@ -1,0 +1,10 @@
+/.idea/
+*.ipr
+*.iml
+*.iws
+build/
+/.gradle/
+out/
+/.gradletasknamecache
+
+codestyle.xml

@@ -1,0 +1,54 @@
+apply plugin: 'groovy'
+
+dependencies {
+  implementation 'com.github.jk1:gradle-license-report:1.8'
+  implementation 'org.owasp:dependency-check-gradle:5.1.0'
+  implementation "com.diffplug.spotless:spotless-plugin-gradle:6.23.2"
+  implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
+  implementation 'com.netflix.nebula:gradle-java-cross-compile-plugin:8.0.0'
+  implementation 'com.netflix.nebula:gradle-ospackage-plugin:8.4.1'
+  implementation 'gradle.plugin.com.google.cloud.artifactregistry:artifactregistry-gradle-plugin:2.1.1'
+  implementation platform('com.google.cloud:libraries-bom:26.1.4')
+
+  implementation 'com.google.cloud:google-cloud-storage'
+  implementation 'com.google.apis:google-api-services-artifactregistry:v1beta2-rev20221022-2.0.0'
+  implementation 'com.google.api-client:google-api-client:2.0.0'
+  implementation 'org.jetbrains.dokka:dokka-gradle-plugin:0.10.1'
+  implementation 'io.github.gradle-nexus:publish-plugin:1.1.0'
+}
+
+gradlePlugin {
+  plugins {
+    spinnakerProject {
+      id = 'io.spinnaker.project'
+      implementationClass = 'com.netflix.spinnaker.gradle.project.SpinnakerProjectPlugin'
+    }
+    spinnakerPackage {
+      id = 'io.spinnaker.package'
+      implementationClass = 'com.netflix.spinnaker.gradle.application.SpinnakerPackagePlugin'
+    }
+    spinnakerArtifactRegistryPublish {
+      id = 'io.spinnaker.artifactregistry-publish'
+      implementationClass = 'com.netflix.spinnaker.gradle.publishing.artifactregistry.ArtifactRegistryPublishPlugin'
+    }
+  }
+}
+
+pluginBundle {
+  website = 'https://spinnaker.io'
+  vcsUrl = 'https://github.com/spinnaker/spinnaker-gradle-project'
+  description = 'Plugins for Spinnaker services'
+  tags = ['spinnaker']
+
+  plugins {
+    spinnakerProject {
+      displayName = 'Build configuration for Spinnaker projects'
+    }
+    spinnakerPackage {
+      displayName = 'OS Packaging for Spinnaker applications'
+    }
+    spinnakerArtifactRegistryPublish {
+      displayName = 'Google Artifact Registry publishing for spinnaker packages'
+    }
+  }
+}

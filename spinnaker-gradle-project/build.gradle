@@ -1,0 +1,31 @@
+plugins {
+  id "com.diffplug.spotless" version "6.23.2" apply false
+  id "com.gradle.plugin-publish" version "0.12.0" apply false
+}
+
+subprojects {
+  repositories {
+    gradlePluginPortal()
+  }
+
+  apply plugin: 'com.diffplug.spotless'
+  apply plugin: 'idea'
+  apply plugin: 'java-gradle-plugin'
+  apply plugin: 'com.gradle.plugin-publish'
+  apply plugin: 'maven-publish'
+
+  spotless {
+    java {
+      eclipse().configFile(rootProject.file('codestyle.xml'))
+    }
+  }
+
+  group = 'io.spinnaker.gradle'
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+
+  dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+  }
+}
