@@ -1,0 +1,21 @@
+databaseChangeLog:
+- changeSet:
+    id: foreign-keys-on-verification_state
+    author: fletch
+    changes:
+    - addForeignKeyConstraint:
+        baseTableName: verification_state
+        baseColumnNames: environment_uid
+        constraintName: fk_verification_state_environment
+        referencedTableName: environment
+        referencedColumnNames: uid
+        referencesUniqueColumn: true
+        onDelete: CASCADE
+    - addForeignKeyConstraint:
+        baseTableName: verification_state
+        baseColumnNames: artifact_uid
+        constraintName: fk_verification_state_delivery_artifact
+        referencedTableName: delivery_artifact
+        referencedColumnNames: uid
+        referencesUniqueColumn: true
+        onDelete: CASCADE

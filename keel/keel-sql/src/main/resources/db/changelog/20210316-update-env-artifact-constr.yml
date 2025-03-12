@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-null-artifact-reference
+      author: emjburns
+      changes:
+        - sql:
+            dbms: mysql
+            sql: DELETE FROM environment_artifact_constraint WHERE artifact_reference is NULL
+  - changeSet:
+      id: non-null-artifact-reference
+      author: embjurns
+      changes:
+        - addNotNullConstraint:
+            tableName: environment_artifact_constraint
+            columnName: artifact_reference
+            columnDataType: varchar(150)
+  - changeSet:
+      id: new-unique-constraint
+      author: emjburns
+      changes:
+        - dropUniqueConstraint:
+            tableName: environment_artifact_constraint
+            constraintName: constraint_pk
+            uniqueColumns: environment_uid, type, artifact_version
+        - addUniqueConstraint:
+            tableName: environment_artifact_constraint
+            constraintName: constraint_unique
+            columnNames: environment_uid, type, artifact_version, artifact_reference

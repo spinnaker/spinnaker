@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-build-and-git-metadata-columns
+      author: gyardeni
+      changes:
+        - addColumn:
+            tableName: artifact_versions
+            columns:
+              - column:
+                  name: build_metadata
+                  type: json
+                  constraints:
+                    nullable: true
+              - column:
+                  name: git_metadata
+                  type: json
+                  constraints:
+                    nullable: true

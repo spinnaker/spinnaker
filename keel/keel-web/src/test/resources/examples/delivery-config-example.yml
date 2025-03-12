@@ -1,0 +1,238 @@
+---
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+artifacts:
+- name: fnord
+  type: deb
+  reference: fnord
+  vmOptions:
+    baseOs: bionic
+    regions:
+    - us-east-1
+    - us-west-2
+environments:
+- name: test
+  constraints: []
+  notifications:
+  - type: slack
+    address: "#fnord-notifications"
+    frequency: quiet
+  locations:
+    account: testaccount
+    regions:
+    - name: us-west-2
+  resources:
+  - kind: ec2/cluster@v1
+    spec:
+      imageProvider:
+        reference: fnord
+      moniker:
+        app: fnord
+        stack: test
+      deployWith:
+        strategy: highlander
+      launchConfiguration:
+        instanceType: m5.large
+        ebsOptimized: true
+        iamRole: fnordInstanceProfile
+        keyPair: fnord-keypair-us-west-2
+        instanceMonitoring: false
+      capacity:
+        min: 0
+        max: 1
+        desired: 0
+      dependencies:
+        loadBalancerNames:
+        - fnord-test-vpc0
+        securityGroupNames:
+        - fnord
+  - kind: ec2/security-group@v1
+    spec:
+      moniker:
+        app: fnord
+      description: Application Security Group for fnord
+      inboundRules:
+      - protocol: tcp
+        name: fnord-elb
+        portRange:
+          startPort: 7001
+          endPort: 7002
+      - protocol: tcp
+        portRange:
+          startPort: 6565
+          endPort: 6565
+  - kind: ec2/security-group@v1
+    spec:
+      moniker:
+        app: fnord
+        stack: elb
+      description: Application ELB Security Group for fnord
+  - kind: ec2/security-group@v1
+    spec:
+      moniker:
+        app: fnord
+        stack: sql
+      description: fnord RDS
+      inboundRules:
+      - protocol: tcp
+        name: fnord
+        portRange:
+          startPort: 3306
+          endPort: 3306
+  - kind: ec2/classic-load-balancer@v1
+    spec:
+      moniker:
+        app: fnord
+        stack: test
+        detail: vpc0
+      dependencies:
+        securityGroupNames:
+        - fnord
+        - fnord-elb
+      healthCheck:
+        target: HTTP:7001/health
+      listeners:
+      - internalProtocol: HTTP
+        internalPort: 7001
+        externalProtocol: HTTP
+        externalPort: 80
+      - internalProtocol: TCP
+        internalPort: 7002
+        externalProtocol: TCP
+        externalPort: 443
+- name: staging
+  notifications:
+  - type: slack
+    address: "#fnord-notifications"
+    frequency: quiet
+  constraints:
+  - type: depends-on
+    environment: test
+  locations:
+    account: prod-account
+    regions:
+    - name: us-west-2
+  resources:
+  - kind: ec2/cluster@v1.1
+    spec:
+      artifactReference: fnord
+      moniker:
+        app: fnord
+        stack: staging
+      deployWith:
+        strategy: red-black
+        resizePreviousToZero: true
+      launchConfiguration:
+        instanceType: m5.large
+        ebsOptimized: true
+        iamRole: fnordInstanceProfile
+        keyPair: fnord-keypair-us-west-2
+        instanceMonitoring: false
+      capacity:
+        min: 4
+        max: 4
+        desired: 4
+      dependencies:
+        loadBalancerNames:
+        - fnord-staging-vpc0
+        securityGroupNames:
+        - fnord
+  - kind: ec2/security-group@v1
+    spec:
+      moniker:
+        app: fnord
+      description: Application Security Group for fnord
+      inboundRules:
+      - protocol: tcp
+        name: fnord-elb
+        portRange:
+          startPort: 7001
+          endPort: 7002
+      - protocol: tcp
+        portRange:
+          startPort: 6379
+          endPort: 6379
+  - kind: ec2/security-group@v1
+    spec:
+      moniker:
+        app: fnord
+        stack: elb
+      description: Application ELB Security Group for fnord
+  - kind: ec2/security-group@v1
+    spec:
+      moniker:
+        app: fnord
+        stack: sql
+      description: fnord RDS
+      inboundRules:
+      - protocol: tcp
+        name: fnord
+        portRange:
+          startPort: 3306
+          endPort: 3306
+  - kind: ec2/classic-load-balancer@v1
+    spec:
+      moniker:
+        app: fnord
+        stack: staging
+        detail: vpc0
+      dependencies:
+        securityGroupNames:
+        - fnord-elb
+      healthCheck:
+        target: HTTP:7001/health
+      listeners:
+      - internalProtocol: HTTP
+        internalPort: 7001
+        externalProtocol: HTTP
+        externalPort: 80
+      - internalProtocol: TCP
+        internalPort: 7002
+        externalProtocol: TCP
+        externalPort: 443
+- name: main
+  notifications:
+  - type: slack
+    address: "#fnord-notifications"
+    frequency: normal
+  constraints:
+  - type: depends-on
+    environment: staging
+  - type: manual-judgement
+    timeout: P5D
+  - type: pipeline
+    pipelineId: 25bcc868-db2a-403d-9cfb-f96af426e2d4
+  locations:
+    account: prod-account
+    regions:
+    - name: us-west-2
+  resources:
+  - kind: "ec2/cluster@v1.1"
+    spec:
+      moniker:
+        app: "fnord"
+        stack: "main"
+      artifactReference: "fnord"
+      deployWith:
+        strategy: "red-black"
+        rollbackOnFailure: true
+        resizePreviousToZero: false
+        maxServerGroups: 2
+        delayBeforeDisable: "PT0S"
+        delayBeforeScaleDown: "PT0S"
+      locations:
+        account: "prod-account"
+        regions:
+        - name: "us-west-2"
+      launchConfiguration:
+        instanceType: m5.large
+        ebsOptimized: true
+      capacity:
+        min: 4
+        max: 4
+        desired: 4
+      dependencies:
+        loadBalancerNames:
+        - "fnord-main"
+        securityGroupNames:
+        - "fnord"

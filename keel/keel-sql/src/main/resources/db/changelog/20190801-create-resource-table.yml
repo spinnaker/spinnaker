@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-resource-table
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: resource
+            columns:
+              - column:
+                  name: uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: api_version
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kind
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: application
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: spec
+                  type: longtext
+                  constraints:
+                    nullable: false
+              - column:
+                  name: metadata
+                  type: longtext
+                  value: "{}"
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: resources
+
+  - changeSet:
+      id: create-resource-table-indicies
+      author: emjburns
+      changes:
+        - createIndex:
+            indexName: resource_application_idx
+            tableName: resource
+            columns:
+              - column:
+                  name: application

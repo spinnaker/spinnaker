@@ -1,0 +1,52 @@
+---
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+artifacts:
+- name: fnord
+  type: deb
+  reference: fnord
+  vmOptions:
+    baseOs: bionic
+    regions:
+    - us-east-1
+    - us-west-2
+environments:
+- name: test
+  locations:
+    account: prod
+    regions:
+    - name: us-east-1
+    - name: us-west-2
+  resources:
+  - kind: ec2/cluster@v1
+    spec:
+      health:
+        terminationPolicies:
+        - default
+      moniker:
+        app: fnord
+        stack: main
+        detail: a-login
+      capacity:
+        max: 3
+        min: 3
+        desired: 3
+      deployWith:
+        stagger:
+        - region: us-west-2
+          pauseTime: PT30S
+        strategy: red-black
+        delayBeforeScaleDown: PT1H
+        resizePreviousToZero: true
+      dependencies:
+        loadBalancerNames:
+        - fnord-main-login
+        securityGroupNames:
+        - fnord-internal-service
+        - fnord
+        - fnord-infrastructure
+      imageProvider:
+        reference: fnord
+      launchConfiguration:
+        ebsOptimized: true
+        instanceType: r5.2xlarge

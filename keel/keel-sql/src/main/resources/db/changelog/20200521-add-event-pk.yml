@@ -1,0 +1,8 @@
+databaseChangeLog:
+- changeSet:
+    id: add-event-pk
+    author: fletch
+    changes:
+    - addPrimaryKey:
+        tableName: event
+        columnNames: uid

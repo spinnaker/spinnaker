@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-artifact-type-column
+      author: gyardeni
+      changes:
+        - addColumn:
+            tableName: environment_artifact_queued_approval
+            columns:
+              - name: artifact_reference
+                type: varchar(255)
+                afterColumn: artifact_version
+                constraints:
+                  nullable: true
+        - addColumn:
+            tableName: environment_artifact_constraint
+            columns:
+              - name: artifact_reference
+                type: varchar(255)
+                afterColumn: artifact_version
+                constraints:
+                  nullable: true
+
+  - changeSet:
+      id: create-artifact-reference-indicies
+      author: gyardeni
+      changes:
+        - dropIndex:
+            indexName: env_version_idx
+            tableName: environment_artifact_constraint
+        - createIndex:
+            indexName: env_version_reference_idx
+            tableName: environment_artifact_constraint
+            columns:
+              - column:
+                  name: environment_uid
+              - column:
+                  name: artifact_version
+              - column:
+                  name: artifact_reference
+        - createIndex:
+            indexName: env_artifact_reference_idx
+            tableName: environment_artifact_queued_approval
+            columns:
+              - column:
+                  name: environment_uid
+              - column:
+                  name: artifact_version
+              - column:
+                  name: artifact_reference
+      rollback:
+        - dropIndex:
+            indexName: env_version_reference_idx
+            tableName: environment_artifact_constraint
+        - dropIndex:
+            indexName: env_artifact_reference_idx
+            tableName: environment_artifact_queued_approval
+        - createIndex:
+            indexName: env_version_idx
+            tableName: environment_artifact_constraint
+            columns:
+              - column:
+                  name: environment_uid
+              - column:
+                  name: artifact_version

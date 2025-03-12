@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-created-at-to-artifact-versions
+      author: lpollo
+      changes:
+        - addColumn:
+            tableName: artifact_versions
+            columns:
+              - column:
+                  name: created_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: true
+                  afterColumn: release_status

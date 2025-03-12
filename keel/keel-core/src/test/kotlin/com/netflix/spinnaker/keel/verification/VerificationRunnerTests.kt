@@ -1,0 +1,338 @@
+package com.netflix.spinnaker.keel.verification
+
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.Verification
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.api.plugins.CurrentImages
+import com.netflix.spinnaker.keel.api.plugins.ImageInRegion
+import com.netflix.spinnaker.keel.api.plugins.VerificationEvaluator
+import com.netflix.spinnaker.keel.api.ArtifactInEnvironmentContext
+import com.netflix.spinnaker.keel.api.action.ActionRepository
+import com.netflix.spinnaker.keel.api.action.ActionState
+import com.netflix.spinnaker.keel.artifacts.DockerArtifact
+import com.netflix.spinnaker.keel.enforcers.EnvironmentExclusionEnforcer
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.EnvironmentLeaseRepository
+import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
+import com.netflix.spinnaker.keel.telemetry.VerificationStarted
+import de.huxhorn.sulky.ulid.ULID
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.core.env.Environment as SpringEnvironment
+import java.time.Instant.now
+
+
+internal class VerificationRunnerTests {
+
+  private data class DummyVerification(override val id: String) : Verification {
+    override val type = "dummy"
+  }
+
+  private val repository = mockk<ActionRepository>(relaxUnitFun = true)
+  private val specator = NoopRegistry()
+  private val evaluator = mockk<VerificationEvaluator<DummyVerification>>(relaxUnitFun = true) {
+    every { supportedVerification } returns ("dummy" to DummyVerification::class.java)
+  }
+  private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
+
+  val springEnv: SpringEnvironment = mockk() {
+    every { getProperty("keel.enforcement.environment-exclusion.enabled", Boolean::class.java, any()) } returns true
+  }
+
+  val images = listOf(
+    CurrentImages(
+      ResourceKind("dummy", "resource", "1.0"),
+      listOf(ImageInRegion("us-west-2", "i:am:an:image:id", "test")),
+      "resourceId:is:me"
+    )
+  )
+
+  private val imageFinder = mockk<ImageFinder>(relaxUnitFun = true) {
+    every { getImages(any(), any()) } returns images
+  }
+
+  private val verificationRepository = mockk<ActionRepository>() {
+    every { getVerificationContextsWithStatus(any(), any(), any()) }  returns emptyList()
+  }
+
+  private val artifactRepository = mockk<ArtifactRepository>() {
+    every { isDeployingTo(any(), any()) } returns false
+  }
+
+  private val environmentLeaseRepository = mockk<EnvironmentLeaseRepository>(relaxUnitFun = true) {
+    every { tryAcquireLease(any(), any(), any()) } returns mockk(relaxUnitFun = true)
+  }
+
+
+  private val environmentExclusionEnforcer = EnvironmentExclusionEnforcer(springEnv, verificationRepository, artifactRepository, environmentLeaseRepository)
+
+  private val subject = VerificationRunner(
+    repository,
+    listOf(evaluator),
+    publisher,
+    imageFinder,
+    environmentExclusionEnforcer,
+    specator
+  )
+
+  @Test
+  fun `no-ops for an environment with no verifications`() {
+    val context = ArtifactInEnvironmentContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
+        ),
+        environments = setOf(
+          Environment(name = "test")
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    runBlocking {
+      subject.runFor(context)
+    }
+
+    verify(exactly = 0) { evaluator.start(any(), any()) }
+    verify(exactly = 0) { publisher.publishEvent(any()) }
+  }
+
+  @Test
+  fun `starts the first verification if none have been run yet`() {
+    val context = ArtifactInEnvironmentContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+    val metadata = mapOf("taskId" to ULID().nextULID(), "images" to images)
+
+    every { repository.getState(any(), any()) } returns null
+    every { evaluator.start(any(), any()) } returns metadata
+
+    runBlocking { subject.runFor(context) }
+
+    verify { evaluator.start(context, DummyVerification("1")) }
+    verify { repository.updateState(any(), DummyVerification("1"), PENDING, metadata) }
+    verify { publisher.publishEvent(ofType<VerificationStarted>()) }
+  }
+
+  @Test
+  fun `saves the link if it hasnt already been saved`() {
+    val context = ArtifactInEnvironmentContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    every { repository.getState(any(), any()) } returns ActionState(PENDING, now(), null, mapOf("tasks" to listOf(ULID().nextULID())))
+    every { evaluator.evaluate(any(), any(), any()) } answers {
+      val oldState = thirdArg<ActionState>()
+      oldState.copy(link = "www.mylink.com")
+    }
+
+    runBlocking { subject.runFor(context) }
+
+    verify { repository.updateState(any(), any(), PENDING, any(), "www.mylink.com") }
+  }
+
+  @Test
+  fun `re-starts a verification if a user has requested it be retried`() {
+    val context = ArtifactInEnvironmentContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(DummyVerification("1"))
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    every { repository.getState(any(), any()) } returns ActionState(NOT_EVALUATED, now(), null, mapOf("tasks" to listOf(ULID().nextULID())))
+    every { evaluator.start(any(), any()) } answers { mapOf("tasks" to listOf(ULID().nextULID())) }
+
+    runBlocking { subject.runFor(context) }
+
+    verify { evaluator.start(context, DummyVerification("1")) }
+    verify { repository.updateState(any(), DummyVerification("1"), PENDING, any()) }
+    verify { publisher.publishEvent(ofType<VerificationStarted>()) }
+  }
+
+  @Test
+  fun `no-ops if any verification was already running and has yet to complete`() {
+    val context = ArtifactInEnvironmentContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
+    every { repository.getState(any(), DummyVerification("2")) } returns null
+
+    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns ActionState(PENDING, startedAt = mockk(), null)
+
+    runBlocking { subject.runFor(context) }
+
+    verify { evaluator.evaluate(context, DummyVerification("1"), any()) }
+    verify(exactly = 0) { evaluator.start(any(), any()) }
+    verify(exactly = 0) { publisher.publishEvent(any()) }
+  }
+
+  @ParameterizedTest(
+    name = "continues to the next if any verification was already running and has now completed with {0}"
+  )
+  @EnumSource(
+    value = ConstraintStatus::class,
+    names = ["PASS", "FAIL"]
+  )
+  fun `continues to the next if any verification was already running and has now completed`(status: ConstraintStatus) {
+    val context = ArtifactInEnvironmentContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    every { repository.getState(any(), DummyVerification("1")) } returns PENDING.toState()
+    every { repository.getState(any(), DummyVerification("2")) } returns null
+
+    every { evaluator.evaluate(context, DummyVerification("1"), any()) } returns ActionState(status, mockk(), mockk())
+
+    every { evaluator.start(any(), any()) } returns emptyMap()
+
+    runBlocking { subject.runFor(context) }
+
+    verify { repository.updateState(any(), DummyVerification("1"), status) }
+    verify { publisher.publishEvent(ofType<VerificationCompleted>()) }
+
+    verify { evaluator.start(context, DummyVerification("2")) }
+    verify { repository.updateState(any(), DummyVerification("2"), PENDING, mapOf("images" to images)) }
+    verify { publisher.publishEvent(ofType<VerificationStarted>()) }
+  }
+
+  @ParameterizedTest(
+    name = "no-ops if all verifications are already complete and the final one is {0}"
+  )
+  @EnumSource(
+    value = ConstraintStatus::class,
+    names = ["PASS", "FAIL"]
+  )
+  fun `no-ops if all verifications are already complete`(status: ConstraintStatus) {
+    val context = ArtifactInEnvironmentContext(
+      deliveryConfig = DeliveryConfig(
+        application = "fnord",
+        name = "fnord-manifest",
+        serviceAccount = "jamm@illuminati.org",
+        artifacts = setOf(
+          DockerArtifact(name = "fnord", reference = "fnord-docker", branch = "main")
+        ),
+        environments = setOf(
+          Environment(
+            name = "test",
+            verifyWith = listOf(DummyVerification("1"), DummyVerification("2"))
+          )
+        )
+      ),
+      environmentName = "test",
+      artifactReference = "fnord-docker",
+      version = "fnord-0.190.0-h378.eacb135"
+    )
+
+    every { repository.getState(any(), DummyVerification("1")) } returns PASS.toState()
+    every { repository.getState(any(), DummyVerification("2")) } returns status.toState()
+
+    runBlocking { subject.runFor(context) }
+
+    verify(exactly = 0) {
+      evaluator.start(any(), any())
+    }
+  }
+
+  private fun ConstraintStatus.toState() =
+    ActionState(
+      status = this,
+      startedAt = now(),
+      endedAt = if (complete) now() else null
+    )
+}

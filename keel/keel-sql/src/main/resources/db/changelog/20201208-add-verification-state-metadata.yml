@@ -1,0 +1,12 @@
+databaseChangeLog:
+- changeSet:
+    id: add-verification-state-metadata
+    author: fletch
+    changes:
+    - addColumn:
+        tableName: verification_state
+        columns:
+        - name: metadata
+          type: json
+          constraints:
+            nullable: false

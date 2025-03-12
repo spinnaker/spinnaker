@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: separate-current-version-table
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: current_environment_artifact_versions
+            columns:
+              - column:
+                  name: uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: environment_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_version
+                  type: char(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deployed_at
+                  type: timestamp(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: json
+                  type: json
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: current_environment_artifact_versions_env_art_deployed_at_idx
+            tableName: current_environment_artifact_versions
+            columns:
+              - column:
+                  name: environment_uid
+              - column:
+                  name: artifact_uid
+              - column:
+                  name: deployed_at
+        - createIndex:
+            indexName: current_environment_artifact_versions_deployed_at_idx
+            tableName: current_environment_artifact_versions
+            columns:
+              - column:
+                  name: deployed_at
+        - addForeignKeyConstraint:
+            baseTableName: current_environment_artifact_versions
+            baseColumnNames: environment_uid
+            referencedTableName: environment
+            referencedColumnNames: uid
+            constraintName: fk_environment_current_environment
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: current_environment_artifact_versions
+            baseColumnNames: artifact_uid
+            referencedTableName: delivery_artifact
+            referencedColumnNames: uid
+            constraintName: fk_artifact_current_environment
+            onDelete: CASCADE

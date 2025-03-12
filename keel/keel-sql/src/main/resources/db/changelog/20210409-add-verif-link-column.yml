@@ -1,0 +1,15 @@
+databaseChangeLog:
+- changeSet:
+    id: add-verification-link-column
+    author: lhochstein
+    changes:
+      - addColumn:
+          tableName: verification_state
+          columns:
+          - column:
+              name: link
+              type: varchar(511)
+              afterColumn: ended_at
+              constraints:
+                nullable: true
+  # No rollback needed as liquibase can handle column deletions automatically

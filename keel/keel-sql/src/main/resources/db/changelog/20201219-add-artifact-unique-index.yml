@@ -1,0 +1,17 @@
+databaseChangeLog:
+- changeSet:
+    id: add-artifact-unique-index
+    author: fletch
+    changes:
+    - dropIndex:
+        tableName: delivery_artifact
+        indexName: delivery_artifact_byref_idx
+    - createIndex:
+        tableName: delivery_artifact
+        indexName: delivery_artifact_byref_idx
+        columns:
+        - column:
+            name: delivery_config_name
+        - column:
+            name: reference
+        unique: true

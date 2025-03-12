@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-environment_artifact_versions-promotion-reference
+      author: asher
+      changes:
+        - addColumn:
+            tableName: environment_artifact_versions
+            columns:
+              - column:
+                  name: promotion_reference
+                  type: varchar(255)
+                  afterColumn: promotion_status
+  - changeSet:
+      id: create-environment_artifact_versions-status-idx
+      author: asher
+      changes:
+        - createIndex:
+            indexName: eav_status_idx
+            tableName: environment_artifact_versions
+            columns:
+              - column:
+                  name: promotion_status

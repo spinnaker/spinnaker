@@ -1,0 +1,27 @@
+databaseChangeLog:
+- changeSet:
+    id: resource-version-foreign-keys
+    author: fletch
+    changes:
+    - sql:
+        sql: delete from resource_version where not exists (select 1 from resource where resource.uid = resource_version.resource_uid);
+    - addPrimaryKey:
+        tableName: resource_version
+        columnNames: resource_uid, version
+    - addForeignKeyConstraint:
+        baseTableName: resource_version
+        baseColumnNames: resource_uid
+        referencedTableName: resource
+        referencedColumnNames: uid
+        constraintName: fk_resource_version_resource
+        onDelete: CASCADE
+    - dropForeignKeyConstraint:
+        baseTableName: environment_resource
+        constraintName: fk_environment_resource_resource
+    - addForeignKeyConstraint:
+        baseTableName: environment_resource
+        baseColumnNames: resource_uid, resource_version
+        referencedTableName: resource_version
+        referencedColumnNames: resource_uid, version
+        constraintName: fk_environment_resource_resource_version
+        onDelete: CASCADE

@@ -1,0 +1,23 @@
+databaseChangeLog:
+- changeSet:
+    id: environment-related-indices
+    author: fletch
+    changes:
+    - createIndex:
+        indexName: artifact_versions_name_type_version_release_status_idx
+        tableName: artifact_versions
+        columns:
+        - column:
+            name: name
+        - column:
+            name: type
+        - column:
+            name: release_status
+    - createIndex:
+        indexName: environment_artifact_constraint_uid_status_idx
+        tableName: environment_artifact_constraint
+        columns:
+        - column:
+            name: environment_uid
+        - column:
+            name: status

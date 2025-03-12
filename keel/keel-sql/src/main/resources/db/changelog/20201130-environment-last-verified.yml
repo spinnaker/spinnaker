@@ -1,0 +1,34 @@
+databaseChangeLog:
+- changeSet:
+    id: environment-last-verified
+    author: fletch
+    changes:
+    - createTable:
+        tableName: environment_last_verified
+        columns:
+        - column:
+            name: environment_uid
+            type: char(26)
+            constraints:
+              primaryKey: true
+              foreignKeyName: fk_environment_last_verified_environment
+              referencedTableName: environment
+              referencedColumnNames: uid
+        - column:
+            name: artifact_uid
+            type: char(26)
+            constraints:
+              primaryKey: true
+              foreignKeyName: fk_environment_last_verified_delivery_artifact
+              referencedTableName: delivery_artifact
+              referencedColumnNames: uid
+        - column:
+            name: artifact_version
+            type: varchar(255)
+            constraints:
+              primaryKey: true
+        - column:
+            name: at
+            type: timestamp(3)
+            constraints:
+              nullable: false

@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-status-to-environment-artifact-versions
+      author: fletch
+      changes:
+        - addColumn:
+            tableName: environment_artifact_versions
+            columns:
+              - column:
+                  name: promotion_status
+                  type: varchar(255)
+                  value: PENDING
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: environment_artifact_versions
+            columnName: promotion_status

@@ -1,0 +1,35 @@
+databaseChangeLog:
+- changeSet:
+    id: feature-rollout-table
+    author: fletch
+    changes:
+    - createTable:
+        tableName: feature-rollout
+        columns:
+        - column:
+            name: feature
+            type: varchar(255)
+            constraints:
+            - primaryKey: true
+            - nullable: false
+        - column:
+            name: resource_id
+            type: varchar(255)
+            constraints:
+            - primaryKey: true
+            - nullable: false
+        - column:
+            name: attempts
+            type: integer
+            constraints:
+            - nullable: false
+        - column:
+            name: first_attempt_at
+            type: datetime(3)
+            constraints:
+            - nullable: false
+        - column:
+            name: latest_attempt_at
+            type: datetime(3)
+            constraints:
+            - nullable: false

@@ -1,0 +1,2181 @@
+{
+  "id": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+  "name": "fnord-v193",
+  "type": "titus",
+  "cloudProvider": "titus",
+  "entryPoint": "",
+  "entryPointList": [
+    ""
+  ],
+  "cmd": "",
+  "cmdList": [],
+  "awsAccount": "prod",
+  "accountId": "984115053116",
+  "iamProfile": "arn:aws:iam::984115053116:role/fnordInstanceProfile",
+  "securityGroups": [
+    "sg-05ce76e5",
+    "sg-097fdce0",
+    "sg-236284fc"
+  ],
+  "hardConstraints": [],
+  "softConstraints": [],
+  "targetGroups": [],
+  "env": {
+    "EC2_REGION": "us-east-1",
+    "NETFLIX_HOME_REGION": "us-east-1",
+    "NETFLIX_REGION": "us-east-1",
+    "SPINNAKER_ACCOUNT": "titusprodvpc",
+    "IGNORE": "ME"
+  },
+  "submittedAt": 1624642230597,
+  "application": "fnord",
+  "image": {
+    "dockerImageName": "fnord/fnord",
+    "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+    "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+  },
+  "scalingPolicies": [
+    {
+      "id": "a5aa0dab-b674-43be-adbd-4266ee874dd7",
+      "status": {
+        "reason": "",
+        "state": "Applied"
+      },
+      "policy": {
+        "targetPolicyDescriptor": {
+          "targetValue": 35.0,
+          "scaleOutCooldownSec": 300,
+          "scaleInCooldownSec": 300,
+          "disableScaleIn": true,
+          "customizedMetricSpecification": {
+            "dimensions": [
+              {
+                "name": "AutoScalingGroupName",
+                "value": "fnord-v193"
+              }
+            ],
+            "metricName": "AverageCPUUtilization",
+            "namespace": "NFLX/EPIC",
+            "statistic": "Average"
+          }
+        }
+      }
+    },
+    {
+      "id": "b93e4006-c54b-4408-9252-d670215292b1",
+      "status": {
+        "reason": "",
+        "state": "Applied"
+      },
+      "policy": {
+        "stepPolicyDescriptor": {
+          "alarmConfig": {
+            "comparisonOperator": "GreaterThanOrEqualToThreshold",
+            "evaluationPeriods": 3,
+            "periodSec": 60,
+            "threshold": 60.0,
+            "metricNamespace": "NFLX/EPIC",
+            "metricName": "AverageCPUUtilization",
+            "statistic": "Average"
+          },
+          "scalingPolicy": {
+            "adjustmentType": "PercentChangeInCapacity",
+            "cooldownSec": 300,
+            "metricAggregationType": "Average",
+            "stepAdjustments": [
+              {
+                "MetricIntervalUpperBound": 0.0,
+                "scalingAdjustment": 50
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "2603abba-4516-42bd-9d85-9c48ad4999d5",
+      "status": {
+        "reason": "",
+        "state": "Applied"
+      },
+      "policy": {
+        "stepPolicyDescriptor": {
+          "alarmConfig": {
+            "comparisonOperator": "LessThanOrEqualToThreshold",
+            "evaluationPeriods": 60,
+            "periodSec": 60,
+            "threshold": 20.0,
+            "metricNamespace": "NFLX/EPIC",
+            "metricName": "AverageCPUUtilization",
+            "statistic": "Average"
+          },
+          "scalingPolicy": {
+            "adjustmentType": "PercentChangeInCapacity",
+            "cooldownSec": 120,
+            "metricAggregationType": "Average",
+            "stepAdjustments": [
+              {
+                "MetricIntervalUpperBound": 0.0,
+                "scalingAdjustment": -3
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "labels": {
+    "titus.relocation.requiredBy": "1620246282886",
+    "spinnakerAccount": "titusprodvpc",
+    "titus.createdBy": "anonymous",
+    "titus.noncompliant.details.accountIdAndSubnetsFeature.noContainerAccountIdAndSubnets": "Container accountId and/or subnet container attributes are empty/inconsistent",
+    "titus.stack": "main01",
+    "name": "fnord-v193",
+    "source": "spinnaker",
+    "titus.cell": "main01cell001",
+    "titus.noncompliant.features": "accountIdAndSubnetsFeature"
+  },
+  "containerAttributes": {
+    "titusParameter.agent.killWaitSeconds": "270",
+    "titusParameter.agent.allowNetworkBursting": "true",
+    "titusParameter.agent.subnets": "subnet-ee5e87bb,subnet-22e26a1a,subnet-b6627e38",
+    "titusParameter.agent.assignIPv6Address": "true",
+    "titusParameter.agent.accountId": "984115053116"
+  },
+  "instances": [
+    {
+      "application": "fnord",
+      "id": "bdccfea4-0897-45eb-9779-1ef56d6b84f5",
+      "instanceId": "bdccfea4-0897-45eb-9779-1ef56d6b84f5",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624642230622,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "241.71.30.69",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "bdccfea4-0897-45eb-9779-1ef56d6b84f5",
+          "healthCheckUrl": "http://241.71.30.69:8080/admin/health",
+          "statusPageUrl": "http://241.71.30.69:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "241.71.30.69",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1d",
+          "accountId": "984115053116",
+          "instanceId": "bdccfea4-0897-45eb-9779-1ef56d6b84f5",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1d",
+        "host": "160.246.71.112",
+        "containerIp": "241.71.30.69"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "241.71.30.69",
+      "agentId": "i-08ec50c018d9837c3",
+      "ipv4Address": "241.71.30.69",
+      "ipv6Address": "73ee:fa66:e506:9b7c:9418:30b4:5b2e:fccd",
+      "availabilityZone": "us-east-1d",
+      "hostIp": "160.246.71.112",
+      "healthState": "Up",
+      "launchTime": 1624642230622,
+      "containerIp": "241.71.30.69",
+      "isHealthy": true,
+      "zone": "us-east-1d",
+      "name": "bdccfea4-0897-45eb-9779-1ef56d6b84f5",
+      "humanReadableName": "bdccfea4-0897-45eb-9779-1ef56d6b84f5",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "1ee939b0-4cfc-43e7-ad43-a2f8073f3733",
+      "instanceId": "1ee939b0-4cfc-43e7-ad43-a2f8073f3733",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624712717957,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "184.213.93.172",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "1ee939b0-4cfc-43e7-ad43-a2f8073f3733",
+          "healthCheckUrl": "http://184.213.93.172:8080/admin/health",
+          "statusPageUrl": "http://184.213.93.172:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "184.213.93.172",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1d",
+          "accountId": "984115053116",
+          "instanceId": "1ee939b0-4cfc-43e7-ad43-a2f8073f3733",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1d",
+        "host": "48.65.173.112",
+        "containerIp": "184.213.93.172"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "184.213.93.172",
+      "agentId": "i-0d44a78966c81abf5",
+      "ipv4Address": "184.213.93.172",
+      "ipv6Address": "3a08:9906:fc6f:fea1:a36:f12a:36f:3a0",
+      "availabilityZone": "us-east-1d",
+      "hostIp": "48.65.173.112",
+      "healthState": "Up",
+      "launchTime": 1624712717957,
+      "containerIp": "184.213.93.172",
+      "isHealthy": true,
+      "zone": "us-east-1d",
+      "name": "1ee939b0-4cfc-43e7-ad43-a2f8073f3733",
+      "humanReadableName": "1ee939b0-4cfc-43e7-ad43-a2f8073f3733",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "bfef8142-705d-4a1f-a7f9-be0745abd59b",
+      "instanceId": "bfef8142-705d-4a1f-a7f9-be0745abd59b",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624642230623,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "136.246.182.53",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "bfef8142-705d-4a1f-a7f9-be0745abd59b",
+          "healthCheckUrl": "http://136.246.182.53:8080/admin/health",
+          "statusPageUrl": "http://136.246.182.53:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "136.246.182.53",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1c",
+          "accountId": "984115053116",
+          "instanceId": "bfef8142-705d-4a1f-a7f9-be0745abd59b",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1c",
+        "host": "214.193.134.75",
+        "containerIp": "136.246.182.53"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "136.246.182.53",
+      "agentId": "i-04d4956973ee748fa",
+      "ipv4Address": "136.246.182.53",
+      "ipv6Address": "b1e9:fe2b:fac:12aa:8fc7:f0fe:3597:895",
+      "availabilityZone": "us-east-1c",
+      "hostIp": "214.193.134.75",
+      "healthState": "Up",
+      "launchTime": 1624642230623,
+      "containerIp": "136.246.182.53",
+      "isHealthy": true,
+      "zone": "us-east-1c",
+      "name": "bfef8142-705d-4a1f-a7f9-be0745abd59b",
+      "humanReadableName": "bfef8142-705d-4a1f-a7f9-be0745abd59b",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "e0067920-4701-4a19-a0ec-49adbe36e973",
+      "instanceId": "e0067920-4701-4a19-a0ec-49adbe36e973",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624889177939,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "217.206.90.133",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "e0067920-4701-4a19-a0ec-49adbe36e973",
+          "healthCheckUrl": "http://217.206.90.133:8080/admin/health",
+          "statusPageUrl": "http://217.206.90.133:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "217.206.90.133",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1c",
+          "accountId": "984115053116",
+          "instanceId": "e0067920-4701-4a19-a0ec-49adbe36e973",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1c",
+        "host": "50.232.175.220",
+        "containerIp": "217.206.90.133"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "217.206.90.133",
+      "agentId": "i-0d33d0f6e9da8f063",
+      "ipv4Address": "217.206.90.133",
+      "ipv6Address": "a6f8:b0c0:e0d5:ef49:5a8:67db:a2ac:1ebd",
+      "availabilityZone": "us-east-1c",
+      "hostIp": "50.232.175.220",
+      "healthState": "Up",
+      "launchTime": 1624889177939,
+      "containerIp": "217.206.90.133",
+      "isHealthy": true,
+      "zone": "us-east-1c",
+      "name": "e0067920-4701-4a19-a0ec-49adbe36e973",
+      "humanReadableName": "e0067920-4701-4a19-a0ec-49adbe36e973",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "1c47850b-4d9e-413a-aacb-005008d94e75",
+      "instanceId": "1c47850b-4d9e-413a-aacb-005008d94e75",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624642230622,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "10.57.1.156",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "1c47850b-4d9e-413a-aacb-005008d94e75",
+          "healthCheckUrl": "http://10.57.1.156:8080/admin/health",
+          "statusPageUrl": "http://10.57.1.156:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "10.57.1.156",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1e",
+          "accountId": "984115053116",
+          "instanceId": "1c47850b-4d9e-413a-aacb-005008d94e75",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1e",
+        "host": "163.123.142.148",
+        "containerIp": "10.57.1.156"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "10.57.1.156",
+      "agentId": "i-072f8f586ea48c805",
+      "ipv4Address": "10.57.1.156",
+      "ipv6Address": "3859:815f:9208:f0f4:9689:ae3:1baa:fe45",
+      "availabilityZone": "us-east-1e",
+      "hostIp": "163.123.142.148",
+      "healthState": "Up",
+      "launchTime": 1624642230622,
+      "containerIp": "10.57.1.156",
+      "isHealthy": true,
+      "zone": "us-east-1e",
+      "name": "1c47850b-4d9e-413a-aacb-005008d94e75",
+      "humanReadableName": "1c47850b-4d9e-413a-aacb-005008d94e75",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "2af58cb4-7285-45e9-9313-6d0d8d86e748",
+      "instanceId": "2af58cb4-7285-45e9-9313-6d0d8d86e748",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624642230623,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "202.131.26.59",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "2af58cb4-7285-45e9-9313-6d0d8d86e748",
+          "healthCheckUrl": "http://202.131.26.59:8080/admin/health",
+          "statusPageUrl": "http://202.131.26.59:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "202.131.26.59",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1c",
+          "accountId": "984115053116",
+          "instanceId": "2af58cb4-7285-45e9-9313-6d0d8d86e748",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1c",
+        "host": "159.78.64.170",
+        "containerIp": "202.131.26.59"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "202.131.26.59",
+      "agentId": "i-0b881c88bb2e85485",
+      "ipv4Address": "202.131.26.59",
+      "ipv6Address": "2f0:4e0f:77a:5ee7:e578:e634:4b08:1cfb",
+      "availabilityZone": "us-east-1c",
+      "hostIp": "159.78.64.170",
+      "healthState": "Up",
+      "launchTime": 1624642230623,
+      "containerIp": "202.131.26.59",
+      "isHealthy": true,
+      "zone": "us-east-1c",
+      "name": "2af58cb4-7285-45e9-9313-6d0d8d86e748",
+      "humanReadableName": "2af58cb4-7285-45e9-9313-6d0d8d86e748",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "6193606e-d5f1-4685-a220-37c3968dbe2d",
+      "instanceId": "6193606e-d5f1-4685-a220-37c3968dbe2d",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624896377922,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "58.213.81.177",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "6193606e-d5f1-4685-a220-37c3968dbe2d",
+          "healthCheckUrl": "http://58.213.81.177:8080/admin/health",
+          "statusPageUrl": "http://58.213.81.177:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "58.213.81.177",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1d",
+          "accountId": "984115053116",
+          "instanceId": "6193606e-d5f1-4685-a220-37c3968dbe2d",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1d",
+        "host": "92.107.35.152",
+        "containerIp": "58.213.81.177"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "58.213.81.177",
+      "agentId": "i-0b581a1f9c9c87ec7",
+      "ipv4Address": "58.213.81.177",
+      "ipv6Address": "29a9:8ef5:bd19:cc0d:7e4d:4f5:64c3:c0f4",
+      "availabilityZone": "us-east-1d",
+      "hostIp": "92.107.35.152",
+      "healthState": "Up",
+      "launchTime": 1624896377922,
+      "containerIp": "58.213.81.177",
+      "isHealthy": true,
+      "zone": "us-east-1d",
+      "name": "6193606e-d5f1-4685-a220-37c3968dbe2d",
+      "humanReadableName": "6193606e-d5f1-4685-a220-37c3968dbe2d",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "e4307b38-b59a-450b-8040-d80f62654ee0",
+      "instanceId": "e4307b38-b59a-450b-8040-d80f62654ee0",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624892838085,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "160.8.168.128",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "e4307b38-b59a-450b-8040-d80f62654ee0",
+          "healthCheckUrl": "http://160.8.168.128:8080/admin/health",
+          "statusPageUrl": "http://160.8.168.128:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "160.8.168.128",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1c",
+          "accountId": "984115053116",
+          "instanceId": "e4307b38-b59a-450b-8040-d80f62654ee0",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1c",
+        "host": "81.232.152.217",
+        "containerIp": "160.8.168.128"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "160.8.168.128",
+      "agentId": "i-0b8466ca0514f9c64",
+      "ipv4Address": "160.8.168.128",
+      "ipv6Address": "a705:6073:6f16:f3e2:c03d:6e13:8fa0:4fe6",
+      "availabilityZone": "us-east-1c",
+      "hostIp": "81.232.152.217",
+      "healthState": "Up",
+      "launchTime": 1624892838085,
+      "containerIp": "160.8.168.128",
+      "isHealthy": true,
+      "zone": "us-east-1c",
+      "name": "e4307b38-b59a-450b-8040-d80f62654ee0",
+      "humanReadableName": "e4307b38-b59a-450b-8040-d80f62654ee0",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "c9a755c2-94b2-4c48-af70-66b2031dee8a",
+      "instanceId": "c9a755c2-94b2-4c48-af70-66b2031dee8a",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624669397918,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "152.122.170.22",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "c9a755c2-94b2-4c48-af70-66b2031dee8a",
+          "healthCheckUrl": "http://152.122.170.22:8080/admin/health",
+          "statusPageUrl": "http://152.122.170.22:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "152.122.170.22",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1e",
+          "accountId": "984115053116",
+          "instanceId": "c9a755c2-94b2-4c48-af70-66b2031dee8a",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1e",
+        "host": "227.1.165.223",
+        "containerIp": "152.122.170.22"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "152.122.170.22",
+      "agentId": "i-0a177e9cdeb15ec4b",
+      "ipv4Address": "152.122.170.22",
+      "ipv6Address": "5cf:9113:66ab:14f:7b8e:1301:bd07:fad4",
+      "availabilityZone": "us-east-1e",
+      "hostIp": "227.1.165.223",
+      "healthState": "Up",
+      "launchTime": 1624669397918,
+      "containerIp": "152.122.170.22",
+      "isHealthy": true,
+      "zone": "us-east-1e",
+      "name": "c9a755c2-94b2-4c48-af70-66b2031dee8a",
+      "humanReadableName": "c9a755c2-94b2-4c48-af70-66b2031dee8a",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "e13b3ecd-4e1b-45d5-94de-ecd13535568f",
+      "instanceId": "e13b3ecd-4e1b-45d5-94de-ecd13535568f",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624642230622,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "26.90.202.83",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "e13b3ecd-4e1b-45d5-94de-ecd13535568f",
+          "healthCheckUrl": "http://26.90.202.83:8080/admin/health",
+          "statusPageUrl": "http://26.90.202.83:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "26.90.202.83",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1e",
+          "accountId": "984115053116",
+          "instanceId": "e13b3ecd-4e1b-45d5-94de-ecd13535568f",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1e",
+        "host": "195.250.233.246",
+        "containerIp": "26.90.202.83"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "26.90.202.83",
+      "agentId": "i-09e4615b4016e328a",
+      "ipv4Address": "26.90.202.83",
+      "ipv6Address": "b277:f3c6:ee11:e1cd:fc13:17fc:133a:663c",
+      "availabilityZone": "us-east-1e",
+      "hostIp": "195.250.233.246",
+      "healthState": "Up",
+      "launchTime": 1624642230622,
+      "containerIp": "26.90.202.83",
+      "isHealthy": true,
+      "zone": "us-east-1e",
+      "name": "e13b3ecd-4e1b-45d5-94de-ecd13535568f",
+      "humanReadableName": "e13b3ecd-4e1b-45d5-94de-ecd13535568f",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "210809c4-9e1e-400c-ba67-9fe9976fbe2a",
+      "instanceId": "210809c4-9e1e-400c-ba67-9fe9976fbe2a",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624642230622,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "107.144.6.78",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "210809c4-9e1e-400c-ba67-9fe9976fbe2a",
+          "healthCheckUrl": "http://107.144.6.78:8080/admin/health",
+          "statusPageUrl": "http://107.144.6.78:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "107.144.6.78",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1d",
+          "accountId": "984115053116",
+          "instanceId": "210809c4-9e1e-400c-ba67-9fe9976fbe2a",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1d",
+        "host": "71.232.68.11",
+        "containerIp": "107.144.6.78"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "107.144.6.78",
+      "agentId": "i-0868862f1f5001f37",
+      "ipv4Address": "107.144.6.78",
+      "ipv6Address": "1bbb:14da:ef23:bdac:c378:d9ab:c349:e5b0",
+      "availabilityZone": "us-east-1d",
+      "hostIp": "71.232.68.11",
+      "healthState": "Up",
+      "launchTime": 1624642230622,
+      "containerIp": "107.144.6.78",
+      "isHealthy": true,
+      "zone": "us-east-1d",
+      "name": "210809c4-9e1e-400c-ba67-9fe9976fbe2a",
+      "humanReadableName": "210809c4-9e1e-400c-ba67-9fe9976fbe2a",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "22b50131-c41e-4324-a3ba-3224a39e444a",
+      "instanceId": "22b50131-c41e-4324-a3ba-3224a39e444a",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624835178049,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "200.168.181.81",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "22b50131-c41e-4324-a3ba-3224a39e444a",
+          "healthCheckUrl": "http://200.168.181.81:8080/admin/health",
+          "statusPageUrl": "http://200.168.181.81:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "200.168.181.81",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1d",
+          "accountId": "984115053116",
+          "instanceId": "22b50131-c41e-4324-a3ba-3224a39e444a",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1d",
+        "host": "194.192.45.61",
+        "containerIp": "200.168.181.81"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "200.168.181.81",
+      "agentId": "i-081e7b0a760378264",
+      "ipv4Address": "200.168.181.81",
+      "ipv6Address": "8d83:434d:4bd5:d30c:f727:7575:7d39:8880",
+      "availabilityZone": "us-east-1d",
+      "hostIp": "194.192.45.61",
+      "healthState": "Up",
+      "launchTime": 1624835178049,
+      "containerIp": "200.168.181.81",
+      "isHealthy": true,
+      "zone": "us-east-1d",
+      "name": "22b50131-c41e-4324-a3ba-3224a39e444a",
+      "humanReadableName": "22b50131-c41e-4324-a3ba-3224a39e444a",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "45022e54-f1df-4a0f-a8ba-20522f5bcba1",
+      "instanceId": "45022e54-f1df-4a0f-a8ba-20522f5bcba1",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624661778048,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "186.150.174.80",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "45022e54-f1df-4a0f-a8ba-20522f5bcba1",
+          "healthCheckUrl": "http://186.150.174.80:8080/admin/health",
+          "statusPageUrl": "http://186.150.174.80:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "186.150.174.80",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1e",
+          "accountId": "984115053116",
+          "instanceId": "45022e54-f1df-4a0f-a8ba-20522f5bcba1",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1e",
+        "host": "10.47.70.184",
+        "containerIp": "186.150.174.80"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "186.150.174.80",
+      "agentId": "i-04adab64c2c8eddb3",
+      "ipv4Address": "186.150.174.80",
+      "ipv6Address": "9379:b1e0:70d7:ab80:8917:175b:d379:5d55",
+      "availabilityZone": "us-east-1e",
+      "hostIp": "10.47.70.184",
+      "healthState": "Up",
+      "launchTime": 1624661778048,
+      "containerIp": "186.150.174.80",
+      "isHealthy": true,
+      "zone": "us-east-1e",
+      "name": "45022e54-f1df-4a0f-a8ba-20522f5bcba1",
+      "humanReadableName": "45022e54-f1df-4a0f-a8ba-20522f5bcba1",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "0a1fc5f2-9a43-4c1f-be59-bdf5550a8aae",
+      "instanceId": "0a1fc5f2-9a43-4c1f-be59-bdf5550a8aae",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624841057976,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "61.168.239.194",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "0a1fc5f2-9a43-4c1f-be59-bdf5550a8aae",
+          "healthCheckUrl": "http://61.168.239.194:8080/admin/health",
+          "statusPageUrl": "http://61.168.239.194:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "61.168.239.194",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1d",
+          "accountId": "984115053116",
+          "instanceId": "0a1fc5f2-9a43-4c1f-be59-bdf5550a8aae",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1d",
+        "host": "82.144.207.142",
+        "containerIp": "61.168.239.194"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "61.168.239.194",
+      "agentId": "i-0513a53da086ce2b6",
+      "ipv4Address": "61.168.239.194",
+      "ipv6Address": "4683:e9ac:3993:3fe7:67c4:f2c0:cad7:3ebb",
+      "availabilityZone": "us-east-1d",
+      "hostIp": "82.144.207.142",
+      "healthState": "Up",
+      "launchTime": 1624841057976,
+      "containerIp": "61.168.239.194",
+      "isHealthy": true,
+      "zone": "us-east-1d",
+      "name": "0a1fc5f2-9a43-4c1f-be59-bdf5550a8aae",
+      "humanReadableName": "0a1fc5f2-9a43-4c1f-be59-bdf5550a8aae",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "b4a2038b-0730-449c-81ca-a503994078f6",
+      "instanceId": "b4a2038b-0730-449c-81ca-a503994078f6",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624664118013,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "94.226.4.186",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "b4a2038b-0730-449c-81ca-a503994078f6",
+          "healthCheckUrl": "http://94.226.4.186:8080/admin/health",
+          "statusPageUrl": "http://94.226.4.186:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "94.226.4.186",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1c",
+          "accountId": "984115053116",
+          "instanceId": "b4a2038b-0730-449c-81ca-a503994078f6",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1c",
+        "host": "181.74.126.134",
+        "containerIp": "94.226.4.186"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "94.226.4.186",
+      "agentId": "i-02b837a7c2a5401fd",
+      "ipv4Address": "94.226.4.186",
+      "ipv6Address": "6fdf:4c8d:8ee5:283e:8722:279b:2a2d:664a",
+      "availabilityZone": "us-east-1c",
+      "hostIp": "181.74.126.134",
+      "healthState": "Up",
+      "launchTime": 1624664118013,
+      "containerIp": "94.226.4.186",
+      "isHealthy": true,
+      "zone": "us-east-1c",
+      "name": "b4a2038b-0730-449c-81ca-a503994078f6",
+      "humanReadableName": "b4a2038b-0730-449c-81ca-a503994078f6",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "0cafe419-f7ba-47fc-be86-242b5c67621c",
+      "instanceId": "0cafe419-f7ba-47fc-be86-242b5c67621c",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624903098305,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "206.51.197.214",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "0cafe419-f7ba-47fc-be86-242b5c67621c",
+          "healthCheckUrl": "http://206.51.197.214:8080/admin/health",
+          "statusPageUrl": "http://206.51.197.214:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "206.51.197.214",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1c",
+          "accountId": "984115053116",
+          "instanceId": "0cafe419-f7ba-47fc-be86-242b5c67621c",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1c",
+        "host": "54.169.75.243",
+        "containerIp": "206.51.197.214"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "206.51.197.214",
+      "agentId": "i-0d4e9433399a4d0d2",
+      "ipv4Address": "206.51.197.214",
+      "ipv6Address": "1a84:877f:ceea:4d0f:bf56:38ca:81f5:ee9e",
+      "availabilityZone": "us-east-1c",
+      "hostIp": "54.169.75.243",
+      "healthState": "Up",
+      "launchTime": 1624903098305,
+      "containerIp": "206.51.197.214",
+      "isHealthy": true,
+      "zone": "us-east-1c",
+      "name": "0cafe419-f7ba-47fc-be86-242b5c67621c",
+      "humanReadableName": "0cafe419-f7ba-47fc-be86-242b5c67621c",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "4fbb13ac-2677-4f01-9d03-f4bdbcf9c610",
+      "instanceId": "4fbb13ac-2677-4f01-9d03-f4bdbcf9c610",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624834938080,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "31.89.164.104",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "4fbb13ac-2677-4f01-9d03-f4bdbcf9c610",
+          "healthCheckUrl": "http://31.89.164.104:8080/admin/health",
+          "statusPageUrl": "http://31.89.164.104:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "31.89.164.104",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1e",
+          "accountId": "984115053116",
+          "instanceId": "4fbb13ac-2677-4f01-9d03-f4bdbcf9c610",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1e",
+        "host": "136.186.109.143",
+        "containerIp": "31.89.164.104"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "31.89.164.104",
+      "agentId": "i-03b7f075ea7345d91",
+      "ipv4Address": "31.89.164.104",
+      "ipv6Address": "ca43:445d:d7e:10b5:eda5:c273:83bc:6b69",
+      "availabilityZone": "us-east-1e",
+      "hostIp": "136.186.109.143",
+      "healthState": "Up",
+      "launchTime": 1624834938080,
+      "containerIp": "31.89.164.104",
+      "isHealthy": true,
+      "zone": "us-east-1e",
+      "name": "4fbb13ac-2677-4f01-9d03-f4bdbcf9c610",
+      "humanReadableName": "4fbb13ac-2677-4f01-9d03-f4bdbcf9c610",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "136d6cbe-1b1a-4f00-9120-38972f7671c4",
+      "instanceId": "136d6cbe-1b1a-4f00-9120-38972f7671c4",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624726218189,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "166.104.95.43",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "136d6cbe-1b1a-4f00-9120-38972f7671c4",
+          "healthCheckUrl": "http://166.104.95.43:8080/admin/health",
+          "statusPageUrl": "http://166.104.95.43:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "166.104.95.43",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1c",
+          "accountId": "984115053116",
+          "instanceId": "136d6cbe-1b1a-4f00-9120-38972f7671c4",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1c",
+        "host": "15.8.117.214",
+        "containerIp": "166.104.95.43"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "166.104.95.43",
+      "agentId": "i-04898e8b53e732790",
+      "ipv4Address": "166.104.95.43",
+      "ipv6Address": "4a1f:30f:e382:9003:3a57:3f10:e7dc:3e40",
+      "availabilityZone": "us-east-1c",
+      "hostIp": "15.8.117.214",
+      "healthState": "Up",
+      "launchTime": 1624726218189,
+      "containerIp": "166.104.95.43",
+      "isHealthy": true,
+      "zone": "us-east-1c",
+      "name": "136d6cbe-1b1a-4f00-9120-38972f7671c4",
+      "humanReadableName": "136d6cbe-1b1a-4f00-9120-38972f7671c4",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "92096daf-ce76-408e-b9f5-d8b3d10176ca",
+      "instanceId": "92096daf-ce76-408e-b9f5-d8b3d10176ca",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624642230623,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "253.46.22.36",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "92096daf-ce76-408e-b9f5-d8b3d10176ca",
+          "healthCheckUrl": "http://253.46.22.36:8080/admin/health",
+          "statusPageUrl": "http://253.46.22.36:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "253.46.22.36",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1c",
+          "accountId": "984115053116",
+          "instanceId": "92096daf-ce76-408e-b9f5-d8b3d10176ca",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1c",
+        "host": "230.9.185.97",
+        "containerIp": "253.46.22.36"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "253.46.22.36",
+      "agentId": "i-0c161696135be4925",
+      "ipv4Address": "253.46.22.36",
+      "ipv6Address": "c138:3ae1:f256:99e8:d27d:74e0:8fca:d635",
+      "availabilityZone": "us-east-1c",
+      "hostIp": "230.9.185.97",
+      "healthState": "Up",
+      "launchTime": 1624642230623,
+      "containerIp": "253.46.22.36",
+      "isHealthy": true,
+      "zone": "us-east-1c",
+      "name": "92096daf-ce76-408e-b9f5-d8b3d10176ca",
+      "humanReadableName": "92096daf-ce76-408e-b9f5-d8b3d10176ca",
+      "labels": {}
+    },
+    {
+      "application": "fnord",
+      "id": "b1aecefd-4c92-4f94-85b5-9caaaa4df86e",
+      "instanceId": "b1aecefd-4c92-4f94-85b5-9caaaa4df86e",
+      "jobId": "fa1b007a-ced1-48f6-a9b7-357555e50542",
+      "jobName": "fnord-v193",
+      "image": {
+        "dockerImageName": "fnord/fnord",
+        "dockerImageVersion": "v1.1.409-h1404.6d21b5a",
+        "dockerImageDigest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titusprodvpc",
+        "IGNORE": "ME"
+      },
+      "submittedAt": 1624817477963,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekaprod",
+          "hostName": "207.84.235.64",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "b1aecefd-4c92-4f94-85b5-9caaaa4df86e",
+          "healthCheckUrl": "http://207.84.235.64:8080/admin/health",
+          "statusPageUrl": "http://207.84.235.64:8080/admin/info",
+          "instanceType": "Titus",
+          "vipAddress": "fnordgrpc-,fnord,fnordgrpc",
+          "secureVipAddress": "fnord-secure",
+          "ipAddress": "207.84.235.64",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "fnord-v193",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1e",
+          "accountId": "984115053116",
+          "instanceId": "b1aecefd-4c92-4f94-85b5-9caaaa4df86e",
+          "application": "fnord",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 4,
+        "memory": 16384,
+        "disk": 30720,
+        "gpu": 0,
+        "networkMbps": 1024,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1e",
+        "host": "254.110.246.253",
+        "containerIp": "207.84.235.64"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-05ce76e5",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-097fdce0",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-236284fc",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "207.84.235.64",
+      "agentId": "i-0104ea2617e1e471f",
+      "ipv4Address": "207.84.235.64",
+      "ipv6Address": "4476:a649:2625:9bbb:876e:9469:4f4c:3334",
+      "availabilityZone": "us-east-1e",
+      "hostIp": "254.110.246.253",
+      "healthState": "Up",
+      "launchTime": 1624817477963,
+      "containerIp": "207.84.235.64",
+      "isHealthy": true,
+      "zone": "us-east-1e",
+      "name": "b1aecefd-4c92-4f94-85b5-9caaaa4df86e",
+      "humanReadableName": "b1aecefd-4c92-4f94-85b5-9caaaa4df86e",
+      "labels": {}
+    }
+  ],
+  "capacity": {
+    "min": 9,
+    "max": 500,
+    "desired": 20,
+    "pinned": false
+  },
+  "disruptionBudget": {
+    "availabilityPercentageLimit": {
+      "percentageOfHealthyContainers": 95.0
+    },
+    "rateUnlimited": false,
+    "timeWindows": [
+      {
+        "days": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday"
+        ],
+        "hourlyTimeWindows": [
+          {
+            "startHour": 10,
+            "endHour": 16
+          }
+        ],
+        "timeZone": "PST"
+      }
+    ],
+    "containerHealthProviders": [],
+    "ratePercentagePerInterval": {
+      "intervalMs": 600000,
+      "percentageLimitPerInterval": 5.0
+    }
+  },
+  "resources": {
+    "cpu": 4,
+    "memory": 16384,
+    "disk": 30720,
+    "gpu": 0,
+    "networkMbps": 1024,
+    "ports": [],
+    "allocateIpAddress": true
+  },
+  "placement": {
+    "account": "titusprodvpc",
+    "region": "us-east-1",
+    "zones": []
+  },
+  "disabled": false,
+  "capacityGroup": "fnord",
+  "retries": 0,
+  "runtimeLimitSecs": 0,
+  "buildInfo": {
+    "images": [
+      "fnord/fnord:v1.1.409-h1404.6d21b5a"
+    ],
+    "docker": {
+      "image": "fnord/fnord",
+      "tag": "v1.1.409-h1404.6d21b5a",
+      "digest": "sha256:fe6ab5b1ffadbc147e5f0f89ea7fbc68f3de12b112f22a6a0e3c71fe807e5fc3"
+    },
+    "jenkins": {
+      "name": "PLC-fnord-master-rocket",
+      "number": "1404",
+      "host": "https://producteng.builds.test.netflix.net/",
+      "commitId": "6d21b5a2e241b19a1d0eb620fe789e0327495b67",
+      "version": "v1.1.409-h1404.6d21b5a"
+    }
+  },
+  "migrationPolicy": {
+    "type": "systemDefault"
+  },
+  "serviceJobProcesses": {
+    "disableIncreaseDesired": false,
+    "disableDecreaseDesired": false
+  },
+  "constraints": {
+    "hard": {},
+    "soft": {}
+  },
+  "instanceCounts": {
+    "total": 20,
+    "up": 20,
+    "down": 0,
+    "unknown": 0,
+    "outOfService": 0,
+    "starting": 0
+  },
+  "tags": {
+    "titus.relocation.requiredBy": "1620246282886",
+    "spinnakerAccount": "titusprodvpc",
+    "titus.createdBy": "anonymous",
+    "titus.noncompliant.details.accountIdAndSubnetsFeature.noContainerAccountIdAndSubnets": "Container accountId and/or subnet container attributes are empty/inconsistent",
+    "titus.stack": "main01",
+    "name": "fnord-v193",
+    "source": "spinnaker",
+    "titus.cell": "main01cell001",
+    "titus.noncompliant.features": "accountIdAndSubnetsFeature"
+  },
+  "loadBalancers": [],
+  "launchConfig": {},
+  "createdTime": 1624642230597,
+  "zones": [],
+  "region": "us-east-1",
+  "moniker": {
+    "app": "fnord",
+    "cluster": "fnord",
+    "sequence": 193
+  },
+  "serverGroupManagers": [],
+  "sharding": {
+    "shards": {}
+  }
+}

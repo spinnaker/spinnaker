@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: rename-name-to-id-drop-uid
+      author: fletch
+      changes:
+        - renameColumn:
+            tableName: resource
+            oldColumnName: name
+            newColumnName: id
+            columnDataType: varchar(255)
+      rollback:
+        - renameColumn:
+            tableName: resource
+            oldColumnName: id
+            newColumnName: name
+            columnDataType: varchar(255)

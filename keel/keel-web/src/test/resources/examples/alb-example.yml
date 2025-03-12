@@ -1,0 +1,51 @@
+---
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+environments:
+- name: test
+  resources:
+  - kind: ec2/application-load-balancer@v1.2
+    spec:
+      moniker:
+        app: fnord
+      listeners:
+      - port: 443
+        protocol: HTTPS
+        certificate: fnord.prod.illuminati.org-DigiCertSHA2SecureServerCA-20200205-20210205
+        defaultActions:
+        - type: authenticate-oidc
+          order: 1
+          authenticateOidcConfig:
+            issuer: https://meechum.netflix.com
+            authorizationEndpoint: https://meechum.netflix.com/as/authorization.oauth2
+            tokenEndpoint: https://meechum.netflix.com/as/token.oauth2
+            userInfoEndpoint: https://meechum.netflix.com/idp/userinfo.openid
+            clientId: fnord
+            sessionCookieName: fnord
+            scope: default fnord
+            sessionTimeout: PT1H
+        - type: forward
+          order: 2
+          targetGroupName: fnord
+      locations:
+        vpc: vpc0
+        subnet: internal (vpc0)
+        account: prod
+        regions:
+        - name: us-east-1
+      dependencies:
+        securityGroupNames:
+        - fnord
+        - datacenter-elb
+      targetGroups:
+      - name: fnord
+        port: 8443
+        protocol: HTTPS
+        attributes:
+          stickinessType: lb_cookie
+          stickinessEnabled: false
+          stickinessDuration: 8400
+          deregistrationDelay: 600
+          slowStartDurationSeconds: 0
+        targetType: ip
+        healthCheckPort: 8080

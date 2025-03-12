@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-veto-info-table
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: environment_artifact_veto
+            columns:
+              - column:
+                  name: environment_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_version
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: vetoed_at
+                  type: timestamp(3)
+                  constraints:
+                    - nullable: false
+              - column:
+                  name: vetoed_by
+                  type: varchar(255)
+                  constraints:
+                    - nullable: false
+              - column:
+                  name: comment
+                  type: varchar(255)
+                  constraints:
+                    - nullable: true
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: environment_artifact_veto
+  - changeSet:
+      id: create-environment-artifact-veto-pk
+      author: emjburns
+      changes:
+        - addPrimaryKey:
+            tableName: environment_artifact_veto
+            constraintName: env_art_veto_pk
+            columnNames: environment_uid, artifact_uid, artifact_version

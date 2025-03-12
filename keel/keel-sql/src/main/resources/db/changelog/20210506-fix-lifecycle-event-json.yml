@@ -1,0 +1,13 @@
+databaseChangeLog:
+- changeSet:
+    id: fix-lifecycle-event-json
+    author: fletch
+    changes:
+    - sql:
+        sql: |
+          update lifecycle_event
+          set json = json_set(
+            json,
+            '$.deliveryConfigName', delivery_config_name,
+            '$.artifactReference', artifact_reference
+          );

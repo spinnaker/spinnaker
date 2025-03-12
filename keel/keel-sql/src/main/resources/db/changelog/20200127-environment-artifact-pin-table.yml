@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-environment-artifact-pin-table
+      author: asher
+      changes:
+        - createTable:
+            tableName: environment_artifact_pin
+            columns:
+              - column:
+                  name: environment_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_version
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pinned_at
+                  type: bigint
+                  constraints:
+                    - nullable: false
+              - column:
+                  name: pinned_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: comment
+                  type: varchar(255)
+  - changeSet:
+      id: create-environment-artifact-pin-pk
+      author: asher
+      changes:
+        - addPrimaryKey:
+            tableName: environment_artifact_pin
+            constraintName: env_art_pin_pk
+            columnNames: environment_uid, artifact_uid
+  - changeSet:
+      id: create-delivery-artifact-byref-index
+      author: asher
+      changes:
+        - createIndex:
+            indexName: delivery_artifact_byref_idx
+            tableName: delivery_artifact
+            columns:
+              - column:
+                  name: delivery_config_name
+              - column:
+                  name: reference

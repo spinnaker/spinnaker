@@ -1,0 +1,30 @@
+databaseChangeLog:
+- changeSet:
+    id: create-resource-metadata-view
+    author: fletch
+    changes:
+    - createView:
+        viewName: resource_with_metadata
+        selectQuery: |
+          select
+            resource.uid,
+            resource.id,
+            resource.application,
+            resource.kind,
+            json_object(
+              'uid', resource.uid,
+              'id', resource.id,
+              'application', resource.application,
+              'environment', environment.uid,
+              'environmentName', environment.name,
+              'deliveryConfig', delivery_config.uid,
+              'serviceAccount', delivery_config.service_account
+            ) as metadata,
+            resource.spec
+          from resource
+          left outer join environment_resource on resource.uid = environment_resource.resource_uid
+          left outer join environment on environment.uid = environment_resource.environment_uid
+          left outer join delivery_config on delivery_config.uid = environment.delivery_config_uid
+    - dropColumn:
+        tableName: resource
+        columnName: metadata

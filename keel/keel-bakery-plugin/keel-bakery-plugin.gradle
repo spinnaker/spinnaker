@@ -1,0 +1,17 @@
+dependencies {
+  implementation(project(":keel-api"))
+  implementation(project(":keel-core")) // TODO: ideally not
+  implementation(project(":keel-clouddriver"))
+  implementation(project(":keel-igor"))
+  implementation(project(":keel-orca"))
+  implementation(project(":keel-artifact"))
+  implementation("io.spinnaker.kork:kork-exceptions")
+  implementation("io.spinnaker.kork:kork-security")
+  implementation("com.netflix.frigga:frigga")
+
+  testImplementation(project(":keel-test"))
+  testImplementation(project(":keel-core-test"))
+  testImplementation("dev.minutest:minutest")
+  testImplementation("io.strikt:strikt-mockk")
+  testImplementation(project(":keel-spring-test-support"))
+}

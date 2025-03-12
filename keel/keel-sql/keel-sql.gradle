@@ -1,0 +1,292 @@
+plugins {
+  id("nu.studer.jooq") version "6.0.1"
+  id("org.liquibase.gradle") version "2.0.4"
+}
+
+def buildingInDocker = Boolean.parseBoolean(project.properties["buildingInDocker"]?.toString() ?: "false")
+
+sourceSets {
+  main {
+    java {
+      srcDir("$projectDir/src/generated/java")
+    }
+  }
+}
+
+clean {
+  delete.add("$projectDir/src/generated/java")
+}
+
+dependencies {
+  implementation(project(":keel-core"))
+  implementation(project(":keel-artifact"))
+  implementation("io.spinnaker.kork:kork-sql")
+  implementation("org.springframework:spring-jdbc")
+  implementation("org.springframework:spring-tx")
+  implementation("org.jooq:jooq")
+  implementation("com.zaxxer:HikariCP")
+  implementation("org.liquibase:liquibase-core")
+
+  runtimeOnly("com.mysql:mysql-connector-j")
+
+  testImplementation("io.spinnaker.kork:kork-sql-test")
+  testImplementation("io.strikt:strikt-core")
+  testImplementation(project(":keel-spring-test-support"))
+  testImplementation(project(":keel-test"))
+  testImplementation(project(":keel-core-test"))
+  testImplementation(project(":keel-web")) {
+    // avoid circular dependency which breaks Liquibase
+    exclude(module: "keel-sql")
+  }
+  testImplementation("org.testcontainers:mysql:${testContainersVersion}")
+
+  jooqGenerator(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+  jooqGenerator("com.mysql:mysql-connector-j")
+  jooqGenerator("org.jooq:jooq-meta-extensions")
+  jooqGenerator("ch.qos.logback:logback-classic:1.2.3")
+
+  liquibaseRuntime(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+  liquibaseRuntime("org.liquibase:liquibase-core:4.24.0")
+  liquibaseRuntime("ch.qos.logback:logback-classic:1.2.3")
+  liquibaseRuntime("org.yaml:snakeyaml:1.31")
+  liquibaseRuntime("com.mysql:mysql-connector-j")
+}
+
+liquibaseUpdate {
+  inputs.dir("$projectDir/src/main/resources/db")
+  outputs.dir("$projectDir/src/generated/java")
+
+  doFirst {
+    if (!buildingInDocker) {
+      exec {
+        commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
+      }
+      exec {
+        commandLine("sh", "-c", "docker run --name mysqlJooq --health-cmd='mysqladmin ping -s' -d --rm -e MYSQL_ROOT_PASSWORD=sa -e MYSQL_DATABASE=keel -p 6603:3306 mysql:8.0.36 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci >/dev/null 2>&1; while STATUS=\$(docker inspect --format \"{{.State.Health.Status}}\" mysqlJooq); [ \$STATUS != \"healthy\" ]; do if [ \$STATUS = \"unhealthy\" ]; then echo \"Docker failed to start\"; exit -1; fi; sleep 1; done")
+      }
+    }
+  }
+}
+
+// Don't enforce spotless for generated code
+afterEvaluate {
+  spotless {
+    java {
+      targetExclude(fileTree("$projectDir/src/generated/java"))
+    }
+  }
+}
+
+jooq {
+  // get the version of JOOQ from Spring Boot
+  version = "3.14.16"
+
+  configurations {
+    main {
+      generationTool {
+        logging = org.jooq.meta.jaxb.Logging.ERROR
+        jdbc {
+          driver = "com.mysql.cj.jdbc.Driver"
+          url = "jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC"
+          user = "root"
+          password = "sa"
+        }
+        generator {
+          database {
+            name = "org.jooq.meta.mysql.MySQLDatabase"
+            inputSchema = "keel"
+            excludes = "DATABASECHANGELOG | DATABASECHANGELOGLOCK"
+            forcedTypes {
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.artifacts.GitMetadata"
+                converter = "com.netflix.spinnaker.jooq.GitMetadataConverter"
+                includeExpression = "ARTIFACT_VERSIONS.GIT_METADATA"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.artifacts.BuildMetadata"
+                converter = "com.netflix.spinnaker.jooq.BuildMetadataConverter"
+                includeExpression = "ARTIFACT_VERSIONS.BUILD_METADATA"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.lifecycle.LifecycleEvent"
+                converter = "com.netflix.spinnaker.jooq.LifecycleEventConverter"
+                includeExpression = "LIFECYCLE_EVENT.JSON"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.events.PersistentEvent"
+                converter = "com.netflix.spinnaker.jooq.PersistentEventConverter"
+                includeExpression = "EVENT.JSON"
+              }
+              forcedType {
+                userType = "java.util.Map<String, ?>"
+                converter = "com.netflix.spinnaker.jooq.JsonToMapConverter"
+                includeExpression = "(DELIVERY_CONFIG|ACTION_STATE).METADATA"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.notifications.DismissibleNotification"
+                converter = "com.netflix.spinnaker.jooq.DismissibleNotificationConverter"
+                includeExpression = "DISMISSIBLE_NOTIFICATION.JSON"
+              }
+              // Automatically convert remaining JSON columns to String
+              forcedType {
+                name = "LONGVARCHAR"
+                includeTypes = "JSON"
+              }
+              // Automatically convert bit(1) type to Boolean
+              forcedType {
+                name = "BOOLEAN"
+                includeTypes = "(?i:BIT\\(1\\))"
+              }
+              // Automatically convert tinyint(1) type to Boolean
+              forcedType {
+                name = "BOOLEAN"
+                includeTypes = "(?i:TINYINT\\(1\\))"
+              }
+              // Use Instant rather than LocalDateTime for TIMESTAMP columns
+              forcedType {
+                userType = "java.time.Instant"
+                includeTypes = "TIMESTAMP"
+                converter = "com.netflix.spinnaker.jooq.LocalDateTimeToInstantConverter"
+              }
+              forcedType {
+                userType = "java.time.Instant"
+                includeTypes = "DATETIME"
+                converter = "com.netflix.spinnaker.jooq.LocalDateTimeToInstantConverter"
+              }
+              // Enums
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus"
+                enumConverter = true
+                includeExpression = "ARTIFACT_VERSIONS.RELEASE_STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.constraints.ConstraintStatus"
+                enumConverter = true
+                includeExpression = "ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.core.api.PromotionStatus"
+                enumConverter = true
+                includeExpression = "ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.events.PersistentEvent.EventScope"
+                enumConverter = true
+                includeExpression = "EVENT.SCOPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.lifecycle.LifecycleEventType"
+                enumConverter = true
+                includeExpression = "(LIFECYCLE_EVENT|LIFECYCLE_MONITOR).TYPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.lifecycle.LifecycleEventStatus"
+                enumConverter = true
+                includeExpression = "LIFECYCLE_EVENT.STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.notifications.NotificationScope"
+                enumConverter = true
+                includeExpression = "NOTIFICATION.SCOPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.notifications.NotificationType"
+                enumConverter = true
+                includeExpression = "NOTIFICATION.TYPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.pause.PauseScope"
+                enumConverter = true
+                includeExpression = "PAUSED.SCOPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.constraints.ConstraintStatus"
+                enumConverter = true
+                includeExpression = "ACTION_STATE.STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.action.ActionType"
+                enumConverter = true
+                includeExpression = "ACTION_STATE.TYPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.events.ResourceState"
+                enumConverter = true
+                includeExpression = "RESOURCE_LAST_CHECKED.STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.TaskStatus"
+                enumConverter = true
+                includeExpression = "TASK_TRACKING.STATUS"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.api.actuation.SubjectType"
+                enumConverter = true
+                includeExpression = "TASK_TRACKING.SUBJECT_TYPE"
+              }
+              forcedType {
+                userType = "com.netflix.spinnaker.keel.rollout.RolloutStatus"
+                enumConverter = true
+                includeExpression = "FEATURE_ROLLOUT.STATUS"
+              }
+            }
+          }
+          target {
+            packageName = "com.netflix.spinnaker.keel.persistence.metamodel"
+            directory = "$projectDir/src/generated/java"
+          }
+          generate {
+            generatedAnnotation = true
+            nullableAnnotation = true
+            nonnullAnnotation = true
+          }
+        }
+      }
+    }
+  }
+}
+
+tasks.named("generateJooq").configure {
+  // ensure database schema has been prepared by Liquibase before generating the jOOQ sources
+  dependsOn tasks.named("liquibaseUpdate")
+
+  // declare Liquibase migration scripts as inputs on the jOOQ task
+  inputs.files(fileTree("src/main/resources/db"))
+    .withPropertyName("migrations")
+    .withPathSensitivity(PathSensitivity.RELATIVE)
+
+  // make jOOQ task participate in incremental builds and build caching
+  allInputsDeclared = true
+  outputs.cacheIf { true }
+
+  // shut down database container after JOOQ generation completes
+  doLast {
+    if (!buildingInDocker) {
+      exec {
+        commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
+      }
+    }
+  }
+}
+
+liquibase {
+  activities.register("local") {
+    arguments = [
+      "logLevel"     : "severe",
+      "changeLogFile": "keel-sql/src/main/resources/db/databaseChangeLog.yml",
+      "url"          : "jdbc:mysql://localhost:3306/keel?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+      "username"     : "root",
+      "password"     : ""
+    ]
+  }
+  activities.register("docker") {
+    arguments = [
+      "logLevel"     : "severe",
+      "changeLogFile": "keel-sql/src/main/resources/db/databaseChangeLog.yml",
+      "url"          : "jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+      "username"     : "root",
+      "password"     : "sa"
+    ]
+  }
+  runList = "docker"
+}

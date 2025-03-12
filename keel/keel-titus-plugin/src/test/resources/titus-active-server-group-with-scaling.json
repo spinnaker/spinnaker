@@ -1,0 +1,287 @@
+{
+  "id": "a0d4c686-8433-4fda-9abc-a3fd7cddb073",
+  "name": "mddemotitus-test-fletch-v000",
+  "type": "titus",
+  "cloudProvider": "titus",
+  "entryPoint": "",
+  "entryPointList": [
+    ""
+  ],
+  "cmd": "",
+  "cmdList": [],
+  "awsAccount": "test",
+  "accountId": "946162892765",
+  "iamProfile": "arn:aws:iam::946162892765:role/TitusContainerDefaultRole",
+  "securityGroups": [
+    "sg-e3a7c527",
+    "sg-5781e573",
+    "sg-c5abd14d"
+  ],
+  "hardConstraints": [],
+  "softConstraints": [],
+  "targetGroups": [],
+  "env": {
+    "EC2_REGION": "us-east-1",
+    "NETFLIX_HOME_REGION": "us-east-1",
+    "NETFLIX_REGION": "us-east-1",
+    "SPINNAKER_ACCOUNT": "titustestvpc"
+  },
+  "submittedAt": 1624652138576,
+  "application": "mddemotitus",
+  "image": {
+    "dockerImageName": "spkr/mddemo-titus",
+    "dockerImageVersion": "latest",
+    "dockerImageDigest": "sha256:4277dff57ca7fbd704e61d373c0970127deb00633b586d6b4981632fc5951356"
+  },
+  "scalingPolicies": [
+    {
+      "id": "9092c8f0-0586-4481-b040-8938392148b6",
+      "status": {
+        "reason": "",
+        "state": "Applied"
+      },
+      "policy": {
+        "targetPolicyDescriptor": {
+          "targetValue": 2.0,
+          "scaleOutCooldownSec": 300,
+          "scaleInCooldownSec": 300,
+          "disableScaleIn": false,
+          "customizedMetricSpecification": {
+            "metricName": "AverageCPUUtilization",
+            "namespace": "NFLX/EPIC",
+            "statistic": "Average"
+          }
+        }
+      }
+    }
+  ],
+  "labels": {
+    "titus.relocation.requiredBy": "1607028632143",
+    "spinnakerAccount": "titustestvpc",
+    "titus.createdBy": "fzlem@netflix.com",
+    "titus.noncompliant.details.accountIdAndSubnetsFeature.noContainerAccountIdAndSubnets": "Container accountId and/or subnet container attributes are empty/inconsistent",
+    "titus.stack": "main01",
+    "name": "mddemotitus-test-fletch-v000",
+    "source": "spinnaker",
+    "titus.cell": "main01cell001",
+    "titus.noncompliant.features": "accountIdAndSubnetsFeature"
+  },
+  "containerAttributes": {
+    "titusParameter.agent.subnets": "subnet-0f03c5c477cdc6a0c,subnet-0d2d31e62f11e5b59,subnet-04fca5dd4bbf221cb",
+    "titusParameter.agent.assignIPv6Address": "true",
+    "titusParameter.agent.accountId": "946162892765"
+  },
+  "instances": [
+    {
+      "application": "mddemotitus",
+      "id": "f2b1df21-90c0-4ccd-a43d-baf013da03a0",
+      "instanceId": "f2b1df21-90c0-4ccd-a43d-baf013da03a0",
+      "jobId": "a0d4c686-8433-4fda-9abc-a3fd7cddb073",
+      "jobName": "mddemotitus-test-fletch-v000",
+      "image": {
+        "dockerImageName": "spkr/mddemo-titus",
+        "dockerImageVersion": "latest",
+        "dockerImageDigest": "sha256:4277dff57ca7fbd704e61d373c0970127deb00633b586d6b4981632fc5951356"
+      },
+      "state": "RUNNING",
+      "env": {
+        "EC2_REGION": "us-east-1",
+        "NETFLIX_HOME_REGION": "us-east-1",
+        "NETFLIX_REGION": "us-east-1",
+        "SPINNAKER_ACCOUNT": "titustestvpc"
+      },
+      "submittedAt": 1624652271033,
+      "health": [
+        {
+          "healthClass": "platform",
+          "state": "Unknown",
+          "type": "Titus"
+        },
+        {
+          "eurekaAccountName": "eurekatest",
+          "hostName": "211.103.209.190",
+          "overriddenStatus": "UNKNOWN",
+          "titusTaskId": "f2b1df21-90c0-4ccd-a43d-baf013da03a0",
+          "healthCheckUrl": "http://211.103.209.190:7001/healthcheck",
+          "statusPageUrl": "http://211.103.209.190:7003/AdminProxyStatus",
+          "instanceType": "Titus",
+          "vipAddress": "mddemotitus-test-fletch.netflix.net:7001",
+          "ipAddress": "211.103.209.190",
+          "allowMultipleEurekaPerAccount": false,
+          "asgName": "mddemotitus-test-fletch-v000",
+          "type": "Discovery",
+          "availabilityZone": "us-east-1d",
+          "accountId": "946162892765",
+          "instanceId": "f2b1df21-90c0-4ccd-a43d-baf013da03a0",
+          "application": "mddemotitus",
+          "titusStack": "main01cell001",
+          "eurekaStatus": "UP",
+          "state": "Up",
+          "discoveryType": "Eureka",
+          "status": "UP"
+        }
+      ],
+      "resources": {
+        "cpu": 1,
+        "memory": 512,
+        "disk": 10000,
+        "gpu": 0,
+        "networkMbps": 128,
+        "ports": {}
+      },
+      "placement": {
+        "region": "us-east-1",
+        "zone": "us-east-1d",
+        "host": "5.238.193.142",
+        "containerIp": "211.103.209.190"
+      },
+      "securityGroups": [
+        {
+          "groupId": "sg-e3a7c527",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-5781e573",
+          "groupName": "n/a"
+        },
+        {
+          "groupId": "sg-c5abd14d",
+          "groupName": "n/a"
+        }
+      ],
+      "providerType": "titus",
+      "cloudProvider": "titus",
+      "privateIpAddress": "211.103.209.190",
+      "agentId": "i-092db3241de0c74d2",
+      "ipv4Address": "211.103.209.190",
+      "ipv6Address": "7a44:b321:5593:5326:8e70:8d4c:6584:65fa",
+      "containerIp": "211.103.209.190",
+      "isHealthy": true,
+      "availabilityZone": "us-east-1d",
+      "hostIp": "5.238.193.142",
+      "healthState": "Up",
+      "launchTime": 1624652271033,
+      "zone": "us-east-1d",
+      "name": "f2b1df21-90c0-4ccd-a43d-baf013da03a0",
+      "humanReadableName": "f2b1df21-90c0-4ccd-a43d-baf013da03a0",
+      "labels": {}
+    }
+  ],
+  "capacity": {
+    "min": 1,
+    "max": 3,
+    "desired": 1,
+    "pinned": false
+  },
+  "disruptionBudget": {
+    "availabilityPercentageLimit": {
+      "percentageOfHealthyContainers": 95.0
+    },
+    "rateUnlimited": false,
+    "timeWindows": [
+      {
+        "days": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday"
+        ],
+        "hourlyTimeWindows": [
+          {
+            "startHour": 10,
+            "endHour": 16
+          }
+        ],
+        "timeZone": "PST"
+      }
+    ],
+    "containerHealthProviders": [],
+    "ratePercentagePerInterval": {
+      "intervalMs": 600000,
+      "percentageLimitPerInterval": 5.0
+    }
+  },
+  "resources": {
+    "cpu": 1,
+    "memory": 512,
+    "disk": 10000,
+    "gpu": 0,
+    "networkMbps": 128,
+    "ports": [],
+    "allocateIpAddress": true
+  },
+  "placement": {
+    "account": "titustestvpc",
+    "region": "us-east-1",
+    "zones": []
+  },
+  "disabled": false,
+  "capacityGroup": "mddemotitus",
+  "retries": 0,
+  "runtimeLimitSecs": 0,
+  "buildInfo": {
+    "images": [
+      "spkr/mddemo-titus:latest"
+    ],
+    "docker": {
+      "image": "spkr/mddemo-titus",
+      "tag": "latest",
+      "digest": "sha256:4277dff57ca7fbd704e61d373c0970127deb00633b586d6b4981632fc5951356"
+    },
+    "jenkins": {
+      "name": "SPKR-mddemo-titus-publish",
+      "number": "36",
+      "host": "https://krypton.builds.test.netflix.net/",
+      "commitId": "7a935c675bfb75c69403a9a7e9b43950ed307670",
+      "version": "master-h36.7a935c6"
+    }
+  },
+  "migrationPolicy": {
+    "type": "systemDefault"
+  },
+  "serviceJobProcesses": {
+    "disableIncreaseDesired": false,
+    "disableDecreaseDesired": false
+  },
+  "constraints": {
+    "hard": {},
+    "soft": {}
+  },
+  "loadBalancers": [],
+  "launchConfig": {},
+  "instanceCounts": {
+    "total": 1,
+    "up": 1,
+    "down": 0,
+    "unknown": 0,
+    "outOfService": 0,
+    "starting": 0
+  },
+  "tags": {
+    "titus.relocation.requiredBy": "1607028632143",
+    "spinnakerAccount": "titustestvpc",
+    "titus.createdBy": "fzlem@netflix.com",
+    "titus.noncompliant.details.accountIdAndSubnetsFeature.noContainerAccountIdAndSubnets": "Container accountId and/or subnet container attributes are empty/inconsistent",
+    "titus.stack": "main01",
+    "name": "mddemotitus-test-fletch-v000",
+    "source": "spinnaker",
+    "titus.cell": "main01cell001",
+    "titus.noncompliant.features": "accountIdAndSubnetsFeature"
+  },
+  "createdTime": 1624652138576,
+  "zones": [],
+  "region": "us-east-1",
+  "serverGroupManagers": [],
+  "moniker": {
+    "app": "mddemotitus",
+    "cluster": "mddemotitus-test-fletch",
+    "detail": "fletch",
+    "stack": "test",
+    "sequence": 0
+  },
+  "sharding": {
+    "shards": {},
+    "unprocessedDetail": "fletch"
+  }
+}

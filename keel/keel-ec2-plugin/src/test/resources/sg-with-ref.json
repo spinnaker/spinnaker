@@ -1,0 +1,76 @@
+{
+  "class": "com.netflix.spinnaker.clouddriver.aws.model.AmazonSecurityGroup",
+  "type": "aws",
+  "cloudProvider": "aws",
+  "id": "sg-26cc14a1",
+  "name": "keel",
+  "vpcId": "vpc-63a3922f",
+  "description": "keel application sg",
+  "accountName": "test",
+  "region": "us-west-2",
+  "inboundRules": [
+    {
+      "class": "com.netflix.spinnaker.clouddriver.model.securitygroups.SecurityGroupRule",
+      "securityGroup": {
+        "class": "com.netflix.spinnaker.clouddriver.aws.model.AmazonSecurityGroup",
+        "type": "aws",
+        "cloudProvider": "aws",
+        "id": "sg-5520dc9b",
+        "name": "keel-elb",
+        "vpcId": "vpc-63a3922f",
+        "accountName": "test",
+        "accountId": "176056002400",
+        "region": "us-west-2",
+        "summary": {
+          "name": "keel-elb",
+          "id": "sg-5520dc9b",
+          "vpcId": "vpc-63a3922f",
+          "moniker": {
+            "app": "keel",
+            "cluster": "keel-elb",
+            "detail": null,
+            "stack": "elb",
+            "sequence": null
+          }
+        },
+        "moniker": {
+          "app": "keel",
+          "cluster": "keel-elb",
+          "detail": null,
+          "stack": "elb",
+          "sequence": null
+        }
+      },
+      "protocol": "tcp",
+      "portRanges": [
+        {
+          "startPort": 7001,
+          "endPort": 7001
+        },
+        {
+          "startPort": 7002,
+          "endPort": 7002
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "name": "keel",
+    "id": "sg-26cc14a1",
+    "vpcId": "vpc-63a3922f",
+    "moniker": {
+      "app": "keel",
+      "cluster": "keel",
+      "detail": null,
+      "stack": null,
+      "sequence": null
+    }
+  },
+  "moniker": {
+    "app": "keel",
+    "cluster": "keel",
+    "detail": null,
+    "stack": null,
+    "sequence": null
+  }
+}

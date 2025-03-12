@@ -1,0 +1,23 @@
+databaseChangeLog:
+- changeSet:
+    id: add-status-to-feature-rollout
+    author: fletch
+    changes:
+    - addColumn:
+        tableName: feature_rollout
+        columns:
+        - column:
+            name: status
+            type: varchar(64)
+            constraints:
+            - nullable: false
+            value: IN_PROGRESS
+            afterColumn: resource_id
+    - dropNotNullConstraint:
+        tableName: feature_rollout
+        columnName: first_attempt_at
+        columnDataType: datetime(3)
+    - dropNotNullConstraint:
+        tableName: feature_rollout
+        columnName: latest_attempt_at
+        columnDataType: datetime(3)

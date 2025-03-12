@@ -1,0 +1,55 @@
+databaseChangeLog:
+- changeSet:
+    id: add-verification-repository
+    author: fletch
+    changes:
+    - createTable:
+        tableName: verification_state
+        columns:
+          - column:
+              name: environment_uid
+              type: char(26)
+              constraints:
+                nullable: false
+          - column:
+              name: artifact_uid
+              type: char(26)
+              constraints:
+                nullable: false
+          - column:
+              name: artifact_version
+              type: char(26)
+              constraints:
+                nullable: false
+          - column:
+              name: verification_id
+              type: varchar(255)
+              constraints:
+                nullable: false
+          - column:
+              name: status
+              type: varchar(255)
+              constraints:
+                nullable: false
+          - column:
+              name: started_at
+              type: timestamp(3)
+              constraints:
+                nullable: false
+          - column:
+              name: ended_at
+              type: timestamp(3)
+              constraints:
+                nullable: true
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+- changeSet:
+    id: add-verification-repository-indices
+    author: fletch
+    changes:
+    - addPrimaryKey:
+        constraintName: verification_state_pk
+        tableName: verification_state
+        columnNames: environment_uid, artifact_uid, artifact_version, verification_id

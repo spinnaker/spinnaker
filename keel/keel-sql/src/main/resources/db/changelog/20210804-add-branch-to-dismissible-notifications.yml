@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: dismissible-notification-branch-type
+      author: rhorev
+      changes:
+        - sql:
+            sql: |
+              alter table dismissible_notification
+              add column type varchar(255) generated always as (json->>'$.type')
+              after uid;
+        - sql:
+            sql: |
+              alter table dismissible_notification
+              add column branch varchar(255) generated always as (json->>'$.branch')
+              after application;

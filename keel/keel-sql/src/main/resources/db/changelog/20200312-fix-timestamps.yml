@@ -1,0 +1,63 @@
+databaseChangeLog:
+  - changeSet:
+      id: fix-timestamps
+      author: lpollo
+      changes:
+        - modifyDataType:
+            tableName: delivery_config_last_checked
+            columnName: at
+            newDataType: timestamp(3)
+        - modifyDataType:
+            tableName: environment_artifact_constraint
+            columnName: created_at
+            newDataType: timestamp(3)
+        - sql:
+            sql: >
+              alter table environment_artifact_constraint
+              modify judged_at timestamp(3) NULL default NULL
+        - modifyDataType:
+            tableName: environment_artifact_versions
+            columnName: approved_at
+            newDataType: timestamp(3)
+        - sql:
+            sql: >
+              alter table environment_artifact_versions
+              modify deployed_at timestamp(3) NULL default NULL
+        - modifyDataType:
+            tableName: event
+            columnName: timestamp
+            newDataType: timestamp(3)
+        - modifyDataType:
+            tableName: resource_last_checked
+            columnName: at
+            newDataType: timestamp(3)
+
+      rollback:
+        - modifyDataType:
+            tableName: delivery_config_last_checked
+            columnName: at
+            newDataType: timestamp
+        - modifyDataType:
+            tableName: environment_artifact_constraint
+            columnName: created_at
+            newDataType: timestamp
+        - sql:
+            sql: >
+              alter table environment_artifact_constraint
+              modify judged_at timestamp NULL default NULL
+        - modifyDataType:
+            tableName: environment_artifact_versions
+            columnName: approved_at
+            newDataType: timestamp
+        - sql:
+            sql: >
+              alter table environment_artifact_versions
+              modify deployed_at timestamp NULL default NULL
+        - modifyDataType:
+            tableName: event
+            columnName: timestamp
+            newDataType: timestamp
+        - modifyDataType:
+            tableName: resource_last_checked
+            columnName: at
+            newDataType: timestamp

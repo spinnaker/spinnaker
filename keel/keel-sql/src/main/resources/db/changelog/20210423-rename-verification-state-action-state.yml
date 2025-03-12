@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: rename-verification-state-action-state
+      author: emjburns
+      changes:
+        - renameTable:
+            oldTableName: verification_state
+            newTableName: action_state
+        - addColumn:
+            tableName: action_state
+            columns:
+              - column:
+                  name: type
+                  type: varchar(100)
+                  afterColumn: artifact_version
+                  value: VERIFICATION
+                  constraints:
+                    nullable: false
+        - renameColumn:
+            tableName: action_state
+            oldColumnName: verification_id
+            newColumnName: action_id
+            columnDataType: varchar(255)
+      rollback:
+        - dropColumn:
+            tableName: verification_state
+            columnName: type
+        - renameColumn:
+            tableName: action_state
+            oldColumnName: action_id
+            newColumnName: verification_id
+            columnDataType: varchar(255)
+        - renameTable:
+            oldTableName: action_state
+            newTableName: verification_state

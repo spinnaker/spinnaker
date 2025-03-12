@@ -1,0 +1,40 @@
+databaseChangeLog:
+- changeSet:
+    id: rename-active-environment-view
+    author: fletch
+    changes:
+    - renameView:
+        oldViewName: latest_environment
+        newViewName: active_environment
+    - dropView:
+        viewName: resource_with_metadata
+    - createView:
+        viewName: active_resource
+        selectQuery: |
+          select
+            resource.uid,
+            resource.id,
+            resource.application,
+            resource.kind,
+            json_object(
+              'uid', resource.uid,
+              'id', resource.id,
+              'version', resource_version.version,
+              'application', resource.application,
+              'environment', active_environment.uid,
+              'environmentName', active_environment.name,
+              'deliveryConfig', delivery_config.uid,
+              'serviceAccount', delivery_config.service_account
+            ) as metadata,
+            resource_version.spec
+          from resource
+          join resource_version
+            on resource.uid = resource_version.resource_uid
+          join environment_resource
+            on resource.uid = environment_resource.resource_uid
+            and resource_version.version = environment_resource.resource_version
+          join active_environment
+            on active_environment.uid = environment_resource.environment_uid
+            and active_environment.version = environment_resource.environment_version
+          join delivery_config
+            on delivery_config.uid = active_environment.delivery_config_uid;

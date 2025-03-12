@@ -1,0 +1,39 @@
+dependencies {
+  api(project(":keel-api"))
+  api("com.fasterxml.jackson.core:jackson-databind")
+  api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  api("com.fasterxml.jackson.module:jackson-module-kotlin")
+  api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  api("de.danielbechler:java-object-diff")
+  api("org.springframework:spring-context")
+  api("org.springframework.boot:spring-boot-autoconfigure")
+  api("com.netflix.frigga:frigga")
+  api("io.spinnaker.kork:kork-core")
+  api("net.swiftzer.semver:semver:1.1.0")
+  api("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
+  api("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
+  api("org.apache.commons:commons-lang3")
+  api("com.github.ben-manes.caffeine:caffeine")
+
+  implementation("org.springframework:spring-tx")
+  implementation("org.springframework:spring-web")
+  implementation("io.github.resilience4j:resilience4j-kotlin")
+  implementation("io.github.resilience4j:resilience4j-retry")
+  implementation("com.newrelic.agent.java:newrelic-api:6.1.0")
+  implementation("io.spinnaker.kork:kork-plugins")
+  implementation("org.jgrapht:jgrapht-core:1.5.1")
+  implementation("io.spinnaker.kork:kork-web")
+  implementation("io.spinnaker.fiat:fiat-api:${fiatVersion}")
+  implementation("io.spinnaker.fiat:fiat-core:${fiatVersion}")
+  implementation(project(":keel-ec2-api"))  // needed for resource dependency logic
+
+  testImplementation(project(":keel-test"))
+  testImplementation(project(":keel-core-test"))
+  testImplementation(project(":keel-ec2-api"))  // needed for resource dependency logic
+  testImplementation("io.strikt:strikt-jackson")
+  testImplementation("io.strikt:strikt-mockk")
+  testImplementation("dev.minutest:minutest")
+
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
+}

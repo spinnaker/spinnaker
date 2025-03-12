@@ -1,0 +1,133 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-lifecycle-events
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: lifecycle_event
+            columns:
+              - column:
+                  name: uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scope
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ref
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_version
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: id
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: timestamp
+                  type: timestamp(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: json
+                  type: json
+                  constraints:
+                    nullable: true
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+  - changeSet:
+      id: add-index-to-lifecycle
+      author: emjburns
+      changes:
+        - createIndex:
+            indexName: lifecycle_ref_version_idx
+            tableName: lifecycle_event
+            columns:
+              - column:
+                  name: ref
+              - column:
+                  name: artifact_version
+  - changeSet:
+      id: create-lifecycle-monitor
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: lifecycle_monitor
+            columns:
+              - column:
+                  name: uid
+                  type: char(26)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: link
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_checked
+                  type: timestamp(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: triggering_event_uid
+                  type: char(26)
+                  constraints:
+                    foreignKeyName: fk_triggering_event_uid
+                    references: lifecycle_event(uid)
+                    nullable: false
+              - column:
+                  name: ignore
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: num_failures
+                  type: int
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+  - changeSet:
+      id: add-index-to-lifecycle-monitor
+      author: emjburns
+      changes:
+        - createIndex:
+            indexName: lifecycle_monitor_type_last_checked_idx
+            tableName: lifecycle_monitor
+            columns:
+              - column:
+                  name: type
+              - column:
+                  name: last_checked

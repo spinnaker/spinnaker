@@ -1,0 +1,30 @@
+databaseChangeLog:
+- changeSet:
+    id: shorten-environment-last-verified-pk
+    author: fletch
+    changes:
+    - dropAllForeignKeyConstraints:
+        baseTableName: environment_last_verified
+    - delete:
+        tableName: environment_last_verified
+    - dropPrimaryKey:
+        tableName: environment_last_verified
+    - addForeignKeyConstraint:
+        baseTableName: environment_last_verified
+        baseColumnNames: environment_uid
+        constraintName: fk_environment_last_verified_environment
+        referencedTableName: environment
+        referencedColumnNames: uid
+        referencesUniqueColumn: true
+        onDelete: CASCADE
+    - addForeignKeyConstraint:
+        baseTableName: environment_last_verified
+        baseColumnNames: artifact_uid
+        constraintName: fk_environment_last_verified_delivery_artifact
+        referencedTableName: delivery_artifact
+        referencedColumnNames: uid
+        referencesUniqueColumn: true
+        onDelete: CASCADE
+    - addPrimaryKey:
+        tableName: environment_last_verified
+        columnNames: environment_uid, artifact_uid

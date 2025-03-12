@@ -1,0 +1,26 @@
+apply(plugin: "com.adarshr.test-logger")
+
+dependencies {
+  testImplementation "org.junit.platform:junit-platform-runner"
+  testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.platform:junit-platform-launcher"
+  testImplementation "org.junit.jupiter:junit-jupiter-engine"
+}
+
+test {
+  minHeapSize = "512m"
+  maxHeapSize = "1g"
+
+  useJUnitPlatform {
+    includeEngines("junit-jupiter")
+  }
+  testLogging {
+    exceptionFormat = "full"
+  }
+}
+
+testlogger {
+  theme = "standard-parallel"
+  showSimpleNames = true
+}

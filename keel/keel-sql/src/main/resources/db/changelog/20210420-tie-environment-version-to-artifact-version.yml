@@ -1,0 +1,46 @@
+databaseChangeLog:
+- changeSet:
+    id: tie-environment-version-to-artifact-version
+    author: fletch
+    changes:
+    - createTable:
+        tableName: environment_version_artifact_version
+        columns:
+        - column:
+            name: environment_uid
+            type: char(26)
+            constraints:
+              nullable: false
+        - column:
+            name: environment_version
+            type: integer
+            constraints:
+              nullable: false
+        - column:
+            name: artifact_uid
+            type: char(26)
+            constraints:
+              nullable: false
+        - column:
+            name: artifact_version
+            type: varchar(255)
+            constraints:
+              nullable: false
+    - addForeignKeyConstraint:
+        baseTableName: environment_version_artifact_version
+        baseColumnNames: environment_uid, environment_version
+        referencedTableName: environment_version
+        referencedColumnNames: environment_uid, version
+        constraintName: fk_environment_version_artifact_version_environment_version
+        onDelete: CASCADE
+    - addForeignKeyConstraint:
+        baseTableName: environment_version_artifact_version
+        baseColumnNames: artifact_uid
+        referencedTableName: delivery_artifact
+        referencedColumnNames: uid
+        constraintName: fk_environment_version_artifact_version_artifact
+        onDelete: CASCADE
+    - addPrimaryKey:
+        tableName: environment_version_artifact_version
+        columnNames: environment_uid, environment_version, artifact_uid
+        constraintName: pk_environment_version_artifact_version

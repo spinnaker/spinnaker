@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-env-notifications
+      author: emjburns
+      changes:
+        - addColumn:
+            tableName: environment
+            columns:
+              - column:
+                  name: notifications
+                  type: text
+                  constraints:
+                    nullable: true
+      rollback:
+        - dropColumn:
+            tableName: environment
+            columnName: notifications

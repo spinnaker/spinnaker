@@ -1,0 +1,385 @@
+databaseChangeLog:
+- include:
+    file: changelog/20190801-create-resource-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190802-create-resource-event-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190802-create-resource-last-checked-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190803-create-delivery-config-tables.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190803-create-delivery-artifact-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190803-create-delivery-artifact-version-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190804-create-application-veto-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190808-environment-constraints.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190808-artifact-versions-in-environments.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190808-delivery-config-check-timestamp.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190904-rename-name-to-id.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190913-add-status-to-artifact-version.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20191002-add-env-notifications.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20191108-environment-artifact-constraint.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20191123-rename-resource-check-pending-event.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20191125-create-unhappy-veto-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20191202-create-diff-fingerprint-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20191204-drop-application-veto-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20191205-create-paused-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20191206-update-artifact-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20191218-add-status-to-environment-artifact-versions.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200106-rename-artifact-status.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200106-tie-artifacts-to-delivery-configs.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200108-update-delivery-artifact-indicies.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200109-fix-delivery-artifact-uniqueness.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200110-artifact-fingerprint-unique.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200122-service-account-on-delivery-config.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200122-delivery-config-api-version.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200109-create-task-tracking-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200116-create-agent-lock-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200127-environment-artifact-pin-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200211-environment-artifact-veto.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200228-multi-scope-event-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200302-drop-api-version.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200226-env-artifact-constraint-index.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200312-fix-timestamps.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200313-json-columns.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200330-delivery-config-unique-per-application.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200325-create-artifact-last-checked-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200401-resource-check-veto.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200402-more-artifact-info.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200410-rename-diff-fingerprint-column.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200427-add-info-to-paused-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200511-misc-platform-review-changes.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200515-add-unique-id-to-event.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200520-add-cluster-lock-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200521-event-uid-timestamp-index.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200521-add-event-pk.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200521-drop-cluster-lock-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200522-standardize-timestamps.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200528-add-veto-info.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200603-add-delivery-config-metadata.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200611-fix-event-timestamps.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200611-create-resource-metadata-view.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200714-add-event-application-column.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200731-add-artifact-reference-column.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200812-add-build-and-git-metadata-columns.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200923-add-created-at-to-artifact-versions.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200925-environment-related-indices.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200928-add-notification-repo.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201001-diff-action-count.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20200930-environment-check-lock.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201006-add-unhealthy-repository.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201112-add-verification-repository.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201116-foreign-keys.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201120-foreign-keys-for-verification-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201016-create-lifecycle-events.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201203-cleanup-event-and-paused-orhpans.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201130-environment-last-verified.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201208-fix-environment-last-verified-cascade.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201208-add-verification-state-metadata.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201218-add-environment-verify-with.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201219-add-artifact-unique-index.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201220-fix-verification-state-columns.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201221-shorten-environment-last-verified-pk.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210111-update-verification-status-enum.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210114-verification-state-task-list.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210208-versioned-resources.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210226-generate-event-columns.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/202010303-baked-images.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210305-fix-artifacts.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210305-embiggen-reason-column.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210302-drop-old-event-columns.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210316-update-env-artifact-constr.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210322-environment-version-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210325-latest-environment-view.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210331-fix-environment-resource-pk.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210331-fix-resource-with-metadata-view.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210331-add-environment-lease-repository.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210404-resource-version-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210409-resource-version-foreign-keys.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210409-add-version-timestamps.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210409-add-verif-link-column.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210413-environment-features-per-version.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210419-actually-no-environment-features-per-version.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210415-preview-environment.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210420-add-post-deploy-actions.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210421-add-post-deploy-last-checked.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210423-rename-verification-state-action-state.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210420-tie-environment-version-to-artifact-version.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210503-separate-delivery-config-and-artifact-on-lifecycle-event.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210506-fix-lifecycle-event-json.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210506-fix-build-links-in-lifecycle-events.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210505-environment-is-preview.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210525-migrate-verification-ids.yaml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210526-remove-deprecated-verification-fields.yaml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210604-desired-environment-version.yaml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210607-rename-active-environment-view.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210609-add-timestamp-to-active-environment.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210609-add-metadata-to-environment.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210614-store-original-artifact.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210611-give-pause-a-reason.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210616-create-dismissible-notifications.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210622-add-environment-deletion-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210628-add-attempted-deletions-to-resource.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210630-add-event-processing-queue.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210716-add-raw-delivery-config.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210804-add-branch-to-dismissible-notifications.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210809-separate-current-version-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210811-add-updated-at-to-delivery-config.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210818-last-resource-check-status.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210909-task-tracking-resource-and-environment.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210917-feature-rollout-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210923-rename-feature-rollout-table.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210928-add-status-to-feature-rollout.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20211007-task-tracking-indecies.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20211008-version-task-tracking.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20211014-artifact-is-preview-column.yml
+    relativeToChangelogFile: true

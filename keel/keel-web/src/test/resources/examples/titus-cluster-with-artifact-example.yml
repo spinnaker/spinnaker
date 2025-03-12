@@ -1,0 +1,35 @@
+---
+application: fnord
+serviceAccount: delivery-engineering@netflix.com
+artifacts:
+- name: fnord
+  type: docker
+  reference: fnord
+  tagVersionStrategy: branch-job-commit-by-job
+environments:
+- name: test
+  locations:
+    account: prod
+    regions:
+    - name: us-west-2
+    - name: us-east-1
+  resources:
+  - kind: titus/cluster@v1
+    spec:
+      moniker:
+        app: fnord
+        stack: examples
+        detail: ec2v1
+      container:
+        reference: fnord
+      capacity:
+        min: 1
+        max: 1
+        desired: 1
+      dependencies:
+        loadBalancerNames: []
+        securityGroupNames:
+          - keeldemo
+          - nf-datacenter
+          - nf-infrastructure
+        targetGroups: []

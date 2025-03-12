@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: more-artifact-info
+      author: emjburns
+      changes:
+        - addColumn:
+            tableName: environment_artifact_versions
+            columns:
+              - column:
+                  name: replaced_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: replaced_at
+                  type: timestamp(3)
+                  constraints:
+                    nullable: true
+      rollback:
+        - dropColumn:
+            tableName: environment_artifact_versions
+            columnName: replaced_by
+        - dropColumn:
+            tableName: environment_artifact_versions
+            columnName: replaced_at

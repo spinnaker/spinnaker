@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: rename-artifact-status
+      author: fletch
+      changes:
+        - renameColumn:
+            tableName: delivery_artifact_version
+            oldColumnName: status
+            newColumnName: release_status
+            columnDataType: varchar(255)
+      rollback:
+        - renameColumn:
+            tableName: delivery_artifact_version
+            oldColumnName: release_status
+            newColumnName: status
+            columnDataType: varchar(255)

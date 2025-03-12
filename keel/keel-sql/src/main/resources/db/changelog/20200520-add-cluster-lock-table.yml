@@ -1,0 +1,28 @@
+databaseChangeLog:
+- changeSet:
+    id: add-cluster-lock-table
+    author: fletch
+    changes:
+    - createTable:
+        tableName: cluster_lock
+        columns:
+        - column:
+            name: id
+            type: varchar(255)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: held_by
+            type: varchar(255)
+            constraints:
+              nullable: false
+        - column:
+            name: expires_at
+            type: bigint(13)
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"

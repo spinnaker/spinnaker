@@ -1,0 +1,34 @@
+databaseChangeLog:
+- changeSet:
+    id: add-unique-id-to-event
+    author: fletch
+    changes:
+    - addColumn:
+        tableName: event
+        columns:
+        - name: uid
+          type: char(26)
+          constraints:
+            nullable: true
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " first"
+- changeSet:
+    id: add-ref-to-events-with-no-uid
+    author: fletch
+    changes:
+    - sql:
+        sql: >
+          update event
+          set json = json_insert(json, '$.ref', json->'$.id')
+          where not(json_contains_path(json, 'one', '$.uid'))
+- changeSet:
+    id: update-uid-to-ref-in-event-json
+    author: fletch
+    changes:
+    - sql:
+        sql: >
+          update event
+          set json = json_remove(json_insert(json, '$.ref', json->'$.uid'), '$.uid')
+          where json_contains_path(json, 'one', '$.uid')

@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-timestamp-to-paused-table
+      author: lpollo
+      changes:
+        - addColumn:
+            tableName: paused
+            columns:
+              - column:
+                  name: paused_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: paused_at
+                  type: timestamp(3)
+                  constraints:
+                    nullable: true
+  # No rollback needed as liquibase can handle column deletions automatically

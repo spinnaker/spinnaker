@@ -1,0 +1,9 @@
+package com.netflix.spinnaker.keel.actuation
+
+object ScheduledEnvironmentCheckStarting
+
+object ScheduledEnvironmentVerificationStarting
+
+object ScheduledArtifactCheckStarting
+
+object ScheduledPostDeployActionRunStarting

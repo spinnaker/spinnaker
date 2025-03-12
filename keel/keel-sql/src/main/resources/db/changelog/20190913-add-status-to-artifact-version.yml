@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: status-to-artifact-version
+      author: emjburns
+      changes:
+        - addColumn:
+            tableName: delivery_artifact_version
+            columns:
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+      rollback:
+        - dropColumn:
+            tableName: delivery_artifact_version
+            columnName: status
+
+  - changeSet:
+      id: status-to-artifact-version-drop-index
+      author: emjburns
+      changes:
+        - dropIndex:
+            indexName: delivery_artifact_version_uid_idx
+            tableName: delivery_artifact_version
+      rollback:
+        - createIndex:
+            indexName: delivery_artifact_version_uid_idx
+            tableName: delivery_artifact_version
+            columns:
+              - column:
+                  name: delivery_artifact_uid
+  - changeSet:
+      id: status-to-artifact-version-create-better-index
+      author: emjburns
+      changes:
+        - createIndex:
+            indexName: delivery_artifact_version_uid_idx
+            tableName: delivery_artifact_version
+            columns:
+              - column:
+                  name: delivery_artifact_uid
+              - column:
+                  name: status
+      rollback:
+        - dropIndex:
+            indexName: delivery_artifact_version_uid_idx
+            tableName: delivery_artifact_version

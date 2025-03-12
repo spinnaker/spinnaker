@@ -1,0 +1,53 @@
+databaseChangeLog:
+- changeSet:
+    id: environment-version-table
+    author: fletch
+    changes:
+    - createTable:
+        tableName: environment_version
+        columns:
+        - column:
+            name: environment_uid
+            type: char(26)
+            constraints:
+              nullable: false
+        - column:
+            name: version
+            type: integer
+            defaultValueNumeric: 1
+            constraints:
+              nullable: false
+    - addUniqueConstraint:
+        tableName: environment_version
+        columnNames: environment_uid, version
+        constraintName: environment_version_environment_uid_version_idx
+    - addForeignKeyConstraint:
+        baseTableName: environment_version
+        baseColumnNames: environment_uid
+        constraintName: fk_environment_version_environment
+        referencedTableName: environment
+        referencedColumnNames: uid
+        referencesUniqueColumn: true
+        onDelete: CASCADE
+    - sql:
+        sql: |
+          insert into environment_version (environment_uid, version) select uid, 1 from environment;
+    - addColumn:
+        tableName: environment_resource
+        columns:
+        - name: environment_version
+          type: integer
+          afterColumn: environment_uid
+          constraints:
+            nullable: false
+          value: 1
+    - dropForeignKeyConstraint:
+        baseTableName: environment_resource
+        constraintName: fk_environment_resource_environment
+    - addForeignKeyConstraint:
+        baseTableName: environment_resource
+        baseColumnNames: environment_uid, environment_version
+        constraintName: fk_environment_resource_environment_version
+        referencedTableName: environment_version
+        referencedColumnNames: environment_uid, version
+        onDelete: CASCADE

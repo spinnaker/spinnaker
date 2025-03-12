@@ -1,0 +1,794 @@
+{
+  "id": "01FECEG2QJH35CBDHPCRNZFHXN",
+  "name": "Deploy deb-sample-app-server-0.200.0~snapshot-h584.791248b to server group emburnstest-managed-postmain  in test/us-east-1",
+  "application": "emburnstest",
+  "status": "RUNNING",
+  "variables": [
+    {
+      "key": "healthCheckType",
+      "value": "EC2"
+    },
+    {
+      "key": "amiName",
+      "value": "ami-06284f54cc67dbced"
+    },
+    {
+      "key": "reason",
+      "value": "Diff detected at 2021-08-30T21:12:29.160091Z[UTC]"
+    },
+    {
+      "key": "notification.type",
+      "value": "createdeploy"
+    },
+    {
+      "key": "deploy.account.name",
+      "value": "test"
+    },
+    {
+      "key": "stack",
+      "value": "managed"
+    },
+    {
+      "key": "virtualizationType",
+      "value": "hvm"
+    },
+    {
+      "key": "metadata",
+      "value": {
+        "resource": "ec2:cluster:test:emburnstest-managed-postmain"
+      }
+    },
+    {
+      "key": "credentials",
+      "value": "test"
+    },
+    {
+      "key": "terminationPolicies",
+      "value": [
+        "OldestInstance"
+      ]
+    },
+    {
+      "key": "targetHealthyDeployPercentage",
+      "value": 100
+    },
+    {
+      "key": "enabledMetrics",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "availabilityZones",
+      "value": {
+        "us-east-1": [
+          "us-east-1c",
+          "us-east-1d",
+          "us-east-1e"
+        ]
+      }
+    },
+    {
+      "key": "blockDevices",
+      "value": [
+        {
+          "volumeType": "gp2",
+          "size": 40,
+          "deleteOnTermination": true,
+          "deviceName": "/dev/sdb"
+        }
+      ]
+    },
+    {
+      "key": "source",
+      "value": {
+        "asgName": "emburnstest-managed-postmain-v028",
+        "region": "us-east-1",
+        "account": "test"
+      }
+    },
+    {
+      "key": "capacity",
+      "value": {
+        "min": 1,
+        "desired": 1,
+        "max": 1
+      }
+    },
+    {
+      "key": "freeFormDetails",
+      "value": "postmain"
+    },
+    {
+      "key": "healthCheckGracePeriod",
+      "value": 600
+    },
+    {
+      "key": "cloudProvider",
+      "value": "aws"
+    },
+    {
+      "key": "kato.result.expected",
+      "value": true
+    },
+    {
+      "key": "cooldown",
+      "value": 10
+    },
+    {
+      "key": "stageTimeoutMs",
+      "value": 1800000
+    },
+    {
+      "key": "requireIMDSv2",
+      "value": false
+    },
+    {
+      "key": "useAmiBlockDeviceMappings",
+      "value": false
+    },
+    {
+      "key": "kato.last.task.id",
+      "value": {
+        "id": "01FECEG5AXPXZR2CG7S37BPXHA"
+      }
+    },
+    {
+      "key": "copySourceCustomBlockDeviceMappings",
+      "value": true
+    },
+    {
+      "key": "ebsOptimized",
+      "value": true
+    },
+    {
+      "key": "instanceType",
+      "value": "m5.large"
+    },
+    {
+      "key": "kato.task.terminalRetryCount",
+      "value": 0
+    },
+    {
+      "key": "loadBalancers",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "moniker",
+      "value": {
+        "app": "emburnstest",
+        "cluster": "emburnstest-managed-postmain",
+        "stack": "managed",
+        "detail": "postmain"
+      }
+    },
+    {
+      "key": "tags",
+      "value": {
+
+      }
+    },
+    {
+      "key": "kato.task.firstNotFoundRetry",
+      "value": -1
+    },
+    {
+      "key": "iamRole",
+      "value": "emburnstestInstanceProfile"
+    },
+    {
+      "key": "application",
+      "value": "emburnstest"
+    },
+    {
+      "key": "targetGroups",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "keyPair",
+      "value": "nf-test-keypair-a"
+    },
+    {
+      "key": "securityGroups",
+      "value": [
+        "sg-1",
+        "sg-2",
+        "nf-3",
+        "nf-4"
+      ]
+    },
+    {
+      "key": "kato.tasks",
+      "value": [
+        {
+          "id": "01FECEG5AXPXZR2CG7S37BPXHA",
+          "status": {
+            "completed": false,
+            "failed": false,
+            "retryable": false
+          },
+          "history": [
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Initializing Orchestration Task"
+            },
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Processing op: DeployAtomicOperation"
+            },
+            {
+              "phase": "DEPLOY",
+              "status": "Initializing phase."
+            },
+            {
+              "phase": "DEPLOY",
+              "status": "Looking for BasicAmazonDeployDescription handler..."
+            },
+            {
+              "phase": "DEPLOY",
+              "status": "Found handler: BasicAmazonDeployHandler"
+            },
+            {
+              "phase": "DEPLOY",
+              "status": "Invoking Handler."
+            },
+            {
+              "phase": "",
+              "status": "Preparing deployment to [us-east-1:[us-east-1c, us-east-1d, us-east-1e]]..."
+            },
+            {
+              "phase": "",
+              "status": "Beginning ASG deployment."
+            },
+            {
+              "phase": "AWS_DEPLOY",
+              "status": "Found ancestor server group, parsing details (name: emburnstest-managed-postmain-v028)"
+            },
+            {
+              "phase": "",
+              "status": "Deploying ASG emburnstest-managed-postmain-v029 with launch template lt-1"
+            },
+            {
+              "phase": "",
+              "status": "Adding tags for emburnstest-managed-postmain-v029"
+            },
+            {
+              "phase": "",
+              "status": "Deploying to subnetIds: subnet-1,subnet-2,subnet-3,subnet-4,subnet-5,subnet-6"
+            },
+            {
+              "phase": "",
+              "status": "Creating lifecycle hooks for: emburnstest-managed-postmain-v029"
+            },
+            {
+              "phase": "",
+              "status": "Creating notification hook ({AutoScalingGroupName: emburnstest-managed-postmain-v029,TopicARN: arn:aws:sns:us-east-1:1__LaunchFailure,NotificationTypes: [autoscaling:EC2_INSTANCE_LAUNCH_ERROR]}) on us-east-1/emburnstest-managed-postmain-v029"
+            },
+            {
+              "phase": "",
+              "status": "Setting size of emburnstest-managed-postmain-v029 in test/us-east-1 to [min=1, max=1, desired=1]"
+            },
+            {
+              "phase": "",
+              "status": "Deployed EC2 server group named emburnstest-managed-postmain-v029"
+            },
+            {
+              "phase": "",
+              "status": "Created the following deployments: [us-east-1:emburnstest-managed-postmain-v029]"
+            },
+            {
+              "phase": "DEPLOY",
+              "status": "Server Groups: [us-east-1:emburnstest-managed-postmain-v029] created."
+            },
+            {
+              "phase": "ENTITY_TAGS",
+              "status": "Retrieving aws:servergroup:emburnstest-managed-postmain-v029:1:us-east-1 from Front50"
+            }
+          ],
+          "resultObjects": [
+            {
+              "ancestorServerGroupNameByRegion": {
+                "us-east-1": "emburnstest-managed-postmain-v028"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "suspendedProcesses",
+      "value": [
+
+      ]
+    },
+    {
+      "key": "strategy",
+      "value": "highlander"
+    },
+    {
+      "key": "kato.task.notFoundRetryCount",
+      "value": 0
+    },
+    {
+      "key": "instanceMonitoring",
+      "value": false
+    },
+    {
+      "key": "subnetType",
+      "value": "internal (vpc0)"
+    },
+    {
+      "key": "account",
+      "value": "test"
+    },
+    {
+      "key": "kato.task.lastStatus",
+      "value": "RUNNING"
+    }
+  ],
+  "steps": [
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask",
+      "name": "determineSourceServerGroup",
+      "startTime": 1630357949782,
+      "endTime": 1630357949884,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "2",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+      "name": "determineHealthProviders",
+      "startTime": 1630357949935,
+      "endTime": 1630357950104,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "3",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask",
+      "name": "snapshotSourceServerGroup",
+      "startTime": 1630357950165,
+      "endTime": 1630357950229,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "4",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask",
+      "name": "createServerGroup",
+      "startTime": 1630357950270,
+      "endTime": 1630357951933,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "5",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+      "name": "monitorDeploy",
+      "startTime": 1630357951986,
+      "status": "RUNNING",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "6",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask",
+      "name": "tagServerGroup",
+      "status": "NOT_STARTED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "7",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask",
+      "name": "waitForUpInstances",
+      "status": "NOT_STARTED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "8",
+      "implementingClass": "com.netflix.spinnaker.orca.kato.tasks.JarDiffsTask",
+      "name": "jarDiffs",
+      "status": "NOT_STARTED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false
+    },
+    {
+      "id": "9",
+      "implementingClass": "com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask",
+      "name": "getCommits",
+      "status": "NOT_STARTED",
+      "stageStart": false,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false
+    }
+  ],
+  "buildTime": 1630357949170,
+  "startTime": 1630357949214,
+  "execution": {
+    "type": "ORCHESTRATION",
+    "id": "01FECEG2QJH35CBDHPCRNZFHXN",
+    "application": "emburnstest",
+    "buildTime": 1630357949170,
+    "canceled": false,
+    "limitConcurrent": false,
+    "keepWaitingPipelines": false,
+    "stages": [
+      {
+        "id": "01FECEG2QJE1PVXWS4S764Q5E3",
+        "refId": "1",
+        "type": "createServerGroup",
+        "name": "createServerGroup",
+        "startTime": 1630357949249,
+        "status": "RUNNING",
+        "context": {
+          "healthCheckType": "EC2",
+          "amiName": "ami-06284f54cc67dbced",
+          "reason": "Diff detected at 2021-08-30T21:12:29.160091Z[UTC]",
+          "notification.type": "createdeploy",
+          "deploy.account.name": "test",
+          "stack": "managed",
+          "virtualizationType": "hvm",
+          "metadata": {
+            "resource": "ec2:cluster:test:emburnstest-managed-postmain"
+          },
+          "credentials": "test",
+          "terminationPolicies": [
+            "OldestInstance"
+          ],
+          "targetHealthyDeployPercentage": 100,
+          "enabledMetrics": [
+
+          ],
+          "availabilityZones": {
+            "us-east-1": [
+              "us-east-1c",
+              "us-east-1d",
+              "us-east-1e"
+            ]
+          },
+          "blockDevices": [
+            {
+              "volumeType": "gp2",
+              "size": 40,
+              "deleteOnTermination": true,
+              "deviceName": "/dev/sdb"
+            }
+          ],
+          "source": {
+            "asgName": "emburnstest-managed-postmain-v028",
+            "region": "us-east-1",
+            "account": "test"
+          },
+          "capacity": {
+            "min": 1,
+            "desired": 1,
+            "max": 1
+          },
+          "freeFormDetails": "postmain",
+          "healthCheckGracePeriod": 600,
+          "cloudProvider": "aws",
+          "kato.result.expected": true,
+          "cooldown": 10,
+          "stageTimeoutMs": 1800000,
+          "requireIMDSv2": false,
+          "useAmiBlockDeviceMappings": false,
+          "kato.last.task.id": {
+            "id": "01FECEG5AXPXZR2CG7S37BPXHA"
+          },
+          "copySourceCustomBlockDeviceMappings": true,
+          "ebsOptimized": true,
+          "instanceType": "m5.large",
+          "kato.task.terminalRetryCount": 0,
+          "loadBalancers": [
+
+          ],
+          "moniker": {
+            "app": "emburnstest",
+            "cluster": "emburnstest-managed-postmain",
+            "stack": "managed",
+            "detail": "postmain"
+          },
+          "tags": {
+
+          },
+          "kato.task.firstNotFoundRetry": -1,
+          "iamRole": "emburnstestInstanceProfile",
+          "application": "emburnstest",
+          "targetGroups": [
+
+          ],
+          "keyPair": "nf-test-keypair-a",
+          "securityGroups": [
+            "sg-f2f19496",
+            "sg-bbff21c9",
+            "nf-infrastructure",
+            "nf-datacenter"
+          ],
+          "kato.tasks": [
+            {
+              "id": "01FECEG5AXPXZR2CG7S37BPXHA",
+              "status": {
+                "completed": false,
+                "failed": false,
+                "retryable": false
+              },
+              "history": [
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Initializing Orchestration Task"
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Processing op: DeployAtomicOperation"
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Initializing phase."
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Looking for BasicAmazonDeployDescription handler..."
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Found handler: BasicAmazonDeployHandler"
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Invoking Handler."
+                },
+                {
+                  "phase": "",
+                  "status": "Preparing deployment to [us-east-1:[us-east-1c, us-east-1d, us-east-1e]]..."
+                },
+                {
+                  "phase": "",
+                  "status": "Beginning ASG deployment."
+                },
+                {
+                  "phase": "AWS_DEPLOY",
+                  "status": "Found ancestor server group, parsing details (name: emburnstest-managed-postmain-v028)"
+                },
+                {
+                  "phase": "",
+                  "status": "Deploying ASG emburnstest-managed-postmain-v029 with launch template lt-a"
+                },
+                {
+                  "phase": "",
+                  "status": "Adding tags for emburnstest-managed-postmain-v029"
+                },
+                {
+                  "phase": "",
+                  "status": "Deploying to subnetIds: subnet-1,subnet-2,subnet-3,subnet-4,subnet-5,subnet-6"
+                },
+                {
+                  "phase": "",
+                  "status": "Creating lifecycle hooks for: emburnstest-managed-postmain-v029"
+                },
+                {
+                  "phase": "",
+                  "status": "Creating notification hook ({AutoScalingGroupName: emburnstest-managed-postmain-v029,TopicARN: 0/emburnstest-managed-postmain-v029"
+                },
+                {
+                  "phase": "",
+                  "status": "Setting size of emburnstest-managed-postmain-v029 in test/us-east-1 to [min=1, max=1, desired=1]"
+                },
+                {
+                  "phase": "",
+                  "status": "Deployed EC2 server group named emburnstest-managed-postmain-v029"
+                },
+                {
+                  "phase": "",
+                  "status": "Created the following deployments: [us-east-1:emburnstest-managed-postmain-v029]"
+                },
+                {
+                  "phase": "DEPLOY",
+                  "status": "Server Groups: [us-east-1:emburnstest-managed-postmain-v029] created."
+                },
+                {
+                  "phase": "ENTITY_TAGS",
+                  "status": "Retrieving aws:servergroup:emburnstest-managed-postmain-v029:a:us-east-1 from Front50"
+                }
+              ],
+              "resultObjects": [
+                {
+                  "ancestorServerGroupNameByRegion": {
+                    "us-east-1": "emburnstest-managed-postmain-v028"
+                  }
+                }
+              ]
+            }
+          ],
+          "suspendedProcesses": [
+
+          ],
+          "strategy": "highlander",
+          "kato.task.notFoundRetryCount": 0,
+          "instanceMonitoring": false,
+          "subnetType": "internal (vpc0)",
+          "account": "test",
+          "kato.task.lastStatus": "RUNNING"
+        },
+        "outputs": {
+
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask",
+            "name": "determineSourceServerGroup",
+            "startTime": 1630357949782,
+            "endTime": 1630357949884,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "2",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask",
+            "name": "determineHealthProviders",
+            "startTime": 1630357949935,
+            "endTime": 1630357950104,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "3",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask",
+            "name": "snapshotSourceServerGroup",
+            "startTime": 1630357950165,
+            "endTime": 1630357950229,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "4",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask",
+            "name": "createServerGroup",
+            "startTime": 1630357950270,
+            "endTime": 1630357951933,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "5",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+            "name": "monitorDeploy",
+            "startTime": 1630357951986,
+            "status": "RUNNING",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "6",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask",
+            "name": "tagServerGroup",
+            "status": "NOT_STARTED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "7",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask",
+            "name": "waitForUpInstances",
+            "status": "NOT_STARTED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "8",
+            "implementingClass": "com.netflix.spinnaker.orca.kato.tasks.JarDiffsTask",
+            "name": "jarDiffs",
+            "status": "NOT_STARTED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false
+          },
+          {
+            "id": "9",
+            "implementingClass": "com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask",
+            "name": "getCommits",
+            "status": "NOT_STARTED",
+            "stageStart": false,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false
+          }
+        ],
+        "requisiteStageRefIds": [
+
+        ]
+      }
+    ],
+    "startTime": 1630357949214,
+    "status": "RUNNING",
+    "authentication": {
+      "user": "delivery-engineering@netflix.com",
+      "allowedAccounts": [
+
+      ]
+    },
+    "origin": "keel",
+    "trigger": {
+      "type": "keel",
+      "correlationId": "ec2:cluster:test:emburnstest-managed-postmain:us-east-1",
+      "user": "keel",
+      "parameters": {
+
+      },
+      "artifacts": [
+
+      ],
+      "notifications": [
+
+      ],
+      "rebake": false,
+      "dryRun": false,
+      "strategy": false,
+      "resolvedExpectedArtifacts": [
+
+      ],
+      "expectedArtifacts": [
+
+      ]
+    },
+    "description": "Deploy deb-sample-app-server-0.200.0~snapshot-h584.791248b to server group emburnstest-managed-postmain  in test/us-east-1",
+    "notifications": [
+
+    ],
+    "initialConfig": {
+
+    },
+    "systemNotifications": [
+
+    ],
+    "partition": "us-west-2"
+  }
+}

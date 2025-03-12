@@ -1,0 +1,91 @@
+databaseChangeLog:
+  - changeSet:
+      id: tie-artifacts-to-delivery-configs
+      author: emjburns
+      changes:
+        - addColumn:
+            tableName: delivery_artifact
+            columns:
+              - column:
+                  name: delivery_config_name
+                  type: varchar(255)
+                  value: "_pending"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reference
+                  type: varchar(255)
+                  value: "_pending"
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: delivery_artifact
+            columnName: delivery_config_name
+        - dropColumn:
+            tableName: delivery_artifact
+            columnName: reference
+  - changeSet:
+      id: create-new-artifacts-table
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: artifact_versions
+            columns:
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: release_status
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - modifySql:
+                  dbms: mysql
+                  append:
+                    value: " engine innodb"
+            rollback:
+              - dropTable:
+                  tableName: artifact_versions
+  - changeSet:
+      id: create-artifact-version-indicies
+      author: emjburns
+      changes:
+        - addPrimaryKey:
+            tableName: artifact_versions
+            constraintName: artifact_versions_pk
+            columnNames: name, type, version
+        - createIndex:
+            tableName: artifact_versions
+            indexName: artifact_versions_artifact_idx
+            columns:
+              - column:
+                  name: name
+              - column:
+                  name: type
+      rollback:
+        - dropPrimaryKey:
+            constraintName: artifact_versions_pk
+            tableName: artifact_versions
+        - dropIndex:
+            indexName: artifact_versions_artifact_idx
+            tableName: artifact_versions
+
+  - changeSet:
+      id: drop-delivery-artifact-version
+      author: emjburns
+      changes:
+        - dropTable:
+            tableName: delivery_artifact_version

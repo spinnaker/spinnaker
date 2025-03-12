@@ -1,0 +1,32 @@
+{
+  "total": 1,
+  "items": [
+    {
+      "body": "-----BEGIN CERTIFICATE-----\nWDFnYUYwXA==\n-----END CERTIFICATE-----",
+      "active": false,
+      "validityStart": "2020-01-24T00:00:00+00:00",
+      "owner": "fzlem@netflix.com",
+      "status": "valid",
+      "replaces": [],
+      "replacedBy": [
+        {
+          "body": "-----BEGIN CERTIFICATE-----\ndEUzPzJmKlRkIw==\n-----END CERTIFICATE-----",
+          "active": true,
+          "validityStart": "2020-12-23T00:00:00+00:00",
+          "owner": "fzlem@netflix.com",
+          "status": "valid",
+          "name": "fnord.illuminati.org-DigiCertSHA2SecureServerCA-20201223-20211224",
+          "id": 3053800,
+          "validityEnd": "2021-12-24T23:59:59+00:00",
+          "commonName": "fnord.illuminati.org"
+        }
+      ],
+      "name": "fnord.illuminati.org-DigiCertSHA2SecureServerCA-20200124-20210124",
+      "id": 1763305,
+      "validityEnd": "2021-01-24T12:00:00+00:00",
+      "deleted": false,
+      "dateCreated": "2020-01-24T06:03:32.331460+00:00",
+      "commonName": "fnord.illuminati.org"
+    }
+  ]
+}

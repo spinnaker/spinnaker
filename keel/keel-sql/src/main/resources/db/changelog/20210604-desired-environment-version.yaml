@@ -1,0 +1,38 @@
+databaseChangeLog:
+- changeSet:
+    id: desired-environment-version
+    author: fletch
+    changes:
+    - createTable:
+        tableName: active_environment_version
+        columns:
+        - column:
+            name: environment_uid
+            type: char(26)
+            constraints:
+              nullable: false
+        - column:
+            name: active_version
+            type: int
+            constraints:
+              nullable: false
+    - addPrimaryKey:
+        tableName: active_environment_version
+        constraintName: pk_active_environment_version
+        columnNames: environment_uid
+    - sql:
+        sql: |
+          insert into active_environment_version (environment_uid, active_version)
+          select uid, version from latest_environment;
+    - dropView:
+        viewName: latest_environment
+    - createView:
+        viewName: latest_environment
+        selectQuery: |
+          select uid, delivery_config_uid, name, version, is_preview, constraints, notifications, verifications, post_deploy_actions
+          from environment
+          join active_environment_version
+            on environment.uid = active_environment_version.environment_uid
+          join environment_version
+            on environment_version.environment_uid = active_environment_version.environment_uid
+            and environment_version.version = active_environment_version.active_version;

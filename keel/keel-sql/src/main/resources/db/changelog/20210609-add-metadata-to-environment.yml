@@ -1,0 +1,24 @@
+databaseChangeLog:
+- changeSet:
+    id: add-metadata-to-environment
+    author: lpollo
+    changes:
+    - addColumn:
+        tableName: environment
+        columns:
+        - name: metadata
+          type: json
+          constraints:
+            nullable: true
+    - dropView:
+        viewName: active_environment
+    - createView:
+        viewName: active_environment
+        selectQuery: |
+          select uid, delivery_config_uid, name, version, is_preview, constraints, notifications, verifications, post_deploy_actions, metadata
+          from environment
+          join active_environment_version
+            on environment.uid = active_environment_version.environment_uid
+          join environment_version
+            on environment_version.environment_uid = active_environment_version.environment_uid
+            and environment_version.version = active_environment_version.active_version;

@@ -1,0 +1,27 @@
+databaseChangeLog:
+- changeSet:
+    id: fix-environment-last-verified-cascade
+    author: fletch
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: environment_last_verified
+        constraintName: fk_environment_last_verified_environment
+    - addForeignKeyConstraint:
+        baseTableName: environment_last_verified
+        baseColumnNames: environment_uid
+        constraintName: fk_environment_last_verified_environment
+        referencedTableName: environment
+        referencedColumnNames: uid
+        referencesUniqueColumn: true
+        onDelete: CASCADE
+    - dropForeignKeyConstraint:
+        baseTableName: environment_last_verified
+        constraintName: fk_environment_last_verified_delivery_artifact
+    - addForeignKeyConstraint:
+        baseTableName: environment_last_verified
+        baseColumnNames: artifact_uid
+        constraintName: fk_environment_last_verified_delivery_artifact
+        referencedTableName: delivery_artifact
+        referencedColumnNames: uid
+        referencesUniqueColumn: true
+        onDelete: CASCADE

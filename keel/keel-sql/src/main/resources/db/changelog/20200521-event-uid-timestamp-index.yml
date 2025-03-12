@@ -1,0 +1,13 @@
+databaseChangeLog:
+- changeSet:
+    id: event-uid-timestamp-index
+    author: fletch
+    changes:
+    - createIndex:
+        indexName: event_uid_timestamp_idx
+        tableName: event
+        columns:
+        - column:
+            name: uid
+        - column:
+            name: timestamp

@@ -1,0 +1,9 @@
+databaseChangeLog:
+- changeSet:
+    id: fix-verification-state-columns
+    author: fletch
+    changes:
+    - modifyDataType:
+        tableName: verification_state
+        columnName: artifact_version
+        newDataType: varchar(255)

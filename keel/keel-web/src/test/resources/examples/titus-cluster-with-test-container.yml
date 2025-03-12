@@ -1,0 +1,28 @@
+---
+application: acme
+artifacts:
+  - name: rocketskates
+    type: docker
+    reference: rocketskates
+    from:
+      branch:
+        name: main
+environments:
+  - name: test
+    locations:
+      account: test
+      regions:
+        - name: us-east-1
+    resources:
+      - kind: titus/cluster@v1
+        spec:
+          moniker:
+             app: acme
+          container:
+            reference: rocketskates
+    verifyWith:
+      - type: test-container
+        image: acme/widget:stable
+        location:
+          account: test
+          region: us-east-1

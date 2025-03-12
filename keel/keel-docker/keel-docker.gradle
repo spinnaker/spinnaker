@@ -1,0 +1,13 @@
+dependencies {
+  implementation(project(":keel-core"))
+  implementation(project(":keel-igor"))
+  implementation("org.springframework:spring-context")
+  implementation("net.swiftzer.semver:semver:1.1.0")
+
+  testImplementation(project(":keel-test")) {
+    // avoid circular dependency which breaks Liquibase
+    exclude(module: "keel-docker")
+  }
+  testImplementation("dev.minutest:minutest")
+  testImplementation("io.strikt:strikt-core")
+}

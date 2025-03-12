@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: environment-constraints
+      author: fletch
+      changes:
+        - addColumn:
+            tableName: environment
+            columns:
+              - column:
+                  name: constraints
+                  type: text
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: environment
+            columnName: constraints
