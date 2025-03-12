@@ -1,0 +1,47 @@
+.report-scores {
+  height: 40px;
+  margin-bottom: 20px;
+  .group-score,
+  .all-metric-results-header {
+    height: 30px;
+    color: white;
+    border-right: 1px solid white;
+    padding-top: 4px;
+
+    h3 {
+      font-weight: 600;
+    }
+  }
+
+  .group-score:last-of-type {
+    border-right: none;
+  }
+
+  .report-score {
+    &.active {
+      .arrow-down {
+        width: 0;
+        height: 0;
+        margin: 5px auto 0 auto;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 8px solid transparent;
+      }
+    }
+  }
+
+  .all-metric-results-header {
+    border: 1px solid var(--color-titanium);
+    width: 70%;
+    margin: 0 auto;
+
+    .arrow-down {
+      &.inner {
+        margin-top: -9px;
+      }
+      &.outer {
+        margin-top: 4px;
+      }
+    }
+  }
+}

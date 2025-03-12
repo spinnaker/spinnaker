@@ -1,0 +1,486 @@
+<loading-spinner
+  size="'medium'"
+  ng-if="kayentaCanaryStageCtrl.state.backingDataLoading">
+</loading-spinner>
+
+<div ng-if="!kayentaCanaryStageCtrl.state.backingDataLoading" class="form-horizontal canary-config-view">
+  <div class="alert alert-warning" ng-if="kayentaCanaryStageCtrl.state.lifetimeHoursUpdatedToDuration">
+    <p>
+      <strong>Kayenta now supports analysis lifetimes shorter than 1 hour.</strong>
+    </p>
+    <p>
+      This canary stage has been updated to reflect the new lifetime support.
+      Click "Save Changes" to save the updated lifetime on the server.
+    </p>
+  </div>
+
+  <kayenta-stage-config-section title="Analysis Config">
+
+    <stage-config-field label="Analysis Type"
+                        help-key="pipeline.config.canary.analysisType">
+      <kayenta-analysis-type
+        analysis-types="kayentaCanaryStageCtrl.state.analysisTypes"
+        selected-type="kayentaCanaryStageCtrl.stage.analysisType"
+        on-change="kayentaCanaryStageCtrl.handleAnalysisTypeChange"
+      ></kayenta-analysis-type>
+    </stage-config-field>
+
+    <stage-config-field label="Config Name">
+      <ui-select required
+                 ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryConfigId"
+                 on-select="kayentaCanaryStageCtrl.onCanaryConfigSelect()"
+                 class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+                 style="width:300px">
+        <ui-select-match>{{$select.selected.name}}</ui-select-match>
+        <ui-select-choices repeat="summary.id as summary in kayentaCanaryStageCtrl.canaryConfigSummaries | filter: $select.search">
+          {{summary.name}}
+        </ui-select-choices>
+      </ui-select>
+    </stage-config-field>
+
+    <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTime, realTimeAutomatic">
+      <stage-config-field label="Lifetime"
+                          field-columns="8"
+                          help-key="pipeline.config.canary.lifetime"
+                          ng-class="kayentaCanaryStageCtrl.getLifetimeClassnames()"
+                          style="padding-left: 0; padding-right: 0;">
+        <input type="number"
+               min="0"
+               ng-class="kayentaCanaryStageCtrl.getLifetimeInputClassnames()"
+               ng-model="kayentaCanaryStageCtrl.state.lifetime.hours"
+               class="form-control input-sm"
+               style="display: inline-block; width: 11%"
+               ng-change="kayentaCanaryStageCtrl.onLifetimeChange()" />
+        <span class="form-control-static">
+        hours
+        </span>
+          <input type="number"
+                 min="0"
+                 max="59"
+                 ng-class="kayentaCanaryStageCtrl.getLifetimeInputClassnames()"
+                 ng-model="kayentaCanaryStageCtrl.state.lifetime.minutes"
+                 class="form-control input-sm"
+                 style="display: inline-block; width: 11%; margin-left: 12px;"
+                 ng-change="kayentaCanaryStageCtrl.onLifetimeChange()" />
+          <span class="form-control-static">
+          minutes
+        </span>
+      </stage-config-field>
+    </for-analysis-type>
+
+    <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="retrospective">
+      <stage-config-field label="Start Time"
+                          help-key="pipeline.config.canary.startTimeIso">
+        <input
+          required
+          class="form-control input-sm"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].startTimeIso"
+          type="text"/>
+      </stage-config-field>
+
+      <stage-config-field label="End Time"
+                          help-key="pipeline.config.canary.endTimeIso">
+        <input
+          required
+          class="form-control input-sm"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].endTimeIso"
+          type="text"/>
+      </stage-config-field>
+    </for-analysis-type>
+
+    <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTime, realTimeAutomatic">
+      <stage-config-field label="Delay"
+                          help-key="pipeline.config.canary.delayBeforeAnalysis"
+                          field-columns="5">
+        <input type="text"
+               ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.beginCanaryAnalysisAfterMins"
+               class="form-control input-sm"
+               style="display: inline-block; width: 19%"/>
+        <span class="form-control-static">
+          minutes before starting analysis
+        </span>
+      </stage-config-field>
+    </for-analysis-type>
+
+    <stage-config-field label="Interval"
+                        help-key="pipeline.config.canary.canaryInterval"
+                        field-columns="3">
+      <input type="text"
+             ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryAnalysisIntervalMins"
+             class="form-control input-sm"
+             style="width: 33%; display: inline-block"/>
+      <span class="form-control-static"> minutes</span>
+    </stage-config-field>
+
+    <!--TODO(dpeach): add help text here-->
+    <stage-config-field label="Step"
+                        field-columns="3">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].step"
+        type="number"
+        min="0"
+        style="width: 33%; display: inline-block"/>
+      <span class="form-control-static"> seconds</span>
+    </stage-config-field>
+
+    <stage-config-field label="Baseline Offset"
+                        help-key="pipeline.config.canary.baselineAnalysisOffset"
+                        field-columns="3">
+      <input
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.baselineAnalysisOffsetInMins"
+        type="text"
+        min="0"
+        style="width: 33%; display: inline-block"/>
+      <span class="form-control-static"> minutes</span>
+    </stage-config-field>
+
+    <stage-config-field label="Lookback Type"
+                        help-key="pipeline.config.canary.lookback"
+                        field-columns="3">
+      <select class="form-control input-sm"
+              ng-model="kayentaCanaryStageCtrl.state.useLookback"
+              ng-options="(useLookback ? 'Sliding' : 'Growing') for useLookback in [false, true]"
+              ng-change="kayentaCanaryStageCtrl.onUseLookbackChange()">
+      </select>
+    </stage-config-field>
+
+    <stage-config-field ng-if="kayentaCanaryStageCtrl.state.useLookback">
+      <div class="form-group">
+        <div class="col-md-9">
+          <p class="form-control-static" ng-if="kayentaCanaryStageCtrl.isExpression(kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins)">
+            Using a sliding lookback duration defined by an expression viewable in the pipeline JSON editor.
+          </p>
+          <span ng-if="!kayentaCanaryStageCtrl.isExpression(kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins)">
+            with a look-back duration of
+            <input type="number"
+                   min="1"
+                   max="{{kayentaCanaryStageCtrl.state.lifetime.hours * 60}}"
+                   required
+                   ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins"
+                   class="form-control input-sm" style="display: inline-block; margin: 0 5px; width: 15%"/>
+            minutes
+          </span>
+        </div>
+      </div>
+      <div class="error-message col-md-12"
+           ng-if="kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins > 0 && kayentaCanaryStageCtrl.stage.canaryConfig.lookbackMins < 30">
+        <b>NOTE:</b> To provide enough data points for the canary analysis it is recommended to set the look-back
+        time to at least 30 minutes.
+      </div>
+    </stage-config-field>
+  </kayenta-stage-config-section>
+
+  <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTimeAutomatic">
+    <stage-config-field label="Delay Before Cleanup"
+                        field-columns="8"
+                        help-key="pipeline.config.canary.delayBeforeCleanup"
+                        style="padding-left: 0; padding-right: 0;">
+      <input type="number"
+             min="0"
+             ng-model="kayentaCanaryStageCtrl.state.delayBeforeCleanup.hours"
+             class="form-control input-sm"
+             style="display: inline-block; width: 11%;"
+             ng-change="kayentaCanaryStageCtrl.onDelayBeforeCleanupChange()" />
+      <span class="form-control-static">
+          hours
+      </span>
+      <input type="number"
+             min="0"
+             max="59"
+             ng-model="kayentaCanaryStageCtrl.state.delayBeforeCleanup.minutes"
+             class="form-control input-sm"
+             style="display: inline-block; width: 11%; margin-left: 12px"
+             ng-change="kayentaCanaryStageCtrl.onDelayBeforeCleanupChange()" />
+      <span class="form-control-static">
+          minutes
+      </span>
+    </stage-config-field>
+  </for-analysis-type>
+
+  <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTimeAutomatic">
+    <kayenta-stage-config-section title="Baseline Version">
+      <stage-config-field label="Provider" ng-if="kayentaCanaryStageCtrl.providers.length > 1
+                                                && kayentaCanaryStageCtrl.stage.isNew">
+        <provider-selector providers="kayentaCanaryStageCtrl.providers"
+                           component="kayentaCanaryStageCtrl.stage.deployments.baseline"
+                           on-change="kayentaCanaryStageCtrl.handleProviderChange()"
+                           field="cloudProvider"
+                           read-only="!kayentaCanaryStageCtrl.stage.isNew"></provider-selector>
+      </stage-config-field>
+
+      <stage-config-field label="Account">
+        <account-select-field
+          component="kayentaCanaryStageCtrl.stage.deployments.baseline"
+          field="account"
+          accounts="kayentaCanaryStageCtrl.accounts"
+          on-change="kayentaCanaryStageCtrl.setClusterList()"
+          provider="kayentaCanaryStageCtrl.stage.deployments.baseline.cloudProvider"
+          required>
+        </account-select-field>
+      </stage-config-field>
+
+      <stage-config-field label="Cluster">
+        <cluster-selector
+          ng-if="application.serverGroups.loaded"
+          clusters="kayentaCanaryStageCtrl.clusterList"
+          required="true"
+          model="kayentaCanaryStageCtrl.stage.deployments.baseline.cluster">
+        </cluster-selector>
+      </stage-config-field>
+    </kayenta-stage-config-section>
+  </for-analysis-type>
+
+  <kayenta-stage-config-section title="Baseline + Canary Pair">
+    <section-header ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
+      <span
+        uib-tooltip="Click to populate with expressions for resolving control
+                     and experiment scopes from an upstream clone stage."
+        ng-click="kayentaCanaryStageCtrl.populateScopeWithExpressions()"
+        class="fa fa-magic clickable"></span>
+    </section-header>
+
+    <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTime, retrospective">
+      <stage-config-field label="Baseline"
+                          help-key="pipeline.config.canary.baselineGroup">
+        <input
+          ng-if="kayentaCanaryStageCtrl.state.atlasScopeType !== 'query'"
+          class="form-control input-sm"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlScope"
+          required
+          type="text"/>
+
+        <textarea
+          ng-if="kayentaCanaryStageCtrl.state.atlasScopeType === 'query'"
+          class="form-control input-sm"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlScope"
+          required>
+        </textarea>
+      </stage-config-field>
+
+      <stage-config-field label="Baseline Location"
+                          help-key="pipeline.config.canary.baselineLocation">
+        <select
+          required
+          class="form-control input-sm"
+          ng-if="kayentaCanaryStageCtrl.getLocationChoices().hasChoices"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlLocation"
+          ng-options="location for location in kayentaCanaryStageCtrl.getLocationChoices().combinedLocations.control">
+        </select>
+        <input
+          class="form-control input-sm"
+          ng-if="!kayentaCanaryStageCtrl.getLocationChoices().hasChoices"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].controlLocation"
+          required
+          type="text"/>
+        <div class="pull-right" ng-if="kayentaCanaryStageCtrl.getLocationChoices().hasChoices">
+          <button
+            ng-click="kayentaCanaryStageCtrl.toggleAllLocations('control')"
+            ng-if="!kayentaCanaryStageCtrl.state.showAllLocations.control && kayentaCanaryStageCtrl.getLocationChoices().locations.length > 0"
+            class="link">
+            Show all locations
+          </button>
+          <button
+            ng-click="kayentaCanaryStageCtrl.toggleAllLocations('control')"
+            ng-if="kayentaCanaryStageCtrl.state.showAllLocations.control && kayentaCanaryStageCtrl.getLocationChoices().recommendedLocations.length > 0"
+            class="link">
+            Only show recommended locations
+          </button>
+        </div>
+      </stage-config-field>
+
+      <stage-config-field label="Canary"
+                          help-key="pipeline.config.canary.canaryGroup">
+        <input
+          ng-if="kayentaCanaryStageCtrl.state.atlasScopeType !== 'query'"
+          class="form-control input-sm"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentScope"
+          required
+          type="text"/>
+
+        <textarea
+          ng-if="kayentaCanaryStageCtrl.state.atlasScopeType === 'query'"
+          class="form-control input-sm"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentScope"
+          required>
+        </textarea>
+      </stage-config-field>
+
+      <stage-config-field label="Canary Location"
+                          help-key="pipeline.config.canary.canaryLocation">
+        <select
+          required
+          class="form-control input-sm"
+          ng-if="kayentaCanaryStageCtrl.getLocationChoices().hasChoices"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentLocation"
+          ng-options="location for location in kayentaCanaryStageCtrl.getLocationChoices().combinedLocations.experiment">
+        </select>
+        <input
+          class="form-control input-sm"
+          ng-if="!kayentaCanaryStageCtrl.getLocationChoices().hasChoices"
+          ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].experimentLocation"
+          required
+          type="text"/>
+        <div class="pull-right" ng-if="kayentaCanaryStageCtrl.getLocationChoices().hasChoices">
+          <button
+            ng-click="kayentaCanaryStageCtrl.toggleAllLocations('experiment')"
+            ng-if="!kayentaCanaryStageCtrl.state.showAllLocations.experiment && kayentaCanaryStageCtrl.getLocationChoices().locations.length > 0"
+            class="link">
+            Show all locations
+          </button>
+          <button
+            ng-click="kayentaCanaryStageCtrl.toggleAllLocations('experiment')"
+            ng-if="kayentaCanaryStageCtrl.state.showAllLocations.experiment && kayentaCanaryStageCtrl.getLocationChoices().recommendedLocations.length > 0"
+            class="link">
+            Only show recommended locations
+          </button>
+        </div>
+      </stage-config-field>
+    </for-analysis-type>
+
+    <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTimeAutomatic">
+      <div class="row">
+        <div style="margin: 10px 10px 0 50px;">
+          <div class="well well-sm">
+            <table class="table">
+              <thead>
+              <tr>
+                <th>Location</th>
+                <th>Baseline</th>
+                <th>Canary</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr ng-repeat="clusterPair in kayentaCanaryStageCtrl.stage.deployments.serverGroupPairs">
+                <td>
+                  <account-tag account="clusterPair.control.account"></account-tag>
+                  {{kayentaCanaryStageCtrl.getRegion(clusterPair.control)}}
+                </td>
+                <td>
+                  {{kayentaCanaryStageCtrl.getServerGroupName(clusterPair.control)}}
+                  <br/>
+                  <a href ng-click="kayentaCanaryStageCtrl.editServerGroup(clusterPair.control, $index, 'control')">Edit</a>
+                </td>
+                <td>
+                  {{kayentaCanaryStageCtrl.getServerGroupName(clusterPair.experiment)}}
+                  <br/>
+                  <a href ng-click="kayentaCanaryStageCtrl.editServerGroup(clusterPair.experiment, $index, 'experiment')">Edit</a>
+                </td>
+                <td>
+                  <a href ng-click="kayentaCanaryStageCtrl.deletePair($index);">
+                    <span class="glyphicon glyphicon-trash" uib-tooltip="Delete Pair"></span>
+                  </a>
+                </td>
+              </tr>
+              </tbody>
+              <tfoot>
+              <tr ng-if="!kayentaCanaryStageCtrl.stage.deployments.serverGroupPairs.length">
+                <td colspan="4">
+                  <button class="btn btn-block btn-sm add-new" ng-click="kayentaCanaryStageCtrl.addPair()">
+                    <span class="glyphicon glyphicon-plus-sign"></span> Add Baseline + Canary Pair
+                  </button>
+                </td>
+              </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </for-analysis-type>
+  </kayenta-stage-config-section>
+
+  <kayenta-stage-config-section title="Metric Scope">
+
+    <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTimeAutomatic">
+      <stage-config-field label="Dataset" ng-if="kayentaCanaryStageCtrl.metricStore === 'atlas'">
+        <input
+          type="checkbox"
+          ng-model="kayentaCanaryStageCtrl.state.useAtlasGlobalDataset"
+          ng-click="kayentaCanaryStageCtrl.handleAtlasDatasetChange($event)" />
+        Use Global Atlas Dataset
+      </stage-config-field>
+    </for-analysis-type>
+
+    <for-analysis-type stage="kayentaCanaryStageCtrl.stage" types="realTime, retrospective">
+      <stage-config-field label="Scope Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'atlas'">
+        <select
+          required
+          class="form-control input-sm" ng-model="kayentaCanaryStageCtrl.state.atlasScopeType"
+          ng-options="(type === 'cluster' ? 'Cluster' : 'Query') for type in ['cluster', 'query']"
+          ng-change="kayentaCanaryStageCtrl.onAtlasScopeTypeChange()">
+        </select>
+      </stage-config-field>
+    </for-analysis-type>
+
+    <stage-config-field label="Extended Params"
+                        help-key="pipeline.config.canary.extendedScopeParams">
+      <map-editor
+        hidden-keys="['resourceType', 'dataset', 'type', 'environment']"
+        on-change="kayentaCanaryStageCtrl.handleExtendedScopeParamsChange()"
+        model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams">
+      </map-editor>
+    </stage-config-field>
+  </kayenta-stage-config-section>
+
+  <kayenta-stage-config-section title="Scoring Thresholds">
+    <kayenta-canary-scores on-change="kayentaCanaryStageCtrl.handleScoreThresholdChange"
+                           successful-help-field-id="'pipeline.config.canary.passingScore'"
+                           successful-label="'Pass'"
+                           successful-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.pass"
+                           unhealthy-help-field-id="'pipeline.config.canary.marginalScore'"
+                           unhealthy-label="'Marginal'"
+                           unhealthy-score="kayentaCanaryStageCtrl.stage.canaryConfig.scoreThresholds.marginal"></kayenta-canary-scores>
+  </kayenta-stage-config-section>
+
+  <kayenta-stage-config-section title="Advanced Settings" ng-if="kayentaCanaryStageCtrl.state.showAdvancedSettings">
+
+    <stage-config-field label="Notification Emails" help-key="pipeline.config.canary.legacySiteLocalRecipients" ng-if="kayentaCanaryStageCtrl.state.showLegacySiteLocalRecipients">
+      <textarea
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.state.legacySiteLocalRecipients"
+        ng-change="kayentaCanaryStageCtrl.handleLegacySiteLocalRecipientsChange()"
+        placeholder="Email addresses separated by commas"
+      >
+      </textarea>
+    </stage-config-field>
+
+    <stage-config-field label="Metrics Account"
+                        help-key="pipeline.config.metricsAccount"
+                        ng-if="kayentaCanaryStageCtrl.kayentaAccounts.get('METRICS_STORE').length > 1">
+      <select
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.metricsAccountName"
+        ng-options="account.name as account.name for account in kayentaCanaryStageCtrl.kayentaAccounts.get('METRICS_STORE')"
+      >
+      </select>
+    </stage-config-field>
+    <stage-config-field label="Storage Account"
+                        help-key="pipeline.config.storageAccount"
+                        ng-if="kayentaCanaryStageCtrl.kayentaAccounts.get('OBJECT_STORE').length > 1">
+      <select
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.storageAccountName"
+        ng-options="account.name as account.name for account in kayentaCanaryStageCtrl.kayentaAccounts.get('OBJECT_STORE')"
+      >
+      </select>
+    </stage-config-field>
+
+    <stage-config-field label="Scope Name" ng-if="kayentaCanaryStageCtrl.scopeNames.length > 1">
+      <ui-select required
+                 ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].scopeName"
+                 class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+                 style="width:300px">
+        <ui-select-match>{{$select.selected}}</ui-select-match>
+        <ui-select-choices repeat="scopeName in kayentaCanaryStageCtrl.scopeNames | filter: $select.search">
+          {{scopeName}}
+        </ui-select-choices>
+      </ui-select>
+    </stage-config-field>
+
+    <div class="alert alert-warning" ng-if="kayentaCanaryStageCtrl.stage.canaryConfig.scopes.length > 1">
+      <strong>Warning!</strong> This stage specifies more than one scope. Please edit the stage JSON to configure scopes beyond the first one.
+    </div>
+  </kayenta-stage-config-section>
+</div>

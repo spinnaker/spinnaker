@@ -1,0 +1,26 @@
+name: Publish to NPM
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'package.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js 12.16.0
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.16.0
+      - name: publish
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
+          build_scripts/publish_github_actions.sh
+        env:
+          CI: true
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

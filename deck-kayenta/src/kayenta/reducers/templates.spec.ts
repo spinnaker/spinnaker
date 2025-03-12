@@ -1,0 +1,192 @@
+import {
+  DELETE_TEMPLATE,
+  EDIT_TEMPLATE_BEGIN,
+  EDIT_TEMPLATE_CANCEL,
+  EDIT_TEMPLATE_CONFIRM,
+  EDIT_TEMPLATE_NAME,
+  EDIT_TEMPLATE_VALUE,
+} from 'kayenta/actions';
+
+import { selectedConfig as reducer } from './selectedConfig';
+
+describe('Reducer: selectedConfig (templates)', () => {
+  const createAction = (type: string, payload: any = {}) => ({
+    type,
+    payload,
+  });
+
+  const runActionSequence = (...actions: any[]) => (initialState: any) =>
+    actions.reduce((s: any, a: any) => reducer(s, a), initialState);
+
+  describe('editing template name & value', () => {
+    let state: any;
+    beforeEach(() => {
+      state = {
+        config: {
+          templates: {
+            'my-template': 'my-value',
+            'my-other-template': 'my-other-value',
+          },
+        },
+        metricList: [
+          {
+            name: 'cpu_utilization',
+            query: {
+              customFilterTemplate: 'my-template',
+              metricType: 'compute.googleapis.com/instance/cpu_utilization',
+            },
+          },
+        ],
+      };
+    });
+
+    it('handles editing template name & value', () => {
+      state = runActionSequence(
+        createAction(EDIT_TEMPLATE_BEGIN, {
+          name: 'my-template',
+          value: 'my-value',
+        }),
+        createAction(EDIT_TEMPLATE_NAME, { name: 'my-edited-template' }),
+        createAction(EDIT_TEMPLATE_VALUE, {
+          value: 'resource.metadata.tag.my-custom-tag-1=${tag1} AND resource.metadata.tag.my-custom-tag-2=${tag2}',
+        }),
+        createAction(EDIT_TEMPLATE_CONFIRM),
+      )(state);
+
+      const {
+        config: { templates },
+      } = state;
+
+      expect(templates).toEqual({
+        'my-edited-template':
+          'resource.metadata.tag.my-custom-tag-1=${tag1} AND resource.metadata.tag.my-custom-tag-2=${tag2}',
+        'my-other-template': 'my-other-value',
+      });
+    });
+
+    it('updates metrics to reflect template name changes', () => {
+      state = runActionSequence(
+        createAction(EDIT_TEMPLATE_BEGIN, {
+          name: 'my-template',
+          value: 'my-value',
+        }),
+        createAction(EDIT_TEMPLATE_NAME, { name: 'my-edited-template' }),
+        createAction(EDIT_TEMPLATE_CONFIRM),
+      )(state);
+
+      const { metricList } = state;
+      expect(metricList[0].query.customFilterTemplate).toEqual('my-edited-template');
+    });
+
+    it('leaves template name & value unchanged on EDIT_TEMPLATE_CANCEL', () => {
+      state = runActionSequence(
+        createAction(EDIT_TEMPLATE_BEGIN, {
+          name: 'my-template',
+          value: 'my-value',
+        }),
+        createAction(EDIT_TEMPLATE_NAME, { name: 'my-edited-template' }),
+        createAction(EDIT_TEMPLATE_VALUE, {
+          value: 'resource.metadata.tag.my-custom-tag-1=${tag1} ' + 'AND resource.metadata.tag.my-custom-tag-2=${tag2}',
+        }),
+        createAction(EDIT_TEMPLATE_CANCEL),
+      )(state);
+
+      const {
+        config: { templates },
+      } = state;
+
+      expect(templates).toEqual({
+        'my-template': 'my-value',
+        'my-other-template': 'my-other-value',
+      });
+    });
+  });
+
+  describe('template cleanup', () => {
+    it('clears temporary variables on EDIT_TEMPLATE_CONFIRM', () => {
+      const state: any = {
+        editingTemplate: {
+          name: 'my-template',
+          editedName: 'my-edited-template',
+          editedValue: '',
+        },
+        config: {
+          templates: {
+            'my-template': '',
+          },
+        },
+      };
+
+      const {
+        editingTemplate: { name, editedName, editedValue },
+      } = reducer(state, createAction(EDIT_TEMPLATE_CONFIRM));
+
+      [name, editedName, editedValue].forEach((value) => expect(value).toEqual(null));
+    });
+
+    it('deletes a template', () => {
+      let state: any = {
+        config: {
+          templates: {
+            'my-template': 'my-value',
+            'my-other-template': 'my-other-value',
+          },
+        },
+      };
+
+      state = reducer(state, createAction(DELETE_TEMPLATE, { name: 'my-template' }));
+      expect(Object.keys(state.config.templates)).toEqual(['my-other-template']);
+
+      state = reducer(state, createAction(DELETE_TEMPLATE, { name: 'my-other-template' }));
+      expect(Object.keys(state.config.templates)).toEqual([]);
+
+      state = reducer(state, createAction(DELETE_TEMPLATE, { name: 'my-other-template' }));
+      expect(Object.keys(state.config.templates)).toEqual([]);
+    });
+
+    it('cleans up a newly added template on EDIT_TEMPLATE_CANCEL', () => {
+      let state: any = {
+        config: {
+          templates: {
+            'my-template': 'my-value',
+          },
+        },
+      };
+
+      state = runActionSequence(
+        createAction(EDIT_TEMPLATE_BEGIN, { name: '', value: '' }),
+        createAction(EDIT_TEMPLATE_VALUE, { value: 'new-value' }),
+        createAction(EDIT_TEMPLATE_NAME, { name: 'new-name' }),
+        createAction(EDIT_TEMPLATE_CANCEL),
+      )(state);
+
+      expect(state.config.templates).toEqual({
+        'my-template': 'my-value',
+      });
+    });
+  });
+
+  describe('creating a template', () => {
+    it('adds a new template', () => {
+      let state: any = {
+        config: {
+          templates: {
+            'my-template': 'my-value',
+          },
+        },
+      };
+
+      state = runActionSequence(
+        createAction(EDIT_TEMPLATE_BEGIN, { name: '', value: '' }),
+        createAction(EDIT_TEMPLATE_VALUE, { value: 'new-value' }),
+        createAction(EDIT_TEMPLATE_NAME, { name: 'new-name' }),
+        createAction(EDIT_TEMPLATE_CONFIRM),
+      )(state);
+
+      expect(state.config.templates).toEqual({
+        'my-template': 'my-value',
+        'new-name': 'new-value',
+      });
+    });
+  });
+});

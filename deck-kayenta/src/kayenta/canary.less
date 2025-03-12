@@ -1,0 +1,168 @@
+.kayenta {
+  width: 100%;
+
+  button {
+    &[disabled] {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+  }
+
+  &.kayenta-root {
+    overflow: hidden;
+  }
+
+  .spinner {
+    position: inherit;
+  }
+
+  .list-detail {
+    > .col-md-2,
+    .col-md-10 {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+
+  .config-list {
+    ul {
+      max-height: calc(~'70vh - 44px'); // i.e., minus the footer.
+      overflow: auto;
+      @media screen and (max-height: 1000px) {
+        max-height: 55vh;
+      }
+
+      @media screen and (max-height: 700px) {
+        max-height: 45vh;
+      }
+    }
+  }
+
+  .config-detail {
+    padding: 0 1rem 1rem;
+    margin-bottom: 40px;
+    overflow-y: auto;
+    .config-detail-header {
+      padding: 5px 15px 7px 0;
+      .heading-1 {
+        margin: 3px 0 0 0;
+      }
+    }
+
+    .config-detail-edit-warning {
+      padding: 12px;
+      margin-bottom: 12px;
+      i.fa {
+        color: var(--color-notice);
+        font-size: 32px;
+      }
+    }
+
+    .contents .native-table-header {
+      padding-top: 10px;
+    }
+  }
+
+  .group-tabs {
+    .fas.fa-pencil-alt {
+      padding-left: 1rem;
+      font-size: smaller;
+      &.disabled {
+        color: var(--color-accessory);
+      }
+    }
+
+    .tabs-basic {
+      input {
+        text-transform: none;
+        font-weight: normal;
+      }
+    }
+  }
+
+  .table-header {
+    &.sticky-header {
+      background-color: var(--color-alabaster);
+    }
+    h6 {
+      font-weight: 600;
+    }
+  }
+
+  .table-row {
+    > div,
+    > td {
+      padding: 0.8rem 0;
+    }
+
+    i {
+      &.fa,
+      &.far {
+        padding: 0 0.5rem;
+        cursor: pointer;
+        &.fa-edit,
+        &.fa-folder {
+          font-weight: 100;
+        }
+        &.fa-folder {
+          margin-top: 0.2rem;
+        }
+        &.fa-trash {
+          font-size: small;
+          margin-top: 0.1rem;
+        }
+      }
+    }
+
+    // This is the wrapper around the change metric group folder icon.
+    g {
+      margin-top: -0.25rem;
+      margin-right: 0.1rem;
+    }
+  }
+
+  .table-header,
+  .table-row {
+    border-bottom: 1px solid var(--color-divider);
+    h6 {
+      margin-bottom: 5px;
+    }
+    &.background-white {
+      background-color: var(--color-white);
+    }
+    &.selected {
+      background-color: var(--color-accent-g2);
+    }
+  }
+
+  // As of 9/31/2018 this must be applied to a <th> for sticky table headers to work (not a <tr>/<thead>)
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=702927
+  .native-table-header {
+    position: sticky;
+    top: 0;
+    background-color: var(--color-alabaster);
+    // Borders don't work w/ position: sticky in this case
+    box-shadow: 0 1px 0 var(--color-divider);
+  }
+
+  .metric-list {
+    top: -10px;
+  }
+
+  .header-transparent {
+    .native-table-header {
+      background-color: transparent;
+    }
+  }
+
+  .header-white {
+    .native-table-header {
+      background-color: white;
+    }
+  }
+
+  // Allow children of flex-1 with overflow of scroll or auto to scroll correctly in firefox
+  .flex-1 {
+    min-height: 0;
+  }
+}
