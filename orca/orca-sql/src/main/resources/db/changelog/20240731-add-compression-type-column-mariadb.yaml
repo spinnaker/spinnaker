@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-compression-type-column-to-pipelines-compressed-executions-mariadb
+      author: juangod-wise
+      changes:
+        - sql:
+            dbms: mariadb
+            sql: ALTER TABLE `pipelines_compressed_executions` ADD COLUMN `compression_type` ENUM("GZIP", "ZLIB") NOT NULL DEFAULT "ZLIB"
+  - changeSet:
+      id: add-compression-type-column-to-pipeline-stages-compressed-executions-mariadb
+      author: juangod-wise
+      changes:
+        - sql:
+            dbms: mariadb
+            sql: ALTER TABLE `pipeline_stages_compressed_executions` ADD COLUMN `compression_type` ENUM("GZIP", "ZLIB") NOT NULL DEFAULT "ZLIB"
+  - changeSet:
+      id: add-compression-type-column-to-orchestrations-compressed-executions-mariadb
+      author: juangod-wise
+      changes:
+        - sql:
+            dbms: mariadb
+            sql: ALTER TABLE `orchestrations_compressed_executions` ADD COLUMN `compression_type` ENUM("GZIP", "ZLIB") NOT NULL DEFAULT "ZLIB"
+  - changeSet:
+      id: add-compression-type-column-to-orchestration-stages-compressed-executions-mariadb
+      author: juangod-wise
+      changes:
+        - sql:
+            dbms: mariadb
+            sql: ALTER TABLE `orchestration_stages_compressed_executions` ADD COLUMN `compression_type` ENUM("GZIP", "ZLIB") NOT NULL DEFAULT "ZLIB"

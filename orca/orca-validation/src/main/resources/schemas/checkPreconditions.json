@@ -1,0 +1,69 @@
+{
+  "title" : "Schema for 'checkPreconditions' stage",
+  "type" : "object",
+  "properties" : {
+    "comments" : {
+      "type" : "string",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "continuePipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "failPipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "notifications" : {
+      "type" : "array",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "overrideTimeout" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "preconditions" : {
+      "type" : "array"
+    },
+    "restrictExecutionDuringTimeWindow" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictedExecutionWindow" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "sendNotifications" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageEnabled" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageTimeoutMs" : {
+      "type" : "number",
+      "_meta" : {
+        "builtIn" : true
+      }
+    }
+  }
+}

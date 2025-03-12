@@ -1,0 +1,164 @@
+{
+  "title" : "Schema for 'jenkins' stage",
+  "type" : "object",
+  "properties" : {
+    "baseLabel" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "baseOs" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "cloudProviderType" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "cmcTicket" : {
+      "type" : "string"
+    },
+    "comments" : {
+      "type" : "string",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "continuePipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "email" : {
+      "type" : "string"
+    },
+    "failPipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "job" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "markUnstableAsSuccessful" : {
+      "type" : "boolean"
+    },
+    "master" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "notifications" : {
+      "type" : "array",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "overrideTimeout" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "parameters" : {
+      "type" : "object",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "persistedProperties" : {
+      "type" : "array"
+    },
+    "propertyFile" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "regions" : {
+      "type" : "array",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "restrictExecutionDuringTimeWindow" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictedExecutionWindow" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "scope" : {
+      "type" : "object"
+    },
+    "sendNotifications" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageEnabled" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageTimeoutMs" : {
+      "type" : "number",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "storeType" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "vmType" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "waitForCompletion" : {
+      "type" : "boolean"
+    }
+  }
+}

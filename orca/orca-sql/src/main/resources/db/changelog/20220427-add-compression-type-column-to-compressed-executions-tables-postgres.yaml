@@ -1,0 +1,97 @@
+---
+databaseChangeLog:
+  - changeSet:
+      id: add-compression-type-enum
+      author: dbyron
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: CREATE TYPE compression_type_enum AS ENUM('GZIP', 'ZLIB')
+  - changeSet:
+      id: add-compression-type-column-to-pipelines-compressed-executions-table-postgres
+      author: dbyron
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: pipelines_compressed_executions
+            columnName: compression_type
+      changes:
+        - addColumn:
+            tableName: pipelines_compressed_executions
+            column:
+              name: compression_type
+              type: compression_type_enum
+              defaultValue: 'ZLIB'
+              constraints:
+                nullable: false
+      rollback:
+        - dropColumn:
+            tableName: pipelines_compressed_executions
+            columnName: compression_type
+  - changeSet:
+      id: add-compression-type-column-to-pipeline-stages-compressed-executions-table-postgres
+      author: dbyron
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: pipeline_stages_compressed_executions
+            columnName: compression_type
+      changes:
+        - addColumn:
+            tableName: pipeline_stages_compressed_executions
+            column:
+              name: compression_type
+              type: compression_type_enum
+              defaultValue: 'ZLIB'
+              constraints:
+                nullable: false
+      rollback:
+        - dropColumn:
+            tableName: pipeline_stages_compressed_executions
+            columnName: compression_type
+  - changeSet:
+      id: add-compression-type-column-to-orchestrations-compressed-executions-table-postgres
+      author: dbyron
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: orchestrations_compressed_executions
+            columnName: compression_type
+      changes:
+        - addColumn:
+            tableName: orchestrations_compressed_executions
+            column:
+              name: compression_type
+              type: compression_type_enum
+              defaultValue: 'ZLIB'
+              constraints:
+                nullable: false
+      rollback:
+        - dropColumn:
+            tableName: orchestrations_compressed_executions
+            columnName: compression_type
+  - changeSet:
+      id: add-compression-type-column-to-orchestration-stages-compressed-executions-table-postgres
+      author: dbyron
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: orchestration_stages_compressed_executions
+            columnName: compression_type
+      changes:
+        - addColumn:
+            tableName: orchestration_stages_compressed_executions
+            column:
+              name: compression_type
+              type: compression_type_enum
+              defaultValue: 'ZLIB'
+              constraints:
+                nullable: false
+      rollback:
+        - dropColumn:
+            tableName: orchestration_stages_compressed_executions
+            columnName: compression_type

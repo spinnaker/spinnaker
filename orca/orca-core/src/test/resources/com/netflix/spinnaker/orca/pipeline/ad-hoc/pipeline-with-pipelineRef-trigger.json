@@ -1,0 +1,18 @@
+{
+  "application":"edgartest",
+  "name":"wait stage",
+  "stages": [
+    {
+      "name": "Wait",
+      "refId": "1",
+      "requisiteStageRefIds": [],
+      "type": "wait",
+      "waitTime": 30
+    }
+  ],
+  "trigger": {
+    "type": "pipelineRef",
+    "parentExecutionId": "parentID"
+  },
+  "origin":"api"
+}

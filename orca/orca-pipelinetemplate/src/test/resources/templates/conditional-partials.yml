@@ -1,0 +1,31 @@
+schema: "1"
+id: simpleTemplate
+variables:
+- name: includeWait
+  type: boolean
+- name: someVariable
+  defaultValue: someValue
+stages:
+- id: stageWithPartialsAndConditional
+  type: partial.partialWithConditional
+  dependsOn: []
+  config:
+    anotherVariable: "{{ someVariable }}"
+
+partials:
+- id: partialWithConditional
+  usage: Partial that conditionally adds a step
+  variables:
+  - name: anotherVariable
+  stages:
+  - id: conditionalWaitOnPartial
+    type: wait
+    config:
+      waitTime: 5
+    when:
+      - "{{ includeWait }}"
+  - id: wait
+    type: wait
+    config:
+      waitTime: 5
+      shouldBeSet: "{{ 'isSet' if anotherVariable == someVariable else 'notSet' }}"

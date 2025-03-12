@@ -1,0 +1,16 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spock.gradle"
+
+dependencies {
+  api("io.spinnaker.kork:kork-jedis")
+
+  implementation(project(":orca-core"))
+  implementation(project(":orca-front50"))
+  implementation("io.reactivex:rxjava")
+  implementation("net.logstash.logback:logstash-logback-encoder")
+
+  testImplementation(project(":orca-core-tck"))
+  testImplementation(project(":orca-test-redis"))
+  testImplementation(project(":orca-test-groovy"))
+  testImplementation("io.spinnaker.kork:kork-jedis-test")
+}

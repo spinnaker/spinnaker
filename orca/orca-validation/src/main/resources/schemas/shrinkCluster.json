@@ -1,0 +1,138 @@
+{
+  "title" : "Schema for 'shrinkCluster' stage",
+  "type" : "object",
+  "properties" : {
+    "allowDeleteActive" : {
+      "type" : "boolean",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "cloudProvider" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "cloudProviderType" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "cluster" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "comments" : {
+      "type" : "string",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "continuePipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "credentials" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "failPipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "notifications" : {
+      "type" : "array",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "overrideTimeout" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "regions" : {
+      "type" : "array",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "restrictExecutionDuringTimeWindow" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictedExecutionWindow" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "retainLargerOverNewer" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "sendNotifications" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "shrinkToSize" : {
+      "type" : "number",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "stageEnabled" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageTimeoutMs" : {
+      "type" : "number",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "target" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    }
+  }
+}

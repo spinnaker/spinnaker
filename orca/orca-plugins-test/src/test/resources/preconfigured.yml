@@ -1,0 +1,65 @@
+label: Custom Deploy
+description: Runs a custom deploy
+type: customDeploy
+waitForCompletion: true
+uiType: CUSTOM
+parameters:
+  - name: buildFolder
+    mapping: cluster.env.BUILD_FOLDER
+    defaultValue: build
+    description: The folder to deploy (from the Jenkins Job)
+    label: Build Folder
+    order: 0
+  - name: rootFolder
+    mapping: cluster.env.ROOT_FOLDER
+    defaultValue: private
+    description: Determines if the root folder will be private (protected by Meechum)
+    label: Root Folder (private or public)
+    order: 1
+  - name: environment
+    mapping: cluster.env.ENV
+    defaultValue: test
+    label: Environment
+    order: 2
+  - name: region
+    mapping: cluster.env.DESTINATION_REGION
+    defaultValue: us-east-1
+    label: Destination Region
+    order: 3
+  - name: hostname
+    mapping: cluster.env.HOST_NAME
+    label: Hostname
+    order: 4
+    description: The hostname that will be used to access this content
+  - name: account
+    mapping: credentials
+    label: Titus Account
+    defaultValue: titus
+    order: 5
+  - name: buildUrl
+    mapping: cluster.env.BUILD_URL
+    label: url of your build
+    defaultValue: ""
+    order: 6
+cloudProvider: titus
+credentials: titus
+region: us-east-1
+cluster:
+  imageId: netflix/custom-deploy:latest
+  application: testapp
+  stack: ${execution.application}
+  region: us-east-1
+  capacity:
+    desired: 1
+    max: 1
+    min: 1
+  env:
+    SOURCE_APP: ${execution.application}
+  runtimeLimitSecs: 3600
+  resources:
+    cpu: 1
+    disk: 10000
+    gpu: 0
+    memory: 512
+    networkMbps: 128
+  retries: 2

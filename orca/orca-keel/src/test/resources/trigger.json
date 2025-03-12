@@ -1,0 +1,58 @@
+{
+  "type": "rocket",
+  "user": "me@email",
+  "parameters": {},
+  "artifacts": [],
+  "notifications": [],
+  "rebake": false,
+  "dryRun": false,
+  "strategy": false,
+  "hash": "3d1516dd75b52b9a01ff17b36271973afb285a81",
+  "source": "stash",
+  "project": "~EMBURNS",
+  "branch": "master",
+  "slug": "spin-titus-demo",
+  "link": "https://stash/projects/~EMBURNS/repos/spin-titus-demo/commits/3d1516dd75b52b9a01ff17b36271973afb285a81",
+  "linkText": "Commit 3d1516d",
+  "repository": "stash/~emburns/spin-titus-demo",
+  "enabled": true,
+  "runAsUser": "me-service@email",
+  "payload": {
+    "eventSource": "stash-stable",
+    "causedBy": {
+      "name": "emburns",
+      "email": "emburns@spinnaker.com"
+    },
+    "source": {
+      "date": "Mar 10, 2021 7:56:41 PM",
+      "skippingCi": false,
+      "projectKey": "~EMBURNS",
+      "repoName": "spin-titus-demo",
+      "author": {
+        "name": "emburns",
+        "email": "emburns@spinnaker.com"
+      },
+      "branchName": "master",
+      "refId": "refs/heads/master",
+      "refUrl": "https://stash/projects/~EMBURNS/repos/spin-titus-demo/browse?at=refs%2Fheads%2Fmaster",
+      "message": "This is a commit message for my nice commit.",
+      "sha": "3d1516dd75b52b9a01ff17b36271973afb285a81",
+      "url": "https://stash/projects/~EMBURNS/repos/spin-titus-demo/commits/3d1516dd75b52b9a01ff17b36271973afb285a81"
+    },
+    "pullRequest": {
+      "repoSlug": "UNKNOWN",
+      "branchUrl": "https://url",
+      "projectKey": "UNKNOWN",
+      "author": {
+        "name": "UNKNOWN",
+        "email": "team-rocket@netflix.com"
+      },
+      "id": "-1",
+      "type": "not_applicable",
+      "branch": "UNKNOWN",
+      "url": "https://url"
+    }
+  },
+  "id": "fe869c20-b265-377e-96bd-605489fc0852",
+  "preferred": false
+}

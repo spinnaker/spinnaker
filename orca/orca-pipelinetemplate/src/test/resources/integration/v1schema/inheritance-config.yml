@@ -1,0 +1,15 @@
+schema: "1"
+pipeline:
+  application: orca
+  name: MPT Inheritance Test
+  template:
+    source: inheritance-child.yml
+  variables:
+    waitTime: 5
+stages:
+- id: configWait
+  type: wait
+  inject:
+    first: true
+  config:
+    waitTime: "{{ waitTime }}"

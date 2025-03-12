@@ -1,0 +1,44 @@
+{
+  "expectedArtifacts": [
+    {
+      "usePriorArtifact": false,
+      "useDefaultArtifact": false,
+      "id": "artifact-test-render-helm-output-manifest",
+      "matchArtifact": {
+        "kind": "base64",
+        "name": "render-helm-output-manifest",
+        "artifactAccount": "embedded-artifact",
+        "type": "embedded/base64"
+      }
+    }
+  ],
+  "comments": "",
+  "outputName": "render-helm-output-manifest",
+  "stageEnabled": {},
+  "overrides": {
+    "clusterName": "123"
+  },
+  "evaluateOverrideExpressions": false,
+  "inputArtifacts": [
+    {
+      "id": "artifact-testhelm",
+      "account": "sfcd-helm"
+    }
+  ],
+  "failOnFailedExpressions": false,
+  "cloudProvider": "kubernetes",
+  "namespace": "test",
+  "failPipeline": true,
+  "rawOverrides": false,
+  "templateRenderer": "HELM2",
+  "sendNotifications": false,
+  "restrictExecutionDuringTimeWindow": false,
+  "artifacts": [{
+    "customKind": false,
+    "reference": "some reference",
+    "metadata": {},
+    "name": "render-helm-output-manifest",
+    "type": "embedded/base64"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+/*
+ * Copyright 2019 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.igor.tasks;
+
+import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.igor.model.RetryableStageDefinition;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@RequiredArgsConstructor
+@Slf4j
+public abstract class RetryableIgorTask<T extends RetryableStageDefinition>
+    implements RetryableTask {
+  public long getBackoffPeriod() {
+    return TimeUnit.SECONDS.toMillis(5);
+  }
+
+  public long getTimeout() {
+    return TimeUnit.MINUTES.toMillis(1);
+  }
+
+  protected int getMaxConsecutiveErrors() {
+    return 5;
+  }
+
+  @Override
+  public @Nonnull TaskResult execute(@Nonnull StageExecution stage) {
+    T stageDefinition = mapStage(stage);
+    int errors = stageDefinition.getConsecutiveErrors();
+    try {
+      TaskResult result = tryExecute(stageDefinition);
+      return resetErrorCount(result);
+    } catch (SpinnakerServerException e) {
+      if (stageDefinition.getConsecutiveErrors() < getMaxConsecutiveErrors() && isRetryable(e)) {
+        return TaskResult.builder(ExecutionStatus.RUNNING)
+            .context(errorContext(errors + 1))
+            .build();
+      }
+      throw e;
+    }
+  }
+
+  protected abstract @Nonnull TaskResult tryExecute(@Nonnull T stageDefinition);
+
+  protected abstract @Nonnull T mapStage(@Nonnull StageExecution stage);
+
+  private TaskResult resetErrorCount(TaskResult result) {
+    Map<String, Object> newContext =
+        ImmutableMap.<String, Object>builder()
+            .putAll(result.getContext())
+            .put("consecutiveErrors", 0)
+            .build();
+    return TaskResult.builder(result.getStatus())
+        .context(newContext)
+        .outputs(result.getOutputs())
+        .build();
+  }
+
+  private Map<String, Integer> errorContext(int errors) {
+    return Collections.singletonMap("consecutiveErrors", errors);
+  }
+
+  private boolean isRetryable(SpinnakerServerException exception) {
+    if (exception instanceof SpinnakerNetworkException) {
+      log.warn("Failed to communicate with igor, retrying...");
+      return true;
+    } else if (exception instanceof SpinnakerHttpException) {
+      var httpException = (SpinnakerHttpException) exception;
+      int status = httpException.getResponseCode();
+      if (status == 500 || status == 503) {
+        log.warn(String.format("Received HTTP %s response from igor, retrying...", status));
+        return true;
+      }
+    }
+    return false;
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "title" : "Schema for 'canary' stage",
+  "type" : "object",
+  "properties" : {
+    "baseline" : {
+      "type" : "object",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "canary" : {
+      "type" : "object",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "clusterPairs" : {
+      "type" : "array",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "comments" : {
+      "type" : "string",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "continuePipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "failPipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "notifications" : {
+      "type" : "array",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "overrideTimeout" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictExecutionDuringTimeWindow" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictedExecutionWindow" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "scaleUp" : {
+      "type" : "object",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "sendNotifications" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageEnabled" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageTimeoutMs" : {
+      "type" : "number",
+      "_meta" : {
+        "builtIn" : true
+      }
+    }
+  }
+}

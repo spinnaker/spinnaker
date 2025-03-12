@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20190530-update-pipeline-config-indices
+      author: afeldman
+      preConditions:
+        - onFail: MARK_RAN
+        - indexExists:
+            schemaName: pipelines
+            indexName: pipeline_config_idx
+      changes:
+      - createIndex:
+          indexName: pipeline_config_id_idx
+          tableName: pipelines
+          columns:
+          - column:
+              name: config_id
+          - column:
+              name: id
+      - dropIndex:
+          indexName: pipeline_config_idx
+          tableName: pipelines
+      rollback:
+      - createIndex:
+          indexName: pipeline_config_idx
+          tableName: pipelines
+          columns:
+          - column:
+              name: config_id
+      - dropIndex:
+          indexName: pipeline_config_id_idx
+          tableName: pipelines

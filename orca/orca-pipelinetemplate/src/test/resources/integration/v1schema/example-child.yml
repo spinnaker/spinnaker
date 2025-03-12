@@ -1,0 +1,13 @@
+schema: "1"
+id: child-template
+source: example-root.yml   # Indicates that this template inherits from the root-template
+metadata:
+  name: Child template
+  description: A child template
+stages:
+- id: waitChild1
+  type: wait
+  dependsOn:
+  - wait1                   # Depending on a stage from the root-template
+  config:
+    waitTime: "{{ waitTime }}"  # Using a variable from the root-template

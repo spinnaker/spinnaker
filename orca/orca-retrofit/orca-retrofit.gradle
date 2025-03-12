@@ -1,0 +1,58 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "$rootDir/gradle/groovy.gradle"
+
+dependencies {
+  api("com.squareup.retrofit:retrofit")
+  api("com.squareup.retrofit:converter-jackson")
+  api("org.apache.groovy:groovy")
+  api("io.spinnaker.kork:kork-web")
+  api("com.jakewharton.retrofit:retrofit1-okhttp3-client")
+
+  implementation(project(":orca-core"))
+  implementation("io.reactivex:rxjava")
+  implementation("io.spinnaker.kork:kork-retrofit")
+  implementation("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
+  implementation "com.google.guava:guava"
+
+  testImplementation("com.squareup.retrofit:retrofit-mock")
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
+  testImplementation("org.mockito:mockito-core")
+  testImplementation("org.springframework.boot:spring-boot-test")
+  testImplementation("com.squareup.okhttp3:mockwebserver")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly("org.springframework:spring-test")
+
+  test {
+    useJUnitPlatform()
+  }
+}
+
+sourceSets {
+  main {
+    java { srcDirs = [] } // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/java", "src/main/groovy"] }  // compile everything in src/main with groovy
+  }
+
+  test {
+    java { srcDirs = [] } // no source dirs for the java compiler
+    groovy { srcDirs = ["src/test/java", "src/test/groovy"] }  // compile everything in src/test with groovy
+  }
+
+}

@@ -1,0 +1,98 @@
+/*
+ * Copyright 2016 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
+
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import org.springframework.mock.env.MockEnvironment
+import spock.lang.Specification
+import spock.lang.Unroll
+
+class HighlanderStrategySpec extends Specification {
+
+  def trafficGuard = Stub(TrafficGuard)
+  def env = new MockEnvironment()
+
+  def dynamicConfigService = Mock(DynamicConfigService)
+
+  def disableClusterStage = new DisableClusterStage(dynamicConfigService)
+  def shrinkClusterStage = new ShrinkClusterStage(dynamicConfigService, disableClusterStage)
+
+  @Unroll
+  def "should compose flow"() {
+    given:
+      def ctx = [
+          account          : "testAccount",
+          application      : "unit",
+          stack            : "tests",
+          cloudProvider    : cloudProvider,
+          region           : "north",
+          availabilityZones: [
+              north: ["pole-1a"]
+          ]
+      ]
+
+      if (interestingHealthProviderNames) {
+        ctx.interestingHealthProviderNames = interestingHealthProviderNames
+      }
+
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "whatever", ctx)
+      def strat = new HighlanderStrategy(shrinkClusterStage: shrinkClusterStage)
+
+    when:
+      def beforeStages = strat.composeBeforeStages(stage)
+      def afterStages = strat.composeAfterStages(stage)
+
+    then:
+      beforeStages.isEmpty()
+      afterStages.size() == 1
+      afterStages.last().type == shrinkClusterStage.type
+
+      if (interestingHealthProviderNames) {
+        afterStages.last().context == [
+          credentials                   : "testAccount",
+          (locationType)                : locationValue,
+          cluster                       : "unit-tests",
+          cloudProvider                 : cloudProvider,
+          shrinkToSize                  : 1,
+          retainLargerOverNewer         : false,
+          allowDeleteActive             : true,
+          interestingHealthProviderNames: propagatedInterestingHealthProviderNames
+        ]
+      } else {
+        afterStages.last().context == [
+          credentials                   : "testAccount",
+          (locationType)                : locationValue,
+          cluster                       : "unit-tests",
+          cloudProvider                 : cloudProvider,
+          shrinkToSize                  : 1,
+          retainLargerOverNewer         : false,
+          allowDeleteActive             : true,
+        ]
+      }
+
+    where:
+      cloudProvider | locationType | locationValue | interestingHealthProviderNames | propagatedInterestingHealthProviderNames
+      "aws"         | "region"     | "north"       | null                           | null
+      "gce"         | "region"     | "north"       | null                           | null
+      "gce"         | "region"     | "north"       | ["Google"]                     | ["Google"]
+  }
+}

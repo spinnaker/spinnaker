@@ -1,0 +1,75 @@
+{
+  "title" : "Schema for 'acaTask' stage",
+  "type" : "object",
+  "properties" : {
+    "baseline" : {
+      "type" : "object"
+    },
+    "canary" : {
+      "type" : "object"
+    },
+    "comments" : {
+      "type" : "string",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "continueOnUnhealthy" : {
+      "type" : "boolean"
+    },
+    "continuePipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "failPipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "notifications" : {
+      "type" : "array",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "overrideTimeout" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictExecutionDuringTimeWindow" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictedExecutionWindow" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "sendNotifications" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageEnabled" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageTimeoutMs" : {
+      "type" : "number",
+      "_meta" : {
+        "builtIn" : true
+      }
+    }
+  }
+}

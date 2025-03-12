@@ -1,0 +1,31 @@
+schema: "1"
+pipeline:
+  application: orca
+  name: Stage Injection Test
+  variables:
+    waitTime: 5
+stages:
+- id: first
+  type: wait
+  inject:
+    first: true
+  config:
+    waitTime: "{{ waitTime }}"
+- id: last
+  type: wait
+  inject:
+    last: true
+  config:
+    waitTime: "{{ waitTime }}"
+- id: afterWait2
+  type: wait
+  inject:
+    after: [wait2]
+  config:
+    waitTime: "{{ waitTime }}"
+- id: beforeWait2
+  type: wait
+  inject:
+    before: [wait2]
+  config:
+    waitTime: "{{ waitTime }}"

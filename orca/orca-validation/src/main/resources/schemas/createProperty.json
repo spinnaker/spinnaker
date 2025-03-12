@@ -1,0 +1,101 @@
+{
+  "title" : "Schema for 'createProperty' stage",
+  "type" : "object",
+  "properties" : {
+    "cmcTicket" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "comments" : {
+      "type" : "string",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "continuePipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "email" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "failPipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "notifications" : {
+      "type" : "array",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "overrideTimeout" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "persistedProperties" : {
+      "type" : "array",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "restrictExecutionDuringTimeWindow" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictedExecutionWindow" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "rollbackProperties" : {
+      "type" : "boolean"
+    },
+    "scope" : {
+      "type" : "object",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "sendNotifications" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageEnabled" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageTimeoutMs" : {
+      "type" : "number",
+      "_meta" : {
+        "builtIn" : true
+      }
+    }
+  }
+}

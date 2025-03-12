@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      validCheckSum: 8:10687930e669629d8c370cd5a2348585
+      id: create-deleted-executions-table
+      author: mvulfson
+      changes:
+        - createTable:
+            tableName: deleted_executions
+            columns:
+            - column:
+                name: id
+                type: int
+                autoIncrement: true
+                constraints:
+                  primaryKey: true
+                  nullable: false
+            - column:
+                name: execution_id
+                type: varchar(26)
+                constraints:
+                  nullable: false
+            - column:
+                name: deleted_at
+                type: datetime
+                constraints:
+                  nullable: false
+            - column:
+                name: execution_type
+                type: varchar(26)
+                constraints:
+                  nullable: false
+        - sql:
+            dbms: mysql
+            sql: ALTER TABLE `deleted_executions` MODIFY COLUMN `execution_type` ENUM("pipeline", "orchestration") NOT NULL
+      rollback:
+        - dropTable:
+            tableName: deleted_executions

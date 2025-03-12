@@ -1,0 +1,162 @@
+{
+  "title" : "Schema for 'resizeServerGroup' stage",
+  "type" : "object",
+  "properties" : {
+    "action" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "capacity" : {
+      "type" : "object",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "cloudProvider" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "cloudProviderType" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "cluster" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "comments" : {
+      "type" : "string",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "continuePipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "credentials" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "failPipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "notifications" : {
+      "type" : "array",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "overrideTimeout" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "regions" : {
+      "type" : "array",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "resizeType" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "restrictExecutionDuringTimeWindow" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictedExecutionWindow" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "scaleNum" : {
+      "type" : "number",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "scalePct" : {
+      "type" : "number",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "sendNotifications" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageEnabled" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageTimeoutMs" : {
+      "type" : "number",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "target" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "targetHealthyDeployPercentage" : {
+      "type" : "number",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    }
+  }
+}

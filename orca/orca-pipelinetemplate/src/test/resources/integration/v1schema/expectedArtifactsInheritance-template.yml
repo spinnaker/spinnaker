@@ -1,0 +1,19 @@
+---
+schema: "1"
+id: triggerInheritance
+metadata:
+  name: Trigger Inheritance
+  description: Inheriting triggers from a template
+configuration:
+  expectedArtifacts:
+    - id: an-artifact
+      displayName: an-artifact
+      defaultArtifact:
+        customKind: true
+      matchArtifact:
+        customKind: true
+        type: http/file
+        name: an-artifact
+      useDefaultArtifact: false
+      usePriorArtifact: false
+stages: []

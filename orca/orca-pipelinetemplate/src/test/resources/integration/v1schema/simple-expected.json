@@ -1,0 +1,13 @@
+{
+  "id": "unknown",
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "maxConcurrentExecutions": 0,
+  "application": "orca",
+  "name": "Unnamed Execution",
+  "stages": [],
+  "notifications": [],
+  "parameterConfig": [],
+  "triggers": [],
+  "expectedArtifacts": []
+}

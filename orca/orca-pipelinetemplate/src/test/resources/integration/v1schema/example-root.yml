@@ -1,0 +1,14 @@
+schema: "1"         # Schema must match for all
+id: root-template
+metadata:
+  name: Simple wait template
+  description: Extendable root template
+variables:          # Variables available to all that inherit
+- name: waitTime
+  description: The time a wait stage should pause
+  type: int
+stages:             # Stages available to all that inherit
+- id: wait1
+  type: wait
+  config:
+    waitTime: "{{ waitTime }}"  # Variables can be used anywhere

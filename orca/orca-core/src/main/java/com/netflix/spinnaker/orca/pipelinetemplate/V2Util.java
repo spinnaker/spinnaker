@@ -1,0 +1,94 @@
+/*
+ * Copyright 2019 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.pipelinetemplate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor;
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException;
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class V2Util {
+  public static Map<String, Object> planPipeline(
+      ContextParameterProcessor contextParameterProcessor,
+      List<ExecutionPreprocessor> pipelinePreprocessors,
+      Map<String, Object> pipeline) {
+    // TODO(jacobkiefer): Excise the logic in OperationsController that requires plan to avoid
+    // resolving artifacts.
+    pipeline.put("plan", true); // avoid resolving artifacts
+
+    Map<String, Object> finalPipeline = pipeline;
+    List<ExecutionPreprocessor> preprocessors =
+        pipelinePreprocessors.stream()
+            .filter(p -> p.supports(finalPipeline, ExecutionPreprocessor.Type.PIPELINE))
+            .collect(Collectors.toList());
+    for (ExecutionPreprocessor pp : preprocessors) {
+      pipeline = pp.process(pipeline);
+    }
+
+    List<Map<String, Object>> pipelineErrors = (List<Map<String, Object>>) pipeline.get("errors");
+    if (pipelineErrors != null && !pipelineErrors.isEmpty()) {
+      throw new PipelineTemplateValidationException("Pipeline template is invalid", pipelineErrors);
+    }
+
+    Map<String, Object> augmentedContext = new HashMap<>();
+    augmentedContext.put("trigger", pipeline.get("trigger"));
+    augmentedContext.put(
+        "templateVariables", pipeline.getOrDefault("templateVariables", Collections.EMPTY_MAP));
+
+    Map<String, Object> spelEvaluatedPipeline =
+        contextParameterProcessor.processPipeline(pipeline, augmentedContext, true);
+
+    Map<String, Object> expressionEvalSummary =
+        (Map<String, Object>) spelEvaluatedPipeline.get(PipelineExpressionEvaluator.SUMMARY);
+    if (expressionEvalSummary != null) {
+      List<String> failedTemplateVars =
+          expressionEvalSummary.entrySet().stream()
+              .map(e -> e.getKey())
+              .filter(v -> v.startsWith("templateVariables."))
+              .map(v -> v.replace("templateVariables.", ""))
+              .collect(Collectors.toList());
+
+      if (failedTemplateVars.size() > 0) {
+        throw new PipelineTemplateValidationException(
+            "Missing template variable values for the following variables: %s", failedTemplateVars);
+      }
+    }
+
+    if (!spelEvaluatedPipeline.containsKey("source")) {
+      PipelineExecution.PipelineSource source = new PipelineExecution.PipelineSource();
+      source.setType("templatedPipeline");
+      source.setVersion("v2");
+      spelEvaluatedPipeline.put("source", new ObjectMapper().convertValue(source, Map.class));
+    }
+
+    return spelEvaluatedPipeline;
+  }
+
+  public static boolean isV2Pipeline(Map<String, Object> pipelineConfig) {
+    return pipelineConfig.getOrDefault("type", "").equals("templatedPipeline")
+        && pipelineConfig.getOrDefault("schema", "").equals("v2");
+  }
+}

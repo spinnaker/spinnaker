@@ -1,0 +1,38 @@
+---
+schema: "1"
+id: simple
+metadata:
+  name: Wait
+  description: Simple waiting template.
+variables:
+- name: waitTime
+  description: The time a wait stage should pause
+  type: int
+stages:
+- id: goodwait
+  type: wait
+  config:
+    waitTime: "{{ waitTime }}"
+- type: wait
+  config:
+    waitTime: "{{ waitTime }}"
+- id: wait1
+  config:
+    waitTime: 10
+- id: wait2
+  type: wait
+- id: wait3
+  type: wait
+  config:
+    waitTime: 10
+  dependsOn:
+    - goodWait
+  inject:
+      before: [wait2]
+- id: wait4
+  type: wait
+  config:
+    waitTime: 10
+  inject:
+      after: [wait2]
+      before: [wait2]

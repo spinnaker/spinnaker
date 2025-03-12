@@ -1,0 +1,6 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+dependencies {
+  api project(":keiko-core")
+  api project(":keiko-test-common")
+}

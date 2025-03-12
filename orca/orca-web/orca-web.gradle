@@ -1,0 +1,127 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "$rootDir/gradle/groovy.gradle"
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply plugin: 'io.spinnaker.package'
+
+mainClassName = 'com.netflix.spinnaker.orca.Main'
+
+dependencies {
+  implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-actuator")
+  implementation("net.logstash.logback:logstash-logback-encoder")
+
+  implementation(project(":keiko-spring"))
+
+  implementation(project(":orca-api"))
+  implementation(project(":orca-applications"))
+  implementation(project(":orca-bakery"))
+  implementation(project(":orca-clouddriver"))
+  implementation(project(":orca-clouddriver-provider-titus"))
+  implementation(project(":orca-core"))
+  implementation(project(":orca-deploymentmonitor"))
+  implementation(project(":orca-dry-run"))
+  implementation(project(":orca-echo"))
+  implementation(project(":orca-flex"))
+  implementation(project(":orca-front50"))
+  implementation(project(":orca-igor"))
+  implementation(project(":orca-integrations-cloudfoundry"))
+  implementation(project(":orca-integrations-gremlin"))
+  implementation(project(":orca-interlink"))
+  implementation(project(":orca-kayenta"))
+  implementation(project(":orca-keel"))
+  implementation(project(":orca-migration"))
+  implementation(project(":orca-mine"))
+  implementation(project(":orca-peering"))
+  implementation(project(":orca-pipelinetemplate"))
+  implementation(project(":orca-qos"))
+  implementation(project(":orca-queue"))
+  implementation(project(":orca-queue-redis"))
+  implementation(project(":orca-queue-sql"))
+  implementation(project(":orca-redis"))
+  implementation(project(":orca-remote-stage"))
+  implementation(project(":orca-sql"))
+  implementation(project(":orca-webhook"))
+  implementation("io.spinnaker.kork:kork-config")
+  implementation("io.spinnaker.kork:kork-exceptions")
+  implementation("io.spinnaker.kork:kork-web")
+  implementation("io.spinnaker.kork:kork-plugins")
+  implementation("net.logstash.logback:logstash-logback-encoder")
+  implementation("io.spinnaker.fiat:fiat-api:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("io.spinnaker.kork:kork-retrofit")
+
+  runtimeOnly("io.spinnaker.kork:kork-runtime")
+
+  if (!rootProject.hasProperty("excludeSqlDrivers")) {
+    runtimeOnly(project(":orca-sql-mysql"))
+    runtimeOnly(project(":orca-sql-postgres"))
+  }
+
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
+
+  //this brings in the jetty GzipFilter which boot will autoconfigure
+  runtimeOnly("org.eclipse.jetty:jetty-servlets:9.2.11.v20150529")
+
+  testImplementation(project(":orca-test-groovy"))
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("org.spockframework:spock-core")
+  testImplementation("org.spockframework:spock-spring")
+  testImplementation("org.springframework:spring-test")
+  testImplementation("org.springframework.security:spring-security-test")
+  testImplementation("cglib:cglib-nodep")
+  testImplementation("org.objenesis:objenesis")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation(project(":keiko-mem"))
+
+  testImplementation(project(":orca-api-tck"))
+  testImplementation("dev.minutest:minutest")
+  testImplementation("io.strikt:strikt-core")
+  testImplementation("io.mockk:mockk")
+  testImplementation("org.apache.groovy:groovy-json")
+  testImplementation("com.nhaarman:mockito-kotlin")
+  testImplementation("io.spinnaker.kork:kork-sql-test")
+  testImplementation("org.testcontainers:mysql")
+  testImplementation ("com.squareup.retrofit2:retrofit-mock")
+}
+
+sourceSets {
+  main {
+    java { srcDirs = [] }    // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/java", "src/main/groovy"] }  // compile   everything in src/ with groovy
+  }
+}
+
+test {
+  //The Implementation-Version is set in the MANIFEST.MF for the JAR produced via testing so that
+  //assertions can be made against the version (see orca-plugins-test, for example).
+  jar {
+    manifest {
+      String implementationVersion = getAttributes()["Implementation-Version"]
+      if (implementationVersion == null
+          || implementationVersion.isEmpty()
+          || implementationVersion == "undefined"
+          || implementationVersion.endsWith("SNAPSHOT")) {
+        attributes(
+            'Implementation-Version': '1.0.0'
+        )
+      }
+    }
+  }
+  useJUnitPlatform()
+}

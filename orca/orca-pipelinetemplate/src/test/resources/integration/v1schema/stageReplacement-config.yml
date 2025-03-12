@@ -1,0 +1,24 @@
+---
+schema: "1"
+pipeline:
+  application: orca
+  name: MPT Stage Replacement Test
+  template:
+    source: stageReplacement-template.yml
+  variables:
+    myCustomFirstStageName: "HELLO ROB"
+stages:
+- id: bake1
+  type: findImageFromTags
+  name: "{{ myCustomFirstStageName }}"
+  config:
+    cloudProvider: aws
+    cloudProviderType: aws
+    packageName: "{{ application }}"
+    regions:
+    - us-east-1
+    - us-west-1
+    - us-west-2
+    - eu-west-1
+    tags:
+      stack: test

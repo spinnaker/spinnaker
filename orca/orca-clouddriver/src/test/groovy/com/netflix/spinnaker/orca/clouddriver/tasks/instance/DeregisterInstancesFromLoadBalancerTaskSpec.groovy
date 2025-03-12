@@ -1,0 +1,86 @@
+/*
+ * Copyright 2016 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.clouddriver.tasks.instance
+
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+import spock.lang.Specification
+import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+
+class DeregisterInstancesFromLoadBalancerTaskSpec extends Specification {
+  @Subject task = new DeregisterInstancesFromLoadBalancerTask()
+  def stage = stage()
+  def taskId = new TaskId(UUID.randomUUID().toString())
+
+  def deregisterInstancesFromLoadBalancerConfig = [
+    instanceIds      : ["some-instance-name"],
+    loadBalancerNames: ["flapjack-frontend"],
+    region           : "us-central1",
+    credentials      : "test-account-name",
+    cloudProvider    : "abc"
+  ]
+
+  def setup() {
+    stage.context.putAll(deregisterInstancesFromLoadBalancerConfig)
+  }
+
+  def "creates a deregister instances from load balancer task based on job parameters"() {
+    given:
+    def operations
+    task.trafficGuard = Mock(TrafficGuard)
+    task.kato = Mock(KatoService) {
+      1 * requestOperations("abc", _) >> {
+        operations = it[1]
+        taskId
+      }
+    }
+
+    when:
+    task.execute(stage)
+
+    then:
+    operations.size() == 1
+    with(operations[0].deregisterInstancesFromLoadBalancer) {
+      it instanceof Map
+      instanceIds == this.deregisterInstancesFromLoadBalancerConfig.instanceIds
+      loadBalancerNames == this.deregisterInstancesFromLoadBalancerConfig.loadBalancerNames
+      region == this.deregisterInstancesFromLoadBalancerConfig.region
+      credentials == this.deregisterInstancesFromLoadBalancerConfig.credentials
+      cloudProvider == this.deregisterInstancesFromLoadBalancerConfig.cloudProvider
+    }
+    1 * task.trafficGuard.verifyInstanceTermination(null, _, ["some-instance-name"], "test-account-name", _, "abc", _)
+  }
+
+  def "returns a success status with the kato task id"() {
+    given:
+    task.trafficGuard = Mock(TrafficGuard)
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> taskId
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    result.context."kato.last.task.id" == taskId
+    result.context.interestingHealthProviderNames == ["LoadBalancer", "TargetGroup"]
+  }
+}

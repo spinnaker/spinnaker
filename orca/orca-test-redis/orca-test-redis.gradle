@@ -1,0 +1,6 @@
+dependencies {
+  implementation("redis.clients:jedis")
+  implementation("io.spinnaker.kork:kork-jedis")
+  implementation(project(":orca-test"))
+  implementation("io.spinnaker.kork:kork-jedis-test")
+}

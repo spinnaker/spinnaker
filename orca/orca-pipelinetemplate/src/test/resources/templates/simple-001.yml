@@ -1,0 +1,36 @@
+schema: "1"
+id: simpleTemplate
+variables:
+- name: regions
+  description: A list of regions to bake in
+  type: list
+configuration:
+  triggers:
+  - type: jenkins
+    master: spinnaker
+    job: SPINNAKER-package-{{ application }}
+    enabled: true
+stages:
+- id: bake
+  type: bake
+  name: Bake
+  config:
+    regions: |
+      [
+      {% for region in regions %}
+      "{{ region }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+      ]
+    package: "{{ application }}-package"
+    baseOs: trusty
+    vmType: hvm
+    storeType: ebs
+    baseLabel: release
+- id: tagImage
+  type: tagImage
+  name: Tag Image
+  dependsOn:
+  - bake
+  config:
+    tags:
+      stack: test

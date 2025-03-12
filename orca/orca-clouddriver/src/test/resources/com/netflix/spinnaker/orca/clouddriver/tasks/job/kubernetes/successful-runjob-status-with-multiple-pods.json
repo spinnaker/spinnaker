@@ -1,0 +1,786 @@
+{
+  "account": "test-account",
+  "completionDetails": {
+    "exitCode": "",
+    "message": "",
+    "reason": "",
+    "signal": ""
+  },
+  "createdTime": 1633792127000,
+  "jobState": "Succeeded",
+  "location": "test",
+  "name": "testrep",
+  "pods": [
+    {
+      "name": "testrep-bf2g7",
+      "status": {
+        "conditions": [
+          {
+            "lastTransitionTime": {
+              "afterNow": false,
+              "beforeNow": true,
+              "centuryOfEra": 20,
+              "chronology": {
+                "zone": {
+                  "fixed": true,
+                  "id": "Etc/GMT"
+                }
+              },
+              "dayOfMonth": 9,
+              "dayOfWeek": 6,
+              "dayOfYear": 282,
+              "equalNow": false,
+              "era": 1,
+              "hourOfDay": 15,
+              "millis": 1633792128000,
+              "millisOfDay": 54528000,
+              "millisOfSecond": 0,
+              "minuteOfDay": 908,
+              "minuteOfHour": 8,
+              "monthOfYear": 10,
+              "secondOfDay": 54528,
+              "secondOfMinute": 48,
+              "weekOfWeekyear": 40,
+              "weekyear": 2021,
+              "year": 2021,
+              "yearOfCentury": 21,
+              "yearOfEra": 2021,
+              "zone": {
+                "fixed": true,
+                "id": "Etc/GMT"
+              }
+            },
+            "message": "containers with incomplete status: [sidecar1 sidecar2]",
+            "reason": "ContainersNotInitialized",
+            "status": "False",
+            "type": "Initialized"
+          },
+          {
+            "lastTransitionTime": {
+              "afterNow": false,
+              "beforeNow": true,
+              "centuryOfEra": 20,
+              "chronology": {
+                "zone": {
+                  "fixed": true,
+                  "id": "Etc/GMT"
+                }
+              },
+              "dayOfMonth": 9,
+              "dayOfWeek": 6,
+              "dayOfYear": 282,
+              "equalNow": false,
+              "era": 1,
+              "hourOfDay": 15,
+              "millis": 1633792128000,
+              "millisOfDay": 54528000,
+              "millisOfSecond": 0,
+              "minuteOfDay": 908,
+              "minuteOfHour": 8,
+              "monthOfYear": 10,
+              "secondOfDay": 54528,
+              "secondOfMinute": 48,
+              "weekOfWeekyear": 40,
+              "weekyear": 2021,
+              "year": 2021,
+              "yearOfCentury": 21,
+              "yearOfEra": 2021,
+              "zone": {
+                "fixed": true,
+                "id": "Etc/GMT"
+              }
+            },
+            "message": "containers with unready status: [testrep]",
+            "reason": "ContainersNotReady",
+            "status": "False",
+            "type": "Ready"
+          },
+          {
+            "lastTransitionTime": {
+              "afterNow": false,
+              "beforeNow": true,
+              "centuryOfEra": 20,
+              "chronology": {
+                "zone": {
+                  "fixed": true,
+                  "id": "Etc/GMT"
+                }
+              },
+              "dayOfMonth": 9,
+              "dayOfWeek": 6,
+              "dayOfYear": 282,
+              "equalNow": false,
+              "era": 1,
+              "hourOfDay": 15,
+              "millis": 1633792128000,
+              "millisOfDay": 54528000,
+              "millisOfSecond": 0,
+              "minuteOfDay": 908,
+              "minuteOfHour": 8,
+              "monthOfYear": 10,
+              "secondOfDay": 54528,
+              "secondOfMinute": 48,
+              "weekOfWeekyear": 40,
+              "weekyear": 2021,
+              "year": 2021,
+              "yearOfCentury": 21,
+              "yearOfEra": 2021,
+              "zone": {
+                "fixed": true,
+                "id": "Etc/GMT"
+              }
+            },
+            "message": "containers with unready status: [testrep]",
+            "reason": "ContainersNotReady",
+            "status": "False",
+            "type": "ContainersReady"
+          },
+          {
+            "lastTransitionTime": {
+              "afterNow": false,
+              "beforeNow": true,
+              "centuryOfEra": 20,
+              "chronology": {
+                "zone": {
+                  "fixed": true,
+                  "id": "Etc/GMT"
+                }
+              },
+              "dayOfMonth": 9,
+              "dayOfWeek": 6,
+              "dayOfYear": 282,
+              "equalNow": false,
+              "era": 1,
+              "hourOfDay": 15,
+              "millis": 1633792128000,
+              "millisOfDay": 54528000,
+              "millisOfSecond": 0,
+              "minuteOfDay": 908,
+              "minuteOfHour": 8,
+              "monthOfYear": 10,
+              "secondOfDay": 54528,
+              "secondOfMinute": 48,
+              "weekOfWeekyear": 40,
+              "weekyear": 2021,
+              "year": 2021,
+              "yearOfCentury": 21,
+              "yearOfEra": 2021,
+              "zone": {
+                "fixed": true,
+                "id": "Etc/GMT"
+              }
+            },
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "image": "some-main-app-image:1",
+            "imageID": "",
+            "lastState": {},
+            "name": "testrep",
+            "ready": false,
+            "restartCount": 0,
+            "state": {
+              "waiting": {
+                "reason": "PodInitializing"
+              }
+            }
+          }
+        ],
+        "hostIP": "1.1.1.1",
+        "initContainerStatuses": [
+          {
+            "containerID": "docker://2ed",
+            "image": "some-init-container-image:1",
+            "imageID": "docker-pullable://some-init-container-repo/some-init-container-image:1",
+            "lastState": {},
+            "name": "sidecar1",
+            "ready": false,
+            "restartCount": 0,
+            "state": {
+              "terminated": {
+                "containerID": "docker://2ed",
+                "exitCode": 137,
+                "finishedAt": {
+                  "afterNow": false,
+                  "beforeNow": true,
+                  "centuryOfEra": 20,
+                  "chronology": {
+                    "zone": {
+                      "fixed": true,
+                      "id": "Etc/GMT"
+                    }
+                  },
+                  "dayOfMonth": 9,
+                  "dayOfWeek": 6,
+                  "dayOfYear": 282,
+                  "equalNow": false,
+                  "era": 1,
+                  "hourOfDay": 15,
+                  "millis": 1633792167000,
+                  "millisOfDay": 54567000,
+                  "millisOfSecond": 0,
+                  "minuteOfDay": 909,
+                  "minuteOfHour": 9,
+                  "monthOfYear": 10,
+                  "secondOfDay": 54567,
+                  "secondOfMinute": 27,
+                  "weekOfWeekyear": 40,
+                  "weekyear": 2021,
+                  "year": 2021,
+                  "yearOfCentury": 21,
+                  "yearOfEra": 2021,
+                  "zone": {
+                    "fixed": true,
+                    "id": "Etc/GMT"
+                  }
+                },
+                "reason": "OOMKilled",
+                "startedAt": {
+                  "afterNow": false,
+                  "beforeNow": true,
+                  "centuryOfEra": 20,
+                  "chronology": {
+                    "zone": {
+                      "fixed": true,
+                      "id": "Etc/GMT"
+                    }
+                  },
+                  "dayOfMonth": 9,
+                  "dayOfWeek": 6,
+                  "dayOfYear": 282,
+                  "equalNow": false,
+                  "era": 1,
+                  "hourOfDay": 15,
+                  "millis": 1633792166000,
+                  "millisOfDay": 54566000,
+                  "millisOfSecond": 0,
+                  "minuteOfDay": 909,
+                  "minuteOfHour": 9,
+                  "monthOfYear": 10,
+                  "secondOfDay": 54566,
+                  "secondOfMinute": 26,
+                  "weekOfWeekyear": 40,
+                  "weekyear": 2021,
+                  "year": 2021,
+                  "yearOfCentury": 21,
+                  "yearOfEra": 2021,
+                  "zone": {
+                    "fixed": true,
+                    "id": "Etc/GMT"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "image": "some-init-container-other-image:1",
+            "imageID": "",
+            "lastState": {},
+            "name": "sidecar2",
+            "ready": false,
+            "restartCount": 0,
+            "state": {
+              "waiting": {
+                "reason": "PodInitializing"
+              }
+            }
+          }
+        ],
+        "phase": "Failed",
+        "podIP": "1.1.1.1",
+        "qosClass": "Burstable",
+        "startTime": {
+          "afterNow": false,
+          "beforeNow": true,
+          "centuryOfEra": 20,
+          "chronology": {
+            "zone": {
+              "fixed": true,
+              "id": "Etc/GMT"
+            }
+          },
+          "dayOfMonth": 9,
+          "dayOfWeek": 6,
+          "dayOfYear": 282,
+          "equalNow": false,
+          "era": 1,
+          "hourOfDay": 15,
+          "millis": 1633792128000,
+          "millisOfDay": 54528000,
+          "millisOfSecond": 0,
+          "minuteOfDay": 908,
+          "minuteOfHour": 8,
+          "monthOfYear": 10,
+          "secondOfDay": 54528,
+          "secondOfMinute": 48,
+          "weekOfWeekyear": 40,
+          "weekyear": 2021,
+          "year": 2021,
+          "yearOfCentury": 21,
+          "yearOfEra": 2021,
+          "zone": {
+            "fixed": true,
+            "id": "Etc/GMT"
+          }
+        }
+      }
+    },
+    {
+      "name": "testrep-rn5qt",
+      "status": {
+        "conditions": [
+          {
+            "lastTransitionTime": {
+              "afterNow": false,
+              "beforeNow": true,
+              "centuryOfEra": 20,
+              "chronology": {
+                "zone": {
+                  "fixed": true,
+                  "id": "Etc/GMT"
+                }
+              },
+              "dayOfMonth": 9,
+              "dayOfWeek": 6,
+              "dayOfYear": 282,
+              "equalNow": false,
+              "era": 1,
+              "hourOfDay": 15,
+              "millis": 1633792204000,
+              "millisOfDay": 54604000,
+              "millisOfSecond": 0,
+              "minuteOfDay": 910,
+              "minuteOfHour": 10,
+              "monthOfYear": 10,
+              "secondOfDay": 54604,
+              "secondOfMinute": 4,
+              "weekOfWeekyear": 40,
+              "weekyear": 2021,
+              "year": 2021,
+              "yearOfCentury": 21,
+              "yearOfEra": 2021,
+              "zone": {
+                "fixed": true,
+                "id": "Etc/GMT"
+              }
+            },
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastTransitionTime": {
+              "afterNow": false,
+              "beforeNow": true,
+              "centuryOfEra": 20,
+              "chronology": {
+                "zone": {
+                  "fixed": true,
+                  "id": "Etc/GMT"
+                }
+              },
+              "dayOfMonth": 9,
+              "dayOfWeek": 6,
+              "dayOfYear": 282,
+              "equalNow": false,
+              "era": 1,
+              "hourOfDay": 15,
+              "millis": 1633792321000,
+              "millisOfDay": 54721000,
+              "millisOfSecond": 0,
+              "minuteOfDay": 912,
+              "minuteOfHour": 12,
+              "monthOfYear": 10,
+              "secondOfDay": 54721,
+              "secondOfMinute": 1,
+              "weekOfWeekyear": 40,
+              "weekyear": 2021,
+              "year": 2021,
+              "yearOfCentury": 21,
+              "yearOfEra": 2021,
+              "zone": {
+                "fixed": true,
+                "id": "Etc/GMT"
+              }
+            },
+            "status": "True",
+            "type": "Ready"
+          },
+          {
+            "lastTransitionTime": {
+              "afterNow": false,
+              "beforeNow": true,
+              "centuryOfEra": 20,
+              "chronology": {
+                "zone": {
+                  "fixed": true,
+                  "id": "Etc/GMT"
+                }
+              },
+              "dayOfMonth": 9,
+              "dayOfWeek": 6,
+              "dayOfYear": 282,
+              "equalNow": false,
+              "era": 1,
+              "hourOfDay": 15,
+              "millis": 1633792321000,
+              "millisOfDay": 54721000,
+              "millisOfSecond": 0,
+              "minuteOfDay": 912,
+              "minuteOfHour": 12,
+              "monthOfYear": 10,
+              "secondOfDay": 54721,
+              "secondOfMinute": 1,
+              "weekOfWeekyear": 40,
+              "weekyear": 2021,
+              "year": 2021,
+              "yearOfCentury": 21,
+              "yearOfEra": 2021,
+              "zone": {
+                "fixed": true,
+                "id": "Etc/GMT"
+              }
+            },
+            "status": "True",
+            "type": "ContainersReady"
+          },
+          {
+            "lastTransitionTime": {
+              "afterNow": false,
+              "beforeNow": true,
+              "centuryOfEra": 20,
+              "chronology": {
+                "zone": {
+                  "fixed": true,
+                  "id": "Etc/GMT"
+                }
+              },
+              "dayOfMonth": 9,
+              "dayOfWeek": 6,
+              "dayOfYear": 282,
+              "equalNow": false,
+              "era": 1,
+              "hourOfDay": 15,
+              "millis": 1633792170000,
+              "millisOfDay": 54570000,
+              "millisOfSecond": 0,
+              "minuteOfDay": 909,
+              "minuteOfHour": 9,
+              "monthOfYear": 10,
+              "secondOfDay": 54570,
+              "secondOfMinute": 30,
+              "weekOfWeekyear": 40,
+              "weekyear": 2021,
+              "year": 2021,
+              "yearOfCentury": 21,
+              "yearOfEra": 2021,
+              "zone": {
+                "fixed": true,
+                "id": "Etc/GMT"
+              }
+            },
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "docker://451",
+            "image": "some-main-app-image:1",
+            "imageID": "docker-pullable://some-main-app-repo/some-main-app-image:1",
+            "lastState": {},
+            "name": "testrep",
+            "ready": true,
+            "restartCount": 0,
+            "state": {
+              "terminated": {
+                "containerID": "docker://451",
+                "exitCode": 0,
+                "finishedAt": {
+                  "afterNow": false,
+                  "beforeNow": true,
+                  "centuryOfEra": 20,
+                  "chronology": {
+                    "zone": {
+                      "fixed": true,
+                      "id": "Etc/GMT"
+                    }
+                  },
+                  "dayOfMonth": 9,
+                  "dayOfWeek": 6,
+                  "dayOfYear": 282,
+                  "equalNow": false,
+                  "era": 1,
+                  "hourOfDay": 15,
+                  "millis": 1633791818000,
+                  "millisOfDay": 54218000,
+                  "millisOfSecond": 0,
+                  "minuteOfDay": 903,
+                  "minuteOfHour": 3,
+                  "monthOfYear": 10,
+                  "secondOfDay": 54218,
+                  "secondOfMinute": 38,
+                  "weekOfWeekyear": 40,
+                  "weekyear": 2021,
+                  "year": 2021,
+                  "yearOfCentury": 21,
+                  "yearOfEra": 2021,
+                  "zone": {
+                    "fixed": true,
+                    "id": "Etc/GMT"
+                  }
+                },
+                "reason": "Completed",
+                "startedAt": {
+                  "afterNow": false,
+                  "beforeNow": true,
+                  "centuryOfEra": 20,
+                  "chronology": {
+                    "zone": {
+                      "fixed": true,
+                      "id": "Etc/GMT"
+                    }
+                  },
+                  "dayOfMonth": 9,
+                  "dayOfWeek": 6,
+                  "dayOfYear": 282,
+                  "equalNow": false,
+                  "era": 1,
+                  "hourOfDay": 15,
+                  "millis": 1633791758000,
+                  "millisOfDay": 54158000,
+                  "millisOfSecond": 0,
+                  "minuteOfDay": 902,
+                  "minuteOfHour": 2,
+                  "monthOfYear": 10,
+                  "secondOfDay": 54158,
+                  "secondOfMinute": 38,
+                  "weekOfWeekyear": 40,
+                  "weekyear": 2021,
+                  "year": 2021,
+                  "yearOfCentury": 21,
+                  "yearOfEra": 2021,
+                  "zone": {
+                    "fixed": true,
+                    "id": "Etc/GMT"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "hostIP": "1.1.1.1",
+        "initContainerStatuses": [
+          {
+            "containerID": "docker://51b",
+            "image": "some-init-container-image:1",
+            "imageID": "docker-pullable://some-init-container-repo/some-init-container-image:1",
+            "lastState": {},
+            "name": "casam-sidecar",
+            "ready": true,
+            "restartCount": 0,
+            "state": {
+              "terminated": {
+                "containerID": "docker://51b",
+                "exitCode": 0,
+                "finishedAt": {
+                  "afterNow": false,
+                  "beforeNow": true,
+                  "centuryOfEra": 20,
+                  "chronology": {
+                    "zone": {
+                      "fixed": true,
+                      "id": "Etc/GMT"
+                    }
+                  },
+                  "dayOfMonth": 9,
+                  "dayOfWeek": 6,
+                  "dayOfYear": 282,
+                  "equalNow": false,
+                  "era": 1,
+                  "hourOfDay": 15,
+                  "millis": 1633792194000,
+                  "millisOfDay": 54594000,
+                  "millisOfSecond": 0,
+                  "minuteOfDay": 909,
+                  "minuteOfHour": 9,
+                  "monthOfYear": 10,
+                  "secondOfDay": 54594,
+                  "secondOfMinute": 54,
+                  "weekOfWeekyear": 40,
+                  "weekyear": 2021,
+                  "year": 2021,
+                  "yearOfCentury": 21,
+                  "yearOfEra": 2021,
+                  "zone": {
+                    "fixed": true,
+                    "id": "Etc/GMT"
+                  }
+                },
+                "reason": "Completed",
+                "startedAt": {
+                  "afterNow": false,
+                  "beforeNow": true,
+                  "centuryOfEra": 20,
+                  "chronology": {
+                    "zone": {
+                      "fixed": true,
+                      "id": "Etc/GMT"
+                    }
+                  },
+                  "dayOfMonth": 9,
+                  "dayOfWeek": 6,
+                  "dayOfYear": 282,
+                  "equalNow": false,
+                  "era": 1,
+                  "hourOfDay": 15,
+                  "millis": 1633792194000,
+                  "millisOfDay": 54594000,
+                  "millisOfSecond": 0,
+                  "minuteOfDay": 909,
+                  "minuteOfHour": 9,
+                  "monthOfYear": 10,
+                  "secondOfDay": 54594,
+                  "secondOfMinute": 54,
+                  "weekOfWeekyear": 40,
+                  "weekyear": 2021,
+                  "year": 2021,
+                  "yearOfCentury": 21,
+                  "yearOfEra": 2021,
+                  "zone": {
+                    "fixed": true,
+                    "id": "Etc/GMT"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "containerID": "docker://b5b",
+            "image": "some-other-init-container-image:1",
+            "imageID": "docker-pullable://some-other-init-container-repo/some-other-init-container-image:1",
+            "lastState": {},
+            "name": "sidecar2",
+            "ready": true,
+            "restartCount": 0,
+            "state": {
+              "terminated": {
+                "containerID": "docker://b5b",
+                "exitCode": 0,
+                "finishedAt": {
+                  "afterNow": false,
+                  "beforeNow": true,
+                  "centuryOfEra": 20,
+                  "chronology": {
+                    "zone": {
+                      "fixed": true,
+                      "id": "Etc/GMT"
+                    }
+                  },
+                  "dayOfMonth": 9,
+                  "dayOfWeek": 6,
+                  "dayOfYear": 282,
+                  "equalNow": false,
+                  "era": 1,
+                  "hourOfDay": 15,
+                  "millis": 1633792195000,
+                  "millisOfDay": 54595000,
+                  "millisOfSecond": 0,
+                  "minuteOfDay": 909,
+                  "minuteOfHour": 9,
+                  "monthOfYear": 10,
+                  "secondOfDay": 54595,
+                  "secondOfMinute": 55,
+                  "weekOfWeekyear": 40,
+                  "weekyear": 2021,
+                  "year": 2021,
+                  "yearOfCentury": 21,
+                  "yearOfEra": 2021,
+                  "zone": {
+                    "fixed": true,
+                    "id": "Etc/GMT"
+                  }
+                },
+                "reason": "Completed",
+                "startedAt": {
+                  "afterNow": false,
+                  "beforeNow": true,
+                  "centuryOfEra": 20,
+                  "chronology": {
+                    "zone": {
+                      "fixed": true,
+                      "id": "Etc/GMT"
+                    }
+                  },
+                  "dayOfMonth": 9,
+                  "dayOfWeek": 6,
+                  "dayOfYear": 282,
+                  "equalNow": false,
+                  "era": 1,
+                  "hourOfDay": 15,
+                  "millis": 1633792195000,
+                  "millisOfDay": 54595000,
+                  "millisOfSecond": 0,
+                  "minuteOfDay": 909,
+                  "minuteOfHour": 9,
+                  "monthOfYear": 10,
+                  "secondOfDay": 54595,
+                  "secondOfMinute": 55,
+                  "weekOfWeekyear": 40,
+                  "weekyear": 2021,
+                  "year": 2021,
+                  "yearOfCentury": 21,
+                  "yearOfEra": 2021,
+                  "zone": {
+                    "fixed": true,
+                    "id": "Etc/GMT"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "phase": "Succeeded",
+        "podIP": "1.1.1.1",
+        "qosClass": "Burstable",
+        "startTime": {
+          "afterNow": false,
+          "beforeNow": true,
+          "centuryOfEra": 20,
+          "chronology": {
+            "zone": {
+              "fixed": true,
+              "id": "Etc/GMT"
+            }
+          },
+          "dayOfMonth": 9,
+          "dayOfWeek": 6,
+          "dayOfYear": 282,
+          "equalNow": false,
+          "era": 1,
+          "hourOfDay": 15,
+          "millis": 1633792170000,
+          "millisOfDay": 54570000,
+          "millisOfSecond": 0,
+          "minuteOfDay": 909,
+          "minuteOfHour": 9,
+          "monthOfYear": 10,
+          "secondOfDay": 54570,
+          "secondOfMinute": 30,
+          "weekOfWeekyear": 40,
+          "weekyear": 2021,
+          "year": 2021,
+          "yearOfCentury": 21,
+          "yearOfEra": 2021,
+          "zone": {
+            "fixed": true,
+            "id": "Etc/GMT"
+          }
+        }
+      }
+    }
+  ],
+  "provider": "kubernetes"
+}

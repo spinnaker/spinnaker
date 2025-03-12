@@ -1,0 +1,15 @@
+---
+schema: "1"
+id: conditionalStage
+metadata:
+  name: Conditional stage test
+  description: Tests conditional expressions
+variables:
+- name: includeStage
+stages:
+- id: wait
+  type: wait
+  config:
+    waitTime: 5
+  when:
+  - "{{ includeStage }}"

@@ -1,0 +1,40 @@
+front50:
+  enabled: false
+
+igor:
+  enabled: false
+
+bakery:
+  enabled: false
+
+echo:
+  enabled: false
+
+monitor:
+  activeExecutions:
+    redis: false
+
+executionRepository:
+  redis:
+    enabled: false
+
+keiko:
+  queue:
+    redis:
+      enabled: false
+
+redis:
+  enabled: false
+
+spring:
+  application:
+    name: orca
+
+services:
+  fiat:
+    baseUrl: https://fiat.net
+
+clouddriver:
+  baseUrl: https://clouddriver.net
+  readOnly:
+    baseUrl: https://clouddriver-readonly.net

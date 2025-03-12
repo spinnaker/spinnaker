@@ -1,0 +1,59 @@
+{
+  "application": "myApp",
+  "name": "Stage dependsOn test",
+  "source": {
+    "id": "dependsOn-template.yml",
+    "type": "templatedPipeline",
+    "version": "v1"
+  },
+  "stages": [
+    {
+      "requisiteStageRefIds": [],
+      "name": "wait1",
+      "id": null,
+      "refId": "wait1",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait1"],
+      "name": "wait2",
+      "id": null,
+      "refId": "wait2",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait2"],
+      "name": "wait3",
+      "id": null,
+      "refId": "wait3",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait2"],
+      "name": "configWait2",
+      "id": null,
+      "refId": "configWait2",
+      "type": "wait",
+      "waitTime": 5
+    },
+    {
+      "requisiteStageRefIds": ["wait2"],
+      "name": "configWait1",
+      "id": null,
+      "refId": "configWait1",
+      "type": "wait",
+      "waitTime": 5
+    }
+  ],
+  "keepWaitingPipelines": false,
+  "limitConcurrent": true,
+  "maxConcurrentExecutions": 0,
+  "notifications": [],
+  "parameterConfig": [],
+  "id": "unknown",
+  "triggers": [],
+  "expectedArtifacts": []
+}

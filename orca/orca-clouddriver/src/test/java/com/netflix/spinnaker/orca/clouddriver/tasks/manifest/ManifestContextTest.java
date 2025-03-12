@@ -1,0 +1,102 @@
+/*
+ * Copyright 2019 Pivotal, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Collections;
+import org.junit.jupiter.api.Test;
+
+class ManifestContextTest {
+  @Test
+  void deserialize() throws IOException {
+    String json =
+        "{\n"
+            + "  \"source\": \"text\",\n"
+            + "  \"manifestArtifact\": {\n"
+            + "  },\n"
+            + "  \"manifestArtifactId\": \"123\",\n"
+            + "  \"manifestArtifactAccount\": \"account\",\n"
+            + "  \"requiredArtifactIds\": [\n"
+            + "    \"456\"\n"
+            + "  ],\n"
+            + "  \"requiredArtifacts\": [\n"
+            + "    {\n"
+            + "      \"artifact\": {\n"
+            + "        \"artifactAccount\": \"docker-registry\",\n"
+            + "        \"customKind\": true,\n"
+            + "        \"id\": \"5f22ecc4-f223-4b0e-afe1-c53468643861\",\n"
+            + "        \"name\": \"gcr.io/project/myimage\",\n"
+            + "        \"reference\": \"gcr.io/project/myimage\",\n"
+            + "        \"type\": \"docker/image\"\n"
+            + "      }\n"
+            + "    }\n"
+            + "  ]\n"
+            + "}";
+
+    DeployManifestContext context = new ObjectMapper().readValue(json, DeployManifestContext.class);
+    assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
+  }
+
+  @Test
+  void deserializeInlineMapPatchManifest() throws IOException {
+    String json =
+        "{\n"
+            + "  \"manifestArtifactAccount\": \"account\",\n"
+            + "  \"source\": \"text\",\n"
+            + "  \"patchBody\": {\n"
+            + "         \"spec\": {\n"
+            + "             \"replicas\": \"3\"\n"
+            + "         }\n"
+            + "  }\n"
+            + "}";
+
+    PatchManifestContext context = new ObjectMapper().readValue(json, PatchManifestContext.class);
+    assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
+    assertThat(context.getManifestArtifactAccount()).isEqualTo("account");
+    assertThat(context.getManifests()).isNotNull();
+    assertThat(context.getManifests().get(0)).containsOnlyKeys("spec");
+    assertThat(context.getManifests().get(0).get("spec"))
+        .isEqualTo(Collections.singletonMap("replicas", "3"));
+  }
+
+  @Test
+  void deserializeInlineListPatchManifest() throws IOException {
+    String json =
+        "{\n"
+            + "  \"manifestArtifactAccount\": \"account\",\n"
+            + "  \"source\": \"text\",\n"
+            + "  \"patchBody\": [\n"
+            + "    {\n"
+            + "         \"spec\": {\n"
+            + "             \"replicas\": \"3\"\n"
+            + "         }\n"
+            + "    }\n"
+            + "  ]\n"
+            + "}";
+
+    PatchManifestContext context = new ObjectMapper().readValue(json, PatchManifestContext.class);
+    assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
+    assertThat(context.getManifestArtifactAccount()).isEqualTo("account");
+    assertThat(context.getManifests()).isNotNull();
+    assertThat(context.getManifests().get(0)).containsOnlyKeys("spec");
+    assertThat(context.getManifests().get(0).get("spec"))
+        .isEqualTo(Collections.singletonMap("replicas", "3"));
+  }
+}

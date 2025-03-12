@@ -1,0 +1,30 @@
+{
+  "name": "testapp",
+  "attributes": {
+    "cloudProviders": "aws",
+    "name": "testapp",
+    "accounts": "test-account-1, test-account-2"
+  },
+  "clusters": {
+    "test-account-1": [
+      {
+        "loadBalancers": [],
+        "name": "testapp-preprod-test",
+        "provider": "aws",
+        "serverGroups": [
+          "testapp-preprod-test-v003"
+        ]
+      }
+    ],
+    "test-account-2": [
+      {
+        "loadBalancers": [],
+        "name": "testapp-preprod-apoorvtest",
+        "provider": "aws",
+        "serverGroups": [
+          "testapp-preprod-test-v005"
+        ]
+      }
+    ]
+  }
+}

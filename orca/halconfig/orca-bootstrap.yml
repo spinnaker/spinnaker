@@ -1,0 +1,29 @@
+# halconfig
+
+server:
+  port: ${services.orcaBootstrap.port:8083}
+  address: ${services.orcaBootstrap.host:localhost}
+
+oort:
+  baseUrl: ${services.clouddriverBootstrap.baseUrl:http://localhost:7002}
+
+mort:
+  baseUrl: ${services.clouddriverBootstrap.baseUrl:http://localhost:7002}
+
+kato:
+  baseUrl: ${services.clouddriverBootstrap.baseUrl:http://localhost:7002}
+
+echo:
+  enabled: false
+
+front50:
+  enabled: false
+
+bakery:
+  enabled: false
+
+igor:
+  enabled: false
+
+redis:
+  connection: ${services.redisBootstrap.baseUrl:redis://localhost:6379}

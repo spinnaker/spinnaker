@@ -1,0 +1,14 @@
+---
+schema: "1"
+id: parameterInheritance
+metadata:
+  name: Granular parameter & config inheritance
+  description: Asserts that configs can modify inherited parameters, as well as remove unneeded ones.
+configuration:
+  parameters:
+  - name: instances
+    description: Number of instances to start per region
+    default: 3
+  - name: toBeRemoved
+    description: This parameter will be removed by the config
+stages: []

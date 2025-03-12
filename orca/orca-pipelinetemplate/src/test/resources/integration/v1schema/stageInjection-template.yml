@@ -1,0 +1,24 @@
+schema: "1"
+id: stageInjection
+metadata:
+  name: Stage injection
+  description: Stage injection test
+variables:
+- name: waitTime
+  description: The time a wait stage should pause
+  type: int
+stages:
+- id: wait
+  type: wait
+  config:
+    waitTime: "{{ waitTime }}"
+- id: wait2
+  type: wait
+  dependsOn: [wait]
+  config:
+    waitTime: "{{ waitTime }}"
+- id: wait3
+  type: wait
+  dependsOn: [wait]
+  config:
+    waitTime: "{{ waitTime }}"

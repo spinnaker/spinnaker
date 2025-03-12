@@ -1,0 +1,9 @@
+{
+  "errors": [
+    {
+      "severity": "FATAL",
+      "message": "malformed template configuration",
+      "cause": "Incorrectly defined variable(s): waitTime (expected type 'int' found type 'String')"
+    }
+  ]
+}

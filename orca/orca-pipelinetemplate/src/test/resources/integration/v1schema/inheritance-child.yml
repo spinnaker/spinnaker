@@ -1,0 +1,13 @@
+schema: "1"
+id: inheritanceChild
+source: inheritance-root.yml
+metadata:
+  name: Child Inheritance template
+  description: A child template
+stages:
+- id: waitChild
+  type: wait
+  dependsOn:
+  - wait
+  config:
+    waitTime: "{{ waitTime }}"

@@ -1,0 +1,7 @@
+---
+schema: "1"
+id: simple
+metadata:
+  name: Barebones
+  description: The simplest template possible.
+stages: []

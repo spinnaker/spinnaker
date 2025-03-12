@@ -1,0 +1,165 @@
+/*
+ * Copyright 2016 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
+
+import com.netflix.spinnaker.moniker.Moniker
+import com.netflix.spinnaker.orca.api.operations.OperationsContext
+import com.netflix.spinnaker.orca.api.operations.OperationsInput
+import com.netflix.spinnaker.orca.api.operations.OperationsRunner
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location.Type
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
+
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
+import org.springframework.beans.factory.annotation.Autowired
+
+abstract class AbstractServerGroupTask implements CloudProviderAware, RetryableTask {
+
+  @Override
+  long getBackoffPeriod() {
+    return 2000
+  }
+
+  @Override
+  long getTimeout() {
+    return 90000
+  }
+
+  @Autowired
+  OperationsRunner operationsRunner
+
+  @Autowired
+  RetrySupport retrySupport
+
+  protected boolean isAddTargetOpOutputs() {
+    false
+  }
+
+  protected void validateClusterStatus(Map operation, Moniker moniker) {}
+
+  abstract String getServerGroupAction()
+
+  Map<String, Object> getAdditionalContext(StageExecution stage, Map operation) {
+    return [:]
+  }
+
+  Map<String, Object> getAdditionalOutputs(StageExecution stage, Map operation) {
+    return [:]
+  }
+
+  TaskResult execute(StageExecution stage) {
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+    def operation = convert(stage)
+    Moniker moniker = convertMoniker(stage)
+    retrySupport.retry({
+      validateClusterStatus(operation, moniker)
+    }, 6, 5000, false) // retry for up to 30 seconds
+    if (!operation) {
+      // nothing to do but succeed
+      return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
+    }
+
+    OperationsInput operationsInput = OperationsInput.of(cloudProvider, [[(serverGroupAction): operation]], stage)
+    OperationsContext operationsContext = operationsRunner.run(operationsInput)
+
+    def stageOutputs = [
+        "notification.type"             : serverGroupAction.toLowerCase(),
+        (operationsContext.contextKey()): operationsContext.contextValue(),
+        "deploy.account.name"           : account,
+        "asgName"                       : operation.serverGroupName,
+        "serverGroupName"               : operation.serverGroupName,
+        "deploy.server.groups"          : deployServerGroups(operation)
+    ]
+    if (addTargetOpOutputs) {
+      stageOutputs = stageOutputs + [
+          ("targetop.asg.${serverGroupAction}.name".toString())   : operation.serverGroupName,
+          ("targetop.asg.${serverGroupAction}.regions".toString()): deployServerGroups(operation).keySet(),
+      ]
+    }
+
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context(stageOutputs + getAdditionalContext(stage, operation)).outputs(getAdditionalOutputs(stage, operation)).build()
+  }
+
+  Map convert(StageExecution stage) {
+    def operation = new HashMap(stage.context)
+    operation.serverGroupName = (operation.serverGroupName ?: operation.asgName) as String
+
+    if (TargetServerGroup.isDynamicallyBound(stage)) {
+      def tsg = TargetServerGroupResolver.fromPreviousStage(stage)
+      operation.asgName = tsg.name
+      operation.serverGroupName = tsg.name
+
+      def location = tsg.getLocation()
+      operation.deployServerGroupsRegion = tsg.region
+      if (location.type == Location.Type.ZONE) {
+        operation.zone = location.value
+        operation.remove("zones")
+      }
+    }
+
+    operation
+  }
+
+  Moniker convertMoniker(StageExecution stage) {
+    if (TargetServerGroup.isDynamicallyBound(stage)) {
+      TargetServerGroup tsg = TargetServerGroupResolver.fromPreviousStage(stage)
+      return tsg.getMoniker()?.getCluster() == null ? MonikerHelper.friggaToMoniker(tsg.getName()) : tsg.getMoniker()
+    }
+    String serverGroupName = (String) stage.context.serverGroupName;
+    String asgName = (String) stage.context.asgName;
+    return MonikerHelper.monikerFromStage(stage, asgName ?: serverGroupName);
+  }
+
+  /**
+   * @return a Map of location -> server group name
+   */
+  static Map deployServerGroups(Map operation) {
+    def collection
+    if (operation.deployServerGroupsRegion) {
+      collection = [operation.deployServerGroupsRegion]
+    } else if (operation.region) {
+      collection = [operation.region]
+    } else if (operation.regions) {
+      collection = operation.regions
+    } else if (operation.zone) {
+      collection = [operation.zone]
+    } else if (operation.zones) {
+      collection = operation.zones
+    } else {
+      throw new IllegalStateException("Cannot find either regions or zones in operation.")
+    }
+
+    return collection.collectEntries {
+      [(it): [operation.serverGroupName]]
+    }
+  }
+
+  protected Location getLocation(Map operation) {
+    operation.region ? new Location(Type.REGION, operation.region) :
+      operation.zone ? new Location(Type.ZONE, operation.zone) :
+        operation.namespace ? new Location(Type.NAMESPACE, operation.namespace) :
+          null
+  }
+}

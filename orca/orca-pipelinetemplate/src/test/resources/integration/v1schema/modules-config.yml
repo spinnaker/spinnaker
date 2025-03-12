@@ -1,0 +1,13 @@
+---
+schema: "1"
+pipeline:
+  application: orca
+  variables:
+    regions:
+    - us-east-1
+    - us-west-2
+stages: []
+modules:
+- id: wait
+  definition:
+    foo: 10

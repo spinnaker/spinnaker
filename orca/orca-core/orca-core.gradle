@@ -1,0 +1,74 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spock.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
+
+
+dependencies {
+  api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")
+  api("io.spinnaker.kork:kork-artifacts")
+  api("io.spinnaker.kork:kork-core")
+  api("io.spinnaker.kork:kork-exceptions")
+  api("io.spinnaker.kork:kork-expressions")
+  api("io.spinnaker.kork:kork-moniker")
+  api("io.spinnaker.kork:kork-plugins")
+  api("io.spinnaker.kork:kork-security")
+  api("io.spinnaker.kork:kork-telemetry")
+  api("io.reactivex:rxjava")
+
+  api(project(":orca-api"))
+  implementation("com.github.ben-manes.caffeine:guava")
+  implementation("org.slf4j:slf4j-api")
+  implementation("com.fasterxml.jackson.core:jackson-annotations")
+  implementation("com.fasterxml.jackson.core:jackson-core")
+  implementation("com.fasterxml.jackson.core:jackson-databind")
+  implementation("cglib:cglib-nodep")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
+  implementation("com.netflix.frigga:frigga")
+  implementation("com.netflix.spectator:spectator-api")
+  implementation("io.spinnaker.kork:kork-core")
+  implementation("net.logstash.logback:logstash-logback-encoder")
+  implementation("org.springframework.security:spring-security-web")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  implementation("org.apache.commons:commons-lang3")
+  implementation("org.apache.httpcomponents:httpclient")
+  implementation("javax.servlet:javax.servlet-api:4.0.1")
+  implementation("javax.validation:validation-api")
+  implementation("com.jayway.jsonpath:json-path")
+  implementation("org.yaml:snakeyaml")
+  implementation("org.apache.groovy:groovy")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:4.44.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.44.0")
+
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
+
+  testImplementation(project(":orca-test"))
+  testImplementation(project(":orca-test-groovy"))
+  testImplementation(project(":orca-sql"))
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.mockito:mockito-core")
+  testImplementation("org.mockito:mockito-junit-jupiter")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
+}

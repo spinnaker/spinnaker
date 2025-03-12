@@ -1,0 +1,48 @@
+front50:
+  enabled: false
+
+igor:
+  enabled: false
+
+bakery:
+  enabled: false
+
+echo:
+  enabled: false
+
+monitor:
+  activeExecutions:
+    redis: false
+
+executionRepository:
+  redis:
+    enabled: false
+
+spring:
+  application:
+    name: orca
+
+dynamic-stage-resolver:
+  enabled: true
+
+spinnaker:
+  extensibility:
+    framework:
+      version: v2
+    plugins-root-path: build/plugins
+    plugins:
+      com.netflix.orca.enabled.plugin:
+        enabled: true
+      com.netflix.orca.disabled.plugin:
+        enabled: false
+      com.netflix.orca.version.not.supported.plugin:
+        enabled: true
+
+services:
+  fiat:
+    baseUrl: https://fiat.net
+
+clouddriver:
+  baseUrl: https://clouddriver.net
+  readOnly:
+    baseUrl: https://clouddriver-readonly.net

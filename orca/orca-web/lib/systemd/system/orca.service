@@ -1,0 +1,14 @@
+[Unit]
+Description=Spinnaker Orca
+PartOf=spinnaker.service
+
+[Service]
+ExecStart=/opt/orca/bin/orca
+WorkingDirectory=/opt/orca/bin
+SuccessExitStatus=143
+User=spinnaker
+Group=spinnaker
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
