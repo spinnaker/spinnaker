@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: backend-ns
+    artifact.spinnaker.io/name: backend
+    artifact.spinnaker.io/type: kubernetes/replicaSet
+    artifact.spinnaker.io/version: v015
+    moniker.spinnaker.io/application: backendapp
+    moniker.spinnaker.io/cluster: replicaSet backend
+    moniker.spinnaker.io/sequence: "15"
+  creationTimestamp: "2020-07-24T17:59:52Z"
+  generateName: backend-v015-
+  labels:
+    app: nginx
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: backendapp
+    load-balancer: backend
+    moniker.spinnaker.io/sequence: "15"
+  name: backend-v015-vhglj
+  namespace: backend-ns
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: backend-v015
+    uid: 518fdd80-8949-47c4-806e-1fd3ac1e1d3c
+  resourceVersion: "83984595"
+  selfLink: /api/v1/namespaces/backend-ns/pods/backend-v015-vhglj
+  uid: 45db7673-e3d2-4746-9ecd-38f868f853e5
+spec:
+  containers:
+  - image: gcr.io/my-gcr-repository/backend-service@sha256:51f29a570a484fbae4da912199ff27ed21f91b1caf51564a9d3afe3a201c1f32
+    imagePullPolicy: IfNotPresent
+    name: backend-service
+    ports:
+    - containerPort: 4000
+      protocol: TCP
+    resources:
+      requests:
+        cpu: 10m
+        memory: 8Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts: []
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  initContainers: []
+  nodeName: gke-spinnaker-e2-small-c528c905-w20h
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations: []
+  volumes: []
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2020-07-24T17:59:56Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2020-07-24T18:00:07Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2020-07-24T18:00:07Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2020-07-24T17:59:52Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://a003e133b2b7d9e72dc2276776274f299e2267ce718d7493e5710bcfe68040dc
+    image: sha256:8dc352f819381bfb316dc470a30515e8538aace729e456c63eba775da7c5edf6
+    imageID: gcr.io/my-gcr-repository/backend-service@sha256:51f29a570a484fbae4da912199ff27ed21f91b1caf51564a9d3afe3a201c1f32
+    lastState: {}
+    name: backend-service
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2020-07-24T18:00:05Z"
+  hostIP: 10.128.0.14
+  initContainerStatuses: []
+  phase: Running
+  podIP: 10.52.1.15
+  podIPs:
+  - ip: 10.52.1.15
+  qosClass: Burstable
+  startTime: "2020-07-24T17:59:53Z"

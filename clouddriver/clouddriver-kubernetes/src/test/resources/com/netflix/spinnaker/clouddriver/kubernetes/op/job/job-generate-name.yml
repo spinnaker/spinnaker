@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: my-job
+  namespace: my-namespace
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      containers:
+      - command:
+        - start
+        image: my-job
+        name: my-job
+      restartPolicy: Never

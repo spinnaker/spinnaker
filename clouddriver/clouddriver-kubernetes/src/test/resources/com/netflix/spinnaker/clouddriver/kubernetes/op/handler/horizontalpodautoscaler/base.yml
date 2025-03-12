@@ -1,0 +1,20 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations: {}
+  creationTimestamp: '2020-02-10T21:45:07Z'
+  labels: {}
+  name: test-hpa
+  namespace: default
+  resourceVersion: '169474131'
+  selfLink: >-
+    /apis/autoscaling/v1/namespaces/default/horizontalpodautoscalers/test-hpa
+  uid: 00000000-0000-0000-0000-000000000000
+spec:
+  maxReplicas: 5
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: test-deployment
+  targetCPUUtilizationPercentage: 40

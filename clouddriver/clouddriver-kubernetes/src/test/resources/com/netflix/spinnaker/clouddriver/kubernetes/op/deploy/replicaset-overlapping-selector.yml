@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: my-name
+  namespace: my-namespace
+spec:
+  selector:
+    matchLabels:
+      selector-key: selector-value
+  template:
+    metadata:
+      labels:
+        selector-key: selector-value

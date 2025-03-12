@@ -1,0 +1,47 @@
+package events;
+option java_package = "org.cloudfoundry.dropsonde.events";
+option java_outer_classname = "EventFactory";
+
+import "http.proto";
+import "log.proto";
+import "metric.proto";
+import "error.proto";
+
+/// Envelope wraps an Event and adds metadata.
+message Envelope {
+    /// Type of the wrapped event.
+    enum EventType {
+        // Removed Heartbeat at position 1
+        // Removed HttpStart at position 2
+        // Removed HttpStop at position 3
+        HttpStartStop = 4;
+        LogMessage = 5;
+        ValueMetric = 6;
+        CounterEvent = 7;
+        Error = 8;
+        ContainerMetric = 9;
+    }
+
+    required string origin = 1;               /// Unique description of the origin of this event.
+    required EventType eventType = 2;         /// Type of wrapped event. Only the optional field corresponding to the value of eventType should be set.
+
+    optional int64 timestamp = 6;             /// UNIX timestamp (in nanoseconds) event was wrapped in this Envelope.
+
+    optional string deployment = 13;          /// Deployment name (used to uniquely identify source).
+    optional string job = 14;                 /// Job name (used to uniquely identify source).
+    optional string index = 15;               /// Index of job (used to uniquely identify source).
+    optional string ip = 16;                  /// IP address (used to uniquely identify source).
+
+    map<string, string> tags = 17;            /// key/value tags to include additional identifying information.
+
+    // Removed Heartbeat at position 3
+    // Removed HttpStart at position 4
+    // Removed HttpStop at position 5
+    optional HttpStartStop httpStartStop = 7;
+    optional LogMessage logMessage = 8;
+    optional ValueMetric valueMetric = 9;
+    optional CounterEvent counterEvent = 10;
+    optional Error error = 11;
+    optional ContainerMetric containerMetric = 12;
+}
+

@@ -1,0 +1,26 @@
+[
+  {
+    "cloudProviders": null,
+    "createTs": null,
+    "description": null,
+    "email": "test@abc.com",
+    "instancePort": 80,
+    "lastModifiedBy": "test@abc.com",
+    "name": "MY",
+    "permissions": {},
+    "trafficGuards": [],
+    "updateTs": "1627312672356"
+  },
+  {
+    "cloudProviders": null,
+    "createTs": null,
+    "description": null,
+    "email": "test1@abc.com",
+    "instancePort": 80,
+    "lastModifiedBy": "test1@abc.com",
+    "name": "APP2",
+    "permissions": {},
+    "trafficGuards": [],
+    "updateTs": "1627312672359"
+  }
+]

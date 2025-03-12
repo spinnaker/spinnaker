@@ -1,0 +1,144 @@
+plugins {
+  id("net.ltgt.errorprone") version "4.0.0"
+  id 'com.adarshr.test-logger' version '2.1.0'
+}
+
+tasks.compileGroovy.enabled = false
+
+sourceSets {
+  main {
+    java.srcDirs = ['src/main/java']
+  }
+  integration {
+    java.srcDirs = ["src/integration/java"]
+    resources.srcDirs = ["src/integration/resources"]
+  }
+}
+
+configurations {
+  integrationImplementation.extendsFrom testImplementation
+  integrationRuntime.extendsFrom testRuntime
+}
+
+tasks.withType(JavaCompile) {
+  options.compilerArgs += [
+    '-Xlint:all',
+
+    // This check ensures that all annotations are handled at compile time, but
+    // many of the annotations we use are not intended to be handled at compile
+    // time and are instead used at runtime.
+    '-Xlint:-processing',
+    // This check ensures that all classes implementing Serializable set the
+    // serialVersionUID. We don't use Java serialization, but some classes
+    // extend JDK classes implementing Serializable. Rather than add a
+    // meaningless serialVersionUID, just disable the warning.
+    '-Xlint:-serial',
+
+    // Temporarily suppressed warnings. These are here only while we fix or
+    // suppress the warnings in these categories.
+    '-Xlint:-unchecked',
+  ]
+
+  // Temporarily disable error-prone checks that are generating warnings. These
+  // are only here while we fix or suppress the warnings in these categories.
+  options.errorprone.disable(
+    "EmptyCatch",
+    "MissingOverride",
+  )
+}
+
+dependencies {
+  errorprone("com.google.errorprone:error_prone_core:2.28.0")
+  implementation project(":clouddriver-api")
+  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-configserver")
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-security")
+
+  implementation "org.apache.groovy:groovy"
+
+  implementation "com.google.code.findbugs:jsr305"
+  implementation "com.google.guava:guava"
+  implementation 'com.jayway.jsonpath:json-path:2.3.0'
+  implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.github.wnameless.json:json-flattener:0.11.1"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.kork:kork-annotations"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-config"
+  implementation "io.spinnaker.kork:kork-cloud-config-server"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-moniker"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-secrets"
+  implementation "io.spinnaker.kork:kork-security"
+  implementation "io.kubernetes:client-java"
+  implementation "io.kubernetes:client-java-api-fluent:13.0.2"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.security:spring-security-config"
+  implementation "org.springframework.cloud:spring-cloud-context"
+  implementation "org.springframework.cloud:spring-cloud-config-server"
+  implementation "io.github.resilience4j:resilience4j-retry"
+  implementation "io.github.resilience4j:resilience4j-micrometer"
+  implementation "io.swagger.core.v3:swagger-annotations"
+
+  testImplementation "io.spinnaker.kork:kork-test"
+  testImplementation "org.apache.commons:commons-exec"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.mockito:mockito-junit-jupiter"
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "org.springframework.boot:spring-boot-test"
+  testImplementation "org.apache.groovy:groovy-templates"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
+
+  integrationImplementation project(":clouddriver-web")
+  integrationImplementation "org.springframework.boot:spring-boot-starter-test"
+  integrationImplementation "org.testcontainers:testcontainers"
+  integrationImplementation "org.testcontainers:mysql"
+  integrationImplementation "org.testcontainers:junit-jupiter"
+  integrationImplementation "com.mysql:mysql-connector-j"
+  integrationImplementation "io.rest-assured:rest-assured"
+  integrationImplementation "org.yaml:snakeyaml"
+}
+
+testlogger {
+  // don't show passed unit tests, it's difficult to know which ones failed among hundreds of tests
+  showPassed false
+  showPassedStandardStreams false
+}
+
+task integrationTest(type: Test) {
+  description = 'Runs kubernetes provider integration tests.'
+  group = 'verification'
+
+  environment "IT_BUILD_HOME", "$project.buildDir/it"
+  environment "IMAGE", project.getProperties().get("kubernetes-image")
+  environment "KUBECTL_VERSION", project.getProperties().get("kubectl-version")
+  environment "KUBERNETES_VERSION", project.getProperties().get("kubernetes-version")
+  useJUnitPlatform()
+
+  testClassesDirs = sourceSets.integration.output.classesDirs
+  classpath = sourceSets.integration.runtimeClasspath
+  shouldRunAfter test
+
+  testlogger {
+    theme 'standard'
+    showStandardStreams true
+    showPassedStandardStreams false
+    showFailedStandardStreams true
+    showPassed false
+  }
+}

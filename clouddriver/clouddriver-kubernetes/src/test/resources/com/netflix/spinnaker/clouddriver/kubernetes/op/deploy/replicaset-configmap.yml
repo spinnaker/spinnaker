@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: my-name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - image: 'index.docker.io/library/nginx'
+          name: nginx
+          volumeMounts:
+            - mountPath: /tmp/mounted
+              name: myconfig
+      volumes:
+        - name: myconfig
+          configMap:
+            name: myconfig
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myconfig
+data:
+  file.txt: |
+    Hello world!

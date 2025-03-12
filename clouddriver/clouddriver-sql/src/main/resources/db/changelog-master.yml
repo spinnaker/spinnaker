@@ -1,0 +1,31 @@
+databaseChangeLog:
+- include:
+    file: changelog/20180919-initial-schema.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20181120-cats.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20181205-agent-scheduler.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190822-initial-event-schema.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20190913-task-sagaids.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20201110-field-type-postgres.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210106-task-outputs.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210311-caching-replicas.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20210927-accounts.yml
+    relativeToChangelogFile: true
+- include:
+    file: changelog/20240111-accounts-indexes.yml
+    relativeToChangelogFile: true

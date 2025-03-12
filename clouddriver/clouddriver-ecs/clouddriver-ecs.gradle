@@ -1,0 +1,72 @@
+sourceSets {
+  integration {
+    java.srcDirs = ["src/integration/java"]
+    resources.srcDirs = ["src/integration/resources"]
+    compileClasspath += main.output + test.output
+  }
+}
+
+configurations {
+  integrationImplementation.extendsFrom testImplementation
+  integrationRuntime.extendsFrom testRuntime
+}
+
+dependencies {
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-api")
+  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-aws")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+
+  implementation "com.amazonaws:aws-java-sdk"
+  implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.netflix.awsobjectmapper:awsobjectmapper"
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-credentials-api"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-moniker"
+  implementation "commons-io:commons-io"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "org.apache.httpcomponents:httpclient"
+  implementation "org.apache.httpcomponents:httpcore"
+  implementation "org.apache.groovy:groovy"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+
+  integrationImplementation project(":clouddriver-web")
+  integrationImplementation "org.springframework:spring-test"
+  integrationImplementation "org.testcontainers:mysql"
+  integrationImplementation "com.mysql:mysql-connector-j"
+  integrationImplementation sourceSets.test.output
+  integrationImplementation sourceSets.main.output
+  integrationImplementation "io.rest-assured:rest-assured"
+}
+
+task integrationTest(type: Test) {
+  description = "Runs Amazon ECS provider integration tests."
+  group = 'verification'
+
+  environment "PROJECT_ROOT", project.rootDir.toString()
+  useJUnitPlatform()
+
+  testClassesDirs = sourceSets.integration.output.classesDirs
+  classpath = sourceSets.integration.runtimeClasspath
+  shouldRunAfter test
+
+//  maxParallelForks = 4
+
+  minHeapSize = "512m"
+  maxHeapSize = "${testJvmMaxMemory}"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "index.docker.io/library/nginx",
+  "type": "docker/image",
+  "reference": "index.docker.io/library/nginx:1.14.0",
+  "version": "1.14.0",
+  "location": "",
+  "metadata": {},
+  "customKind": false
+}

@@ -1,0 +1,38 @@
+[
+    {
+        "upsertLoadBalancer": {
+            "application": "chenLBtest",
+            "stack": "lb",
+            "shape": "100Mbps",
+            "selectedProvider": "oracle",
+            "loadBalancerId": "updateLoadBalancerBackendSets",
+            "subnetIds": [
+                "ocid1.subnet.oc1.iad.aaaaaaaath476v3iumd45dyvvzxf6gelwphro2h6ss4mt7lzw3xjqq74hgca"
+            ],
+            "isPrivate": "true",
+            "backendSets": {
+                "myBackendSet1": {
+                    "policy": "ROUND_ROBIN",
+                    "healthChecker": {
+                        "protocol": "HTTP",
+                        "port": "80",
+                        "urlPath": "/healthCheck"
+                    }
+                },
+                "myBackendSet2": {
+                    "policy": "ROUND_ROBIN",
+                    "healthChecker": {
+                        "protocol": "HTTP",
+                        "port": "80",
+                        "urlPath": "/healthCheck"
+                    }
+                }
+            },
+            "cloudProvider": "oracle",
+            "region": "us-ashburn-1",
+            "user": "anonymous",
+            "account": "myacct",
+            "credentials": "myacct"
+        }
+    }
+]

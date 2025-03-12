@@ -1,0 +1,32 @@
+package events;
+
+option java_package = "org.cloudfoundry.dropsonde.events";
+option java_outer_classname = "MetricFactory";
+
+import "uuid.proto";
+
+/// A ValueMetric indicates the value of a metric at an instant in time.
+message ValueMetric {
+    required string name = 1;  /// Name of the metric. Must be consistent for downstream consumers to associate events semantically.
+    required double value = 2; /// Value at the time of event emission.
+    required string unit = 3;  /// Unit of the metric. Please see http://metrics20.org/spec/#units for ideas; SI units/prefixes are recommended where applicable. Should be consistent for the life of the metric (consumers are expected to report, but not interpret, prefixes).
+}
+
+/// A CounterEvent represents the increment of a counter. It contains only the change in the value; it is the responsibility of downstream consumers to maintain the value of the counter.
+message CounterEvent {
+    required string name = 1;  /// Name of the counter. Must be consistent for downstream consumers to associate events semantically.
+    required uint64 delta = 2; /// Amount by which to increment the counter.
+    optional uint64 total = 3; /// Total value of the counter. This will be overridden by Metron, which internally tracks the total of each named Counter it receives.
+}
+
+/// A ContainerMetric records resource usage of an app in a container.
+ message ContainerMetric {
+    required string applicationId = 1; /// ID of the contained application.
+    required int32 instanceIndex = 2;  /// Instance index of the contained application. (This, with applicationId, should uniquely identify a container.)
+
+    required double cpuPercentage = 3;    /// CPU based on number of cores.
+    required uint64 memoryBytes = 4;      /// Bytes of memory used.
+    required uint64 diskBytes = 5;        /// Bytes of disk used.
+    optional uint64 memoryBytesQuota = 6; /// Maximum bytes of memory allocated to container.
+    optional uint64 diskBytesQuota = 7;   /// Maximum bytes of disk allocated to container.
+ }

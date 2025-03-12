@@ -1,0 +1,20 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "ReplicaSet",
+  "metadata": {
+    "name": "test-rs-7f4557b6b",
+    "namespace": "ns1",
+    "ownerReferences": [
+      {
+        "apiVersion": "group/v1alpha1",
+        "blockOwnerDeletion": true,
+        "kind": "Owner",
+        "name": "test-owner",
+        "uid": "d4a5c8da-5f4e-485c-be7a-28ffdff13437"
+      }
+    ]
+  },
+  "spec": {
+    "replicas": 2
+  }
+}

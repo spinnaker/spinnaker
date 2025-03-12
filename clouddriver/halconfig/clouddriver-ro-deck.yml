@@ -1,0 +1,8 @@
+# halconfig
+
+server:
+  port: ${services.clouddriverRoDeck.port:7002}
+  address: ${services.clouddriverRoDeck.host:localhost}
+
+caching:
+  writeEnabled: false

@@ -1,0 +1,42 @@
+dependencies {
+  implementation project(":clouddriver-api")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+  implementation project(":cats:cats-core")
+
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.cloud:spring-cloud-context"
+  implementation "org.apache.groovy:groovy"
+  implementation "com.google.guava:guava"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "org.apache.commons:commons-compress:1.21"
+  implementation "commons-io:commons-io"
+  implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "io.spinnaker.kork:kork-web"
+
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation 'org.mockito:mockito-inline'
+  testImplementation "org.mockito:mockito-junit-jupiter"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.security:spring-security-test"
+  testImplementation "com.github.tomakehurst:wiremock-jre8"
+  testImplementation "io.spinnaker.kork:kork-core"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+
+}

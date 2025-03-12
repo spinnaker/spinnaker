@@ -1,0 +1,42 @@
+{
+  "history" : [
+    {
+      "complete" : false,
+      "completed" : false,
+      "failed" : false,
+      "phase" : "DEPLOY",
+      "retryable" : false,
+      "status" : "Starting deploy"
+    }
+  ],
+  "id" : "123",
+  "ownerId" : "owner",
+  "requestId" : "requestId",
+  "resultObjects" : [
+    {
+      "instances" : [
+        "my-instance-v000",
+        "my-instance-v001"
+      ]
+    }
+  ],
+  "retryable" : false,
+  "sagaIds" : [],
+  "startTimeMs" : 100,
+  "status" : {
+    "complete" : true,
+    "completed" : true,
+    "failed" : false,
+    "phase" : "DEPLOY",
+    "retryable" : false,
+    "status" : "Finished deploy"
+  },
+  "outputs": [
+    {
+      "manifest":"some-manifest",
+      "phase":"DEPLOY_K8S_MANIFEST",
+      "stdOut":"output",
+      "stdError":""
+    }
+  ]
+}

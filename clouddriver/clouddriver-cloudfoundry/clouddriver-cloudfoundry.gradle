@@ -1,0 +1,57 @@
+apply plugin: 'com.google.protobuf'
+
+ext {
+  protobufVersion = '3.21.12'
+}
+
+protobuf {
+  protoc {
+    artifact = "com.google.protobuf:protoc:$protobufVersion"
+  }
+}
+
+dependencies {
+  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-api")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-docker")
+
+  implementation "org.apache.groovy:groovy"
+
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.netflix.frigga:frigga"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-annotations"
+  implementation "io.spinnaker.kork:kork-moniker"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.squareup.okhttp3:okhttp"
+  implementation "com.squareup.okhttp3:okhttp-urlconnection"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:retrofit-mock"
+  implementation "com.squareup.retrofit2:converter-protobuf:2.8.1"
+  implementation "commons-io:commons-io"
+  implementation "io.github.resilience4j:resilience4j-retry"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.cloud:spring-cloud-context"
+  implementation "org.yaml:snakeyaml"
+  implementation "com.google.protobuf:protobuf-java"
+  implementation "com.google.protobuf:protobuf-java-util"
+  implementation "commons-fileupload:commons-fileupload:1.4"
+  implementation "io.micrometer:micrometer-core:1.6.4"
+
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "ru.lanwen.wiremock:wiremock-junit5:1.2.0"
+}

@@ -1,0 +1,194 @@
+/*
+ * Copyright 2019 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.netflix.spinnaker.clouddriver.saga
+
+import com.fasterxml.jackson.annotation.JsonTypeName
+import com.netflix.spinnaker.clouddriver.event.AbstractSpinnakerEvent
+import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
+import com.netflix.spinnaker.clouddriver.saga.models.Saga
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
+
+/**
+ * Root event type for [Saga]s.
+ */
+interface SagaEvent : SpinnakerEvent
+
+/**
+ * Warning: Do not use with Lombok @Value classes.
+ */
+abstract class AbstractSagaEvent : AbstractSpinnakerEvent(), SagaEvent
+
+/**
+ * Emitted whenever a [Saga] is saved.
+ *
+ * This event does not attempt to find a difference in state, trading off persistence verbosity for a little bit
+ * of a simpler implementation.
+ *
+ * @param sequence The [Saga]'s latest sequence
+ */
+@JsonTypeName("sagaSaved")
+class SagaSaved(
+  val sequence: Long
+) : AbstractSagaEvent()
+
+/**
+ * Emitted whenever an internal error has occurred while applying a [Saga].
+ *
+ * @param reason A human-readable cause for the error
+ * @param error The Exception (if any) that caused the error condition
+ * @param retryable Flags whether or not this error is recoverable
+ * @param data Additional data that can help with diagnostics of the error
+ */
+@JsonTypeName("sagaInternalErrorOccurred")
+class SagaInternalErrorOccurred(
+  val reason: String,
+  val error: Exception? = null,
+  val retryable: Boolean = true,
+  val data: Map<String, String> = mapOf()
+) : AbstractSagaEvent()
+
+/**
+ * Emitted whenever an error has occurred within a [SagaAction] while applying a [Saga].
+ *
+ * @param actionName The Java simpleName of the handler
+ * @param error The Exception that caused the error condition
+ * @param retryable Flags whether or not this error is recoverable
+ */
+@JsonTypeName("sagaActionErrorOccurred")
+class SagaActionErrorOccurred(
+  val actionName: String,
+  val error: Exception,
+  val retryable: Boolean
+) : AbstractSagaEvent()
+
+/**
+ * Informational log that can be added to a [Saga] for end-user feedback, as well as operational insight.
+ * This is a direct tie-in for the Kato Task Status concept with some additional bells and whistles.
+ *
+ * @param message A tuple message that allows passing end-user- and operator-focused messages
+ * @param diagnostics Additional metadata that can help provide context to the message
+ */
+@JsonTypeName("sagaLogAppended")
+class SagaLogAppended(
+  val message: Message,
+  val diagnostics: Diagnostics? = null
+) : AbstractSagaEvent() {
+
+  /**
+   * @param user An end-user friendly message
+   * @param system An operator friendly message
+   */
+  data class Message(
+    val user: String? = null,
+    val system: String? = null
+  )
+
+  /**
+   * @param error An error, if one exists. This must be a [SpinnakerException] to provide retryable metadata
+   * @param data Additional metadata
+   */
+  data class Diagnostics(
+    val error: SpinnakerException? = null,
+    val data: Map<String, String> = mapOf()
+  )
+}
+
+/**
+ * Emitted when all actions for a [Saga] have been applied.
+ */
+@JsonTypeName("sagaCompleted")
+class SagaCompleted(
+  val success: Boolean
+) : AbstractSagaEvent()
+
+/**
+ * Emitted when a [Saga] enters a rollback state.
+ */
+@JsonTypeName("sagaRollbackStarted")
+class SagaRollbackStarted : AbstractSagaEvent()
+
+/**
+ * Emitted when all rollback actions for a [Saga] have been applied.
+ */
+@JsonTypeName("sagaRollbackCompleted")
+class SagaRollbackCompleted : AbstractSagaEvent()
+
+/**
+ * @param conditionName The condition name.
+ * @param result The condition result.
+ */
+@JsonTypeName("sagaConditionEvaluated")
+class SagaConditionEvaluated(
+  val conditionName: String,
+  val result: Boolean
+) : AbstractSagaEvent()
+
+/**
+ * An event type that finalizes a [SagaCommand]
+ */
+interface CommandFinalizer : SagaEvent {
+
+  /**
+   * The command name that was finalized.
+   */
+  val command: String
+
+  /**
+   * Returns whether or not the given [candidateCommand] was finalized by this event.
+   */
+  fun matches(candidateCommand: Class<out SagaCommand>): Boolean =
+    candidateCommand.getAnnotation(JsonTypeName::class.java)?.value == command
+}
+
+@JsonTypeName("sagaCommandSkipped")
+class SagaCommandSkipped(
+  override val command: String,
+  val reason: String
+) : AbstractSagaEvent(), CommandFinalizer
+
+/**
+ * The root event type for all mutating [Saga] operations.
+ */
+interface SagaCommand : SagaEvent
+
+/**
+ * The root event type for all [Saga] rollback operations.
+ */
+interface SagaRollbackCommand : SagaCommand
+
+/**
+ * Marker event for recording that the work associated with a particular [SagaCommand] event has been completed.
+ *
+ * @param command The [SagaCommand] name
+ */
+@JsonTypeName("sagaCommandCompleted")
+class SagaCommandCompleted(
+  override val command: String
+) : AbstractSagaEvent(), CommandFinalizer
+
+/**
+ * A [SagaCommand] wrapper for [SagaAction]s that need to return more than one [SagaCommand].
+ *
+ * This event is unwrapped prior to being added to the event log; so all [SagaCommand]s defined within this
+ * wrapper will show up as their own distinct log entries.
+ */
+@JsonTypeName("sagaManyCommandsWrapper")
+class ManyCommands(
+  command1: SagaCommand,
+  vararg extraCommands: SagaCommand
+) : AbstractSagaEvent(), SagaCommand {
+  val commands = listOf(command1).plus(extraCommands)
+}

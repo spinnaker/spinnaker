@@ -1,0 +1,58 @@
+apply plugin: 'io.spinnaker.package'
+
+mainClassName = 'com.netflix.spinnaker.clouddriver.Main'
+
+configurations.all {
+  exclude group: 'javax.servlet', module: 'servlet-api'
+  exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
+dependencies {
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-api")
+  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-elasticsearch")
+  implementation project(":clouddriver-security")
+  implementation project(":clouddriver-sql")
+
+  if (!rootProject.hasProperty("excludeSqlDrivers")) {
+    runtimeOnly(project(":clouddriver-sql-mysql"))
+    runtimeOnly(project(":clouddriver-sql-postgres"))
+  }
+
+  implementation "com.netflix.frigga:frigga"
+  implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-cloud-config-server"
+  implementation "io.spinnaker.kork:kork-config"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation("io.spinnaker.kork:kork-plugins")
+  implementation "io.spinnaker.kork:kork-moniker"
+  implementation "commons-io:commons-io"
+  implementation "io.reactivex:rxjava"
+  implementation "io.swagger.core.v3:swagger-annotations"
+  implementation "org.apache.groovy:groovy"
+  implementation "org.slf4j:slf4j-api"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-json"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.springframework.cloud:spring-cloud-context"
+
+  runtimeOnly "io.spinnaker.kork:kork-runtime"
+  if (!gradle.hasProperty("excludeSpringConfigServer")) {
+    runtimeOnly project(":clouddriver-configserver")
+  }
+
+  testImplementation "io.spinnaker.kork:kork-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "io.kubernetes:client-java-api-fluent:13.0.2"
+  testImplementation "org.apache.groovy:groovy-json"
+
+  // Add each included cloud provider project as a runtime dependency
+  gradle.includedCloudProviderProjects.each {
+    implementation project(":${it}")
+  }
+}

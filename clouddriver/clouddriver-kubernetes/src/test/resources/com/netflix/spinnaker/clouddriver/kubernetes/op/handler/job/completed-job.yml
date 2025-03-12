@@ -1,0 +1,10 @@
+# Job with 1 completion has succeeded
+status:
+  completionTime: "2020-01-31T18:44:10Z"
+  conditions:
+    - lastProbeTime: "2020-01-31T18:44:10Z"
+      lastTransitionTime: "2020-01-31T18:44:10Z"
+      status: "True"
+      type: Complete
+  startTime: "2020-01-31T18:43:33Z"
+  succeeded: 1

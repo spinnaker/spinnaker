@@ -1,0 +1,30 @@
+[
+    {
+        "upsertLoadBalancer": {
+            "application": "chenLBtest",
+            "stack": "lb",
+            "shape": "100Mbps",
+            "selectedProvider": "oracle",
+            "loadBalancerId": "updateLoadBalancerCerts",
+            "subnetIds": [
+                "ocid1.subnet.oc1.iad.aaaaaaaath476v3iumd45dyvvzxf6gelwphro2h6ss4mt7lzw3xjqq74hgca"
+            ],
+            "isPrivate": "true",
+            "certificates": {
+                "cert1": {
+                    "certificateName": "cert1"
+                },
+                "cert2": {
+                    "certificateName": "cert2",
+                    "publicCertificate": "-----BEGIN CERTIFICATE-----\nMxxxxjg==\n-----END CERTIFICATE-----\n",
+                    "privateKey": "privateKey"
+                }
+            },
+            "cloudProvider": "oracle",
+            "region": "us-ashburn-1",
+            "user": "anonymous",
+            "account": "myacct",
+            "credentials": "myacct"
+        }
+    }
+]

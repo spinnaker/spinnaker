@@ -1,0 +1,9 @@
+# Scheduled is as desired, but a replica is unavailable
+status:
+  currentNumberScheduled: 1
+  desiredNumberScheduled: 1
+  numberMisscheduled: 0
+  numberReady: 0
+  numberUnavailable: 1
+  observedGeneration: 2
+  updatedNumberScheduled: 1

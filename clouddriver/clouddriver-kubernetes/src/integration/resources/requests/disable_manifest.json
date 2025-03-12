@@ -1,0 +1,11 @@
+[
+  {
+    "disableManifest": {
+      "app": "nginx",
+      "cloudProvider": "kubernetes",
+      "manifestName": "deployment nginx",
+      "location": "default",
+      "account": "account1"
+    }
+  }
+]

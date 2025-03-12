@@ -1,0 +1,21 @@
+# Paused when status reports minimum availability, but replica counts show not all replicas ready
+status:
+  availableReplicas: 100
+  conditions:
+    - lastTransitionTime: "2020-01-31T16:34:44Z"
+      lastUpdateTime: "2020-01-31T16:34:44Z"
+      message: Deployment is paused
+      reason: DeploymentPaused
+      status: Unknown
+      type: Progressing
+    - lastTransitionTime: "2020-01-31T16:20:03Z"
+      lastUpdateTime: "2020-01-31T16:20:03Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+  observedGeneration: 3
+  readyReplicas: 62
+  replicas: 100
+  unavailableReplicas: 100
+  updatedReplicas: 100

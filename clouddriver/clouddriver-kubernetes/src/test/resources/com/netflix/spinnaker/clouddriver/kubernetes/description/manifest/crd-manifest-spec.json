@@ -1,0 +1,16 @@
+{
+  "apiVersion": "test.example/v1alpha1",
+  "kind": "Custom1",
+  "metadata": {
+    "labels": {
+      "app": "app1"
+    },
+    "name": "default-custom1"
+  },
+  "spec": {
+    "template": "template1",
+    "params": {
+      "value": "1"
+    }
+  }
+}

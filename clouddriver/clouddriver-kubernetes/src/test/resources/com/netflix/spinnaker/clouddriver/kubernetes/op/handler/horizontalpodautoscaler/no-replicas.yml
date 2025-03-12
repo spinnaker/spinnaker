@@ -1,0 +1,4 @@
+status:
+  currentReplicas: 0
+  desiredReplicas: 0
+  lastScaleTime: '2020-02-25T20:32:16Z'

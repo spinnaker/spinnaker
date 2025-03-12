@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: myservice
+  labels:
+    app: myservice
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: myapp
+  sessionAffinity: None

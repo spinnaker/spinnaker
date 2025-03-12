@@ -1,0 +1,36 @@
+{
+  "account": "ecs-account",
+  "application": "ecs",
+  "availabilityZones": {
+    "us-west-2": [
+      "us-west-2a",
+      "us-west-2c"
+    ]
+  },
+  "capacity": {
+    "desired": 1,
+    "max": 1,
+    "min": 1
+  },
+  "cloudProvider": "ecs",
+  "computeUnits": 256,
+  "credentials": "ecs-account",
+  "dockerImageAddress": "nginx",
+  "ecsClusterName": "integInputEC2TgMappingsExistingService-cluster",
+  "launchType": "EC2",
+  "networkMode": "bridge",
+  "placementStrategySequence": [],
+  "reservedMemory": 512,
+  "stack": "integInputEC2TgMappingsExistingServiceStack",
+  "targetGroupMappings": [
+    {
+      "containerName": "",
+      "containerPort": 80,
+      "targetGroup": "integInputEC2TgMappingsExistingService-targetGroup"
+    }
+  ],
+  "containerToImageMap":
+    {
+      "application": "PLACEHOLDER"
+    }
+}

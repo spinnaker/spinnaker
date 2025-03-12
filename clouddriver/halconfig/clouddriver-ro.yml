@@ -1,0 +1,8 @@
+# halconfig
+
+server:
+  port: ${services.clouddriverRo.port:7002}
+  address: ${services.clouddriverRo.host:localhost}
+
+caching:
+  writeEnabled: false

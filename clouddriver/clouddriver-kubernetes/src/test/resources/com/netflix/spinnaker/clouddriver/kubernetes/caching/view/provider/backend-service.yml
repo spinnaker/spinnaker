@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: backend-ns
+    artifact.spinnaker.io/name: backendlb
+    artifact.spinnaker.io/type: kubernetes/service
+    moniker.spinnaker.io/application: backendapp
+    moniker.spinnaker.io/cluster: service backendlb
+  creationTimestamp: "2020-03-08T02:21:22Z"
+  labels:
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: backendapp
+  name: backendlb
+  namespace: backend-ns
+  resourceVersion: "76025043"
+  selfLink: /api/v1/namespaces/backend-ns/services/backendlb
+  uid: 7caf0eac-4850-4c12-a2f9-0bba063da35e
+spec:
+  clusterIP: 10.117.0.129
+  ports:
+  - port: 4000
+    protocol: TCP
+    targetPort: 4000
+  selector:
+    load-balancer: backend
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

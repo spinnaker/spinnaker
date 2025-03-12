@@ -1,0 +1,58 @@
+databaseChangeLog:
+- changeSet:
+    id: create-agent-locks-table
+    author: robzienert
+    changes:
+    - createTable:
+        tableName: cats_agent_locks
+        columns:
+        - column:
+            name: agent_name
+            type: varchar(500)
+            constraints:
+              nullable: false
+              primaryKey: true
+        - column:
+            name: owner_id
+            type: varchar(100)
+            constraints:
+              nullable: false
+        - column:
+            name: lock_acquired
+            type: bigint
+            constraints:
+              nullable: false
+        - column:
+            name: lock_expiry
+            type: bigint
+            constraints:
+              nullable: false
+    - modifySql:
+        dbms: mysql
+        append:
+          value: " engine innodb"
+    rollback:
+    - dropTable:
+        tableName: cats_agent_locks
+
+- changeSet:
+    id: add-lock-unique-constraint
+    author: robzienert
+    changes:
+    - addUniqueConstraint:
+        tableName: cats_agent_locks
+        columnNames: agent_name, lock_expiry
+        constraintName: cats_agent_lock_expiry
+    rollback:
+      - dropUniqueConstraint:
+          tableName: cats_agent_locks
+          constraintName: cats_agent_lock_expiry
+
+- changeSet:
+    id: cats-agent-locks-owner-len
+    author: afeldman
+    changes:
+    - modifyDataType:
+        tableName: cats_agent_locks
+        columnName: owner_id
+        newDataType: varchar(255)

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: frontend-ns
+    artifact.spinnaker.io/name: frontend
+    artifact.spinnaker.io/type: kubernetes/deployment
+    deployment.kubernetes.io/desired-replicas: "2"
+    deployment.kubernetes.io/max-replicas: "3"
+    deployment.kubernetes.io/revision: "1"
+    moniker.spinnaker.io/application: frontendapp
+    moniker.spinnaker.io/cluster: deployment frontend
+  creationTimestamp: "2020-07-24T18:45:00Z"
+  generation: 3
+  labels:
+    app: nginx
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: frontendapp
+    load-balancer: frontend
+    pod-template-hash: 64545c4c54
+  name: frontend-64545c4c54
+  namespace: frontend-ns
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Deployment
+    name: frontend
+    uid: 4060c028-521b-4a81-ad44-b06ebee25f2e
+  resourceVersion: "84008207"
+  selfLink: /apis/apps/v1/namespaces/frontend-ns/replicasets/frontend-64545c4c54
+  uid: 13939207-d970-4e19-8f8d-ffcd353016ff
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: nginx
+      pod-template-hash: 64545c4c54
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: frontend-ns
+        artifact.spinnaker.io/name: frontend
+        artifact.spinnaker.io/type: kubernetes/deployment
+        moniker.spinnaker.io/application: frontendapp
+        moniker.spinnaker.io/cluster: deployment frontend
+      creationTimestamp: null
+      labels:
+        app: nginx
+        app.kubernetes.io/managed-by: spinnaker
+        app.kubernetes.io/name: frontendapp
+        load-balancer: frontend
+        pod-template-hash: 64545c4c54
+    spec:
+      containers:
+      - image: nginx:1.19.0
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  observedGeneration: 3
+  replicas: 0

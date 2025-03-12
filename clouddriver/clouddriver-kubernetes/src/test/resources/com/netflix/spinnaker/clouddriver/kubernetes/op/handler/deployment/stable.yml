@@ -1,0 +1,20 @@
+# Conditions report available and replica counts match spec
+status:
+  availableReplicas: 100
+  conditions:
+    - lastTransitionTime: "2020-01-31T00:01:32Z"
+      lastUpdateTime: "2020-01-31T00:01:32Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2020-01-31T00:01:24Z"
+      lastUpdateTime: "2020-01-31T00:01:32Z"
+      message: ReplicaSet "nginx-deployment-5754944d6c" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+  observedGeneration: 3
+  readyReplicas: 100
+  replicas: 100
+  updatedReplicas: 100

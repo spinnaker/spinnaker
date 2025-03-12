@@ -1,0 +1,48 @@
+# Job has failed
+status:
+  conditions:
+    - lastProbeTime: "2020-01-31T19:13:13Z"
+      lastTransitionTime: "2020-01-31T19:13:13Z"
+      message: Job has reached the specified backoff limit
+      reason: BackoffLimitExceeded
+      status: "True"
+      type: Failed
+  failed: 2
+  startTime: "2020-01-31T19:13:02Z"
+  containerStatuses:
+    - containerID: "some-container-id"
+      image: "some-image:test"
+      imageID: "some-image-id"
+      lastState: {}
+      name: "some-container-name"
+      ready: false
+      restartCount: 0
+      state:
+        terminated:
+          containerID: "some-container-id"
+          exitCode: 1
+          finishedAt: "2020-01-31T19:14:32Z"
+          message: |
+            Failed to download the file: foo.
+            GET Request failed with status code', 404, 'Expected', <HTTPStatus.OK: 200>)
+          reason: Error
+          startedAt: "2020-01-31T19:14:02Z"
+  hostIP: "0.0.0.0"
+  initContainerStatuses:
+    - containerID: "some-init-container-id"
+      image: busybox:1.28
+      imageID: "some-init-container-image-id"
+      lastState: {}
+      name: "init-myservice"
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: "some-init-container-id"
+          exitCode: 0
+          finishedAt: "2020-01-31T13:56:20Z"
+          reason: Completed
+          startedAt: "2020-01-31T23:53:20Z"
+  phase: Failed
+  podIP: "1.1.1.1"
+  qosClass: BestEffort

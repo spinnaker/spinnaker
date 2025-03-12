@@ -1,0 +1,25 @@
+apiVersion: v1
+data:
+  samplefile.yaml: |-
+    settings:
+      enabled: true
+kind: ConfigMap
+metadata:
+  labels:
+    sample-configmap-selector: one
+    selector-test: test
+  name: sample-config-map-with-selector-one
+  namespace: default
+---
+apiVersion: v1
+data:
+  samplefile2.yaml: |-
+    more-settings:
+      enabled: false
+kind: ConfigMap
+metadata:
+  labels:
+    sample-configmap-selector: two
+    selector-test: test
+  name: sample-config-map-with-selector-two
+  namespace: default

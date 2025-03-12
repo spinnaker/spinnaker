@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: myapp
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: myapp
+              image: 'index.docker.io/library/alpine:3.12'
+              imagePullPolicy: IfNotPresent
+              command:
+                - tail
+                - -f
+                - /dev/null
+          restartPolicy: Never

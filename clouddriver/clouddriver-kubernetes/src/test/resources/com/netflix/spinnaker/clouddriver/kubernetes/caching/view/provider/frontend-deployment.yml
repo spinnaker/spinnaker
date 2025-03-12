@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: frontend-ns
+    artifact.spinnaker.io/name: frontend
+    artifact.spinnaker.io/type: kubernetes/deployment
+    deployment.kubernetes.io/revision: "2"
+    moniker.spinnaker.io/application: frontendapp
+    moniker.spinnaker.io/cluster: deployment frontend
+  creationTimestamp: "2020-07-24T18:45:00Z"
+  generation: 2
+  labels:
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: frontendapp
+  name: frontend
+  namespace: frontend-ns
+  resourceVersion: "84008208"
+  selfLink: /apis/apps/v1/namespaces/frontend-ns/deployments/frontend
+  uid: 4060c028-521b-4a81-ad44-b06ebee25f2e
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: frontend-ns
+        artifact.spinnaker.io/name: frontend
+        artifact.spinnaker.io/type: kubernetes/deployment
+        moniker.spinnaker.io/application: frontendapp
+        moniker.spinnaker.io/cluster: deployment frontend
+      creationTimestamp: null
+      labels:
+        app: nginx
+        app.kubernetes.io/managed-by: spinnaker
+        app.kubernetes.io/name: frontendapp
+        load-balancer: frontend
+    spec:
+      containers:
+      - image: nginx:1.19.1
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 2
+  conditions:
+  - lastTransitionTime: "2020-07-24T18:45:20Z"
+    lastUpdateTime: "2020-07-24T18:45:20Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2020-07-24T18:45:00Z"
+    lastUpdateTime: "2020-07-24T18:47:23Z"
+    message: ReplicaSet "frontend-5c6559f75f" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 2
+  readyReplicas: 2
+  replicas: 2
+  updatedReplicas: 2

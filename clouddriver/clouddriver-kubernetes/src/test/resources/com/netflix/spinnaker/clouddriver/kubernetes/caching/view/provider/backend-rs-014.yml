@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: backend-ns
+    artifact.spinnaker.io/name: backend
+    artifact.spinnaker.io/type: kubernetes/replicaSet
+    artifact.spinnaker.io/version: v014
+    moniker.spinnaker.io/application: backendapp
+    moniker.spinnaker.io/cluster: replicaSet backend
+    moniker.spinnaker.io/sequence: "14"
+    traffic.spinnaker.io/load-balancers: '["service backendlb"]'
+  creationTimestamp: "2020-07-15T01:39:59Z"
+  generation: 2
+  labels:
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: backendapp
+    moniker.spinnaker.io/sequence: "14"
+  name: backend-v014
+  namespace: backend-ns
+  resourceVersion: "83985046"
+  selfLink: /apis/apps/v1/namespaces/backend-ns/replicasets/backend-v014
+  uid: ded56bd9-2034-4196-a7e4-b6b736c997ba
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: backend-ns
+        artifact.spinnaker.io/name: backend
+        artifact.spinnaker.io/type: kubernetes/replicaSet
+        artifact.spinnaker.io/version: v014
+        moniker.spinnaker.io/application: kubernetes
+        moniker.spinnaker.io/cluster: replicaSet backend
+        moniker.spinnaker.io/sequence: "14"
+      creationTimestamp: null
+      labels:
+        app: nginx
+        app.kubernetes.io/managed-by: spinnaker
+        app.kubernetes.io/name: kubernetes
+        moniker.spinnaker.io/sequence: "14"
+    spec:
+      containers:
+      - image: gcr.io/my-gcr-repository/backend-service@sha256:2eefbb528a4619311555f92ea9b781af101c62f4c70b73c4a5e93d15624ba94c
+        imagePullPolicy: IfNotPresent
+        name: backend-service
+        ports:
+        - containerPort: 4000
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 8Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 1
+  fullyLabeledReplicas: 1
+  observedGeneration: 2
+  readyReplicas: 1
+  replicas: 1

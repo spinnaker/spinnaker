@@ -1,0 +1,5 @@
+spec:
+  template:
+    metadata:
+      labels:
+        testPatch: success

@@ -1,0 +1,8 @@
+# halconfig
+
+server:
+  port: ${services.clouddriverBootstrap.port:7002}
+  address: ${services.clouddriverBootstrap.host:localhost}
+
+redis:
+  connection: ${services.redisBootstrap.baseUrl:redis://localhost:6379}

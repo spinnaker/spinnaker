@@ -1,0 +1,12 @@
+package events;
+
+option java_package = "org.cloudfoundry.dropsonde.events";
+option java_outer_classname = "UuidFactory";
+
+/// Type representing a 128-bit UUID.
+//
+// The bytes of the UUID should be packed in little-endian **byte** (not bit) order. For example, the UUID `f47ac10b-58cc-4372-a567-0e02b2c3d479` should be encoded as `UUID{ low: 0x7243cc580bc17af4, high: 0x79d4c3b2020e67a5 }`
+message UUID {
+    required uint64 low = 1;
+    required uint64 high = 2;
+}

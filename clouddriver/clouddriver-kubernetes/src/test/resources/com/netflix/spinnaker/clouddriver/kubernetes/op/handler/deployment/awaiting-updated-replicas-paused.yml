@@ -1,0 +1,21 @@
+# Paused while rollout in progress and paused; waiting for all replicas to be updated to new spec
+status:
+  availableReplicas: 75
+  conditions:
+    - lastTransitionTime: "2020-01-31T16:32:31Z"
+      lastUpdateTime: "2020-01-31T16:32:31Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2020-01-31T16:34:44Z"
+      lastUpdateTime: "2020-01-31T16:34:44Z"
+      message: Deployment is paused
+      reason: DeploymentPaused
+      status: Unknown
+      type: Progressing
+  observedGeneration: 3
+  readyReplicas: 75
+  replicas: 125
+  unavailableReplicas: 50
+  updatedReplicas: 50

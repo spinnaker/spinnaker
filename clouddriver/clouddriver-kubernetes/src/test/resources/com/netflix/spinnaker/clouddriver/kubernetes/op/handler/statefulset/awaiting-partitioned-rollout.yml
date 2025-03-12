@@ -1,0 +1,10 @@
+# Parititioned rollout in progress (where partition = 2)
+status:
+  collisionCount: 0
+  currentReplicas: 3
+  currentRevision: web-b46f789c4
+  observedGeneration: 2
+  readyReplicas: 4
+  replicas: 4
+  updateRevision: web-c5f4bdc97
+  updatedReplicas: 1

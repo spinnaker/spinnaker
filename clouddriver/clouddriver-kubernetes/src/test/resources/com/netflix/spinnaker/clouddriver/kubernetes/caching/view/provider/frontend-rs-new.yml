@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: frontend-ns
+    artifact.spinnaker.io/name: frontend
+    artifact.spinnaker.io/type: kubernetes/deployment
+    deployment.kubernetes.io/desired-replicas: "2"
+    deployment.kubernetes.io/max-replicas: "3"
+    deployment.kubernetes.io/revision: "2"
+    moniker.spinnaker.io/application: frontendapp
+    moniker.spinnaker.io/cluster: deployment frontend
+  creationTimestamp: "2020-07-24T18:47:01Z"
+  generation: 2
+  labels:
+    app: nginx
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: frontendapp
+    load-balancer: frontend
+    pod-template-hash: 5c6559f75f
+  name: frontend-5c6559f75f
+  namespace: frontend-ns
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Deployment
+    name: frontend
+    uid: 4060c028-521b-4a81-ad44-b06ebee25f2e
+  resourceVersion: "84008200"
+  selfLink: /apis/apps/v1/namespaces/frontend-ns/replicasets/frontend-5c6559f75f
+  uid: 29630998-bdee-4586-ac64-45223d7ef7d5
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+      pod-template-hash: 5c6559f75f
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: frontend-ns
+        artifact.spinnaker.io/name: frontend
+        artifact.spinnaker.io/type: kubernetes/deployment
+        moniker.spinnaker.io/application: frontendapp
+        moniker.spinnaker.io/cluster: deployment frontend
+        sidecar.istio.io/inject: "false"
+      creationTimestamp: null
+      labels:
+        app: nginx
+        app.kubernetes.io/managed-by: spinnaker
+        app.kubernetes.io/name: frontendapp
+        load-balancer: frontend
+        pod-template-hash: 5c6559f75f
+    spec:
+      containers:
+      - image: nginx:1.19.1
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 2
+  fullyLabeledReplicas: 2
+  observedGeneration: 2
+  readyReplicas: 2
+  replicas: 2

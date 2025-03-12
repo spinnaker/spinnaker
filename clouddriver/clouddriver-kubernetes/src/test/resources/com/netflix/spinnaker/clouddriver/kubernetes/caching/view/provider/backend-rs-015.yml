@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  annotations:
+    artifact.spinnaker.io/location: backend-ns
+    artifact.spinnaker.io/name: backend
+    artifact.spinnaker.io/type: kubernetes/replicaSet
+    artifact.spinnaker.io/version: v015
+    moniker.spinnaker.io/application: backendapp
+    moniker.spinnaker.io/cluster: replicaSet backend
+    moniker.spinnaker.io/sequence: "15"
+    traffic.spinnaker.io/load-balancers: '["service backendlb"]'
+  creationTimestamp: "2020-07-24T17:59:52Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/managed-by: spinnaker
+    app.kubernetes.io/name: backendapp
+    moniker.spinnaker.io/sequence: "15"
+  name: backend-v015
+  namespace: backend-ns
+  resourceVersion: "83984596"
+  selfLink: /apis/apps/v1/namespaces/backend-ns/replicasets/backend-v015
+  uid: 518fdd80-8949-47c4-806e-1fd3ac1e1d3c
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      annotations:
+        artifact.spinnaker.io/location: backend-ns
+        artifact.spinnaker.io/name: backend
+        artifact.spinnaker.io/type: kubernetes/replicaSet
+        artifact.spinnaker.io/version: v015
+        moniker.spinnaker.io/application: kubernetes
+        moniker.spinnaker.io/cluster: replicaSet backend
+        moniker.spinnaker.io/sequence: "15"
+      creationTimestamp: null
+      labels:
+        app: nginx
+        app.kubernetes.io/managed-by: spinnaker
+        app.kubernetes.io/name: kubernetes
+        load-balancer: backend
+        moniker.spinnaker.io/sequence: "15"
+    spec:
+      containers:
+      - image: gcr.io/my-gcr-repository/backend-service@sha256:51f29a570a484fbae4da912199ff27ed21f91b1caf51564a9d3afe3a201c1f32
+        imagePullPolicy: IfNotPresent
+        name: backend-service
+        ports:
+        - containerPort: 4000
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 8Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 1
+  fullyLabeledReplicas: 1
+  observedGeneration: 1
+  readyReplicas: 1
+  replicas: 1

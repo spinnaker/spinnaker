@@ -1,0 +1,6 @@
+# Job with >2 completions has some succeeded and some failed, still trying
+status:
+  active: 1
+  failed: 3
+  startTime: "2020-01-31T19:08:58Z"
+  succeeded: 2

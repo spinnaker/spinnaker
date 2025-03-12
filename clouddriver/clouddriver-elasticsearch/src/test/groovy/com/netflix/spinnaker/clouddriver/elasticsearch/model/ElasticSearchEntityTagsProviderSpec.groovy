@@ -1,0 +1,423 @@
+/*
+ * Copyright 2016 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+package com.netflix.spinnaker.clouddriver.elasticsearch.model
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.model.EntityTags
+import com.netflix.spinnaker.config.ElasticSearchConfig
+import com.netflix.spinnaker.config.ElasticSearchConfigProperties
+import com.netflix.spinnaker.kork.core.RetrySupport
+import io.searchbox.client.JestClient
+import io.searchbox.client.JestResult
+import io.searchbox.indices.CreateIndex
+import io.searchbox.indices.DeleteIndex
+import io.searchbox.indices.Refresh
+import io.searchbox.indices.template.PutTemplate
+import org.springframework.context.ApplicationContext
+import org.testcontainers.DockerClientFactory
+import org.testcontainers.elasticsearch.ElasticsearchContainer
+import retrofit2.mock.Calls
+import spock.lang.Requires
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Unroll
+
+import java.util.function.Supplier
+
+@Requires({ DockerClientFactory.instance().isDockerAvailable() })
+class ElasticSearchEntityTagsProviderSpec extends Specification {
+  @Shared
+  JestClient jestClient
+
+  @Shared
+  ElasticSearchConfigProperties elasticSearchConfigProperties
+
+  @Shared
+  ElasticsearchContainer esContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:6.8.2")
+
+  RetrySupport retrySupport = Spy(RetrySupport) {
+    _ * sleep(_) >> { /* do nothing */ }
+  }
+
+  ObjectMapper objectMapper = new ObjectMapper()
+  Front50Service front50Service = Mock(Front50Service)
+  ElasticSearchEntityTagsProvider entityTagsProvider
+  ElasticSearchEntityTagsReconciler entityTagsReconciler = Mock(ElasticSearchEntityTagsReconciler)
+
+  ApplicationContext applicationContext = Mock(ApplicationContext) {
+    _ * getBean(_) >> { return entityTagsReconciler }
+  }
+
+  def setupSpec() {
+    esContainer.start()
+
+    elasticSearchConfigProperties = new ElasticSearchConfigProperties(
+      activeIndex: "tags_v1",
+      connection: "http://" + esContainer.getHttpHostAddress()
+    )
+    def config = new ElasticSearchConfig()
+    jestClient = config.jestClient(elasticSearchConfigProperties)
+  }
+
+  def cleanupSpec() {
+    esContainer.stop()
+  }
+
+  def setup() {
+    jestClient.execute(new DeleteIndex.Builder(elasticSearchConfigProperties.activeIndex).build())
+
+    def settings = """{
+  "order": 0,
+  "index_patterns": [
+    "tags_v*"
+  ],
+  "settings": {
+    "index": {
+      "number_of_shards": "1",
+      "number_of_replicas": "1",
+      "refresh_interval": "-1"
+    }
+  },
+  "mappings": {
+    "_doc": {
+      "dynamic": "false",
+      "dynamic_templates": [
+        {
+          "tags_template": {
+            "path_match": "tagsMetadata",
+            "mapping": {
+              "index": "no"
+            }
+          }
+        },
+        {
+          "entityRef_template": {
+            "path_match": "entityRef.*",
+            "mapping": {
+              "index": "keyword"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "id": {
+          "type": "text"
+        },
+        "entityRef": {
+          "properties": {
+            "accountId": {
+              "type": "keyword"
+            },
+            "application": {
+              "type": "keyword"
+            },
+            "entityType": {
+              "type": "text"
+            },
+            "cloudProvider": {
+              "type": "keyword"
+            },
+            "entityId": {
+              "type": "keyword"
+            },
+            "region": {
+              "type": "keyword"
+            },
+            "account": {
+              "type": "keyword"
+            }
+          }
+        },
+        "tags": {
+          "type": "nested",
+          "properties": {
+            "valueType": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            },
+            "namespace": {
+              "type": "keyword"
+            },
+            "value": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    }
+  },
+  "aliases": {}
+}"""
+
+    def result = jestClient.execute(
+      new PutTemplate.Builder("tags_v1", settings).build()
+    )
+    assert(result.succeeded)
+
+    result = jestClient
+      .execute(new CreateIndex.Builder(elasticSearchConfigProperties.activeIndex)
+        .build())
+    assert(result.succeeded)
+
+    entityTagsProvider = new ElasticSearchEntityTagsProvider(
+      applicationContext,
+      retrySupport,
+      objectMapper,
+      front50Service,
+      jestClient,
+      elasticSearchConfigProperties
+    )
+  }
+
+  def "should support single result retrieval by `EntityTags.id` and `EntityTags.tags`"() {
+    given:
+    def entityTags = buildEntityTags("aws:cluster:front50-main:myaccount:*", ["tag1": "value1", "tag2": "value2"])
+    entityTagsProvider.index(entityTags)
+    refreshIndices()
+    entityTagsProvider.verifyIndex(entityTags)
+
+    expect:
+    entityTagsProvider.get(entityTags.id).isPresent()
+    !entityTagsProvider.get("does-not-exist").isPresent()
+
+    entityTagsProvider.get(entityTags.id, ["tag1": "value1", "tag2": "value2"]).isPresent()
+    !entityTagsProvider.get(entityTags.id, ["tag3": "value3"]).isPresent()
+  }
+
+  @Unroll
+  def "should assign entityRef.application if not specified"() {
+    given:
+    def entityTags = buildEntityTags("aws:cluster:front50-main:myaccount:*", ["tag1": "value1", "tag2": "value2"])
+    entityTags.entityRef.application = application
+
+    entityTagsProvider.index(entityTags)
+    refreshIndices()
+    entityTagsProvider.verifyIndex(entityTags)
+
+    expect:
+    entityTagsProvider.get(entityTags.id).get().entityRef.application == expectedApplication
+
+    where:
+    application      || expectedApplication
+    null             || "front50"
+    ""               || "front50"
+    " "              || "front50"
+    "my_application" || "my_application"
+  }
+
+  def "should support multi result retrieval by `cloudProvider, `entityType`, `idPrefix` and `tags`"() {
+    given:
+    def entityTags = buildEntityTags("aws:cluster:clouddriver-main:myaccount:*", ["tag3": "value3"])
+    entityTagsProvider.index(entityTags)
+    refreshIndices()
+    entityTagsProvider.verifyIndex(entityTags)
+
+    def moreEntityTags = buildEntityTags("aws:cluster:front50-main:myaccount:*", ["tag1": "value1"])
+    entityTagsProvider.index(moreEntityTags)
+    refreshIndices()
+    entityTagsProvider.verifyIndex(moreEntityTags)
+
+    expect:
+    // fetch everything
+    entityTagsProvider.getAll(null, null, null, null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+
+    // fetch everything for an application
+    entityTagsProvider.getAll(null, "front50", null, null, null, null, null, null, null, 2)*.id.sort() == [moreEntityTags.id].sort()
+
+    // fetch everything for a single `entityId`
+    entityTagsProvider.getAll(null, null, null, [entityTags.entityRef.entityId], null, null, null, null, null, 2)*.id.sort() == [entityTags.id].sort()
+
+    // fetch everything for a multiple `entityId`
+    entityTagsProvider.getAll(null, null, null, [
+      entityTags.entityRef.entityId, moreEntityTags.entityRef.entityId
+    ], null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+
+    // fetch everything for `cloudprovider`
+    entityTagsProvider.getAll("aws", null, null, null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+
+    // fetch everything for `cloudprovider` and `cluster`
+    entityTagsProvider.getAll("aws", null, "cluster", null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+
+    // fetch everything for `cloudprovider`, `cluster` and `idPrefix`
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws:cluster:clouddriver*", null, null, null, null, 2)*.id == [entityTags.id]
+
+    // fetch everything for `cloudprovider`, `cluster`, `idPrefix` and `tags`
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws*", null, null, null, ["tag3": "value3"], 2)*.id == [entityTags.id]
+
+    // verify that globbing by tags works (with and without a namespace specified)
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws*", null, null, "default", ["tag3": "*"], 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws*", null, null, null, ["tag3": "*"], 2)*.id == [entityTags.id]
+
+    // namespace 'not_default' does not exist and should negate the matched tags
+    entityTagsProvider.getAll("aws", null, "cluster", null, "aws*", null, null, "not_default", ["tag3": "*"], 2).isEmpty()
+
+    // verify that `maxResults` works
+    entityTagsProvider.getAll("aws", null, "cluster", null, null, null, null, null, null, 0).isEmpty()
+
+  }
+
+  @Unroll
+  def "should flatten a nested map"() {
+    expect:
+    entityTagsProvider.flatten([:], null, source) == flattened
+
+    where:
+    source                               || flattened
+    ["a": "b"]                           || ["a": "b"]
+    ["a": ["b": ["c"]]]                  || ["a.b": ["c"]]
+    ["a": ["b": ["c": ["d"]]]]           || ["a.b.c": ["d"]]
+    ["a": ["b": ["c": ["d"]]], "e": "f"] || ["a.b.c": ["d"], "e": "f"]
+  }
+
+  def "should filter entity tags when performing a reindex"() {
+    given:
+    def allEntityTags = [
+      buildEntityTags("aws:servergroup:clouddriver-main-v001:myaccount:us-west-1", [:]),
+      buildEntityTags("aws:servergroup:clouddriver-main-v002:myaccount:us-west-1", [:]),
+    ]
+
+    when:
+    entityTagsProvider.reindex()
+    refreshIndices()
+
+    then:
+    1 * front50Service.getAllEntityTags(true) >> Calls.response(allEntityTags)
+    1 * entityTagsReconciler.filter(allEntityTags) >> { return [ allEntityTags[1] ] }
+
+    entityTagsProvider.verifyIndex(allEntityTags[1])
+    !entityTagsProvider.get(allEntityTags[0].id).isPresent()
+  }
+
+  def "should delete multiple entity tags (bulk)"() {
+    given:
+    def allEntityTags = [
+      buildEntityTags("aws:servergroup:clouddriver-main-v001:myaccount:us-west-1", [:]),
+      buildEntityTags("aws:servergroup:clouddriver-main-v002:myaccount:us-west-1", [:]),
+      buildEntityTags("aws:servergroup:clouddriver-main-v003:myaccount:us-west-1", [:]),
+    ]
+    allEntityTags.each {
+      entityTagsProvider.index(it)
+      refreshIndices()
+      entityTagsProvider.verifyIndex(it)
+    }
+
+    when:
+    entityTagsProvider.bulkDelete(allEntityTags)
+    refreshIndices()
+
+    then:
+    verifyNotIndexed(allEntityTags[0])
+    verifyNotIndexed(allEntityTags[1])
+    verifyNotIndexed(allEntityTags[2])
+  }
+
+  def "should delete all entity tags in namespace"() {
+    given:
+    def allEntityTags = [
+      buildEntityTags("titus:servergroup:clouddriver-main-^1.0.0-v150:myaccount:us-west-1", ["a": "1"], "my_namespace"),
+      buildEntityTags("aws:servergroup:clouddriver-main-v001:myaccount:us-west-1", ["a": "1"], "my_namespace"),
+      buildEntityTags("aws:servergroup:clouddriver-main-v002:myaccount:us-west-1", ["b": "2"], "my_namespace"),
+      buildEntityTags("aws:servergroup:clouddriver-main-v003:myaccount:us-west-1", ["c": "3"]),
+    ]
+    allEntityTags.each {
+      entityTagsProvider.index(it)
+      refreshIndices()
+      entityTagsProvider.verifyIndex(it)
+    }
+
+    when:
+    entityTagsProvider.deleteByNamespace("my_namespace", true, false) // dry-run
+
+    then:
+    1 * front50Service.getAllEntityTags(false) >>
+       Calls.response(entityTagsProvider.getAll(
+        null, null, null, null, null, null, null, null, [:], 100
+      ))
+
+    0 * _
+
+    when:
+    entityTagsProvider.deleteByNamespace("my_namespace", true, true) // dry-run
+
+    then:
+    1 * front50Service.getAllEntityTags(false) >> Calls.response( entityTagsProvider.getAll(
+        null, null, null, null, null, null, null, null, [:], 100
+      ))
+
+    0 * _
+
+    when:
+    entityTagsProvider.deleteByNamespace("my_namespace", false, false) // remove from elasticsearch (only!)
+    refreshIndices()
+
+    def allIndexedEntityTags = entityTagsProvider.getAll(
+      null, null, null, null, null, null, null, null, [:], 100
+    )
+
+    then:
+    1 * front50Service.getAllEntityTags(false) >> Calls.response(entityTagsProvider.getAll(
+        null, null, null, null, null, null, null, null, [:], 100
+      ))
+
+    _ * retrySupport.retry(_, _, _, _) >> { Supplier fn, int maxRetries, long retryBackoff, boolean exponential -> fn.get() }
+    0 * _
+
+    allIndexedEntityTags.findAll {
+      it.tags.any { it.namespace == "my_namespace"}
+    }.isEmpty()
+
+    when:
+    entityTagsProvider.deleteByNamespace("my_namespace", false, true) // remove from elasticsearch and front50
+
+    then:
+    1 * front50Service.getAllEntityTags(false) >> Calls.response(allEntityTags)
+    1 * front50Service.batchUpdate(_) >> Calls.response(null)
+    _ * retrySupport.retry(_, _, _, _) >> { Supplier fn, int maxRetries, long retryBackoff, boolean exponential -> fn.get() }
+    0 * _
+  }
+
+  boolean verifyNotIndexed(EntityTags entityTags) {
+    return !entityTagsProvider.get(entityTags.id).isPresent()
+  }
+
+  private static EntityTags buildEntityTags(String id, Map<String, String> tags, String namespace = "default") {
+    def idSplit = id.split(":")
+    return new EntityTags(
+      id: id,
+      tags: tags.collect { k, v ->
+        new EntityTags.EntityTag(name: k, value: v, valueType: EntityTags.EntityTagValueType.literal, namespace: namespace)
+      },
+      entityRef: new EntityTags.EntityRef(
+        entityType: idSplit[1],
+        cloudProvider: idSplit[0],
+        entityId: idSplit[2]
+      )
+    )
+  }
+
+  private void refreshIndices() {
+    JestResult result = jestClient.execute(new Refresh.Builder().build())
+    if (!result.isSucceeded()) {
+      throw new ElasticSearchException(
+        String.format("Failed to refresh index: %s", result.getErrorMessage()))
+    }
+  }
+}

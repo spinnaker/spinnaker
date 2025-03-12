@@ -1,0 +1,7 @@
+{
+  "containerName" : "istio-proxy",
+  "metrics" : {
+    "MEMORY(bytes)" : "27Mi",
+    "CPU(cores)" : "3m"
+  }
+}
