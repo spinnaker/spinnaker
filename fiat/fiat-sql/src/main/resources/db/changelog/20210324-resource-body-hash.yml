@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: resource-body-hash
+      author: deverton
+      changes:
+        - addColumn:
+            tableName: fiat_resource
+            columns:
+              - column:
+                  name: body_hash
+                  type: char(64)
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: fiat_resource
+            columns:
+              - column:
+                  name: body_hash

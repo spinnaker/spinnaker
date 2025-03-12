@@ -1,0 +1,5 @@
+# halconfig
+
+server:
+  port: ${services.fiat.port:7003}
+  address: ${services.fiat.host:localhost}

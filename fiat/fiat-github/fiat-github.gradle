@@ -1,0 +1,12 @@
+dependencies {
+  implementation project(":fiat-core")
+  implementation project(":fiat-roles")
+
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "javax.validation:validation-api"
+}

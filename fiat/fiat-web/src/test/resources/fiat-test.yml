@@ -1,0 +1,26 @@
+services:
+  clouddriver:
+    baseUrl: 'http://localhost:7003'
+  front50:
+    baseUrl: 'http://localhost:8080'
+  igor:
+    baseUrl: 'http://localhost:8086'
+
+fiat:
+  cache:
+    expiresAfterWriteSeconds: 0
+  writeMode:
+    syncDelayMs: -1
+
+spring:
+  application:
+    name: fiat
+
+sql:
+  enabled: false
+
+permissionsRepository:
+  redis:
+    enabled: true
+  sql:
+    enabled: false

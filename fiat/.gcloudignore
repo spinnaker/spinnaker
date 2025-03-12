@@ -1,0 +1,7 @@
+# By default, everything inside .gitignore (as well as the .git directory and
+# the .gitignore file itself) is not uploaded to Google Cloud Build. But the
+# bintray publishing task requires the .git directory to uploaded.
+#
+# Adding this file overrides the default, so everything gets uploaded, but we
+# still want to exclude the large .gradle cache directory.
+.gradle

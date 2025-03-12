@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: resource-updated-at-column
+      author: deverton
+      changes:
+        - addColumn:
+            tableName: fiat_resource
+            columns:
+              - column:
+                  name: updated_at
+                  type: bigint
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: fiat_resource
+            columns:
+              - column:
+                  name: updated_at

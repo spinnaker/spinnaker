@@ -1,0 +1,12 @@
+users:
+ - username: foo
+   roles:
+   - bar
+   - baz
+ - username: batman
+   roles:
+   - crimeFighter
+   - jokerJailer
+ - username: robin
+   roles: []
+ - username: nanana
