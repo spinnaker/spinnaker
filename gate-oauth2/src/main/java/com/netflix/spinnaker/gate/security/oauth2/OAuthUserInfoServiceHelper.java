@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
@@ -102,7 +103,7 @@ public class OAuthUserInfoServiceHelper {
       }
     }
 
-    final String username = toStringOrNull(details.get(userInfoMapping.getUsername()));
+    final String username = Objects.toString(details.get(userInfoMapping.getUsername()), null);
     List<String> roles =
         Optional.ofNullable(groupExtractor)
             .map(extractor -> extractor.apply(accessToken, details))
@@ -154,9 +155,9 @@ public class OAuthUserInfoServiceHelper {
     if (oAuth2User instanceof OidcUser oidcUser) {
       SpinnakerOIDCUser spinnakerUser =
           new SpinnakerOIDCUser(
-              toStringOrNull(details.get(userInfoMapping.getEmail())),
-              toStringOrNull(details.get(userInfoMapping.getFirstName())),
-              toStringOrNull(details.get(userInfoMapping.getLastName())),
+              Objects.toString(details.get(userInfoMapping.getEmail()), null),
+              Objects.toString(details.get(userInfoMapping.getFirstName()), null),
+              Objects.toString(details.get(userInfoMapping.getLastName()), null),
               allowedAccountsSupport.filterAllowedAccounts(username, roles),
               roles,
               username,
@@ -169,9 +170,9 @@ public class OAuthUserInfoServiceHelper {
     } else {
       SpinnakerOAuth2User spinnakerUser =
           new SpinnakerOAuth2User(
-              toStringOrNull(details.get(userInfoMapping.getEmail())),
-              toStringOrNull(details.get(userInfoMapping.getFirstName())),
-              toStringOrNull(details.get(userInfoMapping.getLastName())),
+              Objects.toString(details.get(userInfoMapping.getEmail()), null),
+              Objects.toString(details.get(userInfoMapping.getFirstName()), null),
+              Objects.toString(details.get(userInfoMapping.getLastName()), null),
               allowedAccountsSupport.filterAllowedAccounts(username, roles),
               roles,
               username);
@@ -302,18 +303,5 @@ public class OAuthUserInfoServiceHelper {
       log.warn("Failed to parse JSON roles: {}", jsonString, e);
       return List.of();
     }
-  }
-  /**
-   * Safely converts an object to a string representation.
-   *
-   * <p>This method checks if the provided object is non-null before calling {@code toString()}. If
-   * the object is {@code null}, it returns {@code null} instead of throwing a {@code
-   * NullPointerException}.
-   *
-   * @param o the object to convert to a string, may be {@code null}
-   * @return the string representation of the object, or {@code null} if the object is {@code null}
-   */
-  static String toStringOrNull(Object o) {
-    return o != null ? o.toString() : null;
   }
 }
