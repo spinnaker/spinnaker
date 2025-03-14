@@ -64,7 +64,7 @@ public class SpinnakerOIDCUser extends User implements OidcUser {
 
   @Override
   public String getName() {
-    return super.username;
+    return super.getUsername();
   }
 
   @Override
