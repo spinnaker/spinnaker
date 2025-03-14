@@ -26,7 +26,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +39,6 @@ public class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired private SpinnakerOAuth2UserInfoService customOAuth2UserService;
   @Autowired private SpinnakerOIDCUserInfoService oidcUserInfoService;
   @Autowired private DefaultCookieSerializer defaultCookieSerializer;
-  @Autowired private ClientRegistrationRepository clientRegistrationRepository;
 
   @Override
   public void configure(HttpSecurity httpSecurity) throws Exception {
