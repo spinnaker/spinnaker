@@ -56,6 +56,6 @@ public class SpinnakerOAuth2User extends User implements OAuth2User {
 
   @Override
   public String getName() {
-    return super.username;
+    return super.getUsername();
   }
 }
