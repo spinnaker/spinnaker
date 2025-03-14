@@ -59,28 +59,46 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class OAuthUserInfoServiceHelper {
 
-  @Autowired private OAuth2SsoConfig.UserInfoMapping userInfoMapping;
+  private OAuth2SsoConfig.UserInfoMapping userInfoMapping;
 
-  @Autowired private OAuth2SsoConfig.UserInfoRequirements userInfoRequirements;
+  private OAuth2SsoConfig.UserInfoRequirements userInfoRequirements;
 
-  @Autowired private PermissionService permissionService;
+  private PermissionService permissionService;
 
-  @Autowired private Front50Service front50Service;
+  private Front50Service front50Service;
+
+  private AllowedAccountsSupport allowedAccountsSupport;
+
+  private FiatClientConfigurationProperties fiatClientConfigurationProperties;
+
+  private Registry registry;
 
   @Autowired(required = false)
   private SpinnakerProviderTokenServices providerTokenServices;
-
-  @Autowired private AllowedAccountsSupport allowedAccountsSupport;
-
-  @Autowired private FiatClientConfigurationProperties fiatClientConfigurationProperties;
-
-  @Autowired private Registry registry;
 
   @Autowired(required = false)
   @Qualifier("spinnaker-oauth2-group-extractor")
   private BiFunction<String, Map<String, Object>, List<String>> groupExtractor;
 
   private final RetrySupport retrySupport = new RetrySupport();
+
+  @Autowired
+  public OAuthUserInfoServiceHelper(
+      OAuth2SsoConfig.UserInfoMapping userInfoMapping,
+      OAuth2SsoConfig.UserInfoRequirements userInfoRequirements,
+      PermissionService permissionService,
+      Front50Service front50Service,
+      AllowedAccountsSupport allowedAccountsSupport,
+      FiatClientConfigurationProperties fiatClientConfigurationProperties,
+      Registry registry) {
+    this.userInfoMapping = userInfoMapping;
+    this.userInfoRequirements = userInfoRequirements;
+    this.permissionService = permissionService;
+    this.front50Service = front50Service;
+    this.allowedAccountsSupport = allowedAccountsSupport;
+    this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
+    this.registry = registry;
+  }
 
   <T extends OAuth2User> T getOAuthSpinnakerUser(T oAuth2User, OAuth2UserRequest userRequest) {
     Map<String, Object> details = oAuth2User.getAttributes();
