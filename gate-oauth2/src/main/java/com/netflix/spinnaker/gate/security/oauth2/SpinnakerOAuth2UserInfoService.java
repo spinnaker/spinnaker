@@ -26,7 +26,12 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class SpinnakerOAuth2UserInfoService extends DefaultOAuth2UserService {
-  @Autowired private OAuthUserInfoServiceHelper userInfoService;
+  private OAuthUserInfoServiceHelper userInfoService;
+
+  @Autowired
+  public SpinnakerOAuth2UserInfoService(OAuthUserInfoServiceHelper userInfoService) {
+    this.userInfoService = userInfoService;
+  }
 
   @Override
   public OAuth2User loadUser(OAuth2UserRequest userRequest) {
