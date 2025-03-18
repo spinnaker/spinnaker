@@ -23,6 +23,20 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+/**
+ * Custom OAuth2 user service that extends {@link DefaultOAuth2UserService} to load and process
+ * OAuth2 user details. This service integrates with {@link OAuthUserInfoServiceHelper} to transform
+ * and return the Spinnaker-specific OAuth2 user object.
+ *
+ * <p>Overrides the {@link #loadUser(OAuth2UserRequest)} method to modify user details after
+ * retrieving them from the OAuth2 provider.
+ *
+ * <p>Usage: This service is automatically registered as a Spring Bean and is used during OAuth2
+ * authentication.
+ *
+ * @author rahul-chekuri
+ * @see OAuthUserInfoServiceHelper
+ */
 @Service
 @Slf4j
 public class SpinnakerOAuth2UserInfoService extends DefaultOAuth2UserService {

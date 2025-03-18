@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.security.oauth2;
 import com.netflix.spinnaker.security.User;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +28,30 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
+/**
+ * Custom implementation of {@link OidcUser} that integrates with Spinnaker's {@link User} model.
+ * This class holds OIDC-related user details such as ID token, user info, and additional
+ * attributes.
+ *
+ * <p>It extends {@link User} from kork to include Spinnaker-specific fields like allowed accounts
+ * and roles.
+ *
+ * <p>Usage: This class is used in OIDC authentication flows where user details are retrieved from
+ * an OIDC provider.
+ *
+ * @author rahul-chekuri
+ * @see User
+ */
 public class SpinnakerOIDCUser extends User implements OidcUser {
-  private Map<String, Object> attribute = new HashMap<>();
-  private List<GrantedAuthority> authorities = new ArrayList<>();
+  /**
+   * Attributes containing user details, retrieved from the OIDC provider. These attributes
+   * typically include user profile information such as name, email, and roles.
+   */
+  private final Map<String, Object> attributes;
+
+  /** Authorities assigned to the user, used for authorization in Spring Security. */
+  private final List<GrantedAuthority> authorities;
+
   private final OidcIdToken idToken;
   private final OidcUserInfo userInfo;
 
@@ -41,7 +63,9 @@ public class SpinnakerOIDCUser extends User implements OidcUser {
       List<String> roles,
       String username,
       OidcIdToken idToken,
-      OidcUserInfo userInfo) {
+      OidcUserInfo userInfo,
+      Map<String, Object> attributes,
+      List<GrantedAuthority> authorities) {
     this.idToken = idToken;
     this.userInfo = userInfo;
     this.email = email;
@@ -50,11 +74,19 @@ public class SpinnakerOIDCUser extends User implements OidcUser {
     this.allowedAccounts = allowedAccounts;
     this.roles = roles;
     this.username = username;
+    this.attributes =
+        attributes != null
+            ? Collections.unmodifiableMap(new HashMap<>(attributes))
+            : Collections.emptyMap();
+    this.authorities =
+        authorities != null
+            ? Collections.unmodifiableList(new ArrayList<>(authorities))
+            : Collections.emptyList();
   }
 
   @Override
   public Map<String, Object> getAttributes() {
-    return attribute;
+    return attributes;
   }
 
   @Override
@@ -69,7 +101,7 @@ public class SpinnakerOIDCUser extends User implements OidcUser {
 
   @Override
   public Map<String, Object> getClaims() {
-    return this.attribute;
+    return this.attributes;
   }
 
   @Override

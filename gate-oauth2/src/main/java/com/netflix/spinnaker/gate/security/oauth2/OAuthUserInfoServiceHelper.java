@@ -59,19 +59,19 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class OAuthUserInfoServiceHelper {
 
-  private OAuth2SsoConfig.UserInfoMapping userInfoMapping;
+  private final OAuth2SsoConfig.UserInfoMapping userInfoMapping;
 
-  private OAuth2SsoConfig.UserInfoRequirements userInfoRequirements;
+  private final OAuth2SsoConfig.UserInfoRequirements userInfoRequirements;
 
-  private PermissionService permissionService;
+  private final PermissionService permissionService;
 
-  private Front50Service front50Service;
+  private final Front50Service front50Service;
 
-  private AllowedAccountsSupport allowedAccountsSupport;
+  private final AllowedAccountsSupport allowedAccountsSupport;
 
-  private FiatClientConfigurationProperties fiatClientConfigurationProperties;
+  private final FiatClientConfigurationProperties fiatClientConfigurationProperties;
 
-  private Registry registry;
+  private final Registry registry;
 
   @Autowired(required = false)
   private SpinnakerProviderTokenServices providerTokenServices;
@@ -180,9 +180,10 @@ public class OAuthUserInfoServiceHelper {
               roles,
               username,
               oidcUser.getIdToken(),
-              oidcUser.getUserInfo());
-      spinnakerUser.getAttributes().putAll(details);
-      spinnakerUser.getAuthorities().addAll(oAuth2User.getAuthorities());
+              oidcUser.getUserInfo(),
+              details,
+              Optional.ofNullable(oidcUser.getAuthorities()).orElse(new ArrayList<>()).stream()
+                  .collect(Collectors.toList()));
 
       return (T) spinnakerUser;
     } else {
@@ -193,10 +194,10 @@ public class OAuthUserInfoServiceHelper {
               Objects.toString(details.get(userInfoMapping.getLastName()), null),
               allowedAccountsSupport.filterAllowedAccounts(username, roles),
               roles,
-              username);
-      spinnakerUser.getAttributes().putAll(details);
-      spinnakerUser.getAuthorities().addAll(oAuth2User.getAuthorities());
-
+              username,
+              details,
+              Optional.ofNullable(oAuth2User.getAuthorities()).orElse(new ArrayList<>()).stream()
+                  .collect(Collectors.toList()));
       return (T) spinnakerUser;
     }
   }
