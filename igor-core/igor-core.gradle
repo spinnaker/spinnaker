@@ -5,8 +5,10 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "javax.validation:validation-api"
 
-  // TODO(rz): Get rid of this dependency!
-  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
 
   testImplementation "com.netflix.spectator:spectator-reg-micrometer"
+  testImplementation "io.spinnaker.kork:kork-retrofit"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
 }

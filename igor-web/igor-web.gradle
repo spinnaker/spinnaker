@@ -39,10 +39,9 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
 
-    implementation "com.squareup.retrofit:retrofit"
-    implementation "com.squareup.retrofit:converter-jackson"
+    implementation "com.squareup.retrofit2:retrofit"
+    implementation "com.squareup.retrofit2:converter-jackson"
     implementation "com.squareup.okhttp3:okhttp-sse"
-    implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
     implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
     implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
     implementation "org.springframework.security:spring-security-core"
@@ -83,5 +82,6 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "org.assertj:assertj-core"
 
+    testImplementation "com.squareup.retrofit2:retrofit-mock"
     testImplementation "com.github.tomakehurst:wiremock-jre8"
 }
