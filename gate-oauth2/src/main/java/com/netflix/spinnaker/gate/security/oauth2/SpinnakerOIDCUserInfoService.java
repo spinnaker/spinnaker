@@ -23,6 +23,17 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
+/**
+ * Custom OIDC user service that extends {@link OidcUserService} to load and process OIDC user
+ * details. This service integrates with {@link OAuthUserInfoServiceHelper} to transform and return
+ * the Spinnaker-specific OIDC user object.
+ *
+ * <p>Overrides the {@link #loadUser(OidcUserRequest)} method to modify user details after
+ * retrieving them from the OpenID Connect (OIDC) provider.
+ *
+ * @author rahul-chekuri
+ * @see OAuthUserInfoServiceHelper
+ */
 @Service
 @Slf4j
 public class SpinnakerOIDCUserInfoService extends OidcUserService {
