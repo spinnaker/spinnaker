@@ -65,7 +65,7 @@ public class SpinnakerOIDCUser extends User implements OidcUser {
       OidcIdToken idToken,
       OidcUserInfo userInfo,
       Map<String, Object> attributes,
-      List<GrantedAuthority> authorities) {
+      Collection<? extends GrantedAuthority> authorities) {
     this.idToken = idToken;
     this.userInfo = userInfo;
     this.email = email;
@@ -99,6 +99,21 @@ public class SpinnakerOIDCUser extends User implements OidcUser {
     return super.getUsername();
   }
 
+  /**
+   * Returns the claims associated with the authenticated user.
+   *
+   * <p>This method returns the same attributes map as {@link #getAttributes()} because, in OIDC,
+   * claims typically refer to user attributes retrieved from the identity provider. This approach
+   * aligns with the implementation in {@link
+   * org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser}, which also returns the
+   * attributes map for claims.
+   *
+   * <p>By returning attributes as claims, we ensure consistency with how Spring Security processes
+   * OIDC user details and maintains compatibility with components expecting claims to be retrieved
+   * from this method.
+   *
+   * @return a map containing the user's claims
+   */
   @Override
   public Map<String, Object> getClaims() {
     return this.attributes;

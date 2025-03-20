@@ -182,8 +182,7 @@ public class OAuthUserInfoServiceHelper {
               oidcUser.getIdToken(),
               oidcUser.getUserInfo(),
               details,
-              Optional.ofNullable(oidcUser.getAuthorities()).orElse(new ArrayList<>()).stream()
-                  .collect(Collectors.toList()));
+              oidcUser.getAuthorities());
 
       return (T) spinnakerUser;
     } else {
@@ -196,8 +195,7 @@ public class OAuthUserInfoServiceHelper {
               roles,
               username,
               details,
-              Optional.ofNullable(oAuth2User.getAuthorities()).orElse(new ArrayList<>()).stream()
-                  .collect(Collectors.toList()));
+              oAuth2User.getAuthorities());
       return (T) spinnakerUser;
     }
   }
