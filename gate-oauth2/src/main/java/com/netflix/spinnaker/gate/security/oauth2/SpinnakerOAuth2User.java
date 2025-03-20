@@ -57,7 +57,7 @@ public class SpinnakerOAuth2User extends User implements OAuth2User {
       List<String> roles,
       String username,
       Map<String, Object> attributes,
-      List<GrantedAuthority> authorities) {
+      Collection<? extends GrantedAuthority> authorities) {
     this.email = email;
     this.firstName = firstName;
     this.lastName = lastName;
