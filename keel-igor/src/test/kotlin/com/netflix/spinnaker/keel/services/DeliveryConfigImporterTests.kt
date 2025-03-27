@@ -18,8 +18,9 @@ import com.netflix.spinnaker.keel.test.deliveryConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.ResponseBody.Companion.toResponseBody
+import retrofit2.HttpException
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -121,16 +122,14 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
       }
 
       context("with HTTP error retrieving delivery config from igor") {
-        val retrofitError = RetrofitError.httpError(
-          "http://igor",
-          Response("http://igor", 404, "not found", emptyList(), null),
-          null, null
+        val notFoundError = HttpException(
+          retrofit2.Response.error<Any>(404, "".toResponseBody("application/yaml".toMediaTypeOrNull()))
         )
 
         before {
           every {
             scmService.getDeliveryConfigManifest("stash", "proj", "repo", "spinnaker.yml", any(), any())
-          } throws retrofitError
+          } throws notFoundError
         }
 
         test("bubbles up HTTP error") {
@@ -144,7 +143,7 @@ class DeliveryConfigImporterTests : JUnit5Minutests {
             )
           }
             .isFailure()
-            .isEqualTo(retrofitError)
+            .isEqualTo(notFoundError)
         }
       }
 
