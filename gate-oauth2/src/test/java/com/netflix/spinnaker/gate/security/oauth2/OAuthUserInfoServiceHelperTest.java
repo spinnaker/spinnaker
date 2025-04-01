@@ -25,20 +25,18 @@ import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import retrofit2.mock.Calls;
 
 public class OAuthUserInfoServiceHelperTest {
-
-  @InjectMocks private OAuthUserInfoServiceHelper userInfoService;
 
   @Mock private OAuth2SsoConfig.UserInfoMapping userInfoMapping;
 
@@ -48,9 +46,22 @@ public class OAuthUserInfoServiceHelperTest {
 
   @Mock private Front50Service front50Service;
 
+  private OAuthUserInfoServiceHelper userInfoService;
+
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
+    // Manually instantiate the class to ensure correct injection
+    userInfoService =
+        new OAuthUserInfoServiceHelper(
+            userInfoMapping,
+            userInfoRequirements,
+            permissionService,
+            front50Service,
+            null,
+            null,
+            null,
+            Optional.empty());
   }
 
   @Test
