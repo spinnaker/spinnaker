@@ -73,7 +73,6 @@ public class OAuthUserInfoServiceHelper {
 
   private final Registry registry;
 
-  @Autowired(required = false)
   private SpinnakerProviderTokenServices providerTokenServices;
 
   @Autowired(required = false)
@@ -90,7 +89,8 @@ public class OAuthUserInfoServiceHelper {
       Front50Service front50Service,
       AllowedAccountsSupport allowedAccountsSupport,
       FiatClientConfigurationProperties fiatClientConfigurationProperties,
-      Registry registry) {
+      Registry registry,
+      Optional<SpinnakerProviderTokenServices> providerTokenServices) {
     this.userInfoMapping = userInfoMapping;
     this.userInfoRequirements = userInfoRequirements;
     this.permissionService = permissionService;
@@ -98,6 +98,10 @@ public class OAuthUserInfoServiceHelper {
     this.allowedAccountsSupport = allowedAccountsSupport;
     this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
     this.registry = registry;
+
+    if (providerTokenServices.isPresent()) {
+      this.providerTokenServices = providerTokenServices.get();
+    }
   }
 
   <T extends OAuth2User> T getOAuthSpinnakerUser(T oAuth2User, OAuth2UserRequest userRequest) {
