@@ -29,13 +29,15 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import retrofit2.mock.Calls;
 
+@ExtendWith(MockitoExtension.class)
 public class OAuthUserInfoServiceHelperTest {
 
   @Mock private OAuth2SsoConfig.UserInfoMapping userInfoMapping;
@@ -50,7 +52,6 @@ public class OAuthUserInfoServiceHelperTest {
 
   @BeforeEach
   void setUp() {
-    MockitoAnnotations.openMocks(this);
     // Manually instantiate the class to ensure correct injection
     userInfoService =
         new OAuthUserInfoServiceHelper(
