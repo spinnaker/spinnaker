@@ -28,7 +28,7 @@ public class GateBoot154ProfileFactory extends GateProfileFactory {
     GateConfig config = new GateConfig(gate, security);
 
     if (security.getAuthn().getOauth2().isEnabled()) {
-      config.security.oauth2 = security.getAuthn().getOauth2();
+      config.setSpring(new SpringConfig(security.getAuthn().getOauth2()));
     } else if (security.getAuthn().getSaml().isEnabled()) {
       config.saml = new SamlConfig(security);
     } else if (security.getAuthn().getLdap().isEnabled()) {
