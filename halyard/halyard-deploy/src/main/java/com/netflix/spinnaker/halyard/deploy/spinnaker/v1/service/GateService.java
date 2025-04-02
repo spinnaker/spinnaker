@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot128ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot154ProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot667ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import java.nio.file.Paths;
@@ -48,6 +49,8 @@ public abstract class GateService extends SpringService<GateService.Gate> {
   @Autowired private GateBoot154ProfileFactory boot154ProfileFactory;
 
   @Autowired private GateBoot128ProfileFactory boot128ProfileFactory;
+
+  @Autowired private GateBoot667ProfileFactory boot667ProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -90,14 +93,19 @@ public abstract class GateService extends SpringService<GateService.Gate> {
   private GateProfileFactory getGateProfileFactory(String deploymentName) {
     String version =
         getArtifactService().getArtifactVersion(deploymentName, SpinnakerArtifact.GATE);
+    log.info("the current spinnaker version is: " + version);
     try {
       if (Versions.lessThan(version, BOOT_UPGRADED_VERSION)) {
         return boot128ProfileFactory;
       }
+
+      if (Versions.lessThan(version, "6.67.0")) {
+        return boot154ProfileFactory;
+      }
     } catch (IllegalArgumentException iae) {
       log.warn("Could not resolve Gate version, using `boot154ProfileFactory`.");
     }
-    return boot154ProfileFactory;
+    return boot667ProfileFactory;
   }
 
   public GateService() {

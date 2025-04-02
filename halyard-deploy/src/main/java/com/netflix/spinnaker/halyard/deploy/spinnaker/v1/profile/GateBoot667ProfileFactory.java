@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2025 OpsMx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import org.springframework.stereotype.Component;
 
 @Component
-public class GateBoot154ProfileFactory extends GateProfileFactory {
+public class GateBoot667ProfileFactory extends GateProfileFactory {
 
   @Override
   protected GateConfig getGateConfig(ServiceSettings gate, Security security) {
     GateConfig config = new GateConfig(gate, security);
 
     if (security.getAuthn().getOauth2().isEnabled()) {
-      config.security.oauth2 = security.getAuthn().getOauth2();
+      config.setSpring(new SpringConfig(security.getAuthn().getOauth2()));
     } else if (security.getAuthn().getSaml().isEnabled()) {
       config.saml = new SamlConfig(security);
     } else if (security.getAuthn().getLdap().isEnabled()) {
