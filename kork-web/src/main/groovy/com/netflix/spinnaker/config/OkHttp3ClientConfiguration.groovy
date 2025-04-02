@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor
 import okhttp3.Dispatcher
 import okhttp3.logging.HttpLoggingInterceptor
@@ -60,22 +61,29 @@ class OkHttp3ClientConfiguration {
    */
   private final SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor
 
+  /**
+   * {@link okhttp3.Interceptor} for correcting partial encoding done by Retrofit2.
+   */
+  private final Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor
+
   @Autowired
   OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
                              OkHttp3MetricsInterceptor okHttp3MetricsInterceptor,
                              HttpLoggingInterceptor.Level retrofit2LogLevel,
                              SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor,
+                             Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor,
                              ObjectFactory<OkHttpClient.Builder> httpClientBuilderFactory) {
     this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
     this.okHttp3MetricsInterceptor = okHttp3MetricsInterceptor
     this.retrofit2LogLevel = retrofit2LogLevel
     this.spinnakerRequestHeaderInterceptor = spinnakerRequestHeaderInterceptor
+    this.retrofit2EncodeCorrectionInterceptor = retrofit2EncodeCorrectionInterceptor
     this.httpClientBuilderFactory = httpClientBuilderFactory
   }
 
   public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
                                     OkHttp3MetricsInterceptor okHttp3MetricsInterceptor) {
-    this(okHttpClientConfigurationProperties, okHttp3MetricsInterceptor, null, null,
+    this(okHttpClientConfigurationProperties, okHttp3MetricsInterceptor, null, null, null,
       { new OkHttpClient.Builder() })
   }
 
@@ -96,6 +104,10 @@ class OkHttp3ClientConfiguration {
 
     if (okHttp3MetricsInterceptor != null) {
       okHttpClientBuilder.addInterceptor(okHttp3MetricsInterceptor)
+    }
+
+    if (retrofit2EncodeCorrectionInterceptor != null) {
+      okHttpClientBuilder.addInterceptor(retrofit2EncodeCorrectionInterceptor)
     }
 
     if (!okHttpClientConfigurationProperties.keyStore && !okHttpClientConfigurationProperties.trustStore) {
@@ -126,6 +138,10 @@ class OkHttp3ClientConfiguration {
 
     if (okHttp3MetricsInterceptor != null) {
       okHttpClientBuilder.addInterceptor(okHttp3MetricsInterceptor)
+    }
+
+    if (retrofit2EncodeCorrectionInterceptor != null) {
+      okHttpClientBuilder.addInterceptor(retrofit2EncodeCorrectionInterceptor)
     }
 
     /**

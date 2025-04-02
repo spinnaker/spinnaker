@@ -1,7 +1,7 @@
 /*
- * Copyright 2024 Salesforce, Inc.
+ * Copyright 2025 OpsMx, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -18,23 +18,31 @@ package com.netflix.spinnaker.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
+import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.springframework.boot.context.annotation.UserConfigurations;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.configuration.ObjectPostProcessorConfiguration;
 
-class OkHttpClientComponentsTest {
-
+public class OkHttp3ClientConfigurationTest {
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
+          .withBean(ObjectMapper.class)
           .withBean(TaskExecutorBuilder.class)
-          .withConfiguration(UserConfigurations.of(OkHttpClientComponents.class));
+          .withUserConfiguration(OkHttp3ClientConfigurationTestConfig.class);
 
   @BeforeEach
   void init(TestInfo testInfo) {
@@ -45,10 +53,26 @@ class OkHttpClientComponentsTest {
   void verifyValidConfiguration() {
     runner.run(
         ctx -> {
-          assertThat(ctx).hasSingleBean(SpinnakerRequestInterceptor.class);
+          assertThat(ctx).hasSingleBean(OkHttpClientConfigurationProperties.class);
+          assertThat(ctx).hasSingleBean(HttpLoggingInterceptor.Level.class);
           assertThat(ctx).hasSingleBean(SpinnakerRequestHeaderInterceptor.class);
           assertThat(ctx).hasSingleBean(Retrofit2EncodeCorrectionInterceptor.class);
           assertThat(ctx).hasSingleBean(OkHttp3MetricsInterceptor.class);
         });
+  }
+
+  @Configuration
+  @ComponentScan(basePackageClasses = OkHttp3ClientConfiguration.class)
+  static class OkHttp3ClientConfigurationTestConfig {
+
+    @Bean
+    public ObjectPostProcessor<Object> objectPostProcessor(AutowireCapableBeanFactory beanFactory) {
+      return new ObjectPostProcessorConfiguration().objectPostProcessor(beanFactory);
+    }
+
+    @Bean
+    public AuthenticationConfiguration authenticationConfiguration() {
+      return new AuthenticationConfiguration();
+    }
   }
 }
