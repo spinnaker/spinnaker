@@ -90,7 +90,7 @@ public abstract class GateService extends SpringService<GateService.Gate> {
     return profiles;
   }
 
-  private GateProfileFactory getGateProfileFactory(String deploymentName) {
+  GateProfileFactory getGateProfileFactory(String deploymentName) {
     String version =
         getArtifactService().getArtifactVersion(deploymentName, SpinnakerArtifact.GATE);
     log.info("the current spinnaker version is: " + version);
