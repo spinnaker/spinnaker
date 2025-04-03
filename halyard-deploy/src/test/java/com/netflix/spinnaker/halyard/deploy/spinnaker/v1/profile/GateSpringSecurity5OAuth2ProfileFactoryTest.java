@@ -33,20 +33,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class GateBoot667ProfileFactoryTest {
+class GateSpringSecurity5OAuth2ProfileFactoryTest {
 
-  private GateBoot667ProfileFactory factory;
+  private GateSpringSecurity5OAuth2ProfileFactory factory;
   private ServiceSettings mockServiceSettings;
   private Security mockSecurity;
   private Authn mockAuthn;
   private OAuth2 oAuth2;
 
+  /**
+   * Sets up the test environment before each test execution. Initializes required mock objects and
+   * test fixture to ensure a clean test state before each test case.
+   */
   @BeforeEach
   void setUp() {
-    factory = new GateBoot667ProfileFactory();
+    factory = new GateSpringSecurity5OAuth2ProfileFactory();
     oAuth2 = new OAuth2();
     oAuth2.setEnabled(true);
-    oAuth2.setProvider(OAuth2.Provider.GOOGLE);
+
     mockServiceSettings = mock(ServiceSettings.class);
     mockSecurity = mock(Security.class);
     mockAuthn = mock(Authn.class);
@@ -63,33 +67,35 @@ class GateBoot667ProfileFactoryTest {
 
   @Test
   void testGetGateConfigWithOAuth2Enabled() {
+
+    // google
+    oAuth2.setProvider(OAuth2.Provider.GOOGLE);
     GateProfileFactory.GateConfig config = factory.getGateConfig(mockServiceSettings, mockSecurity);
     assertNotNull(
         config.getSpring().getSecurity().getOAuth2().getClient().getRegistration().getGoogle());
 
+    // github
     oAuth2.setProvider(OAuth2.Provider.GITHUB);
     config = factory.getGateConfig(mockServiceSettings, mockSecurity);
     assertNotNull(
         config.getSpring().getSecurity().getOAuth2().getClient().getRegistration().getGithub());
 
+    // azure
     oAuth2.setProvider(OAuth2.Provider.AZURE);
     config = factory.getGateConfig(mockServiceSettings, mockSecurity);
     assertNotNull(
         config.getSpring().getSecurity().getOAuth2().getClient().getRegistration().getAzure());
 
+    // oracle
     oAuth2.setProvider(OAuth2.Provider.ORACLE);
     config = factory.getGateConfig(mockServiceSettings, mockSecurity);
     assertNotNull(
         config.getSpring().getSecurity().getOAuth2().getClient().getRegistration().getOracle());
 
+    // other
     oAuth2.setProvider(OAuth2.Provider.OTHER);
     config = factory.getGateConfig(mockServiceSettings, mockSecurity);
     assertNotNull(
         config.getSpring().getSecurity().getOAuth2().getClient().getRegistration().getOther());
-
-    oAuth2.setProvider(OAuth2.Provider.GITHUB);
-    config = factory.getGateConfig(mockServiceSettings, mockSecurity);
-    assertNotNull(
-        config.getSpring().getSecurity().getOAuth2().getClient().getRegistration().getGithub());
   }
 }

@@ -24,8 +24,8 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot128ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot154ProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot667ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateSpringSecurity5OAuth2ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -50,7 +50,7 @@ public abstract class GateService extends SpringService<GateService.Gate> {
 
   @Autowired private GateBoot128ProfileFactory boot128ProfileFactory;
 
-  @Autowired private GateBoot667ProfileFactory boot667ProfileFactory;
+  @Autowired private GateSpringSecurity5OAuth2ProfileFactory springSecurity5OAuth2ProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -95,7 +95,7 @@ public abstract class GateService extends SpringService<GateService.Gate> {
    *
    * <p>- If version is less than 0.7.0, returns {@code boot128ProfileFactory}. - If version is
    * between 0.7.0 and 6.67.0, returns {@code boot154ProfileFactory}. - If version is greater than
-   * 6.67.0 or invalid, defaults to {@code boot667ProfileFactory}.
+   * 6.67.0 or invalid, defaults to {@code springSecurity5OAuth2ProfileFactory}.
    *
    * @param deploymentName Name of the deployment.
    * @return The appropriate {@link GateProfileFactory} instance.
@@ -111,14 +111,15 @@ public abstract class GateService extends SpringService<GateService.Gate> {
 
       // For Gate versions 6.67.0 and above, a different set of properties is required to enable
       // OAuth2.
-      // Therefore, boot154ProfileFactory is not used, and boot667ProfileFactory is chosen instead.
+      // Therefore, boot154ProfileFactory is not used, and springSecurity5OAuth2ProfileFactory is
+      // chosen instead.
       if (Versions.lessThan(version, "6.68.0")) {
         return boot154ProfileFactory;
       }
     } catch (IllegalArgumentException iae) {
       log.warn("Could not resolve Gate version, using `boot154ProfileFactory`.");
     }
-    return boot667ProfileFactory;
+    return springSecurity5OAuth2ProfileFactory;
   }
 
   public GateService() {

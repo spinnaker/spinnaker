@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  * accordingly.
  */
 @Component
-public class GateBoot667ProfileFactory extends GateProfileFactory {
+public class GateSpringSecurity5OAuth2ProfileFactory extends GateProfileFactory {
 
   /**
    * Creates a {@link GateConfig} instance based on the provided security settings.
