@@ -91,16 +91,16 @@ class SpringConfig {
     client.getRegistration().setUserInfoRequirements(oauth2.getUserInfoRequirements());
 
     OAuth2Security security = new OAuth2Security();
-    security.getOauth2().setClient(client);
+    security.getOAuth2().setClient(client);
     return security;
   }
 
   @Data
-  private class OAuth2Security {
-    private OAuth2 oauth2 = new OAuth2();
+  public class OAuth2Security {
+    private OAuth2 oAuth2 = new OAuth2();
 
     @Data
-    private class OAuth2 {
+    public class OAuth2 {
       private Client client = new Client();
 
       @Data
