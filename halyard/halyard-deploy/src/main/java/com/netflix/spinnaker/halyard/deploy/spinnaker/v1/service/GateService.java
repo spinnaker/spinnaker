@@ -94,7 +94,7 @@ public abstract class GateService extends SpringService<GateService.Gate> {
    * Retrieves the appropriate GateProfileFactory based on the given deployment's Gate version.
    *
    * <p>- If version is less than 0.7.0, returns {@code boot128ProfileFactory}. - If version is
-   * between 0.7.0 and 6.67.0, returns {@code boot154ProfileFactory}. - If version is greater than
+   * between 0.7.0 and 6.68.0, returns {@code boot154ProfileFactory}. - If version is greater than
    * 6.67.0 or invalid, defaults to {@code springSecurity5OAuth2ProfileFactory}.
    *
    * @param deploymentName Name of the deployment.
@@ -109,7 +109,7 @@ public abstract class GateService extends SpringService<GateService.Gate> {
         return boot128ProfileFactory;
       }
 
-      // For Gate versions 6.67.0 and above, a different set of properties is required to enable
+      // For Gate versions 6.68.0 and above, a different set of properties is required to enable
       // OAuth2.
       // Therefore, boot154ProfileFactory is not used, and springSecurity5OAuth2ProfileFactory is
       // chosen instead.
