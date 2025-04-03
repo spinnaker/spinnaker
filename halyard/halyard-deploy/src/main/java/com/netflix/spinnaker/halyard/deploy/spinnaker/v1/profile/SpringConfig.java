@@ -82,6 +82,8 @@ class SpringConfig {
     registration.put("scope", oauth2.getClient().getScope());
     registration.put(
         "clientAuthenticationScheme", oauth2.getClient().getClientAuthenticationScheme());
+    registration.put(
+        "redirect-uri", "\"" + oauth2.getClient().getPreEstablishedRedirectUri() + "\"");
     prvdr.put("token-uri", oauth2.getClient().getAccessTokenUri());
     prvdr.put("authorization-uri", oauth2.getClient().getUserAuthorizationUri());
     prvdr.put("user-info-uri", oauth2.getResource().getUserInfoUri());
