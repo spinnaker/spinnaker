@@ -830,7 +830,7 @@ class TravisClientSpec extends Specification {
         )
         server.start()
         OkHttp3ClientConfiguration okHttpClientConfig = new OkHttp3ClientConfiguration(
-            new OkHttpClientConfigurationProperties(), null, HttpLoggingInterceptor.Level.BASIC, null, null);
+            new OkHttpClientConfigurationProperties(), null, HttpLoggingInterceptor.Level.BASIC, null, null, null);
         client = new TravisConfig().travisClient(server.url('/').toString(), 3000, mapper, okHttpClientConfig)
     }
 }

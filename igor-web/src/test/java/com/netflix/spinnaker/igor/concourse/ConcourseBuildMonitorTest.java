@@ -76,6 +76,7 @@ class ConcourseBuildMonitorTest {
                     null,
                     HttpLoggingInterceptor.Level.BASIC,
                     null,
+                    null,
                     null))));
 
     this.monitor =

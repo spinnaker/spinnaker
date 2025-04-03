@@ -38,6 +38,7 @@ class ConcourseClientTest {
                         null,
                         HttpLoggingInterceptor.Level.BASIC,
                         null,
+                        null,
                         null)))
         .hasRootCauseInstanceOf(UnknownHostException.class);
   }
