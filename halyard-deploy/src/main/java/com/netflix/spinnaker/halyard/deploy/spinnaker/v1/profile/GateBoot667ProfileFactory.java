@@ -20,9 +20,32 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import org.springframework.stereotype.Component;
 
+/**
+ * Factory class for creating Gate configuration profiles for versions 6.67.0 and above.
+ *
+ * <p>This class extends {@link GateProfileFactory} and provides specific configurations required
+ * for Gate versions 6.67.0 and later. In these versions, a different set of properties is needed to
+ * enable OAuth2 authentication.
+ *
+ * <p>The factory determines the appropriate security configuration (OAuth2, SAML, LDAP, IAP, X509)
+ * based on the provided {@link Security} settings and constructs the {@link GateConfig}
+ * accordingly.
+ */
 @Component
 public class GateBoot667ProfileFactory extends GateProfileFactory {
 
+  /**
+   * Creates a {@link GateConfig} instance based on the provided security settings.
+   *
+   * <p>If OAuth2 authentication is enabled, a {@link SpringConfig} is set up. If SAML
+   * authentication is enabled, a {@link SamlConfig} is set. If LDAP authentication is enabled, a
+   * {@link LdapConfig} is set. If IAP authentication is enabled, a {@link IAPConfig} is set under
+   * Google authentication. If X509 authentication is enabled, a {@link X509Config} is set.
+   *
+   * @param gate The service settings for Gate.
+   * @param security The security configuration settings.
+   * @return A configured {@link GateConfig} instance.
+   */
   @Override
   protected GateConfig getGateConfig(ServiceSettings gate, Security security) {
     GateConfig config = new GateConfig(gate, security);

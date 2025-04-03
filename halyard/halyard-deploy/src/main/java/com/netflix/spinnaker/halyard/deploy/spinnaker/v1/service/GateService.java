@@ -90,6 +90,16 @@ public abstract class GateService extends SpringService<GateService.Gate> {
     return profiles;
   }
 
+  /**
+   * Retrieves the appropriate GateProfileFactory based on the given deployment's Gate version.
+   *
+   * <p>- If version is less than 0.7.0, returns {@code boot128ProfileFactory}. - If version is
+   * between 0.7.0 and 6.67.0, returns {@code boot154ProfileFactory}. - If version is greater than
+   * 6.67.0 or invalid, defaults to {@code boot667ProfileFactory}.
+   *
+   * @param deploymentName Name of the deployment.
+   * @return The appropriate {@link GateProfileFactory} instance.
+   */
   GateProfileFactory getGateProfileFactory(String deploymentName) {
     String version =
         getArtifactService().getArtifactVersion(deploymentName, SpinnakerArtifact.GATE);
@@ -99,6 +109,9 @@ public abstract class GateService extends SpringService<GateService.Gate> {
         return boot128ProfileFactory;
       }
 
+      // For Gate versions 6.67.0 and above, a different set of properties is required to enable
+      // OAuth2.
+      // Therefore, boot154ProfileFactory is not used, and boot667ProfileFactory is chosen instead.
       if (Versions.lessThan(version, "6.67.0")) {
         return boot154ProfileFactory;
       }
