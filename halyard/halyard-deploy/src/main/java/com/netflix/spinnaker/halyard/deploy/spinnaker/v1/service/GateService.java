@@ -112,7 +112,7 @@ public abstract class GateService extends SpringService<GateService.Gate> {
       // For Gate versions 6.67.0 and above, a different set of properties is required to enable
       // OAuth2.
       // Therefore, boot154ProfileFactory is not used, and boot667ProfileFactory is chosen instead.
-      if (Versions.lessThan(version, "6.67.0")) {
+      if (Versions.lessThan(version, "6.68.0")) {
         return boot154ProfileFactory;
       }
     } catch (IllegalArgumentException iae) {
