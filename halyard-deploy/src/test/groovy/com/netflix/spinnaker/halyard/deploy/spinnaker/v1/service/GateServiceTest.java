@@ -24,8 +24,8 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot128ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot154ProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateBoot667ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateSpringSecurity5OAuth2ProfileFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +34,7 @@ class GateServiceTest {
   private GateService gateService;
   private GateBoot128ProfileFactory mockBoot128ProfileFactory;
   private GateBoot154ProfileFactory mockBoot154ProfileFactory;
-  private GateBoot667ProfileFactory mockBoot667ProfileFactory;
+  private GateSpringSecurity5OAuth2ProfileFactory mockBoot667ProfileFactory;
   private ArtifactService mockArtifactService;
 
   @BeforeEach
@@ -42,12 +42,12 @@ class GateServiceTest {
     gateService = mock(GateService.class, CALLS_REAL_METHODS);
     mockBoot128ProfileFactory = mock(GateBoot128ProfileFactory.class);
     mockBoot154ProfileFactory = mock(GateBoot154ProfileFactory.class);
-    mockBoot667ProfileFactory = mock(GateBoot667ProfileFactory.class);
+    mockBoot667ProfileFactory = mock(GateSpringSecurity5OAuth2ProfileFactory.class);
     mockArtifactService = mock(ArtifactService.class);
 
     gateService.setBoot128ProfileFactory(mockBoot128ProfileFactory);
     gateService.setBoot154ProfileFactory(mockBoot154ProfileFactory);
-    gateService.setBoot667ProfileFactory(mockBoot667ProfileFactory);
+    gateService.setSpringSecurity5OAuth2ProfileFactory(mockBoot667ProfileFactory);
     when(gateService.getArtifactService()).thenReturn(mockArtifactService);
   }
 
