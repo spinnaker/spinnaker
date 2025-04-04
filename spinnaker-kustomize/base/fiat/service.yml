@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fiat
+spec:
+  ports:
+  - port: 7003
+    protocol: TCP
+    targetPort: 7003
+  type: ClusterIP

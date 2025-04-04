@@ -1,0 +1,23 @@
+# Clouddriver Kubernetes provider account configuration for the cluster
+# that Clouddriver is installed into.
+# If this is not desired then you can overwrite this file in a Kustomize overlay.
+kubernetes:
+  enabled: true
+  primaryAccount: managing
+  accounts:
+    - name: managing
+      # kubeconfigFile:  # Use the mounted Service Account token
+      cacheThreads: 1
+      cachingPolicies: []
+      checkPermissionsOnStartup: true
+      customResources: []
+      dockerRegistries: []
+      kinds: []
+      liveManifestCalls: false
+      namespaces: []
+      oAuthScopes: []
+      omitKinds: []
+      omitNamespaces: []
+      onlySpinnakerManaged: false
+      permissions: {}
+      providerVersion: V2

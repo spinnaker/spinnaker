@@ -1,0 +1,107 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+namespace: spinnaker
+resources:
+- base
+
+patches:
+# Mount Spring config file per service in a subdirectories so it can be loaded
+# by `spring.config.import`.
+# Paths must match Spring naming conventions.
+# For example: {application}(-{profile}).yml
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: gate.yml
+            path: redis/gate.yml
+          name: gate-redis
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: gate
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: kayenta.yml
+            path: redis/kayenta.yml
+          name: kayenta-redis
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: kayenta
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: igor.yml
+            path: redis/igor.yml
+          name: igor-redis
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: igor
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: orca.yml
+            path: redis/orca.yml
+          name: orca-redis
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: orca
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: rosco.yml
+            path: redis/rosco.yml
+          name: rosco-redis
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: rosco
+
+configMapGenerator:
+- behavior: create
+  name: gate-redis
+  files:
+  - files/gate.yml
+- behavior: create
+  name: igor-redis
+  files:
+  - files/igor.yml
+- behavior: create
+  name: kayenta-redis
+  files:
+  - files/kayenta.yml
+- behavior: create
+  name: orca-redis
+  files:
+  - files/orca.yml
+- behavior: create
+  name: rosco-redis
+  files:
+  - files/rosco.yml

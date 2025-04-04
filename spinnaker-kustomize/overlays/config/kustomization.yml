@@ -1,0 +1,56 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+configMapGenerator:
+- behavior: merge
+  name: spinnaker
+  files:
+  - files/spinnaker-local.yml
+- behavior: merge
+  name: clouddriver
+  files:
+  - files/clouddriver-local.yml
+- behavior: merge
+  name: deck-env
+  envs:
+  - files/deck.env
+- behavior: merge
+  name: deck
+  files:
+  - files/settings-local.js
+- behavior: merge
+  name: echo
+  files:
+  - files/echo-local.yml
+- behavior: merge
+  name: fiat
+  files:
+  - files/fiat-local.yml
+- behavior: merge
+  name: front50
+  files:
+  - files/front50-local.yml
+- behavior: merge
+  name: gate
+  files:
+  - files/gate-local.yml
+- behavior: merge
+  name: igor
+  files:
+  - files/igor-local.yml
+- behavior: merge
+  name: kayenta
+  files:
+  - files/kayenta-local.yml
+- behavior: merge
+  name: keel
+  files:
+  - files/keel-local.yml
+- behavior: merge
+  name: orca
+  files:
+  - files/orca-local.yml
+- behavior: merge
+  name: rosco
+  files:
+  - files/rosco-local.yml

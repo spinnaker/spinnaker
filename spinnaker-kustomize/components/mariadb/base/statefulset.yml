@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mariadb
+spec:
+  serviceName: "mariadb"
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:latest
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          value: "testing123"
+        - name: clouddriver
+          value: "testing123"
+        - name: echo
+          value: "testing123"
+        - name: fiat
+          value: "testing123"
+        - name: front50
+          value: "testing123"
+        - name: orca
+          value: "testing123"
+        ports:
+        - name: traffic-port
+          containerPort: 3306
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command: ["sh", "-c", "exec mysqladmin status -uroot -p$MARIADB_ROOT_PASSWORD"]
+          initialDelaySeconds: 20
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 100m
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - name: config
+          mountPath: /etc/mysql/mariadb.conf.d
+        - name: init
+          mountPath: /docker-entrypoint-initdb.d/init.sh
+          subPath: init.sh
+        - name: mariadb
+          mountPath: /var/lib/mysql
+      securityContext:
+        runAsUser: 10111
+        runAsGroup: 10111
+        runAsNonRoot: true
+        fsGroup: 10111
+      volumes:
+      - name: config
+        configMap:
+          name: mariadb
+          items:
+          - key: config.cnf
+            path: config.cnf
+      - name: init
+        configMap:
+          name: mariadb
+          defaultMode: 0755
+          items:
+          - key: init.sh
+            path: init.sh
+  volumeClaimTemplates:
+  - metadata:
+      name: mariadb
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 1Gi

@@ -1,0 +1,80 @@
+# sql configuration shared by all clouddrivers
+sql:
+  enabled: true
+  taskRepository:
+    enabled: true
+  cache:
+    enabled: true
+    # These parameters were determined to be optimal via benchmark comparisons
+    # in the Netflix production environment with Aurora. Setting these too low
+    # or high may negatively impact performance. These values may be sub-optimal
+    # in some environments.
+    readBatchSize: 500
+    writeBatchSize: 300
+  scheduler:
+    enabled: true
+  # Enable clouddriver-caching's clean up agent to periodically purge old
+  # clusters and accounts. Set to true when using the Kubernetes provider.
+  unknown-agent-cleanup-agent:
+    enabled: true
+
+  connectionPools:
+    default:
+      # additional connection pool parameters are available here,
+      # for more detail and to view defaults, see:
+      # https://github.com/spinnaker/kork/blob/master/kork-sql/src/main/kotlin/com/netflix/spinnaker/kork/sql/config/ConnectionPoolProperties.kt
+      default: true
+      jdbcUrl: jdbc:mysql://mariadb:3306/clouddriver
+      user: clouddriver_service
+      password: ${CLOUDDRIVER_MARIADB}
+  migration:
+    user: clouddriver_migrate
+    jdbcUrl: jdbc:mysql://mariadb:3306/clouddriver
+    password: ${CLOUDDRIVER_MARIADB}
+
+redis:
+  enabled: false
+  cache:
+    enabled: false
+  scheduler:
+    enabled: false
+  taskRepository:
+    enabled: false
+
+# Potential sharded clouddriver configuration below:
+# ---
+# spring:
+#   profiles: caching | rw
+
+# sql:
+#   # read-only boolean toggles `SELECT` or `DELETE` health checks for all pools.
+#   # Especially relevant for clouddriver-ro and clouddriver-ro-deck which can
+#   # target a SQL read replica in their default pools.
+#   read-only: false
+
+# ---
+# spring:
+#   profiles: ro | ro-deck
+
+# sql:
+#   # read-only boolean toggles `SELECT` or `DELETE` health checks for all pools.
+#   # Especially relevant for clouddriver-ro and clouddriver-ro-deck which can
+#   # target a SQL read replica in their default pools.
+#   read-only: true
+#   connectionPools:
+#     default:
+#       # additional connection pool parameters are available here,
+#       # for more detail and to view defaults, see:
+#       # https://github.com/spinnaker/kork/blob/master/kork-sql/src/main/kotlin/com/netflix/spinnaker/kork/sql/config/ConnectionPoolProperties.kt
+#       default: true
+#       jdbcUrl: jdbc:mysql://mariadb:3306/clouddriver
+#       user: clouddriver_service
+#       # password: depending on db auth and how spinnaker secrets are managed
+#     # The following tasks connection pool is optional. At Netflix, clouddriver
+#     # instances pointed to Aurora read replicas have a tasks pool pointed at the
+#     # master. Instances where the default pool is pointed to the master omit a
+#     # separate tasks pool.
+#     tasks:
+#       user: clouddriver_service
+#       jdbcUrl: jdbc:mysql://mariadb:3306/clouddriver
+#       password: ${CLOUDDRIVER_MARIADB}

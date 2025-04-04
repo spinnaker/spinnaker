@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: igor
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - env:
+        - name: JAVA_OPTS
+          value: -XX:MaxRAMPercentage=80.0
+        - name: SPRING_PROFILES_ACTIVE
+          value: local
+        image: us-docker.pkg.dev/spinnaker-community/docker/igor:latest
+        name: igor
+        ports:
+        - name: http
+          containerPort: 8088
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+        resources:
+          requests:
+            memory: 1Gi
+          limits:
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - name: config
+          mountPath: "/opt/spinnaker/config/"
+          readOnly: true
+      serviceAccountName: igor
+      securityContext:
+        runAsUser: 10111
+        runAsGroup: 10111
+        runAsNonRoot: true
+        fsGroup: 10111
+      terminationGracePeriodSeconds: 720
+      volumes:
+      - name: config
+        projected:
+          sources:
+          - configMap:
+              name: spinnaker
+          - configMap:
+              name: igor

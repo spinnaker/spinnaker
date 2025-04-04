@@ -1,0 +1,15 @@
+sql:
+  enabled: true
+  connectionPools:
+    default:
+      default: true
+      # additional connection pool parameters are available here,
+      # for more detail and to view defaults, see:
+      # https://github.com/spinnaker/kork/blob/master/kork-sql/src/main/kotlin/com/netflix/spinnaker/kork/sql/config/ConnectionPoolProperties.kt
+      jdbcUrl: jdbc:mysql://mariadb:3306/echo
+      user: echo_service
+      password: ${ECHO_MARIADB}
+  migration:
+    jdbcUrl: jdbc:mysql://mariadb:3306/echo
+    user: echo_migrate
+    password: ${ECHO_MARIADB}

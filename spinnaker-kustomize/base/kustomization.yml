@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ./namespace.yml
+- ./clouddriver
+- ./deck
+- ./echo
+- ./fiat
+- ./front50
+- ./igor
+- ./gate
+- ./keel
+- ./kayenta
+- ./orca
+- ./rosco
+configMapGenerator:
+- files:
+  - spinnaker.yml
+  name: spinnaker

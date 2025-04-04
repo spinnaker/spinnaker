@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo
+spec:
+  ports:
+  - port: 8089
+    protocol: TCP
+    targetPort: 8089
+  type: ClusterIP
