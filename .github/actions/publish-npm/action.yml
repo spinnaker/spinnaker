@@ -1,0 +1,94 @@
+name: Publish (npm)
+description: Publishes NPM packages for a Spinnaker project
+author: jcavanagh
+
+inputs:
+  project:
+    description: Project to publish
+    required: true
+  is-release:
+    description: Whether this is a release build or not
+    required: true
+  version:
+    description: The version to publish
+    required: true
+  registry:
+    description: NPM registry to publish to (minus protocol, with trailing slash)
+    default: us-west2-npm.pkg.dev/spinnaker-monorepo-test/npm/
+  gar-npm-password:
+    description: Google Artifact Registry password
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build JS
+      env:
+        ORG_GRADLE_PROJECT_version: ${{ inputs.version }}
+      shell: bash
+      run: |
+        ./gradlew :${{ inputs.project }}:webpack
+
+    - name: Rewrite package.json files
+      shell: bash
+      run: |
+        # NPM insists on the version being written into package.json
+        # Instead of automating PRs to bump versions, just rewrite them in the build workspace and publish that
+        rewrite_package_version() {
+          echo "Rewriting $1 with version: ${{ inputs.version }} and publishing to registry https://${{ inputs.registry }}"
+          local json=''
+          # Set version
+          json=$(cat "$1" | jq '.version = "'"${{ inputs.version }}"'"')
+          # Set publishing registry
+          json=$(echo "$json" | jq '.publishConfig.registry = "https://${{ inputs.registry }}"')
+          if [[ ${{ inputs.registry }} =~ .*pkg.dev.* ]]; then
+            # Setup artifact registry login script
+            json=$(echo "$json" | jq '.scripts["artifactregistry-login"] = "npx google-artifactregistry-auth --repo-config=./${{ inputs.project }}/.npmrc --credential-config=./${{ inputs.project }}/.npmrc"')
+          fi
+          echo "$json" > "$1"
+        }
+        
+        rewrite_npmrc() {
+          echo "Rewriting $1 with GAR info"
+          echo "registry = https://${{ inputs.registry }}" > "$1"
+          echo "//${{ inputs.registry }}:_password=${{ inputs.gar-npm-password }}" >> "$1"
+          echo "//${{ inputs.registry }}:always-auth=true" >> "$1"
+          echo "//${{ inputs.registry }}:username=_json_key_base64" >> "$1"
+          echo "//${{ inputs.registry }}:email=not.valid@email.com" >> "$1"
+        }
+
+        # All non-dependency `package.json` files in the tree must be updated with the synthetic version pre-publish
+        for file in $(find ./${{ inputs.project }} -type d -name node_modules -prune -o -name 'package.json' -print); do
+          rewrite_package_version "$file"
+        done
+        
+        if [[ ${{ inputs.registry }} =~ .*pkg.dev.* ]]; then
+          rewrite_npmrc "./${{ inputs.project }}/.npmrc"
+        fi
+        
+        git config user.name "spinnakerbot"
+        git config user.email "spinnakerbot@spinnaker.io"
+        git commit -am "Bump to version ${{ inputs.version }}"
+
+    - name: Setup publishing to npmjs.org
+      if: contains(inputs.registry, '.npmjs.org')
+      env:
+        NODE_ENV: production
+      shell: bash
+      run: |
+        npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
+
+    - name: Lerna Publish
+      if: hashFiles(format('{0}/lerna.json', inputs.project)) != ''
+      env:
+        NODE_ENV: production
+      shell: bash
+      working-directory: ${{ inputs.project }}
+      run: npx lerna publish from-package --no-git-reset --force-publish --yes --ignore-scripts
+
+    - name: Non-Lerna Publish
+      if: hashFiles(format('{0}/lerna.json', inputs.project)) == ''
+      env:
+        NODE_ENV: production
+      shell: bash
+      working-directory: ${{ inputs.project }}
+      run: npm publish

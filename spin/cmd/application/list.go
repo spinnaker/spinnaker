@@ -51,7 +51,7 @@ func NewListCmd(appOptions *applicationOptions) *cobra.Command {
 }
 
 func listApplication(cmd *cobra.Command, options *listOptions, args []string) error {
-	appList, resp, err := options.GateClient.ApplicationControllerApi.GetAllApplicationsUsingGET(options.GateClient.Context, &gate.ApplicationControllerApiGetAllApplicationsUsingGETOpts{})
+	appList, resp, err := options.GateClient.ApplicationControllerApi.GetAllApplications(options.GateClient.Context, &gate.ApplicationControllerApiGetAllApplicationsOpts{})
 	if err != nil {
 		return err
 	}

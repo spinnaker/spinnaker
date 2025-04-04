@@ -57,7 +57,7 @@ func getProject(cmd *cobra.Command, options *getProjectOptions, args []string) e
 		return err
 	}
 
-	project, resp, err := options.GateClient.ProjectControllerApi.GetUsingGET1(options.GateClient.Context, projectName)
+	project, resp, err := options.GateClient.ProjectControllerApi.Get2(options.GateClient.Context, projectName)
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Project '%s' not found\n", projectName)

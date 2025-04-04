@@ -165,7 +165,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                     .where(USER.ID.eq(user1.id))
                     .fetchOne(USER.UPDATED_AT)!!
 
-                expectThat(second).isGreaterThan(first)
+                expectThat(second!!).isGreaterThan(first!!)
             }
 
             test("should set updated at for resource if changed") {
@@ -213,7 +213,7 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                         )
                     ).fetchOne(RESOURCE.UPDATED_AT)!!
 
-                expectThat(second).isGreaterThan(first)
+                expectThat(second!!).isGreaterThan(first!!)
             }
 
             test("should put the specified permission in the database") {

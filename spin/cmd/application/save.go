@@ -103,7 +103,7 @@ func saveApplication(cmd *cobra.Command, options *saveOptions) error {
 		"description": fmt.Sprintf("Create Application: %s", app["name"]),
 	}
 
-	ref, _, err := options.GateClient.TaskControllerApi.TaskUsingPOST1(options.GateClient.Context, createAppTask)
+	ref, _, err := options.GateClient.TaskControllerApi.Task(options.GateClient.Context, createAppTask)
 	if err != nil {
 		return err
 	}

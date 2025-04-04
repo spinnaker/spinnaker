@@ -111,7 +111,7 @@ repositories {
 
 dependencies {
   annotationProcessor "org.pf4j:pf4j:3.2.0"
-  compileOnly("io.spinnaker.kork:kork-plugins-api:$korkVersion")
+  compileOnly("io.spinnaker.kork:kork-plugins-api")
 }
 
 spinnakerPlugin {

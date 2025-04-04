@@ -66,8 +66,8 @@ func getCanaryConfig(cmd *cobra.Command, options *getOptions, args []string) err
 		}
 	}
 
-	successPayload, resp, err := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfigUsingGET(
-		options.GateClient.Context, id, &gate.V2CanaryConfigControllerApiGetCanaryConfigUsingGETOpts{})
+	successPayload, resp, err := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfig(
+		options.GateClient.Context, id, &gate.V2CanaryConfigControllerApiGetCanaryConfigOpts{})
 	if err != nil {
 		return err
 	}

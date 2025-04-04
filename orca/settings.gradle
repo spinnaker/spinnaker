@@ -19,13 +19,7 @@ pluginManagement {
   }
 }
 
-['fiat', 'kork'].each { prj ->
-  String propName = "${prj}Composite"
-  String projectPath = "../$prj"
-  if (settings.ext.has(propName) && Boolean.parseBoolean(settings.ext.get(propName) as String)) {
-    includeBuild projectPath
-  }
-}
+apply from: "../versions.gradle"
 
 include "orca-api",
   "orca-api-tck",

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-apply from: "${project.rootDir}/gradle/kotlin.gradle"
+apply from: "$rootDir/../kotlin.gradle"
 
 dependencies {
   api project(':echo-api')

@@ -5,7 +5,6 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Verification
 import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus
-import com.netflix.spinnaker.keel.api.constraints.ConstraintStatus.NOT_EVALUATED
 import com.netflix.spinnaker.keel.api.action.ActionRepository
 import com.netflix.spinnaker.keel.api.action.ActionState
 import com.netflix.spinnaker.keel.artifacts.DockerArtifact
@@ -14,6 +13,7 @@ import com.netflix.spinnaker.keel.rest.VerificationController.RetryVerificationR
 import com.netflix.spinnaker.keel.rest.VerificationController.UpdateVerificationStatusRequest
 import com.ninjasquad.springmockk.MockkBean
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE
@@ -32,6 +32,8 @@ import io.mockk.coVerify as verify
 
 @SpringBootTest(webEnvironment = MOCK)
 @AutoConfigureMockMvc
+// FIXME: These tests run fine alone but OOM when run as part of the suite (no matter how much memory it gets)
+@EnabledIfSystemProperty(named = "keel.run-verification-controller-tests", matches = "true")
 internal class VerificationControllerTests
 @Autowired constructor(
   private val mvc: MockMvc,

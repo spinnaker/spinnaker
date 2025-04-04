@@ -14,6 +14,8 @@ bin/
 application.yml
 *.hprof
 README.html
+test-tar/
+
 *~
 es-tmp/
 clouddriver-oracle-bmcs/bmcs-sdk

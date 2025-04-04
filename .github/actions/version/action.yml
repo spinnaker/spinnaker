@@ -1,0 +1,160 @@
+name: Version
+description: Generates version information for Spinnaker builds
+author: jcavanagh
+
+inputs:
+  namespace:
+    description: Project to generate build version for
+    required: true
+  is-release:
+    description: True if this is a specific versioned release, not an auto-incremented build
+    default: 'false'
+  skip-increment:
+    description: If true, do not increment the build number - return the previous build number instead
+    default: 'false'
+  skip-tag:
+    description: If true, will not write any tags to the repository.  Useful for finding what the next tag will be without committing to it.
+    default: 'false'
+  version-override:
+    description: If set, processes version, and outputs appropriate downstream outputs.  This overrides all other input values, including namespace - version overrides are only for releases, and the namespace will be forced to "spinnaker".
+  github-token:
+    description: Github token
+    required: true
+
+outputs:
+  build-number:
+    description: The current sequential build number e.g. 1
+    value: ${{ steps.version.outputs.build-number }}
+  release-train:
+    description: The current cleaned-up release ref, e.g. `main` or `2023.1`
+    value: ${{ steps.version.outputs.release-train }}
+  release-train-suffixed:
+    description: As above, but release refs have the .x suffixed, e.g. 2023.1.x
+    value: ${{ steps.version.outputs.release-train-suffixed }}
+  version:
+    description: The autoincrementing build version hyphenated with release train, e.g. `main-1` or `2023.1-1`
+    value: ${{ steps.version.outputs.version }}
+  semver:
+    description: Version, but always valid semver.  Shims non-release versions with a `0.0.0` prefix.
+    value: ${{ steps.version.outputs.semver }}
+  is-release:
+    description: True if this is a specific release version, not an auto-incremented build
+    value: ${{ steps.version.outputs.is-release }}
+  tag:
+    description: The tag this run will create, e.g. `clouddriver-main.1` or `clouddriver-2023.1.1`
+    value: ${{ steps.version.outputs.tag }}
+  build-url:
+    description: A link back to the Github Action run
+    value: ${{ steps.version.outputs.build-url }}
+
+runs:
+  using: "composite"
+  steps:
+    # Create an incrementing version number based on the branch and thing we are building
+    # e.g. for any project doing a release on `main`, this would store a magic tag named
+    # bn-<namespace>-main-X, where X is the incrementing build number for that prefix.
+    # Publishing libraries all at once is required, as -bom packages will write the global version
+    # into all composite dependencies - a partial publish will fail to resolve entirely.
+    # Other artifacts (containers, debs) do not need to be published on every cycle, and use their event paths config.
+    - name: Generate build version
+      uses: ./.github/actions/build-tag-number
+      if: github.event_name != 'pull_request' && inputs.version-override == ''
+      with:
+        token: ${{ inputs.github-token }}
+        suffix: ${{ format('{0}-{1}', inputs.namespace, github.ref_name) }}
+        # Only push or workflow_dispatch events should increase the build number
+        # Workflow re-runs should not increase the build number
+        skip-increment: ${{ inputs.skip-increment == 'true' || inputs.skip-increment == true  || github.run_attempt != '1' }}
+        skip-tag: ${{ inputs.skip-tag == 'true' }}
+
+    # Output the version and its components for the caller to reference
+    - name: Output build version
+      id: version
+      shell: bash
+      run: |
+        REF="${{ github.ref_name }}"
+        IS_RELEASE='false'
+        
+        # If version-override is set, extract the values instead of auto-incrementing
+        if [[ -n '${{ inputs.version-override }}' ]]; then
+          # Split override string
+          IFS=. read -r -a SPLIT_VER <<< '${{ inputs.version-override }}'
+          SPLIT_VER_LEN="${#SPLIT_VER[@]}"
+          
+          # Check override string validity
+          if [[ $SPLIT_VER_LEN != 3 ]]; then
+            echo "Invalid version override - must be in the form x.y.z"
+            exit 1
+          fi
+          
+          RELEASE_TRAIN="${SPLIT_VER[0]}.${SPLIT_VER[1]}"
+          echo "release-train-suffixed=$RELEASE_TRAIN.x" >> "$GITHUB_OUTPUT"
+          echo "release-train=$RELEASE_TRAIN" >> "$GITHUB_OUTPUT"
+          
+          BUILD_NUMBER="${SPLIT_VER[2]}"
+          echo "build-number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+        
+          # Note that this is dot-joined, unlike the autoincrement build numbers which are hyphen-joined
+          VERSION="$RELEASE_TRAIN.$BUILD_NUMBER"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        
+          SEMVER="$VERSION"
+          echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
+          
+          TAG="${{ inputs.namespace }}-$VERSION"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        
+          IS_RELEASE='true'
+        else
+          if [[ '${{ github.event_name }}' == 'pull_request' ]]; then
+            # Default ref names for PRs are <number>/merge which doesn't play nice with things like Docker tags
+            REF=pr${{ github.event.number }}
+            BUILD_NUMBER=0
+          fi
+          
+          CLEAN_REF="${REF#release-}"
+          echo "release-train-suffixed=$CLEAN_REF" >> "$GITHUB_OUTPUT"
+          
+          RELEASE_TRAIN="${CLEAN_REF%.x}"
+          echo "build-number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "release-train=$RELEASE_TRAIN" >> "$GITHUB_OUTPUT"
+          
+          if [[ '${{ inputs.is-release }}' == 'true' ]]; then
+            # Note that this is dot-joined, unlike the autoincrement build numbers which are hyphen-joined
+            VERSION="$RELEASE_TRAIN.$BUILD_NUMBER"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        
+            SEMVER="$VERSION"
+            echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
+        
+            IS_RELEASE='true'
+          else
+            # Versions by default do not include any '.x'-es, since so many systems do not like those
+            VERSION="$RELEASE_TRAIN-$BUILD_NUMBER"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        
+            SEMVER="0.0.0-$VERSION"
+            echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
+          fi
+        fi
+        
+        TAG="${{ inputs.namespace }}-$VERSION"
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        
+        echo "is-release=$IS_RELEASE" >> "$GITHUB_OUTPUT"
+        
+        BUILD_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        echo "build-url=$BUILD_URL" >> "$GITHUB_OUTPUT"
+        
+        if [[ '${{ github.event_name }}' != 'pull_request' ]]; then
+          echo "### Version Info" >> "$GITHUB_STEP_SUMMARY"
+          echo "| | |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| __Version__ | $VERSION |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| __Semver-ish__ | $SEMVER |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| __Is Release__ | $IS_RELEASE |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| __Build Number__ | $BUILD_NUMBER |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| __Release Train__ | $RELEASE_TRAIN ($CLEAN_REF) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| __Tag__ | $TAG |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| __Build URL__ | $BUILD_URL |" >> "$GITHUB_STEP_SUMMARY"
+        fi

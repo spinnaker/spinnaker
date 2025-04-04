@@ -18,7 +18,7 @@ dependencies {
   implementation project(":front50-core")
   implementation project(":front50-api")
 
-  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.kork:kork-core"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.boot:spring-boot-autoconfigure"

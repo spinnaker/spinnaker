@@ -16,9 +16,9 @@
  */
 
 plugins {
-  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
-  id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
-  id 'org.jetbrains.kotlin.plugin.allopen' version "$kotlinVersion" apply false
+  id 'io.spinnaker.project' apply false
+  alias(libs.plugins.kotlin.jvm)
+  alias(libs.plugins.kotlin.spring)
   id "com.google.protobuf" version "0.8.12" apply false
 }
 
@@ -40,22 +40,22 @@ subprojects {
     sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
     dependencies {
-      api enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      api enforcedPlatform("io.spinnaker.kork:kork-bom")
 
-      compileOnly enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      compileOnly enforcedPlatform("io.spinnaker.kork:kork-bom")
       compileOnly "org.projectlombok:lombok"
 
-      annotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom")
       annotationProcessor "org.projectlombok:lombok"
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-      testAnnotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      testAnnotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom")
       testAnnotationProcessor "org.projectlombok:lombok"
 
-      testCompileOnly enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      testCompileOnly enforcedPlatform("io.spinnaker.kork:kork-bom")
       testCompileOnly "org.projectlombok:lombok"
 
-      testRuntimeOnly enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      testRuntimeOnly enforcedPlatform("io.spinnaker.kork:kork-bom")
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     }
 
@@ -92,18 +92,9 @@ subprojects {
     }
   }
 
-  if ([korkVersion, fiatVersion].any { it.endsWith("-SNAPSHOT") }) {
-    logger.info("Enabling mavenLocal")
-    repositories {
-      mavenLocal()
-    }
-  }
-
   tasks.withType(JavaExec) {
     if (System.getProperty('DEBUG', 'false') == 'true') {
       jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7102'
     }
   }
 }
-
-defaultTasks ':clouddriver-web:run'

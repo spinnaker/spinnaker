@@ -70,12 +70,12 @@ func getPipelineTemplate(cmd *cobra.Command, options *getOptions, args []string)
 		}
 	}
 
-	queryParams := &gate.V2PipelineTemplatesControllerApiGetUsingGET2Opts{}
+	queryParams := &gate.V2PipelineTemplatesControllerApiGetOpts{}
 	if options.tag != "" {
 		queryParams.Tag = optional.NewString(options.tag)
 	}
 
-	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(options.GateClient.Context,
+	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.Get(options.GateClient.Context,
 		id, queryParams)
 	if err != nil {
 		return err

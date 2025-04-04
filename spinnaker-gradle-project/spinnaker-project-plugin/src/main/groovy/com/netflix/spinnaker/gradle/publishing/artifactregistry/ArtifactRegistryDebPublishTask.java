@@ -134,7 +134,7 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
       );
     }
 
-    return new DefaultCredentialProvider().getCredential();
+    return DefaultCredentialProvider.getInstance().getCredential();
   }
 
   /**

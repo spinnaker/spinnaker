@@ -1,0 +1,119 @@
+name: Spinnaker Libraries
+run-name: Libraries ${{ github.ref_name }}
+
+on:
+  workflow_call:
+    inputs:
+      publish-gar:
+        description: Publish libraries to GAR
+        type: boolean
+        default: true
+      publish-nexus:
+        description: Publish libraries to Nexus
+        type: boolean
+        default: true
+      version-override:
+        description: Overrides the version for artifacts (e.g. "1.37.1").  Otherwise, uses the auto-incrementing build number for the current branch.
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      publish-gar:
+        description: Publish libraries to GAR
+        type: boolean
+        default: true
+      publish-nexus:
+        description: Publish libraries to Nexus
+        type: boolean
+        default: true
+      version-override:
+        description: Overrides the version for artifacts (e.g. "1.37.1").  Otherwise, uses the auto-incrementing build number for the current branch.
+        type: string
+
+  push:
+    branches:
+      - main
+      - release-*
+    paths:
+      - 'clouddriver/**'
+      - 'echo/**'
+      - 'fiat/**'
+      - 'front50/**'
+      - 'gate/**'
+      - 'halyard/**'
+      - 'igor/**'
+      - 'kayenta/**'
+      - 'keel/**'
+      - 'kork/**'
+      - 'orca/**'
+      - 'rosco/**'
+
+jobs:
+  libraries-gar:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || inputs.publish-gar == true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/version
+        id: version
+        with:
+          namespace: spinnaker-libraries
+          version-override: ${{ inputs.version-override }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: |
+            17
+          distribution: zulu
+          cache: ${{ !env.ACT && 'gradle' || '' }} # Disable Gradle cache when running actions locally
+
+      - name: Login to Google Cloud
+        uses: google-github-actions/auth@v2
+        # use service account flow defined at: https://github.com/google-github-actions/upload-cloud-storage#authenticating-via-service-account-key-json
+        with:
+          credentials_json: ${{ secrets.GAR_JSON_KEY }}
+
+      - name: Publish libs to Google Artifact Registry
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.version.outputs.version }}
+          ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: true
+          ORG_GRADLE_PROJECT_artifactRegistryPublishAptEnabled: false
+          ORG_GRADLE_PROJECT_artifactRegistryPublishMavenEnabled: true
+          ORG_GRADLE_PROJECT_artifactRegistryMavenProject: spinnaker-monorepo-test
+          ORG_GRADLE_PROJECT_artifactRegistryMavenLocation: us-west2
+          GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
+        run: |
+          ./gradlew assemble publish
+
+  libraries-nexus:
+    runs-on: ubuntu-latest
+    if: inputs.publish-nexus == true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/version
+        id: version
+        with:
+          namespace: spinnaker-libraries
+          version-override: ${{ inputs.version-override }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: |
+            17
+          distribution: zulu
+          cache: ${{ !env.ACT && 'gradle' || '' }} # Disable Gradle cache when running actions locally
+
+      - name: Publish Nexus libraries
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.version.outputs.version }}
+          ORG_GRADLE_PROJECT_nexusPublishEnabled: true
+          ORG_GRADLE_PROJECT_nexusUsername: ${{ secrets.NEXUS_USERNAME }}
+          ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
+          ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
+        run: |
+          ./gradlew assemble ${{ inputs.project }}-web:installDist publishToNexus closeAndReleaseNexusStagingRepository

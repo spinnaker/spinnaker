@@ -5,11 +5,11 @@
  * avoid dependency conflicts we should bring the bare minimum of transitive
  * dependencies along for the ride -- ideally nothing besides kork-plugins-api.
  */
-apply from: "${project.rootDir}/gradle/kotlin.gradle"
+apply from: "$rootDir/../kotlin.gradle"
 
 dependencies {
-  implementation platform("io.spinnaker.kork:kork-bom:$korkVersion")
-  annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+  implementation enforcedPlatform("io.spinnaker.kork:kork-bom")
+  annotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom")
 
   api "io.spinnaker.kork:kork-plugins-api"
 

@@ -224,7 +224,7 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 	gateClient.APIClient = gate.NewAPIClient(cfg)
 
 	// TODO: Verify version compatibility between Spin CLI and Gate.
-	_, _, err = gateClient.VersionControllerApi.GetVersionUsingGET(gateClient.Context)
+	_, _, err = gateClient.VersionControllerApi.GetVersion(gateClient.Context)
 	if err != nil {
 		ui.Error("Could not reach Gate, please ensure it is running. Failing.")
 		return nil, err

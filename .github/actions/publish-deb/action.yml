@@ -1,0 +1,63 @@
+name: Publish (deb)
+description: Publishes Debian packages for a Spinnaker project
+author: jcavanagh
+
+inputs:
+  project:
+    description: Project to publish
+    required: true
+  is-release:
+    description: Whether this is a release build or not
+    required: true
+  version:
+    description: The release version to publish
+    required: true
+  gar-json-key:
+    description: Google Artifact Registry JSON key
+    required: true
+
+  # Apt Repo
+  gar-apt-project:
+    description: Google Artifact Registry Apt project
+    default: spinnaker-monorepo-test
+  gar-apt-location:
+    description: Google Artifact Registry Apt location
+    default: us-west2
+  gcs-temp-bucket:
+    description: GCS temporary upload bucket
+    default: spinnaker-monorepo-test-deb-temp-uploads
+
+runs:
+  using: "composite"
+  steps:
+    - name: Login to Google Cloud
+      uses: google-github-actions/auth@v2
+      # use service account flow defined at: https://github.com/google-github-actions/upload-cloud-storage#authenticating-via-service-account-key-json
+      with:
+        credentials_json: ${{ inputs.gar-json-key }}
+
+    - name: Publish apt packages to Google Artifact Registry
+      env:
+        # Deb versions are the release train and build number, e.g. main-1 or 1.35-1
+        ORG_GRADLE_PROJECT_version: ${{ inputs.version }}
+        ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: 'true'
+        ORG_GRADLE_PROJECT_artifactRegistryPublishAptEnabled: 'true'
+        ORG_GRADLE_PROJECT_artifactRegistryPublishMavenEnabled: 'false'
+        ORG_GRADLE_PROJECT_artifactRegistryAptProject: ${{ inputs.gar-apt-project }}
+        ORG_GRADLE_PROJECT_artifactRegistryAptLocation: ${{ inputs.gar-apt-location }}
+        ORG_GRADLE_PROJECT_artifactRegistryAptTempGcsBucket: ${{ inputs.gcs-temp-bucket }}
+        ORG_GRADLE_PROJECT_ospackageSuffix: ${{ inputs.is-release != 'true' && '-dev' || '' }}
+        GAR_JSON_KEY: ${{ inputs.gar-json-key }}
+      shell: bash
+      run: |
+        ./gradlew --info :${{ inputs.project }}:publish
+
+    - name: Summarize
+      shell: bash
+      if: github.event_name != 'pull_request'
+      run: |
+        echo "### Deb Publishing" >> "$GITHUB_STEP_SUMMARY"
+        echo "| | |" >> "$GITHUB_STEP_SUMMARY"
+        echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+        echo "| __Name__ | ${{ inputs.project }}-${{ inputs.is-release != 'true' && 'dev' || '' }} |" >> "$GITHUB_STEP_SUMMARY"
+        echo "| __Version__ | ${{ inputs.version }} |" >> "$GITHUB_STEP_SUMMARY"

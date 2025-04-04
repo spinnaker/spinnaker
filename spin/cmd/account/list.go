@@ -55,7 +55,7 @@ func NewListCmd(accOptions *accountOptions) *cobra.Command {
 }
 
 func listAccount(cmd *cobra.Command, options *listOptions, args []string) error {
-	accountList, resp, err := options.GateClient.CredentialsControllerApi.GetAccountsUsingGET(options.GateClient.Context, &gate.CredentialsControllerApiGetAccountsUsingGETOpts{Expand: optional.NewBool(options.expand)})
+	accountList, resp, err := options.GateClient.CredentialsControllerApi.GetAccounts(options.GateClient.Context, &gate.CredentialsControllerApiGetAccountsOpts{Expand: optional.NewBool(options.expand)})
 	if err != nil {
 		return err
 	}

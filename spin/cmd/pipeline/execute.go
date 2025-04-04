@@ -105,10 +105,10 @@ func executePipeline(cmd *cobra.Command, options *executeOptions) error {
 		}
 	}
 
-	resp, err := options.GateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(options.GateClient.Context,
+	_, resp, err := options.GateClient.PipelineControllerApi.InvokePipelineConfig(options.GateClient.Context,
 		options.application,
 		options.name,
-		&gate.PipelineControllerApiInvokePipelineConfigUsingPOST1Opts{Trigger: optional.NewInterface(trigger)})
+		&gate.PipelineControllerApiInvokePipelineConfigOpts{Body: optional.NewInterface(trigger)})
 	if err != nil {
 		return fmt.Errorf("Execute pipeline failed with response: %v and error: %s\n", resp, err)
 	}

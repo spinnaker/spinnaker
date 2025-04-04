@@ -1,5 +1,6 @@
 apply from: "$rootDir/gradle/spock.gradle"
-apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/../kotlin.gradle"
+apply from: "$rootDir/gradle/detekt.gradle"
 
 dependencies {
   implementation(project(":orca-core"))
@@ -27,9 +28,9 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
 
   testImplementation("org.slf4j:slf4j-simple")
-  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.spockframework:spock-unitils")
   testImplementation("org.apache.groovy:groovy-json")
-  testImplementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
+  testImplementation("io.spinnaker.fiat:fiat-core")
   testImplementation("io.spinnaker.kork:kork-retrofit")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 }

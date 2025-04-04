@@ -16,7 +16,7 @@
  */
 
 plugins {
-  id "io.spinnaker.project" version "$spinnakerGradleVersion" apply false
+  id "io.spinnaker.project" apply false
   id 'idea'
 }
 
@@ -30,14 +30,6 @@ subprojects { project ->
   if (name != "kayenta-bom") {
     apply plugin: "java-library"
     apply plugin: "groovy"
-
-    def localVersions = [orcaVersion].find { it.endsWith('-SNAPSHOT') }
-    if (localVersions) {
-      logger.info("Enabling mavenLocal repo for $localVersions")
-      repositories {
-        mavenLocal()
-      }
-    }
 
     test {
       useJUnitPlatform()
@@ -79,12 +71,12 @@ subprojects { project ->
         testImplementation 'org.scalatest:scalatest_2.12:3.0.9'
         testRuntimeOnly 'org.scalatestplus:junit-5-9_2.12:3.2.16.0'
       }
-      implementation enforcedPlatform("io.spinnaker.orca:orca-bom:$orcaVersion")
+      implementation enforcedPlatform("io.spinnaker.orca:orca-bom")
       compileOnly "org.projectlombok:lombok"
-      annotationProcessor platform("io.spinnaker.orca:orca-bom:$orcaVersion")
+      annotationProcessor platform("io.spinnaker.orca:orca-bom")
       annotationProcessor "org.projectlombok:lombok"
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-      testAnnotationProcessor platform("io.spinnaker.orca:orca-bom:$orcaVersion")
+      testAnnotationProcessor platform("io.spinnaker.orca:orca-bom")
       testAnnotationProcessor "org.projectlombok:lombok"
       testCompileOnly "org.projectlombok:lombok"
 
@@ -110,5 +102,3 @@ subprojects { project ->
   }
 
 }
-
-defaultTasks ":kayenta-web:run"

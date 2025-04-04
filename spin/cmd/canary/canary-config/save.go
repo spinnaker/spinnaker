@@ -69,18 +69,18 @@ func saveCanaryConfig(cmd *cobra.Command, options *saveOptions) error {
 
 	templateId := templateJson["id"].(string)
 
-	_, resp, queryErr := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfigUsingGET(
-		options.GateClient.Context, templateId, &gate.V2CanaryConfigControllerApiGetCanaryConfigUsingGETOpts{})
+	_, resp, queryErr := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfig(
+		options.GateClient.Context, templateId, &gate.V2CanaryConfigControllerApiGetCanaryConfigOpts{})
 
 	var saveResp *http.Response
 	var saveErr error
 	switch resp.StatusCode {
 	case http.StatusOK:
-		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.UpdateCanaryConfigUsingPUT(
-			options.GateClient.Context, templateJson, templateId, &gate.V2CanaryConfigControllerApiUpdateCanaryConfigUsingPUTOpts{})
+		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.UpdateCanaryConfig(
+			options.GateClient.Context, templateJson, templateId, &gate.V2CanaryConfigControllerApiUpdateCanaryConfigOpts{})
 	case http.StatusNotFound:
-		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.CreateCanaryConfigUsingPOST(
-			options.GateClient.Context, templateJson, &gate.V2CanaryConfigControllerApiCreateCanaryConfigUsingPOSTOpts{})
+		_, saveResp, saveErr = options.GateClient.V2CanaryConfigControllerApi.CreateCanaryConfig(
+			options.GateClient.Context, templateJson, &gate.V2CanaryConfigControllerApiCreateCanaryConfigOpts{})
 	default:
 		if queryErr != nil {
 			return queryErr

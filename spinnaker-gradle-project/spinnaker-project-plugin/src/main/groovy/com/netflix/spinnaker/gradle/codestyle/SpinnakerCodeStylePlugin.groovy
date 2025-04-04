@@ -32,82 +32,95 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
   void apply(Project project) {
     def extension = project.extensions.create("spinnakerCodeStyle", SpinnakerCodeStyle)
 
-    project.afterEvaluate {
-      if (!extension.enabled) {
-        project.logger.warn("${project.name} has disabled codestyle enforcement!")
-        return
+    if (!extension.enabled) {
+      project.logger.warn("${project.name} has disabled codestyle enforcement!")
+      return
+    }
+
+    project.gradle.parent.rootProject.file(".git/hooks").mkdirs()
+    project.gradle.parent.rootProject.file(".git/hooks/pre-commit").write(getClass().getResource("/pre-commit").text)
+    project.gradle.parent.rootProject.file(".git/hooks/pre-commit").executable = true
+
+    project.plugins.apply(SpotlessPlugin)
+    project.spotless { SpotlessExtension spotless ->
+
+      // Instead of performing `spotlessCheck` on `check`, let's just `spotlessApply` instead, since devs will be
+      // required to make the changes anyway. But don't do this if we're running in a CI build.
+      if (!isRunningUnderContinuousIntegration()) {
+        spotless.enforceCheck = false
+        project.getTasks()
+          .matching { it.name == JavaBasePlugin.CHECK_TASK_NAME }
+          .all { it.dependsOn("spotlessApply") }
+      } else {
+        project.getTasks()
+          .matching { it.name == JavaBasePlugin.CHECK_TASK_NAME }
+          .all { it.dependsOn("spotlessCheck") }
       }
 
-      project.rootProject.file(".git/hooks").mkdirs()
-      project.rootProject.file(".git/hooks/pre-commit").write(getClass().getResource("/pre-commit").text)
-      project.rootProject.file(".git/hooks/pre-commit").executable = true
-
-      project.plugins.apply(SpotlessPlugin)
-      project.spotless { SpotlessExtension spotless ->
-
-        // Instead of performing `spotlessCheck` on `check`, let's just `spotlessApply` instead, since devs will be
-        // required to make the changes anyway. But don't do this if we're running in a CI build.
-        if (!isRunningUnderContinuousIntegration()) {
-          spotless.enforceCheck = false
-          project.getTasks()
-            .matching { it.name == JavaBasePlugin.CHECK_TASK_NAME }
-            .all { it.dependsOn("spotlessApply") }
+      spotless.java(new Action<JavaExtension>() {
+        @Override
+        void execute(JavaExtension javaExtension) {
+          javaExtension.target("src/**/*.java")
+          javaExtension.targetExclude("src/generated/**/*")
+          javaExtension.googleJavaFormat("1.11.0")
+          javaExtension.removeUnusedImports()
+          javaExtension.trimTrailingWhitespace()
+          javaExtension.endWithNewline()
         }
+      })
 
-        spotless.java(new Action<JavaExtension>() {
+      if (hasKotlin(project)) {
+
+        def ktlintData = [
+          indent_size             : '2',
+          continuation_indent_size: '2',
+          // import ordering now defaults to IntelliJ-style, with java.*
+          // and kotlin.* imports at the bottom. This is different than
+          // google-java-format, so let's keep it consistent.
+          kotlin_imports_layout   : 'ascii'
+        ]
+
+        spotless.kotlin(new Action<KotlinExtension>() {
           @Override
-          void execute(JavaExtension javaExtension) {
-            javaExtension.target("src/**/*.java")
-            javaExtension.googleJavaFormat("1.11.0")
-            javaExtension.removeUnusedImports()
-            javaExtension.trimTrailingWhitespace()
-            javaExtension.endWithNewline()
+          void execute(KotlinExtension kotlinExtension) {
+            kotlinExtension.ktlint("0.42.1").userData(ktlintData)
+            kotlinExtension.trimTrailingWhitespace()
+            kotlinExtension.endWithNewline()
           }
         })
 
-        if (hasKotlin(project)) {
+        spotless.kotlinGradle(new Action<KotlinGradleExtension>() {
+          @Override
+          void execute(KotlinGradleExtension kotlinGradleExtension) {
+            kotlinGradleExtension.target("*.gradle.kts", "**/*.gradle.kts")
+            kotlinGradleExtension.ktlint("0.42.1").userData(ktlintData)
+            kotlinGradleExtension.trimTrailingWhitespace()
+            kotlinGradleExtension.endWithNewline()
+          }
+        })
+      }
 
-          def ktlintData = [
-            indent_size             : '2',
-            continuation_indent_size: '2',
-            // import ordering now defaults to IntelliJ-style, with java.*
-            // and kotlin.* imports at the bottom. This is different than
-            // google-java-format, so let's keep it consistent.
-            kotlin_imports_layout   : 'ascii'
-          ]
+      spotless.format(
+        'misc',
+        new Action<FormatExtension>() {
+          @Override
+          void execute(FormatExtension formatExtension) {
+            formatExtension.target('**/.gitignore', 'src/**/*.json', 'src/**/*.yml', 'src/**/*.yaml', 'config/*.yml', 'halconfig/*.yml', '**/*.gradle')
+            formatExtension.trimTrailingWhitespace()
+            formatExtension.indentWithSpaces(2)
+            formatExtension.endWithNewline()
+          }
+        }
+      )
 
-          spotless.kotlin(new Action<KotlinExtension>() {
-            @Override
-            void execute(KotlinExtension kotlinExtension) {
-              kotlinExtension.ktlint("0.42.1").userData(ktlintData)
-              kotlinExtension.trimTrailingWhitespace()
-              kotlinExtension.endWithNewline()
-            }
-          })
-
-          spotless.kotlinGradle(new Action<KotlinGradleExtension>() {
-            @Override
-            void execute(KotlinGradleExtension kotlinGradleExtension) {
-              kotlinGradleExtension.target("*.gradle.kts", "**/*.gradle.kts")
-              kotlinGradleExtension.ktlint("0.42.1").userData(ktlintData)
-              kotlinGradleExtension.trimTrailingWhitespace()
-              kotlinGradleExtension.endWithNewline()
-            }
-          })
+      project.afterEvaluate {
+        project.tasks.named("spotlessApply") {
+          it.dependsOn project.subprojects*.tasks*.named('spotlessApply').minus(null)
         }
 
-        spotless.format(
-          'misc',
-          new Action<FormatExtension>() {
-            @Override
-            void execute(FormatExtension formatExtension) {
-              formatExtension.target('**/.gitignore', 'src/**/*.json', 'src/**/*.yml', 'src/**/*.yaml', 'config/*.yml', 'halconfig/*.yml', '**/*.gradle')
-              formatExtension.trimTrailingWhitespace()
-              formatExtension.indentWithSpaces(2)
-              formatExtension.endWithNewline()
-            }
-          }
-        )
+        project.tasks.named("spotlessCheck") {
+          it.dependsOn project.subprojects*.tasks*.named('spotlessCheck').minus(null)
+        }
       }
     }
   }

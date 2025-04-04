@@ -15,7 +15,8 @@
  */
 
 apply from: "$rootDir/gradle/groovy.gradle"
-apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/../kotlin.gradle"
+apply from: "$rootDir/gradle/detekt.gradle"
 
 dependencies {
   implementation(project(":orca-core"))

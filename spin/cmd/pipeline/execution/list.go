@@ -71,7 +71,7 @@ func listExecution(cmd *cobra.Command, options *listOptions) error {
 		return errors.New("required parameter 'pipeline-id' not set")
 	}
 
-	query := &gate.ExecutionsControllerApiGetLatestExecutionsByConfigIdsUsingGETOpts{
+	query := &gate.ExecutionsControllerApiGetLatestExecutionsByConfigIdsOpts{
 		PipelineConfigIds: optional.NewString(options.pipelineConfigId),
 	}
 
@@ -96,7 +96,7 @@ func listExecution(cmd *cobra.Command, options *listOptions) error {
 		query.Limit = optional.NewInt32(options.limit)
 	}
 
-	successPayload, resp, err := options.GateClient.ExecutionsControllerApi.GetLatestExecutionsByConfigIdsUsingGET(
+	successPayload, resp, err := options.GateClient.ExecutionsControllerApi.GetLatestExecutionsByConfigIds(
 		options.GateClient.Context, query)
 	if err != nil {
 		return err

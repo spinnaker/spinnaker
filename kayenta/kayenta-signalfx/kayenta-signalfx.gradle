@@ -106,6 +106,11 @@ integrationTest {
   }
 }
 
+configurations {
+  integrationTestImplementation.extendsFrom configurations.testImplementation
+  integrationTestRuntime.extendsFrom configurations.testRuntime
+}
+
 dependencies {
   implementation project(":kayenta-core")
 
@@ -121,7 +126,7 @@ dependencies {
   // Apache 2.0 https://github.com/rest-assured/rest-assured/blob/master/LICENSE
   integrationTestImplementation "io.rest-assured:rest-assured"
 
-  integrationTestAnnotationProcessor platform("io.spinnaker.orca:orca-bom:$orcaVersion")
+  integrationTestAnnotationProcessor platform("io.spinnaker.orca:orca-bom")
   integrationTestAnnotationProcessor "org.projectlombok:lombok"
   integrationTestCompileOnly "org.projectlombok:lombok"
 }

@@ -4,17 +4,17 @@ dependencies {
 
   // TODO(plumpy): remove version once added to kork
   implementation "com.google.cloud:google-cloud-storage:1.108.0"
-  implementation "io.spinnaker.clouddriver:clouddriver-api:$clouddriverVersion"
-  implementation "io.spinnaker.clouddriver:clouddriver-docker:$clouddriverVersion"
-  implementation "io.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
-  implementation "io.spinnaker.clouddriver:clouddriver-appengine:$clouddriverVersion"
-  implementation "io.spinnaker.clouddriver:clouddriver-azure:$clouddriverVersion"
-  implementation "io.spinnaker.clouddriver:clouddriver-cloudfoundry:$clouddriverVersion"
-  implementation "io.spinnaker.clouddriver:clouddriver-security:$clouddriverVersion"
-  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "io.spinnaker.front50:front50-core:$front50Version"
-  implementation "io.spinnaker.front50:front50-gcs:$front50Version"
-  implementation "io.spinnaker.front50:front50-s3:$front50Version"
+  implementation "io.spinnaker.clouddriver:clouddriver-api"
+  implementation "io.spinnaker.clouddriver:clouddriver-docker"
+  implementation "io.spinnaker.clouddriver:clouddriver-google"
+  implementation "io.spinnaker.clouddriver:clouddriver-appengine"
+  implementation "io.spinnaker.clouddriver:clouddriver-azure"
+  implementation "io.spinnaker.clouddriver:clouddriver-cloudfoundry"
+  implementation "io.spinnaker.clouddriver:clouddriver-security"
+  implementation "io.spinnaker.fiat:fiat-core"
+  implementation "io.spinnaker.front50:front50-core"
+  implementation "io.spinnaker.front50:front50-gcs"
+  implementation "io.spinnaker.front50:front50-s3"
   implementation 'io.spinnaker.kork:kork-secrets'
   implementation 'io.spinnaker.kork:kork-secrets-aws'
   implementation 'io.spinnaker.kork:kork-secrets-gcp'

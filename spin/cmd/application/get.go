@@ -65,7 +65,7 @@ func getApplication(cmd *cobra.Command, options *getOptions, args []string) erro
 		return err
 	}
 
-	app, resp, err := options.GateClient.ApplicationControllerApi.GetApplicationUsingGET(options.GateClient.Context, applicationName, &gate.ApplicationControllerApiGetApplicationUsingGETOpts{Expand: optional.NewBool(options.expand)})
+	app, resp, err := options.GateClient.ApplicationControllerApi.GetApplication(options.GateClient.Context, applicationName, &gate.ApplicationControllerApiGetApplicationOpts{Expand: optional.NewBool(options.expand)})
 	if resp != nil {
 		switch resp.StatusCode {
 		case http.StatusOK:

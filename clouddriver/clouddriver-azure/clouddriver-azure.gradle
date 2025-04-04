@@ -6,8 +6,8 @@ dependencies {
 
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
-  implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
-  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-api"
+  implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "org.apache.groovy:groovy"
@@ -28,8 +28,6 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation 'org.mockito:mockito-inline:4.8.0'
   testImplementation 'org.assertj:assertj-core:3.23.1'
-
-
 }
 
 configurations.all {

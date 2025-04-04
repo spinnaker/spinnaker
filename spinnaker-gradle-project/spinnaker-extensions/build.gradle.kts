@@ -50,51 +50,37 @@ tasks.test {
 }
 
 gradlePlugin {
+  website.set("https://spinnaker.io")
+  vcsUrl.set("https://github.com/spinnaker/spinnaker")
+
   // Define the plugin
   plugins {
     create("serviceExtension") {
       id = "io.spinnaker.plugin.service-extension"
       implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin"
+      displayName = "Spinnaker service extension development plugin"
+      tags.set(listOf("spinnaker"))
     }
 
     create("uiExtension") {
       id = "io.spinnaker.plugin.ui-extension"
       implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerUIExtensionPlugin"
+      displayName = "Spinnaker UI extension development plugin"
+      tags.set(listOf("spinnaker"))
     }
 
     create("bundler") {
       id = "io.spinnaker.plugin.bundler"
       implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerExtensionsBundlerPlugin"
+      displayName = "Spinnaker extension bundler plugin"
+      tags.set(listOf("spinnaker"))
     }
 
     create("compatibilityTestRunner") {
       id = "io.spinnaker.plugin.compatibility-test-runner"
       implementationClass = "com.netflix.spinnaker.gradle.extension.compatibility.SpinnakerCompatibilityTestRunnerPlugin"
-    }
-  }
-}
-
-pluginBundle {
-  website = "https://spinnaker.io"
-  vcsUrl = "https://github.com/spinnaker/spinnaker-gradle-project"
-  description = "Spinnaker extension development plugins"
-  tags = listOf("spinnaker")
-
-  (plugins) {
-    "serviceExtension" {
-      displayName = "Spinnaker service extension development plugin"
-    }
-
-    "uiExtension" {
-      displayName = "Spinnaker UI extension development plugin"
-    }
-
-    "bundler" {
-      displayName = "Spinnaker extension bundler plugin"
-    }
-
-    "compatibilityTestRunner" {
       displayName = "Spinnaker compatibility test runner"
+      tags.set(listOf("spinnaker"))
     }
   }
 }
@@ -119,6 +105,9 @@ val check by tasks.getting(Task::class) {
   dependsOn(functionalTest)
 }
 
-tasks.withType(AbstractCopyTask::class).all {
+// There is an issue with Gradle 7 and errors about duplicate files in source sets
+// This is a hack to set the duplicate resolution strategy on everything
+// https://youtrack.jetbrains.com/issue/KT-46978/Duplicate-resource-errors-on-gradle-7-with-multi-module-multiplatform-project-with-withJava
+tasks.withType<Copy> {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

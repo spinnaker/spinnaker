@@ -20,7 +20,7 @@ dependencies {
 
   implementation "org.apache.groovy:groovy"
 
-  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core"
   implementation "org.apache.commons:commons-lang3"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"

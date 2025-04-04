@@ -62,12 +62,12 @@ func deletePipelineTemplate(cmd *cobra.Command, options *deleteOptions, args []s
 		return err
 	}
 
-	queryParams := &gate.V2PipelineTemplatesControllerApiDeleteUsingDELETE1Opts{}
+	queryParams := &gate.V2PipelineTemplatesControllerApiDeleteOpts{}
 	if options.tag != "" {
 		queryParams.Tag = optional.NewString(options.tag)
 	}
 
-	_, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.DeleteUsingDELETE1(options.GateClient.Context, id, queryParams)
+	_, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.Delete(options.GateClient.Context, id, queryParams)
 	if err != nil {
 		return err
 	}

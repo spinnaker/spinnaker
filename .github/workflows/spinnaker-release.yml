@@ -1,0 +1,197 @@
+name: Spinnaker Full Release
+run-name: Spinnaker Full Release (${{ inputs.spinnaker-version }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      add-to-versions-yml:
+        description: Add this version to `versions.yml` for Halyard?
+        type: boolean
+        default: true
+      spinnaker-version:
+        description: Confirm the Spinnaker version to publish.  This will be compared against the version computed by the release process, and will fail if they do not match.
+        required: true
+      spinnaker-previous-version:
+        description: Override the previous version used for changelog generation (picks the last patch version if unset)
+
+jobs:
+  check-preconditions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Exit if not on a release branch
+        run: |
+          REF="${{ github.ref_name }}"
+          
+          if  [[ $REF != release-* ]]; then
+            echo "Release workflow must be run from a release branch"
+            exit 1
+          fi
+
+      - name: Generate next version to verify
+        id: precondition-version
+        uses: ./.github/actions/version
+        with:
+          namespace: spinnaker
+          is-release: true
+          skip-increment: false
+          skip-tag: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Exit if release tag for this version already exists
+        run: |
+          VERSION='${{ steps.precondition-version.outputs.version }}'
+          TAG="spinnaker-release-$VERSION"
+          
+          # Not sure how this could happen but you never know
+          if [ $(git tag -l "$TAG") ]; then
+            echo "Release tag $TAG already exists.  This is probably not the right version."
+            exit 1
+          fi
+
+      - name: Verify expected release version
+        run: |
+          VERSION='${{ steps.precondition-version.outputs.version }}'
+          USER_VERSION='${{ inputs.spinnaker-version }}'
+          
+          if [[ $VERSION != $USER_VERSION ]]; then
+            echo "Mismatched release version expectations - user expected $USER_VERSION but next version is $VERSION"
+            exit 1
+          fi
+
+  version:
+    runs-on: ubuntu-latest
+    needs: check-preconditions
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: version
+        uses: ./.github/actions/version
+        with:
+          namespace: spinnaker
+          is-release: true
+          skip-increment: false
+          skip-tag: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  clouddriver:
+    needs: version
+    uses: ./.github/workflows/clouddriver.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  deck:
+    needs: version
+    uses: ./.github/workflows/deck.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  deck-kayenta:
+    needs: version
+    uses: ./.github/workflows/deck-kayenta.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  echo:
+    needs: version
+    uses: ./.github/workflows/echo.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  fiat:
+    needs: version
+    uses: ./.github/workflows/fiat.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  front50:
+    needs: version
+    uses: ./.github/workflows/front50.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  gate:
+    needs: version
+    uses: ./.github/workflows/gate.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  halyard:
+    needs: version
+    uses: ./.github/workflows/halyard.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  igor:
+    needs: version
+    uses: ./.github/workflows/igor.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  kayenta:
+    needs: version
+    uses: ./.github/workflows/kayenta.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  keel:
+    needs: version
+    uses: ./.github/workflows/keel.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  orca:
+    needs: version
+    uses: ./.github/workflows/orca.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  rosco:
+    needs: version
+    uses: ./.github/workflows/rosco.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  spin:
+    needs: version
+    uses: ./.github/workflows/spin.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+  libs:
+    needs: version
+    uses: ./.github/workflows/spinnaker-libraries.yml
+    secrets: inherit
+    with:
+      version-override: ${{ needs.version.outputs.version }}
+
+  # Only push the actual build tag once we've completed the artifact builds
+  write-build-tag:
+    runs-on: ubuntu-latest
+    needs: [version, clouddriver, deck, deck-kayenta, echo, fiat, front50, gate, halyard, igor, kayenta, keel, orca, rosco, spin, libs]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write release build tag
+        uses: ./.github/actions/version
+        with:
+          namespace: spinnaker
+          is-release: true
+          skip-increment: false
+          skip-tag: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  spinnaker-release-bom:
+    uses: ./.github/workflows/spinnaker-release-bom.yml
+    secrets: inherit
+    needs: write-build-tag
+    with:
+      add-to-versions-yml: ${{ inputs.add-to-versions-yml }}
+      spinnaker-version: ${{ inputs.spinnaker-version }}
+      spinnaker-previous-version: ${{ inputs.spinnaker-previous-version }}

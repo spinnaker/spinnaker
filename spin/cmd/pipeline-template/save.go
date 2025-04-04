@@ -81,14 +81,14 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 
 	templateId := templateJson["id"].(string)
 
-	getQueryParam := &gate.V2PipelineTemplatesControllerApiGetUsingGET2Opts{}
+	getQueryParam := &gate.V2PipelineTemplatesControllerApiGetOpts{}
 	if options.tag != "" {
 		getQueryParam.Tag = optional.NewString(options.tag)
 	} else if tag, exists := templateJson["tag"]; exists && tag.(string) != "" {
 		getQueryParam.Tag = optional.NewString(tag.(string))
 	}
 
-	_, resp, queryErr := options.GateClient.V2PipelineTemplatesControllerApi.GetUsingGET2(options.GateClient.Context, templateId, getQueryParam)
+	_, resp, queryErr := options.GateClient.V2PipelineTemplatesControllerApi.Get(options.GateClient.Context, templateId, getQueryParam)
 
 	var saveResp *http.Response
 	var saveRet map[string]interface{}
@@ -96,19 +96,19 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		opt := &gate.V2PipelineTemplatesControllerApiUpdateUsingPOST1Opts{}
+		opt := &gate.V2PipelineTemplatesControllerApiUpdateOpts{}
 		if options.tag != "" {
 			opt.Tag = optional.NewString(options.tag)
 		}
 
-		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.UpdateUsingPOST1(options.GateClient.Context, templateId, templateJson, opt)
+		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.Update(options.GateClient.Context, templateJson, templateId, opt)
 	case http.StatusNotFound:
-		opt := &gate.V2PipelineTemplatesControllerApiCreateUsingPOST1Opts{}
+		opt := &gate.V2PipelineTemplatesControllerApiCreateOpts{}
 		if options.tag != "" {
 			opt.Tag = optional.NewString(options.tag)
 		}
 
-		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.CreateUsingPOST1(options.GateClient.Context, templateJson, opt)
+		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.Create(options.GateClient.Context, templateJson, opt)
 	default:
 		if queryErr != nil {
 			return queryErr

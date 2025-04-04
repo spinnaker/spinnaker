@@ -62,7 +62,7 @@ func planPipelineTemplate(cmd *cobra.Command, options *planOptions) error {
 		return errors.New("Required pipeline key 'schema' missing for templated pipeline config...\n")
 	}
 
-	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.PlanUsingPOST(options.GateClient.Context, configJson)
+	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.Plan(options.GateClient.Context, configJson)
 	if err != nil {
 		return err
 	}

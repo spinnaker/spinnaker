@@ -15,10 +15,10 @@
  */
 
 plugins {
-  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
-  id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
+  id 'io.spinnaker.project' apply false
+  alias(libs.plugins.kotlin.jvm) apply false
   id "io.gitlab.arturbosch.detekt" version "1.17.1" apply false
-  id 'org.jetbrains.kotlin.plugin.allopen' version "$kotlinVersion" apply false
+  alias(libs.plugins.kotlin.allopen) apply false
 }
 
 allprojects {

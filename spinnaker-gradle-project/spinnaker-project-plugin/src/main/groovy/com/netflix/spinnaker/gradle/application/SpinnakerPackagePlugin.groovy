@@ -31,8 +31,13 @@ class SpinnakerPackagePlugin implements Plugin<Project> {
           }
         }
 
+        String suffix = ''
+        if(project.hasProperty("ospackageSuffix")) {
+            suffix = project.property("ospackageSuffix")
+        }
+
         String appName = project.rootProject.name
-        extension.setPackageName('spinnaker-' + appName)
+        extension.setPackageName('spinnaker-' + appName + suffix)
         def postInstall = project.file('pkg_scripts/postInstall.sh')
         if (postInstall.exists()) {
             extension.postInstall(postInstall)

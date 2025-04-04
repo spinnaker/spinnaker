@@ -21,7 +21,7 @@ javaPlatform {
 }
 
 dependencies {
-  api(platform("io.spinnaker.kork:kork-bom:$korkVersion"))
+  api(enforcedPlatform("io.spinnaker.kork:kork-bom"))
 
   constraints {
     rootProject

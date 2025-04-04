@@ -1,0 +1,41 @@
+name: Publish (halconfig)
+description: Publishes Halyard configuration for a Spinnaker project
+author: jcavanagh
+
+inputs:
+  project:
+    description: Project to publish
+    required: true
+  version:
+    description: The version to publish
+    required: true
+  gar-json-key:
+    description: Google Artifact Registry JSON key
+    required: true
+
+# This is designed to run as part of another job that has already checked out the project and built it
+runs:
+  using: "composite"
+  steps:
+    - name: Login to Google Cloud
+      uses: google-github-actions/auth@v2
+      # use service account flow defined at: https://github.com/google-github-actions/upload-cloud-storage#authenticating-via-service-account-key-json
+      with:
+        credentials_json: ${{ inputs.gar-json-key }}
+
+    - name: Tar Packer templates for upload to GCS
+      if: inputs.project == 'rosco'
+      shell: bash
+      # Note, Halyard expects packer.tar.gz but doesn't actually gunzip it.
+      # Thus we must create a non-gzipped tar archive.
+      run: |
+        cd rosco/halconfig/packer
+        tar -cf ../packer.tar.gz *
+
+    - name: Upload halconfig profiles to GCS
+      # https://console.cloud.google.com/storage/browser/halconfig
+      uses: google-github-actions/upload-cloud-storage@v2
+      with:
+        path: ${{ inputs.project }}/halconfig/
+        destination: spinnaker-monorepo-test/${{ inputs.project }}/${{ inputs.version }}
+        parent: false

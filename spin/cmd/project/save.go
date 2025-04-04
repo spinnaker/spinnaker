@@ -98,7 +98,7 @@ func saveProject(cmd *cobra.Command, options *saveOptions) error {
 		"description": fmt.Sprintf("Create Project: %s", projectName),
 	}
 
-	ref, _, err := options.GateClient.TaskControllerApi.TaskUsingPOST1(options.GateClient.Context, createProjectTask)
+	ref, _, err := options.GateClient.TaskControllerApi.Task(options.GateClient.Context, createProjectTask)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func saveProject(cmd *cobra.Command, options *saveOptions) error {
 }
 
 func doesProjectExist(projectName string, options *saveOptions) (string, error) {
-	project, resp, err := options.GateClient.ProjectControllerApi.GetUsingGET1(options.GateClient.Context, projectName)
+	project, resp, err := options.GateClient.ProjectControllerApi.Get2(options.GateClient.Context, projectName)
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return "", nil

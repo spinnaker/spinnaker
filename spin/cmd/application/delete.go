@@ -66,7 +66,7 @@ func deleteApplication(cmd *cobra.Command, options *deleteOptions, args []string
 		},
 	}
 
-	_, resp, err := options.GateClient.ApplicationControllerApi.GetApplicationUsingGET(options.GateClient.Context, applicationName, &gate.ApplicationControllerApiGetApplicationUsingGETOpts{Expand: optional.NewBool(false)})
+	_, resp, err := options.GateClient.ApplicationControllerApi.GetApplication(options.GateClient.Context, applicationName, &gate.ApplicationControllerApiGetApplicationOpts{Expand: optional.NewBool(false)})
 
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("Attempting to delete application '%s' which does not exist, exiting...", applicationName)
@@ -82,7 +82,7 @@ func deleteApplication(cmd *cobra.Command, options *deleteOptions, args []string
 		"description": fmt.Sprintf("Delete Application: %s", applicationName),
 	}
 
-	taskRef, resp, err := options.GateClient.TaskControllerApi.TaskUsingPOST1(options.GateClient.Context, deleteAppTask)
+	taskRef, resp, err := options.GateClient.TaskControllerApi.Task(options.GateClient.Context, deleteAppTask)
 	if err != nil {
 		return err
 	}

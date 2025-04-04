@@ -55,12 +55,12 @@ func getExecution(cmd *cobra.Command, options *getOptions, args []string) error 
 		return err
 	}
 
-	query := &gate.ExecutionsControllerApiGetLatestExecutionsByConfigIdsUsingGETOpts{
+	query := &gate.ExecutionsControllerApiGetLatestExecutionsByConfigIdsOpts{
 		ExecutionIds: optional.NewString(id), // Status filtering is ignored when executionId is supplied
 		Limit:        optional.NewInt32(1),
 	}
 
-	successPayload, resp, err := options.GateClient.ExecutionsControllerApi.GetLatestExecutionsByConfigIdsUsingGET(
+	successPayload, resp, err := options.GateClient.ExecutionsControllerApi.GetLatestExecutionsByConfigIds(
 		options.GateClient.Context, query)
 	if err != nil {
 		return err

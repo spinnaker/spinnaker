@@ -73,7 +73,7 @@ func cancelPipelineWithID(options *cancelPipelineOptions, id string) error {
 		return errors.New("execution ID must be passed in")
 	}
 
-	pipeline, resp, err := options.GateClient.ApplicationControllerApi.CancelPipelineUsingPUT(options.GateClient.Context, id, &gate.ApplicationControllerApiCancelPipelineUsingPUTOpts{Reason: optional.NewString(options.reason)})
+	resp, err := options.GateClient.ApplicationControllerApi.CancelPipeline1(options.GateClient.Context, id, &gate.ApplicationControllerApiCancelPipeline1Opts{Reason: optional.NewString(options.reason)})
 
 	if resp != nil {
 		switch resp.StatusCode {
@@ -82,7 +82,7 @@ func cancelPipelineWithID(options *cancelPipelineOptions, id string) error {
 		case http.StatusNotFound:
 			return fmt.Errorf("Execution ID '%s' not found\n", options.id)
 		default:
-			return fmt.Errorf("Encountered an error getting execution ID, status code: %d\n%v", resp.StatusCode, pipeline)
+			return fmt.Errorf("Encountered an error getting execution ID, status code: %d", resp.StatusCode)
 		}
 	}
 

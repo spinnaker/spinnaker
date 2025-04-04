@@ -1,6 +1,7 @@
 apply plugin: "java-library"
 apply plugin: "groovy"
-apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/../kotlin.gradle"
+apply from: "$rootDir/gradle/detekt.gradle"
 apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {

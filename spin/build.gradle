@@ -1,0 +1,138 @@
+// Generate Gate swagger JSON
+tasks.register('gateswagger') {
+    dependsOn gradle.parent.includedBuild('gate').task(':swagger')
+}
+
+// Render Gate swagger JSON to golang
+tasks.register('gateapi') {
+    dependsOn 'gateswagger'
+
+    onlyIf {
+        def noDockerMsg = "Could not find a Docker environment - skipping Spin CLI build"
+        try {
+            def result = exec {
+                ignoreExitValue = true
+                commandLine 'docker', '-v'
+            }
+            if(result.exitValue != 0) {
+                println noDockerMsg
+            }
+            result.exitValue == 0
+        } catch (Exception e) {
+            println noDockerMsg
+            return false
+        }
+    }
+
+    doLast {
+        exec {
+            workingDir project.rootDir
+            commandLine 'bash', '-c', 'swagger/generate_swagger.sh'
+        }
+    }
+}
+
+// All build/assemble tasks assume go is already setup in the environment this is running in
+tasks.register('build') {
+    dependsOn 'assemble'
+    dependsOn 'check'
+}
+
+tasks.register('assemble') {
+    dependsOn 'gobuild'
+
+    onlyIf {
+        def noGoMsg = "Could not find installed golang - skipping Spin CLI build"
+        try {
+            def result = exec {
+                ignoreExitValue = true
+                commandLine 'go', 'version'
+            }
+            if(result.exitValue != 0) {
+                println noGoMsg
+            }
+            result.exitValue == 0
+        } catch (Exception e) {
+            println noGoMsg
+            return false
+        }
+    }
+}
+
+tasks.register('clean') {
+    doLast {
+        exec {
+            commandLine 'rm', '-rf', './gateapi'
+        }
+    }
+}
+
+tasks.register('check') {
+    dependsOn 'assemble'
+    dependsOn 'gotest'
+}
+
+tasks.register('release') {
+    dependsOn 'gotest'
+    dependsOn 'gorelease'
+}
+
+// golang build/test
+tasks.register('godeps') {
+    dependsOn 'gateapi'
+    doLast {
+        exec {
+            commandLine 'go', 'get', '-d', '-v'
+        }
+    }
+}
+
+tasks.register('gobuild') {
+    dependsOn 'godeps'
+    doLast {
+        exec {
+            commandLine 'go', 'build', '.'
+        }
+    }
+}
+
+tasks.register('gotest') {
+    dependsOn 'godeps'
+    doLast {
+        exec {
+            commandLine 'go', 'test', '-v', './...'
+        }
+    }
+}
+
+tasks.register('gorelease') {
+    mustRunAfter 'gotest'
+
+    onlyIf {
+        if(System.getenv('VERSION') != null) {
+            return true
+        } else {
+            println '$VERSION must be specified to build Spin CLI release binaries'
+            return false
+        }
+    }
+
+    doLast {
+        def VERSION = System.getenv('VERSION')
+        def LDFLAGS = "-X github.com/spinnaker/spin/version.Version=$VERSION"
+
+        // Build all binaries and output the version
+        def cmd = """
+            GOARCH=amd64 GOOS=darwin go build -ldflags '$LDFLAGS' -o dist/$VERSION/darwin/amd64/spin .
+            GOARCH=amd64 GOOS=linux go build -ldflags '$LDFLAGS' -o dist/$VERSION/linux/amd64/spin .
+            GOARCH=arm64 GOOS=linux go build -ldflags '$LDFLAGS' -o dist/$VERSION/linux/arm64/spin .
+            GOARCH=amd64 GOOS=windows go build -ldflags '$LDFLAGS' -o dist/$VERSION/windows/amd64/spin.exe .
+            GOARCH=arm64 GOOS=darwin go build -ldflags '$LDFLAGS' -o dist/$VERSION/darwin/arm64/spin .
+            dist/$VERSION/linux/amd64/spin --version
+        """
+
+        exec {
+            commandLine 'bash', '-c', cmd
+        }
+    }
+}

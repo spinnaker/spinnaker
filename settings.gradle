@@ -1,0 +1,21 @@
+apply from: './versions.gradle'
+
+// Plugins need to be included first
+includeBuild 'spinnaker-gradle-project'
+
+// All non-buildscript projects
+includeBuild 'clouddriver'
+includeBuild 'deck'
+includeBuild 'deck-kayenta'
+includeBuild 'echo'
+includeBuild 'fiat'
+includeBuild 'front50'
+includeBuild 'gate'
+includeBuild 'halyard'
+includeBuild 'igor'
+includeBuild 'kayenta'
+includeBuild 'keel'
+includeBuild 'kork'
+includeBuild 'orca'
+includeBuild 'rosco'
+includeBuild 'spin'

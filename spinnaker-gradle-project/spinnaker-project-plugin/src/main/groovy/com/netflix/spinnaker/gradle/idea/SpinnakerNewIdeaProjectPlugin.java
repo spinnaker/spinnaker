@@ -62,39 +62,8 @@ public class SpinnakerNewIdeaProjectPlugin implements Plugin<Project> {
         return;
       }
 
-      updateGitIndex(project);
       updateCopyrightText(project);
     });
-  }
-
-  // Runs the equivalent of
-  // git update-index --assume-unchanged $FILE
-  // for each file in COMMITED_IDEA_FILES. After opening the project, IntelliJ will modify some of
-  // these files. Doing this tells git never to consider these modifications for adding to the
-  // index. If you want to commit modifications to these files you must first undo this operation.
-  private static void updateGitIndex(Project project) {
-    try {
-      Repository repository = new FileRepositoryBuilder().setMustExist(true).setWorkTree(project.getRootDir()).build();
-      DirCache index = repository.readDirCache();
-      if (!needsUpdate(index)) {
-        return;
-      }
-
-      if (!index.lock()) {
-        throw new IOException("Couldn't get lock for git repository.");
-      }
-      entryStream(index).forEach(entry -> entry.setAssumeValid(true));
-      index.write();
-      if (!index.commit()) {
-        throw new IOException("Couldn't commit changes to git repository.");
-      }
-    } catch (IOException e) {
-      System.out.println("Error configuring git repository for idea files: " + e.getMessage());
-    }
-  }
-
-  private static boolean needsUpdate(DirCache index) {
-    return entryStream(index).anyMatch(entry -> !entry.isAssumeValid());
   }
 
   private static Stream<DirCacheEntry> entryStream(DirCache index) {

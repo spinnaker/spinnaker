@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-if (spinnakerGradleVersion.endsWith('-SNAPSHOT')) {
-  pluginManagement {
-    repositories {
-      mavenLocal()
-      gradlePluginPortal()
-    }
-  }
-}
+apply from: "../versions.gradle"
 
 include(
   "spinnaker-dependencies",

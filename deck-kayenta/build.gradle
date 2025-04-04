@@ -1,0 +1,67 @@
+import groovy.json.JsonSlurper
+
+plugins {
+  id "io.spinnaker.artifactregistry-publish"
+  id "nebula.node" version "1.3.1"
+}
+
+group = "com.netflix.spinnaker.deck-kayenta"
+
+node {
+    // Pulls node and npm versions from package.json.
+    def packageSlurper = new JsonSlurper()
+    def packageJson = packageSlurper.parse file('package.json')
+
+    version = packageJson.engines.node.replaceAll(/[^\d\.]/, '')
+    npmVersion = packageJson.engines.npm.replaceAll(/[^\d\.]/, '')
+    yarnVersion = packageJson.engines.yarn.replaceAll(/[^\d\.]/, '')
+
+    // Enabled the automatic download. False is the default (for now).
+    download = true
+}
+
+task lint(type: YarnTask) {
+  dependsOn "yarn"
+
+  yarnCommand = ["lint"]
+}
+
+task prettier(type: YarnTask) {
+  dependsOn "lint"
+
+  yarnCommand = ["prettier:check"]
+}
+
+project.tasks.register('runLinters') {
+  dependsOn "lint"
+  dependsOn "prettier"
+}
+
+task test(type: YarnTask) {
+  dependsOn "yarn"
+
+  yarnCommand = ["test"]
+
+  if (project.hasProperty('skipTests')) {
+    test.enabled = false
+  }
+}
+
+task webpack(type: YarnTask) {
+  dependsOn "yarn"
+
+  yarnCommand = ["build"]
+  environment = [
+    "NODE_ENV": "production",
+    "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
+    "NODE_OPTIONS": "--max_old_space_size=8192",
+  ]
+}
+webpack.outputs.dir file('build/webpack')
+
+
+task build {
+  dependsOn "webpack"
+  dependsOn "runLinters"
+  dependsOn "test"
+}

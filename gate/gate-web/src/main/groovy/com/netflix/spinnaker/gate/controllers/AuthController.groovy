@@ -22,8 +22,8 @@ import com.netflix.spinnaker.gate.services.SessionService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
-import io.swagger.v3.oas.annotations.Operation;
-
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter;
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -73,9 +73,9 @@ class AuthController {
     }
   }
 
-  @Operation(summary = "Get user", hidden=true)
+  @Operation(summary = "Get user")
   @RequestMapping(value = "/user", method = RequestMethod.GET)
-  User user(@SpinnakerUser User user) {
+  User user(@Parameter(hidden = true) @SpinnakerUser User user) {
     if (!user) {
       return user
     }
@@ -89,7 +89,7 @@ class AuthController {
 
   @Operation(summary = "Get service accounts", hidden=true)
   @RequestMapping(value = "/user/serviceAccounts", method = RequestMethod.GET)
-  List<String> getServiceAccounts(@SpinnakerUser User user,
+  List<String> getServiceAccounts(@Parameter(hidden = true) @SpinnakerUser User user,
                                   @RequestParam(name = "application", required = false) String application) {
 
     String appName = Optional.ofNullable(application)

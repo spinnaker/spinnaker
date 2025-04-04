@@ -4,24 +4,30 @@
     <div class="row">
       <div class="col-md-2 canary-summary">
         <div class="score score-large">
-          <kayenta-canary-score score="stage.context.overallScore"
-                                health="stage.context.overallHealth"
-                                result="stage.context.overallResult"></kayenta-canary-score>
+          <kayenta-canary-score
+            score="stage.context.overallScore"
+            health="stage.context.overallHealth"
+            result="stage.context.overallResult"
+          ></kayenta-canary-score>
         </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12 horizontal">
-        <canary-run-summaries class="horizontal flex-1"
-                              canary-runs="kayentaStageDetailsCtrl.canaryRuns"
-                              first-scope-name="kayentaStageDetailsCtrl.firstScopeName"></canary-run-summaries>
+        <canary-run-summaries
+          class="horizontal flex-1"
+          canary-runs="kayentaStageDetailsCtrl.canaryRuns"
+          first-scope-name="kayentaStageDetailsCtrl.firstScopeName"
+        ></canary-run-summaries>
       </div>
     </div>
 
-    <stage-failure-message stage="stage"
-                           is-failed="stage.exceptions.length > 0"
-                           messages="stage.exceptions"></stage-failure-message>
+    <stage-failure-message
+      stage="stage"
+      is-failed="stage.exceptions.length > 0"
+      messages="stage.exceptions"
+    ></stage-failure-message>
   </div>
 
   <div class="step-section-details" ng-if="detailsSection === 'canaryConfig'">
@@ -43,11 +49,15 @@
         </div>
         <div class="row" ng-if="stage.context.canaryConfig.scopes[0].startTimeIso">
           <div class="col-md-4 sm-label-right compact">Start Time</div>
-          <div class="col-md-8" style="word-wrap: break-word">{{ stage.context.canaryConfig.scopes[0].startTimeIso | dateToMillis | timestamp}}</div>
+          <div class="col-md-8" style="word-wrap: break-word">
+            {{ stage.context.canaryConfig.scopes[0].startTimeIso | dateToMillis | timestamp}}
+          </div>
         </div>
         <div class="row" ng-if="stage.context.canaryConfig.scopes[0].endTimeIso">
           <div class="col-md-4 sm-label-right compact">End Time</div>
-          <div class="col-md-8" style="word-wrap: break-word">{{stage.context.canaryConfig.scopes[0].endTimeIso | dateToMillis | timestamp}}</div>
+          <div class="col-md-8" style="word-wrap: break-word">
+            {{stage.context.canaryConfig.scopes[0].endTimeIso | dateToMillis | timestamp}}
+          </div>
         </div>
       </div>
       <div class="col-md-12 canary-config-section">
@@ -56,7 +66,10 @@
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Config Name</div>
           <div class="col-md-8" style="word-wrap: break-word">
-            <a href ui-sref="home.applications.application.canary.canaryConfig.configDetail({id: stage.context.canaryConfig.canaryConfigId})">
+            <a
+              href
+              ui-sref="home.applications.application.canary.canaryConfig.configDetail({id: stage.context.canaryConfig.canaryConfigId})"
+            >
               {{kayentaStageDetailsCtrl.canaryConfigName}}
             </a>
           </div>

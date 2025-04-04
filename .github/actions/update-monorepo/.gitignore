@@ -1,0 +1,4 @@
+.gh*
+.tsbuildinfo
+
+node_modules/

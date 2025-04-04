@@ -22,7 +22,7 @@ dependencies {
   implementation(project(":orca-front50"))
   implementation(project(":orca-keel"))
   implementation(project(":orca-retrofit"))
-  implementation("io.spinnaker.fiat:fiat-core:$fiatVersion")
+  implementation("io.spinnaker.fiat:fiat-core")
   implementation("io.spinnaker.kork:kork-retrofit")
 
   compileOnly("org.projectlombok:lombok")

@@ -36,7 +36,7 @@ func calculateSleepTime(now int64, lastTryTime int64, attempts int64) time.Durat
 // WaitForSuccessfulTask observes an Orca task to see if it completed successfully.
 func WaitForSuccessfulTask(gateClient *gateclient.GatewayClient, taskRef map[string]interface{}) error {
 	id := idFromTaskRef(taskRef)
-	task, resp, err := gateClient.TaskControllerApi.GetTaskUsingGET1(gateClient.Context, id)
+	task, resp, err := gateClient.TaskControllerApi.GetTask(gateClient.Context, id)
 
 	attempts := int64(0)
 	now := time.Now().UTC().Unix()
@@ -46,7 +46,7 @@ func WaitForSuccessfulTask(gateClient *gateclient.GatewayClient, taskRef map[str
 		sleepTime := calculateSleepTime(now, lastTryTime, attempts)
 		time.Sleep(sleepTime)
 		id := idFromTaskRef(taskRef)
-		task, resp, err = gateClient.TaskControllerApi.GetTaskUsingGET1(gateClient.Context, id)
+		task, resp, err = gateClient.TaskControllerApi.GetTask(gateClient.Context, id)
 		now = time.Now().UTC().Unix()
 	}
 

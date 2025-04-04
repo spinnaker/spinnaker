@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Spinnaker" type="CompoundRunConfigurationType">
+    <toRun name="clouddriver" type="GradleRunConfiguration" />
+    <toRun name="echo" type="GradleRunConfiguration" />
+    <toRun name="fiat" type="GradleRunConfiguration" />
+    <toRun name="front50" type="GradleRunConfiguration" />
+    <toRun name="gate" type="GradleRunConfiguration" />
+    <toRun name="igor" type="GradleRunConfiguration" />
+    <toRun name="kayenta" type="GradleRunConfiguration" />
+    <toRun name="orca" type="GradleRunConfiguration" />
+    <toRun name="rosco" type="GradleRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>

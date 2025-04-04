@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/../kotlin.gradle"
+apply from: "$rootDir/gradle/detekt.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 

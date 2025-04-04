@@ -7,14 +7,14 @@ dependencies {
   implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
   implementation 'com.netflix.nebula:gradle-java-cross-compile-plugin:8.0.0'
   implementation 'com.netflix.nebula:gradle-ospackage-plugin:8.4.1'
-  implementation 'gradle.plugin.com.google.cloud.artifactregistry:artifactregistry-gradle-plugin:2.1.1'
+  implementation 'gradle.plugin.com.google.cloud.artifactregistry:artifactregistry-gradle-plugin:2.2.1'
   implementation platform('com.google.cloud:libraries-bom:26.1.4')
 
   implementation 'com.google.cloud:google-cloud-storage'
   implementation 'com.google.apis:google-api-services-artifactregistry:v1beta2-rev20221022-2.0.0'
   implementation 'com.google.api-client:google-api-client:2.0.0'
   implementation 'org.jetbrains.dokka:dokka-gradle-plugin:0.10.1'
-  implementation 'io.github.gradle-nexus:publish-plugin:1.1.0'
+  implementation 'io.github.gradle-nexus:publish-plugin:1.3.0'
 }
 
 gradlePlugin {
@@ -34,21 +34,33 @@ gradlePlugin {
   }
 }
 
-pluginBundle {
+gradlePlugin {
   website = 'https://spinnaker.io'
   vcsUrl = 'https://github.com/spinnaker/spinnaker-gradle-project'
-  description = 'Plugins for Spinnaker services'
-  tags = ['spinnaker']
 
   plugins {
     spinnakerProject {
       displayName = 'Build configuration for Spinnaker projects'
+      tags.set(['spinnaker'])
     }
     spinnakerPackage {
       displayName = 'OS Packaging for Spinnaker applications'
+      tags.set(['spinnaker'])
     }
     spinnakerArtifactRegistryPublish {
       displayName = 'Google Artifact Registry publishing for spinnaker packages'
+      tags.set(['spinnaker'])
     }
   }
+}
+
+// There is an issue with Gradle 7 and errors about duplicate files in source sets
+// This is a hack to set the duplicate resolution strategy on everything
+// https://youtrack.jetbrains.com/issue/KT-46978/Duplicate-resource-errors-on-gradle-7-with-multi-module-multiplatform-project-with-withJava
+gradle.taskGraph.whenReady { tg ->
+    tg.allTasks
+        .findAll { it.hasProperty("duplicatesStrategy") }
+        .forEach {
+            it.setProperty("duplicatesStrategy", "EXCLUDE")
+        }
 }

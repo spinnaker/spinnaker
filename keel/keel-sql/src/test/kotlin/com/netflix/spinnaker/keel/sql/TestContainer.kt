@@ -15,6 +15,8 @@ internal val mySQLContainer = MySQLContainerProvider()
   .withUsername("keel_service")
   .withPassword("whatever")
   .withReuse(true)
+  // Fixes test failures where the query is trying to use latin1_swedish_ci collation for some godforsaken reason
+  .withCommand("mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci")
   .also { it.start() }
 
 @Suppress("UsePropertyAccessSyntax")

@@ -1,5 +1,5 @@
 plugins {
-  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
+  id 'io.spinnaker.project' apply false
 }
 
 allprojects {
@@ -14,17 +14,17 @@ subprojects {
     apply plugin: "groovy"
 
     dependencies {
-      implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      implementation enforcedPlatform("io.spinnaker.kork:kork-bom")
 
       compileOnly "org.projectlombok:lombok"
 
-      annotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom")
       annotationProcessor "org.projectlombok:lombok"
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
       testCompileOnly "org.projectlombok:lombok"
 
-      testAnnotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      testAnnotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom")
       testAnnotationProcessor "org.projectlombok:lombok"
 
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
@@ -38,13 +38,6 @@ subprojects {
     }
   }
 
-  if (korkVersion.endsWith("-SNAPSHOT")) {
-    logger.info("Enabling mavenLocal")
-    repositories {
-      mavenLocal()
-    }
-  }
-
   tasks.withType(JavaExec) {
     if (System.getProperty('DEBUG', 'false') == 'true') {
       jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8187'
@@ -52,5 +45,3 @@ subprojects {
   }
 
 }
-
-defaultTasks ':rosco-web:run'

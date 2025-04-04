@@ -1,0 +1,46 @@
+/*
+ * Copyright 2023 Apple, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// This file serves as a centralized point to declare dependencies that cut across both buildscript and runtime
+ext {
+    kotlinVersion = "1.6.21"
+}
+
+// Define dependencies needed by buildscripts, as that lifecycle phase cannot receive root properties normally
+// This should be imported in the settings.gradle files of any projects that need this information
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            // All Kotlin dependencies below reference this version via .versionRef()
+            version('kotlin', kotlinVersion)
+
+            // Arguments: plugin(<alias>, <plugin_id>)
+            // Note that non-alphanum characters in catalog aliases will be dot-split when referenced in Gradle scripts
+            // e.g. alias of "kotlin-jvm" is referenced via alias(libs.plugins.kotlin.jvm)
+            plugin('kotlin-allopen', 'org.jetbrains.kotlin.plugin.allopen').versionRef('kotlin')
+            plugin('kotlin-jvm', 'org.jetbrains.kotlin.jvm').versionRef('kotlin')
+            plugin('kotlin-spring', 'org.jetbrains.kotlin.plugin.spring').versionRef('kotlin')
+
+            // Arguments: library(<alias>, <group>, <artifact>)
+            // Libraries are directly accessed from the root "libs" catalog in Gradle scripts
+            // e.g. "kotlin-bom" is referenced via api(platform(libs.kotlin.bom))
+            library('kotlin-allopen', 'org.jetbrains.kotlin', 'kotlin-allopen').versionRef('kotlin')
+            library('kotlin-bom', 'org.jetbrains.kotlin', 'kotlin-bom').versionRef('kotlin')
+            library('kotlin-gradle-plugin', 'org.jetbrains.kotlin', 'kotlin-gradle-plugin').versionRef('kotlin')
+            library('kotlin-stdlib-jdk8', 'org.jetbrains.kotlin', 'kotlin-stdlib-jdk8').versionRef('kotlin')
+        }
+    }
+}

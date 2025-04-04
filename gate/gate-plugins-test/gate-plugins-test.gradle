@@ -1,5 +1,4 @@
-apply from: "${project.rootDir}/gradle/kotlin.gradle"
-apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+apply from: "$rootDir/../kotlin.gradle"
 
 dependencies {
   implementation(project(":gate-api"))

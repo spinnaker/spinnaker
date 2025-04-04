@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-apply from: "${project.rootDir}/gradle/kotlin.gradle"
-apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+apply from: "$rootDir/../kotlin.gradle"
 
 dependencies {
   implementation platform(project(":gate-bom"))
@@ -23,8 +22,8 @@ dependencies {
   implementation project(":gate-core")
 
   implementation "com.google.guava:guava"
-  implementation "io.spinnaker.fiat:fiat-core:$fiatVersion"
-  implementation "io.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "io.spinnaker.fiat:fiat-core"
+  implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"

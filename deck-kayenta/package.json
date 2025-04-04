@@ -24,9 +24,9 @@
     "develop": "npm run clean && run-p watch proxy",
     "postinstall": "check-plugin && check-peer-dependencies || true",
     "prettier": "prettier --write 'src/**/*.{js,jsx,ts,tsx,html,css,less,json}'",
+    "prettier:check": "prettier --check 'src/**/*.{js,jsx,ts,tsx,html,css,less,json}'",
     "proxy": "dev-proxy",
-    "watch": "rollup -c -w --no-watch.clearScreen",
-    "prepare": "husky-install"
+    "watch": "rollup -c -w --no-watch.clearScreen"
   },
   "dependencies": {
     "@uirouter/core": "6.0.4",

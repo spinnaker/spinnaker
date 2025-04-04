@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/kotlin.gradle"
-apply from: "$rootDir/gradle/kotlin-test.gradle"
+apply from: "$rootDir/../kotlin.gradle"
 
 dependencies {
   implementation project(":cats:cats-core")

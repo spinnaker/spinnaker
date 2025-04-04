@@ -23,7 +23,6 @@ import (
 	"testing"
 
 	"github.com/spinnaker/spin/cmd"
-	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -109,7 +108,7 @@ func testGateDeleteSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/pipelineTemplates/myTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete {
-			resp := gate.ResponseEntity{StatusCode: "201 Accepted", StatusCodeValue: 201}
+			resp := http.Response{StatusCode: 201}
 			b, _ := json.Marshal(&resp)
 
 			w.WriteHeader(http.StatusAccepted)

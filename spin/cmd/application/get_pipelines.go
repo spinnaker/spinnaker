@@ -76,7 +76,7 @@ func getPipelines(cmd *cobra.Command, options *getPipelinesOptions, args []strin
 		return nil, errors.New("Application name must be passed in")
 	}
 
-	app, resp, err := options.GateClient.ApplicationControllerApi.GetPipelinesUsingGET(options.GateClient.Context, options.applicationName, &gate.ApplicationControllerApiGetPipelinesUsingGETOpts{Expand: optional.NewBool(options.expand), Statuses: optional.NewString(options.status)})
+	app, resp, err := options.GateClient.ApplicationControllerApi.GetPipelines(options.GateClient.Context, options.applicationName, &gate.ApplicationControllerApiGetPipelinesOpts{Expand: optional.NewBool(options.expand), Statuses: optional.NewString(options.status)})
 	if resp != nil {
 		switch resp.StatusCode {
 		case http.StatusOK:

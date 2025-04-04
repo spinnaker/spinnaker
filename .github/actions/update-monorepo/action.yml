@@ -1,0 +1,38 @@
+name: Update Monorepo
+description: Pulls changes from individual repos into monorepo subtrees
+author: jcavanagh
+
+runs:
+  using: node20
+  main: dist/index.js
+
+inputs:
+  repos:
+    description: Comma-separated list of repositories under `github.com/spinnaker/<service>` to be merged to matching subtrees
+    required: true
+    default: 'clouddriver,deck,deck-kayenta,echo,fiat,front50,gate,halyard,igor,kayenta,keel,kork,orca,rosco,spin,spinnaker-gradle-project'
+  remote-ref:
+    description: Remote ref to merge from
+    default: master
+  local-ref:
+    description: Local ref to merge into
+  merge-with-ours:
+    description: Use the -X ours option with the subtree strategy
+    default: true
+  git-email:
+    description: Git author email to commit merges with
+    default: spinbot@spinnaker.io
+  git-name:
+    description: Git author name to commit merges with
+    default: spinnakerbot
+  github-pat:
+    description: Github PAT - NOT the GITHUB_TOKEN from GHA.  PRs created with GITHUB_TOKEN do not trigger PR Workflows.
+    required: true
+
+outputs:
+  mergeable:
+    description: List of services mergeable without conflicts
+  conflicts:
+    description: List of services with conflicting changes that must be manually resolved in the PR
+  pr:
+    description: Link to generated pull request

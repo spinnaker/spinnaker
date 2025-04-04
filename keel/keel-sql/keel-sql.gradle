@@ -38,14 +38,14 @@ dependencies {
     // avoid circular dependency which breaks Liquibase
     exclude(module: "keel-sql")
   }
-  testImplementation("org.testcontainers:mysql:${testContainersVersion}")
+  testImplementation("org.testcontainers:mysql")
 
-  jooqGenerator(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+  jooqGenerator(platform("io.spinnaker.kork:kork-bom"))
   jooqGenerator("com.mysql:mysql-connector-j")
   jooqGenerator("org.jooq:jooq-meta-extensions")
   jooqGenerator("ch.qos.logback:logback-classic:1.2.3")
 
-  liquibaseRuntime(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+  liquibaseRuntime(platform("io.spinnaker.kork:kork-bom"))
   liquibaseRuntime("org.liquibase:liquibase-core:4.24.0")
   liquibaseRuntime("ch.qos.logback:logback-classic:1.2.3")
   liquibaseRuntime("org.yaml:snakeyaml:1.31")
@@ -62,7 +62,7 @@ liquibaseUpdate {
         commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
       }
       exec {
-        commandLine("sh", "-c", "docker run --name mysqlJooq --health-cmd='mysqladmin ping -s' -d --rm -e MYSQL_ROOT_PASSWORD=sa -e MYSQL_DATABASE=keel -p 6603:3306 mysql:8.0.36 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci >/dev/null 2>&1; while STATUS=\$(docker inspect --format \"{{.State.Health.Status}}\" mysqlJooq); [ \$STATUS != \"healthy\" ]; do if [ \$STATUS = \"unhealthy\" ]; then echo \"Docker failed to start\"; exit -1; fi; sleep 1; done")
+        commandLine("sh", "-c", "docker run --name mysqlJooq --platform linux/x86_64 --health-cmd='mysqladmin ping -s' -d --rm -e MYSQL_ROOT_PASSWORD=sa -e MYSQL_DATABASE=keel -p 6603:3306 mysql:5.7 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci >/dev/null 2>&1; while STATUS=\$(docker inspect --format \"{{.State.Health.Status}}\" mysqlJooq); [ \$STATUS != \"healthy\" ]; do if [ \$STATUS = \"unhealthy\" ]; then echo \"Docker failed to start\"; exit -1; fi; sleep 1; done")
       }
     }
   }
@@ -273,7 +273,7 @@ liquibase {
   activities.register("local") {
     arguments = [
       "logLevel"     : "severe",
-      "changeLogFile": "keel-sql/src/main/resources/db/databaseChangeLog.yml",
+      "changeLogFile": "keel/keel-sql/src/main/resources/db/databaseChangeLog.yml",
       "url"          : "jdbc:mysql://localhost:3306/keel?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
       "username"     : "root",
       "password"     : ""
@@ -282,11 +282,15 @@ liquibase {
   activities.register("docker") {
     arguments = [
       "logLevel"     : "severe",
-      "changeLogFile": "keel-sql/src/main/resources/db/databaseChangeLog.yml",
+      "changeLogFile": "keel/keel-sql/src/main/resources/db/databaseChangeLog.yml",
       "url"          : "jdbc:mysql://127.0.0.1:6603/keel?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
       "username"     : "root",
       "password"     : "sa"
     ]
   }
   runList = "docker"
+}
+
+tasks.named("assemble") {
+  dependsOn "generateJooq"
 }

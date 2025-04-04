@@ -15,9 +15,9 @@
  */
 
 plugins {
-  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
-  id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
-  id "org.jetbrains.kotlin.plugin.allopen" version "$kotlinVersion" apply false
+  id 'io.spinnaker.project' apply false
+  alias(libs.plugins.kotlin.jvm) apply false
+  alias(libs.plugins.kotlin.allopen) apply false
 }
 
 allprojects {
@@ -26,12 +26,6 @@ allprojects {
 
 subprojects {
   group = "io.spinnaker.fiat"
-
-  if ([korkVersion].find { it.endsWith("-SNAPSHOT") }) {
-    repositories {
-      mavenLocal()
-    }
-  }
 
   if (name != "fiat-bom") {
     apply plugin: 'java-library'
@@ -56,15 +50,17 @@ subprojects {
     }
 
     dependencies {
-      implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      implementation enforcedPlatform("io.spinnaker.kork:kork-bom")
       compileOnly "org.projectlombok:lombok"
-      annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor platform("io.spinnaker.kork:kork-bom")
       annotationProcessor "org.projectlombok:lombok"
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-      testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+      testAnnotationProcessor platform("io.spinnaker.kork:kork-bom")
       testAnnotationProcessor "org.projectlombok:lombok"
 
-      testImplementation "org.springframework.boot:spring-boot-starter-test"
+      testImplementation("org.springframework.boot:spring-boot-starter-test") {
+         exclude group: "org.slf4j", module: "slf4j-api"
+      }
       testImplementation "org.spockframework:spock-core"
       testImplementation "org.spockframework:spock-spring"
       testImplementation "org.springframework:spring-test"
@@ -75,5 +71,3 @@ subprojects {
     }
   }
 }
-
-defaultTasks ':fiat-web:run'

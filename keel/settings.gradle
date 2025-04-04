@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-['fiat', 'kork'].each { prj ->
-  String propName = "${prj}Composite"
-  String projectPath = "../$prj"
-  if (settings.ext.has(propName) && Boolean.parseBoolean(settings.ext.get(propName) as String)) {
-    includeBuild projectPath
-  }
-}
-
-enableFeaturePreview("VERSION_ORDERING_V2")
+apply from: "$rootDir/../versions.gradle"
 
 include(
   "keel-api",

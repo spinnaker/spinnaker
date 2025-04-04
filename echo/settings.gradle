@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-['fiat', 'kork'].each { prj ->
-  String propName = "${prj}Composite"
-  String projectPath = "../$prj"
-  if (settings.ext.has(propName) && Boolean.parseBoolean(settings.ext.get(propName) as String)) {
-    includeBuild projectPath
-  }
-}
+apply from: "../versions.gradle"
+
+rootProject.name = 'echo'
 
 include 'echo-api',
         'echo-api-tck',
@@ -40,9 +36,7 @@ include 'echo-api',
         'echo-pubsub-aws',
         'echo-pubsub-google',
         'echo-telemetry',
-        'echo-test',
-
-rootProject.name = 'echo'
+        'echo-test'
 
 def setBuildFile(project) {
     project.buildFileName = "${project.name}.gradle"

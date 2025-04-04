@@ -1,6 +1,6 @@
 plugins {
   id "com.diffplug.spotless" version "6.23.2" apply false
-  id "com.gradle.plugin-publish" version "0.12.0" apply false
+  id "com.gradle.plugin-publish" version "1.2.0" apply false
 }
 
 subprojects {
@@ -28,4 +28,29 @@ subprojects {
     implementation gradleApi()
     implementation localGroovy()
   }
+}
+
+tasks.register('assemble') {
+  dependsOn ":spinnaker-project-plugin:assemble"
+  dependsOn ":spinnaker-extensions:assemble"
+}
+
+tasks.register('build') {
+  dependsOn ":spinnaker-project-plugin:build"
+  dependsOn ":spinnaker-extensions:build"
+}
+
+tasks.register('check') {
+  dependsOn ":spinnaker-project-plugin:check"
+  dependsOn ":spinnaker-extensions:check"
+}
+
+tasks.register('clean') {
+  dependsOn ":spinnaker-project-plugin:clean"
+  dependsOn ":spinnaker-extensions:clean"
+}
+
+tasks.register('publish') {
+  dependsOn ":spinnaker-project-plugin:publish"
+  dependsOn ":spinnaker-extensions:publish"
 }

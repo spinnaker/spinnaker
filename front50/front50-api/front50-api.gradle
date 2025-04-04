@@ -18,8 +18,8 @@ apply plugin: 'java-library'
 
 dependencies {
   implementation "io.spinnaker.kork:kork-exceptions"
-  implementation platform("io.spinnaker.kork:kork-bom:$korkVersion")
-  annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+  implementation enforcedPlatform("io.spinnaker.kork:kork-bom")
+  annotationProcessor platform("io.spinnaker.kork:kork-bom")
   api("io.spinnaker.kork:kork-plugins-api")
 
 }

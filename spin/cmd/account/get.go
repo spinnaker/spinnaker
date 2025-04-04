@@ -59,7 +59,7 @@ func getAccount(cmd *cobra.Command, options *getOptions, args []string) error {
 		return err
 	}
 
-	account, resp, err := options.GateClient.CredentialsControllerApi.GetAccountUsingGET(options.GateClient.Context, accountName, &gate.CredentialsControllerApiGetAccountUsingGETOpts{})
+	account, resp, err := options.GateClient.CredentialsControllerApi.GetAccount(options.GateClient.Context, accountName, &gate.CredentialsControllerApiGetAccountOpts{})
 	if resp != nil {
 		switch resp.StatusCode {
 		case http.StatusOK:

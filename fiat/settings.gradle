@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 
-if (spinnakerGradleVersion.endsWith('-SNAPSHOT')) {
-  pluginManagement {
-    repositories {
-      mavenLocal()
-      gradlePluginPortal()
-    }
-  }
-}
 
-['kork'].each { prj ->
-  String propName = "${prj}Composite"
-  String projectPath = "../$prj"
-  if (settings.ext.has(propName) && Boolean.parseBoolean(settings.ext.get(propName) as String)) {
-    includeBuild projectPath
-  }
-}
+apply from: "../versions.gradle"
 
 rootProject.name="fiat"
 

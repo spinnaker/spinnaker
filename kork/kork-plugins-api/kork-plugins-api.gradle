@@ -15,10 +15,11 @@
  */
 
 apply plugin: "java-library"
-apply from: "$rootDir/gradle/kotlin-test.gradle"
+apply from: "$rootDir/gradle/detekt.gradle"
+apply from: "$rootDir/../kotlin.gradle"
 
 dependencies {
-  api(platform(project(":spinnaker-dependencies")))
+  api(enforcedPlatform(project(":spinnaker-dependencies")))
 
   api "org.slf4j:slf4j-api"
   api "javax.annotation:javax.annotation-api"

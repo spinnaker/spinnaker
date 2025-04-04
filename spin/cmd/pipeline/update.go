@@ -65,7 +65,7 @@ func updatePipeline(cmd *cobra.Command, options *updateOptions) error {
 	application := options.application
 	pipelineName := options.name
 
-	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(options.GateClient.Context, application, pipelineName)
+	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfig(options.GateClient.Context, application, pipelineName)
 	if queryResp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("Pipeline %s not found under application %s", pipelineName, application)
 	}
@@ -85,8 +85,8 @@ func updatePipeline(cmd *cobra.Command, options *updateOptions) error {
 	}
 
 	// TODO: support option passing in and remove nil in below call
-	opt := &gate.PipelineControllerApiSavePipelineUsingPOSTOpts{}
-	saveResp, err := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, foundPipeline, opt)
+	opt := &gate.PipelineControllerApiSavePipelineOpts{}
+	saveResp, err := options.GateClient.PipelineControllerApi.SavePipeline(options.GateClient.Context, foundPipeline, opt)
 	if err != nil {
 		return err
 	}

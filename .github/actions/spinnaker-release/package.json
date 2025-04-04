@@ -1,0 +1,29 @@
+{
+  "name": "spinnaker-release",
+  "version": "1.0.0",
+  "description": "Github Action for generating a Spinnaker release",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run format && ncc build src/index.ts",
+    "format": "npx prettier . --write",
+    "format-check": "npx prettier . --check"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.1",
+    "prettier": "^3.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@actions/artifact": "^1.1.2",
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "@google-cloud/storage": "^7.5.0",
+    "dayjs": "^1.11.13",
+    "uuid": "^11.1.0",
+    "yaml": "^2.3.4"
+  }
+}

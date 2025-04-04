@@ -64,7 +64,7 @@ class CredentialsController {
 
   @Operation(summary = "Retrieve a list of accounts")
   @RequestMapping(method = RequestMethod.GET)
-  List<Account> getAccounts(@SpinnakerUser User user, @RequestParam(value = "expand", required = false) boolean expand) {
+  List<Account> getAccounts(@Parameter(hidden = true) @SpinnakerUser User user, @RequestParam(value = "expand", required = false) boolean expand) {
     List<AccountDetails> allAccounts = getAccountDetailsWithAuthorizedFlag(user)
     if (expand) {
       return allAccounts
@@ -86,7 +86,7 @@ class CredentialsController {
 
   @Operation(summary = "Retrieve an account's details")
   @RequestMapping(value = '/{account:.+}', method = RequestMethod.GET)
-  AccountDetails getAccount(@SpinnakerUser User user, @PathVariable("account") String account,
+  AccountDetails getAccount(@Parameter(hidden = true) @SpinnakerUser User user, @PathVariable("account") String account,
                             @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return getAccountDetailsWithAuthorizedFlag(user).find { it.name == account }
   }

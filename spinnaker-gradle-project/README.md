@@ -12,7 +12,7 @@ To include, add the following to your build.gradle
 
 ```groovy
 plugins {
-  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
+  id 'io.spinnaker.project' apply false
 }
 
 allprojects {

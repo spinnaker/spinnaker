@@ -86,7 +86,7 @@ func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 	application := pipelineJson["application"].(string)
 	pipelineName := pipelineJson["name"].(string)
 
-	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfigUsingGET(options.GateClient.Context, application, pipelineName)
+	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfig(options.GateClient.Context, application, pipelineName)
 	switch queryResp.StatusCode {
 	case http.StatusOK:
 		// pipeline found, let's use Spinnaker's known Pipeline ID, otherwise we'll get one created for us
@@ -101,8 +101,8 @@ func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 	}
 
 	// TODO: support option passing in and remove nil in below call
-	opt := &gate.PipelineControllerApiSavePipelineUsingPOSTOpts{}
-	saveResp, err := options.GateClient.PipelineControllerApi.SavePipelineUsingPOST(options.GateClient.Context, pipelineJson, opt)
+	opt := &gate.PipelineControllerApiSavePipelineOpts{}
+	saveResp, err := options.GateClient.PipelineControllerApi.SavePipeline(options.GateClient.Context, pipelineJson, opt)
 	if err != nil {
 		return err
 	}

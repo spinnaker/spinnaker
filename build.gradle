@@ -1,0 +1,169 @@
+defaultTasks 'build'
+
+// Exclude UI, CLI, and plugin projects from main lifecycle tasks
+def mainProjects = gradle.includedBuilds.findAll {
+  it.name != 'deck' && it.name != 'deck-kayenta' && it.name != 'spin' && it.name != 'spinnaker-gradle-project'
+}
+
+// We need top-level meta tasks, as Gradle does not automatically recurse through included builds to find tasks
+// By default, these only interact with Java projects - the rest operate somewhat differently
+tasks.register('assemble') { task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':assemble')
+  }
+}
+
+tasks.register('build') { task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':build')
+  }
+}
+
+tasks.register('check') { task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':check')
+  }
+}
+
+tasks.register('clean') { task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':clean')
+  }
+}
+
+tasks.register('publish') { task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':publish')
+  }
+}
+
+tasks.register('test') { task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':test')
+  }
+}
+
+// Additional aliases including UI projects
+tasks.register('buildAll') { task ->
+  gradle.includedBuilds.each { build ->
+    task.dependsOn build.task(':build')
+  }
+}
+
+tasks.register('checkAll') { task ->
+  gradle.includedBuilds.each { build ->
+    task.dependsOn build.task(':check')
+  }
+}
+
+tasks.register('cleanAll') { task ->
+  gradle.includedBuilds.each { build ->
+    task.dependsOn build.task(':clean')
+  }
+}
+
+tasks.register('testAll') { task ->
+  gradle.includedBuilds.each { build ->
+    task.dependsOn build.task(':test')
+  }
+}
+
+// Create aliases to start each service
+tasks.register('clouddriver') {
+  it.dependsOn gradle.includedBuild('clouddriver').task(':clouddriver-web:run')
+}
+
+tasks.register('deck-build') {
+  it.dependsOn gradle.includedBuild('deck').task(':build')
+}
+
+tasks.register('deck') {
+  it.dependsOn gradle.includedBuild('deck').task(':run')
+}
+
+tasks.register('echo') {
+  it.dependsOn gradle.includedBuild('echo').task(':echo-web:run')
+}
+
+tasks.register('fiat') {
+  it.dependsOn gradle.includedBuild('fiat').task(':fiat-web:run')
+}
+
+tasks.register('front50') {
+  it.dependsOn gradle.includedBuild('front50').task(':front50-web:run')
+}
+
+tasks.register('gate') {
+  it.dependsOn gradle.includedBuild('gate').task(':gate-web:run')
+}
+
+tasks.register('igor') {
+  it.dependsOn gradle.includedBuild('igor').task(':igor-web:run')
+}
+
+tasks.register('kayenta') {
+  it.dependsOn gradle.includedBuild('kayenta').task(':kayenta-web:run')
+}
+
+tasks.register('keel') {
+  it.dependsOn gradle.includedBuild('keel').task(':keel-web:run')
+}
+
+tasks.register('orca') {
+  it.dependsOn gradle.includedBuild('orca').task(':orca-web:run')
+}
+
+tasks.register('rosco') {
+  it.dependsOn gradle.includedBuild('rosco').task(':rosco-web:run')
+}
+
+tasks.register('run') {
+  dependsOn 'clouddriver'
+  dependsOn 'deck'
+  dependsOn 'echo'
+  dependsOn 'fiat'
+  dependsOn 'front50'
+  dependsOn 'gate'
+  dependsOn 'igor'
+  dependsOn 'kayenta'
+  dependsOn 'orca'
+  dependsOn 'rosco'
+}
+
+// Tasks to build one or all JS projects
+tasks.register('buildUpdateMonorepo') {
+  doLast {
+    exec {
+      workingDir '.github/actions/update-monorepo'
+      commandLine 'bash', '-c', 'npm i && npm run build'
+    }
+  }
+}
+
+tasks.register('buildSpinnakerRelease') {
+  doLast {
+    exec {
+      workingDir '.github/actions/spinnaker-release'
+      commandLine 'bash', '-c', 'npm i && npm run build'
+    }
+  }
+}
+
+// Compiles the GHA Typescript Actions to single-file CJS, so GHA can actually use them
+tasks.register('buildGhaJs') {
+  dependsOn 'buildUpdateMonorepo'
+  dependsOn 'buildSpinnakerRelease'
+}
+
+// Various flavors of code style enforcement
+tasks.register('spotlessCheck') {task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':spotlessCheck')
+  }
+}
+
+tasks.register('spotlessApply') {task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':spotlessApply')
+  }
+}

@@ -1,4 +1,4 @@
-apply from: "${project.rootDir}/gradle/kotlin.gradle"
+apply from: "$rootDir/../kotlin.gradle"
 
 dependencies {
   implementation(project(":echo-api"))

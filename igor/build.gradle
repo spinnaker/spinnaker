@@ -15,7 +15,7 @@
  */
 
 plugins {
-  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
+  id 'io.spinnaker.project' apply false
 }
 
 allprojects {
@@ -25,12 +25,6 @@ allprojects {
 subprojects {
   group = "io.spinnaker.igor"
 
-  if ([korkVersion, fiatVersion].find { it.endsWith('-SNAPSHOT') }) {
-    repositories {
-      mavenLocal()
-    }
-  }
-
   if (name != "igor-bom") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
@@ -39,11 +33,11 @@ subprojects {
     sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
     dependencies {
-      implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+      implementation enforcedPlatform("io.spinnaker.kork:kork-bom")
       compileOnly "org.projectlombok:lombok"
-      annotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor platform("io.spinnaker.kork:kork-bom")
       annotationProcessor "org.projectlombok:lombok"
-      testAnnotationProcessor platform("io.spinnaker.kork:kork-bom:$korkVersion")
+      testAnnotationProcessor platform("io.spinnaker.kork:kork-bom")
       testAnnotationProcessor "org.projectlombok:lombok"
 
       implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -53,7 +47,9 @@ subprojects {
 
       // TODO(rz): Why does Spock need groovy as implementation and not testImplementation to find tests?
       implementation "org.apache.groovy:groovy"
-      testImplementation "org.springframework.boot:spring-boot-starter-test"
+      testImplementation("org.springframework.boot:spring-boot-starter-test") {
+         exclude group: "org.slf4j", module: "slf4j-api"
+      }
       testImplementation "org.spockframework:spock-core"
       testImplementation "org.spockframework:spock-spring"
       testImplementation "org.springframework:spring-test"
@@ -83,5 +79,3 @@ subprojects {
     }
   }
 }
-
-defaultTasks 'run'

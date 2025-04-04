@@ -1,0 +1,34 @@
+name: 'Build Tag Number'
+description: 'Sequential build numbers for workflow runs based on Git tag'
+author: 'jcavanagh'
+
+runs:
+  using: 'node20'
+  main: 'main.js'
+
+inputs:
+  token:
+    description: 'GitHub Token to create and delete refs (GITHUB_TOKEN)'
+    required: false # Not required when getting the stored build number for later jobs, only in the first jobs when it's generated
+  prefix:
+    description: 'Prefix for the build-number-<num> tag to make it unique if tracking multiple build numbers.  Auto-hyphenated.'
+    required: false
+  suffix:
+    description: 'Suffix for the build-number-<num> tag to make it unique if tracking multiple build numbers.  Auto-hyphenated.'
+    required: false
+  skip-increment:
+    description: If true, will output the most recent tag instead of incrementing
+    required: false
+  skip-tag:
+    description: If true, will not write any tags to the repository.  Useful for finding what the next tag will be without committing to it.
+    required: false
+
+outputs:
+  build_number:
+    description: 'Build tag number'
+  build_number_prev:
+    description: 'Previous build tag number'
+
+branding:
+  icon: 'hash'
+  color: 'green'

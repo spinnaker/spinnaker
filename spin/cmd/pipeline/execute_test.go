@@ -25,7 +25,6 @@ import (
 	"testing"
 
 	"github.com/spinnaker/spin/cmd"
-	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -140,7 +139,7 @@ func TestPipelineExecute_missingapp(t *testing.T) {
 func testGatePipelineExecuteSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/pipelines/app/one", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resp := gate.ResponseEntity{StatusCode: "201 Accepted", StatusCodeValue: 201}
+		resp := http.Response{StatusCode: 201}
 		b, _ := json.Marshal(&resp)
 
 		w.WriteHeader(http.StatusAccepted)

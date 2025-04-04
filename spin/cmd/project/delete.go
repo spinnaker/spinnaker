@@ -53,7 +53,7 @@ func NewDeleteCmd(prjOptions *projectOptions) *cobra.Command {
 func deleteProject(cmd *cobra.Command, options *saveOptions) error {
 	projectName := options.projectName
 
-	project, resp, err := options.GateClient.ProjectControllerApi.GetUsingGET1(options.GateClient.Context, projectName)
+	project, resp, err := options.GateClient.ProjectControllerApi.Get2(options.GateClient.Context, projectName)
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Project '%s' not found\n", projectName)
@@ -69,7 +69,7 @@ func deleteProject(cmd *cobra.Command, options *saveOptions) error {
 		"description": fmt.Sprintf("Delete Project: %s", projectName),
 	}
 
-	ref, _, err := options.GateClient.TaskControllerApi.TaskUsingPOST1(options.GateClient.Context, deleteProjectTask)
+	ref, _, err := options.GateClient.TaskControllerApi.Task(options.GateClient.Context, deleteProjectTask)
 	if err != nil {
 		return err
 	}

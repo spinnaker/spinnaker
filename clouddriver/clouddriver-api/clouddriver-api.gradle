@@ -17,12 +17,12 @@
 apply plugin: 'java-library'
 
 dependencies {
-  implementation enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
-  annotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom:$korkVersion")
+  implementation enforcedPlatform("io.spinnaker.kork:kork-bom")
+  annotationProcessor enforcedPlatform("io.spinnaker.kork:kork-bom")
 
   api("io.spinnaker.kork:kork-plugins-api")
   api("io.spinnaker.kork:kork-credentials-api")
-  api("io.spinnaker.fiat:fiat-core:$fiatVersion")
+  api("io.spinnaker.fiat:fiat-core")
 
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.kork:kork-moniker"

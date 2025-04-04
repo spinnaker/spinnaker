@@ -1,41 +1,33 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-  id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
-  id("org.jetbrains.kotlin.plugin.allopen") version "$kotlinVersion" apply false
+  alias(libs.plugins.kotlin.jvm) apply false
+  alias(libs.plugins.kotlin.allopen) apply false
   id("com.adarshr.test-logger") version "2.1.0" apply false
   id("com.github.ben-manes.versions") version "0.28.0" apply false
   id("com.netflix.dgs.codegen") version "4.3.4" apply false
   id "com.diffplug.spotless" version "5.10.2" apply false
-  id 'io.spinnaker.project' version "$spinnakerGradleVersion" apply false
+  id 'io.spinnaker.project' apply false
 }
 
 allprojects {
   group = "io.spinnaker.keel"
   apply plugin: 'io.spinnaker.project'
 
-  repositories {
-    if (property("korkVersion").toString().endsWith("-SNAPSHOT")) {
-      mavenLocal()
-    }
-    maven { url = uri("https://netflixoss.jfrog.io/artifactory/maven-oss-candidates") }
-    mavenCentral()
-  }
-
   if (name != "keel-bom") {
     apply(plugin: "java")
     apply(plugin: "java-library")
-    apply(from: "$rootDir/gradle/kotlin.gradle")
+    apply(from: "$rootDir/../kotlin.gradle")
     apply(from: "$rootDir/gradle/test.gradle")
     apply(plugin: "com.github.ben-manes.versions")
     apply(plugin: "com.diffplug.spotless")
 
 
     dependencies {
-      annotationProcessor(platform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+      annotationProcessor(platform("io.spinnaker.kork:kork-bom"))
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-      implementation(enforcedPlatform("io.spinnaker.kork:kork-bom:${korkVersion}"))
+      implementation(enforcedPlatform("io.spinnaker.kork:kork-bom"))
       implementation("org.slf4j:slf4j-api")
 
       testImplementation("org.junit.platform:junit-platform-runner")
@@ -64,7 +56,6 @@ allprojects {
         "com.squareup.okhttp3:logging-interceptor:$okHttpVersion",
         "io.github.resilience4j:resilience4j-kotlin:$resilience4jVersion",
         "io.github.resilience4j:resilience4j-retry:$resilience4jVersion",
-        "org.testcontainers:mysql:$testContainersVersion",
         "de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0",
         "io.github.microutils:kotlin-logging:1.4.4",
         // needed due to incompatibility with dgs libs
