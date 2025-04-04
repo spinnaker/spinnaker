@@ -19,9 +19,9 @@ package com.netflix.kayenta.google.config;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.netflix.kayenta.security.AccountCredentials;
+import jakarta.validation.constraints.NotNull;
 import java.io.*;
 import java.util.List;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.util.StringUtils;
 
