@@ -68,7 +68,7 @@ jobs:
         run: ./gradlew :spin:gateapi
 
       - name: Ensure code formatting and style is consistent
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
           version: v1.45.2
           working-directory: spin
