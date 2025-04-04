@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: '${ namespace }'
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: 'backend-${ canary ? "canary" : "primary" }'
+  namespace: '${ namespace }'
+  labels:
+    stack: backend
+    tier: '${ namespace }'
+    canary: '${ canary ? "true" : "false" }'
+spec:
+  replicas: '${ #toInt( canary ? 1 : 5 ) }'
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      stack: backend
+      tier: '${ namespace }'
+      canary: '${ canary ? "true" : "false" }'
+  template:
+    metadata:
+      labels:
+        stack: backend
+        tier: '${ namespace }'
+        canary: '${ canary ? "true" : "false" }'
+    spec:
+      containers:
+      - name: primary
+        image: gcr.io/{%PROJECT_ID%}/backend
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NAMESPACE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MY_APP_METRIC_VALUE
+          value: "123"
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: backend
+  namespace: '${ namespace }'
+spec:
+  selector:
+    stack: backend
+    tier: '${ namespace }'
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000

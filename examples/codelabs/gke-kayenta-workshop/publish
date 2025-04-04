@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+tar -cvf overrides.tar -C overrides .
+tar -cvf front50.tar front50
+tar -cvf services.tar services
+
+gsutil cp overrides.tar gs://gke-spinnaker-codelab/kayenta-workshop/overrides.tar
+gsutil cp front50.tar gs://gke-spinnaker-codelab/kayenta-workshop
+gsutil cp services.tar gs://gke-spinnaker-codelab/kayenta-workshop
+
+rm overrides.tar
+rm front50.tar
+rm services.tar

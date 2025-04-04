@@ -1,0 +1,46 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: demo
+  namespace: {{ .Values.environment }}
+  annotations:
+    'moniker.spinnaker.io/stack': {{ .Values.environment }}
+  labels:
+    app: demo
+    env: {{ .Values.environment }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: demo
+      env: {{ .Values.environment }}
+  template:
+    metadata:
+      labels:
+        app: demo
+        env: {{ .Values.environment }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image }}"
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        volumeMounts:
+        - name: config
+          mountPath: /opt/demo/config
+        - name: env-config
+          mountPath: /opt/demo/env
+      volumes:
+      - name: config
+        configMap:
+          name: demo-config
+      - name: env-config
+        configMap:
+          name: demo-env-config

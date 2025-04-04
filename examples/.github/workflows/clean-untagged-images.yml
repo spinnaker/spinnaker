@@ -1,0 +1,28 @@
+# .github/workflows/gcr-cleaner.yml
+name: 'gcr-cleaner'
+
+on:
+  schedule:
+    - cron: '0 0 */1 * *' # runs daily
+  workflow_dispatch: # allows for manual invocation
+
+jobs:
+  gcr-cleaner:
+    runs-on: 'ubuntu-latest'
+    steps:
+      # configure based on your registry
+      - name: Login to GAR
+        uses: 'docker/login-action@v2'
+        with:
+          registry: us-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GAR_JSON_KEY }}
+
+
+      # delete untaggd images older than 48 hours
+      - uses: 'docker://us-docker.pkg.dev/gcr-cleaner/gcr-cleaner/gcr-cleaner-cli'
+        with:
+          args: >-
+            -repo=us-docker.pkg.dev/spinnaker-community/docker
+            -grace=48h
+            -dry-run=true

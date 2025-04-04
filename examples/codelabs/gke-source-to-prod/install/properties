@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+PROJECT_ID=$(gcloud info --format='value(config.project)')
+
+GKE_CLUSTER=spin-demo
+ZONE=us-west1-b
+
+if [ -f bucket.txt ]; then
+  BUCKET_NAME=$(cat bucket.txt)
+else
+  BUCKET_NAME="spin-gcs-bucket-$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 20 | head -n 1)-$(date +"%s")"
+  echo $BUCKET_NAME > bucket.txt
+fi
+
+BUCKET_URI="gs://$BUCKET_NAME"
+
+if [ -f account.txt ]; then
+  SERVICE_ACCOUNT_NAME=$(cat account.txt)
+else
+  SERVICE_ACCOUNT_NAME="spin-acc-$(date +"%s")"
+  echo $SERVICE_ACCOUNT_NAME > account.txt
+fi
+
+SERVICE_ACCOUNT_EMAIL="${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
+
+GCS_TOPIC="spin-gcs-topic"
+GCS_SUB="spin-gcs-sub"
+GCR_TOPIC="projects/${PROJECT_ID}/topics/gcr"
+GCR_SUB="spin-gcr-sub"
+
+SPIN_GCS_ACCOUNT="my-gcs-account"
+
+SPIN_GCS_PUB_SUB="my-gcs-pub-sub"
+SPIN_GCR_PUB_SUB="my-gcr-pub-sub"

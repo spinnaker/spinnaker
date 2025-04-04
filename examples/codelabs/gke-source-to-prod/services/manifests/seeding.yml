@@ -1,0 +1,265 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: staging
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+data:
+  BACKEND_ENDPOINT: 'http://backend.staging'
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: frontend-primary
+  namespace: staging
+  labels:
+    stack: frontend
+    tier: staging
+    canary: "false"
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+    moniker.spinnaker.io/cluster: '"frontend"'
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      stack: frontend
+      tier: staging
+      canary: "false"
+  template:
+    metadata:
+      labels:
+        stack: frontend
+        tier: staging
+        canary: "false"
+      annotations:
+        moniker.spinnaker.io/application: '"demo"'
+        moniker.spinnaker.io/cluster: '"frontend"'
+    spec:
+      containers:
+      - name: primary
+        image: gcr.io/{%PROJECT_ID%}/frontend
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+        envFrom:
+        - configMapRef:
+            name: frontend-config
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: frontend
+  namespace: staging
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+    moniker.spinnaker.io/cluster: '"frontend"'
+spec:
+  selector:
+    stack: frontend
+    tier: staging
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: backend-primary
+  namespace: staging
+  labels:
+    stack: backend
+    tier: staging
+    canary: "false"
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+    moniker.spinnaker.io/cluster: '"backend"'
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      stack: backend
+      tier: staging
+      canary: "false"
+  template:
+    metadata:
+      labels:
+        stack: backend
+        tier: staging
+        canary: "false"
+      annotations:
+        moniker.spinnaker.io/application: '"demo"'
+        moniker.spinnaker.io/cluster: '"backend"'
+    spec:
+      containers:
+      - name: primary
+        image: gcr.io/{%PROJECT_ID%}/backend
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: backend
+  namespace: staging
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+    moniker.spinnaker.io/cluster: '"backend"'
+spec:
+  selector:
+    stack: backend
+    tier: staging
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: production
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+data:
+  BACKEND_ENDPOINT: 'http://backend.production'
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: frontend-primary
+  namespace: production
+  labels:
+    stack: frontend
+    tier: production
+    canary: "false"
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+    moniker.spinnaker.io/cluster: '"frontend"'
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      stack: frontend
+      tier: production
+      canary: "false"
+  template:
+    metadata:
+      labels:
+        stack: frontend
+        tier: production
+        canary: "false"
+      annotations:
+        moniker.spinnaker.io/application: '"demo"'
+        moniker.spinnaker.io/cluster: '"frontend"'
+    spec:
+      containers:
+      - name: primary
+        image: gcr.io/{%PROJECT_ID%}/frontend
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+        envFrom:
+        - configMapRef:
+            name: frontend-config
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: frontend
+  namespace: production
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+    moniker.spinnaker.io/cluster: '"frontend"'
+spec:
+  selector:
+    stack: frontend
+    tier: production
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: backend-primary
+  namespace: production
+  labels:
+    stack: backend
+    tier: production
+    canary: "false"
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+    moniker.spinnaker.io/cluster: '"backend"'
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      stack: backend
+      tier: production
+      canary: "false"
+  template:
+    metadata:
+      labels:
+        stack: backend
+        tier: production
+        canary: "false"
+      annotations:
+        moniker.spinnaker.io/application: '"demo"'
+        moniker.spinnaker.io/cluster: '"backend"'
+    spec:
+      containers:
+      - name: primary
+        image: gcr.io/{%PROJECT_ID%}/backend
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: backend
+  namespace: production
+  annotations:
+    moniker.spinnaker.io/application: '"demo"'
+    moniker.spinnaker.io/cluster: '"backend"'
+spec:
+  selector:
+    stack: backend
+    tier: production
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000

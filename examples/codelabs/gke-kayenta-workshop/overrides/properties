@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+GKE_CLUSTER=spin-kayenta-workshop
+
+# See: https://cloud.google.com/monitoring/kubernetes-engine/
+export ADDITIONAL_CLUSTER_FLAGS="--cluster-version 1.10.6 --enable-stackdriver-kubernetes"
+
+export SPINNAKER_VERSION="master-20181005230617"

@@ -1,0 +1,30 @@
+name: Mark and Close Stale Issues
+
+on:
+  schedule:
+  - cron: 0 */12 * * * # Every 12 hours
+
+jobs:
+  staleIssues:
+    # Only run this on repositories in the 'spinnaker' org, not on forks.
+    if: startsWith(github.repository, 'spinnaker/')
+    runs-on: ubuntu-latest
+    steps:
+    - name: stale
+      # github release 0.1.0
+      uses: gatsbyjs/stale@0dde19eb39fa2003923986adc3608c3e9178ebf3
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DAYS_BEFORE_STALE: 45
+        DAYS_BEFORE_CLOSE: 45
+        STALE_ISSUE_LABEL: 'to-be-closed'
+        OPERATIONS_PER_RUN: 50
+        EXEMPT_ISSUE_LABELS: |
+          beginner friendly
+          no-lifecycle
+        STALE_ISSUE_MESSAGE: >
+          This issue hasn't been updated in 45 days so we are tagging it as 'to-be-closed'.
+          It will be closed in 45 days. Add some activity and the label will be removed within several hours.
+        CLOSE_MESSAGE: >
+          This issue is tagged as 'to-be-closed' and hasn't been updated in 90 days, so we are closing it.
+          You can always reopen this issue if needed.

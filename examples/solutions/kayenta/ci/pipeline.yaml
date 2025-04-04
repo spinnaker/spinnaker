@@ -1,0 +1,50 @@
+resource_types:
+- name: email
+  type: docker-image
+  source:
+    repository: pcfseceng/email-resource
+
+resources:
+- name: spinnaker-git
+  type: git
+  source:
+    uri: https://github.com/spinnaker/spinnaker.git
+    branch: master
+- name: timer
+  type: time
+  source:
+    interval: 1440m
+- name: send-an-email
+  type: email
+  source:
+    from: concourse@vicnastea.io
+    smtp:
+      host: smtp.sendgrid.net
+      password: ((sendgrid-api-key))
+      port: "2525"
+      username: apikey
+    to:
+    - theochamley@google.com
+
+jobs:
+- name: test
+  plan:
+  - get: timer
+    trigger: true
+  - get: spinnaker-git
+  - task: setup
+    file: spinnaker-git/solutions/kayenta/ci/tasks/setup.yaml
+  - task: first-deployment
+    file: spinnaker-git/solutions/kayenta/ci/tasks/first-deployment.yaml
+  - task: canary-deployment
+    file: spinnaker-git/solutions/kayenta/ci/tasks/canary-deployment.yaml
+  - task: automated-canary
+    file: spinnaker-git/solutions/kayenta/ci/tasks/automated-canary.yaml
+  on_failure:
+    put: send-an-email
+    params:
+      subject_text: Kayenta on GKE Solution - CI Failure
+      body_text: CI for "Automated Canary Analysis on Kubernetes Engine with Spinnaker" has failed. Please check https://concourse.dev.vicnastea.io/teams/main/pipelines/kayenta-gke-stackdriver
+  ensure:
+    task: cleanup
+    file: spinnaker-git/solutions/kayenta/ci/tasks/cleanup.yaml

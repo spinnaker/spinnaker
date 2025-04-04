@@ -1,0 +1,117 @@
+{
+	"name": "bluegreen",
+	"id": "bluegreen",
+	"application": "helloworld",
+	"appConfig": {},
+	"description": "blue green pipeline",
+	"executionEngine": "v2",
+	"keepWaitingPipelines": false,
+	"lastModifiedBy": "anonymous",
+	"limitConcurrent": true,
+	"parallel": true,
+	"parameterConfig": [{
+		"default": "v1",
+		"hasOptions": false,
+		"label": "helloworld image tag",
+		"name": "hellotag",
+		"options": [{
+			"value": ""
+		}],
+		"required": true
+	}],
+	"stages": [{
+			"account": "my-kubernetes-account",
+			"cloudProvider": "kubernetes",
+			"manifestArtifactAccount": "embedded-artifact",
+			"manifests": [{
+				"apiVersion": "apps/v1",
+				"kind": "ReplicaSet",
+				"metadata": {
+					"annotations": {
+						"strategy.spinnaker.io/max-version-history": "2",
+						"traffic.spinnaker.io/load-balancers": "[\"service hellosvc\"]"
+					},
+					"labels": {
+						"tier": "helloworld"
+					},
+					"name": "helloworld",
+					"namespace": "default"
+				},
+				"spec": {
+					"replicas": 3,
+					"selector": {
+						"matchLabels": {
+							"tier": "helloworld"
+						}
+					},
+					"template": {
+						"metadata": {
+							"labels": {
+								"app": "helloworld",
+								"tier": "helloworld"
+							}
+						},
+						"spec": {
+							"containers": [{
+								"image": "us-docker.pkg.dev/spinnaker-community/codelabs/helloworld:${ parameters.hellotag }",
+								"imagePullPolicy": "IfNotPresent",
+								"name": "helloworld",
+								"ports": [{
+									"containerPort": 6000
+								}]
+							}]
+						}
+					}
+				}
+			}],
+			"moniker": {
+				"app": "helloworld"
+			},
+			"name": "Deploy (Manifest)",
+			"refId": "1",
+			"relationships": {
+				"loadBalancers": [],
+				"securityGroups": []
+			},
+			"requisiteStageRefIds": [],
+			"source": "text",
+			"type": "deployManifest"
+		},
+		{
+			"account": "my-kubernetes-account",
+			"app": "helloworld",
+			"cloudProvider": "kubernetes",
+			"cluster": "replicaSet helloworld",
+			"criteria": "second_newest",
+			"kind": "replicaSet",
+			"location": "default",
+			"manifestName": " ",
+			"mode": "dynamic",
+			"name": "Disable (Manifest)",
+			"refId": "2",
+			"requisiteStageRefIds": [
+				"1"
+			],
+			"type": "disableManifest"
+		},
+		{
+			"account": "my-kubernetes-account",
+			"app": "helloworld",
+			"cloudProvider": "kubernetes",
+			"cluster": "replicaSet helloworld",
+			"criteria": "second_newest",
+			"kind": "replicaSet",
+			"location": "default",
+			"manifestName": " ",
+			"mode": "dynamic",
+			"name": "Scale (Manifest)",
+			"refId": "3",
+			"replicas": 1,
+			"requisiteStageRefIds": [
+				"2"
+			],
+			"type": "scaleManifest"
+		}
+	],
+	"triggers": []
+}

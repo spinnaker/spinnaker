@@ -1,0 +1,13 @@
+{
+  "name": "DEMO",
+  "description": "Sample application for Kayenta workshop.",
+  "email": "demo@example.com",
+  "cloudProviders": "kubernetes",
+  "user": "[anonymous]",
+  "dataSources": {
+    "disabled": [],
+    "enabled": [
+      "canaryConfigs"
+    ]
+  }
+}
