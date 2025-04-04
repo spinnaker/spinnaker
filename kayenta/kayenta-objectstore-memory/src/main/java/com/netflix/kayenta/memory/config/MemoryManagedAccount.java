@@ -17,8 +17,8 @@
 package com.netflix.kayenta.memory.config;
 
 import com.netflix.kayenta.security.AccountCredentials;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data

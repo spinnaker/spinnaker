@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.storage.Storage;
 import com.netflix.kayenta.security.AccountCredentials;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
