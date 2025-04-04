@@ -62,7 +62,7 @@ class OkHttp3ClientConfiguration {
   private final SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor
 
   /**
-   * {@link okhttp3.Interceptor} for correcting partial encoding done by Retrofit2.
+   * {@link okhttp3.Interceptor} for correcting partial encoding done by Retrofit2.  Do not use in retrofit1.
    */
   private final Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor
 
@@ -92,7 +92,7 @@ class OkHttp3ClientConfiguration {
   }
 
   /**
-   * @return OkHttpClient w/ <optional> key and trust stores
+   * @return OkHttpClient w/ <optional> key and trust stores.  For use with retrofit1.  Do not use with retrofit2.
    */
   OkHttpClient.Builder create() {
     if (okHttpClientConfigurationProperties.refreshableKeys.enabled) {
@@ -106,10 +106,6 @@ class OkHttp3ClientConfiguration {
       okHttpClientBuilder.addInterceptor(okHttp3MetricsInterceptor)
     }
 
-    if (retrofit2EncodeCorrectionInterceptor != null) {
-      okHttpClientBuilder.addInterceptor(retrofit2EncodeCorrectionInterceptor)
-    }
-
     if (!okHttpClientConfigurationProperties.keyStore && !okHttpClientConfigurationProperties.trustStore) {
       return okHttpClientBuilder
     }
@@ -118,7 +114,8 @@ class OkHttp3ClientConfiguration {
   }
 
   /**
-   * @return OkHttpClient with SpinnakerRequestHeaderInterceptor as initial interceptor w/ <optional> key and trust stores
+   * @return OkHttpClient with SpinnakerRequestHeaderInterceptor and Retrofit2EncodeCorrectionInterceptor
+   * as initial interceptors w/ <optional> key and trust stores
    */
   OkHttpClient.Builder createForRetrofit2() {
     if (okHttpClientConfigurationProperties.refreshableKeys.enabled) {
