@@ -44,7 +44,7 @@ inputs:
     default: 'true'
   publish-debs:
     description: If publishing, determines whether to publish debs or not
-    default: 'true'
+    default: 'false'
   publish-halconfig:
     description: If publishing, determines whether to publish halconfig or not
     default: 'true'
