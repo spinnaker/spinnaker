@@ -13,69 +13,75 @@ import com.netflix.spinnaker.igor.wercker.model.Pipeline
 import com.netflix.spinnaker.igor.wercker.model.Run
 import com.netflix.spinnaker.igor.wercker.model.RunPayload
 import com.netflix.spinnaker.igor.wercker.model.Workflow
-
-import retrofit.client.Response
-import retrofit.http.*
+import okhttp3.Response
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * Interface for interacting with a Wercker service using retrofit
  */
 interface WerckerClient {
 
-    @GET('/api/v3/applications/{owner}')
-    List<Application> getApplicationsByOwner(
-            @Header('Authorization') String authHeader,
-    @Path('owner') owner)
+    @GET('api/v3/applications/{owner}')
+    Call<List<Application>> getApplicationsByOwner(
+      @Header('Authorization') String authHeader,
+      @Path('owner') owner)
 
-    @GET('/api/spinnaker/v1/applications')
-    List<Application> getApplications(@Header('Authorization') String authHeader, @Query('limit') int limit)
+    @GET('api/spinnaker/v1/applications')
+    Call<List<Application>> getApplications(@Header('Authorization') String authHeader, @Query('limit') int limit)
 
-    @GET('/api/v3/runs')
-    List<Run> getRunsForApplication(
+    @GET('api/v3/runs')
+    Call<List<Run>> getRunsForApplication(
             @Header('Authorization') String authHeader,
     @Query('applicationId') String applicationId)
 
-    @GET('/api/v3/runs')
-    List<Run> getRunsForPipeline(
+    @GET('api/v3/runs')
+    Call<List<Run>> getRunsForPipeline(
             @Header('Authorization') String authHeader,
     @Query('pipelineId') String pipelineId)
 
-    @GET('/api/spinnaker/v1/runs')
-    List<Run> getRunsSince(
+    @GET('api/spinnaker/v1/runs')
+    Call<List<Run>> getRunsSince(
             @Header('Authorization') String authHeader,
             @Query('branch') String branch,
             @Query('pipelineIds') List<String> pipelineIds,
             @Query('limit') int limit,
     @Query('since') long since)
 
-    @GET('/api/v3/workflows')
-    List<Workflow> getWorkflowsForApplication(
+    @GET('api/v3/workflows')
+    Call<List<Workflow>> getWorkflowsForApplication(
             @Header('Authorization') String authHeader,
     @Query('applicationId') String applicationId)
 
-    @GET('/api/v3/applications/{username}/{appName}/pipelines')
-    List<Pipeline> getPipelinesForApplication(
+    @GET('api/v3/applications/{username}/{appName}/pipelines')
+    Call<List<Pipeline>> getPipelinesForApplication(
             @Header('Authorization') String authHeader,
             @Path('username') username,
     @Path('appName') appName)
 
-    @GET('/api/v3/pipelines/{pipelineId}')
-    Pipeline getPipeline(
+    @GET('api/v3/pipelines/{pipelineId}')
+    Call<Pipeline> getPipeline(
             @Header('Authorization') String authHeader,
     @Path('pipelineId') String pipelineId)
 
-    @POST('/api/v3/runs')
-    Map<String, Object> triggerBuild(
+    @POST('api/v3/runs')
+    Call<Map<String, Object>> triggerBuild(
             @Header('Authorization') String authHeader,
             @Body RunPayload runPayload
     )
 
-    @GET('/api/v3/runs/{runId}')
-    Run getRunById(@Header('Authorization') String authHeader,
+    @GET('api/v3/runs/{runId}')
+    Call<Run> getRunById(@Header('Authorization') String authHeader,
     @Path('runId') String runId)
 
-    @PUT('/api/v3/runs/{runId}/abort')
-    Response abortRun(@Header('Authorization') String authHeader,
-            @Path('runId') String runId,
-    @Body Map body)
+    @PUT('api/v3/runs/{runId}/abort')
+    Call<Response> abortRun(@Header('Authorization') String authHeader,
+                            @Path('runId') String runId,
+                            @Body Map body)
 }

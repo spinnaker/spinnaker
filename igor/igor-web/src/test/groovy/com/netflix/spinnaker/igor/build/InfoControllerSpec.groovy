@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
@@ -318,7 +319,7 @@ class InfoControllerSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host), false, Permissions.EMPTY, circuitBreakerRegistry)
+        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host), false, Permissions.EMPTY, circuitBreakerRegistry)
     }
 
     @Unroll

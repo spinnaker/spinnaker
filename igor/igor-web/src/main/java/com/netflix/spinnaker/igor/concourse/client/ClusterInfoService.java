@@ -17,9 +17,10 @@
 package com.netflix.spinnaker.igor.concourse.client;
 
 import com.netflix.spinnaker.igor.concourse.client.model.ClusterInfo;
-import retrofit.http.GET;
+import retrofit2.Call;
+import retrofit2.http.GET;
 
 public interface ClusterInfoService {
-  @GET("/api/v1/info")
-  ClusterInfo clusterInfo();
+  @GET("api/v1/info")
+  Call<ClusterInfo> clusterInfo();
 }

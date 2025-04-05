@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.scm.github
 
 import com.netflix.spinnaker.igor.config.GitHubProperties
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.github.client.GitHubClient
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
@@ -24,9 +25,9 @@ import com.netflix.spinnaker.igor.scm.github.client.model.Author
 import com.netflix.spinnaker.igor.scm.github.client.model.Commit
 import com.netflix.spinnaker.igor.scm.github.client.model.CommitInfo
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -66,7 +67,7 @@ class CommitControllerSpec extends Specification {
 
     void 'get 404 from client and return one commit'() {
         when:
-        1 * client.getCompareCommits(projectKey, repositorySlug, queryParams.to, queryParams.from) >> {throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://foo.com", 404, "test reason", [], null), null, null, null, null))}
+        1 * client.getCompareCommits(projectKey, repositorySlug, queryParams.to, queryParams.from) >> { throw TestUtils.makeSpinnakerHttpException("http://foo.com", 404, ResponseBody.create("{}", MediaType.parse("application/json"))) }
         def result = controller.compareCommits(projectKey, repositorySlug, queryParams)
 
         then:
@@ -83,9 +84,9 @@ class CommitControllerSpec extends Specification {
     void 'compare commits'() {
         given:
         1 * client.getCompareCommits(projectKey, repositorySlug, toCommit, fromCommit) >>
-            new CompareCommitsResponse(url: "", html_url: "", commits:
-            [new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/1234512345123451234512345", sha: "1234512345123451234512345", commitInfo: new CommitInfo(author : new Author(email: 'joecoder@project.com', date: Instant.ofEpochMilli(1433192015000), name: "Joe Coder"), message: "my commit")),
-            new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/67890678906789067890", sha: "67890678906789067890", commitInfo: new CommitInfo(author : new Author(email: 'janecoder@project.com', date: Instant.ofEpochMilli(1432078663000), name: "Jane Coder"), message: "bug fix"))])
+          Calls.response(new CompareCommitsResponse(url: "", html_url: "", commits:
+            [new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/1234512345123451234512345", sha: "1234512345123451234512345", commitInfo: new CommitInfo(author: new Author(email: 'joecoder@project.com', date: Instant.ofEpochMilli(1433192015000), name: "Joe Coder"), message: "my commit")),
+             new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/67890678906789067890", sha: "67890678906789067890", commitInfo: new CommitInfo(author: new Author(email: 'janecoder@project.com', date: Instant.ofEpochMilli(1432078663000), name: "Jane Coder"), message: "bug fix"))]))
 
         when:
         List commitsResponse = controller.compareCommits(projectKey, repositorySlug, ['to': toCommit, 'from': fromCommit])

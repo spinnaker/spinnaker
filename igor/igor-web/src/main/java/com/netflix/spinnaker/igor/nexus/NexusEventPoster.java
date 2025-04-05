@@ -22,6 +22,7 @@ import com.netflix.spinnaker.igor.nexus.model.NexusAssetEvent;
 import com.netflix.spinnaker.igor.nexus.model.NexusAssetWebhookPayload;
 import com.netflix.spinnaker.igor.nexus.model.NexusRepo;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Arrays;
 import java.util.List;
@@ -91,8 +92,10 @@ public class NexusEventPoster {
                             .provenance(payload.getRepositoryName())
                             .location(location)
                             .build();
-                    return echoService.postEvent(
-                        new NexusAssetEvent(new NexusAssetEvent.Content(repo.getName(), artifact)));
+                    return Retrofit2SyncCall.execute(
+                        echoService.postEvent(
+                            new NexusAssetEvent(
+                                new NexusAssetEvent.Content(repo.getName(), artifact))));
                   }));
     }
   }

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.igor.config.GitLabProperties;
 import com.netflix.spinnaker.igor.scm.AbstractCommitController;
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabMaster;
 import com.netflix.spinnaker.igor.scm.gitlab.client.model.CompareCommitsResponse;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
@@ -67,7 +68,10 @@ public class CommitController extends AbstractCommitController {
       queryMap.put("to", toParam);
       queryMap.put("from", fromParam);
       commitsResponse =
-          gitLabMaster.getGitLabClient().getCompareCommits(projectKey, repositorySlug, queryMap);
+          Retrofit2SyncCall.execute(
+              gitLabMaster
+                  .getGitLabClient()
+                  .getCompareCommits(projectKey, repositorySlug, queryMap));
     } catch (SpinnakerNetworkException e) {
       throw new NotFoundException("Could not find the server " + gitLabMaster.getBaseUrl());
     } catch (SpinnakerHttpException e) {

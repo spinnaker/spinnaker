@@ -20,6 +20,8 @@ import com.netflix.spinnaker.igor.config.GitlabCiConfig
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline
 import com.netflix.spinnaker.igor.gitlabci.client.model.PipelineStatus
 import com.netflix.spinnaker.igor.gitlabci.client.model.Project
+import com.netflix.spinnaker.igor.helpers.TestUtils
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
@@ -46,7 +48,7 @@ class GitlabCiClientSpec extends Specification {
         setResponse GitlabApiCannedResponses.PROJECT_LIST
 
         when:
-        List<Project> projects = client.getProjects(false, false, 1, 100)
+        List<Project> projects = Retrofit2SyncCall.execute(client.getProjects(false, false, 1, 100))
 
         then:
         projects.size() == 2
@@ -63,7 +65,7 @@ class GitlabCiClientSpec extends Specification {
         setResponse GitlabApiCannedResponses.PIPELINE_SUMMARIES
 
         when:
-        List<Pipeline> pipelineSummaries = client.getPipelineSummaries("500", 100)
+        List<Pipeline> pipelineSummaries = Retrofit2SyncCall.execute(client.getPipelineSummaries("500", 100))
 
         then:
         pipelineSummaries.size() == 3
@@ -78,7 +80,7 @@ class GitlabCiClientSpec extends Specification {
         setResponse GitlabApiCannedResponses.PIPELINE
 
         when:
-        Pipeline pipeline = client.getPipeline("3057147", 14081120)
+        Pipeline pipeline = Retrofit2SyncCall.execute(client.getPipeline("3057147", 14081120))
 
         then:
         pipeline.id == 14081120
@@ -96,6 +98,6 @@ class GitlabCiClientSpec extends Specification {
                 .setHeader('Content-Type', 'application/json')
         )
         server.start()
-        client = GitlabCiConfig.gitlabCiClient(server.url('/').toString(), 'token', 3000, new ObjectMapper())
+        client = GitlabCiConfig.gitlabCiClient(server.url('/').toString(), 'token', 3000, new ObjectMapper(), TestUtils.makeOkHttpClientConfig())
     }
 }
