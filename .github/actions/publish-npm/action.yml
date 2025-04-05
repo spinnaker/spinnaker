@@ -14,7 +14,7 @@ inputs:
     required: true
   registry:
     description: NPM registry to publish to (minus protocol, with trailing slash)
-    default: us-west2-npm.pkg.dev/spinnaker-monorepo-test/npm/
+    default: registry.npmjs.org
   gar-npm-password:
     description: Google Artifact Registry password
 

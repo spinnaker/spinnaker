@@ -29,9 +29,9 @@ on:
       - 'spin/**'
 
 env:
-  REGISTRY_REGION: us-west2-docker.pkg.dev
-  CONTAINER_REGISTRY: us-west2-docker.pkg.dev/spinnaker-monorepo-test/docker
-  GCS_BUCKET: 'spinnaker-monorepo-test/spin'
+  REGISTRY_REGION: us-docker.pkg.dev
+  CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
+  GCS_BUCKET: 'spinnaker-artifacts/spin'
 
 jobs:
   build:

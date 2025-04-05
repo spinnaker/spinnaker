@@ -23,7 +23,7 @@ inputs:
     description: Link to build that produced this container
   container-registry:
     description: Destination container registry
-    default: us-west2-docker.pkg.dev/spinnaker-monorepo-test/docker
+    default: us-docker.pkg.dev/spinnaker-community/docker
   github-token:
     description: Github token to expose to the build, needed for Packer plugin rate limits
   gar-json-key:

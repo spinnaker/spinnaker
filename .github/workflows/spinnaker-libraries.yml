@@ -81,8 +81,8 @@ jobs:
           ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: true
           ORG_GRADLE_PROJECT_artifactRegistryPublishAptEnabled: false
           ORG_GRADLE_PROJECT_artifactRegistryPublishMavenEnabled: true
-          ORG_GRADLE_PROJECT_artifactRegistryMavenProject: spinnaker-monorepo-test
-          ORG_GRADLE_PROJECT_artifactRegistryMavenLocation: us-west2
+          ORG_GRADLE_PROJECT_artifactRegistryMavenProject: spinnaker-community
+          ORG_GRADLE_PROJECT_artifactRegistryMavenLocation: us
           GAR_JSON_KEY: ${{ secrets.GAR_JSON_KEY }}
         run: |
           ./gradlew assemble publish
