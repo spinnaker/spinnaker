@@ -38,7 +38,7 @@ runs:
       uses: docker/login-action@v3
       # use service account flow defined at: https://github.com/docker/login-action#service-account-based-authentication-1
       with:
-        registry: us-west2-docker.pkg.dev
+        registry: us-docker.pkg.dev
         username: _json_key
         password: ${{ inputs.gar-json-key }}
 
