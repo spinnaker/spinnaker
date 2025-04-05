@@ -11,6 +11,7 @@ import com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -20,7 +21,7 @@ import spock.lang.Ignore;
 import spock.lang.Specification
 import spock.util.concurrent.BlockingVariable
 
-@SpringBootTest(classes = [OkHttpClientProvider, InsecureOkHttpClientBuilderProvider, OkHttpClient],
+@SpringBootTest(classes = [OkHttpClientProvider, InsecureOkHttpClientBuilderProvider, OkHttpClient, Retrofit2EncodeCorrectionInterceptor],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class Front50ServiceSpec extends Specification {
   WireMockServer wireMockServer
