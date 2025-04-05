@@ -86,6 +86,8 @@ ${result.exec.out}
   const successes = results.filter((it) => it.isClean).map((it) => it.repo);
   body += `\n\n`;
   body += `Successfully merged: ${successes.join(', ')}`;
+  body += `\n\n`;
+  body += `## Please **do not squash commit this PR**.  Use a merge commit to preserve history.`;
 
   return header + body;
 }
