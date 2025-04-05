@@ -12,7 +12,7 @@ jobs:
     steps:
       # configure based on your registry
       - name: Login to GAR
-        uses: 'docker/login-action@v2'
+        uses: 'docker/login-action@v3'
         with:
           registry: us-docker.pkg.dev
           username: _json_key
