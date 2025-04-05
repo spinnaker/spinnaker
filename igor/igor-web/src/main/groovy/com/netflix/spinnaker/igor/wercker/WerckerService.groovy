@@ -24,11 +24,10 @@ import com.netflix.spinnaker.igor.wercker.model.Pipeline
 import com.netflix.spinnaker.igor.wercker.model.QualifiedPipelineName
 import com.netflix.spinnaker.igor.wercker.model.Run
 import com.netflix.spinnaker.igor.wercker.model.RunPayload
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.util.logging.Slf4j
 import okhttp3.Response
-import retrofit.mime.TypedByteArray
 
 import static com.netflix.spinnaker.igor.model.BuildServiceProvider.WERCKER
 import static net.logstash.logback.argument.StructuredArguments.kv
@@ -206,35 +205,35 @@ class WerckerService implements BuildOperations {
     }
 
     List<Application> getApplications() {
-      return werckerClient.getApplications(authHeaderValue, limit)
+      return Retrofit2SyncCall.execute(werckerClient.getApplications(authHeaderValue, limit))
     }
 
     List<Pipeline> getPipelines(String org, String app) {
-      return werckerClient.getPipelinesForApplication(authHeaderValue, org, app)
+      return Retrofit2SyncCall.execute(werckerClient.getPipelinesForApplication(authHeaderValue, org, app))
     }
 
     Run getRunById(String runId) {
-      return werckerClient.getRunById(authHeaderValue, runId)
+      return Retrofit2SyncCall.execute(werckerClient.getRunById(authHeaderValue, runId))
     }
 
     Response abortRun(String runId, Map body) {
-      return werckerClient.abortRun(authHeaderValue, runId, body)
+      return Retrofit2SyncCall.execute(werckerClient.abortRun(authHeaderValue, runId, body))
     }
 
     List<Run> getRunsSince(String branch, List<String> pipelineIds, int limit, long since) {
-      return werckerClient.getRunsSince(authHeaderValue, branch, pipelineIds, limit, since)
+      return Retrofit2SyncCall.execute(werckerClient.getRunsSince(authHeaderValue, branch, pipelineIds, limit, since))
     }
 
     List<Run> getRunsForPipeline(String pipelineId) {
-      return werckerClient.getRunsForPipeline(authHeaderValue, pipelineId)
+      return Retrofit2SyncCall.execute(werckerClient.getRunsForPipeline(authHeaderValue, pipelineId))
     }
 
     Pipeline getPipeline(String pipelineId) {
-      return werckerClient.getPipeline(authHeaderValue, pipelineId)
+      return Retrofit2SyncCall.execute(werckerClient.getPipeline(authHeaderValue, pipelineId))
     }
 
     Map<String, Object> triggerBuild(RunPayload runPayload) {
-      return werckerClient.triggerBuild(authHeaderValue, runPayload)
+      return Retrofit2SyncCall.execute(werckerClient.triggerBuild(authHeaderValue, runPayload))
     }
 
     /**

@@ -15,11 +15,12 @@ import com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.igor.config.*
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.wercker.model.*
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.OkHttpClient
-import retrofit.RestAdapter
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -51,7 +52,7 @@ class WerckerClientSpec extends Specification {
         setResponse 'getApplications.js'
 
         when:
-        List<Application> apps = client.getApplications(authHeader, limit)
+        List<Application> apps = Retrofit2SyncCall.execute(client.getApplications(authHeader, limit))
 
         then:
         def request = server.takeRequest()
@@ -73,7 +74,7 @@ class WerckerClientSpec extends Specification {
         setResponse 'getRuns.js'
 
         when:
-        List<Run> runs = client.getRunsSince(authHeader, branch, ['x', 'y', 'z'], limit, time)
+        List<Run> runs = Retrofit2SyncCall.execute(client.getRunsSince(authHeader, branch, ['x', 'y', 'z'], limit, time))
 
         then:
         def request = server.takeRequest()
@@ -108,7 +109,7 @@ class WerckerClientSpec extends Specification {
                 )
         server.start()
         def host = new WerckerHost(name: 'werckerMaster', address: server.url('/').toString())
-        client = new WerckerConfig().werckerClient(host, 30000, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]), RestAdapter.LogLevel.BASIC, objectMapper)
+        client = new WerckerConfig().werckerClient(host, 30000, objectMapper, TestUtils.makeOkHttpClientConfig())
     }
 
     String read(String fileName) {

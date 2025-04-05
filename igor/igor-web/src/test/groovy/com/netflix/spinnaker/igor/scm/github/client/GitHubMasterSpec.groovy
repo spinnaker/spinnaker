@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.igor.scm.github.client
 
 import com.netflix.spinnaker.igor.scm.github.client.model.GetRepositoryContentResponse
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -33,7 +34,7 @@ class GitHubMasterSpec extends Specification {
 
   void 'list directory'() {
     given:
-    1 * gitHubClient.listDirectory(project, repo, dir, ref) >> gitHubClientResponse
+    1 * gitHubClient.listDirectory(project, repo, dir, ref) >> Calls.response(gitHubClientResponse)
 
     when:
     List<String> response = gitHubMaster.listDirectory(project, repo, dir, ref)
@@ -57,7 +58,7 @@ class GitHubMasterSpec extends Specification {
 
   void 'get file content'() {
     given:
-    1 * gitHubClient.getFileContent(project, repo, dir, ref) >> gitHubClientResponse
+    1 * gitHubClient.getFileContent(project, repo, dir, ref) >> Calls.response(gitHubClientResponse)
 
     when:
     String response = gitHubMaster.getTextFileContents(project, repo, dir, ref)

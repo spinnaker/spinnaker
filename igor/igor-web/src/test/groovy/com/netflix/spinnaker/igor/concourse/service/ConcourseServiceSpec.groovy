@@ -36,6 +36,8 @@ import com.netflix.spinnaker.igor.concourse.client.model.Build
 import com.netflix.spinnaker.igor.concourse.client.model.Event
 import com.netflix.spinnaker.igor.concourse.client.model.Plan
 import com.netflix.spinnaker.igor.helpers.TestUtils
+import retrofit2.mock.Calls
+
 import java.util.List
 import reactor.core.publisher.Flux;
 import spock.lang.Shared
@@ -88,8 +90,8 @@ class ConcourseServiceSpec extends Specification {
 
     def "getGenericBuild(jobPath, buildNumber)"() {
         given:
-        buildService.builds('myteam', 'mypipeline', 'myjob', _, _) >> builds('49', '48.1', '48', '47')
-        buildService.plan(_) >> planFixture()
+        buildService.builds('myteam', 'mypipeline', 'myjob', _, _) >> Calls.response(builds('49', '48.1', '48', '47'))
+        buildService.plan(_) >> Calls.response(planFixture())
         eventService.resourceEvents(_) >> eventFixture()
 
         when:
@@ -105,8 +107,8 @@ class ConcourseServiceSpec extends Specification {
 
     def "getGenericBuildMissingBranch(jobPath, buildNumber)"() {
         given:
-        buildService.builds('myteam', 'mypipeline', 'myjob', _, _) >> builds('49', '48.1', '48', '47')
-        buildService.plan(_) >> planFixtureNoBranch()
+        buildService.builds('myteam', 'mypipeline', 'myjob', _, _) >> Calls.response(builds('49', '48.1', '48', '47'))
+        buildService.plan(_) >> Calls.response(planFixtureNoBranch())
         eventService.resourceEvents(_) >> eventFixtureNoBranch()
 
         when:
@@ -122,9 +124,9 @@ class ConcourseServiceSpec extends Specification {
 
     def "getBuilds(jobPath, since)"() {
         given:
-        buildService.builds('myteam', 'mypipeline', 'myjob', _, 1421717251402) >> builds('49', '48.1', '48', '47')
-        buildService.plan(_) >> planFixture()
-        eventService.resourceEvents(_) >> eventFixture()
+        buildService.builds('myteam', 'mypipeline', 'myjob', _, 1421717251402) >> Calls.response(builds('49', '48.1', '48', '47'))
+        buildService.plan(_) >> Calls.response(planFixture())
+        eventService.resourceEvents(_) >> (eventFixture())
 
         when:
         List<Build> builds = service.getBuilds('myteam/mypipeline/myjob', 1421717251402)

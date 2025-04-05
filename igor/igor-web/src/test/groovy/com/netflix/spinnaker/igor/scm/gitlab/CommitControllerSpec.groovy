@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.igor.scm.gitlab
 
 import com.netflix.spinnaker.igor.config.GitLabProperties
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabClient
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabMaster
 import com.netflix.spinnaker.igor.scm.gitlab.client.model.Commit
 import com.netflix.spinnaker.igor.scm.gitlab.client.model.CompareCommitsResponse
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -68,7 +69,7 @@ class CommitControllerSpec extends Specification {
     void 'get 404 from client and return one commit'() {
         when:
         1 * client.getCompareCommits(projectKey, repositorySlug, [from: queryParams.to, to: queryParams.from]) >> {
-            throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://foo.com", 404, "test reason", [], null), null, null, null, null))
+            throw TestUtils.makeSpinnakerHttpException("http://foo.com", 404, ResponseBody.create("{}", MediaType.parse("application/json")))
         }
         def result = controller.compareCommits(projectKey, repositorySlug, queryParams)
 
@@ -86,9 +87,9 @@ class CommitControllerSpec extends Specification {
     void 'compare commits'() {
         given:
         1 * client.getCompareCommits(projectKey, repositorySlug, [from: toCommit, to: fromCommit]) >>
-            new CompareCommitsResponse(
-                [new Commit("1234512345123451234512345", "Joe Coder", new Date(1433192015000), "my commit"),
-                 new Commit("67890678906789067890", "Jane Coder", new Date(1432078663000), "bug fix")] as List<Commit>)
+          Calls.response(new CompareCommitsResponse(
+            [new Commit("1234512345123451234512345", "Joe Coder", new Date(1433192015000), "my commit"),
+             new Commit("67890678906789067890", "Jane Coder", new Date(1432078663000), "bug fix")] as List<Commit>))
 
         when:
         List commitsResponse = controller.compareCommits(projectKey, repositorySlug, ['to': toCommit, 'from': fromCommit])

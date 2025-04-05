@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.scm.stash.client
 
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
 import com.netflix.spinnaker.igor.scm.stash.client.model.TextLinesResponse
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -34,7 +35,7 @@ class StashMaster extends AbstractScmMaster {
 
   List<String> listDirectory(String projectKey, String repositorySlug, String path, String ref) {
     try {
-      return stashClient.listDirectory(projectKey, repositorySlug, path, ref).toChildFilenames()
+      return Retrofit2SyncCall.execute(stashClient.listDirectory(projectKey, repositorySlug, path, ref)).toChildFilenames()
     }catch (SpinnakerNetworkException e) {
       throw new NotFoundException("Could not find the server ${baseUrl}")
     }
@@ -54,8 +55,8 @@ class StashMaster extends AbstractScmMaster {
       int start = 0
       while (!lastPage) {
         log.debug("Retrieving text file contents from project: $projectKey, repo: $repositorySlug, path: $path, ref: $ref, start: $start")
-        TextLinesResponse response = stashClient.getTextFileContents(
-          projectKey, repositorySlug, path, ref, DEFAULT_PAGED_RESPONSE_LIMIT, start)
+        TextLinesResponse response = Retrofit2SyncCall.execute(stashClient.getTextFileContents(
+          projectKey, repositorySlug, path, ref, DEFAULT_PAGED_RESPONSE_LIMIT, start))
         lastPage = response.isLastPage
         start = response.start + response.size
         contents += response.toTextContents() + "\n"

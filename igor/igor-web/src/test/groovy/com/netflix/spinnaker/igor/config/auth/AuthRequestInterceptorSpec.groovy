@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.igor.config.auth
 
 import com.netflix.spinnaker.igor.config.JenkinsProperties
-import retrofit.RequestInterceptor
+import okhttp3.Interceptor
+import okhttp3.Request
 import spock.lang.Specification
 
 class AuthRequestInterceptorSpec extends Specification {
@@ -25,13 +26,11 @@ class AuthRequestInterceptorSpec extends Specification {
     def "should append each auth header supplier's value"() {
         setup:
         def interceptor = new AuthRequestInterceptor(host)
-        def request = Mock(RequestInterceptor.RequestFacade)
-
+        def chain = Mock(Interceptor.Chain) { request() >> new Request.Builder().url("http://test.com").build()}
         when:
-        interceptor.intercept(request)
-
+        interceptor.intercept(chain)
         then:
-        1 * request.addHeader("Authorization", expectedHeader)
+        1 * chain.proceed({Request req -> req.header("Authorization") == expectedHeader})
 
         where:
         host                                                                                    || expectedHeader

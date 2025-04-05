@@ -33,6 +33,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -289,6 +290,11 @@ class FunctionalSpec extends Specification {
     @Bean
     PipelineControllerConfigProperties pipelineControllerConfigProperties() {
       new PipelineControllerConfigProperties();
+    }
+
+    @Bean
+    Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor() {
+      return new Retrofit2EncodeCorrectionInterceptor();
     }
 
     @Override

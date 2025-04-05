@@ -17,12 +17,12 @@ package com.netflix.spinnaker.igor.config.client;
 
 import com.netflix.spinnaker.igor.config.JenkinsProperties;
 import com.netflix.spinnaker.igor.config.auth.AuthRequestInterceptor;
-import retrofit.RequestInterceptor;
+import okhttp3.Interceptor;
 
 public class DefaultJenkinsRetrofitRequestInterceptorProvider
     implements JenkinsRetrofitRequestInterceptorProvider {
   @Override
-  public RequestInterceptor provide(JenkinsProperties.JenkinsHost host) {
+  public Interceptor provide(JenkinsProperties.JenkinsHost host) {
     return new AuthRequestInterceptor(host);
   }
 }

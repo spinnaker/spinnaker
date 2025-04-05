@@ -18,17 +18,18 @@ package com.netflix.spinnaker.igor.scm.gitlab.client;
 
 import com.netflix.spinnaker.igor.scm.gitlab.client.model.CompareCommitsResponse;
 import java.util.Map;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.QueryMap;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.QueryMap;
 
 /** Interface for interacting with a GitLab REST API https://docs.gitlab.com/ce/api/README.html */
 public interface GitLabClient {
 
   /** https://docs.gitlab.com/ce/api/repositories.html#compare-branches-tags-or-commits */
-  @GET("/api/v4/projects/{projectKey}%2F{repositorySlug}/repository/compare")
-  CompareCommitsResponse getCompareCommits(
+  @GET("api/v4/projects/{projectKey}%2F{repositorySlug}/repository/compare")
+  Call<CompareCommitsResponse> getCompareCommits(
       @Path("projectKey") String projectKey,
       @Path("repositorySlug") String repositorySlug,
-      @QueryMap Map queryMap);
+      @QueryMap Map<String, String> queryMap);
 }

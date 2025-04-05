@@ -20,6 +20,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.netflix.spinnaker.config.ServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfigurationProperties
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -71,7 +72,7 @@ class KatoRestServiceSpec extends Specification {
         OkHttpClient.Builder get(ServiceEndpoint service) {
           return new OkHttpClient().newBuilder()
         }
-      }]),
+      }], new Retrofit2EncodeCorrectionInterceptor()),
       FULL,
       noopInterceptor,
       new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: wireMockServer.url("/"))))

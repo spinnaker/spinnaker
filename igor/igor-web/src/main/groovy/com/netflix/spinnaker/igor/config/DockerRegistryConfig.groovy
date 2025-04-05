@@ -17,22 +17,19 @@
 package com.netflix.spinnaker.igor.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit.Ok3Client
-import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.ClouddriverService
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+import com.netflix.spinnaker.igor.util.RetrofitUtils
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import groovy.transform.CompileStatic
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.Endpoints
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
 @ConditionalOnProperty(['services.clouddriver.base-url', 'docker-registry.enabled'])
@@ -46,9 +43,8 @@ class DockerRegistryConfig {
 
     @Bean
     ClouddriverService dockerRegistryProxyService(
-      OkHttpClientProvider clientProvider,
+      OkHttp3ClientConfiguration okHttpClientConfig,
       IgorConfigurationProperties igorConfigurationProperties,
-      RestAdapter.LogLevel retrofitLogLevel,
       ObjectMapper objectMapper
     ) {
         def address = igorConfigurationProperties.services.clouddriver.baseUrl ?: 'none'
@@ -56,13 +52,11 @@ class DockerRegistryConfig {
             null
         }
 
-        new RestAdapter.Builder()
-                .setEndpoint(Endpoints.newFixedEndpoint(address))
-                .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("clouddriver", address))))
-                .setLogLevel(retrofitLogLevel)
-                .setConverter(new JacksonConverter(objectMapper))
-                .setLog(new Slf4jRetrofitLogger(ClouddriverService))
-                .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+        new Retrofit.Builder()
+                .baseUrl(RetrofitUtils.getBaseUrl(address))
+                .client(okHttpClientConfig.createForRetrofit2().build())
+                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+                .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
                 .build()
                 .create(ClouddriverService)
     }

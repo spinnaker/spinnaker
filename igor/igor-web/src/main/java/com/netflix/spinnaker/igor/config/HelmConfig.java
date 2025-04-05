@@ -16,29 +16,18 @@
 
 package com.netflix.spinnaker.igor.config;
 
-import com.amazonaws.util.IOUtils;
-import com.google.gson.Gson;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccounts;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccountsService;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import java.io.IOException;
-import java.lang.reflect.Type;
+import com.netflix.spinnaker.igor.util.RetrofitUtils;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
-import retrofit.Endpoints;
-import retrofit.RestAdapter;
-import retrofit.converter.ConversionException;
-import retrofit.converter.Converter;
-import retrofit.converter.GsonConverter;
-import retrofit.mime.TypedInput;
-import retrofit.mime.TypedOutput;
+import retrofit2.Retrofit;
 
 @Configuration
 @ConditionalOnProperty("helm.enabled")
@@ -49,35 +38,10 @@ public class HelmConfig {
     return new HelmAccounts();
   }
 
-  // Custom converter to deal with index file raw string responses
-  class StringConverter implements Converter {
-    private GsonConverter gson = new GsonConverter(new Gson());
-
-    @Override
-    public Object fromBody(TypedInput body, Type type) throws ConversionException {
-      // If the return type is a String, provide it as such
-      if (type.getTypeName().equals("java.lang.String")) {
-        try {
-          return IOUtils.toString(body.in());
-        } catch (IOException e) {
-          throw new ConversionException("Cannot convert response to string");
-        }
-      } else {
-        return gson.fromBody(body, type);
-      }
-    }
-
-    @Override
-    public TypedOutput toBody(Object object) {
-      return gson.toBody(object);
-    }
-  }
-
   @Bean
   HelmAccountsService helmAccountsService(
       OkHttp3ClientConfiguration okHttp3ClientConfig,
-      IgorConfigurationProperties igorConfigurationProperties,
-      RestAdapter.LogLevel retrofitLogLevel) {
+      IgorConfigurationProperties igorConfigurationProperties) {
     String address = igorConfigurationProperties.getServices().getClouddriver().getBaseUrl();
 
     if (StringUtils.isEmpty(address)) {
@@ -85,13 +49,11 @@ public class HelmConfig {
           "No Clouddriver URL is configured - Igor will be unable to fetch Helm charts and repository indexes");
     }
 
-    return new RestAdapter.Builder()
-        .setEndpoint(Endpoints.newFixedEndpoint(address))
-        .setClient(new Ok3Client(okHttp3ClientConfig.create().build()))
-        .setConverter(new StringConverter())
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new Slf4jRetrofitLogger(HelmAccountsService.class))
-        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(address))
+        .client(okHttp3ClientConfig.createForRetrofit2().build())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(new HelmConverterFactory())
         .build()
         .create(HelmAccountsService.class);
   }

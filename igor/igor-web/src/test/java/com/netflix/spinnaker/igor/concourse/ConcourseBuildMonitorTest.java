@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.concourse.service.ConcourseService;
 import com.netflix.spinnaker.igor.config.ConcourseProperties;
@@ -28,8 +29,10 @@ import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.util.Collections;
 import java.util.Optional;
+import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +66,18 @@ class ConcourseBuildMonitorTest {
 
     BuildServices buildServices = new BuildServices();
     buildServices.addServices(
-        ImmutableMap.of("test", new ConcourseService(host, Optional.of(artifactDecorator))));
+        ImmutableMap.of(
+            "test",
+            new ConcourseService(
+                host,
+                Optional.of(artifactDecorator),
+                new OkHttp3ClientConfiguration(
+                    new OkHttpClientConfigurationProperties(),
+                    null,
+                    HttpLoggingInterceptor.Level.BASIC,
+                    null,
+                    null,
+                    null))));
 
     this.monitor =
         new ConcourseBuildMonitor(

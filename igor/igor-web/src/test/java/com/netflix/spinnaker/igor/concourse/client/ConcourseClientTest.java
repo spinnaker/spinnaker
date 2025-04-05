@@ -18,13 +18,28 @@ package com.netflix.spinnaker.igor.concourse.client;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.net.UnknownHostException;
+import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.jupiter.api.Test;
 
 class ConcourseClientTest {
   @Test
   void connectException() {
-    assertThatThrownBy(() -> new ConcourseClient("http://does.not.exist", "test", "test"))
+    assertThatThrownBy(
+            () ->
+                new ConcourseClient(
+                    "http://test",
+                    "test",
+                    "test",
+                    new OkHttp3ClientConfiguration(
+                        new OkHttpClientConfigurationProperties(),
+                        null,
+                        HttpLoggingInterceptor.Level.BASIC,
+                        null,
+                        null,
+                        null)))
         .hasRootCauseInstanceOf(UnknownHostException.class);
   }
 }

@@ -35,6 +35,7 @@ import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Date;
 import java.util.List;
@@ -205,7 +206,8 @@ public class ConcourseBuildMonitor
       GenericBuildEvent event = new GenericBuildEvent();
       event.setContent(content);
 
-      AuthenticatedRequest.allowAnonymous(() -> echoService.get().postEvent(event));
+      AuthenticatedRequest.allowAnonymous(
+          () -> Retrofit2SyncCall.execute(echoService.get().postEvent(event)));
     } else {
       log.warn("Cannot send build event notification: Echo is not configured");
       log.info("({}) unable to push event for :" + build.getFullDisplayName());

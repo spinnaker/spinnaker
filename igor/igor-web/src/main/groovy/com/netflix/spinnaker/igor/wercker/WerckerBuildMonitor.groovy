@@ -10,6 +10,7 @@ package com.netflix.spinnaker.igor.wercker
 
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.scheduling.TaskScheduler
 
@@ -248,7 +249,7 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
             return false
         }
         AuthenticatedRequest.allowAnonymous {
-            echoService.get().postEvent(new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: "wercker")))
+            Retrofit2SyncCall.execute(echoService.get().postEvent(new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: "wercker"))))
         }
         return true
     }

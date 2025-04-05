@@ -33,14 +33,15 @@ import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
 import okhttp3.mockwebserver.MockWebServer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import retrofit.client.Header
-import retrofit.client.Response
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -270,7 +271,15 @@ class BuildControllerSpec extends Specification {
   void 'trigger a build without parameters'() {
     given:
     1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true)
-    1 * jenkinsService.build(JOB_NAME) >> new Response("http://test.com", HTTP_201, "", [new Header("Location", "foo/${BUILD_NUMBER}")], null)
+    def request = new Request.Builder().url("http://test.com").build()
+    def rawResponse = new Response.Builder()
+          .code(HTTP_201)
+          .message("")
+          .header("Location", "foo/${BUILD_NUMBER}")
+          .request(request)
+          .protocol(Protocol.HTTP_1_1)
+          .build()
+    1 * jenkinsService.build(JOB_NAME) >> retrofit2.Response.success(null, rawResponse)
 
     when:
     MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
@@ -286,7 +295,15 @@ class BuildControllerSpec extends Specification {
   void 'trigger a build with parameters to a job with parameters'() {
     given:
     1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultParameterValue: [name: "name", value: null], description: "description")])
-    1 * jenkinsService.buildWithParameters(JOB_NAME, [name: "myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location", "foo/${BUILD_NUMBER}")], null)
+    def request = new Request.Builder().url("http://test.com").build()
+    def rawResponse = new Response.Builder()
+      .code(HTTP_201)
+      .message("")
+      .header("Location", "foo/${BUILD_NUMBER}")
+      .request(request)
+      .protocol(Protocol.HTTP_1_1)
+      .build()
+    1 * jenkinsService.buildWithParameters(JOB_NAME, [name: "myName"]) >> retrofit2.Response.success(null, rawResponse)
 
     when:
     MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
@@ -299,7 +316,15 @@ class BuildControllerSpec extends Specification {
   void 'trigger a build without parameters to a job with parameters with default values'() {
     given:
     1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultParameterValue: [name: "name", value: "value"], description: "description")])
-    1 * jenkinsService.buildWithParameters(JOB_NAME, ['startedBy': "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location", "foo/${BUILD_NUMBER}")], null)
+    def request = new Request.Builder().url("http://test.com").build()
+    def rawResponse = new Response.Builder()
+      .code(HTTP_201)
+      .message("")
+      .header("Location", "foo/${BUILD_NUMBER}")
+      .request(request)
+      .protocol(Protocol.HTTP_1_1)
+      .build()
+    1 * jenkinsService.buildWithParameters(JOB_NAME, ['startedBy': "igor"]) >> retrofit2.Response.success(null, rawResponse)
 
     when:
     MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}", "")

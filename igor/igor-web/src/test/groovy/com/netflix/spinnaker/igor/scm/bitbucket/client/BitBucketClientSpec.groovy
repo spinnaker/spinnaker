@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.igor.scm.bitbucket.client
 
 import com.netflix.spinnaker.igor.config.BitBucketConfig
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -49,7 +52,7 @@ class BitBucketClientSpec extends Specification {
         .setHeader('Content-Type', 'text/xml;charset=UTF-8')
     )
     server.start()
-    client = new BitBucketConfig().bitBucketClient(server.url('/').toString(), 'username', 'password')
+    client = new BitBucketConfig().bitBucketClient(server.url('/').toString(), 'username', 'password', TestUtils.makeOkHttpClientConfig())
   }
 
   void 'getCompareCommits'() {
@@ -57,7 +60,7 @@ class BitBucketClientSpec extends Specification {
     setResponse getCompareCommitsResponse()
 
     when:
-    CompareCommitsResponse commitsResponse = client.getCompareCommits('foo', 'repo', [toCommit:'abcd', fromCommit:'defg'])
+    CompareCommitsResponse commitsResponse = Retrofit2SyncCall.execute(client.getCompareCommits('foo', 'repo', [toCommit: 'abcd', fromCommit: 'defg']))
 
     then:
     commitsResponse.values.size() == 2

@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.igor.concourse.client;
 
 import com.netflix.spinnaker.igor.concourse.client.model.TokenV3;
-import retrofit.http.Field;
-import retrofit.http.FormUrlEncoded;
-import retrofit.http.POST;
+import retrofit2.Call;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.POST;
 
 public interface TokenServiceV3 {
   @FormUrlEncoded
-  @POST("/sky/issuer/token")
-  TokenV3 passwordToken(
+  @POST("sky/issuer/token")
+  Call<TokenV3> passwordToken(
       @Field("grant_type") String grantType,
       @Field("username") String username,
       @Field("password") String password,

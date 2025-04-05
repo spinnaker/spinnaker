@@ -33,7 +33,7 @@ public interface FiatService {
    * @param userId The username of the user
    * @return The full UserPermission of the user.
    */
-  @GET("/authorize/{userId}")
+  @GET("authorize/{userId}")
   Call<UserPermission.View> getUserPermission(@Path("userId") String userId);
 
   /**
@@ -43,7 +43,7 @@ public interface FiatService {
    * @param authorization The authorization in question (read, write, etc)
    * @return True if the user has access to the specified resource.
    */
-  @GET("/authorize/{userId}/{resourceType}/{resourceName}/{authorization}")
+  @GET("authorize/{userId}/{resourceType}/{resourceName}/{authorization}")
   Call<Void> hasAuthorization(
       @Path("userId") String userId,
       @Path("resourceType") String resourceType,
@@ -58,7 +58,7 @@ public interface FiatService {
    * @param resourceType The type of the resource
    * @param resource The resource to check
    */
-  @POST("/authorize/{userId}/{resourceType}/create")
+  @POST("authorize/{userId}/{resourceType}/create")
   Call<Void> canCreate(
       @Path("userId") String userId,
       @Path("resourceType") String resourceType,
@@ -69,7 +69,7 @@ public interface FiatService {
    *
    * @return The number of non-anonymous users synced.
    */
-  @POST("/roles/sync")
+  @POST("roles/sync")
   Call<Long> sync();
 
   /**
@@ -78,7 +78,7 @@ public interface FiatService {
    * @param roles Users with any role listed should be updated.
    * @return The number of non-anonymous users synced.
    */
-  @POST("/roles/sync")
+  @POST("roles/sync")
   Call<Long> sync(@Body List<String> roles);
 
   /**
@@ -89,7 +89,7 @@ public interface FiatService {
    * @param roles The roles allowed for this service account.
    * @return The number of non-anonymous users synced.
    */
-  @POST("/roles/sync/serviceAccount/{serviceAccountId}")
+  @POST("roles/sync/serviceAccount/{serviceAccountId}")
   Call<Long> syncServiceAccount(
       @Path("serviceAccountId") String serviceAccountId, @Body List<String> roles);
 
@@ -97,7 +97,7 @@ public interface FiatService {
    * @param userId The user being logged in
    * @return ignored.
    */
-  @POST("/roles/{userId}")
+  @POST("roles/{userId}")
   Call<Void> loginUser(@Path("userId") String userId);
 
   /**
@@ -107,13 +107,13 @@ public interface FiatService {
    * @param roles Collection of roles from the identity provider
    * @return ignored.
    */
-  @PUT("/roles/{userId}")
+  @PUT("roles/{userId}")
   Call<Void> loginWithRoles(@Path("userId") String userId, @Body Collection<String> roles);
 
   /**
    * @param userId The user being logged out
    * @return ignored.
    */
-  @DELETE("/roles/{userId}")
+  @DELETE("roles/{userId}")
   Call<Void> logoutUser(@Path("userId") String userId);
 }

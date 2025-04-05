@@ -12,7 +12,7 @@ package com.netflix.spinnaker.igor.wercker
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
 import com.netflix.spinnaker.igor.wercker.model.*
-
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -36,17 +36,17 @@ class WerckerServiceSpec extends Specification {
 
     void 'get pipelines as jobs'() {
         setup:
-        client.getApplications(_,_) >> [
+        client.getApplications(_,_) >> Calls.response([
             appOf('myApp1', 'coo', [pipeOf('myPipeA', 'newType')]),
             appOf('myApp2', 'foo', [
                 pipeOf('myPipeX', 'x'),
                 pipeOf('myPipeY', 'y')
             ])
-        ]
-
+        ])
+        def jobs = service.getJobs()
         expect:
-        service.jobs.size() == 3
-        service.jobs.contains('x/foo/myApp2/myPipeX')
+        jobs.size() == 3
+        jobs.contains('x/foo/myApp2/myPipeX')
     }
 
     void 'get pipelineId and builds'() {
@@ -65,8 +65,8 @@ class WerckerServiceSpec extends Specification {
             runOf('2', now-2, appOf(app, org, []), pipelines[1]),
             runOf('3', now-3, appOf(app, org, []), pipelines[1])
         ]
-        client.getPipelinesForApplication(_, org, app) >> pipelines
-        client.getRunsForPipeline(_, pipelineId) >> runs
+        client.getPipelinesForApplication(_, org, app) >> Calls.response(pipelines)
+        client.getRunsForPipeline(_, pipelineId) >> Calls.response(runs)
 
         expect:
         service.getBuilds(pipeline) == runs
@@ -86,7 +86,7 @@ class WerckerServiceSpec extends Specification {
             runOf('3', now-3, appOf(app, org, []), pipeOf(pipe, 'git'))
         ]
         cache.getPipelineID(_, pipeline) >> pipelineId
-        client.getRunsForPipeline(_, pipelineId) >> runs
+        client.getRunsForPipeline(_, pipelineId) >> Calls.response(runs)
 
         expect:
         service.getBuilds(pipeline) == runs
@@ -107,16 +107,17 @@ class WerckerServiceSpec extends Specification {
             runOf('3', now-10, app1, pipe3, 'c'),
             runOf('4', now-10, app2, pipe2, 'b'),
         ]
-        client.getRunsSince(_,_,_,_,since) >> runs1
-        client.getPipeline(_, 'a') >> pipe1
-        client.getPipeline(_, 'b') >> pipe2
-        client.getPipeline(_, 'c') >> pipe3
+        client.getRunsSince(_,_,_,_,since) >> Calls.response(runs1)
+        client.getPipeline(_, 'a') >> Calls.response(pipe1)
+        client.getPipeline(_, 'b') >>> [Calls.response(pipe2), Calls.response(pipe2)]
+        client.getPipeline(_, 'c') >> Calls.response(pipe3)
+        def runs = service.getRunsSince(since)
 
         expect:
-        service.getRunsSince(since).size() == 3
-        service.getRunsSince(since).get('org1/app2/p2').size() == 2
-        service.getRunsSince(since).get('org1/app1/p1').size() == 1
-        service.getRunsSince(since).get('org1/app1/p3').size() == 1
+        runs.size() == 3
+        runs.get('org1/app2/p2').size() == 2
+        runs.get('org1/app1/p1').size() == 1
+        runs.get('org1/app1/p3').size() == 1
     }
 
     void 'get GenericBuild with buildNumber'() {
@@ -131,11 +132,12 @@ class WerckerServiceSpec extends Specification {
         int buildNumber = 6
         setup:
         cache.getRunID(master, job, buildNumber) >> runId
-        client.getRunById(_, runId) >> new Run(id: runId)
+        client.getRunById(_, runId) >> Calls.response(new Run(id: runId))
+        def build = service.getGenericBuild(job, buildNumber)
 
         expect:
-        service.getGenericBuild(job, buildNumber).url == werckerDev + org + '/' + app + '/runs/' + pipe + '/' + runId
-        service.getGenericBuild(job, buildNumber).building == true
+        build.url == werckerDev + org + '/' + app + '/runs/' + pipe + '/' + runId
+        build.building == true
     }
 
     void 'test triggerBuildWithParameters'() {
@@ -150,12 +152,12 @@ class WerckerServiceSpec extends Specification {
         int buildNumber = 8
 
         setup:
-        client.getPipelinesForApplication(_, org, app) >> [
+        client.getPipelinesForApplication(_, org, app) >> Calls.response([
             pipeOf('foo', 'git'),
             pipeOf(pipe, 'git', pipelineId)
-        ]
-        client.triggerBuild(_, _) >> ['id': runId]
-        client.getRunById(_, runId) >> new Run(id: runId)
+        ])
+        client.triggerBuild(_, _) >> Calls.response(['id': runId])
+        client.getRunById(_, runId) >> Calls.response(new Run(id: runId))
         cache.updateBuildNumbers(master, pipeline, _) >> ['test_triggerBuild_runId': buildNumber]
 
         expect:

@@ -19,6 +19,7 @@ dependencies {
 
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -33,9 +34,6 @@ dependencies {
 
   // TODO(rz): Get rid of this dependency!
   implementation "net.logstash.logback:logstash-logback-encoder"
-
-  // TODO(rz): Get rid of this dependency!
-  implementation "com.squareup.retrofit:retrofit"
 
   testImplementation "com.squareup.okhttp3:mockwebserver"
 }

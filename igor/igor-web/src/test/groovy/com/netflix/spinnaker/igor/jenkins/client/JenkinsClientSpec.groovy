@@ -18,12 +18,14 @@ package com.netflix.spinnaker.igor.jenkins.client
 
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.model.Crumb
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
@@ -53,7 +55,7 @@ class JenkinsClientSpec extends Specification {
         setResponse getBuildsWithArtifactsAndTests()
 
         when:
-        List<Project> projects = client.projects.list
+        List<Project> projects = Retrofit2SyncCall.execute(client.projects).list
 
         then:
         projects.size() == 3
@@ -64,7 +66,7 @@ class JenkinsClientSpec extends Specification {
         given:
         final BUILD_NUMBER = 24
         setResponse '''<freeStyleProject><artifact><displayPath>mayo_1.0-h24.853b2ea_all.deb</displayPath><fileName>mayo_1.0-h24.853b2ea_all.deb</fileName><relativePath>build/distributions/mayo_1.0-h24.853b2ea_all.deb</relativePath></artifact><artifact><displayPath>dependencies.txt</displayPath><fileName>dependencies.txt</fileName><relativePath>build/reports/project/dependencies.txt</relativePath></artifact><artifact><displayPath>igorProperties.txt</displayPath><fileName>igorProperties.txt</fileName><relativePath>build/reports/project/igorProperties.txt</relativePath></artifact><building>false</building><description>No longer used in test.</description><duration>231011</duration><estimatedDuration>231196</estimatedDuration><fullDisplayName>SPINNAKER-igor-netflix #24</fullDisplayName><id>2014-05-29_09-13-59</id><keepLog>false</keepLog><number>24</number><result>SUCCESS</result><timestamp>1401380039000</timestamp><url>http://builds.netflix.com/job/SPINNAKER-igor-netflix/24/</url><builtOn>ssh-dynaslave-3f220763</builtOn><changeSet><kind>git</kind></changeSet></freeStyleProject>'''
-        Build build = client.getBuild('SPINNAKER-igor-netflix', BUILD_NUMBER)
+        Build build = Retrofit2SyncCall.execute(client.getBuild('SPINNAKER-igor-netflix', BUILD_NUMBER))
 
         expect:
         build.number == BUILD_NUMBER
@@ -74,7 +76,7 @@ class JenkinsClientSpec extends Specification {
     void 'gets crumb'() {
         given:
         setResponse '<defaultCrumbIssuer _class=\'hudson.security.csrf.DefaultCrumbIssuer\'><crumb>2f70a60a9f993597a565862020bedd5a</crumb><crumbRequestField>Jenkins-Crumb</crumbRequestField></defaultCrumbIssuer>'
-        Crumb crumb = client.getCrumb()
+        Crumb crumb = Retrofit2SyncCall.execute(client.getCrumb())
 
         expect:
         crumb.crumb == '2f70a60a9f993597a565862020bedd5a'
@@ -84,7 +86,7 @@ class JenkinsClientSpec extends Specification {
     void 'correctly retrieves upstream dependencies'() {
         given:
         setResponse '<freeStyleProject><action></action><action></action><action></action><action></action><action></action><action></action><name>SPINNAKER-volt-netflix</name><url>http://builds.netflix.com/job/SPINNAKER-volt-netflix/</url><upstreamProject><name>SPINNAKER-volt</name><url>http://builds.netflix.com/job/SPINNAKER-volt/</url></upstreamProject><upstreamProject><name>SPINNAKER-wows</name><url>http://builds.netflix.com/job/SPINNAKER-wows/</url></upstreamProject></freeStyleProject>'
-        List dependencies = client.getDependencies('SPINNAKER-volt-netflix').upstreamProjects
+        List dependencies = Retrofit2SyncCall.execute(client.getDependencies('SPINNAKER-volt-netflix')).upstreamProjects
 
         expect:
         dependencies.size() == 2
@@ -94,7 +96,7 @@ class JenkinsClientSpec extends Specification {
     void 'correctly retrieves downstream projects'() {
         given:
         setResponse '<freeStyleProject><action></action><action></action><action></action><action></action><action></action><action></action><action></action><name>SPINNAKER-wows</name><url>http://builds.netflix.com/job/SPINNAKER-wows/</url><downstreamProject><name>SPINNAKER-volt-netflix</name><url>http://builds.netflix.com/job/SPINNAKER-volt-netflix/</url></downstreamProject></freeStyleProject>'
-        List dependencies = client.getDependencies('SPINNAKER-wows').downstreamProjects
+        List dependencies = Retrofit2SyncCall.execute(client.getDependencies('SPINNAKER-wows')).downstreamProjects
 
         expect:
         dependencies.size() == 1
@@ -104,7 +106,7 @@ class JenkinsClientSpec extends Specification {
     void 'gets build artifacts'() {
         given:
         setResponse getBuildsWithArtifactsAndTests()
-        ProjectsList projects = client.getProjects()
+        ProjectsList projects = Retrofit2SyncCall.execute(client.getProjects())
         List<BuildArtifact> artifactList = projects.list[0].lastBuild.artifacts
         expect:
         artifactList.size() == 3
@@ -120,7 +122,7 @@ class JenkinsClientSpec extends Specification {
     void 'gets test results'() {
         given:
         setResponse getBuildsWithArtifactsAndTests()
-        ProjectsList projects = client.getProjects()
+        ProjectsList projects = Retrofit2SyncCall.execute(client.getProjects())
         List testResults = projects.list[0].lastBuild.testResults
 
         expect:
@@ -139,7 +141,7 @@ class JenkinsClientSpec extends Specification {
     void 'gets a single build'() {
         given:
         setResponse getSingleBuild()
-        Build build = client.getBuild("FOO",2542)
+        Build build = Retrofit2SyncCall.execute(client.getBuild("FOO",2542))
 
         expect:
         build.artifacts.size() == 4
@@ -158,7 +160,7 @@ class JenkinsClientSpec extends Specification {
     void 'get a job config'() {
         given:
         setResponse getJobConfig()
-        JobConfig jobConfig = client.getJobConfig("FOO-JOB")
+        JobConfig jobConfig = Retrofit2SyncCall.execute(client.getJobConfig("FOO-JOB"))
 
         expect:
         jobConfig.name == "My-Build"
@@ -236,7 +238,7 @@ class JenkinsClientSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
     }
 
     private String getJobConfig() {

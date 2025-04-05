@@ -16,21 +16,24 @@
 
 package com.netflix.spinnaker.igor.config;
 
-import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabClient;
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabMaster;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
+import com.netflix.spinnaker.igor.util.RetrofitUtils;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import java.io.IOException;
 import javax.validation.Valid;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoints;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @ConditionalOnProperty("gitlab.base-url")
@@ -39,25 +42,31 @@ public class GitLabConfig {
   private static final Logger log = LoggerFactory.getLogger(GitLabConfig.class);
 
   @Bean
-  public GitLabMaster gitLabMasters(@Valid GitLabProperties gitLabProperties) {
+  public GitLabMaster gitLabMasters(
+      @Valid GitLabProperties gitLabProperties, OkHttp3ClientConfiguration okHttpClientConfig) {
     log.info("bootstrapping {} as gitlab", gitLabProperties.getBaseUrl());
     return new GitLabMaster(
-        gitLabClient(gitLabProperties.getBaseUrl(), gitLabProperties.getPrivateToken()),
+        gitLabClient(
+            gitLabProperties.getBaseUrl(), gitLabProperties.getPrivateToken(), okHttpClientConfig),
         gitLabProperties.getBaseUrl());
   }
 
-  public GitLabClient gitLabClient(String address, String privateToken) {
-    return new RestAdapter.Builder()
-        .setEndpoint(Endpoints.newFixedEndpoint(address))
-        .setRequestInterceptor(new PrivateTokenRequestInterceptor(privateToken))
-        .setClient(new Ok3Client())
-        .setConverter(new JacksonConverter())
-        .setLog(new Slf4jRetrofitLogger(GitLabClient.class))
+  public GitLabClient gitLabClient(
+      String address, String privateToken, OkHttp3ClientConfiguration okHttpClientConfig) {
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(address))
+        .client(
+            okHttpClientConfig
+                .createForRetrofit2()
+                .addInterceptor(new PrivateTokenRequestInterceptor(privateToken))
+                .build())
+        .addConverterFactory(JacksonConverterFactory.create())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(GitLabClient.class);
   }
 
-  static class PrivateTokenRequestInterceptor implements RequestInterceptor {
+  static class PrivateTokenRequestInterceptor implements Interceptor {
     private final String privateToken;
 
     PrivateTokenRequestInterceptor(String privateToken) {
@@ -65,8 +74,10 @@ public class GitLabConfig {
     }
 
     @Override
-    public void intercept(RequestInterceptor.RequestFacade request) {
-      request.addHeader("Private-Token", privateToken);
+    public Response intercept(Chain chain) throws IOException {
+      Request request =
+          chain.request().newBuilder().addHeader("Private-Token", privateToken).build();
+      return chain.proceed(request);
     }
   }
 }

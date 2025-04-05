@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.igor.history;
 
 import com.netflix.spinnaker.igor.history.model.Event;
-import retrofit.http.Body;
-import retrofit.http.POST;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.POST;
 
 /** Posts new build executions to echo */
 public interface EchoService {
-  @POST("/")
-  public abstract String postEvent(@Body Event event);
+  @POST(".")
+  Call<String> postEvent(@Body Event event);
 }

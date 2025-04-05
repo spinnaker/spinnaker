@@ -27,10 +27,12 @@ import com.netflix.spinnaker.keel.persistence.DismissibleNotificationRepository
 import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoDeliveryConfigForApplication
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
+import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.TEST_API_V1
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.ninjasquad.springmockk.MockkBean
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -41,6 +43,10 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -54,8 +60,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import retrofit.RetrofitError
-import retrofit.client.Response
+import retrofit2.Response
+import retrofit2.Retrofit
 import strikt.api.expectThat
 import strikt.jackson.at
 import strikt.jackson.isMissing
@@ -454,16 +460,26 @@ internal class DeliveryConfigControllerTests
       }
 
       context("when manifest retrieval fails") {
-        val retrofitError = RetrofitError.httpError(
-          "http://igor",
-          Response("http://igor", 404, "not found", emptyList(), null),
-          null, null
-        )
+        val ok3Resp =
+          okhttp3.Response.Builder()
+            .code(404)
+            .message("not found")
+            .protocol(Protocol.HTTP_1_1)
+            .request(Request.Builder().url("http://igor/").build())
+            .build()
+
+        val retrofit =
+          Retrofit.Builder()
+            .baseUrl("http://igor/")
+            .addConverterFactory(InstrumentedJacksonConverter.Factory("Igor", ObjectMapper()))
+            .build()
+
+        val notFoundError = SpinnakerHttpException(Response.error<Any>("".toResponseBody("application/yaml".toMediaTypeOrNull()), ok3Resp), retrofit)
 
         before {
           every {
             importer.import("stash", "proj", "repo", "spinnaker.yml", "refs/heads/master")
-          } throws retrofitError
+          } throws notFoundError
         }
 
         test("the error from the downstream service is returned") {

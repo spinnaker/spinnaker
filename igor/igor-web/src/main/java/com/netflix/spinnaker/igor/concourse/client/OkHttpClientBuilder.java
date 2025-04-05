@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.concourse.client;
 
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.concourse.client.model.Token;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
@@ -64,14 +65,15 @@ public class OkHttpClientBuilder {
     return sslContext;
   }
 
-  public static OkHttpClient retryingClient3(Supplier<Token> refreshToken) {
-    return new OkHttpClient.Builder()
+  public static OkHttpClient.Builder retryingClient3(
+      OkHttp3ClientConfiguration okHttpClientConfig, Supplier<Token> refreshToken) {
+    return okHttpClientConfig
+        .createForRetrofit2()
         .addInterceptor(chain -> OkHttpClientBuilder.createRetryInterceptor3(chain, refreshToken))
         .hostnameVerifier((s, sslSession) -> true)
         .sslSocketFactory(getSslContext().getSocketFactory(), (X509TrustManager) trustAllCerts[0])
         .connectTimeout(Duration.ofSeconds(15))
-        .readTimeout(Duration.ofSeconds(15))
-        .build();
+        .readTimeout(Duration.ofSeconds(15));
   }
 
   private static okhttp3.Response createRetryInterceptor3(

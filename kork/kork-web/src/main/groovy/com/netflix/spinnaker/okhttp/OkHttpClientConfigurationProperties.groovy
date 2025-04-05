@@ -34,6 +34,12 @@ class OkHttpClientConfigurationProperties {
 
   boolean propagateSpinnakerHeaders = true
 
+  /**
+   * Determines whether to skip the correction of partial encoding done by Retrofit2.
+   * Refer https://github.com/spinnaker/spinnaker/issues/7021 for more details
+   */
+  boolean skipRetrofit2EncodeCorrection = false
+
   File keyStore
   String keyStoreType = 'PKCS12'
   String keyStorePassword = 'changeit'

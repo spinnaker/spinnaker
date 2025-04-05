@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
+import com.netflix.spinnaker.fiat.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator;
 import lombok.val;
@@ -61,7 +62,7 @@ public class FiatAuthenticationConfig {
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     return new Retrofit.Builder()
-        .baseUrl(fiatConfigurationProperties.getBaseUrl())
+        .baseUrl(RetrofitUtils.getBaseUrl(fiatConfigurationProperties.getBaseUrl()))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))

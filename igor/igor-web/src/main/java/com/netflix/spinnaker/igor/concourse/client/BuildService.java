@@ -19,19 +19,20 @@ package com.netflix.spinnaker.igor.concourse.client;
 import com.netflix.spinnaker.igor.concourse.client.model.Build;
 import com.netflix.spinnaker.igor.concourse.client.model.Plan;
 import java.util.List;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface BuildService {
-  @GET("/api/v1/teams/{team}/pipelines/{pipeline}/jobs/{job}/builds")
-  List<Build> builds(
+  @GET("api/v1/teams/{team}/pipelines/{pipeline}/jobs/{job}/builds")
+  Call<List<Build>> builds(
       @Path("team") String team,
       @Path("pipeline") String pipeline,
       @Path("job") String job,
       @Query("limit") Integer limit,
       @Query("since") Long since);
 
-  @GET("/api/v1/builds/{id}/plan")
-  Plan plan(@Path("id") String id);
+  @GET("api/v1/builds/{id}/plan")
+  Call<Plan> plan(@Path("id") String id);
 }

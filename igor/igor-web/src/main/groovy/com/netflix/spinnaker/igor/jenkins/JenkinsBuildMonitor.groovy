@@ -35,6 +35,7 @@ import com.netflix.spinnaker.igor.polling.PollingDelta
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.time.TimeCategory
@@ -231,7 +232,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
             return
         }
         AuthenticatedRequest.allowAnonymous {
-            echoService.get().postEvent(new BuildEvent(content: new BuildContent(project: project, master: master)))
+            Retrofit2SyncCall.execute(echoService.get().postEvent(new BuildEvent(content: new BuildContent(project: project, master: master))))
         }
     }
 

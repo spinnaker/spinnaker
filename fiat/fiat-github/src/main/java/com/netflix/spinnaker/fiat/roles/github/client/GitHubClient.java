@@ -27,15 +27,15 @@ import retrofit2.http.Query;
 /** Retrofit interface for interacting with a GitHub REST API. */
 public interface GitHubClient {
 
-  @GET("/orgs/{org}/teams")
+  @GET("orgs/{org}/teams")
   Call<List<Team>> getOrgTeams(
       @Path("org") String org, @Query("page") int page, @Query("per_page") int paginationValue);
 
-  @GET("/orgs/{org}/members")
+  @GET("orgs/{org}/members")
   Call<List<Member>> getOrgMembers(
       @Path("org") String org, @Query("page") int page, @Query("per_page") int paginationValue);
 
-  @GET("/orgs/{org}/teams/{teamSlug}/members")
+  @GET("orgs/{org}/teams/{teamSlug}/members")
   Call<List<Member>> getMembersOfTeam(
       @Path("org") String org,
       @Path("teamSlug") String teamSlug,

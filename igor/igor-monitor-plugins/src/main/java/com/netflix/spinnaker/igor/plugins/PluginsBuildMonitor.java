@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.polling.PollContext;
 import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Instant;
 import java.util.Comparator;
@@ -112,7 +113,7 @@ public class PluginsBuildMonitor
       registry.counter(missedNotificationId.withTag("monitor", getName())).increment();
     } else if (release != null) {
       AuthenticatedRequest.allowAnonymous(
-          () -> echoService.get().postEvent(new PluginEvent(release)));
+          () -> Retrofit2SyncCall.execute(echoService.get().postEvent(new PluginEvent(release))));
       log.debug("{} event posted", release);
     }
   }

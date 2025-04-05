@@ -35,6 +35,7 @@ import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
 import java.time.Instant;
@@ -212,9 +213,11 @@ public class ArtifactoryBuildMonitor
       if (artifact != null) {
         AuthenticatedRequest.allowAnonymous(
             () ->
-                echoService
-                    .get()
-                    .postEvent(new ArtifactoryEvent(new ArtifactoryEvent.Content(name, artifact))));
+                Retrofit2SyncCall.execute(
+                    echoService
+                        .get()
+                        .postEvent(
+                            new ArtifactoryEvent(new ArtifactoryEvent.Content(name, artifact)))));
       }
     }
   }

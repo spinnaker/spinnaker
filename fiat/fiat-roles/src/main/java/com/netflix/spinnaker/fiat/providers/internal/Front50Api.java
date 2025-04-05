@@ -24,20 +24,20 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 
 public interface Front50Api {
-  @GET("/permissions/applications")
+  @GET("permissions/applications")
   Call<List<Application>> getAllApplicationPermissions();
 
   /**
    * @deprecated for fiat's usage this is always going to be called with restricted = false, use the
    *     no arg method instead which has the same behavior.
    */
-  @GET("/v2/applications")
+  @GET("v2/applications")
   @Deprecated
   Call<List<Application>> getAllApplications(@Query("restricted") boolean restricted);
 
-  @GET("/v2/applications?restricted=false")
+  @GET("v2/applications?restricted=false")
   Call<List<Application>> getAllApplications();
 
-  @GET("/serviceAccounts")
+  @GET("serviceAccounts")
   Call<List<ServiceAccount>> getAllServiceAccounts();
 }

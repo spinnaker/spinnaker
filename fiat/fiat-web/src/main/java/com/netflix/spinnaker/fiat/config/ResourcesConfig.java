@@ -21,6 +21,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import com.netflix.spinnaker.fiat.providers.internal.*;
+import com.netflix.spinnaker.fiat.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,7 @@ public class ResourcesConfig {
   @Bean
   Front50Api front50Api(OkHttp3ClientConfiguration okHttpClientConfig) {
     return new Retrofit.Builder()
-        .baseUrl(front50Endpoint)
+        .baseUrl(RetrofitUtils.getBaseUrl(front50Endpoint))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
@@ -89,7 +90,7 @@ public class ResourcesConfig {
   @Bean
   ClouddriverApi clouddriverApi(OkHttp3ClientConfiguration okHttpClientConfig) {
     return new Retrofit.Builder()
-        .baseUrl(clouddriverEndpoint)
+        .baseUrl(RetrofitUtils.getBaseUrl(clouddriverEndpoint))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
@@ -143,7 +144,7 @@ public class ResourcesConfig {
       @Value("${services.igor.base-url}") String igorEndpoint,
       OkHttp3ClientConfiguration okHttpClientConfig) {
     return new Retrofit.Builder()
-        .baseUrl(igorEndpoint)
+        .baseUrl(RetrofitUtils.getBaseUrl(igorEndpoint))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))

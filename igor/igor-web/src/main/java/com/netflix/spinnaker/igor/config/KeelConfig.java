@@ -15,45 +15,30 @@
  */
 package com.netflix.spinnaker.igor.config;
 
-import com.jakewharton.retrofit.Ok3Client;
-import com.netflix.spinnaker.config.DefaultServiceEndpoint;
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.keel.KeelService;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
+import com.netflix.spinnaker.igor.util.RetrofitUtils;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoint;
-import retrofit.Endpoints;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @ConditionalOnProperty("services.keel.enabled")
 @Configuration
 public class KeelConfig {
 
   @Bean
-  public Endpoint keelEndpoint(@Value("${services.keel.base-url}") String keelBaseUrl) {
-    return Endpoints.newFixedEndpoint(keelBaseUrl);
-  }
-
-  @Bean
   public KeelService keelService(
-      Endpoint keelEndpoint,
-      OkHttpClientProvider clientProvider,
-      RestAdapter.LogLevel retrofitLogLevel) {
-    return new RestAdapter.Builder()
-        .setEndpoint(keelEndpoint)
-        .setConverter(new JacksonConverter())
-        .setClient(
-            new Ok3Client(
-                clientProvider.getClient(
-                    new DefaultServiceEndpoint("keel", keelEndpoint.getUrl()))))
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new Slf4jRetrofitLogger(KeelService.class))
-        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+      @Value("${keel.base-url}") String keelBaseUrl,
+      OkHttp3ClientConfiguration okHttpClientConfig) {
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(keelBaseUrl))
+        .addConverterFactory(JacksonConverterFactory.create())
+        .client(okHttpClientConfig.createForRetrofit2().build())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(KeelService.class);
   }

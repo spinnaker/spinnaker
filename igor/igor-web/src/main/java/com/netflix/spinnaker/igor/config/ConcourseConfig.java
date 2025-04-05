@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.igor.config;
 
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.concourse.ConcourseCache;
 import com.netflix.spinnaker.igor.concourse.service.ConcourseService;
@@ -27,7 +28,8 @@ public class ConcourseConfig {
       ConcourseCache concourseCache,
       Optional<ArtifactDecorator> artifactDecorator,
       IgorConfigurationProperties igorConfigurationProperties,
-      @Valid ConcourseProperties concourseProperties) {
+      @Valid ConcourseProperties concourseProperties,
+      OkHttp3ClientConfiguration okHttpClientConfig) {
     List<ConcourseProperties.Host> masters = concourseProperties.getMasters();
     if (masters == null) {
       return Collections.emptyMap();
@@ -35,7 +37,7 @@ public class ConcourseConfig {
 
     Map<String, ConcourseService> concourseMasters =
         masters.stream()
-            .map(m -> new ConcourseService(m, artifactDecorator))
+            .map(m -> new ConcourseService(m, artifactDecorator, okHttpClientConfig))
             .collect(Collectors.toMap(ConcourseService::getMaster, Function.identity()));
 
     buildServices.addServices(concourseMasters);

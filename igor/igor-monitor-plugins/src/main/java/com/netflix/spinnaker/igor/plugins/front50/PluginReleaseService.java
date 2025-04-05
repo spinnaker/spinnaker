@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.plugins.front50;
 
 import com.netflix.spinnaker.igor.plugins.model.PluginRelease;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
@@ -66,7 +67,7 @@ public class PluginReleaseService {
   private List<PluginRelease> getPluginReleases() {
     return AuthenticatedRequest.allowAnonymous(
         () ->
-            front50Service.listPluginInfo().stream()
+            Retrofit2SyncCall.execute(front50Service.listPluginInfo()).stream()
                 .flatMap(
                     info ->
                         info.releases.stream()

@@ -41,6 +41,7 @@ import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.ArrayList;
 import java.util.Date;
@@ -227,7 +228,8 @@ public class GitlabCiBuildMonitor
 
     GenericBuildEvent event = new GenericBuildEvent();
     event.setContent(content);
-    AuthenticatedRequest.allowAnonymous(() -> echoService.get().postEvent(event));
+    AuthenticatedRequest.allowAnonymous(
+        () -> Retrofit2SyncCall.execute(echoService.get().postEvent(event)));
   }
 
   @Override

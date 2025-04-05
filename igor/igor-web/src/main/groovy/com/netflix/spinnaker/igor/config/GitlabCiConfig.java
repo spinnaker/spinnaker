@@ -17,18 +17,21 @@
 package com.netflix.spinnaker.igor.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.gitlabci.client.GitlabCiClient;
 import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService;
 import com.netflix.spinnaker.igor.service.BuildServices;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
+import com.netflix.spinnaker.igor.util.RetrofitUtils;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import okhttp3.OkHttpClient;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +39,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoints;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @ConditionalOnProperty("gitlab-ci.enabled")
@@ -52,7 +53,8 @@ public class GitlabCiConfig {
       BuildServices buildServices,
       final IgorConfigurationProperties igorConfigurationProperties,
       GitlabCiProperties gitlabCiProperties,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      OkHttp3ClientConfiguration okHttpClientConfig) {
     log.info("creating gitlabCiMasters");
     Map<String, GitlabCiService> gitlabCiMasters =
         gitlabCiProperties.getMasters().stream()
@@ -62,7 +64,8 @@ public class GitlabCiConfig {
                         igorConfigurationProperties,
                         gitlabCiHost.getName(),
                         gitlabCiHost,
-                        objectMapper))
+                        objectMapper,
+                        okHttpClientConfig))
             .collect(Collectors.toMap(GitlabCiService::getName, Function.identity()));
     buildServices.addServices(gitlabCiMasters);
     return gitlabCiMasters;
@@ -72,45 +75,53 @@ public class GitlabCiConfig {
       IgorConfigurationProperties igorConfigurationProperties,
       String name,
       GitlabCiProperties.GitlabCiHost host,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      OkHttp3ClientConfiguration okHttpClientConfig) {
     return new GitlabCiService(
         gitlabCiClient(
             host.getAddress(),
             host.getPrivateToken(),
             igorConfigurationProperties.getClient().getTimeout(),
-            objectMapper),
+            objectMapper,
+            okHttpClientConfig),
         name,
         host,
         host.getPermissions().build());
   }
 
   public static GitlabCiClient gitlabCiClient(
-      String address, String privateToken, int timeout, ObjectMapper objectMapper) {
-    OkHttpClient client =
-        new OkHttpClient.Builder().readTimeout(timeout, TimeUnit.MILLISECONDS).build();
+      String address,
+      String privateToken,
+      int timeout,
+      ObjectMapper objectMapper,
+      OkHttp3ClientConfiguration okHttpClientConfig) {
 
-    return new RestAdapter.Builder()
-        .setEndpoint(Endpoints.newFixedEndpoint(address))
-        .setRequestInterceptor(new GitlabCiHeaders(privateToken))
-        .setClient(new Ok3Client(client))
-        .setLog(new Slf4jRetrofitLogger(GitlabCiClient.class))
-        .setLogLevel(RestAdapter.LogLevel.FULL)
-        .setConverter(new JacksonConverter(objectMapper))
-        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(address))
+        .client(
+            okHttpClientConfig
+                .createForRetrofit2()
+                .readTimeout(timeout, TimeUnit.MILLISECONDS)
+                .addInterceptor(new GitlabCiHeaders(privateToken))
+                .build())
+        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(GitlabCiClient.class);
   }
 
-  public static class GitlabCiHeaders implements RequestInterceptor {
+  public static class GitlabCiHeaders implements Interceptor {
     GitlabCiHeaders(String privateToken) {
       this.privateToken = privateToken;
     }
 
     @Override
-    public void intercept(RequestFacade request) {
+    public Response intercept(Chain chain) throws IOException {
+      Request.Builder builder = chain.request().newBuilder();
       if (!StringUtils.isEmpty(privateToken)) {
-        request.addHeader("PRIVATE-TOKEN", privateToken);
+        builder.addHeader("PRIVATE-TOKEN", privateToken);
       }
+      return chain.proceed(builder.build());
     }
 
     private String privateToken;

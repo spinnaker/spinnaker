@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.scm.bitbucket
 
 import com.netflix.spinnaker.igor.config.BitBucketProperties
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketClient
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
@@ -24,9 +25,9 @@ import com.netflix.spinnaker.igor.scm.bitbucket.client.model.Author
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.Commit
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.CompareCommitsResponse
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.User
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -65,7 +66,7 @@ class CommitControllerSpec extends Specification {
 
   void 'get 404 from bitBucketClient and return one commit'() {
     when:
-    1 * client.getCompareCommits(projectKey, repositorySlug, clientParams) >> {throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://foo.com", 404, "test reason", [], null), null, null, null, null))}
+    1 * client.getCompareCommits(projectKey, repositorySlug, clientParams) >> { throw TestUtils.makeSpinnakerHttpException("http://foo.com", 404, ResponseBody.create("{}", MediaType.parse("application/json"))) }
     def result = controller.compareCommits(projectKey, repositorySlug, controllerParams)
 
     then:
@@ -81,18 +82,18 @@ class CommitControllerSpec extends Specification {
 
   void 'compare commits'() {
     given:
-    1 * client.getCompareCommits(projectKey, repositorySlug, clientParams) >> new CompareCommitsResponse(values:
+    1 * client.getCompareCommits(projectKey, repositorySlug, clientParams) >> Calls.response(new CompareCommitsResponse(values:
       [new Commit(message: "my commit", hash: "1234512345123451234512345", date: "2017-02-13T22:44:51+00:00",
-                  author: new Author(raw: "Joe Coder <jcoder@code.com>",
-                  user: new User(display_name: "Joe Coder",  username: "jcoder")),
-                  html_href: "https://bitbucket.org/${projectKey}/${repositorySlug}/commits/1234512345123451234512345"
-                 ),
+        author: new Author(raw: "Joe Coder <jcoder@code.com>",
+          user: new User(display_name: "Joe Coder", username: "jcoder")),
+        html_href: "https://bitbucket.org/${projectKey}/${repositorySlug}/commits/1234512345123451234512345"
+      ),
        new Commit(message: "bug fix", hash: "67890678906789067890", date: "2017-02-15T22:44:51+00:00",
-                  author: new Author(raw: "Jane Coder <jane.coder@code.com>",
-                  user: new User(display_name: "Jane Coder", username: "jane.coder")),
-                  html_href: "https://bitbucket.org/${projectKey}/${repositorySlug}/commits/67890678906789067890"
-                 )
-      ])
+         author: new Author(raw: "Jane Coder <jane.coder@code.com>",
+           user: new User(display_name: "Jane Coder", username: "jane.coder")),
+         html_href: "https://bitbucket.org/${projectKey}/${repositorySlug}/commits/67890678906789067890"
+       )
+      ]))
 
     when:
     List commitsResponse = controller.compareCommits(projectKey, repositorySlug, controllerParams)

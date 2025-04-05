@@ -21,18 +21,19 @@ import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import okhttp3.MediaType
+import okhttp3.ResponseBody
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -67,7 +68,7 @@ class JenkinsServiceSpec extends Specification {
         service.getBuilds(JOB_UNENCODED)
 
         then:
-        1 * client.getBuilds(JOB_ENCODED) >> new BuildsList(list: [])
+        1 * client.getBuilds(JOB_ENCODED) >> Calls.response(new BuildsList(list: []))
     }
 
     @Unroll
@@ -81,9 +82,9 @@ class JenkinsServiceSpec extends Specification {
 
         then:
         if (extra_args) {
-            1 * client."${method}"(JOB_ENCODED, *extra_args)
+            1 * client."${method}"(JOB_ENCODED, *extra_args) >> Calls.response(null)
         } else {
-            1 * client."${method}"(JOB_ENCODED)
+            1 * client."${method}"(JOB_ENCODED) >> Calls.response(null)
         }
 
         where:
@@ -106,9 +107,9 @@ class JenkinsServiceSpec extends Specification {
 
         then:
         if (extra_args) {
-            1 * client."${method}"(JOB_ENCODED, *extra_args, '', null)
+            1 * client."${method}"(JOB_ENCODED, *extra_args, '', null) >> Calls.response(null)
         } else {
-            1 * client."${method}"(JOB_ENCODED, '', null)
+            1 * client."${method}"(JOB_ENCODED, '', null) >> Calls.response(null)
         }
         0 * client.getCrumb()
 
@@ -128,6 +129,7 @@ class JenkinsServiceSpec extends Specification {
         }
 
         then:
+        1 * client."${method}"(*_) >> Calls.response(null)
         0 * client.getCrumb()
 
         when:
@@ -138,7 +140,8 @@ class JenkinsServiceSpec extends Specification {
         }
 
         then:
-        1 * client.getCrumb()
+        1 * client."${method}"(*_) >> Calls.response(null)
+        1 * client.getCrumb() >> Calls.response(null)
 
         where:
         method                | extra_args
@@ -165,7 +168,7 @@ class JenkinsServiceSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
         service = new JenkinsService('http://my.jenkins.net', client, true, Permissions.EMPTY, circuitBreakerRegistry)
 
         when:
@@ -191,7 +194,7 @@ class JenkinsServiceSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY, circuitBreakerRegistry)
 
         when:
@@ -285,7 +288,7 @@ class JenkinsServiceSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY, circuitBreakerRegistry)
         def genericBuild = new GenericBuild()
         genericBuild.number = 1
@@ -340,7 +343,7 @@ class JenkinsServiceSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY, circuitBreakerRegistry)
         def genericBuild = new GenericBuild()
         genericBuild.number = 1
@@ -395,7 +398,7 @@ class JenkinsServiceSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY, circuitBreakerRegistry)
         def genericBuild = new GenericBuild()
         genericBuild.number = 1
@@ -456,7 +459,7 @@ class JenkinsServiceSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY, circuitBreakerRegistry)
         def genericBuild = new GenericBuild()
         genericBuild.number = 1
@@ -520,7 +523,7 @@ class JenkinsServiceSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY, circuitBreakerRegistry)
         def genericBuild = new GenericBuild()
         genericBuild.number = 1
@@ -584,7 +587,7 @@ class JenkinsServiceSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY, circuitBreakerRegistry)
         def genericBuild = new GenericBuild()
         genericBuild.number = 1
@@ -638,7 +641,7 @@ class JenkinsServiceSpec extends Specification {
             address: server.url('/').toString(),
             username: 'username',
             password: 'password')
-        client = new JenkinsConfig().jenkinsClient(host)
+        client = new JenkinsConfig().jenkinsClient(TestUtils.makeOkHttpClientConfig(), host)
         service = new JenkinsService('http://my.jenkins.net', client, false, Permissions.EMPTY, circuitBreakerRegistry)
         def genericBuild = new GenericBuild()
         genericBuild.number = 1
@@ -703,20 +706,15 @@ class JenkinsServiceSpec extends Specification {
       build.number = buildNumber
       build.duration = 0L
       build.artifacts = [artifact]
-      def badGatewayError = RetrofitError.httpError(
-        "http://my.jenkins.net",
-        new Response("http://my.jenkins.net", 502, "bad gateway", [], null),
-        null,
-        null
-      )
-      def propertyFile = new Response("http://my.jenkins.net", 200, "", [], new TypedString("a=b"))
+      def badGatewayError = TestUtils.makeSpinnakerHttpException("http://my.jenkins.net", 502, ResponseBody.create("{}", MediaType.parse("application/json")))
+      def propertyFile = ResponseBody.create("a=b",MediaType.parse("application/text"))
 
       when:
       def properties = service.getBuildProperties(jobName, build.genericBuild(jobName), artifact.fileName)
 
       then:
-      1 * client.getBuild(jobName, buildNumber) >> build
-      2 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw badGatewayError } >> propertyFile
+      1 * client.getBuild(jobName, buildNumber) >> Calls.response(build)
+      2 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw badGatewayError } >> Calls.response(propertyFile)
 
       properties == [a: "b"]
     }
@@ -734,20 +732,15 @@ class JenkinsServiceSpec extends Specification {
       build.number = buildNumber
       build.duration = 0L
       build.artifacts = [artifact]
-      def notFoundError = RetrofitError.httpError(
-        "http://my.jenkins.net",
-        new Response("http://my.jenkins.net", 404, "not found", [], null),
-        null,
-        null
-      )
-      def propertyFile = new Response("http://my.jenkins.net", 200, "", [], new TypedString("a=b"))
+      def notFoundError = TestUtils.makeSpinnakerHttpException("http://my.jenkins.net", 404, ResponseBody.create("not found", MediaType.parse("application/text")))
+      def propertyFile = ResponseBody.create("a=b",MediaType.parse("application/text"))
 
       when:
       def properties = service.getBuildProperties(jobName, build.genericBuild(jobName), artifact.fileName)
 
       then:
-      1 * client.getBuild(jobName, buildNumber) >> build
-      2 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw notFoundError } >> propertyFile
+      1 * client.getBuild(jobName, buildNumber) >> Calls.response(build)
+      2 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw notFoundError } >> Calls.response(propertyFile)
 
       properties == [a: "b"]
     }
@@ -765,18 +758,12 @@ class JenkinsServiceSpec extends Specification {
       build.number = buildNumber
       build.duration = 0L
       build.artifacts = [artifact]
-      def badRequestError = new SpinnakerHttpException(RetrofitError.httpError(
-        "http://my.jenkins.net",
-        new Response("http://my.jenkins.net", 400, "bad request", [], null),
-        null,
-        null
-      ))
-
+      def badRequestError = TestUtils.makeSpinnakerHttpException("http://my.jenkins.net", 400, ResponseBody.create("bad request", MediaType.parse("application/text")))
       when:
       def properties = service.getBuildProperties(jobName, build.genericBuild(jobName), artifact.fileName)
 
       then:
-      1 * client.getBuild(jobName, buildNumber) >> build
+      1 * client.getBuild(jobName, buildNumber) >> Calls.response(build)
       1 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw badRequestError }
 
       properties == [:]

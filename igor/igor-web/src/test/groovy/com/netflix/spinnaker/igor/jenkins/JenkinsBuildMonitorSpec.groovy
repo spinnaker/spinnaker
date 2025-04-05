@@ -30,9 +30,10 @@ import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
+import okhttp3.Request
 import org.slf4j.Logger
 import org.springframework.scheduling.TaskScheduler
-import retrofit.RetrofitError
+import retrofit2.mock.Calls
 import spock.lang.Specification
 /**
  * Tests for JenkinsBuildMonitor
@@ -155,8 +156,8 @@ class   JenkinsBuildMonitorSpec extends Specification {
         monitor.pollSingle(new PollContext(MASTER))
 
         then: 'only builds between lowerBound(previousCursor) and upperbound(stamp3) will fire events'
-        1 * echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
-        1 * echoService.postEvent({ it.content.project.lastBuild.number == 3 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
+        1 * echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event) >> Calls.response("")
+        1 * echoService.postEvent({ it.content.project.lastBuild.number == 3 && it.content.project.lastBuild.result == 'SUCCESS'} as Event) >> Calls.response("")
     }
 
     def 'should advance the lower bound cursor when all jobs complete'() {
@@ -188,9 +189,9 @@ class   JenkinsBuildMonitorSpec extends Specification {
         monitor.pollSingle(new PollContext(MASTER))
 
         then: 'only builds between lowerBound(previousCursor) and upperbound(stamp3) will fire events'
-        1 * echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
-        1 * echoService.postEvent({ it.content.project.lastBuild.number == 2 && it.content.project.lastBuild.result == 'FAILURE'} as Event)
-        1 * echoService.postEvent({ it.content.project.lastBuild.number == 3 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
+        1 * echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event) >> Calls.response("")
+        1 * echoService.postEvent({ it.content.project.lastBuild.number == 2 && it.content.project.lastBuild.result == 'FAILURE'} as Event) >> Calls.response("")
+        1 * echoService.postEvent({ it.content.project.lastBuild.number == 3 && it.content.project.lastBuild.result == 'SUCCESS'} as Event) >> Calls.response("")
 
         and: 'prune old markers and set new cursor'
         1 * cache.pruneOldMarkers(MASTER, 'job', 1494624092609)
@@ -257,7 +258,7 @@ class   JenkinsBuildMonitorSpec extends Specification {
             new Build(number: 1, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min)
         ]
 
-        def spinnakerServerException = new SpinnakerServerException(RetrofitError.unexpectedError("http://retro.fit/mock/error", new Exception('mock root cause')));
+        def spinnakerServerException = new SpinnakerServerException(new Exception("mock root cause"), new Request.Builder().url("http://retro.fit/mock/error").build(), )
         jenkinsService.getBuilds('job2') >> { throw spinnakerServerException }
 
         jenkinsService.getBuilds('job3') >> [
@@ -271,7 +272,7 @@ class   JenkinsBuildMonitorSpec extends Specification {
         monitor.pollSingle(new PollContext(MASTER))
 
         then: 'Builds are processed for job1'
-        1 * echoService.postEvent({ it.content.project.name == 'job1'} as Event)
+        1 * echoService.postEvent({ it.content.project.name == 'job1'} as Event) >> Calls.response("")
 
         and: 'Errors are logged for job2; no builds are processed'
         1 * monitor.log.error('Error communicating with jenkins for [{}:{}]: {}', _)

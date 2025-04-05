@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.igor.scm.gitlab.client
 
 import com.netflix.spinnaker.igor.config.GitLabConfig
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.scm.gitlab.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
@@ -46,7 +48,7 @@ class GitLabClientSpec extends Specification {
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
         server.start()
-        client = new GitLabConfig().gitLabClient(server.url('/').toString(), "token")
+        client = new GitLabConfig().gitLabClient(server.url('/').toString(), "token", TestUtils.makeOkHttpClientConfig())
     }
 
     void 'getCompareCommits'() {
@@ -54,7 +56,7 @@ class GitLabClientSpec extends Specification {
         setResponse getCompareCommitsResponse()
 
         when:
-        CompareCommitsResponse commitsResponse = client.getCompareCommits('gitlab-org', 'gitlab-ce', ['from': 'bacf671a335297e61ad4c470cde49ce4d3fcc009', 'to': 'd41e66cb632cf4a51428c87a07cbdd182e3e0697'])
+        CompareCommitsResponse commitsResponse = Retrofit2SyncCall.execute(client.getCompareCommits('gitlab-org', 'gitlab-ce', ['from': 'bacf671a335297e61ad4c470cde49ce4d3fcc009', 'to': 'd41e66cb632cf4a51428c87a07cbdd182e3e0697']))
 
         then:
         commitsResponse.commits.size() == 2

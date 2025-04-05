@@ -19,11 +19,38 @@ package com.netflix.spinnaker.igor.helpers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import com.netflix.spinnaker.igor.util.RetrofitUtils
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import okhttp3.ResponseBody
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 class TestUtils {
   static ObjectMapper createObjectMapper() {
     ObjectMapper mapper = new ObjectMapper()
     mapper.registerModule(new JavaTimeModule())
     mapper
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(String url, int code, ResponseBody body){
+    Response retrofit2Response = Response.error(code, body)
+
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(url))
+        .addConverterFactory(JacksonConverterFactory.create())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
+  }
+
+  static OkHttp3ClientConfiguration makeOkHttpClientConfig(){
+    new OkHttp3ClientConfiguration(new OkHttpClientConfigurationProperties(), null, HttpLoggingInterceptor.Level.BASIC, null, null, null)
   }
 }

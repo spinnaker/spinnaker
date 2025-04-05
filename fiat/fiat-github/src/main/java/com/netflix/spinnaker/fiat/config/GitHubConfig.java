@@ -3,6 +3,7 @@ package com.netflix.spinnaker.fiat.config;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
+import com.netflix.spinnaker.fiat.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import java.io.IOException;
 import lombok.Setter;
@@ -35,7 +36,7 @@ public class GitHubConfig {
         new BasicAuthRequestInterceptor().setAccessToken(gitHubProperties.getAccessToken());
 
     return new Retrofit.Builder()
-        .baseUrl(gitHubProperties.getBaseUrl())
+        .baseUrl(RetrofitUtils.getBaseUrl(gitHubProperties.getBaseUrl()))
         .client(okHttpClientConfig.createForRetrofit2().addInterceptor(interceptor).build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create())

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -33,7 +34,8 @@ import spock.lang.Specification
 
 @SpringBootTest(
   classes = [OkHttpClientConfigurationProperties, Retrofit2ServiceFactory, ServiceClientProvider, OkHttpClientProvider,
-    OkHttpClient, DefaultServiceClientProvider,  DefaultOkHttpClientBuilderProvider, Retrofit2ServiceFactoryAutoConfiguration, ObjectMapper],
+    Retrofit2EncodeCorrectionInterceptor, OkHttpClient, DefaultServiceClientProvider,  DefaultOkHttpClientBuilderProvider,
+    Retrofit2ServiceFactoryAutoConfiguration, ObjectMapper],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class DockerBearerTokenServiceSpec extends Specification {
   private static final REALM1 = "https://auth.docker.io"

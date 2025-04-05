@@ -23,15 +23,18 @@ import static org.mockito.Mockito.when;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
     classes = {OkHttpClient.class, OkHttpClientConfigurationProperties.class})
@@ -51,9 +54,10 @@ public class OkHttpClientProviderTest {
 
   @BeforeEach
   void setUp() {
-    MockitoAnnotations.openMocks(this);
     builder = new OkHttpClient.Builder();
-    clientProvider = new OkHttpClientProvider(List.of(defaultProvider));
+    clientProvider =
+        new OkHttpClientProvider(
+            List.of(defaultProvider), new Retrofit2EncodeCorrectionInterceptor());
   }
 
   @Test
@@ -61,7 +65,9 @@ public class OkHttpClientProviderTest {
     when(defaultProvider.supports(service)).thenReturn(true);
     when(defaultProvider.get(service)).thenReturn(builder);
 
-    OkHttpClient result = clientProvider.getClient(service, List.of(interceptor, interceptor2));
+    OkHttpClient result =
+        clientProvider.getClient(
+            service, List.of(interceptor, interceptor2), true /* skipEncodeCorrection */);
 
     assertEquals(result.interceptors().size(), 2);
     assertEquals(result.interceptors().get(0), interceptor);

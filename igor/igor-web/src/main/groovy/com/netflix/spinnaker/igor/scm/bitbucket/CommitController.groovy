@@ -21,6 +21,7 @@ import com.netflix.spinnaker.igor.exceptions.UnhandledDownstreamServiceErrorExce
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import groovy.util.logging.Slf4j
@@ -56,10 +57,10 @@ class CommitController extends AbstractCommitController {
      */
 
     try {
-      commitsResponse = bitBucketMaster.bitBucketClient.getCompareCommits(projectKey, repositorySlug, ['limit': 100, 'include': requestParams.to])
+      commitsResponse = Retrofit2SyncCall.execute(bitBucketMaster.bitBucketClient.getCompareCommits(projectKey, repositorySlug, ['limit': 100, 'include': requestParams.to] as Map<String, String>))
       if (!commitsResponse.values.any { it.hash == requestParams.from }) {
         while (!commitsResponse.values.any { it.hash == requestParams.from }) {
-          def response = bitBucketMaster.bitBucketClient.getCompareCommits(projectKey, repositorySlug, ['limit': 100, 'include': commitsResponse.values.last().hash])
+          def response = Retrofit2SyncCall.execute(bitBucketMaster.bitBucketClient.getCompareCommits(projectKey, repositorySlug, ['limit': 100, 'include': commitsResponse.values.last().hash] as Map<String, String>))
           commitsResponse.values.addAll(response.values)
         }
         commitsResponse.values.unique { a, b -> a.hash <=> b.hash }

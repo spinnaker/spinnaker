@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.igor.plugins.front50
 
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -57,7 +58,7 @@ class PluginReleaseServiceSpec extends Specification {
 
     then:
     result*.version == expectedVersions
-    1 * front50Service.listPluginInfo() >> [plugin1, plugin2]
+    1 * front50Service.listPluginInfo() >> Calls.response([plugin1, plugin2])
 
     where:
     timestamp                                  || expectedVersions

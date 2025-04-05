@@ -23,6 +23,6 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 public interface IgorApi {
-  @GET("/buildServices")
+  @GET("buildServices")
   Call<List<BuildService>> getBuildMasters();
 }

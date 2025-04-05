@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.igor.nexus;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.igor.config.NexusProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
+import com.netflix.spinnaker.igor.history.model.Event;
 import com.netflix.spinnaker.igor.nexus.model.NexusAssetEvent;
 import com.netflix.spinnaker.igor.nexus.model.NexusAssetWebhookPayload;
 import com.netflix.spinnaker.igor.nexus.model.NexusRepo;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
+import retrofit2.mock.Calls;
 
 class NexusEventPosterTest {
 
@@ -68,8 +68,6 @@ class NexusEventPosterTest {
     payload.setRepositoryName("maven-snapshots");
     payload.getAsset().setName("com/example/demo/0.0.1-SNAPSHOT/demo-0.0.1-20190828.022502-3.pom");
 
-    nexusEventPoster.postEvent(payload);
-
     final Artifact expectedArtifact =
         Artifact.builder()
             .type("maven/file")
@@ -80,9 +78,12 @@ class NexusEventPosterTest {
             .location(
                 "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
             .build();
-    verify(echoService)
-        .postEvent(
-            new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact)));
+    Event event =
+        new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact));
+
+    when(echoService.postEvent(event)).thenReturn(Calls.response(""));
+    nexusEventPoster.postEvent(payload);
+    verify(echoService).postEvent(event);
   }
 
   @Test
@@ -91,8 +92,6 @@ class NexusEventPosterTest {
     payload.setRepositoryName("maven-snapshots");
     payload.getAsset().setName("com/example/demo/0.0.1-SNAPSHOT/demo-0.0.1-20190828.022502-3.pom");
 
-    nexusEventPoster.postEvent(payload);
-
     final Artifact expectedArtifact =
         Artifact.builder()
             .type("maven/file")
@@ -103,9 +102,12 @@ class NexusEventPosterTest {
             .location(
                 "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
             .build();
-    verify(echoService)
-        .postEvent(
-            new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact)));
+    Event event =
+        new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact));
+
+    when(echoService.postEvent(event)).thenReturn(Calls.response(""));
+    nexusEventPoster.postEvent(payload);
+    verify(echoService).postEvent(event);
   }
 
   @Test
@@ -145,8 +147,6 @@ class NexusEventPosterTest {
     payload.setNodeId("123");
     payload.getAsset().setName("com/example/demo/0.0.1-SNAPSHOT/demo-0.0.1-20190828.022502-3.pom");
 
-    nexusEventPoster.postEvent(payload);
-
     final Artifact expectedArtifact =
         Artifact.builder()
             .type("maven/file")
@@ -157,9 +157,12 @@ class NexusEventPosterTest {
             .location(
                 "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
             .build();
-    verify(echoService)
-        .postEvent(
-            new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact)));
+    Event event =
+        new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact));
+
+    when(echoService.postEvent(event)).thenReturn(Calls.response(""));
+    nexusEventPoster.postEvent(payload);
+    verify(echoService).postEvent(event);
   }
 
   @Test
@@ -167,8 +170,6 @@ class NexusEventPosterTest {
     payload.setRepositoryName("maven-snapshots");
     payload.setNodeId("123");
     payload.getAsset().setName("com/example/demo/0.0.1-SNAPSHOT/demo-0.0.1-20190828.022502-3.pom");
-
-    nexusEventPosterWithoutNodeId.postEvent(payload);
 
     final Artifact expectedArtifact =
         Artifact.builder()
@@ -180,8 +181,11 @@ class NexusEventPosterTest {
             .location(
                 "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
             .build();
-    verify(echoService)
-        .postEvent(
-            new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact)));
+    Event event =
+        new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact));
+
+    when(echoService.postEvent(event)).thenReturn(Calls.response(""));
+    nexusEventPosterWithoutNodeId.postEvent(payload);
+    verify(echoService).postEvent(event);
   }
 }

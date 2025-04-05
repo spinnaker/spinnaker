@@ -19,36 +19,38 @@ package com.netflix.spinnaker.igor.scm.stash.client
 import com.netflix.spinnaker.igor.scm.stash.client.model.CompareCommitsResponse
 import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryListingResponse
 import com.netflix.spinnaker.igor.scm.stash.client.model.TextLinesResponse
-import retrofit.http.GET
-import retrofit.http.Path
-import retrofit.http.Query
-import retrofit.http.QueryMap
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
+import retrofit2.http.QueryMap
 
 /**
  * Interface for interacting with a Stash REST API
  * https://developer.atlassian.com/static/rest/stash/3.9.1/stash-rest.html
  */
 interface StashClient {
-    @GET('/rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/compare/commits')
-    CompareCommitsResponse getCompareCommits(
-        @Path('projectKey') String projectKey,
-        @Path('repositorySlug') String repositorySlug,
-        @QueryMap Map queryMap)
-
-  // TODO: pagination support
-  @GET('/rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/browse/{dirPath}')
-  DirectoryListingResponse listDirectory(
+  @GET('rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/compare/commits')
+  Call<CompareCommitsResponse> getCompareCommits(
     @Path('projectKey') String projectKey,
     @Path('repositorySlug') String repositorySlug,
-    @Path(value = 'dirPath', encode = false) String dirPath,
+    @QueryMap Map<String,String> queryMap
+  )
+
+  // TODO: pagination support
+  @GET('rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/browse/{dirPath}')
+  Call<DirectoryListingResponse> listDirectory(
+    @Path('projectKey') String projectKey,
+    @Path('repositorySlug') String repositorySlug,
+    @Path(value = 'dirPath', encoded = true) String dirPath,
     @Query('at') String at
   )
 
-  @GET('/rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/browse/{filePath}')
-  TextLinesResponse getTextFileContents(
+  @GET('rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/browse/{filePath}')
+  Call<TextLinesResponse> getTextFileContents(
     @Path('projectKey') String projectKey,
     @Path('repositorySlug') String repositorySlug,
-    @Path(value = 'filePath', encode = false) String filePath,
+    @Path(value = 'filePath', encoded = true) String filePath,
     @Query('at') String at,
     @Query('limit') int limit,
     @Query('start') int start

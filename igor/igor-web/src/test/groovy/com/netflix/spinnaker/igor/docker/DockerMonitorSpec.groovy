@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.scheduling.TaskScheduler
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -72,6 +73,7 @@ class DockerMonitorSpec extends Specification {
       .postEvent(cachedImages, taggedImage, "imageId")
 
     then:
+    keelService.sendArtifactEvent(_) >> Calls.response(null)
     echoServiceCallCount * echoService.postEvent({ DockerEvent event ->
       assert event.content.tag == taggedImage.tag
       assert event.content.account == taggedImage.account
@@ -79,12 +81,14 @@ class DockerMonitorSpec extends Specification {
       assert event.content.repository == taggedImage.repository
       assert event.content.digest == taggedImage.digest
       return true
-    })
+    }) >> Calls.response(null)
 
     when: "should short circuit if `echoService` is not available"
     createSubject().postEvent(["imageId"] as Set, taggedImage, "imageId")
 
     then:
+    echoService.postEvent(_) >> Calls.response(null)
+    keelService.sendArtifactEvent(_) >> Calls.response(null)
     notThrown(NullPointerException)
 
     where:
@@ -120,7 +124,7 @@ class DockerMonitorSpec extends Specification {
       assert event.artifact.reference == "registry/repository:tag"
       assert event.artifact.metadata.registry == taggedImage.registry
       return true
-    })
+    }) >> Calls.response(null)
     1 * keelService.sendArtifactEvent({ Map event ->
       def artifacts = event.payload.artifacts
       assert artifacts.size() == 1
@@ -132,7 +136,7 @@ class DockerMonitorSpec extends Specification {
       assert artifacts[0].metadata.date == "1598707355157"
       assert artifacts[0].metadata.branch == "master"
       return true
-    })
+    }) >> Calls.response(null)
   }
 
   void 'should include not include build and commit details if newtLables is missing from taggedImage'() {
@@ -144,6 +148,8 @@ class DockerMonitorSpec extends Specification {
       repository: "repository",
       digest: "digest"
     )
+
+    echoService.postEvent(_) >> Calls.response(null)
 
     when:
     createSubject().postEvent(["job1"] as Set, taggedImageWithoutMetadata, "imageId")
@@ -158,7 +164,7 @@ class DockerMonitorSpec extends Specification {
       assert artifacts[0].metadata.containsKey("buildNumber") == false
       assert artifacts[0].metadata.containsKey("commitId") == false
       return true
-    })
+    }) >> Calls.response(null)
   }
 
   @Unroll

@@ -18,33 +18,39 @@ package com.netflix.spinnaker.igor.concourse.client;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.concourse.client.model.ClusterInfo;
 import com.netflix.spinnaker.igor.concourse.client.model.Token;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
+import com.netflix.spinnaker.igor.util.RetrofitUtils;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.vdurmont.semver4j.Semver;
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import lombok.Getter;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.client.Response;
-import retrofit.converter.JacksonConverter;
+import okhttp3.Request;
+import okhttp3.ResponseBody;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class ConcourseClient {
   private final String host;
   private final String user;
   private final String password;
-  private final OkHttpClient okHttpClient;
+
+  private final OkHttp3ClientConfiguration okHttpClientConfig;
 
   private final SkyService skyServiceV1;
   private final SkyServiceV2 skyServiceV2;
   private final TokenService tokenServiceV1;
   private final TokenServiceV2 tokenServiceV2;
   private final TokenServiceV3 tokenServiceV3;
+  private final JacksonConverterFactory jacksonConverterFactory;
 
   @Getter private ClusterInfoService clusterInfoService;
 
@@ -63,63 +69,73 @@ public class ConcourseClient {
   private volatile ZonedDateTime tokenExpiration = ZonedDateTime.now().minusSeconds(1);
   private volatile Token token;
 
-  private JacksonConverter jacksonConverter;
-
-  private final RequestInterceptor oauthInterceptor =
-      new RequestInterceptor() {
+  private final Interceptor oauthInterceptor =
+      new Interceptor() {
         @Override
-        public void intercept(RequestFacade request) {
+        public okhttp3.Response intercept(Chain chain) throws IOException {
           refreshTokenIfNecessary();
-          request.addHeader("Authorization", "bearer " + token.getAccessToken());
+          Request request =
+              chain
+                  .request()
+                  .newBuilder()
+                  .addHeader("Authorization", "bearer " + token.getAccessToken())
+                  .build();
+          return chain.proceed(request);
         }
       };
 
-  public ConcourseClient(String host, String user, String password) {
+  public ConcourseClient(
+      String host, String user, String password, OkHttp3ClientConfiguration okHttpClientConfig) {
     this.host = host;
     this.user = user;
     this.password = password;
+    this.okHttpClientConfig = okHttpClientConfig;
 
     ObjectMapper mapper =
         new ObjectMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+            .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .registerModule(new JavaTimeModule());
 
-    this.okHttpClient = OkHttpClientBuilder.retryingClient3(this::refreshToken);
-    this.jacksonConverter = new JacksonConverter(mapper);
+    OkHttpClient tokenClient =
+        OkHttpClientBuilder.retryingClient3(okHttpClientConfig, this::refreshToken)
+            .addInterceptor(
+                chain -> {
+                  Request request =
+                      chain
+                          .request()
+                          .newBuilder()
+                          .addHeader("Authorization", "Basic Zmx5OlpteDU=")
+                          .build();
+                  return chain.proceed(request);
+                })
+            .build();
 
-    RestAdapter.Builder tokenRestBuilder =
-        new RestAdapter.Builder()
-            .setEndpoint(host)
-            .setClient(new Ok3Client(okHttpClient))
-            .setConverter(jacksonConverter)
-            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-            .setRequestInterceptor(
-                request -> {
-                  request.addHeader("Authorization", "Basic Zmx5OlpteDU=");
-                });
+    this.jacksonConverterFactory = JacksonConverterFactory.create(mapper);
+
+    Retrofit.Builder tokenRestBuilder =
+        new Retrofit.Builder()
+            .baseUrl(RetrofitUtils.getBaseUrl(host))
+            .client(tokenClient)
+            .addConverterFactory(jacksonConverterFactory)
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance());
 
     this.clusterInfoService =
-        new RestAdapter.Builder()
-            .setEndpoint(host)
-            .setClient(new Ok3Client(okHttpClient))
-            .setConverter(jacksonConverter)
-            .setLog(new Slf4jRetrofitLogger(ClusterInfoService.class))
-            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+        new Retrofit.Builder()
+            .baseUrl(RetrofitUtils.getBaseUrl(host))
+            .client(
+                OkHttpClientBuilder.retryingClient3(okHttpClientConfig, this::refreshToken).build())
+            .addConverterFactory(jacksonConverterFactory)
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(ClusterInfoService.class);
 
-    ClusterInfo clusterInfo = this.clusterInfoService.clusterInfo();
+    ClusterInfo clusterInfo = Retrofit2SyncCall.execute(this.clusterInfoService.clusterInfo());
 
     Semver clusterVer = new Semver(clusterInfo.getVersion());
 
     if (clusterVer.isLowerThan("6.1.0")) {
-      this.tokenServiceV1 =
-          tokenRestBuilder
-              .setLog(new Slf4jRetrofitLogger(TokenService.class))
-              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-              .build()
-              .create(TokenService.class);
+      this.tokenServiceV1 = tokenRestBuilder.build().create(TokenService.class);
       this.tokenServiceV2 = null;
       this.tokenServiceV3 = null;
 
@@ -128,12 +144,7 @@ public class ConcourseClient {
 
     } else if (clusterVer.isLowerThan("6.5.0")) {
       this.tokenServiceV1 = null;
-      this.tokenServiceV2 =
-          tokenRestBuilder
-              .setLog(new Slf4jRetrofitLogger(TokenServiceV2.class))
-              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-              .build()
-              .create(TokenServiceV2.class);
+      this.tokenServiceV2 = tokenRestBuilder.build().create(TokenServiceV2.class);
       this.tokenServiceV3 = null;
 
       this.skyServiceV1 = null;
@@ -142,12 +153,7 @@ public class ConcourseClient {
     } else {
       this.tokenServiceV1 = null;
       this.tokenServiceV2 = null;
-      this.tokenServiceV3 =
-          tokenRestBuilder
-              .setLog(new Slf4jRetrofitLogger(TokenServiceV3.class))
-              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-              .build()
-              .create(TokenServiceV3.class);
+      this.tokenServiceV3 = tokenRestBuilder.build().create(TokenServiceV3.class);
 
       this.skyServiceV1 = null;
       this.skyServiceV2 = createService(SkyServiceV2.class);
@@ -158,7 +164,7 @@ public class ConcourseClient {
     this.teamService = createService(TeamService.class);
     this.pipelineService = createService(PipelineService.class);
     this.resourceService = createService(ResourceService.class);
-    this.eventService = new EventService(host, this::refreshToken, mapper);
+    this.eventService = new EventService(host, this::refreshToken, mapper, okHttpClientConfig);
   }
 
   private void refreshTokenIfNecessary() {
@@ -170,36 +176,43 @@ public class ConcourseClient {
   private Token refreshToken() {
     if (tokenServiceV1 != null) {
       token =
-          tokenServiceV1.passwordToken(
-              "password", user, password, "openid profile email federated:id groups");
+          Retrofit2SyncCall.execute(
+              tokenServiceV1.passwordToken(
+                  "password", user, password, "openid profile email federated:id groups"));
 
     } else if (tokenServiceV2 != null) {
       token =
-          tokenServiceV2.passwordToken(
-              "password", user, password, "openid profile email federated:id groups");
+          Retrofit2SyncCall.execute(
+              tokenServiceV2.passwordToken(
+                  "password", user, password, "openid profile email federated:id groups"));
 
     } else if (tokenServiceV3 != null) {
       token =
-          tokenServiceV3.passwordToken(
-              "password", user, password, "openid profile email federated:id groups");
+          Retrofit2SyncCall.execute(
+              tokenServiceV3.passwordToken(
+                  "password", user, password, "openid profile email federated:id groups"));
     }
 
     tokenExpiration = token.getExpiry();
     return token;
   }
 
-  public Response userInfo() {
-    return skyServiceV1 != null ? skyServiceV1.userInfo() : skyServiceV2.userInfo();
+  public Response<ResponseBody> userInfo() {
+    return Retrofit2SyncCall.executeCall(
+        skyServiceV1 != null ? skyServiceV1.userInfo() : skyServiceV2.userInfo());
   }
 
   private <S> S createService(Class<S> serviceClass) {
-    return new RestAdapter.Builder()
-        .setEndpoint(host)
-        .setClient(new Ok3Client(okHttpClient))
-        .setConverter(jacksonConverter)
-        .setRequestInterceptor(oauthInterceptor)
-        .setLog(new Slf4jRetrofitLogger(serviceClass))
-        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+    OkHttpClient okHttpClient =
+        OkHttpClientBuilder.retryingClient3(okHttpClientConfig, this::refreshToken)
+            .addInterceptor(oauthInterceptor)
+            .build();
+
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(host))
+        .client(okHttpClient)
+        .addConverterFactory(jacksonConverterFactory)
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(serviceClass);
   }

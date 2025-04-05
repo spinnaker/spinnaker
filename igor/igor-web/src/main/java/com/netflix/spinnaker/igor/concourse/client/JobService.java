@@ -18,9 +18,10 @@ package com.netflix.spinnaker.igor.concourse.client;
 
 import com.netflix.spinnaker.igor.concourse.client.model.Job;
 import java.util.Collection;
-import retrofit.http.GET;
+import retrofit2.Call;
+import retrofit2.http.GET;
 
 public interface JobService {
-  @GET("/api/v1/jobs")
-  Collection<Job> jobs();
+  @GET("api/v1/jobs")
+  Call<Collection<Job>> jobs();
 }

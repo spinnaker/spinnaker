@@ -18,8 +18,9 @@ import dev.minutest.rootContext
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.ResponseBody.Companion.toResponseBody
+import retrofit2.HttpException
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -141,16 +142,14 @@ class ArtifactMetadataServiceTests : JUnit5Minutests {
       }
 
       context("with HTTP error coming from igor") {
-        val retrofitError = RetrofitError.httpError(
-          "http://igor",
-          Response("http://igor", 404, "not found", emptyList(), null),
-          null, null
+        val notFoundError = HttpException(
+          retrofit2.Response.error<Any>(404, "".toResponseBody("application/json".toMediaTypeOrNull()))
         )
 
         before {
           coEvery {
             buildService.getArtifactMetadata(commitId = any(), buildNumber = any(), completionStatus = any())
-          } throws retrofitError
+          } throws notFoundError
         }
 
         test("throw an http error from fallback method") {
@@ -158,7 +157,7 @@ class ArtifactMetadataServiceTests : JUnit5Minutests {
             artifactMetadataService.getArtifactMetadata("1", "a15p0")
           }
             .isFailure()
-            .isEqualTo(retrofitError)
+            .isEqualTo(notFoundError)
         }
       }
     }
