@@ -24,7 +24,7 @@ pull_request_rules:
         add: ["auto merged"]
   - name: Automatically merge on CI success and review
     conditions:
-      - base=master
+      - base=main
       - "label=ready to merge"
       - "approved-reviews-by=@oss-approvers"
       - "#approved-reviews-by>=1"
@@ -45,7 +45,7 @@ pull_request_rules:
         add: ["auto merged"]
   - name: Automatically merge PRs from maintainers on CI success and review
     conditions:
-      - base=master
+      - base=main
       - "label=ready to merge"
       - "author=@oss-approvers"
       - "#approved-reviews-by>=1"
@@ -54,21 +54,3 @@ pull_request_rules:
         name: default
       label:
         add: ["auto merged"]
-  - name: Automatically merge autobump PRs on CI success
-    conditions:
-      - base~=^(master|release-)
-      - "label~=autobump-*"
-      - "author:spinnakerbot"
-    actions:
-      queue:
-        name: default
-      label:
-        add: ["auto merged"]
-  - name: Request reviews for autobump PRs on CI failure
-    conditions:
-      - base~=^(master|release-)
-      - "label~=autobump-*"
-      - base=master
-    actions:
-      request_reviews:
-        teams: ["oss-approvers"]
