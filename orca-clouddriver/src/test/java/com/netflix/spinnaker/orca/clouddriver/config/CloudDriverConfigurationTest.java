@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService;
 import com.netflix.spinnaker.orca.test.YamlFileApplicationContextInitializer;
@@ -75,8 +74,7 @@ public class CloudDriverConfigurationTest extends YamlFileApplicationContextInit
           }
         };
     OkHttpClientProvider okHttpClientProvider =
-        new OkHttpClientProvider(
-            List.of(okHttpClientBuilderProvider), new Retrofit2EncodeCorrectionInterceptor());
+        new OkHttpClientProvider(List.of(okHttpClientBuilderProvider));
 
     ObjectMapper objectMapper = new ObjectMapper();
     RestAdapter.LogLevel logLevel = RestAdapter.LogLevel.FULL;

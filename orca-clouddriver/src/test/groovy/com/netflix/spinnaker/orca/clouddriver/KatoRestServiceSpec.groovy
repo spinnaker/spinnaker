@@ -72,7 +72,7 @@ class KatoRestServiceSpec extends Specification {
         OkHttpClient.Builder get(ServiceEndpoint service) {
           return new OkHttpClient().newBuilder()
         }
-      }], new Retrofit2EncodeCorrectionInterceptor()),
+      }]),
       FULL,
       noopInterceptor,
       new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: wireMockServer.url("/"))))
