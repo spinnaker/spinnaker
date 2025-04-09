@@ -80,11 +80,13 @@ jobs:
 
       - name: Login to Google Cloud
         uses: google-github-actions/auth@v2
+        if: github.event_name != 'pull_request'
         with:
           credentials_json: ${{ secrets.GAR_JSON_KEY }}
 
       - name: Upload spin CLI binaries to GCS
         uses: google-github-actions/upload-cloud-storage@v2
+        if: github.event_name != 'pull_request'
         with:
           path: 'spin/dist/'
           destination: ${{ env.GCS_BUCKET }}
@@ -92,6 +94,7 @@ jobs:
 
       - name: Determine latest spin CLI version and write to '(MAJOR.MINOR.x-)latest' files
         continue-on-error: true
+        if: github.event_name != 'pull_request'
         run: |
           gcs_latest="$(curl -s https://storage.googleapis.com/spinnaker-artifacts/spin/latest)"
           release=${{ steps.version.outputs.version }}
@@ -110,6 +113,7 @@ jobs:
       - name: Upload latest version reference files
         # See: https://spinnaker.io/docs/setup/other_config/spin/
         uses: google-github-actions/upload-cloud-storage@v2
+        if: github.event_name != 'pull_request'
         with:
           path: 'dist/latests'
           destination: ${{ env.GCS_BUCKET }}
