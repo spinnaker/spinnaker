@@ -17,8 +17,10 @@
 
 package com.netflix.spinnaker.kork.retrofit;
 
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
+import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +32,15 @@ import retrofit.RestAdapter;
 @Configuration
 @ConditionalOnProperty(value = "retrofit.enabled", havingValue = "true", matchIfMissing = true)
 public class RetrofitServiceFactoryAutoConfiguration {
+
+  /**
+   * Creates OkHttpClientProvider bean for use with RetrofitServiceFactory i.e. for retrofit1
+   * clients
+   */
+  @Bean
+  public OkHttpClientProvider okHttpClientProvider(List<OkHttpClientBuilderProvider> providers) {
+    return new OkHttpClientProvider(providers);
+  }
 
   @Bean
   @Order(Ordered.LOWEST_PRECEDENCE)
