@@ -68,9 +68,9 @@ jobs:
         run: ./gradlew :spin:gateapi
 
       - name: Ensure code formatting and style is consistent
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.45.2
+          version: v2.0
           working-directory: spin
 
       - name: Build binaries
@@ -98,12 +98,12 @@ jobs:
         run: |
           gcs_latest="$(curl -s https://storage.googleapis.com/spinnaker-artifacts/spin/latest)"
           release=${{ steps.version.outputs.version }}
-          
+
           cat <<EOF
           gcs_latest: $gcs_latest
           release: $release
           EOF
-          
+
           mkdir -p dist/latests
           echo "$release" > dist/latests/latest
           if [[ '${{ steps.version.outputs.is-release }}' == 'true' ]]; then
