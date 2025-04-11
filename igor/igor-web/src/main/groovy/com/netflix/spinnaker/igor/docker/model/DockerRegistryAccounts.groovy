@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.docker.model
 
 import com.netflix.spinnaker.igor.docker.service.ClouddriverService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
@@ -36,8 +37,8 @@ class DockerRegistryAccounts {
     void updateAccounts() {
         try {
             AuthenticatedRequest.allowAnonymous {
-                this.accounts = service.allAccounts.findAll { it.cloudProvider == 'dockerRegistry' }*.name.collect {
-                    service.getAccountDetails(it)
+                this.accounts = Retrofit2SyncCall.execute(service.allAccounts).findAll { it.cloudProvider == 'dockerRegistry' }*.name.collect {
+                    Retrofit2SyncCall.execute(service.getAccountDetails(it))
                 }
             }
         } catch (SpinnakerServerException e) {

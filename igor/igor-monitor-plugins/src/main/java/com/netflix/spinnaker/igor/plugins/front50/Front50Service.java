@@ -17,10 +17,11 @@
 package com.netflix.spinnaker.igor.plugins.front50;
 
 import java.util.List;
-import retrofit.http.GET;
+import retrofit2.Call;
+import retrofit2.http.GET;
 
 public interface Front50Service {
 
-  @GET("/pluginInfo")
-  List<PluginInfo> listPluginInfo();
+  @GET("pluginInfo")
+  Call<List<PluginInfo>> listPluginInfo();
 }

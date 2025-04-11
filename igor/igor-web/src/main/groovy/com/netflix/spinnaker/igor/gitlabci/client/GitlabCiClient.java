@@ -20,37 +20,40 @@ import com.netflix.spinnaker.igor.gitlabci.client.model.Job;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Pipeline;
 import com.netflix.spinnaker.igor.gitlabci.client.model.Project;
 import java.util.List;
-import retrofit.client.Response;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface GitlabCiClient {
 
-  @GET("/api/v4/projects")
-  List<Project> getProjects(
+  @GET("api/v4/projects")
+  Call<List<Project>> getProjects(
       @Query("membership") boolean limitByMembership,
       @Query("owned") boolean limitByOwnership,
       @Query("page") int page,
       @Query("per_page") int pageLimit);
 
-  @GET("/api/v4/projects/{projectId}")
-  Project getProject(@Path("projectId") String projectId);
+  @GET("api/v4/projects/{projectId}")
+  Call<Project> getProject(@Path("projectId") String projectId);
 
-  @GET("/api/v4/projects/{projectId}/pipelines")
-  List<Pipeline> getPipelineSummaries(
+  @GET("api/v4/projects/{projectId}/pipelines")
+  Call<List<Pipeline>> getPipelineSummaries(
       @Path("projectId") String projectId, @Query("per_page") int pageLimit);
 
-  @GET("/api/v4/projects/{projectId}/pipelines/{pipelineId}")
-  Pipeline getPipeline(@Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
+  @GET("api/v4/projects/{projectId}/pipelines/{pipelineId}")
+  Call<Pipeline> getPipeline(
+      @Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
 
-  @GET("/api/v4/projects/{projectId}/pipelines/{pipelineId}/jobs")
-  List<Job> getJobs(@Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
+  @GET("api/v4/projects/{projectId}/pipelines/{pipelineId}/jobs")
+  Call<List<Job>> getJobs(@Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
 
-  @GET("/api/v4/projects/{projectId}/jobs/{jobId}/trace")
-  Response getJobLog(@Path("projectId") String projectId, @Path("jobId") long jobId);
+  @GET("api/v4/projects/{projectId}/jobs/{jobId}/trace")
+  Call<ResponseBody> getJobLog(@Path("projectId") String projectId, @Path("jobId") long jobId);
 
   // GitLabCI pipelines can spawn other child pipelines, which are linked by bridges
-  @GET("/api/v4/projects/{projectId}/pipelines/{pipelineId}/bridges")
-  List<Bridge> getBridges(@Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
+  @GET("api/v4/projects/{projectId}/pipelines/{pipelineId}/bridges")
+  Call<List<Bridge>> getBridges(
+      @Path("projectId") String projectId, @Path("pipelineId") long pipelineId);
 }

@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.igor.scm.stash
 
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.stash.client.StashClient
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
 import com.netflix.spinnaker.igor.scm.stash.client.model.Author
 import com.netflix.spinnaker.igor.scm.stash.client.model.Commit
 import com.netflix.spinnaker.igor.scm.stash.client.model.CompareCommitsResponse
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -63,7 +64,7 @@ class CommitControllerSpec extends Specification {
 
     void 'get 404 from stashClient and return one commit'() {
         when:
-        1 * client.getCompareCommits(projectKey, repositorySlug, queryParams) >> {throw  new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://foo.com", 404, "test reason", [], null), null, null, null, null))}
+        1 * client.getCompareCommits(projectKey, repositorySlug, queryParams) >> { throw TestUtils.makeSpinnakerHttpException("http://foo.com", 404, ResponseBody.create("{}", MediaType.parse("application/json"))) }
         def result = controller.compareCommits(projectKey, repositorySlug, queryParams)
 
         then:
@@ -79,9 +80,9 @@ class CommitControllerSpec extends Specification {
 
     void 'compare commits'() {
         given:
-        1 * client.getCompareCommits(projectKey, repositorySlug, [to: toCommit, from: fromCommit]) >> new CompareCommitsResponse(size: 2, values:
+        1 * client.getCompareCommits(projectKey, repositorySlug, [to: toCommit, from: fromCommit]) >> Calls.response(new CompareCommitsResponse(size: 2, values:
             [new Commit(message: "my commit", displayId: "12345", id: "1234512345123451234512345", author : new Author(displayName: "Joe Coder"), authorTimestamp: 1432081865000),
-             new Commit(message: "bug fix", displayId: "67890", id: "67890678906789067890", author : new Author(displayName: "Jane Coder"), authorTimestamp: 1432078663000)])
+             new Commit(message: "bug fix", displayId: "67890", id: "67890678906789067890", author : new Author(displayName: "Jane Coder"), authorTimestamp: 1432078663000)]))
 
         when:
         List commitsResponse = controller.compareCommits(projectKey, repositorySlug, ['to': toCommit, 'from': fromCommit])

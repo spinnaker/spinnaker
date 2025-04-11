@@ -17,19 +17,16 @@
 package com.netflix.spinnaker.igor.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit.Ok3Client
-import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.history.EchoService
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+import com.netflix.spinnaker.igor.util.RetrofitUtils
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.Endpoints
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 /**
  * history service configuration
@@ -39,9 +36,8 @@ import retrofit.converter.JacksonConverter
 class EchoConfig {
     @Bean
     EchoService echoService(
-      OkHttpClientProvider okHttpClientProvider,
+      OkHttp3ClientConfiguration okHttpClientConfig,
       IgorConfigurationProperties igorConfigurationProperties,
-      RestAdapter.LogLevel retrofitLogLevel,
       ObjectMapper objectMapper
     ) {
         String address = igorConfigurationProperties.services.echo.baseUrl ?: 'none'
@@ -50,13 +46,11 @@ class EchoConfig {
             return null
         }
 
-        new RestAdapter.Builder()
-            .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setClient(new Ok3Client(okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", address))))
-            .setConverter(new JacksonConverter(objectMapper))
-            .setLogLevel(retrofitLogLevel)
-            .setLog(new Slf4jRetrofitLogger(EchoService))
-            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+        new Retrofit.Builder()
+            .baseUrl(RetrofitUtils.getBaseUrl(address))
+            .client(okHttpClientConfig.createForRetrofit2().build())
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(EchoService)
     }
