@@ -70,7 +70,12 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
         $scope.applications = _.map(applications, 'name').sort();
         initializeMasters();
       });
-
+      const isExpression =
+        $scope.stage.pipelineParameters !== undefined &&
+        $scope.stage.pipelineParameters !== null &&
+        typeof $scope.stage.pipelineParameters === 'string'
+          ? $scope.stage.pipelineParameters.startsWith('${') && $scope.stage.pipelineParameters.endsWith('}')
+          : false;
       function initializeMasters() {
         if ($scope.stage.application && !$scope.stage.application.includes('${')) {
           PipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function (pipelines) {
@@ -130,12 +135,14 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
               (value, name) => !acceptedPipelineParams.includes(name),
             );
           }
-
-          $scope.hasInvalidParameters = () => Object.keys($scope.invalidParameters || {}).length;
+          $scope.hasSpeLDefinedParameterBlock = () => isExpression;
+          $scope.hasInvalidParameters = () => Object.keys(($scope.invalidParameters && !isExpression) || {}).length;
           $scope.useDefaultParameters = {};
           _.each($scope.pipelineParameters, function (property) {
-            if (!(property.name in $scope.stage.pipelineParameters) && property.default !== null) {
-              $scope.useDefaultParameters[property.name] = true;
+            if (!isExpression) {
+              if (!(property.name in $scope.stage.pipelineParameters) && property.default !== null) {
+                $scope.useDefaultParameters[property.name] = true;
+              }
             }
           });
         } else {

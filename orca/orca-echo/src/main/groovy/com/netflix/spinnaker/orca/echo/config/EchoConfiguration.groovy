@@ -68,7 +68,7 @@ class EchoConfiguration {
   EchoService echoService(Endpoint echoEndpoint) {
     new RestAdapter.Builder()
       .setEndpoint(echoEndpoint)
-      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("echo", echoEndpoint.url))))
+      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("echo", echoEndpoint.url), true)))
       .setLogLevel(retrofitLogLevel)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setLog(new RetrofitSlf4jLog(EchoService))

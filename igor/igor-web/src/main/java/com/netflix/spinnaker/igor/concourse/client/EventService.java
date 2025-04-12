@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.concourse.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.concourse.client.model.Event;
 import com.netflix.spinnaker.igor.concourse.client.model.Token;
 import java.io.IOException;
@@ -40,9 +41,14 @@ public class EventService {
   private final OkHttpClient okHttpClient;
   private final ObjectMapper mapper;
 
-  public EventService(String host, Supplier<Token> refreshToken, ObjectMapper mapper) {
+  public EventService(
+      String host,
+      Supplier<Token> refreshToken,
+      ObjectMapper mapper,
+      OkHttp3ClientConfiguration okHttpClientConfig) {
     this.host = host;
-    this.okHttpClient = OkHttpClientBuilder.retryingClient3(refreshToken);
+    this.okHttpClient =
+        OkHttpClientBuilder.retryingClient3(okHttpClientConfig, refreshToken).build();
     this.mapper = mapper;
   }
 

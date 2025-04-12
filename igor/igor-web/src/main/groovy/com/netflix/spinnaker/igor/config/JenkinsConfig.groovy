@@ -20,32 +20,30 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
-import com.jakewharton.retrofit.Ok3Client
-import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
-import com.netflix.spinnaker.igor.config.client.DefaultJenkinsOkHttpClientProvider
 import com.netflix.spinnaker.igor.config.client.DefaultJenkinsRetrofitRequestInterceptorProvider
-import com.netflix.spinnaker.igor.config.client.JenkinsOkHttpClientProvider
 import com.netflix.spinnaker.igor.config.client.JenkinsRetrofitRequestInterceptorProvider
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildServices
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+import com.netflix.spinnaker.igor.util.RetrofitUtils
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.Endpoints
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
@@ -71,12 +69,6 @@ class JenkinsConfig {
 
     @Bean
     @ConditionalOnMissingBean
-    JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider(OkHttpClient okHttpClient) {
-        return new DefaultJenkinsOkHttpClientProvider(okHttpClient)
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
     JenkinsRetrofitRequestInterceptorProvider jenkinsRetrofitRequestInterceptorProvider() {
         return new DefaultJenkinsRetrofitRequestInterceptorProvider()
     }
@@ -85,22 +77,18 @@ class JenkinsConfig {
     Map<String, JenkinsService> jenkinsMasters(BuildServices buildServices,
                                                IgorConfigurationProperties igorConfigurationProperties,
                                                @Valid JenkinsProperties jenkinsProperties,
-                                               JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider,
+                                               OkHttp3ClientConfiguration okHttpClientConfig,
                                                JenkinsRetrofitRequestInterceptorProvider jenkinsRetrofitRequestInterceptorProvider,
-                                               Registry registry,
-                                               CircuitBreakerRegistry circuitBreakerRegistry,
-                                               RestAdapter.LogLevel retrofitLogLevel) {
+                                               CircuitBreakerRegistry circuitBreakerRegistry) {
         log.info "creating jenkinsMasters"
         Map<String, JenkinsService> jenkinsMasters = jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
             [(host.name): jenkinsService(
                 host.name,
                 jenkinsClient(
+                    okHttpClientConfig,
                     host,
-                    jenkinsOkHttpClientProvider,
                     jenkinsRetrofitRequestInterceptorProvider,
-                    registry,
-                    retrofitLogLevel,
                     igorConfigurationProperties.client.timeout
                 ),
                 host.csrf,
@@ -129,16 +117,23 @@ class JenkinsConfig {
             .registerModule(new JaxbAnnotationModule())
     }
 
-  static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host,
-                                     JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider = null,
+  static JenkinsClient jenkinsClient(OkHttp3ClientConfiguration okHttpClientConfig,
+                                     JenkinsProperties.JenkinsHost host,
                                      JenkinsRetrofitRequestInterceptorProvider jenkinsRetrofitRequestInterceptorProvider = null,
-                                     Registry registry = null,
-                                     RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.BASIC,
                                      int timeout = 30000){
 
-        OkHttpClient client = (jenkinsOkHttpClientProvider != null) ? jenkinsOkHttpClientProvider.provide(host) : new OkHttpClient()
-        RequestInterceptor requestInterceptor = (jenkinsRetrofitRequestInterceptorProvider != null) ? jenkinsRetrofitRequestInterceptorProvider.provide(host): RequestInterceptor.NONE
-        OkHttpClient.Builder clientBuilder = client.newBuilder().readTimeout(timeout, TimeUnit.MILLISECONDS)
+        Interceptor requestInterceptor = (jenkinsRetrofitRequestInterceptorProvider != null) ? jenkinsRetrofitRequestInterceptorProvider.provide(host): null
+        OkHttpClient.Builder clientBuilder = okHttpClientConfig.createForRetrofit2().readTimeout(timeout, TimeUnit.MILLISECONDS)
+        if (requestInterceptor != null) {
+          clientBuilder.addInterceptor(requestInterceptor)
+        }
+        clientBuilder.addInterceptor(new Interceptor() {
+          @Override
+          Response intercept(Interceptor.Chain chain) {
+            Request request = chain.request().newBuilder().addHeader("User-Agent", "Spinnaker-igor").build()
+            return chain.proceed(request)
+          }
+        })
 
         if (host.skipHostnameVerification) {
           clientBuilder.hostnameVerifier({ hostname, _ ->
@@ -182,20 +177,11 @@ class JenkinsConfig {
             clientBuilder.sslSocketFactory(sslContext.socketFactory, (X509TrustManager) trustManagers[0])
         }
 
-        new RestAdapter.Builder()
-            .setEndpoint(Endpoints.newFixedEndpoint(host.address))
-            .setRequestInterceptor(new RequestInterceptor() {
-                @Override
-                void intercept(RequestInterceptor.RequestFacade request) {
-                    request.addHeader("User-Agent", "Spinnaker-igor")
-                    requestInterceptor.intercept(request)
-                }
-            })
-            .setLogLevel(retrofitLogLevel)
-            .setClient(new Ok3Client(clientBuilder.build()))
-            .setConverter(new JacksonConverter(getObjectMapper()))
-            .setLog(new Slf4jRetrofitLogger(JenkinsClient))
-            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+        new Retrofit.Builder()
+            .baseUrl(RetrofitUtils.getBaseUrl(host.address))
+            .client(clientBuilder.build())
+            .addConverterFactory(JacksonConverterFactory.create(getObjectMapper()))
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(JenkinsClient)
     }

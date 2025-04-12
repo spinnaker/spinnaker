@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor
 import okhttp3.Dispatcher
 import okhttp3.logging.HttpLoggingInterceptor
@@ -60,22 +61,29 @@ class OkHttp3ClientConfiguration {
    */
   private final SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor
 
+  /**
+   * {@link okhttp3.Interceptor} for correcting partial encoding done by Retrofit2.  Do not use in retrofit1.
+   */
+  private final Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor
+
   @Autowired
   OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
                              OkHttp3MetricsInterceptor okHttp3MetricsInterceptor,
                              HttpLoggingInterceptor.Level retrofit2LogLevel,
                              SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor,
+                             Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor,
                              ObjectFactory<OkHttpClient.Builder> httpClientBuilderFactory) {
     this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
     this.okHttp3MetricsInterceptor = okHttp3MetricsInterceptor
     this.retrofit2LogLevel = retrofit2LogLevel
     this.spinnakerRequestHeaderInterceptor = spinnakerRequestHeaderInterceptor
+    this.retrofit2EncodeCorrectionInterceptor = retrofit2EncodeCorrectionInterceptor
     this.httpClientBuilderFactory = httpClientBuilderFactory
   }
 
   public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
                                     OkHttp3MetricsInterceptor okHttp3MetricsInterceptor) {
-    this(okHttpClientConfigurationProperties, okHttp3MetricsInterceptor, null, null,
+    this(okHttpClientConfigurationProperties, okHttp3MetricsInterceptor, null, null, null,
       { new OkHttpClient.Builder() })
   }
 
@@ -84,7 +92,7 @@ class OkHttp3ClientConfiguration {
   }
 
   /**
-   * @return OkHttpClient w/ <optional> key and trust stores
+   * @return OkHttpClient w/ <optional> key and trust stores.  For use with retrofit1.  Do not use with retrofit2.
    */
   OkHttpClient.Builder create() {
     if (okHttpClientConfigurationProperties.refreshableKeys.enabled) {
@@ -106,7 +114,8 @@ class OkHttp3ClientConfiguration {
   }
 
   /**
-   * @return OkHttpClient with SpinnakerRequestHeaderInterceptor as initial interceptor w/ <optional> key and trust stores
+   * @return OkHttpClient with SpinnakerRequestHeaderInterceptor and Retrofit2EncodeCorrectionInterceptor
+   * as initial interceptors w/ <optional> key and trust stores
    */
   OkHttpClient.Builder createForRetrofit2() {
     if (okHttpClientConfigurationProperties.refreshableKeys.enabled) {
@@ -126,6 +135,10 @@ class OkHttp3ClientConfiguration {
 
     if (okHttp3MetricsInterceptor != null) {
       okHttpClientBuilder.addInterceptor(okHttp3MetricsInterceptor)
+    }
+
+    if (retrofit2EncodeCorrectionInterceptor != null) {
+      okHttpClientBuilder.addInterceptor(retrofit2EncodeCorrectionInterceptor)
     }
 
     /**

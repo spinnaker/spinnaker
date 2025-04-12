@@ -18,10 +18,13 @@ package com.netflix.spinnaker.igor.scm.github.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.config.GitHubConfig
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
 import com.netflix.spinnaker.igor.scm.github.client.model.GetRepositoryContentResponse
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -59,7 +62,7 @@ class GitHubClientSpec extends Specification {
         .setHeader('Content-Type', 'text/xml;charset=UTF-8')
     )
     server.start()
-    client = new GitHubConfig().gitHubClient(server.url('/').toString(), 'token', mapper)
+    client = new GitHubConfig().gitHubClient(TestUtils.makeOkHttpClientConfig(), server.url('/').toString(), 'token', mapper)
   }
 
   void 'getDirectoryContent'() {
@@ -67,7 +70,7 @@ class GitHubClientSpec extends Specification {
     setResponse getDirectoryContentResponse()
 
     when:
-    List<GetRepositoryContentResponse> response = client.listDirectory('foo', 'repo', 'test', 'master')
+    List<GetRepositoryContentResponse> response = Retrofit2SyncCall.execute(client.listDirectory('foo', 'repo', 'test', 'master'))
 
     then:
     response.size() == 2
@@ -120,7 +123,7 @@ class GitHubClientSpec extends Specification {
     setResponse getFileContentResponse()
 
     when:
-    GetRepositoryContentResponse response = client.getFileContent('foo', 'repo', 'README.md', 'master')
+    GetRepositoryContentResponse response = Retrofit2SyncCall.execute(client.getFileContent('foo', 'repo', 'README.md', 'master'))
 
     then:
     response.type == 'file'
@@ -153,7 +156,7 @@ class GitHubClientSpec extends Specification {
     setResponse getCompareCommitsResponse()
 
     when:
-    CompareCommitsResponse commitsResponse = client.getCompareCommits('foo', 'repo', 'abcd', 'defg')
+    CompareCommitsResponse commitsResponse = Retrofit2SyncCall.execute(client.getCompareCommits('foo', 'repo', 'abcd', 'defg'))
 
     then:
     commitsResponse.html_url == 'https://github.com/my-project/module/compare/0a7c0c17992b15c73de25b2a94abb4c88862b53f...7890bc148475432b9e537e03d37f22d9018ef9c8'

@@ -17,21 +17,22 @@
 package com.netflix.spinnaker.igor.docker.service
 
 import com.netflix.spinnaker.igor.docker.model.ClouddriverAccount
-import retrofit.http.GET
-import retrofit.http.Path
-import retrofit.http.Query
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 /*
  * This service represents the interface with a simplified V2 docker registry service.
  * Specifically, the interface to docker registry images presented by clouddriver.
  */
 interface ClouddriverService {
-    @GET('/dockerRegistry/images/find')
-    List<TaggedImage> getImagesByAccount(@Query('account') String account, @Query('includeDetails') Boolean includeDetails)
+    @GET('dockerRegistry/images/find')
+    Call<List<TaggedImage>> getImagesByAccount(@Query('account') String account, @Query('includeDetails') Boolean includeDetails)
 
-    @GET('/credentials')
-    List<ClouddriverAccount> getAllAccounts()
+    @GET('credentials')
+    Call<List<ClouddriverAccount>> getAllAccounts()
 
-    @GET('/credentials/{account}')
-    Map getAccountDetails(@Path('account') String account)
+    @GET('credentials/{account}')
+    Call<Map> getAccountDetails(@Path('account') String account)
 }

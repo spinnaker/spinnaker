@@ -22,12 +22,12 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.services.IgorService;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import retrofit.mime.TypedByteArray;
 
 /**
  * Handles Google Cloud Build notifications by forwarding information on the completed build to
@@ -54,11 +54,9 @@ public class GoogleCloudBuildNotificationAgent implements EventListener {
                           messageDescription.getSubscriptionName(),
                           messageDescription.getMessageAttributes().get("buildId"),
                           messageDescription.getMessageAttributes().get("status"),
-                          new TypedByteArray(
-                              "application/json",
-                              messageDescription
-                                  .getMessagePayload()
-                                  .getBytes(StandardCharsets.UTF_8)))),
+                          RequestBody.create(
+                              messageDescription.getMessagePayload(),
+                              MediaType.parse("application/json")))),
           5,
           2000,
           false);
