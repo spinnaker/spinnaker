@@ -26,6 +26,7 @@ import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryChildren
 import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryListingResponse
 import com.netflix.spinnaker.igor.scm.stash.client.model.PathDetails
 import com.netflix.spinnaker.igor.scm.stash.client.model.TextLinesResponse
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -53,7 +54,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
 
   void 'list delivery config manifests'() {
     given:
-    1 * client.listDirectory(project, repo, ".spinnaker/dir", ref) >> expectedResponse
+    1 * client.listDirectory(project, repo, ".spinnaker/dir", ref) >> Calls.response(expectedResponse)
 
     when:
     List<String> response = service.listDeliveryConfigManifests(scmType, project, repo, dir, extension, ref)
@@ -77,7 +78,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
 
   void 'get delivery config manifest that is in yaml format'() {
     given:
-    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.yml", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> expectedResponse
+    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.yml", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> Calls.response(expectedResponse)
 
     when:
     Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw)
@@ -107,7 +108,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
 
   void 'get delivery config manifest that is in json format'() {
     given:
-    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.json", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> expectedResponse
+    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.json", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> Calls.response(expectedResponse)
 
     when:
     Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw)
@@ -134,7 +135,7 @@ class ManagedDeliveryScmServiceSpec extends Specification {
 
   void 'get raw delivery config manifest'() {
     given:
-    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.json", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> expectedResponse
+    1 * client.getTextFileContents(project, repo, ".spinnaker/dir/manifest.json", ref, DEFAULT_PAGED_RESPONSE_LIMIT, 0) >> Calls.response(expectedResponse)
 
     when:
     Map<String, Object> response = service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw)

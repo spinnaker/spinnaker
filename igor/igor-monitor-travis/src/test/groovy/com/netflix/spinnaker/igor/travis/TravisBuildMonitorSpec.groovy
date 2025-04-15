@@ -32,6 +32,7 @@ import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.scheduling.TaskScheduler
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 class TravisBuildMonitorSpec extends Specification {
@@ -67,6 +68,7 @@ class TravisBuildMonitorSpec extends Specification {
     void 'flag a new build on master, but do not send event on repo if a newer build is present at repo level'() {
         V3Build build = Mock(V3Build)
         V3Repository repository = Mock(V3Repository)
+        echoService.postEvent(_) >> Calls.response(null)
 
         when:
         TravisBuildMonitor.BuildPollingDelta buildPollingDelta = travisBuildMonitor.generateDelta(new PollContext(MASTER))
@@ -118,11 +120,11 @@ class TravisBuildMonitorSpec extends Specification {
         1 * echoService.postEvent({
             it.content.project.name == "test-org/test-repo"
             it.content.project.lastBuild.number == 4
-        })
+        }) >> Calls.response(null)
         1 * echoService.postEvent({
             it.content.project.name == "test-org/test-repo/my_branch"
             it.content.project.lastBuild.number == 4
-        })
+        }) >> Calls.response(null)
     }
 
     void 'suppress echo notifications'() {
@@ -185,20 +187,20 @@ class TravisBuildMonitorSpec extends Specification {
         1 * echoService.postEvent({
             it.content.project.name == "test-org/test-repo/my_branch" &&
                 it.content.project.lastBuild.number == 4
-        })
+        }) >> Calls.response(null)
         1 * echoService.postEvent({
             it.content.project.name == "test-org/test-repo" &&
                 it.content.project.lastBuild.number == 4
-        })
+        }) >> Calls.response(null)
 
         1 * echoService.postEvent({
             it.content.project.name == "test-org/test-repo" &&
                 it.content.project.lastBuild.number == 3
-        })
+        }) >> Calls.response(null)
         1 * echoService.postEvent({
             it.content.project.name == "test-org/test-repo/different_branch" &&
                 it.content.project.lastBuild.number == 3
-        })
+        }) >> Calls.response(null)
     }
 
     def "should keep track of started builds and monitor them even if they disappear from the Travis API"() {
@@ -241,10 +243,10 @@ class TravisBuildMonitorSpec extends Specification {
         1 * echoService.postEvent({
             it.content.project.name == "test-org/test-repo"
             it.content.project.lastBuild.number == 4
-        })
+        }) >> Calls.response(null)
         1 * echoService.postEvent({
             it.content.project.name == "test-org/test-repo/my_branch"
             it.content.project.lastBuild.number == 4
-        })
+        }) >> Calls.response(null)
     }
 }

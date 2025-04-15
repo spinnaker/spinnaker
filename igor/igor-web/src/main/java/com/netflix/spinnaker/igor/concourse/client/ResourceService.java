@@ -18,10 +18,12 @@ package com.netflix.spinnaker.igor.concourse.client;
 
 import com.netflix.spinnaker.igor.concourse.client.model.Resource;
 import java.util.Collection;
-import retrofit.http.GET;
-import retrofit.http.Path;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
 
 public interface ResourceService {
-  @GET("/api/v1/teams/{team}/pipelines/{pipeline}/resources")
-  Collection<Resource> resources(@Path("team") String team, @Path("pipeline") String pipeline);
+  @GET("api/v1/teams/{team}/pipelines/{pipeline}/resources")
+  Call<Collection<Resource>> resources(
+      @Path("team") String team, @Path("pipeline") String pipeline);
 }

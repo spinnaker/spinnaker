@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.igor.scm.stash.client
 
 import com.netflix.spinnaker.igor.config.StashConfig
+import com.netflix.spinnaker.igor.helpers.TestUtils
 import com.netflix.spinnaker.igor.scm.ScmMaster
 import com.netflix.spinnaker.igor.scm.stash.client.model.CompareCommitsResponse
 import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryListingResponse
 import com.netflix.spinnaker.igor.scm.stash.client.model.TextLinesResponse
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import retrofit.RestAdapter
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -54,7 +55,7 @@ class StashClientSpec extends Specification {
                 .setHeader('Content-Type', contentType)
         )
         server.start()
-        client = new StashConfig().stashClient(server.url('/').toString(), 'username', 'password', RestAdapter.LogLevel.BASIC)
+        client = new StashConfig().stashClient(server.url('/').toString(), 'username', 'password', TestUtils.makeOkHttpClientConfig())
     }
 
     void 'getCompareCommits'() {
@@ -62,7 +63,7 @@ class StashClientSpec extends Specification {
         setResponse('text/xml;charset=UTF-8', compareCommitsResponse)
 
         when:
-        CompareCommitsResponse commitsResponse = client.getCompareCommits('foo', 'repo', [toCommit:'abcd', fromCommit:'defg'])
+        CompareCommitsResponse commitsResponse = Retrofit2SyncCall.execute(client.getCompareCommits('foo', 'repo', [toCommit:'abcd', fromCommit:'defg']))
 
         then:
         commitsResponse.size == 2
@@ -108,7 +109,7 @@ class StashClientSpec extends Specification {
     setResponse('application/json', listDirectoryResponse)
 
     when:
-    DirectoryListingResponse dirListResponse = client.listDirectory('foo', 'repo', '.spinnaker', ScmMaster.DEFAULT_GIT_REF)
+    DirectoryListingResponse dirListResponse = Retrofit2SyncCall.execute(client.listDirectory('foo', 'repo', '.spinnaker', ScmMaster.DEFAULT_GIT_REF))
 
     then:
     dirListResponse.children.size == 2
@@ -133,7 +134,7 @@ class StashClientSpec extends Specification {
     setResponse('application/json', contents)
 
     when:
-    TextLinesResponse response = client.getTextFileContents('foo', 'repo', 'bananas.txt', ScmMaster.DEFAULT_GIT_REF, 1, start)
+    TextLinesResponse response = Retrofit2SyncCall.execute(client.getTextFileContents('foo', 'repo', 'bananas.txt', ScmMaster.DEFAULT_GIT_REF, 1, start))
 
     then:
     response.size == size

@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.igor.scm
 
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.igor.helpers.TestUtils
+import okhttp3.MediaType
+import okhttp3.ResponseBody
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.JacksonConverter
-import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -108,13 +106,7 @@ class ManagedDeliveryScmControllerSpec extends Specification {
   void '404 error from service is propagated'() {
     given:
     1 * service.getDeliveryConfigManifest(scmType, project, repo, dir, manifest, ref, raw) >> {
-      throw new SpinnakerHttpException(new RetrofitError("oops!", "http://nada",
-        new Response("http://nada", 404, "", [], new TypedString('{"detail": "oops!"}')),
-        new JacksonConverter(),
-        null,
-        RetrofitError.Kind.HTTP,
-        null
-      ))
+      throw TestUtils.makeSpinnakerHttpException("http://nada", 404, ResponseBody.create('{"detail": "oops!"}', MediaType.parse("application/json")))
     }
 
     when:

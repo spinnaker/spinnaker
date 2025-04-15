@@ -20,6 +20,7 @@ import com.netflix.spinnaker.igor.config.GitHubProperties
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
@@ -51,7 +52,7 @@ class CommitController extends AbstractCommitController {
         List result = []
 
         try {
-            commitsResponse = master.gitHubClient.getCompareCommits(projectKey, repositorySlug, requestParams.to, requestParams.from)
+            commitsResponse = Retrofit2SyncCall.execute(master.gitHubClient.getCompareCommits(projectKey, repositorySlug, requestParams.to, requestParams.from))
         } catch (SpinnakerNetworkException e) {
             throw new NotFoundException("Could not find the server ${master.baseUrl}")
         } catch (SpinnakerServerException e) {
