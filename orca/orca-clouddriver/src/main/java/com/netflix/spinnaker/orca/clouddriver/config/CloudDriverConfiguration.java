@@ -206,7 +206,7 @@ public class CloudDriverConfiguration {
           .setEndpoint(newFixedEndpoint(url))
           .setClient(
               new Ok3Client(
-                  clientProvider.getClient(new DefaultServiceEndpoint("clouddriver", url))))
+                  clientProvider.getClient(new DefaultServiceEndpoint("clouddriver", url), true)))
           .setLogLevel(retrofitLogLevel)
           .setLog(new RetrofitSlf4jLog(type))
           .setConverter(new JacksonConverter(objectMapper))

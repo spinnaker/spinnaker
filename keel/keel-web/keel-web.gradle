@@ -63,6 +63,7 @@ dependencies {
   testImplementation(project(":keel-clouddriver"))
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  testImplementation("io.spinnaker.kork:kork-retrofit")
   testImplementation("io.spinnaker.kork:kork-security")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("org.testcontainers:mysql")

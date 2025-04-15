@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.travis.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.travis.client.model.AccessToken
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
@@ -27,6 +28,9 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.config.TravisConfig
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
@@ -63,7 +67,7 @@ class TravisClientSpec extends Specification {
         setResponse '''{"access_token":"aCCeSSToKeN"}'''
 
         when:
-        AccessToken accessToken = client.accessToken(new GithubAuth("foo"))
+        AccessToken accessToken = Retrofit2SyncCall.execute(client.accessToken(new GithubAuth("foo")))
 
         then:
         accessToken.accessToken == "aCCeSSToKeN"
@@ -100,7 +104,7 @@ class TravisClientSpec extends Specification {
         }'''
 
         when:
-        TriggerResponse triggerResponse = client.triggerBuild("someToken", "some/build", new RepoRequest("master"))
+        TriggerResponse triggerResponse = Retrofit2SyncCall.execute(client.triggerBuild("someToken", "some/build", new RepoRequest("master")))
 
         then:
         triggerResponse.remainingRequests == 10
@@ -138,7 +142,7 @@ class TravisClientSpec extends Specification {
         }'''.stripIndent()
 
         when:
-        V3Log v3Log = client.jobLog("someToken", 123)
+        V3Log v3Log = Retrofit2SyncCall.execute(client.jobLog("someToken", 123))
 
         then:
         v3Log.content.contains "false:FalseClass"
@@ -177,7 +181,7 @@ class TravisClientSpec extends Specification {
         }'''.stripIndent()
 
         when:
-        V3Log v3Log = client.jobLog("someToken", 123)
+        V3Log v3Log = Retrofit2SyncCall.execute(client.jobLog("someToken", 123))
 
         then:
         v3Log.content.contains "false:FalseClass"
@@ -211,7 +215,7 @@ class TravisClientSpec extends Specification {
         }'''.stripIndent()
 
     when:
-    V3Log v3Log = client.jobLog("someToken", 123)
+    V3Log v3Log = Retrofit2SyncCall.execute(client.jobLog("someToken", 123))
 
     then:
     v3Log.content.contains "false:FalseClass"
@@ -269,7 +273,7 @@ class TravisClientSpec extends Specification {
             }'''
 
         when:
-        Builds builds = client.builds("someToken", "some/build", 31)
+        Builds builds = Retrofit2SyncCall.execute(client.builds("someToken", "some/build", 31))
 
         then:
         Build build = builds.builds.first()
@@ -320,7 +324,7 @@ class TravisClientSpec extends Specification {
             }'''
 
         when:
-        Builds builds = client.builds("someToken", "some/build", 31)
+        Builds builds = Retrofit2SyncCall.execute(client.builds("someToken", "some/build", 31))
 
         then:
         Build build = builds.builds.first()
@@ -334,7 +338,7 @@ class TravisClientSpec extends Specification {
         setResponse '''{"builds":[],"commits":[]}'''
 
         when:
-        Builds builds = client.builds("someToken", "some/build", 31)
+        Builds builds = Retrofit2SyncCall.execute(client.builds("someToken", "some/build", 31))
 
         then:
         builds.builds.size() == 0
@@ -373,7 +377,7 @@ class TravisClientSpec extends Specification {
         }'''
 
         when:
-        Builds builds = client.builds("someToken", "org/repo", 39)
+        Builds builds = Retrofit2SyncCall.execute(client.builds("someToken", "org/repo", 39))
 
         then:
         builds.commits.first().isTag()
@@ -412,7 +416,7 @@ class TravisClientSpec extends Specification {
         }'''
 
         when:
-        Builds builds = client.builds("someToken", "org/repo", 31)
+        Builds builds = Retrofit2SyncCall.execute(client.builds("someToken", "org/repo", 31))
 
         then:
         builds.commits.first().timestamp == LocalDateTime.of(2016, Month.JUNE, 1, 18, 57, 48).toInstant(ZoneOffset.UTC)
@@ -559,7 +563,7 @@ class TravisClientSpec extends Specification {
           '''
 
         when:
-        V3Builds builds = client.v3builds("someToken", "org/repo","bah", 2, null)
+        V3Builds builds = Retrofit2SyncCall.execute(client.v3builds("someToken", "org/repo","bah", 2, null))
 
         then:
         builds.builds.size() == 2
@@ -642,7 +646,7 @@ class TravisClientSpec extends Specification {
           '''
 
     when:
-    V3Build build = client.v3build("someToken", 7128433, "build.log_complete")
+    V3Build build = Retrofit2SyncCall.execute(client.v3build("someToken", 7128433, "build.log_complete"))
 
     then:
     build.number == 265
@@ -687,7 +691,7 @@ class TravisClientSpec extends Specification {
         '''
 
         when:
-        Builds builds = client.builds("someToken", "org/repo", 38)
+        Builds builds = Retrofit2SyncCall.execute(client.builds("someToken", "org/repo", 38))
 
         then:
         !builds.commits.first().isTag()
@@ -803,7 +807,7 @@ class TravisClientSpec extends Specification {
         }'''
 
         when:
-        V3Builds builds = client.v3builds("someToken", "org/repo", 1, "job.config")
+        V3Builds builds = Retrofit2SyncCall.execute(client.v3builds("someToken", "org/repo", 1, "job.config"))
 
         then:
         builds.builds.size() == 1
@@ -825,6 +829,8 @@ class TravisClientSpec extends Specification {
                 .setHeader('Content-Type', 'application/json;charset=utf-8')
         )
         server.start()
-        client = new TravisConfig().travisClient(server.url('/').toString(), 3000, mapper)
+        OkHttp3ClientConfiguration okHttpClientConfig = new OkHttp3ClientConfiguration(
+            new OkHttpClientConfigurationProperties(), null, HttpLoggingInterceptor.Level.BASIC, null, null, null);
+        client = new TravisConfig().travisClient(server.url('/').toString(), 3000, mapper, okHttpClientConfig)
     }
 }

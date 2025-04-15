@@ -34,6 +34,7 @@ import com.netflix.spinnaker.igor.polling.PollingDelta
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -102,7 +103,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
 
         long startTime = System.currentTimeMillis()
         //Netflix is adding `includeDetails` flag to `getImagesByAccount`, in order to get a detailed response from the resgistry
-        List<TaggedImage> images = AuthenticatedRequest.allowAnonymous { dockerRegistryAccounts.service.getImagesByAccount(account, true) }
+        List<TaggedImage> images = AuthenticatedRequest.allowAnonymous { Retrofit2SyncCall.execute(dockerRegistryAccounts.service.getImagesByAccount(account, true)) }
 
         long endTime = System.currentTimeMillis()
         log.debug("Executed generateDelta:DockerMonitor with includeData=true in {}ms", endTime - startTime);
@@ -190,13 +191,13 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         dockerArtifact.metadata = [registry: image.registry]
 
         AuthenticatedRequest.allowAnonymous {
-          echoService.get().postEvent(new DockerEvent(content: new DockerEvent.Content(
+          Retrofit2SyncCall.execute(echoService.get().postEvent(new DockerEvent(content: new DockerEvent.Content(
             registry: image.registry,
             repository: image.repository,
             tag: image.tag,
             digest: image.digest,
             account: image.account,
-          ), artifact: dockerArtifact))
+          ), artifact: dockerArtifact)))
         }
 
         if (keelService.isPresent()) {
@@ -227,7 +228,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
             payload: [artifacts: [artifact], details: [:]],
             eventName: "spinnaker_artifacts_docker"
           ]
-          AuthenticatedRequest.allowAnonymous { keelService.get().sendArtifactEvent(artifactEvent) }
+          AuthenticatedRequest.allowAnonymous { Retrofit2SyncCall.execute(keelService.get().sendArtifactEvent(artifactEvent)) }
         }
     }
 
