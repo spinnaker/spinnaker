@@ -46,7 +46,8 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
-import retrofit.http.Query
+import retrofit2.Response
+import retrofit2.http.Query
 
 import javax.annotation.Nullable
 import javax.servlet.http.HttpServletRequest
@@ -260,7 +261,7 @@ class BuildController {
     try {
       def buildService = getBuildService(master)
       if (buildService instanceof JenkinsService) {
-        def response
+        Response response
         JenkinsService jenkinsService = (JenkinsService) buildService
         JobConfig jobConfig = jenkinsService.getJobConfig(job)
         if (!jobConfig.buildable) {
@@ -282,18 +283,17 @@ class BuildController {
           throw new RuntimeException("job : ${job}, passing params to a job which doesn't need them")
         }
 
-        if (response.status != 201) {
+        if (response.code() != 201) {
           throw new BuildJobError("Received a non-201 status when submitting job '${job}' to master '${master}'")
         }
 
         log.info("Submitted build job '{}'", kv("job", job))
-        def locationHeader = response.headers.find { it.name.toLowerCase() == "location" }
+        def locationHeader = response.headers().get("location")
         if (!locationHeader) {
           throw new QueuedJobDeterminationError("Could not find Location header for job '${job}'")
         }
-        def queuedLocation = locationHeader.value
 
-        buildNumber = queuedLocation.split('/')[-1]
+        buildNumber = locationHeader.split('/')[-1]
       } else {
         buildNumber = buildService.triggerBuildWithParameters(job, requestParams)
       }

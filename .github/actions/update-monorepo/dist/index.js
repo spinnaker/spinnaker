@@ -31306,6 +31306,8 @@ ${result.exec.out}
     const successes = results.filter((it) => it.isClean).map((it) => it.repo);
     body += `\n\n`;
     body += `Successfully merged: ${successes.join(', ')}`;
+    body += `\n\n`;
+    body += `## Please **do not squash commit this PR**.  Use a merge commit to preserve history.`;
     return header + body;
 }
 exports.generatePrBody = generatePrBody;
@@ -31322,7 +31324,7 @@ async function createMergeBranchPr(results) {
     await pushMergeBranch();
     // Create a pull from that branch we just pushed
     const [owner, repo] = getRepoOwnerAndName();
-    return exports.github.rest.pulls.create({
+    const pr = await exports.github.rest.pulls.create({
         owner,
         repo,
         head: getMergeBranchName(),
@@ -31330,6 +31332,14 @@ async function createMergeBranchPr(results) {
         title: `Auto-merge of individual repos (${getLocalRef()})`,
         body,
     });
+    // Add label
+    exports.github.rest.issues.addLabels({
+        owner,
+        repo,
+        issue_number: pr.data.number,
+        labels: ['no-squash'],
+    });
+    return pr;
 }
 exports.createMergeBranchPr = createMergeBranchPr;
 async function setup() {

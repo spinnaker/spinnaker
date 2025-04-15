@@ -37,13 +37,16 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Jobs
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
+import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
+import okhttp3.MediaType
+import okhttp3.ResponseBody
 import org.assertj.core.util.Lists
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.JacksonConverter
-import retrofit.mime.TypedString
+import retrofit2.Response
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.Retrofit
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -97,7 +100,7 @@ class TravisServiceSpec extends Specification {
         genericBuild.timestamp == "1458051084000"
 
         2 * travisCache.getJobLog('travis-ci', 42) >>> [null, ""]
-        1 * client.jobLog(_, 42) >> v3log
+        1 * client.jobLog(_, 42) >> Calls.response(v3log)
         2 * build.job_ids >> [42]
         2 * build.number >> 1337
         2 * build.state >> 'passed'
@@ -132,7 +135,7 @@ class TravisServiceSpec extends Specification {
                 [TravisBuildState.passed, TravisBuildState.started, TravisBuildState.errored, TravisBuildState.failed, TravisBuildState.canceled].join(","),
                 "job.build",
                 service.getLimit(page, numberOfJobs),
-                (page - 1) * TravisService.TRAVIS_JOB_RESULT_LIMIT) >> partitionedJobs[page - 1]
+                (page - 1) * TravisService.TRAVIS_JOB_RESULT_LIMIT) >> Calls.response(partitionedJobs[page - 1])
         }
         builds.size() == numberOfJobs
 
@@ -182,7 +185,7 @@ class TravisServiceSpec extends Specification {
 
       then:
       1 * client.v3builds("token someToken", "myorg/myrepo", TRAVIS_BUILD_RESULT_LIMIT,
-        null) >> new V3Builds([builds: [build]])
+        null) >> Calls.response(new V3Builds([builds: [build]]))
       0 * client.jobs(*_)
       builds == [build]
     }
@@ -312,7 +315,7 @@ class TravisServiceSpec extends Specification {
             assert repoRequest.config.env == null
             assert repoRequest.message == "Triggered from Spinnaker: My build message"
             return repoRequest
-        }) >> response
+        }) >> Calls.response(response)
         1 * travisCache.setQueuedJob("travis-ci", 42, 1337) >> 1
 
         buildNumber == 1
@@ -355,9 +358,9 @@ class TravisServiceSpec extends Specification {
 
         then:
         1 * client.v3builds("token someToken", "my/slug", "master", "push,api", TRAVIS_BUILD_RESULT_LIMIT,
-            legacyLogFetching ? null : "build.log_complete") >> new V3Builds([builds: [build]])
+            legacyLogFetching ? null : "build.log_complete") >> Calls.response(new V3Builds([builds: [build]]))
         (isLogCompleteFlag ? 0 : 1) * travisCache.getJobLog("travis-ci", 2) >> (isLogCached ? "log" : null)
-        (!isLogCompleteFlag && !isLogCached ? 1 : 0) * client.jobLog("token someToken", 2) >> v3log
+        (!isLogCompleteFlag && !isLogCached ? 1 : 0) * client.jobLog("token someToken", 2) >> Calls.response(v3log)
         (!isLogCompleteFlag && !isLogCached && isLogReallyComplete ? 1 : 0) * travisCache.setJobLog("travis-ci", 2, logLine)
         genericBuilds.size() == expectedNumberOfBuilds
 
@@ -390,20 +393,29 @@ class TravisServiceSpec extends Specification {
 
         then:
         2 * travisCache.getJobLog("travis-ci", _) >> null
-        1 * client.jobLog(_, 1) >> v3log
+        1 * client.jobLog(_, 1) >> Calls.response(v3log)
         1 * client.jobLog(_, 2) >> {
-            throw new SpinnakerHttpException(RetrofitError.httpError(
-                "https://travis-ci.com/api/job/2/log",
-                new Response("https://travis-ci.com/api/job/2/log", 403, "Forbidden", [], new TypedString(
-                    """{
-                            "@type": "error",
-                            "error_type": "log_expired",
-                            "error_message": "We're sorry, but this data is not available anymore. Please check the repository settings in Travis CI."
-                        }
-                    """)),
-                new JacksonConverter(),
-                Map))
+            throw makeSpinnakerHttpException();
         }
         !ready
     }
+  SpinnakerHttpException makeSpinnakerHttpException(){
+    String url = "https://travis-ci.com/api/job/2/log/";
+    Response retrofit2Response =
+      Response.error(
+        403,
+        ResponseBody.create("""{
+                            "@type": "error",
+                            "error_type": "log_expired",
+                            "error_message": "We're sorry, but this data is not available anymore. Please check the repository settings in Travis CI."
+                        }""", MediaType.parse("application/json")));
+
+    Retrofit retrofit =
+      new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(url))
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build();
+
+    new SpinnakerHttpException(retrofit2Response, retrofit);
+  }
 }

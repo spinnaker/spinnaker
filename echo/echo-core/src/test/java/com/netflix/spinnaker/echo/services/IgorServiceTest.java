@@ -19,6 +19,8 @@ package com.netflix.spinnaker.echo.services;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -29,21 +31,25 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import org.junit.jupiter.api.AfterEach;
+import okhttp3.RequestBody;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class IgorServiceTest {
-  WireMockServer wireMockServer;
-  int port;
-  IgorService igorService;
-  String baseUrl = "http://localhost:PORT";
+  private static WireMockServer wireMockServer;
+  private static int port;
+  private static IgorService igorService;
+  private static String baseUrl = "http://localhost:PORT";
 
-  @BeforeEach
-  void setUp() {
+  @BeforeAll
+  static void setUpOnce() {
     wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
     wireMockServer.start();
     port = wireMockServer.port();
@@ -61,8 +67,13 @@ public class IgorServiceTest {
             .create(IgorService.class);
   }
 
-  @AfterEach
-  void tearDown() {
+  @BeforeEach
+  void setup(TestInfo testInfo) {
+    System.out.println("--------------- Test " + testInfo.getDisplayName());
+  }
+
+  @AfterAll
+  static void tearDown() {
     wireMockServer.stop();
   }
 
@@ -79,5 +90,20 @@ public class IgorServiceTest {
 
     verify(
         1, getRequestedFor(urlEqualTo("/builds/artifacts/1/master/job?propertyFile=propertyFile")));
+  }
+
+  @Test
+  void testIgorService_extractGoogleCloudBuildArtifacts() {
+    RequestBody build =
+        RequestBody.create("{\"key\":\"value\"}", MediaType.parse("application/json"));
+    stubFor(
+        put(urlEqualTo("/gcb/artifacts/extract/my-acc"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withBody("[{\"id\": \"gs://this/is/my/id1\", \"type\": \"gcs/object\"}]")));
+
+    Retrofit2SyncCall.execute(igorService.extractGoogleCloudBuildArtifacts("my-acc", build));
+    verify(1, putRequestedFor(urlEqualTo("/gcb/artifacts/extract/my-acc")));
   }
 }

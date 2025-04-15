@@ -19,39 +19,40 @@ package com.netflix.spinnaker.igor.scm.github.client
 import com.netflix.spinnaker.igor.scm.github.client.model.Commit
 import com.netflix.spinnaker.igor.scm.github.client.model.CompareCommitsResponse
 import com.netflix.spinnaker.igor.scm.github.client.model.GetRepositoryContentResponse
-import retrofit.http.GET
-import retrofit.http.Path
-import retrofit.http.Query
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * Interface for interacting with a GitHub REST API
  */
 interface GitHubClient {
-  @GET('/repos/{projectKey}/{repositorySlug}/compare/{fromCommit}...{toCommit}')
-  CompareCommitsResponse getCompareCommits(
+  @GET('repos/{projectKey}/{repositorySlug}/compare/{fromCommit}...{toCommit}')
+  Call<CompareCommitsResponse> getCompareCommits(
     @Path('projectKey') String projectKey,
     @Path('repositorySlug') String repositorySlug,
     @Path('fromCommit') String fromCommit,
     @Path('toCommit') String toCommit)
 
-  @GET('/repos/{projectKey}/{repositorySlug}/contents/{path}')
-  GetRepositoryContentResponse getFileContent(
+  @GET('repos/{projectKey}/{repositorySlug}/contents/{path}')
+  Call<GetRepositoryContentResponse> getFileContent(
     @Path('projectKey') String projectKey,
     @Path('repositorySlug') String repositorySlug,
-    @Path(value = 'path', encode = false) String path,
+    @Path(value = 'path', encoded = true) String path,
     @Query('ref') String ref
   )
 
-  @GET('/repos/{projectKey}/{repositorySlug}/contents/{path}')
-  List<GetRepositoryContentResponse> listDirectory(
+  @GET('repos/{projectKey}/{repositorySlug}/contents/{path}')
+  Call<List<GetRepositoryContentResponse>> listDirectory(
     @Path('projectKey') String projectKey,
     @Path('repositorySlug') String repositorySlug,
-    @Path(value = 'path', encode = false) String path,
+    @Path(value = 'path', encoded = true) String path,
     @Query('ref') String ref
   )
 
-  @GET('/repos/{projectKey}/{repositorySlug}/git/commits/{sha}')
-  Commit commitInfo(
+  @GET('repos/{projectKey}/{repositorySlug}/git/commits/{sha}')
+  Call<Commit> commitInfo(
     @Path('projectKey') String projectKey,
     @Path('repositorySlug') String repositorySlug,
     @Path('sha') String sha
