@@ -22,14 +22,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.RequestEntity
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
-import retrofit.mime.TypedOutput
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.util.concurrent.BlockingVariable
-
-import static java.util.Collections.emptyList
 
 @SpringBootTest(classes = [Retrofit2TestConfig, Retrofit2BasicLogTestConfig],
   properties = ["slack.enabled=true"],
@@ -213,15 +208,5 @@ class SlackServiceSpec extends Specification {
 
   def static parseJson(String value) {
     new JsonSlurper().parseText(value)
-  }
-
-  static Response mockResponse() {
-    new Response("url", 200, "nothing", emptyList(), new TypedByteArray("application/json", "response".bytes))
-  }
-
-  static String getString(TypedOutput typedOutput) {
-    OutputStream os = new ByteArrayOutputStream()
-    typedOutput.writeTo(os)
-    new String(os.toByteArray(), "UTF-8")
   }
 }
