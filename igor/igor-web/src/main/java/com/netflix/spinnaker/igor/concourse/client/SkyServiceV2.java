@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.igor.concourse.client;
 
-import retrofit.client.Response;
-import retrofit.http.GET;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.GET;
 
 public interface SkyServiceV2 {
-  @GET("/api/v1/user")
-  Response userInfo();
+  @GET("api/v1/user")
+  Call<ResponseBody> userInfo();
 }

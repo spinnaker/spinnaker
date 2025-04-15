@@ -18,9 +18,10 @@ package com.netflix.spinnaker.igor.concourse.client;
 
 import com.netflix.spinnaker.igor.concourse.client.model.Pipeline;
 import java.util.Collection;
-import retrofit.http.GET;
+import retrofit2.Call;
+import retrofit2.http.GET;
 
 public interface PipelineService {
-  @GET("/api/v1/pipelines")
-  Collection<Pipeline> pipelines();
+  @GET("api/v1/pipelines")
+  Call<Collection<Pipeline>> pipelines();
 }

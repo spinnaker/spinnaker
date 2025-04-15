@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.helm.accounts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.igor.helm.model.HelmIndex;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public class HelmAccounts {
     artifact.put("artifactAccount", account);
 
     try {
-      String yml = service.getIndex(artifact);
+      String yml = Retrofit2SyncCall.execute(service.getIndex(artifact));
       return mapper.readValue(yml, HelmIndex.class);
     } catch (Exception e) {
       log.error("Failed to parse Helm index:", e);
@@ -58,7 +59,7 @@ public class HelmAccounts {
   public void updateAccounts() {
     try {
       this.accounts =
-          service.getAllAccounts().stream()
+          Retrofit2SyncCall.execute(service.getAllAccounts()).stream()
               .filter(it -> it.types.contains("helm/chart"))
               .map(it -> new HelmAccount(it.name))
               .collect(Collectors.toList());

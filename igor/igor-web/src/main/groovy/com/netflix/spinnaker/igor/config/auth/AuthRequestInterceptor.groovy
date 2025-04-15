@@ -20,10 +20,12 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import okhttp3.Credentials
 import groovy.util.logging.Slf4j
-import retrofit.RequestInterceptor
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 
 @Slf4j
-class AuthRequestInterceptor implements RequestInterceptor {
+class AuthRequestInterceptor implements Interceptor {
     List<AuthorizationHeaderSupplier> suppliers = []
 
     AuthRequestInterceptor(JenkinsProperties.JenkinsHost host) {
@@ -39,11 +41,13 @@ class AuthRequestInterceptor implements RequestInterceptor {
     }
 
     @Override
-    void intercept(RequestInterceptor.RequestFacade request) {
+    Response intercept(Chain chain) throws IOException{
+      Request.Builder builder = chain.request().newBuilder()
         if (suppliers) {
             def values = suppliers.join(", ")
-            request.addHeader("Authorization", values)
+            builder.addHeader("Authorization", values)
         }
+      return chain.proceed(builder.build())
     }
 
     static interface AuthorizationHeaderSupplier {

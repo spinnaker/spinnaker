@@ -59,7 +59,7 @@ class KeelConfiguration {
     RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)
       .setEndpoint(keelEndpoint)
-      .setClient(Ok3Client(clientProvider.getClient(DefaultServiceEndpoint("keel", keelEndpoint.url))))
+      .setClient(Ok3Client(clientProvider.getClient(DefaultServiceEndpoint("keel", keelEndpoint.url), true)))
       .setLogLevel(retrofitLogLevel)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setConverter(JacksonConverter(keelObjectMapper))

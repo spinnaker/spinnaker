@@ -17,21 +17,22 @@
 package com.netflix.spinnaker.igor.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.scm.github.client.GitHubClient
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+import com.netflix.spinnaker.igor.util.RetrofitUtils
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.Endpoints
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 import javax.validation.Valid
 
@@ -46,25 +47,23 @@ import javax.validation.Valid
 class GitHubConfig {
 
     @Bean
-    GitHubMaster gitHubMasters(@Valid GitHubProperties gitHubProperties, ObjectMapper mapper) {
+    GitHubMaster gitHubMasters(@Valid GitHubProperties gitHubProperties, ObjectMapper mapper, OkHttp3ClientConfiguration okHttpClientConfig) {
         log.info "bootstrapping ${gitHubProperties.baseUrl} as github"
-        new GitHubMaster(gitHubClient: gitHubClient(gitHubProperties.baseUrl, gitHubProperties.accessToken, mapper), baseUrl: gitHubProperties.baseUrl)
+        new GitHubMaster(gitHubClient: gitHubClient(okHttpClientConfig, gitHubProperties.baseUrl, gitHubProperties.accessToken, mapper), baseUrl: gitHubProperties.baseUrl)
     }
 
-    GitHubClient gitHubClient(String address, String accessToken, ObjectMapper mapper = new ObjectMapper()) {
-        new RestAdapter.Builder()
-            .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setRequestInterceptor(new BasicAuthRequestInterceptor(accessToken))
-            .setClient(new Ok3Client())
-            .setConverter(new JacksonConverter(mapper))
-            .setLog(new Slf4jRetrofitLogger(GitHubClient))
-            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
+    GitHubClient gitHubClient(OkHttp3ClientConfiguration okHttpClientConfig, String address, String accessToken, ObjectMapper mapper = new ObjectMapper()) {
+        new Retrofit.Builder()
+            .baseUrl(RetrofitUtils.getBaseUrl(address))
+            .client(okHttpClientConfig.createForRetrofit2().addInterceptor(new BasicAuthRequestInterceptor(accessToken)).build())
+            .addConverterFactory(JacksonConverterFactory.create(mapper))
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(GitHubClient)
 
     }
 
-    static class BasicAuthRequestInterceptor implements RequestInterceptor {
+    static class BasicAuthRequestInterceptor implements Interceptor {
 
         private final String accessToken
 
@@ -73,8 +72,9 @@ class GitHubConfig {
         }
 
         @Override
-        void intercept(RequestFacade request) {
-          request.addHeader("Authorization", "token " + accessToken)
+        Response intercept(Chain chain) {
+          Request request = chain.request().newBuilder().addHeader("Authorization", "token " + accessToken).build()
+          return chain.proceed(request)
         }
     }
 

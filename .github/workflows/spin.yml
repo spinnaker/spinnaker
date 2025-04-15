@@ -68,9 +68,9 @@ jobs:
         run: ./gradlew :spin:gateapi
 
       - name: Ensure code formatting and style is consistent
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.45.2
+          version: v2.0
           working-directory: spin
 
       - name: Build binaries
@@ -80,11 +80,13 @@ jobs:
 
       - name: Login to Google Cloud
         uses: google-github-actions/auth@v2
+        if: github.event_name != 'pull_request'
         with:
           credentials_json: ${{ secrets.GAR_JSON_KEY }}
 
       - name: Upload spin CLI binaries to GCS
         uses: google-github-actions/upload-cloud-storage@v2
+        if: github.event_name != 'pull_request'
         with:
           path: 'spin/dist/'
           destination: ${{ env.GCS_BUCKET }}
@@ -92,15 +94,16 @@ jobs:
 
       - name: Determine latest spin CLI version and write to '(MAJOR.MINOR.x-)latest' files
         continue-on-error: true
+        if: github.event_name != 'pull_request'
         run: |
           gcs_latest="$(curl -s https://storage.googleapis.com/spinnaker-artifacts/spin/latest)"
           release=${{ steps.version.outputs.version }}
-          
+
           cat <<EOF
           gcs_latest: $gcs_latest
           release: $release
           EOF
-          
+
           mkdir -p dist/latests
           echo "$release" > dist/latests/latest
           if [[ '${{ steps.version.outputs.is-release }}' == 'true' ]]; then
@@ -110,6 +113,7 @@ jobs:
       - name: Upload latest version reference files
         # See: https://spinnaker.io/docs/setup/other_config/spin/
         uses: google-github-actions/upload-cloud-storage@v2
+        if: github.event_name != 'pull_request'
         with:
           path: 'dist/latests'
           destination: ${{ env.GCS_BUCKET }}

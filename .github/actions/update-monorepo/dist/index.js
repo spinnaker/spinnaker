@@ -31324,7 +31324,7 @@ async function createMergeBranchPr(results) {
     await pushMergeBranch();
     // Create a pull from that branch we just pushed
     const [owner, repo] = getRepoOwnerAndName();
-    return exports.github.rest.pulls.create({
+    const pr = await exports.github.rest.pulls.create({
         owner,
         repo,
         head: getMergeBranchName(),
@@ -31332,6 +31332,14 @@ async function createMergeBranchPr(results) {
         title: `Auto-merge of individual repos (${getLocalRef()})`,
         body,
     });
+    // Add label
+    exports.github.rest.issues.addLabels({
+        owner,
+        repo,
+        issue_number: pr.data.number,
+        labels: ['no-squash'],
+    });
+    return pr;
 }
 exports.createMergeBranchPr = createMergeBranchPr;
 async function setup() {
