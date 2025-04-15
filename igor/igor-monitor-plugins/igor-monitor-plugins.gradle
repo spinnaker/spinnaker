@@ -21,9 +21,12 @@ dependencies {
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-jedis"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
 
   implementation "org.springframework.boot:spring-boot-starter-actuator"
 
-  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit2:retrofit"
+
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 }

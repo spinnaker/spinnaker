@@ -41,6 +41,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionExcepti
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import java.util.List;
 import java.util.Map;
 import okhttp3.Interceptor;
@@ -65,7 +66,8 @@ import retrofit2.http.GET;
       OkHttpClientProvider.class,
       Retrofit2ServiceFactoryAutoConfiguration.class,
       Retrofit2ServiceFactoryTest.Retrofit2TestConfig.class,
-      DefaultOkHttpClientBuilderProvider.class
+      DefaultOkHttpClientBuilderProvider.class,
+      Retrofit2EncodeCorrectionInterceptor.class
     })
 public class Retrofit2ServiceFactoryTest {
 

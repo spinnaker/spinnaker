@@ -41,6 +41,7 @@ import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,7 @@ import org.springframework.test.context.DynamicPropertySource;
     classes = {
       RetrofitConfig.class,
       OkHttpClientProvider.class,
+      Retrofit2EncodeCorrectionInterceptor.class,
       TrafficGuardTest.TestConfig.class,
       DefaultServiceClientProvider.class,
       Retrofit2ServiceFactory.class,

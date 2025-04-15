@@ -19,9 +19,9 @@ package com.netflix.spinnaker.echo.services;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import java.util.Map;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
-import retrofit.mime.TypedInput;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -85,9 +85,9 @@ public interface IgorService {
       @Path("account") String account,
       @Path("buildId") String buildId,
       @Query("status") String status,
-      @Body TypedInput build);
+      @Body RequestBody build);
 
   @PUT("gcb/artifacts/extract/{account}")
   Call<List<Artifact>> extractGoogleCloudBuildArtifacts(
-      @Path("account") String account, @Body TypedInput build);
+      @Path("account") String account, @Body RequestBody build);
 }

@@ -23,9 +23,9 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 public interface ClouddriverApi {
-  @GET("/credentials")
+  @GET("credentials")
   Call<List<Account>> getAccounts();
 
-  @GET("/applications?restricted=false&expand=false")
+  @GET("applications?restricted=false&expand=false")
   Call<List<Application>> getApplications();
 }

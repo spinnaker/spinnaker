@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.DockerUserAgent
@@ -163,6 +164,15 @@ class DockerRegistryClient {
 
   final static String userAgent = DockerUserAgent.getUserAgent()
   final int paginateSize
+  static ObjectMapper objectMapper
+
+  private static ObjectMapper getObjectMapper() {
+    if (objectMapper == null) {
+      objectMapper = new ObjectMapper()
+      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    }
+    return objectMapper
+  }
 
   String getBasicAuth() {
     return tokenService?.basicAuth
@@ -317,9 +327,8 @@ class DockerRegistryClient {
       throw new DockerRegistryOperationException("ResponseBody cannot be null")
     }
     try {
-      def objectMapper = new ObjectMapper()
       def jsonString = responseBody.string()
-      return objectMapper.readValue(jsonString, aClass)
+      return getObjectMapper().readValue(jsonString, aClass)
     } catch (Exception e) {
       throw new DockerRegistryOperationException("Failed to parse ResponseBody : ${e.message}", e)
     }
