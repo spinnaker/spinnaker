@@ -71,6 +71,27 @@ class NexusPublishPlugin implements Plugin<Project> {
         stagingProfileId = nexusExtension.nexusStagingProfileId()
       }
     }
+
+    project.afterEvaluate {
+      // For some reason, the nexus plugin seems to only create one of these named tasks ever
+      // As soon as the top-level task in Clouddriver is made, it won't ever define any more on other root projects
+      // However, it will happily define all the subproject versions of publishToNexus, which we can collect here
+      if(project.tasks.findByName("publishToNexus") == null) {
+        project.tasks.register("publishToNexus")
+      }
+
+      if(project.tasks.findByName("closeAndReleaseNexusStagingRepository") == null) {
+        project.tasks.register("closeAndReleaseNexusStagingRepository")
+      }
+
+      project.tasks.named("publishToNexus") {
+        it.dependsOn project.subprojects*.tasks*.findByName('publishToNexus').minus(null)
+      }
+
+      project.tasks.named("closeAndReleaseNexusStagingRepository") {
+        it.dependsOn project.subprojects*.tasks*.findByName('closeAndReleaseNexusStagingRepository').minus(null)
+      }
+    }
   }
 
   private void configureSpinnakerPublicationForNexus(Project project, NexusPublishExtension nexusExtension) {

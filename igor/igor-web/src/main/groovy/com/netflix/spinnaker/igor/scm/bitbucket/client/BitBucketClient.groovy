@@ -17,19 +17,20 @@
 package com.netflix.spinnaker.igor.scm.bitbucket.client
 
 import com.netflix.spinnaker.igor.scm.bitbucket.client.model.CompareCommitsResponse
-import retrofit.http.GET
-import retrofit.http.Path
-import retrofit.http.QueryMap
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.QueryMap
 
 /**
  * Interface for interacting with a BitBucket Cloud REST API
  * https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/commits
  */
 interface BitBucketClient {
-  @GET('/2.0/repositories/{projectKey}/{repositorySlug}/commits')
-  CompareCommitsResponse getCompareCommits(
+  @GET('2.0/repositories/{projectKey}/{repositorySlug}/commits')
+  Call<CompareCommitsResponse> getCompareCommits(
     @Path('projectKey') String projectKey,
     @Path('repositorySlug') String repositorySlug,
-    @QueryMap Map queryMap)
+    @QueryMap Map<String,String> queryMap)
 }
 

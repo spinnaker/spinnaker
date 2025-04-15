@@ -217,4 +217,35 @@ public class DockerRegistryClientTest {
             urlMatching(
                 tagsListEndPointMinusQueryParams + "\\?last=" + expectedEncodedParam + "&n=5")));
   }
+
+  @Test
+  public void testTagsResponse_With_AdditionalFields() throws JsonProcessingException {
+    Map<String, Object> tagsResponse =
+        Map.of(
+            "child",
+            new String[] {},
+            "manifest",
+            Map.of(
+                "sha256:ec1b05dxxxxxxxxxxxxxxxxxxxedb1d6a4",
+                Map.of(
+                    "mediaType",
+                    "application/vnd.docker.distribution.manifest.v2+json",
+                    "tag",
+                    new String[] {"1.0.0", "2.0.1"})),
+            "name",
+            "library/nginx",
+            "tags",
+            new String[] {"1", "1-alpine", "1-alpine-otel", "1-alpine-perl", "1-alpine-slim"});
+
+    wmDockerRegistry.stubFor(
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withBody(objectMapper.writeValueAsString(tagsResponse))));
+
+    DockerRegistryTags dockerRegistryTags = dockerRegistryClient.getTags("library/nginx");
+    String[] tags = (String[]) tagsResponse.get("tags");
+    assertIterableEquals(Arrays.asList(tags), dockerRegistryTags.getTags());
+  }
 }

@@ -9,17 +9,15 @@
 package com.netflix.spinnaker.igor.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit.Ok3Client
-import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
 import com.netflix.spinnaker.igor.service.BuildServices
+import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.igor.wercker.WerckerCache
 import com.netflix.spinnaker.igor.wercker.WerckerClient
 import com.netflix.spinnaker.igor.wercker.WerckerService
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -28,14 +26,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import retrofit.converter.JacksonConverter
+import retrofit2.converter.jackson.JacksonConverterFactory
 
 import java.util.concurrent.TimeUnit
 
 import javax.validation.Valid
 
-import retrofit.Endpoints
-import retrofit.RestAdapter
+import retrofit2.Retrofit
 
 @Configuration
 @Slf4j
@@ -48,15 +45,14 @@ class WerckerConfig {
       BuildServices buildServices,
       WerckerCache cache,
       IgorConfigurationProperties igorConfigurationProperties,
-      OkHttpClientProvider clientProvider,
       @Valid WerckerProperties werckerProperties,
-      RestAdapter.LogLevel retrofitLogLevel,
-      ObjectMapper objectMapper
+      ObjectMapper objectMapper,
+      OkHttp3ClientConfiguration okHttpClientConfig
     ) {
         log.debug "creating werckerMasters"
         Map<String, WerckerService> werckerMasters = werckerProperties?.masters?.collectEntries { WerckerHost host ->
             log.debug "bootstrapping Wercker ${host.address} as ${host.name}"
-            [(host.name): new WerckerService(host, cache, werckerClient(host, igorConfigurationProperties.getClient().timeout, clientProvider, retrofitLogLevel, objectMapper), host.permissions.build())]
+            [(host.name): new WerckerService(host, cache, werckerClient(host, igorConfigurationProperties.getClient().timeout, objectMapper, okHttpClientConfig), host.permissions.build())]
         }
 
         buildServices.addServices(werckerMasters)
@@ -66,19 +62,15 @@ class WerckerConfig {
     static WerckerClient werckerClient(
       WerckerHost host,
       int timeout = 30000,
-      OkHttpClientProvider clientProvider,
-      RestAdapter.LogLevel retrofitLogLevel,
-      ObjectMapper objectMapper
+      ObjectMapper objectMapper,
+      OkHttp3ClientConfiguration okHttpClientConfig
     ) {
-        OkHttpClient client = clientProvider.getClient(new DefaultServiceEndpoint(host.name, host.address, false))
-        client = client.newBuilder().readTimeout(timeout, TimeUnit.MILLISECONDS).build()
-        return new RestAdapter.Builder()
-                .setLog(new Slf4jRetrofitLogger(WerckerService))
-                .setLogLevel(retrofitLogLevel)
-                .setConverter(new JacksonConverter(objectMapper))
-                .setEndpoint(Endpoints.newFixedEndpoint(host.address))
-                .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-                .setClient(new Ok3Client(client))
+
+        return new Retrofit.Builder()
+                .baseUrl(RetrofitUtils.getBaseUrl(host.address))
+                .client(okHttpClientConfig.createForRetrofit2().readTimeout(timeout, TimeUnit.MILLISECONDS).build())
+                .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
                 .build()
                 .create(WerckerClient)
     }

@@ -18,14 +18,18 @@ package com.netflix.spinnaker.igor.helm.accounts;
 
 import java.util.List;
 import java.util.Map;
-import retrofit.http.*;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.Headers;
+import retrofit2.http.PUT;
 
 public interface HelmAccountsService {
   // Fetches Helm accounts from Clouddriver
-  @GET("/artifacts/credentials")
-  List<ArtifactAccount> getAllAccounts();
+  @GET("artifacts/credentials")
+  Call<List<ArtifactAccount>> getAllAccounts();
 
   @Headers("Content-Type: application/json")
-  @PUT("/artifacts/fetch")
-  String getIndex(@Body Map<String, String> body);
+  @PUT("artifacts/fetch")
+  Call<String> getIndex(@Body Map<String, String> body);
 }

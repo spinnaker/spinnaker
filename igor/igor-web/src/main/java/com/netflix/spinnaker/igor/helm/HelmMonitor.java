@@ -31,6 +31,7 @@ import com.netflix.spinnaker.igor.polling.*;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -177,7 +178,9 @@ public class HelmMonitor
         new HelmEvent.Content(account, delta.name, delta.version, delta.digest);
 
     AuthenticatedRequest.allowAnonymous(
-        () -> echoService.get().postEvent(new HelmEvent(helmContent, helmArtifact)));
+        () ->
+            Retrofit2SyncCall.execute(
+                echoService.get().postEvent(new HelmEvent(helmContent, helmArtifact))));
   }
 
   @AllArgsConstructor
