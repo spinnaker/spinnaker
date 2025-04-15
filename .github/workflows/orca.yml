@@ -11,7 +11,7 @@ on:
       publish-debs:
         description: Publish debs
         type: boolean
-        default: true
+        default: false
       version-override:
         description: Overrides the version for artifacts (e.g. "1.37.1").  Otherwise, uses the auto-incrementing build number for the current branch.
         type: string
@@ -25,7 +25,7 @@ on:
       publish-debs:
         description: Publish debs
         type: boolean
-        default: true
+        default: false
       version-override:
         description: Overrides the version for artifacts (e.g. "1.37.1").  Otherwise, uses the auto-incrementing build number for the current branch.
         type: string

@@ -37,5 +37,5 @@ runs:
       uses: google-github-actions/upload-cloud-storage@v2
       with:
         path: ${{ inputs.project }}/halconfig/
-        destination: spinnaker-monorepo-test/${{ inputs.project }}/${{ inputs.version }}
+        destination: halconfig/${{ inputs.project }}/${{ inputs.version }}
         parent: false

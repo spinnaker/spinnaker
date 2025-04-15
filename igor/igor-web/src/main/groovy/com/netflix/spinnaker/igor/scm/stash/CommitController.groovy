@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.scm.stash
 import com.netflix.spinnaker.igor.scm.AbstractCommitController
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
 import com.netflix.spinnaker.igor.scm.stash.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
@@ -45,7 +46,7 @@ class CommitController extends AbstractCommitController {
         super.compareCommits(projectKey, repositorySlug, requestParams)
         CompareCommitsResponse commitsResponse
         try {
-            commitsResponse = stashMaster.stashClient.getCompareCommits(projectKey, repositorySlug, requestParams)
+            commitsResponse = Retrofit2SyncCall.execute(stashMaster.stashClient.getCompareCommits(projectKey, repositorySlug, requestParams))
         }   catch (SpinnakerNetworkException e) {
           throw new NotFoundException("Could not find the server ${stashMaster.baseUrl}")
         } catch  (SpinnakerHttpException e) {

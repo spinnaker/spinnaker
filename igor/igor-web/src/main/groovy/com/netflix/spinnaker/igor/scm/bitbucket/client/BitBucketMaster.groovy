@@ -16,17 +16,20 @@
 
 package com.netflix.spinnaker.igor.scm.bitbucket.client
 
-import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.config.BitBucketProperties
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
+import com.netflix.spinnaker.igor.util.RetrofitUtils
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import okhttp3.Credentials
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
-import retrofit.Endpoints
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+
 import javax.validation.Valid
 
 /**
@@ -38,25 +41,24 @@ class BitBucketMaster extends AbstractScmMaster {
 
   @Bean
   @ConditionalOnProperty('bitbucket.base-url')
-  BitBucketMaster bitBucketMaster(@Valid BitBucketProperties bitBucketProperties) {
+  BitBucketMaster bitBucketMaster(@Valid BitBucketProperties bitBucketProperties, OkHttp3ClientConfiguration okHttpClientConfig) {
     log.info "bootstrapping ${bitBucketProperties.baseUrl}"
     new BitBucketMaster(
-        bitBucketClient : bitBucketClient(bitBucketProperties.baseUrl, bitBucketProperties.username, bitBucketProperties.password),
+        bitBucketClient : bitBucketClient(bitBucketProperties.baseUrl, bitBucketProperties.username, bitBucketProperties.password, okHttpClientConfig),
         baseUrl: bitBucketProperties.baseUrl)
   }
 
-  BitBucketClient bitBucketClient(String address, String username, String password) {
-    new RestAdapter.Builder()
-      .setEndpoint(Endpoints.newFixedEndpoint(address))
-      .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
-      .setClient(new Ok3Client())
-      .setConverter(new JacksonConverter())
-      .setLog(new Slf4jRetrofitLogger(BitBucketClient))
+  BitBucketClient bitBucketClient(String address, String username, String password, OkHttp3ClientConfiguration okHttpClientConfig) {
+    new Retrofit.Builder()
+      .baseUrl(RetrofitUtils.getBaseUrl(address))
+      .client(okHttpClientConfig.createForRetrofit2().addInterceptor(new BasicAuthRequestInterceptor(username, password)).build())
+      .addConverterFactory(JacksonConverterFactory.create())
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
       .build()
       .create(BitBucketClient)
   }
 
-  static class BasicAuthRequestInterceptor implements RequestInterceptor {
+  static class BasicAuthRequestInterceptor implements Interceptor {
 
     private final String username
     private final String password
@@ -67,8 +69,9 @@ class BitBucketMaster extends AbstractScmMaster {
     }
 
     @Override
-    void intercept(RequestInterceptor.RequestFacade request) {
-      request.addHeader("Authorization", Credentials.basic(username, password))
+    Response intercept(Chain chain) throws IOException {
+      Request request = chain.request().newBuilder().addHeader("Authorization", Credentials.basic(username, password)).build()
+      return chain.proceed(request)
     }
   }
 }

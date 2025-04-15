@@ -22,16 +22,15 @@ import com.netflix.spinnaker.kork.artifacts.parsing.ArtifactExtractor;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import retrofit.mime.TypedByteArray;
-import retrofit.mime.TypedInput;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
@@ -54,8 +53,7 @@ public class GoogleCloudBuildArtifactExtractor implements ArtifactExtractor {
 
   @Override
   public List<Artifact> getArtifacts(String messagePayload) {
-    TypedInput build =
-        new TypedByteArray("application/json", messagePayload.getBytes(StandardCharsets.UTF_8));
+    RequestBody build = RequestBody.create(messagePayload, MediaType.parse("application/json"));
     try {
       return retrySupport.retry(
           () ->

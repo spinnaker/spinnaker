@@ -19,13 +19,13 @@ inputs:
   # Apt Repo
   gar-apt-project:
     description: Google Artifact Registry Apt project
-    default: spinnaker-monorepo-test
+    default: spinnaker-community
   gar-apt-location:
     description: Google Artifact Registry Apt location
-    default: us-west2
+    default: us
   gcs-temp-bucket:
     description: GCS temporary upload bucket
-    default: spinnaker-monorepo-test-deb-temp-uploads
+    default: spinnaker-deb-temp-uploads
 
 runs:
   using: "composite"
@@ -38,7 +38,6 @@ runs:
 
     - name: Publish apt packages to Google Artifact Registry
       env:
-        # Deb versions are the release train and build number, e.g. main-1 or 1.35-1
         ORG_GRADLE_PROJECT_version: ${{ inputs.version }}
         ORG_GRADLE_PROJECT_artifactRegistryPublishEnabled: 'true'
         ORG_GRADLE_PROJECT_artifactRegistryPublishAptEnabled: 'true'

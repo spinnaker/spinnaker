@@ -22,6 +22,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -62,16 +63,23 @@ public class Retrofit2TestConfig {
   }
 
   @Bean
+  public Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor() {
+    return new Retrofit2EncodeCorrectionInterceptor();
+  }
+
+  @Bean
   public OkHttp3ClientConfiguration okHttp3ClientConfiguration(
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
       OkHttp3MetricsInterceptor okHttp3MetricsInterceptor,
       HttpLoggingInterceptor.Level retrofit2LogLevel,
-      SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor) {
+      SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor,
+      Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor) {
     return new OkHttp3ClientConfiguration(
         okHttpClientConfigurationProperties,
         okHttp3MetricsInterceptor,
         retrofit2LogLevel,
         spinnakerRequestHeaderInterceptor,
+        retrofit2EncodeCorrectionInterceptor,
         httpClientBuilderFactory);
   }
 }

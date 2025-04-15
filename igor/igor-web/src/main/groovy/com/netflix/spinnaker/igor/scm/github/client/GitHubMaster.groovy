@@ -20,6 +20,7 @@ package com.netflix.spinnaker.igor.scm.github.client
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
 import com.netflix.spinnaker.igor.scm.github.client.model.Commit
 import com.netflix.spinnaker.igor.scm.github.client.model.GetRepositoryContentResponse
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
@@ -41,7 +42,7 @@ class GitHubMaster extends AbstractScmMaster {
   @Override
   List<String> listDirectory(String projectKey, String repositorySlug, String path, String ref) {
     try {
-      List<GetRepositoryContentResponse> response = gitHubClient.listDirectory(projectKey, repositorySlug, path, ref);
+      List<GetRepositoryContentResponse> response = Retrofit2SyncCall.execute(gitHubClient.listDirectory(projectKey, repositorySlug, path, ref));
       return response.stream()
         .map({ r -> r.path })
         .collect(Collectors.toList())
@@ -60,7 +61,7 @@ class GitHubMaster extends AbstractScmMaster {
   @Override
   String getTextFileContents(String projectKey, String repositorySlug, String path, String ref) {
     try {
-      GetRepositoryContentResponse response = gitHubClient.getFileContent(projectKey, repositorySlug, path, ref);
+      GetRepositoryContentResponse response = Retrofit2SyncCall.execute(gitHubClient.getFileContent(projectKey, repositorySlug, path, ref));
       if (FILE_CONTENT_TYPE != response.type) {
         throw new NotFoundException("Unexpected content type: ${response.type}");
       }
@@ -78,6 +79,6 @@ class GitHubMaster extends AbstractScmMaster {
 
   @Override
   Commit getCommitDetails(String projectKey, String repositorySlug, String sha) {
-    return gitHubClient.commitInfo(projectKey, repositorySlug, sha)
+    return Retrofit2SyncCall.execute(gitHubClient.commitInfo(projectKey, repositorySlug, sha))
   }
 }
