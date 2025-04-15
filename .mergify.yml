@@ -1,0 +1,107 @@
+queue_rules:
+  - name: default
+    merge_method: squash
+    queue_conditions:
+      - check-success=build
+      - check-success=it-test
+
+  - name: no-squash-queue
+    merge_method: merge
+    queue_conditions:
+      - label=no-squash
+      - check-success=build
+      - check-success=it-test
+
+pull_request_rules:
+  - name: Make sure PRs are up to date before merging
+    description: This automatically updates PRs when they are out-of-date with the base branch to avoid semantic conflicts.
+    conditions: []
+    actions:
+      update:
+
+  - name: Automatically merge backports to releases on successful build
+    conditions:
+      - base~=^(release-)
+      - head~=^mergify\/bp\/
+      - "author=mergify[bot]"
+    actions:
+      queue:
+        name: default
+      label:
+        add: ["auto merged"]
+
+  - name: Automatically merge on CI success and review (no-squash)
+    conditions:
+      - base=main
+      - label=ready to merge
+      - label=no-squash
+      - "approved-reviews-by=@oss-approvers"
+      - "#approved-reviews-by>=1"
+    actions:
+      queue:
+        name: no-squash-queue
+      label:
+        add: ["auto merged"]
+
+  - name: Automatically merge on CI success and review (default squash)
+    conditions:
+      - base=main
+      - label=ready to merge
+      - -label=no-squash
+      - "approved-reviews-by=@oss-approvers"
+      - "#approved-reviews-by>=1"
+    actions:
+      queue:
+        name: default
+      label:
+        add: ["auto merged"]
+
+  - name: Automatically merge release branch changes on CI success and release manager review (no-squash)
+    conditions:
+      - base~=^release-
+      - label=ready to merge
+      - label=no-squash
+      - "approved-reviews-by=@release-managers"
+    actions:
+      queue:
+        name: no-squash-queue
+      label:
+        add: ["auto merged"]
+
+  - name: Automatically merge release branch changes on CI success and release manager review (default squash)
+    conditions:
+      - base~=^release-
+      - label=ready to merge
+      - -label=no-squash
+      - "approved-reviews-by=@release-managers"
+    actions:
+      queue:
+        name: default
+      label:
+        add: ["auto merged"]  
+
+  - name: Automatically merge PRs from maintainers on CI success and review (no-squash)
+    conditions:
+      - base=main
+      - label=ready to merge
+      - label=no-squash
+      - "author=@oss-approvers"
+      - "#approved-reviews-by>=1"
+    actions:
+      queue:
+        name: no-squash-queue
+      label:
+        add: ["auto merged"]
+
+  - name: Automatically merge PRs from maintainers on CI success and review (default squash)
+    conditions:
+      - base=main
+      - label=ready to merge
+      - -label=no-squash
+      - "author=@oss-approvers"
+      - "#approved-reviews-by>=1"
+    actions:
+      queue:
+        name: default
+      label:
+        add: ["auto merged"]
