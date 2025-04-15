@@ -78,7 +78,7 @@ pull_request_rules:
       queue:
         name: default
       label:
-        add: ["auto merged"]  
+        add: ["auto merged"]
 
   - name: Automatically merge PRs from maintainers on CI success and review (no-squash)
     conditions:
@@ -105,3 +105,7 @@ pull_request_rules:
         name: default
       label:
         add: ["auto merged"]
+priority_rules:
+  - name: priority for queue `default`
+    conditions: []
+    priority: 2250
