@@ -24,6 +24,7 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.services.IgorService
 import com.netflix.spinnaker.kork.core.RetrySupport
 import okhttp3.RequestBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -61,7 +62,7 @@ class GoogleCloudBuildNotificationSpec extends Specification {
     notificationAgent.processEvent(event)
 
     then:
-    1 * igorService.updateBuildStatus(ACCOUNT_NAME, BUILD_ID, BUILD_STATUS, { it -> itToString(it) == PAYLOAD })
+    1 * igorService.updateBuildStatus(ACCOUNT_NAME, BUILD_ID, BUILD_STATUS, { it -> itToString(it) == PAYLOAD }) >> Calls.response(null)
     0 * igorService._
   }
 
@@ -74,7 +75,7 @@ class GoogleCloudBuildNotificationSpec extends Specification {
 
     then:
     2 * igorService.updateBuildStatus(ACCOUNT_NAME, BUILD_ID, BUILD_STATUS, { it -> itToString(it) == PAYLOAD }) >>
-      { throw new RuntimeException() } >> { }
+      { throw new RuntimeException() } >> { Calls.response(null) }
     0 * igorService._
   }
 
