@@ -28,6 +28,10 @@ public class PipelineCacheConfigurationProperties {
   /**
    * If false, query front50 for all pipelines. If true, query front50 for only enabled pipelines
    * with enabled triggers with types that echo requires.
+   *
+   * <p>DO NOT enable this if using cron/jenkins triggers. There's a known bug with this which
+   * impacts some downsream pipeline triggers. Pipeline Templated triggers ALSO break with this set
+   * on. Once tests & fixes are applied can set default.
    */
-  private boolean filterFront50Pipelines = true;
+  private boolean filterFront50Pipelines = false;
 }
