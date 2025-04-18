@@ -72,7 +72,11 @@ class PipelineCacheSpec extends Specification implements RetrofitStubs {
     def pipeline = Pipeline.builder().application('application').name('Pipeline').id('P1').build()
 
     def initialLoad = []
-    front50.getPipelines(true, true, supportedTriggers) >> Calls.response(initialLoad) >> { throw unavailable() } >> Calls.response([pipelineMap])
+    if (pipelineCacheConfigurationProperties.isFilterFront50Pipelines()) {
+      front50.getPipelines(true, true, supportedTriggers) >> Calls.response(initialLoad) >> { throw unavailable() } >> Calls.response([pipelineMap])
+    } else {
+      front50.getPipelines() >> Calls.response(initialLoad) >> { throw unavailable() } >> Calls.response([pipelineMap])
+    }
     pipelineCache.start()
 
     expect: 'null pipelines when we have not polled yet'
