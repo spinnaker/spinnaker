@@ -44,12 +44,12 @@ runs:
 
         git config user.name "spinnakerbot"
         git config user.email "spinnakerbot@spinnaker.io"
-        git commit -am "Bump to version ${{ inputs.version }}"
+        git commit --no-verify -am "Bump to version ${{ inputs.version }}"
 
     - name: Setup publishing to npmjs.org
       env:
         NODE_ENV: production
-        NPM_AUTH_TOKEN: ${{ inputs.NPM_AUTH_TOKEN }}
+        NPM_AUTH_TOKEN: ${{ inputs.npm-auth-token }}
       shell: bash
       run: |
         npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
@@ -58,7 +58,7 @@ runs:
       if: hashFiles(format('{0}/lerna.json', inputs.project)) != ''
       env:
         NODE_ENV: production
-        NPM_AUTH_TOKEN: ${{ inputs.NPM_AUTH_TOKEN }}
+        NPM_AUTH_TOKEN: ${{ inputs.npm-auth-token }}
       shell: bash
       working-directory: ${{ inputs.project }}
       run: npx lerna publish from-package --no-git-reset --force-publish --yes --ignore-scripts
@@ -67,7 +67,7 @@ runs:
       if: hashFiles(format('{0}/lerna.json', inputs.project)) == ''
       env:
         NODE_ENV: production
-        NPM_AUTH_TOKEN: ${{ inputs.NPM_AUTH_TOKEN }}
+        NPM_AUTH_TOKEN: ${{ inputs.npm-auth-token }}
       shell: bash
       working-directory: ${{ inputs.project }}
       run: npm publish
