@@ -31,12 +31,6 @@ inputs:
   allow-bom-overwrite:
     description: If true, allows an existing BoM to be overwritten
 
-  # Versions.yml configuration
-  versions-yml-add:
-    description: Adds entries for the specified versions to `versions.yml`.
-  versions-yml-remove:
-    description: Removes entries for the specified versions from `versions.yml`
-
   # GCP stuff
   credentials-json:
     description: GCP credentials for publishing and retrieving existing files.
