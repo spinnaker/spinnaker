@@ -46,7 +46,7 @@
     "commonmark": "0.28.1",
     "date-fns": "2.21.1",
     "diff-match-patch": "1.0.4",
-    "dompurify": "^2.3.10",
+    "dompurify": "^3.2.4",
     "enzyme": "3.11.0",
     "formik": "1.5.1",
     "human-readable-ids": "1.0.4",
