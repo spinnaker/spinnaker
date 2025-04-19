@@ -63316,6 +63316,13 @@ async function forVersion(version, previousVersion) {
     return generate(version, previousVersion);
 }
 exports.forVersion = forVersion;
+function filterCommits(commits) {
+    return (commits
+        // Autobump PRs
+        .filter((c) => !c.includes('Autobump'))
+        // Update merge commits from individual repos (other commits are still included)
+        .filter((c) => !(c.includes('Merge') && c.includes(' into '))));
+}
 async function generate(version, previousVersion) {
     const parsed = util.parseVersion(version);
     if (!parsed) {
@@ -63323,7 +63330,8 @@ async function generate(version, previousVersion) {
     }
     const tag = `spinnaker-release-${version}`;
     const prevTag = `spinnaker-release-${previousVersion}`;
-    const commits = git.changelogCommits(tag, prevTag) || [];
+    // Find commits and filter out things not relevant to the release
+    const commits = filterCommits(git.changelogCommits(tag, prevTag) || []);
     // Filter certain characters to ensure Markdown compat
     commits.map((line) => {
         line = line.replace('%', '%25');
