@@ -47,11 +47,11 @@ sql:
   connectionPools:
     default:
       default: true
-      jdbcUrl: jdbc:tc:mysql:5.7.22://somehostname:someport/clouddriver?user=root?password=&
+      jdbcUrl: jdbc:tc:mysql:8.0.40://somehostname:someport/clouddriver?user=root?password=&
     tasks:
-      jdbcUrl: jdbc:tc:mysql:5.7.22://somehostname:someport/clouddriver?user=root?password=&
+      jdbcUrl: jdbc:tc:mysql:8.0.40://somehostname:someport/clouddriver?user=root?password=&
   migration:
-    jdbcUrl: jdbc:tc:mysql:5.7.22://somehostname:someport/clouddriver?user=root?password=&
+    jdbcUrl: jdbc:tc:mysql:8.0.40://somehostname:someport/clouddriver?user=root?password=&
 
 redis:
   enabled: false
