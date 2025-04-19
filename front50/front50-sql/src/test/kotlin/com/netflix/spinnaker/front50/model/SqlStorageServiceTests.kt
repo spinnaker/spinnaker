@@ -543,11 +543,11 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
   fun tests() = rootContext<JooqConfig> {
 
     fixture {
-      JooqConfig(SQLDialect.MYSQL, "jdbc:tc:mysql:5.7.22://somehostname/databasename")
+      JooqConfig(SQLDialect.MYSQL, "jdbc:tc:mysql:8.0.40://somehostname/databasename")
     }
 
     context("mysql CRUD operations") {
-      crudOperations(JooqConfig(SQLDialect.MYSQL, "jdbc:tc:mysql:5.7.22://somehostname/databasename"))
+      crudOperations(JooqConfig(SQLDialect.MYSQL, "jdbc:tc:mysql:8.0.40://somehostname/databasename"))
     }
 
     context("postgresql CRUD operations") {
