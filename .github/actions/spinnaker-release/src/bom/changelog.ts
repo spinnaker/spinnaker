@@ -72,6 +72,16 @@ export async function forVersion(
   return generate(version, previousVersion);
 }
 
+function filterCommits(commits: string[]) {
+  return (
+    commits
+      // Autobump PRs
+      .filter((c) => !c.includes('Autobump'))
+      // Update merge commits from individual repos (other commits are still included)
+      .filter((c) => !(c.includes('Merge') && c.includes(' into ')))
+  );
+}
+
 async function generate(
   version: string,
   previousVersion: string,
@@ -83,7 +93,9 @@ async function generate(
 
   const tag = `spinnaker-release-${version}`;
   const prevTag = `spinnaker-release-${previousVersion}`;
-  const commits = git.changelogCommits(tag, prevTag) || [];
+
+  // Find commits and filter out things not relevant to the release
+  const commits = filterCommits(git.changelogCommits(tag, prevTag) || []);
 
   // Filter certain characters to ensure Markdown compat
   commits.map((line) => {
