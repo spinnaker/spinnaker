@@ -171,7 +171,7 @@ async function generate(
   const markdownWithHeader =
     `---
 title: Spinnaker Release ${version}
-date: ${dayjs().format('YYYY-MM-DD HH:MM:SS +0000')}
+date: ${dayjs().format('YYYY-MM-DD HH:MM:ss +0000')}
 major_minor: ${parsed.major}.${parsed.minor}
 version: ${version}
 ---
