@@ -114,7 +114,7 @@ jobs:
           github-pat: ${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}
           credentials-json: ${{ secrets.GAR_JSON_KEY }}
           version: ${{ inputs.spinnaker-version }}
-          previous-version: ${{ inputs.previous-version }}
+          previous-version: ${{ inputs.spinnaker-previous-version }}
           add-to-versions-yml: ${{ inputs.add-to-versions-yml }}
           publish-bom: ${{ inputs.publish-bom }}
           publish-changelog: ${{ inputs.publish-changelog }}
