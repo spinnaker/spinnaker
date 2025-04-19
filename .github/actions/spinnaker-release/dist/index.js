@@ -63393,7 +63393,7 @@ async function generate(version, previousVersion) {
     core.info(markdown);
     const markdownWithHeader = `---
 title: Spinnaker Release ${version}
-date: ${(0, dayjs_1.default)().format('YYYY-MM-DD HH:MM:SS +0000')}
+date: ${(0, dayjs_1.default)().format('YYYY-MM-DD HH:MM:ss +0000')}
 major_minor: ${parsed.major}.${parsed.minor}
 version: ${version}
 ---
