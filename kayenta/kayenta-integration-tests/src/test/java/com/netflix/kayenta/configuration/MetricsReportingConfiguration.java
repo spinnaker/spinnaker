@@ -24,10 +24,10 @@ import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.config.MeterFilter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 @EnableConfigurationProperties(CanaryAnalysisCasesConfigurationProperties.class)
 @Configuration
@@ -56,9 +56,8 @@ public class MetricsReportingConfiguration {
 
   @Bean
   public StandaloneCanaryAnalysisSteps canaryAnalysisSteps(
-      @Value("${server.port}") int serverPort,
-      CanaryAnalysisCasesConfigurationProperties configuration) {
-    return new StandaloneCanaryAnalysisSteps(serverPort, configuration);
+      Environment environment, CanaryAnalysisCasesConfigurationProperties configuration) {
+    return new StandaloneCanaryAnalysisSteps(environment, configuration);
   }
 
   @Bean

@@ -3,6 +3,7 @@ kayenta:
     enabled: true
     health:
       enabled: true
+      initial-delay: PT1M
     accounts:
       - name: prometheus-account
         endpoint:
