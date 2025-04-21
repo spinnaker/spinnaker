@@ -19,17 +19,34 @@ import static com.netflix.kayenta.utils.AwaitilityUtils.awaitThirtySecondsUntil;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 
+@Slf4j
 public class ManagementTest extends BaseIntegrationTest {
 
-  @Value("${embedded.prometheus.port}")
-  int prometheusPort;
-
   @Test
-  public void prometheusTargetsAreAllReportingUp() {
+  public void prometheusTargetsAreAllReportingUp() throws InterruptedException {
+    int retries = 30; // wait up to 30 seconds
+    String prometheusPortStr = null;
+
+    while (retries-- > 0) {
+      prometheusPortStr = environment.getProperty("embedded.prometheus.port");
+      if (prometheusPortStr != null) {
+        break;
+      }
+      Thread.sleep(1000);
+    }
+
+    if (prometheusPortStr == null) {
+      throw new IllegalStateException("embedded.prometheus.port not set even after waiting!");
+    }
+
+    int prometheusPort = Integer.parseInt(prometheusPortStr);
+
+    System.out.println("Prometheus Port: " + prometheusPort);
+
     awaitThirtySecondsUntil(
         () ->
             given()
@@ -48,7 +65,7 @@ public class ManagementTest extends BaseIntegrationTest {
     awaitThirtySecondsUntil(
         () ->
             given()
-                .port(managementPort)
+                .port(getManagementPort())
                 .get("/health")
                 .prettyPeek()
                 .then()

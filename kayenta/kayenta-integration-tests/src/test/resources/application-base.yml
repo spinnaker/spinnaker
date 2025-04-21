@@ -28,10 +28,6 @@ kayenta:
   s3:
     enabled: true
 
-server:
-  port: 8080
-
-
 # Does it make sense to publish all Kayenta metrics to all datasources in integraion tests?
 spring:
   autoconfigure:
@@ -48,7 +44,7 @@ management:
     exposure.include: '*'
   endpoint.health.show-details: always
   server:
-    port: 8081
+    port: 0
   metrics:
     export:
       graphite:
