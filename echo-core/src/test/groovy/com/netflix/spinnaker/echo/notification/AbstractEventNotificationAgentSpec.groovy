@@ -92,6 +92,45 @@ class AbstractEventNotificationAgentSpec extends Specification {
     // notifications ON, stage is synthetic
     fakeStageEvent("orca:stage:complete", "stage.complete", false, true)                      || 0
   }
+  
+  @Unroll
+  def "prevents stage notifications for Manual Judgment stages with specialized notifications"() {
+    given:
+    subclassMock.sendNotifications(*_) >> { notification, application, event_local, config, status_param -> }
+
+    when:
+    // Create a stage event with specialized Manual Judgment notification type
+    def event = createManualJudgmentStageEvent("orca:stage:" + status, notificationType)
+    agent.processEvent(event)
+
+    then:
+    // Verify no notifications are sent due to our fix
+    0 * subclassMock.sendNotifications(*_)
+
+    where:
+    status     | notificationType
+    "starting" | "manualJudgment"
+    "complete" | "manualJudgmentContinue"
+    "failed"   | "manualJudgmentStop"
+  }
+  
+  @Unroll
+  def "still sends stage notifications for non-Manual Judgment stages"() {
+    given:
+    subclassMock.sendNotifications(*_) >> { notification, application, event_local, config, status_param -> }
+
+    when:
+    // Create a stage event with regular stage notification type
+    def event = createRegularStageEvent("orca:stage:" + status, "stage." + status)
+    agent.processEvent(event)
+
+    then:
+    // Verify notifications are still sent for normal stages
+    1 * subclassMock.sendNotifications(*_)
+
+    where:
+    status << ["starting", "complete", "failed"]
+  }
 
   @Unroll
   def "sends notifications for ManualJudgment stage based on status and configuration"() {
@@ -106,9 +145,9 @@ class AbstractEventNotificationAgentSpec extends Specification {
 
     where:
     event                                                           || expectedNotifications
-    fakeStageEvent("orca:stage:complete", "manualJudgmentContinue") || 1
-    fakeStageEvent("orca:stage:starting", "manualJudgment")         || 1
-    fakeStageEvent("orca:stage:failed", "manualJudgmentStop")       || 1
+    fakeStageEvent("orca:stage:complete", "manualJudgmentContinue") || 0
+    fakeStageEvent("orca:stage:starting", "manualJudgment")         || 0
+    fakeStageEvent("orca:stage:failed", "manualJudgmentStop")       || 0
   }
 
   private def fakePipelineEvent(String type, String status, String notifyWhen, Map extraExecutionProps = [:]) {
@@ -172,5 +211,47 @@ class AbstractEventNotificationAgentSpec extends Specification {
     }
 
     return new Event(eventProps)
+  }
+
+  private Event createManualJudgmentStageEvent(String eventType, String notificationType) {
+    return new Event(
+      details: [
+        type: eventType,
+        application: "testapp"
+      ],
+      content: [
+        context: [
+          type: "manualJudgment",
+          sendNotifications: true,
+          notifications: [
+            [
+              type: "fake",
+              when: [notificationType]
+            ]
+          ]
+        ]
+      ]
+    )
+  }
+  
+  private Event createRegularStageEvent(String eventType, String notificationType) {
+    return new Event(
+      details: [
+        type: eventType,
+        application: "testapp"
+      ],
+      content: [
+        context: [
+          type: "regularStage",
+          sendNotifications: true,
+          notifications: [
+            [
+              type: "fake",
+              when: [notificationType]
+            ]
+          ]
+        ]
+      ]
+    )
   }
 }
