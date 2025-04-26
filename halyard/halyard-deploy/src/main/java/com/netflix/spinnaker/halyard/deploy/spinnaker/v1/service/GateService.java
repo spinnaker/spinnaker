@@ -105,20 +105,25 @@ public abstract class GateService extends SpringService<GateService.Gate> {
         getArtifactService().getArtifactVersion(deploymentName, SpinnakerArtifact.GATE);
     log.info("the current spinnaker version is: " + version);
     try {
-      if (Versions.lessThan(version, BOOT_UPGRADED_VERSION)) {
-        return boot128ProfileFactory;
-      }
 
-      // For Gate versions 6.68.0 and above, a different set of properties is required to enable
+      // For Gate versions 2025.1.0 and above, a different set of properties is required to enable
       // OAuth2.
       // Therefore, boot154ProfileFactory is not used, and springSecurity5OAuth2ProfileFactory is
       // chosen instead.
-      if (Versions.lessThan(version, "6.68.0")) {
+      if (Versions.greaterThanEqual(version, "2025.1.0")) {
+        return springSecurity5OAuth2ProfileFactory;
+      }
+
+      if (Versions.lessThan(version, BOOT_UPGRADED_VERSION)) {
+        return boot128ProfileFactory;
+      } else {
         return boot154ProfileFactory;
       }
+
     } catch (IllegalArgumentException iae) {
-      log.warn("Could not resolve Gate version, using `boot154ProfileFactory`.");
+      log.warn("Could not resolve Gate version, using `springSecurity5OAuth2ProfileFactory`.");
     }
+
     return springSecurity5OAuth2ProfileFactory;
   }
 
