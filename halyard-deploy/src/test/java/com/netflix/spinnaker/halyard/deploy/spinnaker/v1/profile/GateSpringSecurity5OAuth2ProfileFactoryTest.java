@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -97,5 +98,33 @@ class GateSpringSecurity5OAuth2ProfileFactoryTest {
     config = factory.getGateConfig(mockServiceSettings, mockSecurity);
     assertNotNull(
         config.getSpring().getSecurity().getOAuth2().getClient().getRegistration().getOther());
+  }
+
+  @Test
+  void testGetGateConfigWithOAuth2ForRedirectUri() {
+    oAuth2.setProvider(OAuth2.Provider.GOOGLE);
+    oAuth2.getClient().setPreEstablishedRedirectUri("https://my-real-gate-address.com:8084/login");
+    GateProfileFactory.GateConfig config = factory.getGateConfig(mockServiceSettings, mockSecurity);
+    assertNotNull(
+        config.getSpring().getSecurity().getOAuth2().getClient().getRegistration().getGoogle());
+    assertNotNull(
+        config
+            .getSpring()
+            .getSecurity()
+            .getOAuth2()
+            .getClient()
+            .getRegistration()
+            .getGoogle()
+            .get("redirect-uri"));
+    assertEquals(
+        "\"https://my-real-gate-address.com:8084/login\"",
+        config
+            .getSpring()
+            .getSecurity()
+            .getOAuth2()
+            .getClient()
+            .getRegistration()
+            .getGoogle()
+            .get("redirect-uri"));
   }
 }
