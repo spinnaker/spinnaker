@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Salesforce Inc.
+ * Copyright 2025 Apple Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.artifacts.artifactstore;
+package com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions;
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-/** A no-op ArtifactStoreStorer. In other words, don't actually store the artifact. */
-public class NoopArtifactStoreStorer implements ArtifactStoreStorer {
-
-  public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
-    return artifact;
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+public class ArtifactStoreInvalidTypeException extends RuntimeException {
+  public ArtifactStoreInvalidTypeException(String receivedType) {
+    super(String.format("Received an invalid artifact type of '%s'", receivedType));
   }
 }
