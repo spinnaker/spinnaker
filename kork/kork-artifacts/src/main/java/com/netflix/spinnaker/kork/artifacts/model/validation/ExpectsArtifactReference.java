@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Salesforce Inc.
+ * Copyright 2025 Apple Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.artifacts.artifactstore;
+package com.netflix.spinnaker.kork.artifacts.model.validation;
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-
-/** A no-op ArtifactStoreStorer. In other words, don't actually store the artifact. */
-public class NoopArtifactStoreStorer implements ArtifactStoreStorer {
-
-  public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
-    return artifact;
-  }
-}
+/**
+ * This interface is used as grouping during Spring's validation which allows us to target certain
+ * Spinnaker APIs to require references.
+ */
+public interface ExpectsArtifactReference {}

@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.web.config
 
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilter
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.SerializerHookRegistry
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -69,6 +71,18 @@ class WebConfiguration {
 
   @Bean(name = "objectMapper") ObjectMapper orcaObjectMapper() {
     OrcaObjectMapper.getInstance()
+  }
+
+  @Bean(name = "objectMapper") ObjectMapper orcaObjectMapper(Optional<SerializerHookRegistry> serializerModifier) {
+    ObjectMapper mapper = OrcaObjectMapper.getInstance();
+    SimpleModule module = new SimpleModule("artifact-store")
+    if (serializerModifier.isPresent()) {
+      // We need this serializer for storing into the object store before going into the Spinnaker DBs
+      module.setSerializerModifier(serializerModifier.get())
+    }
+
+    mapper.registerModule(module)
+    return mapper;
   }
 
   @Bean

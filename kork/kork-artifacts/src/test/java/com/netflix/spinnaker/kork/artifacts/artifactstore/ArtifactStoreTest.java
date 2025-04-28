@@ -24,13 +24,22 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.util.HashMap;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class ArtifactStoreTest {
 
   private ArtifactStoreGetter artifactStoreGetter = mock(ArtifactStoreGetter.class);
   private ArtifactStoreStorer artifactStoreStorer = mock(ArtifactStoreStorer.class);
-  private ArtifactStore artifactStore = new ArtifactStore(artifactStoreGetter, artifactStoreStorer);
+  private ArtifactStore artifactStore =
+      new ArtifactStore(artifactStoreGetter, artifactStoreStorer, new HashMap<>());
+
+  @BeforeAll
+  static void init() {
+    AuthenticatedRequest.setApplication("applicaiton");
+  }
 
   @Test
   void testArtifactStoreDelegatesToGetter() {
@@ -48,7 +57,7 @@ class ArtifactStoreTest {
   void testArtifactStoreDelegatesToStorer() {
     Artifact inputArtifact = Artifact.builder().build();
     Artifact storedArtifact = Artifact.builder().build();
-    when(artifactStore.store(inputArtifact)).thenReturn(storedArtifact);
+    when(artifactStoreStorer.store(inputArtifact)).thenReturn(storedArtifact);
 
     Artifact retval = artifactStore.store(inputArtifact);
     assertThat(retval).isEqualTo(storedArtifact);
