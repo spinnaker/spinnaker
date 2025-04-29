@@ -16,8 +16,8 @@
 package com.netflix.kayenta.tests;
 
 import com.netflix.kayenta.Main;
+import com.netflix.kayenta.configuration.EmbeddedPrometheusBootstrapConfiguration;
 import com.netflix.kayenta.configuration.MetricsReportingConfiguration;
-import com.netflix.kayenta.configuration.TestPrometheusConfiguration;
 import com.netflix.kayenta.prometheus.config.PrometheusConfigurationProperties;
 import com.netflix.kayenta.prometheus.config.PrometheusManagedAccount;
 import com.netflix.kayenta.prometheus.config.PrometheusResponseConverter;
@@ -46,7 +46,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     value = "spring.application.name=kayenta")
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles({"base", "prometheus", "graphite", "cases"})
-@Import(TestPrometheusConfiguration.class)
+@Import(EmbeddedPrometheusBootstrapConfiguration.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseIntegrationTest {
 
