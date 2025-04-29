@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.events;
 
+import static org.mockito.ArgumentMatchers.anyMap;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.echo.api.events.Event;
@@ -96,6 +98,11 @@ class RestEventListenerTest {
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
+    Mockito.when(restService.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
+
     listener.processEvent(event);
 
     Mockito.verify(restService, Mockito.times(1))
@@ -120,6 +127,11 @@ class RestEventListenerTest {
     listener.getRestUrls().setServices(List.of(service));
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
+
+    Mockito.when(restService.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
 
     listener.processEvent(event);
 
@@ -149,6 +161,11 @@ class RestEventListenerTest {
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
+    Mockito.when(restService.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
+
     listener.processEvent(event);
 
     Mockito.verify(restService, Mockito.times(1))
@@ -175,6 +192,11 @@ class RestEventListenerTest {
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
+    Mockito.when(restService.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
+
     listener.processEvent(event);
 
     Mockito.verify(restService, Mockito.times(1)).recordEvent(expectedEvent);
@@ -197,6 +219,15 @@ class RestEventListenerTest {
     listener.getRestUrls().setServices(List.of(service1, service2));
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
+
+    Mockito.when(restService.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
+    Mockito.when(restService2.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
 
     listener.processEvent(event);
 
@@ -223,7 +254,8 @@ class RestEventListenerTest {
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
-    Mockito.when(restService.recordEvent(expectedEvent)).thenThrow(new RuntimeException());
+    Mockito.when(restService.recordEvent(expectedEvent))
+        .thenThrow(new RuntimeException("test exception"));
     Mockito.when(restService2.recordEvent(expectedEvent))
         .thenReturn(Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
 
@@ -248,6 +280,11 @@ class RestEventListenerTest {
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
+    Mockito.when(restService.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
+
     listener.processEvent(event);
 
     Mockito.verify(restService, Mockito.times(1)).recordEvent(expectedEvent);
@@ -271,6 +308,11 @@ class RestEventListenerTest {
     listener.setCircuitBreakerEnabled(true); // enabling circuit breaker across all rest services
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
+
+    Mockito.when(restService.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
 
     listener.processEvent(event);
 
@@ -372,7 +414,7 @@ class RestEventListenerTest {
         EchoObjectMapper.getInstance().convertValue(event, Map.class);
 
     Mockito.when(objectMapper.convertValue(event, Map.class))
-        .thenThrow(IllegalArgumentException.class);
+        .thenThrow(new IllegalArgumentException("test exception"));
 
     listener.processEvent(event);
 
@@ -402,7 +444,7 @@ class RestEventListenerTest {
         EchoObjectMapper.getInstance().convertValue(event, Map.class);
 
     Mockito.when(objectMapper.convertValue(event, Map.class))
-        .thenThrow(new IllegalArgumentException());
+        .thenThrow(new IllegalArgumentException("test exception"));
 
     listener.processEvent(event);
 
@@ -441,7 +483,12 @@ class RestEventListenerTest {
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
     // first service throws Exception when recording event
-    Mockito.when(restService.recordEvent(expectedEvent)).thenThrow(new RuntimeException());
+    Mockito.when(restService.recordEvent(expectedEvent))
+        .thenThrow(new RuntimeException("test exception"));
+    Mockito.when(restService2.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
 
     listener.processEvent(event);
 
@@ -463,6 +510,11 @@ class RestEventListenerTest {
     Event newEvent = new Event();
     newEvent.setContent(Map.of("tres", "cuatro"));
     Map<String, Object> newExpectedEvent = listener.getMapper().convertValue(newEvent, Map.class);
+
+    Mockito.when(restService2.recordEvent(anyMap()))
+        .thenAnswer(
+            invoke ->
+                Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
 
     listener.processEvent(newEvent); // process new event
 
