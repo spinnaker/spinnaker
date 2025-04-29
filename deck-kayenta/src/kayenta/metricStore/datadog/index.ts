@@ -5,4 +5,5 @@ metricStoreConfigStore.register({
   name: 'datadog',
   metricConfigurer: DatadogMetricConfigurer,
   queryFinder,
+  useTemplates: true,
 });
