@@ -2,6 +2,7 @@ import type { Rule } from 'eslint';
 import type { CallExpression, ImportDeclaration, ImportSpecifier, MemberExpression, Node } from 'estree';
 import * as _ from 'lodash/fp';
 
+import { getImportName } from '../utils/ast';
 import {
   getCallChain,
   getCallingIdentifier,
@@ -171,7 +172,7 @@ function reportAPIDeprecatedUseREST(node: Node, context: Rule.RuleContext, callC
     .reduce((acc, x) => acc.concat(x), []) as ImportSpecifier[]; //flatten
 
   const apiImport = importSpecifiers.find((specifier) => {
-    return specifier.imported && specifier.imported?.name === 'API';
+    return specifier.imported && getImportName(specifier.imported) === 'API';
   });
 
   return context.report({

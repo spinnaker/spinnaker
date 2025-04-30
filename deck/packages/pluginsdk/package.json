@@ -39,7 +39,7 @@
   "devDependencies": {
     "@spinnaker/core": "0.0.549",
     "@types/yargs": "^16.0.0",
-    "typescript": "4.3.5"
+    "typescript": "5.0.4"
   },
   "files": [
     "dist",

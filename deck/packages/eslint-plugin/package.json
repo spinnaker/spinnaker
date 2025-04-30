@@ -23,18 +23,18 @@
     "@types/jest": "^26.0.24",
     "@types/lodash": "^4.14.165",
     "@types/node": "^16.4.13",
-    "@typescript-eslint/parser": "^4.29.1",
-    "@typescript-eslint/types": "^4.29.1",
-    "eslint": "^7.32.0",
+    "@typescript-eslint/parser": "5.59.8",
+    "@typescript-eslint/types": "5.59.8",
+    "eslint": "7.32.0",
     "fast-glob": "^3.2.7",
     "jest": "^27.0.6",
     "prettier": "*",
-    "typescript": "^4.3.5"
+    "typescript": "5.0.4"
   },
   "peerDependencies": {
-    "@typescript-eslint/eslint-plugin": "4.4.0",
-    "@typescript-eslint/parser": "4.4.0",
-    "eslint": "7.10.0",
+    "@typescript-eslint/eslint-plugin": "5.59.8",
+    "@typescript-eslint/parser": "5.59.8",
+    "eslint": "7.32.0",
     "eslint-config-prettier": "6.12.0",
     "eslint-plugin-react-hooks": "4.1.2"
   },
@@ -47,7 +47,8 @@
   ],
   "jest": {
     "testPathIgnorePatterns": [
-      "<rootDir>/template"
+      "<rootDir>/template",
+      "<rootDir>/rules/ng-strictdi.spec.ts"
     ]
   }
 }

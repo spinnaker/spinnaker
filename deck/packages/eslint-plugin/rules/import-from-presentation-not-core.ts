@@ -1,5 +1,6 @@
 import type { Rule } from 'eslint';
 import type { ImportDeclaration, ImportSpecifier } from 'estree';
+import { getImportName } from '../utils/ast';
 
 const migratedPresentationModules = ['Icon', 'IconNames', 'Illustration', 'IllustrationName'];
 
@@ -38,9 +39,9 @@ const addImportToPresentation = (
 
   // Use the alias if it is available in the old import specifier.
   const importSpecifierText =
-    importSpecifierNode.local.name === importSpecifierNode.imported.name
-      ? importSpecifierNode.imported.name
-      : `${importSpecifierNode.imported.name} as ${importSpecifierNode.local.name}`;
+    importSpecifierNode.local.name === getImportName(importSpecifierNode.imported)
+      ? getImportName(importSpecifierNode.imported)
+      : `${getImportName(importSpecifierNode.imported)} as ${importSpecifierNode.local.name}`;
 
   // Check if @spinnaker/presentation is already imported.
   const spinnakerPresentationImport = sourceCode.ast.body.find(
@@ -76,10 +77,10 @@ const rule = (context: Rule.RuleContext) => {
   return {
     ImportSpecifier(node: ImportSpecifier & Rule.NodeParentExtension) {
       if (
-        migratedPresentationModules.includes(node.imported.name) &&
+        migratedPresentationModules.includes(getImportName(node.imported)) &&
         (node.parent as ImportDeclaration).source.value === '@spinnaker/core'
       ) {
-        const message = `${node.imported.name} must be imported from @spinnaker/presentation`;
+        const message = `${getImportName(node.imported)} must be imported from @spinnaker/presentation`;
         const fix = (fixer) => moveImportToPresentation(context, node, fixer);
         context.report({
           node,
