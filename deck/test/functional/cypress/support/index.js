@@ -14,7 +14,6 @@
 // ***********************************************************
 
 import './commands';
-import './scrollBehavior';
 
 export * from './defaultFixtures';
 export * from './reactSelect';
