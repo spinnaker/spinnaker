@@ -17,8 +17,10 @@
 
 package com.netflix.spinnaker.orca.webhook.service;
 
+import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
 import java.net.URI;
+import java.util.Optional;
 import lombok.Getter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -33,18 +35,21 @@ public class RestTemplateData {
   private final HttpMethod httpMethod;
   private final HttpEntity<Object> payloadEntity;
   @Getter private final WebhookStage.StageData stageData;
+  @Getter private final Optional<WebhookProperties.AllowedRequest> allowedRequest;
 
   public RestTemplateData(
       RestTemplate restTemplate,
       URI validatedUri,
       HttpMethod httpMethod,
       HttpEntity<Object> payloadEntity,
-      WebhookStage.StageData stageData) {
+      WebhookStage.StageData stageData,
+      Optional<WebhookProperties.AllowedRequest> allowedRequest) {
     this.restTemplate = restTemplate;
     this.validatedUri = validatedUri;
     this.httpMethod = httpMethod;
     this.payloadEntity = payloadEntity;
     this.stageData = stageData;
+    this.allowedRequest = allowedRequest;
   }
 
   public ResponseEntity<Object> exchange() {

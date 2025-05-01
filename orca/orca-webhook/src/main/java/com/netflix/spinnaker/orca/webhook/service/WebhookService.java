@@ -241,17 +241,22 @@ public class WebhookService {
             userConfiguredUrlRestrictions.validateURI(
                 provider.getTargetUrl(destinationUrl, stageData));
 
-        if (!isAllowedRequest(httpMethod, validatedUri)) {
-          String message =
-              String.format(
-                  "http method '%s', uri: '%s' not allowed",
-                  httpMethod.toString(), validatedUri.toString());
-          log.info(message);
-          throw new IllegalArgumentException(message);
+        Optional<WebhookProperties.AllowedRequest> allowedRequest =
+            getAllowedRequest(httpMethod, validatedUri);
+        if (webhookProperties.isAllowedRequestsEnabled()) {
+          if (allowedRequest.isEmpty()) {
+            String message =
+                String.format(
+                    "http method '%s', uri: '%s' not allowed",
+                    httpMethod.toString(), validatedUri.toString());
+            log.info(message);
+            throw new IllegalArgumentException(message);
+          }
         }
+
         RestTemplate restTemplate = provider.getRestTemplate(destinationUrl);
         return new RestTemplateData(
-            restTemplate, validatedUri, httpMethod, payloadEntity, stageData);
+            restTemplate, validatedUri, httpMethod, payloadEntity, stageData, allowedRequest);
       }
     }
 
@@ -271,19 +276,21 @@ public class WebhookService {
   }
 
   /**
-   * Return true if the allow list is disabled, or if the given httpMethod + uri are in the list of
-   * allowed requests, false otherwise.
+   * Return the allow list entry corresponding to the given httpMethod + uri, or empty if there's no
+   * corresponding entry. If the allowed requests is disabled altogether, return empty.
    */
-  private boolean isAllowedRequest(HttpMethod httpMethod, URI uri) {
+  private Optional<WebhookProperties.AllowedRequest> getAllowedRequest(
+      HttpMethod httpMethod, URI uri) {
     if (!webhookProperties.isAllowedRequestsEnabled()) {
-      return true;
+      return Optional.empty();
     }
 
     return webhookProperties.getAllowedRequests().stream()
-        .anyMatch(
+        .filter(
             allowedRequest ->
                 allowedRequest.getHttpMethods().contains(httpMethod.toString())
-                    && uriMatches(allowedRequest, uri));
+                    && uriMatches(allowedRequest, uri))
+        .findFirst();
   }
 
   /**
