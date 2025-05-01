@@ -215,6 +215,61 @@ class CreateWebhookTaskSpec extends Specification {
     ]
   }
 
+  @Unroll
+  def "retries on timeout for non-GET request when configured to do so (safeToRetry: #safeToRetry)"() {
+    setup:
+    def webhookUrl = "https://my-service.io/api/"
+    def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
+      url: webhookUrl,
+      method: "post",
+    ])
+
+    Optional<WebhookProperties.AllowedRequest> allowedRequestOptional
+    if (safeToRetry != null) {
+      WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest()
+      allowedRequest.safeToRetry = safeToRetry
+      allowedRequestOptional = Optional.of(allowedRequest)
+    } else {
+      allowedRequestOptional = Optional.empty()
+    }
+
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * restTemplateData.getAllowedRequest() >> allowedRequestOptional
+    0 * restTemplateData._
+
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+
+    String exceptionMessage = "timeout"
+    1 * webhookService.callWebhook(restTemplateData) >> {
+        throw new ResourceAccessException("I/O error on POST request for ${webhookUrl}", new SocketTimeoutException("timeout"))
+    }
+    0 * webhookService._
+
+    when:
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    def expectedStatus
+    def expectedErrorMessage
+    if (safeToRetry) {
+      expectedStatus = ExecutionStatus.RUNNING
+      expectedErrorMessage = "Socket timeout in webhook on POST request for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
+    } else {
+      expectedStatus = ExecutionStatus.TERMINAL
+      expectedErrorMessage = "An exception occurred for pipeline ${stage.execution.id} performing a POST request to ${stage.context.url}. org.springframework.web.client.ResourceAccessException: I/O error on POST request for https://my-service.io/api/; nested exception is java.net.SocketTimeoutException: timeout"
+    }
+
+    result.status == expectedStatus
+    (result.context as Map) == [
+      webhook: new WebhookStage.WebhookResponseStageData(
+        error: expectedErrorMessage
+      )
+    ]
+
+    where:
+    safeToRetry << [ null, false, true ]
+  }
+
   def "should return TERMINAL on URL validation failure"() {
     setup:
     def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [url: "wrong://my-service.io/api/"])
@@ -233,7 +288,7 @@ class CreateWebhookTaskSpec extends Specification {
     result.status == ExecutionStatus.TERMINAL
     (result.context as Map) == [
       webhook: new WebhookStage.WebhookResponseStageData(
-        error: "An exception occurred for pipeline ${stage.execution.id} performing a request to wrong://my-service.io/api/. java.lang.IllegalArgumentException: Invalid URL"
+        error: "An exception occurred for pipeline ${stage.execution.id} performing a POST request to wrong://my-service.io/api/. java.lang.IllegalArgumentException: Invalid URL"
       )
     ]
   }

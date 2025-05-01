@@ -37,9 +37,9 @@ public class CreateWebhookTask implements RetryableTask {
         webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage);
     try {
       var response = webhookService.callWebhook(restTemplateData);
-      return responseProcessor.process(response, null);
+      return responseProcessor.process(restTemplateData, response, null);
     } catch (Exception e) {
-      return responseProcessor.process(null, e);
+      return responseProcessor.process(restTemplateData, null, e);
     }
   }
 
