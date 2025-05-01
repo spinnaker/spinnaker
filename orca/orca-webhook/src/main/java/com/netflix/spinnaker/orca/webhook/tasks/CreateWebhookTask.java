@@ -5,6 +5,7 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
+import com.netflix.spinnaker.orca.webhook.service.RestTemplateData;
 import com.netflix.spinnaker.orca.webhook.service.WebhookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +33,10 @@ public class CreateWebhookTask implements RetryableTask {
 
     WebhookResponseProcessor responseProcessor =
         new WebhookResponseProcessor(objectMapper, stage, webhookProperties);
+    RestTemplateData restTemplateData =
+        webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage);
     try {
-      var response = webhookService.callWebhook(stage);
+      var response = webhookService.callWebhook(restTemplateData);
       return responseProcessor.process(response, null);
     } catch (Exception e) {
       return responseProcessor.process(null, e);

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage
+import com.netflix.spinnaker.orca.webhook.service.RestTemplateData
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -45,6 +46,10 @@ class CreateWebhookTaskSpec extends Specification {
   @Subject
   def createWebhookTask = new CreateWebhookTask(webhookService, new WebhookProperties(), new ObjectMapper())
 
+  def setup() {
+    println "--------------- Test " + specificationContext.currentIteration.name
+  }
+
   def "should create new webhook task with expected parameters"() {
     setup:
     def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [
@@ -54,7 +59,10 @@ class CreateWebhookTaskSpec extends Specification {
       customHeaders: [header1: "Header"]
     ])
 
-    webhookService.callWebhook(stage) >> new ResponseEntity<Map>([:], HttpStatus.OK)
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> new ResponseEntity<Map>([:], HttpStatus.OK)
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -76,7 +84,10 @@ class CreateWebhookTaskSpec extends Specification {
       url: "https://my-service.io/api/"
     ])
 
-    webhookService.callWebhook(stage) >> new ResponseEntity<Map>([:], HttpStatus.OK)
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> new ResponseEntity<Map>([:], HttpStatus.OK)
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -95,7 +106,10 @@ class CreateWebhookTaskSpec extends Specification {
     ])
     def bodyString = "Oh noes, you can't do this"
 
-    webhookService.callWebhook(stage) >> new ResponseEntity<Map>([error: bodyString], HttpStatus.BAD_REQUEST)
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 *webhookService.callWebhook(restTemplateData) >> new ResponseEntity<Map>([error: bodyString], HttpStatus.BAD_REQUEST)
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -123,7 +137,11 @@ class CreateWebhookTaskSpec extends Specification {
       webhookRetryStatusCodes: [404, 401]
     ])
 
-    webhookService.callWebhook(stage) >> { throwHttpException(status, null) }
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> { throwHttpException(status, null) }
+    0 * webhookService._
+
     createWebhookTask.webhookProperties.defaultRetryStatusCodes = [429,403]
 
     when:
@@ -149,10 +167,13 @@ class CreateWebhookTaskSpec extends Specification {
     setup:
     def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [url: "https://my-service.io/api/"])
 
-    webhookService.callWebhook(stage) >> {
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> {
         // throwing it like UserConfiguredUrlRestrictions::validateURI does
         throw new Exception("Invalid URL", new UnknownHostException("Temporary failure in name resolution"))
     }
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -174,9 +195,12 @@ class CreateWebhookTaskSpec extends Specification {
       method: "get",
     ])
 
-    webhookService.callWebhook(stage) >> {
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> {
         throw new ResourceAccessException("I/O error on GET request for ${webhookUrl}", new SocketTimeoutException("timeout"))
     }
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -195,9 +219,12 @@ class CreateWebhookTaskSpec extends Specification {
     setup:
     def stage = new StageExecutionImpl(pipeline, "webhook", "My webhook", [url: "wrong://my-service.io/api/"])
 
-    webhookService.callWebhook(stage) >> {
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> {
         throw new IllegalArgumentException("Invalid URL")
     }
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -222,7 +249,10 @@ class CreateWebhookTaskSpec extends Specification {
 
     HttpStatus statusCode = HttpStatus.BAD_REQUEST
 
-    webhookService.callWebhook(stage) >> { throwHttpException(statusCode, bodyString) }
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> { throwHttpException(statusCode, bodyString) }
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -260,7 +290,10 @@ class CreateWebhookTaskSpec extends Specification {
     ])
     def bodyString = "Fail fast, ok?"
 
-    webhookService.callWebhook(stage) >> { throwHttpException(HttpStatus.SERVICE_UNAVAILABLE, bodyString) }
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> { throwHttpException(HttpStatus.SERVICE_UNAVAILABLE, bodyString) }
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -286,9 +319,9 @@ class CreateWebhookTaskSpec extends Specification {
       customHeaders: [:],
       "failFastStatusCodes": 503
     ])
-    def bodyString = "Fail fast, ok?"
 
-    webhookService.callWebhook(stage) >> { throwHttpException(HttpStatus.SERVICE_UNAVAILABLE, bodyString) }
+    // This fails fast enough that WebhookService never gets called.
+    0 * webhookService._
 
     when:
     createWebhookTask.execute(stage)
@@ -305,7 +338,10 @@ class CreateWebhookTaskSpec extends Specification {
       statusUrlResolution: "getMethod"
     ])
 
-    webhookService.callWebhook(stage) >> new ResponseEntity<Map>([success: true], HttpStatus.CREATED)
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> new ResponseEntity<Map>([success: true], HttpStatus.CREATED)
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -333,7 +369,11 @@ class CreateWebhookTaskSpec extends Specification {
 
     def headers = new HttpHeaders()
     headers.add(HttpHeaders.LOCATION, "https://my-service.io/api/status/123")
-    webhookService.callWebhook(stage) >> new ResponseEntity<Map>([success: true], headers, HttpStatus.CREATED)
+
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> new ResponseEntity<Map>([success: true], headers, HttpStatus.CREATED)
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -363,7 +403,10 @@ class CreateWebhookTaskSpec extends Specification {
 
     def body = [success: true, location: "https://my-service.io/api/status/123"]
 
-    webhookService.callWebhook(stage) >> new ResponseEntity<Map>(body, HttpStatus.CREATED)
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> new ResponseEntity<Map>(body, HttpStatus.CREATED)
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -398,7 +441,10 @@ class CreateWebhookTaskSpec extends Specification {
       ]
     ]
 
-    webhookService.callWebhook(stage) >> new ResponseEntity<Map>(body, HttpStatus.CREATED)
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> new ResponseEntity<Map>(body, HttpStatus.CREATED)
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -422,10 +468,13 @@ class CreateWebhookTaskSpec extends Specification {
       statusUrlJsonPath: 'concat("https://my-service.io/api/id/", $.id)'
     ])
 
-    webhookService.callWebhook(stage) >>> [
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    2 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    2 * webhookService.callWebhook(restTemplateData) >>> [
         new ResponseEntity<Map>([ success: true, id: "1" ], HttpStatus.CREATED),
         new ResponseEntity<Map>([ success: true, id: "2" ], HttpStatus.CREATED)
     ]
+    0 * webhookService._
 
     when:
     def result1 = createWebhookTask.execute(stage)
@@ -447,7 +496,10 @@ class CreateWebhookTaskSpec extends Specification {
       payload: [payload1: "Hello Spinnaker!"]
     ])
 
-    webhookService.callWebhook(stage) >> new ResponseEntity<String>("<html></html>", HttpStatus.OK)
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> new ResponseEntity<String>("<html></html>", HttpStatus.OK)
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -472,9 +524,12 @@ class CreateWebhookTaskSpec extends Specification {
       expectedArtifacts: [[matchArtifact: [ name: "overrides", type: "github/file" ]]]
     ])
 
-    webhookService.callWebhook(stage) >> new ResponseEntity<Map>([
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> new ResponseEntity<Map>([
         artifacts: [[ name: "overrides", type: "github/file", artifactAccount: "github", reference: "https://api.github.com/file", version: "master" ]]
       ], HttpStatus.OK)
+    0 * webhookService._
 
     when:
     def result = createWebhookTask.execute(stage)
@@ -510,7 +565,10 @@ class CreateWebhookTaskSpec extends Specification {
     }
     headers.add(HttpHeaders.CONTENT_TYPE, "application/json")
 
-    webhookService.callWebhook(stage) >> new ResponseEntity<Map>(['statusCheckUrl': responseStatusCheckUrl] as Map, headers, HttpStatus.OK)
+    RestTemplateData restTemplateData = Mock(RestTemplateData)
+    1 * webhookService.getRestTemplateData(WebhookService.WebhookTaskType.CREATE, stage) >> restTemplateData
+    1 * webhookService.callWebhook(restTemplateData) >> new ResponseEntity<Map>(['statusCheckUrl': responseStatusCheckUrl] as Map, headers, HttpStatus.OK)
+    0 * webhookService._
 
     def result = createWebhookTask.execute(stage)
 

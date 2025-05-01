@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.webhook.service;
 
 import static com.netflix.spinnaker.orca.webhook.config.WebhookProperties.MatchStrategy.PATTERN_MATCHES;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -125,8 +126,17 @@ public class WebhookService {
     }
   }
 
+  /**
+   * Only exists for testing. CreateWebhookTask has RestTemplateData, so it calls the overload of
+   * callWebhook that takes that.
+   */
+  @VisibleForTesting
   public ResponseEntity<Object> callWebhook(StageExecution stageExecution) {
     RestTemplateData restTemplateData = getRestTemplateData(WebhookTaskType.CREATE, stageExecution);
+    return callWebhook(restTemplateData);
+  }
+
+  public ResponseEntity<Object> callWebhook(RestTemplateData restTemplateData) {
     if (restTemplateData == null) {
       throw new SpinnakerException("Unable to determine rest template to call webhook");
     }
@@ -173,7 +183,7 @@ public class WebhookService {
     return null;
   }
 
-  private RestTemplateData getRestTemplateData(
+  public RestTemplateData getRestTemplateData(
       WebhookTaskType taskType, StageExecution stageExecution) {
     String destinationUrl = null;
     for (RestTemplateProvider provider : restTemplateProviders) {
@@ -331,7 +341,7 @@ public class WebhookService {
     return headers;
   }
 
-  private enum WebhookTaskType {
+  public enum WebhookTaskType {
     CREATE,
     MONITOR,
     CANCEL
