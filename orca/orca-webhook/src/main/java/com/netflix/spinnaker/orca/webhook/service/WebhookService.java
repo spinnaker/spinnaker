@@ -150,7 +150,7 @@ public class WebhookService {
       log.warn("Cannot determine rest template to cancel the webhook");
       return null;
     }
-    WebhookStage.StageData stageData = restTemplateData.stageData;
+    WebhookStage.StageData stageData = restTemplateData.getStageData();
     try {
       log.info("Sending best effort webhook cancellation to {}", stageData.cancelEndpoint);
       ResponseEntity<Object> response = restTemplateData.exchange();
@@ -329,32 +329,6 @@ public class WebhookService {
           });
     }
     return headers;
-  }
-
-  private static class RestTemplateData {
-
-    final RestTemplate restTemplate;
-    final URI validatedUri;
-    final HttpMethod httpMethod;
-    final HttpEntity<Object> payloadEntity;
-    final WebhookStage.StageData stageData;
-
-    RestTemplateData(
-        RestTemplate restTemplate,
-        URI validatedUri,
-        HttpMethod httpMethod,
-        HttpEntity<Object> payloadEntity,
-        WebhookStage.StageData stageData) {
-      this.restTemplate = restTemplate;
-      this.validatedUri = validatedUri;
-      this.httpMethod = httpMethod;
-      this.payloadEntity = payloadEntity;
-      this.stageData = stageData;
-    }
-
-    public ResponseEntity<Object> exchange() {
-      return this.restTemplate.exchange(validatedUri, httpMethod, payloadEntity, Object.class);
-    }
   }
 
   private enum WebhookTaskType {
