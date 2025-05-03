@@ -31,6 +31,7 @@ interface IEditMetricModalDispatchProps {
   updateDirection: (event: any) => void;
   updateNanStrategy: (event: any) => void;
   updateCriticality: (event: any) => void;
+  updateDataRequired: (event: any) => void;
   confirm: () => void;
   cancel: () => void;
 }
@@ -58,6 +59,7 @@ function EditMetricModal({
   updateDirection,
   updateNanStrategy,
   updateCriticality,
+  updateDataRequired,
   useInlineTemplateEditor,
   disableEdit,
   validationErrors,
@@ -69,6 +71,7 @@ function EditMetricModal({
   const direction = metric.analysisConfigurations?.canary?.direction ?? 'either';
   const nanStrategy = metric.analysisConfigurations?.canary?.nanStrategy ?? 'default';
   const critical = metric.analysisConfigurations?.canary?.critical ?? false;
+  const dataRequired = metric.analysisConfigurations?.canary?.mustHaveData ?? false;
   const isConfirmDisabled =
     !isTemplateValid ||
     disableEdit ||
@@ -155,6 +158,18 @@ function EditMetricModal({
               Fail the canary if this metric fails
             </label>
           </FormRow>
+          <FormRow label="Data Required" checkbox={true}>
+            <label>
+              <DisableableInput
+                type="checkbox"
+                checked={dataRequired}
+                onChange={updateDataRequired}
+                disabled={CanarySettings.disableConfigEdit}
+                disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+              />
+              Fail the metric if data is missing
+            </label>
+          </FormRow>
           <FormRow label="NaN Strategy" helpId="canary.config.nanStrategy">
             <RadioChoice
               value="default"
@@ -226,6 +241,9 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     },
     updateCriticality: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(Creators.updateMetricCriticality({ id: target.dataset.id, critical: Boolean(target.checked) }));
+    },
+    updateDataRequired: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
+      dispatch(Creators.updateMetricDataRequired({ id: target.dataset.id, mustHaveData: Boolean(target.checked) }));
     },
   };
 }
