@@ -43,7 +43,7 @@ export const updateMetricNanStrategy = createAction<{ id: string; strategy: stri
 export const updateMetricCriticality = createAction<{ id: string; critical: boolean }>(
   Actions.UPDATE_METRIC_CRITICALITY,
 );
-export const updateMetricDataRequired = createAction<{ id: string, mustHaveData: boolean }>(
+export const updateMetricDataRequired = createAction<{ id: string; mustHaveData: boolean }>(
   Actions.UPDATE_METRIC_DATA_REQUIRED,
 );
 export const updateEffectSize = createAction<{ id: string; value: ICanaryMetricEffectSizeConfig }>(
