@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
+import com.netflix.spinnaker.igor.history.EchoConverterFactory
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
@@ -37,8 +38,7 @@ class EchoConfig {
     @Bean
     EchoService echoService(
       OkHttp3ClientConfiguration okHttpClientConfig,
-      IgorConfigurationProperties igorConfigurationProperties,
-      ObjectMapper objectMapper
+      IgorConfigurationProperties igorConfigurationProperties
     ) {
         String address = igorConfigurationProperties.services.echo.baseUrl ?: 'none'
 
@@ -49,7 +49,7 @@ class EchoConfig {
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(address))
             .client(okHttpClientConfig.createForRetrofit2().build())
-            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .addConverterFactory(EchoConverterFactory.create())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(EchoService)

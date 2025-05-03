@@ -18,15 +18,15 @@ package com.netflix.spinnaker.igor.history;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericProject;
+import com.netflix.spinnaker.igor.history.model.ArtifactoryEvent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import okhttp3.OkHttpClient;
@@ -34,7 +34,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class EchoServiceTest {
 
@@ -46,28 +45,30 @@ public class EchoServiceTest {
 
   @BeforeAll
   public static void setup() {
-    wmEcho.stubFor(WireMock.post(urlEqualTo("/")).willReturn(WireMock.aResponse().withStatus(200)));
-
     echoService =
         new Retrofit.Builder()
             .baseUrl(wmEcho.baseUrl())
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(EchoConverterFactory.create())
             .build()
             .create(EchoService.class);
   }
 
   @Test
   void testPostEvent_with_GenericBuildEvent() {
+    wmEcho.stubFor(WireMock.post(urlEqualTo("/")).willReturn(WireMock.aResponse().withStatus(200)));
     GenericBuildEvent event = buildGenericEvent();
-    // TODO: Fix this issue
-    Throwable thrown =
-        catchThrowable(() -> Retrofit2SyncCall.executeCall(echoService.postEvent(event)));
-    assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
-    assertThat(thrown)
-        .hasMessageContaining(
-            "Unable to convert GenericBuildEvent(details={type=build, source=igor}, content=GenericBuildContent(project=GenericProject(name=spinnaker, lastBuild=GenericBuild(building=false, fullDisplayName=null, name=null, number=0, duration=null, timestamp=null, result=null, artifacts=null, testResults=null, url=null, id=null, genericGitRevisions=null, properties=null)), master=IgorHealthCheck, type=null)) to RequestBody (parameter #1)");
+    Retrofit2SyncCall.executeCall(echoService.postEvent(event));
+    wmEcho.verify(1, WireMock.postRequestedFor(urlEqualTo("/")));
+  }
+
+  @Test
+  void testPostEvent_with_ArtifactoryEvent() {
+    wmEcho.stubFor(WireMock.post(urlEqualTo("/")).willReturn(WireMock.aResponse().withStatus(200)));
+    ArtifactoryEvent event = buildArtifactEvent();
+    Retrofit2SyncCall.executeCall(echoService.postEvent(event));
+    wmEcho.verify(1, WireMock.postRequestedFor(urlEqualTo("/")));
   }
 
   private static GenericBuildEvent buildGenericEvent() {
@@ -78,5 +79,20 @@ public class EchoServiceTest {
     buildContent.setProject(project);
     event.setContent(buildContent);
     return event;
+  }
+
+  private static ArtifactoryEvent buildArtifactEvent() {
+    Artifact expectedArtifact =
+        Artifact.builder()
+            .type("maven/file")
+            .reference("com.example" + ":" + "demo" + ":" + "0.0.1-SNAPSHOT")
+            .name("com.example" + ":" + "demo")
+            .version("0.0.1-SNAPSHOT")
+            .provenance("maven-snapshots")
+            .location(
+                "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
+            .build();
+
+    return new ArtifactoryEvent(new ArtifactoryEvent.Content("nexus-snapshots", expectedArtifact));
   }
 }
