@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.kork.docker.service;
 
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
-import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.exceptions.DockerRegistryAuthenticationException;
 import com.netflix.spinnaker.kork.docker.model.DockerBearerToken;
@@ -16,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -227,7 +225,7 @@ public class DockerBearerTokenService {
       if (basicAuthHeader != null) {
         token =
             Retrofit2SyncCall.execute(
-              registryService.getToken(
+                registryService.getToken(
                     authenticateDetails.path,
                     authenticateDetails.service,
                     authenticateDetails.scope,
@@ -236,7 +234,7 @@ public class DockerBearerTokenService {
       } else {
         token =
             Retrofit2SyncCall.execute(
-              registryService.getToken(
+                registryService.getToken(
                     authenticateDetails.path,
                     authenticateDetails.service,
                     authenticateDetails.scope,

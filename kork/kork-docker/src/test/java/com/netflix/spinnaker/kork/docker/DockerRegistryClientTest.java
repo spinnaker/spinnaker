@@ -38,7 +38,7 @@ public class DockerRegistryClientTest {
 
   @RegisterExtension
   static WireMockExtension wmDockerRegistry =
-    WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   static RegistryService dockerRegistryService;
   @MockBean DockerBearerTokenService dockerBearerTokenService;
@@ -56,21 +56,21 @@ public class DockerRegistryClientTest {
   @BeforeEach
   public void init() throws JsonProcessingException {
     tagsResponse =
-      Map.of(
-        "name",
-        "library/nginx",
-        "tags",
-        new String[] {"1", "1-alpine", "1-alpine-otel", "1-alpine-perl", "1-alpine-slim"});
+        Map.of(
+            "name",
+            "library/nginx",
+            "tags",
+            new String[] {"1", "1-alpine", "1-alpine-otel", "1-alpine-perl", "1-alpine-slim"});
     catalogResponse =
-      Map.of(
-        "repositories",
-        new String[] {
-          "library/repo-a-1",
-          "library/repo-b-1",
-          "library/repo-c-1",
-          "library/repo-d-1",
-          "library/repo-e-1"
-        });
+        Map.of(
+            "repositories",
+            new String[] {
+              "library/repo-a-1",
+              "library/repo-b-1",
+              "library/repo-c-1",
+              "library/repo-d-1",
+              "library/repo-e-1"
+            });
     tagsResponseString = objectMapper.writeValueAsString(tagsResponse);
     tagsSecondResponseString = tagsResponseString.replaceAll("1", "2");
     tagsThirdResponseString = tagsResponseString.replaceAll("1", "3");
@@ -85,26 +85,26 @@ public class DockerRegistryClientTest {
     Mockito.when(dockerBearerTokenService.getToken(anyString())).thenReturn(bearerToken);
     dockerRegistryService = buildService(RegistryService.class, wmDockerRegistry.baseUrl());
     dockerRegistryClient =
-      new DockerRegistryClient(
-        wmDockerRegistry.baseUrl(), 5, "", "", dockerRegistryService, dockerBearerTokenService);
+        new DockerRegistryClient(
+            wmDockerRegistry.baseUrl(), 5, "", "", dockerRegistryService, dockerBearerTokenService);
   }
 
   private static <T> T buildService(Class<T> type, String baseUrl) {
     return new Retrofit.Builder()
-      .baseUrl(baseUrl)
-      .client(new OkHttpClient())
-      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-      .addConverterFactory(JacksonConverterFactory.create())
-      .build()
-      .create(type);
+        .baseUrl(baseUrl)
+        .client(new OkHttpClient())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build()
+        .create(type);
   }
 
   @Test
   public void getTagsWithoutNextLink() {
     wmDockerRegistry.stubFor(
-      WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?n=5"))
-        .willReturn(
-          aResponse().withStatus(HttpStatus.OK.value()).withBody(tagsResponseString)));
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?n=5"))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(tagsResponseString)));
 
     DockerRegistryTags dockerRegistryTags = dockerRegistryClient.getTags("library/nginx");
     String[] tags = (String[]) tagsResponse.get("tags");
@@ -114,28 +114,28 @@ public class DockerRegistryClientTest {
   @Test
   public void getTagsWithNextLink() {
     wmDockerRegistry.stubFor(
-      WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?n=5"))
-        .willReturn(
-          aResponse()
-            .withStatus(HttpStatus.OK.value())
-            .withHeader(
-              "link",
-              "</v2/library/nginx/tags/list?last=1-alpine-slim&n=5>; rel=\"next\"")
-            .withBody(tagsResponseString)));
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader(
+                        "link",
+                        "</v2/library/nginx/tags/list?last=1-alpine-slim&n=5>; rel=\"next\"")
+                    .withBody(tagsResponseString)));
     wmDockerRegistry.stubFor(
-      WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?last=1-alpine-slim&n=5"))
-        .willReturn(
-          aResponse()
-            .withStatus(HttpStatus.OK.value())
-            .withHeader(
-              "link",
-              // to test the logic when `?` is not present in the link header
-              "</v2/library/nginx/tags/list1>; rel=\"next\"")
-            .withBody(tagsSecondResponseString)));
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?last=1-alpine-slim&n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader(
+                        "link",
+                        // to test the logic when `?` is not present in the link header
+                        "</v2/library/nginx/tags/list1>; rel=\"next\"")
+                    .withBody(tagsSecondResponseString)));
     wmDockerRegistry.stubFor(
-      WireMock.get(urlMatching("/v2/library/nginx/tags/list1\\?n=5"))
-        .willReturn(
-          aResponse().withStatus(HttpStatus.OK.value()).withBody(tagsThirdResponseString)));
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list1\\?n=5"))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(tagsThirdResponseString)));
 
     DockerRegistryTags dockerRegistryTags = dockerRegistryClient.getTags("library/nginx");
     assertEquals(15, dockerRegistryTags.getTags().size());
@@ -144,28 +144,28 @@ public class DockerRegistryClientTest {
   @Test
   public void getCatalogWithNextLink() {
     wmDockerRegistry.stubFor(
-      WireMock.get(urlMatching("/v2/_catalog\\?n=5"))
-        .willReturn(
-          aResponse()
-            .withStatus(HttpStatus.OK.value())
-            .withHeader("link", "</v2/_catalog?last=repo1&n=5>; rel=\"next\"")
-            .withBody(catalogResponseString)));
+        WireMock.get(urlMatching("/v2/_catalog\\?n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader("link", "</v2/_catalog?last=repo1&n=5>; rel=\"next\"")
+                    .withBody(catalogResponseString)));
     wmDockerRegistry.stubFor(
-      WireMock.get(urlMatching("/v2/_catalog\\?last=repo1&n=5"))
-        .willReturn(
-          aResponse()
-            .withStatus(HttpStatus.OK.value())
-            .withHeader(
-              "link",
-              // to test the logic when `?` is not present in the link header
-              "</v2/_catalog1>; rel=\"next\"")
-            .withBody(catalogSecondResponseString)));
+        WireMock.get(urlMatching("/v2/_catalog\\?last=repo1&n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader(
+                        "link",
+                        // to test the logic when `?` is not present in the link header
+                        "</v2/_catalog1>; rel=\"next\"")
+                    .withBody(catalogSecondResponseString)));
     wmDockerRegistry.stubFor(
-      WireMock.get(urlMatching("/v2/_catalog1\\?n=5"))
-        .willReturn(
-          aResponse()
-            .withStatus(HttpStatus.OK.value())
-            .withBody(catalogThirdResponseString)));
+        WireMock.get(urlMatching("/v2/_catalog1\\?n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withBody(catalogThirdResponseString)));
 
     DockerRegistryCatalog dockerRegistryCatalog = dockerRegistryClient.getCatalog();
     assertEquals(15, dockerRegistryCatalog.getRepositories().size());
@@ -177,59 +177,59 @@ public class DockerRegistryClientTest {
     String expectedEncodedParam = "Md1Woj%2FNOhjepFq7kPAr%2FEw%2FYxfcJoH9N52%2Blo3qAQ%3D%3D";
 
     wmDockerRegistry.stubFor(
-      WireMock.get(urlMatching(tagsListEndPointMinusQueryParams + "\\?n=5"))
-        .willReturn(
-          aResponse()
-            .withStatus(HttpStatus.OK.value())
-            .withHeader(
-              "link",
-              "</v2/library/nginx/tags/list?last=Md1Woj%2FNOhjepFq7kPAr%2FEw%2FYxfcJoH9N52%2Blo3qAQ%3D%3D&n=5>; rel=\"next\"")
-            .withBody(tagsResponseString)));
+        WireMock.get(urlMatching(tagsListEndPointMinusQueryParams + "\\?n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader(
+                        "link",
+                        "</v2/library/nginx/tags/list?last=Md1Woj%2FNOhjepFq7kPAr%2FEw%2FYxfcJoH9N52%2Blo3qAQ%3D%3D&n=5>; rel=\"next\"")
+                    .withBody(tagsResponseString)));
 
     wmDockerRegistry.stubFor(
-      WireMock.get(
-          urlMatching(
-            tagsListEndPointMinusQueryParams + "\\?last=" + expectedEncodedParam + "&n=5"))
-        .willReturn(
-          aResponse().withStatus(HttpStatus.OK.value()).withBody(tagsSecondResponseString)));
+        WireMock.get(
+                urlMatching(
+                    tagsListEndPointMinusQueryParams + "\\?last=" + expectedEncodedParam + "&n=5"))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(tagsSecondResponseString)));
 
     DockerRegistryTags dockerRegistryTags = dockerRegistryClient.getTags("library/nginx");
     assertThat(dockerRegistryTags.getTags()).hasSize(10);
 
     wmDockerRegistry.verify(
-      1, getRequestedFor(urlMatching(tagsListEndPointMinusQueryParams + "\\?n=5")));
+        1, getRequestedFor(urlMatching(tagsListEndPointMinusQueryParams + "\\?n=5")));
     wmDockerRegistry.verify(
-      1,
-      getRequestedFor(
-        urlMatching(
-          tagsListEndPointMinusQueryParams + "\\?last=" + expectedEncodedParam + "&n=5")));
+        1,
+        getRequestedFor(
+            urlMatching(
+                tagsListEndPointMinusQueryParams + "\\?last=" + expectedEncodedParam + "&n=5")));
   }
 
   @Test
   public void testTagsResponse_With_AdditionalFields() throws JsonProcessingException {
     Map<String, Object> tagsResponse =
-      Map.of(
-        "child",
-        new String[] {},
-        "manifest",
         Map.of(
-          "sha256:ec1b05dxxxxxxxxxxxxxxxxxxxedb1d6a4",
-          Map.of(
-            "mediaType",
-            "application/vnd.docker.distribution.manifest.v2+json",
-            "tag",
-            new String[] {"1.0.0", "2.0.1"})),
-        "name",
-        "library/nginx",
-        "tags",
-        new String[] {"1", "1-alpine", "1-alpine-otel", "1-alpine-perl", "1-alpine-slim"});
+            "child",
+            new String[] {},
+            "manifest",
+            Map.of(
+                "sha256:ec1b05dxxxxxxxxxxxxxxxxxxxedb1d6a4",
+                Map.of(
+                    "mediaType",
+                    "application/vnd.docker.distribution.manifest.v2+json",
+                    "tag",
+                    new String[] {"1.0.0", "2.0.1"})),
+            "name",
+            "library/nginx",
+            "tags",
+            new String[] {"1", "1-alpine", "1-alpine-otel", "1-alpine-perl", "1-alpine-slim"});
 
     wmDockerRegistry.stubFor(
-      WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?n=5"))
-        .willReturn(
-          aResponse()
-            .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(tagsResponse))));
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withBody(objectMapper.writeValueAsString(tagsResponse))));
 
     DockerRegistryTags dockerRegistryTags = dockerRegistryClient.getTags("library/nginx");
     String[] tags = (String[]) tagsResponse.get("tags");

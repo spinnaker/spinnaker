@@ -3,7 +3,6 @@ package com.netflix.spinnaker.kork.docker.service;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.exceptions.DockerRegistryAuthenticationException;
 import com.netflix.spinnaker.kork.docker.exceptions.DockerRegistryOperationException;
@@ -26,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 @Getter
@@ -68,6 +68,7 @@ public class DockerRegistryClient {
     private boolean insecureRegistry;
     private DockerOkClientProvider okClientProvider;
     private ServiceClientProvider serviceClientProvider;
+
     public Builder address(String address) {
       this.address = address;
       return this;
@@ -146,16 +147,48 @@ public class DockerRegistryClient {
       if (passwordCommand != null) count++;
       if (dockerconfigFile != null) count++;
       if (count > 1) {
-        throw new IllegalArgumentException("Error, at most one of \"password\", \"passwordFile\", \"passwordCommand\" or \"dockerconfigFile\" can be specified");
+        throw new IllegalArgumentException(
+            "Error, at most one of \"password\", \"passwordFile\", \"passwordCommand\" or \"dockerconfigFile\" can be specified");
       }
 
       // Call the appropriate constructor as in Groovy
       if (password != null || passwordCommand != null) {
-        return new DockerRegistryClient(address, email, username, password, passwordCommand, clientTimeoutMillis, paginateSize, catalogFile, repositoriesRegex, insecureRegistry, okClientProvider, serviceClientProvider);
+        return new DockerRegistryClient(
+            address,
+            email,
+            username,
+            password,
+            passwordCommand,
+            clientTimeoutMillis,
+            paginateSize,
+            catalogFile,
+            repositoriesRegex,
+            insecureRegistry,
+            okClientProvider,
+            serviceClientProvider);
       } else if (passwordFile != null) {
-        return new DockerRegistryClient(address, email, username, passwordFile, clientTimeoutMillis, paginateSize, catalogFile, repositoriesRegex, insecureRegistry, okClientProvider, serviceClientProvider);
+        return new DockerRegistryClient(
+            address,
+            email,
+            username,
+            passwordFile,
+            clientTimeoutMillis,
+            paginateSize,
+            catalogFile,
+            repositoriesRegex,
+            insecureRegistry,
+            okClientProvider,
+            serviceClientProvider);
       } else {
-        return new DockerRegistryClient(address, clientTimeoutMillis, paginateSize, catalogFile, repositoriesRegex, insecureRegistry, okClientProvider, serviceClientProvider);
+        return new DockerRegistryClient(
+            address,
+            clientTimeoutMillis,
+            paginateSize,
+            catalogFile,
+            repositoriesRegex,
+            insecureRegistry,
+            okClientProvider,
+            serviceClientProvider);
       }
     }
   }
@@ -170,24 +203,24 @@ public class DockerRegistryClient {
 
   // Main constructor: minimal required fields
   public DockerRegistryClient(
-    String address,
-    long clientTimeoutMillis,
-    int paginateSize,
-    String catalogFile,
-    String repositoriesRegex,
-    boolean insecureRegistry,
-    DockerOkClientProvider okClientProvider,
-    ServiceClientProvider serviceClientProvider
-  ) {
+      String address,
+      long clientTimeoutMillis,
+      int paginateSize,
+      String catalogFile,
+      String repositoriesRegex,
+      boolean insecureRegistry,
+      DockerOkClientProvider okClientProvider,
+      ServiceClientProvider serviceClientProvider) {
     this.paginateSize = paginateSize;
     this.tokenService = new DockerBearerTokenService(serviceClientProvider);
-    this.registryService = new Retrofit.Builder()
-      .baseUrl(address)
-      .client(okClientProvider.provide(address, clientTimeoutMillis, insecureRegistry))
-      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-      .addConverterFactory(JacksonConverterFactory.create())
-      .build()
-      .create(RegistryService.class);
+    this.registryService =
+        new Retrofit.Builder()
+            .baseUrl(address)
+            .client(okClientProvider.provide(address, clientTimeoutMillis, insecureRegistry))
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+            .create(RegistryService.class);
     this.address = address;
     this.catalogFile = catalogFile;
     this.repositoriesRegex = repositoriesRegex;
@@ -205,21 +238,29 @@ public class DockerRegistryClient {
 
   // Constructor for password or passwordCommand
   public DockerRegistryClient(
-    String address,
-    String email,
-    String username,
-    String password,
-    String passwordCommand,
-    long clientTimeoutMillis,
-    int paginateSize,
-    String catalogFile,
-    String repositoriesRegex,
-    boolean insecureRegistry,
-    DockerOkClientProvider okClientProvider,
-    ServiceClientProvider serviceClientProvider
-  ) {
-    this(address, clientTimeoutMillis, paginateSize, catalogFile, repositoriesRegex, insecureRegistry, okClientProvider, serviceClientProvider);
-    this.tokenService = new DockerBearerTokenService(username, password, passwordCommand, serviceClientProvider);
+      String address,
+      String email,
+      String username,
+      String password,
+      String passwordCommand,
+      long clientTimeoutMillis,
+      int paginateSize,
+      String catalogFile,
+      String repositoriesRegex,
+      boolean insecureRegistry,
+      DockerOkClientProvider okClientProvider,
+      ServiceClientProvider serviceClientProvider) {
+    this(
+        address,
+        clientTimeoutMillis,
+        paginateSize,
+        catalogFile,
+        repositoriesRegex,
+        insecureRegistry,
+        okClientProvider,
+        serviceClientProvider);
+    this.tokenService =
+        new DockerBearerTokenService(username, password, passwordCommand, serviceClientProvider);
     this.email = email;
     this.username = username;
     this.password = password;
@@ -228,19 +269,26 @@ public class DockerRegistryClient {
 
   // Constructor for passwordFile
   public DockerRegistryClient(
-    String address,
-    String email,
-    String username,
-    java.io.File passwordFile,
-    long clientTimeoutMillis,
-    int paginateSize,
-    String catalogFile,
-    String repositoriesRegex,
-    boolean insecureRegistry,
-    DockerOkClientProvider okClientProvider,
-    ServiceClientProvider serviceClientProvider
-  ) {
-    this(address, clientTimeoutMillis, paginateSize, catalogFile, repositoriesRegex, insecureRegistry, okClientProvider, serviceClientProvider);
+      String address,
+      String email,
+      String username,
+      java.io.File passwordFile,
+      long clientTimeoutMillis,
+      int paginateSize,
+      String catalogFile,
+      String repositoriesRegex,
+      boolean insecureRegistry,
+      DockerOkClientProvider okClientProvider,
+      ServiceClientProvider serviceClientProvider) {
+    this(
+        address,
+        clientTimeoutMillis,
+        paginateSize,
+        catalogFile,
+        repositoriesRegex,
+        insecureRegistry,
+        okClientProvider,
+        serviceClientProvider);
     this.tokenService = new DockerBearerTokenService(username, passwordFile, serviceClientProvider);
     this.email = email;
     this.username = username;
@@ -249,13 +297,12 @@ public class DockerRegistryClient {
 
   // Constructor for direct injection of services (for testing or advanced usage)
   public DockerRegistryClient(
-    String address,
-    int paginateSize,
-    String catalogFile,
-    String repositoriesRegex,
-    RegistryService dockerRegistryService,
-    DockerBearerTokenService dockerBearerTokenService
-  ) {
+      String address,
+      int paginateSize,
+      String catalogFile,
+      String repositoriesRegex,
+      RegistryService dockerRegistryService,
+      DockerBearerTokenService dockerBearerTokenService) {
     this.paginateSize = paginateSize;
     this.address = address;
     this.catalogFile = catalogFile;
@@ -331,15 +378,16 @@ public class DockerRegistryClient {
   private Response<ResponseBody> downloadLayer(String repository, String digest) {
     String path = "v2/" + repository + "/blobs/" + digest;
     return request(
-      // withoutToken: unauthenticated call
-      () ->
-        Retrofit2SyncCall.executeCall(
-          registryService.downloadBlob(path, tokenService.getBasicAuthHeader(), DockerUserAgent.getUserAgent())),
-      // withToken: authenticated call with token
-      (token) ->
-        Retrofit2SyncCall.executeCall(
-          registryService.downloadBlob(path, token, DockerUserAgent.getUserAgent())),
-      repository);
+        // withoutToken: unauthenticated call
+        () ->
+            Retrofit2SyncCall.executeCall(
+                registryService.downloadBlob(
+                    path, tokenService.getBasicAuthHeader(), DockerUserAgent.getUserAgent())),
+        // withToken: authenticated call with token
+        (token) ->
+            Retrofit2SyncCall.executeCall(
+                registryService.downloadBlob(path, token, DockerUserAgent.getUserAgent())),
+        repository);
   }
 
   private Response<ResponseBody> getSchemaV2Manifest(String name, String tag) {
@@ -655,13 +703,15 @@ public class DockerRegistryClient {
       // Extract the history array and v1Compatibility JSON
       Object historyObj = manifest.get("history");
       if (!(historyObj instanceof java.util.List) || ((java.util.List<?>) historyObj).isEmpty()) {
-        throw new DockerRegistryOperationException("Manifest history is missing or empty for " + key);
+        throw new DockerRegistryOperationException(
+            "Manifest history is missing or empty for " + key);
       }
       Object v1CompatibilityObj = ((java.util.List<?>) historyObj).get(0);
       if (!(v1CompatibilityObj instanceof Map)) {
         v1CompatibilityObj = new Gson().fromJson(v1CompatibilityObj.toString(), Map.class);
       }
-      String v1CompatibilityJson = ((Map<?, ?>) v1CompatibilityObj).get("v1Compatibility").toString();
+      String v1CompatibilityJson =
+          ((Map<?, ?>) v1CompatibilityObj).get("v1Compatibility").toString();
 
       // Parse v1Compatibility JSON for 'created' field
       Map<?, ?> v1CompatibilityMap = new Gson().fromJson(v1CompatibilityJson, Map.class);
@@ -703,9 +753,8 @@ public class DockerRegistryClient {
   public ResponseBody downloadBlob(String repository, String version) {
     Response<ResponseBody> manifestResponse = getManifest(repository, version);
 
-
     DockerManifest manifest =
-      (DockerManifest) convertResponseBody(manifestResponse.body(), DockerManifest.class);
+        (DockerManifest) convertResponseBody(manifestResponse.body(), DockerManifest.class);
 
     // Ensure there is at least one layer
     if (manifest.getLayers() == null || manifest.getLayers().isEmpty()) {

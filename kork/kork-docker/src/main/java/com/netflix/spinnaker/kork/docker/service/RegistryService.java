@@ -56,7 +56,6 @@ public interface RegistryService {
       @Header("Authorization") String auth,
       @Header("User-Agent") String userAgent);
 
-
   @GET("/v2/{repository}/tags/list")
   @Headers({"Docker-Distribution-API-Version: registry/2.0"})
   Call<ResponseBody> getTags(

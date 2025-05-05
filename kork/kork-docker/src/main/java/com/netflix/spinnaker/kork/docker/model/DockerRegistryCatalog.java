@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.kork.docker.model;
 
 import java.util.List;
-
 import lombok.Data;
 import lombok.ToString;
 
