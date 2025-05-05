@@ -15,6 +15,7 @@ dependencies {
   implementation "io.spinnaker.front50:front50-core"
   implementation "io.spinnaker.front50:front50-gcs"
   implementation "io.spinnaker.front50:front50-s3"
+  implementation 'io.spinnaker.kork:kork-docker'
   implementation 'io.spinnaker.kork:kork-secrets'
   implementation 'io.spinnaker.kork:kork-secrets-aws'
   implementation 'io.spinnaker.kork:kork-secrets-gcp'

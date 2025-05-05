@@ -29,7 +29,7 @@ class DockerRegistryProviderUtils {
     cacheView.getAll(namespace, identifiers, RelationshipCacheFilter.none())
   }
 
-  static imageId(String registry, String repository, String tag) {
+  static String imageId(String registry, String repository, String tag) {
     "$registry/$repository:$tag"
   }
 }

@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerOkClientProvider
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
 import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistryConfigException
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.docker.service.DockerOkClientProvider
+import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -56,6 +56,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     List<String> skip
     String catalogFile
     String repositoriesRegex
+    List<String> helmOciRepositories
     Permissions permissions
     DockerOkClientProvider dockerOkClientProvider
     ServiceClientProvider serviceClientProvider
@@ -182,6 +183,11 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
       return this
     }
 
+    Builder helmOciRepositories(List<String> helmOciRepositories) {
+      this.helmOciRepositories = helmOciRepositories
+      return this
+    }
+
     Builder permissions(Permissions permissions) {
       this.permissions = permissions
       this
@@ -221,6 +227,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
         repositoriesRegex,
         insecureRegistry,
         null,
+        helmOciRepositories,
         permissions,
         dockerOkClientProvider,
         serviceClientProvider)
@@ -302,6 +309,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
                                         String repositoriesRegex,
                                         boolean insecureRegistry,
                                         List<String> requiredGroupMembership,
+                                        List<String> helmOciRepositories,
                                         Permissions permissions,
                                         DockerOkClientProvider dockerOkClientProvider,
                                         ServiceClientProvider serviceClientProvider) {
@@ -361,7 +369,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     this.insecureRegistry = insecureRegistry;
     this.skip = skip ?: []
     this.permissions = permissions ?: buildPermissionsFromRequiredGroupMembership(requiredGroupMembership)
-    this.credentials = buildCredentials(repositories, catalogFile, dockerconfigFile)
+    this.credentials = buildCredentials(repositories, catalogFile, dockerconfigFile, helmOciRepositories)
   }
 
   @JsonIgnore
@@ -432,7 +440,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     return CLOUD_PROVIDER
   }
 
-  private DockerRegistryCredentials buildCredentials(List<String> repositories, String catalogFile, File dockerconfigFile) {
+  private DockerRegistryCredentials buildCredentials(List<String> repositories, String catalogFile, File dockerconfigFile, List<String> helmOciRepositories) {
     try {
       DockerRegistryClient client = (new DockerRegistryClient.Builder())
         .address(address)
@@ -451,7 +459,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
         .serviceClientProvider(serviceClientProvider)
         .build()
 
-      return new DockerRegistryCredentials(client, repositories, trackDigests, inspectDigests, skip, sortTagsByDate)
+        return new DockerRegistryCredentials(client, repositories, trackDigests, inspectDigests, skip, sortTagsByDate, helmOciRepositories)
     } catch (SpinnakerHttpException e) {
       if(e.getResponseCode() == 404) {
         throw new DockerRegistryConfigException("No repositories specified for ${name}, and the provided endpoint ${address} does not support /_catalog.")

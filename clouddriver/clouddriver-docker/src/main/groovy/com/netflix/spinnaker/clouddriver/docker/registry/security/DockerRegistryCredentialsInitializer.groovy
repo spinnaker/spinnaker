@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DefaultDockerOkClientProvider
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerOkClientProvider
+import com.netflix.spinnaker.kork.docker.service.DefaultDockerOkClientProvider
+import com.netflix.spinnaker.kork.docker.service.DockerOkClientProvider
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean

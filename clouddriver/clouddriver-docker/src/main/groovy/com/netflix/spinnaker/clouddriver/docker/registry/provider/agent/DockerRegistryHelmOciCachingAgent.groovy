@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.provider.agent
 
-import com.netflix.spinnaker.cats.agent.*
+import com.netflix.spinnaker.cats.agent.AccountAware
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.AgentIntervalAware
+import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.DefaultCacheDataBuilder
@@ -34,9 +39,9 @@ import java.util.concurrent.TimeUnit
 import static java.util.Collections.unmodifiableSet
 
 @Slf4j
-class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, AgentIntervalAware {
+class DockerRegistryHelmOciCachingAgent implements CachingAgent, AccountAware, AgentIntervalAware {
   static final Set<AgentDataType> types = unmodifiableSet([
-    AgentDataType.Authority.AUTHORITATIVE.forType(Keys.Namespace.TAGGED_IMAGE.ns),
+    AgentDataType.Authority.AUTHORITATIVE.forType(Keys.Namespace.TAGGED_HELM_OCI_IMAGE.ns),
     AgentDataType.Authority.AUTHORITATIVE.forType(Keys.Namespace.IMAGE_ID.ns)
   ] as Set)
 
@@ -48,13 +53,13 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
   private final long interval
   private String registry
 
-  DockerRegistryImageCachingAgent(DockerRegistryCloudProvider dockerRegistryCloudProvider,
-                                  String accountName,
-                                  DockerRegistryCredentials credentials,
-                                  int index,
-                                  int threadCount,
-                                  Long intervalSecs,
-                                  String registry) {
+  DockerRegistryHelmOciCachingAgent(DockerRegistryCloudProvider dockerRegistryCloudProvider,
+                                    String accountName,
+                                    DockerRegistryCredentials credentials,
+                                    int index,
+                                    int threadCount,
+                                    Long intervalSecs,
+                                    String registry) {
     this.dockerRegistryCloudProvider = dockerRegistryCloudProvider
     this.accountName = accountName
     this.credentials = credentials
@@ -71,14 +76,13 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    Map<String, Set<String>> tags = loadTags()
-
-    buildCacheResult(tags)
+    Map<String, Set<String>> helmOciTags = loadHelmOciTags()
+    buildCacheResult(helmOciTags)
   }
 
   @Override
   String getAgentType() {
-    "${accountName}/${DockerRegistryImageCachingAgent.simpleName}[${index + 1}/$threadCount]"
+    "${accountName}/${DockerRegistryHelmOciCachingAgent.simpleName}[${index + 1}/$threadCount]"
   }
 
   @Override
@@ -86,8 +90,8 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
     DockerRegistryProvider.PROVIDER_NAME
   }
 
-  private Map<String, Set<String>> loadTags() {
-    credentials.repositories.findAll { it ->
+  private Map<String, Set<String>> loadHelmOciTags() {
+    credentials.helmOciRepositories.findAll { it ->
       threadCount == 1 || (it.hashCode() % threadCount).abs() == index
     }.collectEntries { repository ->
       if (credentials.skip?.contains(repository)) {
@@ -138,8 +142,8 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
           log.warn("Empty tag encountered for $accountName/$repository, not caching")
           return
         }
-        def tagKey = Keys.getTaggedImageKey(accountName, repository, tag)
-        def imageIdKey = Keys.getImageIdKey(DockerRegistryProviderUtils.imageId(registry, repository, tag))
+        def tagKey = Keys.getHelmOciTaggedImageKey(accountName, repository, tag)
+        def imageIdKey = Keys.getHelmOciImageIdKey(DockerRegistryProviderUtils.imageId(registry, repository, tag))
         def digest = null
         def digestContent = null
         def creationDate = null
@@ -204,7 +208,7 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware, Age
     log.info("Caching ${cachedIds.size()} image ids in ${agentType}")
 
     new DefaultCacheResult([
-      (Keys.Namespace.TAGGED_IMAGE.ns): cachedTags.values().collect({ builder -> builder.build() }),
+      (Keys.Namespace.TAGGED_HELM_OCI_IMAGE.ns): cachedTags.values().collect({ builder -> builder.build() }),
       (Keys.Namespace.IMAGE_ID.ns): cachedIds.values().collect({ builder -> builder.build() }),
     ])
   }
