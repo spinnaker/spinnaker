@@ -24,12 +24,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.util.PropertyUtils;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.kork.docker.model.DockerRegistryCatalog;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import com.netflix.spinnaker.kork.docker.model.DockerRegistryCatalog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
