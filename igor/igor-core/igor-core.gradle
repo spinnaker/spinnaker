@@ -11,4 +11,5 @@ dependencies {
   testImplementation "com.netflix.spectator:spectator-reg-micrometer"
   testImplementation "io.spinnaker.kork:kork-retrofit"
   testImplementation "com.squareup.okhttp3:mockwebserver"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 }
