@@ -24,5 +24,5 @@ import retrofit2.http.POST;
 /** Posts new build executions to echo */
 public interface EchoService {
   @POST(".")
-  Call<String> postEvent(@Body Event event);
+  Call<Void> postEvent(@Body Event event);
 }
