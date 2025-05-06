@@ -18,6 +18,8 @@ dependencies {
   implementation 'io.spinnaker.kork:kork-secrets'
   implementation 'io.spinnaker.kork:kork-secrets-aws'
   implementation 'io.spinnaker.kork:kork-secrets-gcp'
+  implementation 'io.spinnaker.kork:kork-retrofit'
+  implementation 'io.spinnaker.kork:kork-retrofit2'
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-cloud-config-server"
   implementation 'com.amazonaws:aws-java-sdk-core:1.11.534'
@@ -53,4 +55,5 @@ dependencies {
   testImplementation 'org.apache.groovy:groovy'
   testRuntimeOnly 'net.bytebuddy:byte-buddy'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 }
