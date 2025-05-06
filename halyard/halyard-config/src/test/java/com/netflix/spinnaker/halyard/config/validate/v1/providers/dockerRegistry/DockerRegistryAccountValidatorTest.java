@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 OpsMx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -14,7 +30,6 @@ import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructur
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.FileService;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
@@ -54,7 +69,7 @@ public class DockerRegistryAccountValidatorTest {
   static WireMockExtension wmDocker =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
-  ConfigProblemSetBuilder configProblemSetBuilder = new ConfigProblemSetBuilder(context);
+  ConfigProblemSetBuilder configProblemSetBuilder;
   static DockerRegistryAccount account = new DockerRegistryAccount();
   static DockerRegistryCatalog catalog = new DockerRegistryCatalog();
   static String catalogJson;
@@ -99,12 +114,9 @@ public class DockerRegistryAccountValidatorTest {
                     .withBody(
                         "{\"name\": \"library/nginx\", \"tags\": [\"latest\", \"1.0\", \"1.1\"]}")));
 
+    configProblemSetBuilder = new ConfigProblemSetBuilder(context);
     validator.validate(configProblemSetBuilder, account);
-    assertThat(configProblemSetBuilder.build().getProblems().size()).isEqualTo(2);
-    Problem problem = configProblemSetBuilder.build().getProblems().get(0);
-    assertThat(problem.getMessage())
-        .isEqualTo(
-            "Unable to fetch tags from the docker repository: library/nginx, Cannot invoke method getService() on null object");
+    assertThat(configProblemSetBuilder.build().getProblems().size()).isEqualTo(0);
   }
 
   @Configuration
