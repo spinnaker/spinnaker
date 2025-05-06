@@ -51,7 +51,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Shared
 import retrofit.client.Header
-import retrofit.client.Response
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.igor.build.BuildController.InvalidJobParameterException
