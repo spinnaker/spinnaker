@@ -16,20 +16,29 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DefaultDockerOkClientProvider;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryCatalog;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
+import com.netflix.spinnaker.config.DefaultServiceClientProvider;
+import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.util.PropertyUtils;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory;
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -140,6 +149,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
               .trackDigests(n.getTrackDigests())
               .insecureRegistry(n.getInsecureRegistry())
               .dockerOkClientProvider(new DefaultDockerOkClientProvider())
+              .serviceClientProvider(getServiceClientProvider())
               .build();
     } catch (Exception e) {
       p.addProblem(
@@ -238,5 +248,20 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
                   + "\" could not compile")
           .setRemediation("The repositoriesRegex must be a valid Regular Expression.");
     }
+  }
+
+  // TODO: This is a temporary fix, valid until halyard is upgraded to retrofit2.
+  // When halyard is upgraded, an autowired ServiceClientProvider replaces this block
+  private ServiceClientProvider getServiceClientProvider() {
+    OkHttpClientConfigurationProperties okHttpClientConfigurationProperties =
+        new OkHttpClientConfigurationProperties();
+    DefaultOkHttpClientBuilderProvider okHttpClientBuilderProvider =
+        new DefaultOkHttpClientBuilderProvider(
+            new OkHttpClient(), okHttpClientConfigurationProperties);
+    OkHttpClientProvider okHttpClientProvider =
+        new OkHttpClientProvider(List.of(okHttpClientBuilderProvider));
+    Retrofit2ServiceFactory retrofit2ServiceFactory =
+        new Retrofit2ServiceFactory(okHttpClientProvider);
+    return new DefaultServiceClientProvider(List.of(retrofit2ServiceFactory), new ObjectMapper());
   }
 }
