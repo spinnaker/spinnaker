@@ -33,12 +33,14 @@
     "storybook": "start-storybook -p 9001"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "^3.0.0",
+    "@spinnaker/eslint-plugin": "^3.0.1",
     "@types/jasmine": "3.6.9",
+    "@typescript-eslint/eslint-plugin": "5.59.8",
+    "@typescript-eslint/parser": "5.59.8",
     "angular-mocks": "1.8.0",
     "babel-loader": "8.1.0",
     "enzyme-adapter-react-16": "1.15.1",
-    "eslint": "7.27.0",
+    "eslint": "7.32.0",
     "eslint-config-prettier": "6.10.0",
     "eslint-plugin-react-hooks": "2.5.0",
     "eslint-webpack-plugin": "2.5.4",
@@ -74,9 +76,10 @@
     "cheerio": "=1.0.0-rc.3",
     "nth-check": "2.0.1",
     "react": "^16.14.0",
+    "@types/react": "16.14.10",
     "react-dom": "^16.14.0",
     "rxjs": "6.6.7",
-    "typescript": "4.3.5"
+    "typescript": "5.0.4"
   },
   "workspaces": [
     "packages/app",
