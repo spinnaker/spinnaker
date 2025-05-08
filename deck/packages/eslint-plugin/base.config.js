@@ -18,7 +18,7 @@ module.exports = {
     '@spinnaker/ng-no-module-export': 2,
     '@spinnaker/ng-no-require-angularjs': 2,
     '@spinnaker/ng-no-require-module-deps': 2,
-    '@spinnaker/ng-strictdi': 2,
+    '@spinnaker/ng-strictdi': 'off', // TODO: this rule seems to be broken, needs to be rewritten to avoid an error
     '@spinnaker/prefer-promise-like': 1,
     '@spinnaker/react2angular-with-error-boundary': 2,
     '@spinnaker/rest-prefer-static-strings-in-initializer': 2,
