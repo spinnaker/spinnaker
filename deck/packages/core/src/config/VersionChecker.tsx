@@ -46,7 +46,7 @@ export class VersionChecker {
           content: (
             <div>
               A new version of Spinnaker is available{' '}
-              <a role="button" className="action" onClick={() => document.location.reload(true)}>
+              <a role="button" className="action" onClick={() => document.location.reload()}>
                 Refresh
               </a>
             </div>

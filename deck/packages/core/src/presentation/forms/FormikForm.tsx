@@ -27,5 +27,5 @@ interface IFormikFormImplProps<T> extends IFormikFormProps<T> {
  * }} />
  * ```
  */
-const FormikFormImpl = <T extends any>({ render, formik }: IFormikFormImplProps<T>) => render(formik);
+const FormikFormImpl = <T,>({ render, formik }: IFormikFormImplProps<T>) => render(formik);
 export const FormikForm: React.ComponentType<IFormikFormProps<any>> = connect(FormikFormImpl);
