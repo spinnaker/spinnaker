@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.roles.google;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
@@ -32,16 +31,22 @@ import com.google.api.services.directory.Directory;
 import com.google.api.services.directory.DirectoryScopes;
 import com.google.api.services.directory.model.Group;
 import com.google.api.services.directory.model.Groups;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,8 +58,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.PropertyAccessor;
-import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -180,7 +183,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     }
 
     try {
-      Groups groups = getGroupsFromEmail(userEmail);
+      Groups groups = getGroupsFromEmailRecursively(userEmail);
       if (groups == null || groups.getGroups() == null || groups.getGroups().isEmpty()) {
         return new ArrayList<>();
       }
@@ -189,6 +192,54 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
+  }
+
+  /**
+   * Retrieves all Google Groups associated with a given email address, including both direct and
+   * indirect group memberships, if configured to do so.
+   *
+   * <p>This method first fetches the groups the user is directly a member of via {@link
+   * #getGroupsFromEmail(String)}. If the configuration allows expanding indirect groups (i.e.,
+   * nested groups), it recursively traverses each group's membership to collect nested groups.
+   *
+   * <p>The method avoids cycles and duplicate group processing by maintaining a set of already
+   * collected group emails.
+   *
+   * @param email The email address whose group memberships should be retrieved.
+   * @return A {@link Groups} object containing all the direct and (optionally) indirect group
+   *     memberships.
+   * @throws IOException If an error occurs while retrieving group information.
+   */
+  protected Groups getGroupsFromEmailRecursively(String email) throws IOException {
+    final Groups groups = getGroupsFromEmail(email);
+    if (groups == null
+        || groups.getGroups() == null
+        || groups.getGroups().isEmpty()
+        || !config.isExpandIndirectGroups()) {
+      return groups;
+    }
+    final Set<String> collectedGroup = new HashSet<>();
+    final Deque<String> stack = new ArrayDeque<>();
+    for (Group g : groups.getGroups()) {
+      stack.push(g.getEmail());
+      collectedGroup.add(g.getEmail());
+    }
+    while (!stack.isEmpty()) {
+      String nextEmail = stack.pop();
+      Groups subGroups = getGroupsFromEmail(nextEmail);
+      if (subGroups == null || subGroups.getGroups() == null || subGroups.getGroups().isEmpty()) {
+        continue;
+      }
+      for (Group g : subGroups.getGroups()) {
+        if (collectedGroup.contains(g.getEmail())) {
+          continue;
+        }
+        stack.push(g.getEmail());
+        groups.getGroups().add(g);
+        collectedGroup.add(g.getEmail());
+      }
+    }
+    return groups;
   }
 
   protected Groups getGroupsFromEmail(String email) throws IOException {
@@ -211,12 +262,15 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     return groups;
   }
 
-  private GoogleCredential getGoogleCredential() {
+  private GoogleCredentials getGoogleCredential() {
     try {
-      if (StringUtils.isNotEmpty(config.getCredentialPath())) {
-        return GoogleCredential.fromStream(new FileInputStream(config.getCredentialPath()));
+      if (StringUtils.isNotEmpty(config.getCredentialPath())
+          && StringUtils.isNotEmpty(config.getAdminUsername())) {
+        return ServiceAccountCredentials.fromStream(new FileInputStream(config.getCredentialPath()))
+            .createScoped(SERVICE_ACCOUNT_SCOPES) // add other scopes as needed
+            .createDelegated(config.getAdminUsername());
       } else {
-        return GoogleCredential.getApplicationDefault();
+        return GoogleCredentials.getApplicationDefault();
       }
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
@@ -226,13 +280,10 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
   private Directory getDirectoryService() {
     HttpTransport httpTransport = new NetHttpTransport();
     GsonFactory jacksonFactory = new GsonFactory();
-    GoogleCredential credential = getGoogleCredential();
+    GoogleCredentials credentials = getGoogleCredential();
 
-    PropertyAccessor accessor = PropertyAccessorFactory.forDirectFieldAccess(credential);
-    accessor.setPropertyValue("serviceAccountUser", config.getAdminUsername());
-    accessor.setPropertyValue("serviceAccountScopes", SERVICE_ACCOUNT_SCOPES);
-
-    return new Directory.Builder(httpTransport, jacksonFactory, credential)
+    return new Directory.Builder(
+            httpTransport, jacksonFactory, new HttpCredentialsAdapter(credentials))
         .setApplicationName("Spinnaker-Fiat")
         .build();
   }
@@ -271,6 +322,9 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
 
     /** Google Apps for Work domain, e.g. netflix.com */
     private String domain;
+
+    /** expand indirect groups for emails */
+    private boolean expandIndirectGroups = false;
 
     /**
      * List of sources to derive role name from group metadata, this setting is additive to allow
