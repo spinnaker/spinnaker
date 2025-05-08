@@ -28,6 +28,7 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import java.io.IOException;
 import java.util.Set;
 import okhttp3.OkHttpClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,7 @@ import org.springframework.boot.test.autoconfigure.actuate.metrics.AutoConfigure
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -47,7 +49,15 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles({"base", "prometheus", "graphite", "cases"})
 @Import(EmbeddedPrometheusBootstrapConfiguration.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(
+    TestInstance.Lifecycle
+        .PER_CLASS) // This way Spring will create only one instance of the test class and will
+// allow non-static @BeforeAll.
+@DirtiesContext(
+    classMode =
+        DirtiesContext.ClassMode
+            .AFTER_CLASS) // Each test class extends this class gets a fresh Spring application
+// context
 public abstract class BaseIntegrationTest {
 
   @Autowired protected Environment environment;
@@ -62,6 +72,8 @@ public abstract class BaseIntegrationTest {
   @Autowired PrometheusConfigurationProperties prometheusConfigurationProperties;
   @Autowired RetrofitClientFactory retrofitClientFactory;
   @Autowired OkHttpClient okHttpClient;
+
+  @Autowired EmbeddedPrometheusBootstrapConfiguration prometheusConfig;
 
   private boolean setupDone = false;
 
@@ -136,5 +148,10 @@ public abstract class BaseIntegrationTest {
     serverPort = environment.getProperty("local.server.port", Integer.class);
 
     return serverPort;
+  }
+
+  @AfterAll
+  public void cleanUp() {
+    prometheusConfig.stopPrometheusContainer();
   }
 }
