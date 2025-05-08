@@ -7,15 +7,20 @@ describe('google: Regional Instance Type Distribution', () => {
 
   beforeEach(() => {
     registerDefaultFixtures();
-    cy.route('/credentials?expand=true', 'fixture:google/accelerator_zones/credentials.json');
-    cy.route('/images/find?*', 'fixture:google/shared/images.json');
+    cy.intercept('/credentials?expand=true', {
+      fixture: 'google/accelerator_zones/credentials.json',
+    });
+
+    cy.intercept('/images/find?*', {
+      fixture: 'google/shared/images.json',
+    });
   });
 
   const selectImage = () => {
     const imageDropdown = ReactSelect('v2-wizard-page[key=location] div.form-group:contains("Image")');
     imageDropdown.get();
     imageDropdown.toggleDropdown();
-    imageDropdown.type('ubuntu-1404-trusty-v20181002');
+    imageDropdown.type('ubuntu-1404-trusty-v20181002', { force: true });
     imageDropdown.select(0);
   };
 
@@ -62,8 +67,7 @@ describe('google: Regional Instance Type Distribution', () => {
 
     cy.wait(1000);
 
-    cy.get('.btn-primary').first()
-      .click({ force: true });
+    cy.get('.btn-primary').first().click({ force: true });
 
     const maxAttempts = 3;
     let attempts = 0;
@@ -72,14 +76,17 @@ describe('google: Regional Instance Type Distribution', () => {
       attempts++;
       cy.contains('c4-standard-2', { timeout: 5000 })
         .should('exist')
-        .then(() => {}, (err) => {
-          if (attempts < maxAttempts) {
-            cy.wait(1000);
-            checkForInstanceType();
-          } else {
-            throw err;
-          }
-        });
+        .then(
+          () => {},
+          (err) => {
+            if (attempts < maxAttempts) {
+              cy.wait(1000);
+              checkForInstanceType();
+            } else {
+              throw err;
+            }
+          },
+        );
     };
 
     checkForInstanceType();
