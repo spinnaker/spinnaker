@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint';
 import type { FunctionExpression, ImportDeclaration, ImportSpecifier } from 'estree';
 
+import { getImportName } from '../utils/ast';
 import { getProgram } from '../utils/utils';
 
 const ruleModule: Rule.RuleModule = {
@@ -46,7 +47,7 @@ const ruleModule: Rule.RuleModule = {
                   .reduce((acc, x) => acc.concat(x), []);
 
                 const mockHttpClientImport = importSpecifiers.find((specifier) => {
-                  return specifier.imported && specifier.imported.name === 'mockHttpClient';
+                  return specifier.imported && getImportName(specifier.imported) === 'mockHttpClient';
                 });
 
                 return context.report({

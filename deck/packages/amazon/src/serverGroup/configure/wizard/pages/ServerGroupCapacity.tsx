@@ -3,6 +3,7 @@ import { Field } from 'formik';
 import React from 'react';
 
 import type { IServerGroupCommand, IWizardPageComponent } from '@spinnaker/core';
+import { parseNum } from '@spinnaker/core';
 
 import { CapacitySelector } from '../capacity/CapacitySelector';
 import { MinMaxDesired } from '../capacity/MinMaxDesired';
@@ -18,7 +19,11 @@ export class ServerGroupCapacity
   public validate(values: IServerGroupCommand): { [key: string]: string } {
     const errors: { [key: string]: string } = {};
 
-    if (values.capacity.min < 0 || values.capacity.max < 0 || values.capacity.desired < 0) {
+    if (
+      parseNum(values.capacity.min) < 0 ||
+      parseNum(values.capacity.max) < 0 ||
+      parseNum(values.capacity.desired) < 0
+    ) {
       errors.capacity = 'Capacity min, max, and desired all have to be non-negative values.';
     }
 

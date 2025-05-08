@@ -1,5 +1,5 @@
 import type { FormikErrors } from 'formik';
-import { flatten, isNumber, values } from 'lodash';
+import { flatten, isEmpty, isNumber, values } from 'lodash';
 import { $log, $q } from 'ngimport';
 import type { Subscription } from 'rxjs';
 import { Subject } from 'rxjs';
@@ -195,7 +195,7 @@ export class PipelineConfigValidator {
     if (pipeline.strategy && !pipeline.stages.some((stage) => stage.type === 'deploy')) {
       messages.push('To be able to create new server groups, a custom strategy should contain a Deploy stage.');
     }
-    if ((pipeline.expectedArtifacts || []).some((a) => !a.matchArtifact || (a.matchArtifact as any) === {})) {
+    if ((pipeline.expectedArtifacts || []).some((a) => !a.matchArtifact || isEmpty(a.matchArtifact))) {
       messages.push('Every expected artifact must specify an artifact to match against.');
     }
     return messages;
