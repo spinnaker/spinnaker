@@ -45,8 +45,6 @@ public class ManagementTest extends BaseIntegrationTest {
 
     int prometheusPort = Integer.parseInt(prometheusPortStr);
 
-    System.out.println("Prometheus Port: " + prometheusPort);
-
     awaitThirtySecondsUntil(
         () ->
             given()

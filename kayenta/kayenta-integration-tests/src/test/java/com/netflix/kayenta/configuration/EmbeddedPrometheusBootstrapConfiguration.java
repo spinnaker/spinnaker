@@ -18,6 +18,7 @@ package com.netflix.kayenta.configuration;
 
 import static com.playtika.test.common.utils.ContainerUtils.containerLogsConsumer;
 
+import com.netflix.kayenta.utils.EnvironmentUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -140,8 +141,15 @@ public class EmbeddedPrometheusBootstrapConfiguration {
   private Map<String, Object> registerEnvironment(ConfigurableEnvironment environment, int port) {
     Map<String, Object> map = new LinkedHashMap<>();
     map.put("embedded.prometheus.port", port);
-    com.netflix.kayenta.utils.EnvironmentUtils.registerPropertySource(
-        "embeddedPrometheusInfo", environment, map);
+    EnvironmentUtils.registerPropertySource("embeddedPrometheusInfo", environment, map);
     return map;
+  }
+
+  public void stopPrometheusContainer() {
+    if (prometheusContainer != null && prometheusContainer.isRunning()) {
+      log.info("Stopping Prometheus container...");
+      prometheusContainer.stop();
+      log.info("Prometheus container stopped.");
+    }
   }
 }
