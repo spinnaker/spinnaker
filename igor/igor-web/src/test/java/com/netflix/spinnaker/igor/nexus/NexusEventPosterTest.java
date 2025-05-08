@@ -34,6 +34,7 @@ class NexusEventPosterTest {
   private EchoService echoService = mock(EchoService.class);
   private NexusProperties nexusProperties = new NexusProperties();
   private NexusProperties nexusPropertiesWithoutNodeId = new NexusProperties();
+  private Void voidResponse = null;
 
   {
     final NexusRepo nexusRepo = new NexusRepo();
@@ -81,7 +82,7 @@ class NexusEventPosterTest {
     Event event =
         new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact));
 
-    when(echoService.postEvent(event)).thenReturn(Calls.response(""));
+    when(echoService.postEvent(event)).thenReturn(Calls.response(voidResponse));
     nexusEventPoster.postEvent(payload);
     verify(echoService).postEvent(event);
   }
@@ -105,7 +106,7 @@ class NexusEventPosterTest {
     Event event =
         new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact));
 
-    when(echoService.postEvent(event)).thenReturn(Calls.response(""));
+    when(echoService.postEvent(event)).thenReturn(Calls.response(voidResponse));
     nexusEventPoster.postEvent(payload);
     verify(echoService).postEvent(event);
   }
@@ -160,7 +161,7 @@ class NexusEventPosterTest {
     Event event =
         new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact));
 
-    when(echoService.postEvent(event)).thenReturn(Calls.response(""));
+    when(echoService.postEvent(event)).thenReturn(Calls.response(voidResponse));
     nexusEventPoster.postEvent(payload);
     verify(echoService).postEvent(event);
   }
@@ -184,7 +185,7 @@ class NexusEventPosterTest {
     Event event =
         new NexusAssetEvent(new NexusAssetEvent.Content("nexus-snapshots", expectedArtifact));
 
-    when(echoService.postEvent(event)).thenReturn(Calls.response(""));
+    when(echoService.postEvent(event)).thenReturn(Calls.response(voidResponse));
     nexusEventPosterWithoutNodeId.postEvent(payload);
     verify(echoService).postEvent(event);
   }
