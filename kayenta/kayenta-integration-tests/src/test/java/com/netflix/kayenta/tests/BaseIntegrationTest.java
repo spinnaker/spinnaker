@@ -28,6 +28,7 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import java.io.IOException;
 import java.util.Set;
 import okhttp3.OkHttpClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +48,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles({"base", "prometheus", "graphite", "cases"})
 @Import(EmbeddedPrometheusBootstrapConfiguration.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(
+    TestInstance.Lifecycle
+        .PER_CLASS) // This way Spring will create only one instance of the test class and will
+// allow non-static @BeforeAll.
 public abstract class BaseIntegrationTest {
 
   @Autowired protected Environment environment;
@@ -62,6 +66,8 @@ public abstract class BaseIntegrationTest {
   @Autowired PrometheusConfigurationProperties prometheusConfigurationProperties;
   @Autowired RetrofitClientFactory retrofitClientFactory;
   @Autowired OkHttpClient okHttpClient;
+
+  @Autowired EmbeddedPrometheusBootstrapConfiguration prometheusConfig;
 
   private boolean setupDone = false;
 
@@ -136,5 +142,10 @@ public abstract class BaseIntegrationTest {
     serverPort = environment.getProperty("local.server.port", Integer.class);
 
     return serverPort;
+  }
+
+  @AfterAll
+  public void cleanUp() {
+    prometheusConfig.stopPrometheusContainer();
   }
 }
