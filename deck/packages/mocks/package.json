@@ -14,7 +14,7 @@
     "@spinnaker/amazon": "latest",
     "@spinnaker/core": "latest",
     "@spinnaker/eslint-plugin": "latest",
-    "typescript": "~3.8.2"
+    "typescript": "5.0.4"
   },
   "peerDependencies": {
     "@spinnaker/core": "*"

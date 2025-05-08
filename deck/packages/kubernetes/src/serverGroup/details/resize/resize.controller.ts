@@ -3,6 +3,7 @@ import { copy, equals, module } from 'angular';
 import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import type { Application, ICapacity, ServerGroupWriter } from '@spinnaker/core';
+import { parseNum } from '@spinnaker/core';
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 import type { IKubernetesServerGroup } from '../../../interfaces';
 
@@ -41,7 +42,9 @@ class KubernetesServerGroupResizeController implements IController {
 
   public isValid(): boolean {
     return (
-      this.verification.verified && this.command.capacity.desired >= 0 && !equals(this.command.capacity, this.current)
+      this.verification.verified &&
+      parseNum(this.command.capacity.desired) >= 0 &&
+      !equals(this.command.capacity, this.current)
     );
   }
 

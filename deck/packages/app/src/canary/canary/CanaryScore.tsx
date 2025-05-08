@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { parseNum } from '@spinnaker/core';
+
 import './canaryScore.component.less';
 
 export interface ICanaryScoreProps {
@@ -27,7 +29,7 @@ export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScore
   private getLabelState(props: ICanaryScoreProps): ICanaryScoreState {
     const health = (props.health || '').toLowerCase();
     const result = (props.result || '').toLowerCase();
-    const score = props.score === 0 || (props.score && props.score > 0) ? props.score : 'N/A';
+    const score = props.score === 0 || (props.score && parseNum(props.score) > 0) ? props.score : 'N/A';
     const healthLabel =
       health === 'unhealthy'
         ? 'unhealthy'
