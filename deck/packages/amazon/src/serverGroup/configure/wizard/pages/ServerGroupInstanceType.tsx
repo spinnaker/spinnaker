@@ -4,6 +4,7 @@ import React from 'react';
 import { Subject } from 'rxjs';
 
 import type { IWizardPageComponent } from '@spinnaker/core';
+import { parseNum } from '@spinnaker/core';
 
 import type { IAmazonInstanceTypeCategory } from '../../../../instance/awsInstanceType.service';
 import { InstanceTypeSelector } from '../instanceType/InstanceTypeSelector';
@@ -86,7 +87,7 @@ export class ServerGroupInstanceType
       errors.onDemandBaseCapacity = 'On-Demand base capacity must be non-negative.';
     }
 
-    if (values.onDemandBaseCapacity > values.capacity.max) {
+    if (values.onDemandBaseCapacity > parseNum(values.capacity.max)) {
       errors.onDemandBaseCapacity = 'On-Demand base capacity must be less than or equal to max capacity.';
     }
 

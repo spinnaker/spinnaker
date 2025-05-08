@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { capitalize, filter, flatten, get, isEmpty } from 'lodash';
+import { capitalize, get, isEmpty } from 'lodash';
 import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -154,15 +154,19 @@ export class NotificationsList extends React.Component<INotificationsListProps, 
     observableFrom(AppNotificationsService.getNotificationsForApplication(application.name))
       .pipe(takeUntil(this.destroy$))
       .subscribe((notifications) => {
-        const results = filter(
-          flatten(
-            supportedNotificationTypes.map((type) => {
-              return get(notifications, type) || [];
-            }),
-          ),
+        const newNotifications = supportedNotificationTypes.reduce<INotification[]>((acc, type) => {
+          const typeNotifications = notifications[type];
+          if (typeNotifications && typeof typeNotifications !== 'string') {
+            acc.push(...typeNotifications);
+          }
+          return acc;
+        }, []);
+
+        const applicationNotifications = newNotifications.filter(
           (allow) => allow !== undefined && allow.level === 'application',
         );
-        updateNotifications(results);
+
+        updateNotifications(applicationNotifications);
       });
     this.setState({ isNotificationsDirty: false });
   };
