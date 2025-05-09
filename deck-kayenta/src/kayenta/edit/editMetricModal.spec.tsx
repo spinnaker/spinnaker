@@ -1,9 +1,11 @@
-import React from 'react';
 import { mount } from 'enzyme';
-import EditMetricModal from './editMetricModal';
-import { createMockStore } from 'redux-test-utils';
-import { Provider } from 'react-redux';
+import { ICanaryMetricConfig } from 'kayenta';
 import * as Creators from 'kayenta/actions/creators';
+import React from 'react';
+import { Provider } from 'react-redux';
+import { createMockStore } from 'redux-test-utils';
+
+import EditMetricModal from './editMetricModal';
 
 describe('EditMetricModal', () => {
   const mockProps = {
@@ -51,7 +53,7 @@ describe('EditMetricModal', () => {
       group: {
         list: ['Group 1', 'Group 2'],
       },
-      metricList: [],
+      metricList: [] as ICanaryMetricConfig[]
     },
   };
 
