@@ -18,6 +18,7 @@ export const mapMetricClassificationToColor = (classification: MetricClassificat
     [MetricClassificationLabel.Low]: RED,
     [MetricClassificationLabel.Error]: YELLOW,
     [MetricClassificationLabel.Nodata]: GREY,
+    [MetricClassificationLabel.NodataFailMetric]: RED,
     [MetricClassificationLabel.Pass]: GREEN,
   }[classification]);
 
