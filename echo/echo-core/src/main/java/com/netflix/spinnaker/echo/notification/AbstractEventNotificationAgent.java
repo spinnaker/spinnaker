@@ -108,6 +108,21 @@ public abstract class AbstractEventNotificationAgent implements EventListener {
       return;
     }
 
+    if (STAGE.equals(configType)) {
+      Object when = event.getContent().get("when");
+      if (when != null) {
+        if (when instanceof String) {
+          if (!isManualJudgmentMatchStringCase((String) when, status)) {
+            return;
+          }
+        } else if (when instanceof Collection) {
+          if (!isManualJudgmentMatchCollectionCase((Collection<String>) when, status)) {
+            return;
+          }
+        }
+      }
+    }
+
     // TODO(lpollo): why do we have a 'CANCELED' status and a canceled property, which are prime for
     // inconsistency?
     if (isExecution(configType) && isExecutionCanceled(event)) {
@@ -241,11 +256,26 @@ public abstract class AbstractEventNotificationAgent implements EventListener {
   }
 
   private static boolean isManualJudgmentMatchStringCase(String when, String status) {
+    // For Manual Judgment stages, only send specialized notifications, not standard stage ones
+    // This prevents duplicate notifications between standard stage and manual judgment events
+    if (ManualJudgmentCondition.MANUAL_JUDGMENT.getName().equals(when)
+        || ManualJudgmentCondition.CONTINUE.getName().equals(when)
+        || ManualJudgmentCondition.STOP.getName().equals(when)) {
+      return false;
+    }
     return status.equals(MANUAL_JUDGMENT_CONDITIONS.get(when));
   }
 
   private static boolean isManualJudgmentMatchCollectionCase(
       Collection<String> when, String status) {
+    // For Manual Judgment stages, only send specialized notifications, not standard stage ones
+    // This prevents duplicate notifications between standard stage and manual judgment events
+    if (when.contains(ManualJudgmentCondition.MANUAL_JUDGMENT.getName())
+        || when.contains(ManualJudgmentCondition.CONTINUE.getName())
+        || when.contains(ManualJudgmentCondition.STOP.getName())) {
+      return false;
+    }
+
     for (String condition : when) {
       if (status.equals(MANUAL_JUDGMENT_CONDITIONS.get(condition))) {
         return true;
