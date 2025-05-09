@@ -157,6 +157,14 @@ const editingMetric = handleActions(
 
       return newState;
     },
+    [Actions.UPDATE_METRIC_DATA_REQUIRED]: (state: ICanaryMetricConfig, { payload }: Action & any) => {
+      const newState = cloneDeep(state);
+      payload.mustHaveData
+        ? set(newState, ['analysisConfigurations', 'canary', 'mustHaveData'], payload.mustHaveData)
+        : unset(newState, ['analysisConfigurations', 'canary', 'mustHaveData']);
+
+      return newState;
+    },
     [Actions.UPDATE_EFFECT_SIZE]: (state: ICanaryMetricConfig, { payload }: Action & any) => {
       const newState = cloneDeep(state);
       Object.keys(payload.value).length
