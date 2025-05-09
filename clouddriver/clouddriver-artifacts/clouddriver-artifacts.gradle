@@ -34,6 +34,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-docker"
   implementation "com.netflix.spectator:spectator-api"
   implementation("com.netflix.spectator:spectator-ext-aws") {
     // exclude transitives to keep spectator's version of the aws sdk from

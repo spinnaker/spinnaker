@@ -21,6 +21,8 @@ import com.netflix.spinnaker.config.DefaultServiceClientProvider
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.docker.model.DockerBearerToken
+import com.netflix.spinnaker.kork.docker.service.DockerBearerTokenService
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
@@ -58,124 +60,124 @@ class DockerBearerTokenServiceSpec extends Specification {
 
   void "should parse Www-Authenticate header with full privileges and path."() {
     setup:
-      def input = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
+    def input = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
     when:
-      def result = tokenService.parseBearerAuthenticateHeader(input)
+    def result = tokenService.parseBearerAuthenticateHeader(input)
 
     then:
-      result.path == PATH1
-      result.realm == REALM1
-      result.service == SERVICE1
-      result.scope == SCOPE1
+    result.path == PATH1
+    result.realm == REALM1
+    result.service == SERVICE1
+    result.scope == SCOPE1
   }
 
   void "should parse Www-Authenticate header with missing service and path."() {
     setup:
-      def input = "realm=\"${REALM1}/${PATH1}\",scope=\"${SCOPE1}\""
+    def input = "realm=\"${REALM1}/${PATH1}\",scope=\"${SCOPE1}\""
     when:
-      def result = tokenService.parseBearerAuthenticateHeader(input)
+    def result = tokenService.parseBearerAuthenticateHeader(input)
 
     then:
-      result.path == PATH1
-      result.realm == REALM1
-      result.service == null
-      result.scope == SCOPE1
+    result.path == PATH1
+    result.realm == REALM1
+    result.service == null
+    result.scope == SCOPE1
   }
 
   void "should parse Www-Authenticate header with some privileges and path."() {
     setup:
-      def input = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE2}\""
+    def input = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE2}\""
     when:
-      def result = tokenService.parseBearerAuthenticateHeader(input)
+    def result = tokenService.parseBearerAuthenticateHeader(input)
 
     then:
-      result.path == PATH1
-      result.realm == REALM1
-      result.service == SERVICE1
-      result.scope == SCOPE2
+    result.path == PATH1
+    result.realm == REALM1
+    result.service == SERVICE1
+    result.scope == SCOPE2
   }
 
   void "should parse Www-Authenticate header with some privileges and no path."() {
     setup:
-      def input = "realm=\"${REALM1}\",service=\"${SERVICE1}\",scope=\"${SCOPE2}\""
+    def input = "realm=\"${REALM1}\",service=\"${SERVICE1}\",scope=\"${SCOPE2}\""
     when:
-      def result = tokenService.parseBearerAuthenticateHeader(input)
+    def result = tokenService.parseBearerAuthenticateHeader(input)
 
     then:
-      !result.path
-      result.realm == REALM1
-      result.service == SERVICE1
-      result.scope == SCOPE2
+    !result.path
+    result.realm == REALM1
+    result.service == SERVICE1
+    result.scope == SCOPE2
   }
 
   void "should parse Www-Authenticate header with missing service and no path."() {
     setup:
-      def input = "realm=\"${REALM1}\",scope=\"${SCOPE2}\""
+    def input = "realm=\"${REALM1}\",scope=\"${SCOPE2}\""
     when:
-      def result = tokenService.parseBearerAuthenticateHeader(input)
+    def result = tokenService.parseBearerAuthenticateHeader(input)
 
     then:
-      !result.path
-      result.realm == REALM1
-      result.service == null
-      result.scope == SCOPE2
+    !result.path
+    result.realm == REALM1
+    result.service == null
+    result.scope == SCOPE2
   }
 
   void "should parse unquoted Www-Authenticate header with some privileges and path."() {
     setup:
-      def input = "realm=${REALM1}/${PATH1},service=${SERVICE1},scope=${SCOPE2}"
+    def input = "realm=${REALM1}/${PATH1},service=${SERVICE1},scope=${SCOPE2}"
     when:
-      def result = tokenService.parseBearerAuthenticateHeader(input)
+    def result = tokenService.parseBearerAuthenticateHeader(input)
 
     then:
-      result.path == PATH1
-      result.realm == REALM1
-      result.service == SERVICE1
-      result.scope == SCOPE2
+    result.path == PATH1
+    result.realm == REALM1
+    result.service == SERVICE1
+    result.scope == SCOPE2
   }
 
   void "should request a real token from Dockerhub's token registry."() {
     setup:
-      def authenticateHeader = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
+    def authenticateHeader = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
     when:
-      DockerBearerToken token = tokenService.getToken(REPOSITORY1, authenticateHeader)
+    DockerBearerToken token = tokenService.getToken(REPOSITORY1, authenticateHeader)
 
     then:
-      token.token.length() > 0
+    token.token.length() > 0
   }
 
   void "should request a real token from Dockerhub's token registry, and supply a cached one."() {
     setup:
-      def authenticateHeader = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
+    def authenticateHeader = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
     when:
-      tokenService.getToken(REPOSITORY1, authenticateHeader)
-      DockerBearerToken token = tokenService.getToken(REPOSITORY1)
+    tokenService.getToken(REPOSITORY1, authenticateHeader)
+    DockerBearerToken token = tokenService.getToken(REPOSITORY1)
 
     then:
-      token.token.length() > 0
+    token.token.length() > 0
   }
 
   void "should read a password from a file, and correctly prepare the basic auth string."() {
     setup:
-      def passwordFile = new File("src/test/resources/password.txt")
-      def username = "username"
-      def passwordContents = new BufferedReader(new FileReader(passwordFile)).getText()
+    def passwordFile = new File("src/test/resources/password.txt")
+    def username = "username"
+    def passwordContents = new BufferedReader(new FileReader(passwordFile)).getText()
     when:
-      def fileTokenService = new DockerBearerTokenService(username, passwordFile, serviceClientProvider)
+    def fileTokenService = new DockerBearerTokenService(username, passwordFile, serviceClientProvider)
 
     then:
-      new String(Base64.decoder.decode(fileTokenService.getBasicAuth().bytes)) == "$username:$passwordContents"
+    new String(Base64.decoder.decode(fileTokenService.getBasicAuth().bytes)) == "$username:$passwordContents"
   }
 
   void "should run a command to get password, and correctly prepare the basic auth string."() {
     setup:
-      def passwordCommand = "echo hunter2"
-      def username = "username"
-      def password = ""
-      def actualPassword = "hunter2"
+    def passwordCommand = "echo hunter2"
+    def username = "username"
+    def password = ""
+    def actualPassword = "hunter2"
     when:
-      def passwordCommandService = new DockerBearerTokenService(username, password, passwordCommand, serviceClientProvider)
+    def passwordCommandService = new DockerBearerTokenService(username, password, passwordCommand, serviceClientProvider)
     then:
-      new String(Base64.decoder.decode(passwordCommandService.getBasicAuth().bytes)) == "$username:$actualPassword"
+    new String(Base64.decoder.decode(passwordCommandService.getBasicAuth().bytes)) == "$username:$actualPassword"
   }
 }

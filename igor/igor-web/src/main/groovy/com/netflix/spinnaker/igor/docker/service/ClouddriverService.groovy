@@ -35,4 +35,8 @@ interface ClouddriverService {
 
     @GET('credentials/{account}')
     Call<Map> getAccountDetails(@Path('account') String account)
+
+    @GET('/dockerRegistry/charts/find')
+    List<TaggedImage> getChartsByAccount(@Query('account') String account, @Query('includeDetails') Boolean includeDetails)
+
 }

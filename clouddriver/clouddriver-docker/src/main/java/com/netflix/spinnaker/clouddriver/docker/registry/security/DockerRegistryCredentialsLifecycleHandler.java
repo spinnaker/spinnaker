@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry.security;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider;
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProvider;
+import com.netflix.spinnaker.clouddriver.docker.registry.provider.agent.DockerRegistryHelmOciCachingAgent;
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.agent.DockerRegistryImageCachingAgent;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import java.util.ArrayList;
@@ -68,6 +69,18 @@ public class DockerRegistryCredentialsLifecycleHandler
               credentials.getCacheThreads(),
               credentials.getCacheIntervalSeconds(),
               credentials.getRegistry()));
+      if (credentials.getCredentials().getHelmOciRepositories() != null
+          && !credentials.getCredentials().getHelmOciRepositories().isEmpty()) {
+        agents.add(
+            new DockerRegistryHelmOciCachingAgent(
+                cloudProvider,
+                credentials.getName(),
+                credentials.getCredentials(),
+                i,
+                credentials.getCacheThreads(),
+                credentials.getCacheIntervalSeconds(),
+                credentials.getRegistry()));
+      }
     }
     return agents;
   }

@@ -15,7 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client;
 
-import com.netflix.spinnaker.clouddriver.docker.registry.security.TrustAllX509TrustManager;
+import com.netflix.spinnaker.kork.docker.security.TrustAllX509TrustManager;
+import com.netflix.spinnaker.kork.docker.service.DockerOkClientProvider;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

@@ -29,8 +29,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken;
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService;
+import com.netflix.spinnaker.kork.docker.model.DockerBearerToken;
+import com.netflix.spinnaker.kork.docker.model.DockerRegistryCatalog;
+import com.netflix.spinnaker.kork.docker.model.DockerRegistryTags;
+import com.netflix.spinnaker.kork.docker.service.DockerBearerTokenService;
+import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient;
+import com.netflix.spinnaker.kork.docker.service.RegistryService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import java.util.Arrays;
 import java.util.Map;
@@ -52,7 +56,7 @@ public class DockerRegistryClientTest {
   static WireMockExtension wmDockerRegistry =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
-  static DockerRegistryClient.DockerRegistryService dockerRegistryService;
+  static RegistryService dockerRegistryService;
   @MockBean DockerBearerTokenService dockerBearerTokenService;
   static DockerRegistryClient dockerRegistryClient;
   ObjectMapper objectMapper = new ObjectMapper();
@@ -93,10 +97,9 @@ public class DockerRegistryClientTest {
 
     DockerBearerToken bearerToken = new DockerBearerToken();
     bearerToken.setToken("someToken");
-    bearerToken.setAccess_token("someToken");
+    bearerToken.setAccessToken("someToken");
     Mockito.when(dockerBearerTokenService.getToken(anyString())).thenReturn(bearerToken);
-    dockerRegistryService =
-        buildService(DockerRegistryClient.DockerRegistryService.class, wmDockerRegistry.baseUrl());
+    dockerRegistryService = buildService(RegistryService.class, wmDockerRegistry.baseUrl());
     dockerRegistryClient =
         new DockerRegistryClient(
             wmDockerRegistry.baseUrl(), 5, "", "", dockerRegistryService, dockerBearerTokenService);

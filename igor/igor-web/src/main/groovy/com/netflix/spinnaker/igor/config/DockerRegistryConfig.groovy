@@ -24,16 +24,16 @@ import com.netflix.spinnaker.igor.docker.service.ClouddriverService
 import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import groovy.transform.CompileStatic
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Conditional
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
-@ConditionalOnProperty(['services.clouddriver.base-url', 'docker-registry.enabled'])
-@EnableConfigurationProperties(DockerRegistryProperties)
+@Conditional(DockerOrHelmRegistryEnabledCondition)
+@EnableConfigurationProperties([DockerRegistryProperties, HelmOciDockerRegistryProperties])
 @CompileStatic
 class DockerRegistryConfig {
     @Bean
@@ -61,4 +61,3 @@ class DockerRegistryConfig {
                 .create(ClouddriverService)
     }
 }
-
