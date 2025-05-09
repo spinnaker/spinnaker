@@ -27,8 +27,8 @@ import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.*;
 import static net.logstash.logback.argument.StructuredArguments.value;
-import static redis.clients.jedis.ListPosition.AFTER;
-import static redis.clients.jedis.ListPosition.BEFORE;
+import static redis.clients.jedis.args.ListPosition.AFTER;
+import static redis.clients.jedis.args.ListPosition.BEFORE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -44,6 +44,12 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution.PausedDe
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.*;
 import com.netflix.spinnaker.orca.pipeline.persistence.*;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.functions.BiFunction;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.functions.Supplier;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -58,16 +64,10 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.Response;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
-import rx.Observable;
-import rx.Scheduler;
-import rx.functions.Func0;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
+import redis.clients.jedis.args.ListPosition;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 public class RedisExecutionRepository implements ExecutionRepository {
 
@@ -351,7 +351,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
                             execution -> criteria.getStatuses().contains(execution.getStatus()));
                   }
                   if (criteria.getPageSize() > 0) {
-                    observable = observable.limit(criteria.getPageSize());
+                    observable = observable.take(criteria.getPageSize());
                   }
                   return observable;
                 })
@@ -426,15 +426,16 @@ public class RedisExecutionRepository implements ExecutionRepository {
                       }));
     }
 
-    Func2<RedisClientDelegate, Iterable<String>, Func1<String, Iterable<String>>> fnBuilder =
-        (RedisClientDelegate redisClientDelegate, Iterable<String> pipelineIds) ->
-            (String key) ->
-                !criteria.getStatuses().isEmpty()
-                    ? pipelineIds
-                    : redisClientDelegate.withCommandsClient(
-                        p -> {
-                          return p.zrevrange(key, 0, (criteria.getPageSize() - 1));
-                        });
+    BiFunction<RedisClientDelegate, Iterable<String>, Function<String, Iterable<String>>>
+        fnBuilder =
+            (RedisClientDelegate redisClientDelegate, Iterable<String> pipelineIds) ->
+                (String key) ->
+                    !criteria.getStatuses().isEmpty()
+                        ? pipelineIds
+                        : redisClientDelegate.withCommandsClient(
+                            p -> {
+                              return p.zrevrange(key, 0, (criteria.getPageSize() - 1));
+                            });
 
     /*
      * Construct an observable that will retrieve pipelines from the primary redis
@@ -444,13 +445,18 @@ public class RedisExecutionRepository implements ExecutionRepository {
     currentPipelineIds =
         currentPipelineIds.subList(0, Math.min(criteria.getPageSize(), currentPipelineIds.size()));
 
-    Observable<PipelineExecution> currentObservable =
-        retrieveObservable(
-            PIPELINE,
-            executionsByPipelineKey(pipelineConfigId),
-            fnBuilder.call(redisClientDelegate, currentPipelineIds),
-            queryByAppScheduler,
-            redisClientDelegate);
+    Observable<PipelineExecution> currentObservable = null;
+    try {
+      currentObservable =
+          retrieveObservable(
+              PIPELINE,
+              executionsByPipelineKey(pipelineConfigId),
+              fnBuilder.apply(redisClientDelegate, currentPipelineIds),
+              queryByAppScheduler,
+              redisClientDelegate);
+    } catch (Throwable e) {
+      throw new RuntimeException();
+    }
 
     if (previousRedisClientDelegate.isPresent()) {
       /*
@@ -464,13 +470,18 @@ public class RedisExecutionRepository implements ExecutionRepository {
           previousPipelineIds.subList(
               0, Math.min(criteria.getPageSize(), previousPipelineIds.size()));
 
-      Observable<PipelineExecution> previousObservable =
-          retrieveObservable(
-              PIPELINE,
-              executionsByPipelineKey(pipelineConfigId),
-              fnBuilder.call(previousRedisClientDelegate.get(), previousPipelineIds),
-              queryByAppScheduler,
-              previousRedisClientDelegate.get());
+      Observable<PipelineExecution> previousObservable = null;
+      try {
+        previousObservable =
+            retrieveObservable(
+                PIPELINE,
+                executionsByPipelineKey(pipelineConfigId),
+                fnBuilder.apply(previousRedisClientDelegate.get(), previousPipelineIds),
+                queryByAppScheduler,
+                previousRedisClientDelegate.get());
+      } catch (Throwable e) {
+        throw new RuntimeException();
+      }
 
       // merge primary + secondary observables
       return Observable.merge(currentObservable, previousObservable);
@@ -609,18 +620,19 @@ public class RedisExecutionRepository implements ExecutionRepository {
                       }));
     }
 
-    Func2<RedisClientDelegate, Iterable<String>, Func1<String, Iterable<String>>> fnBuilder =
-        (RedisClientDelegate redisClientDelegate, Iterable<String> orchestrationIds) ->
-            (String key) ->
-                (redisClientDelegate.withCommandsClient(
-                    c -> {
-                      if (!criteria.getStatuses().isEmpty()) {
-                        return orchestrationIds;
-                      }
-                      List<String> unfiltered = new ArrayList<>(c.smembers(key));
-                      return unfiltered.subList(
-                          0, Math.min(criteria.getPageSize(), unfiltered.size()));
-                    }));
+    BiFunction<RedisClientDelegate, Iterable<String>, Function<String, Iterable<String>>>
+        fnBuilder =
+            (RedisClientDelegate redisClientDelegate, Iterable<String> orchestrationIds) ->
+                (String key) ->
+                    (redisClientDelegate.withCommandsClient(
+                        c -> {
+                          if (!criteria.getStatuses().isEmpty()) {
+                            return orchestrationIds;
+                          }
+                          List<String> unfiltered = new ArrayList<>(c.smembers(key));
+                          return unfiltered.subList(
+                              0, Math.min(criteria.getPageSize(), unfiltered.size()));
+                        }));
 
     /*
      * Construct an observable that will retrieve orchestrations frcm the primary redis
@@ -631,13 +643,18 @@ public class RedisExecutionRepository implements ExecutionRepository {
         currentOrchestrationIds.subList(
             0, Math.min(criteria.getPageSize(), currentOrchestrationIds.size()));
 
-    Observable<PipelineExecution> currentObservable =
-        retrieveObservable(
-            ORCHESTRATION,
-            allOrchestrationsKey,
-            fnBuilder.call(redisClientDelegate, currentOrchestrationIds),
-            queryByAppScheduler,
-            redisClientDelegate);
+    Observable<PipelineExecution> currentObservable = null;
+    try {
+      currentObservable =
+          retrieveObservable(
+              ORCHESTRATION,
+              allOrchestrationsKey,
+              fnBuilder.apply(redisClientDelegate, currentOrchestrationIds),
+              queryByAppScheduler,
+              redisClientDelegate);
+    } catch (Throwable e) {
+      throw new RuntimeException();
+    }
 
     if (previousRedisClientDelegate.isPresent()) {
       /*
@@ -651,13 +668,18 @@ public class RedisExecutionRepository implements ExecutionRepository {
           previousOrchestrationIds.subList(
               0, Math.min(criteria.getPageSize(), previousOrchestrationIds.size()));
 
-      Observable<PipelineExecution> previousObservable =
-          retrieveObservable(
-              ORCHESTRATION,
-              allOrchestrationsKey,
-              fnBuilder.call(previousRedisClientDelegate.get(), previousOrchestrationIds),
-              queryByAppScheduler,
-              previousRedisClientDelegate.get());
+      Observable<PipelineExecution> previousObservable = null;
+      try {
+        previousObservable =
+            retrieveObservable(
+                ORCHESTRATION,
+                allOrchestrationsKey,
+                fnBuilder.apply(previousRedisClientDelegate.get(), previousOrchestrationIds),
+                queryByAppScheduler,
+                previousRedisClientDelegate.get());
+      } catch (Throwable e) {
+        throw new RuntimeException();
+      }
 
       // merge primary + secondary observables
       return Observable.merge(currentObservable, previousObservable);
@@ -685,8 +707,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
                 })
             .subscribeOn(Schedulers.io())
             .toList()
-            .toBlocking()
-            .single();
+            .blockingGet();
 
     if (sorter != null) {
       executions.sort(sorter);
@@ -775,8 +796,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
     return Observable.merge(observables)
         .filter(e -> e.getStatus() == BUFFERED)
         .toList()
-        .toBlocking()
-        .single();
+        .blockingGet();
   }
 
   @Nonnull
@@ -1191,7 +1211,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       Long buildTimeStartBoundary,
       Long buildTimeEndBoundary) {
     String executionsKey = executionsByPipelineKey(pipelineConfigId);
-    Set<String> executionIds =
+    List<String> executionIds =
         delegate.withCommandsClient(
             c -> {
               return c.zrangeByScore(executionsKey, buildTimeStartBoundary, buildTimeEndBoundary);
@@ -1251,7 +1271,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       Scheduler scheduler,
       RedisClientDelegate redisClientDelegate) {
 
-    Func0<Func1<String, Iterable<String>>> fnBuilder =
+    Supplier<Function<String, Iterable<String>>> fnBuilder =
         () ->
             (String key) ->
                 redisClientDelegate.withCommandsClient(
@@ -1259,14 +1279,18 @@ public class RedisExecutionRepository implements ExecutionRepository {
                       return c.smembers(key);
                     });
 
-    return retrieveObservable(type, lookupKey, fnBuilder.call(), scheduler, redisClientDelegate);
+    try {
+      return retrieveObservable(type, lookupKey, fnBuilder.get(), scheduler, redisClientDelegate);
+    } catch (Throwable e) {
+      throw new RuntimeException();
+    }
   }
 
   @SuppressWarnings("unchecked")
   protected Observable<PipelineExecution> retrieveObservable(
       ExecutionType type,
       String lookupKey,
-      Func1<String, Iterable<String>> lookupKeyFetcher,
+      Function<String, Iterable<String>> lookupKeyFetcher,
       Scheduler scheduler,
       RedisClientDelegate redisClientDelegate) {
     return Observable.just(lookupKey)
@@ -1274,7 +1298,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
         .buffer(chunkSize)
         .flatMap(
             (Collection<String> ids) ->
-                Observable.from(ids)
+                Observable.fromIterable(ids)
                     .flatMap(
                         (String executionId) -> {
                           try {

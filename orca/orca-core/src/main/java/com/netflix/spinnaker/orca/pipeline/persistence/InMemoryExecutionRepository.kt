@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 import java.lang.System.currentTimeMillis
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -157,11 +157,11 @@ class InMemoryExecutionRepository : ExecutionRepository {
   }
 
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> {
-    return Observable.from(storageFor(type).values)
+    return Observable.fromIterable(storageFor(type).values)
   }
 
   override fun retrieve(type: ExecutionType, criteria: ExecutionCriteria): Observable<PipelineExecution> {
-    return Observable.from(storageFor(type).values)
+    return Observable.fromIterable(storageFor(type).values)
   }
 
   override fun store(execution: PipelineExecution) {
@@ -235,7 +235,7 @@ class InMemoryExecutionRepository : ExecutionRepository {
     application: String,
     criteria: ExecutionCriteria
   ): Observable<PipelineExecution> {
-    return Observable.from(
+    return Observable.fromIterable(
       orchestrations.values
         .filter { it.application == application }
         .applyCriteria(criteria)
@@ -255,7 +255,7 @@ class InMemoryExecutionRepository : ExecutionRepository {
   }
 
   override fun retrievePipelinesForApplication(application: String): Observable<PipelineExecution> {
-    return Observable.from(
+    return Observable.fromIterable(
       pipelines.values
         .filter { it.application == application }
     )
@@ -270,7 +270,7 @@ class InMemoryExecutionRepository : ExecutionRepository {
     pipelineConfigId: String,
     criteria: ExecutionCriteria
   ): Observable<PipelineExecution> {
-    return Observable.from(
+    return Observable.fromIterable(
       pipelines.values
         .filter { it.pipelineConfigId == pipelineConfigId }
         .applyCriteria(criteria)
