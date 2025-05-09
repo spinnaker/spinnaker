@@ -53,7 +53,7 @@ describe('EditMetricModal', () => {
       group: {
         list: ['Group 1', 'Group 2'],
       },
-      metricList: [] as ICanaryMetricConfig[]
+      metricList: [] as ICanaryMetricConfig[],
     },
   };
 
