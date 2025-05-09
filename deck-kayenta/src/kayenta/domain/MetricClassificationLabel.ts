@@ -3,5 +3,6 @@ export enum MetricClassificationLabel {
   High = 'High',
   Low = 'Low',
   Nodata = 'Nodata',
+  NodataFailMetric = 'NodataFailMetric',
   Error = 'Error',
 }
