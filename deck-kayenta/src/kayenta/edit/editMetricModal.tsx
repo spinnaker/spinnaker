@@ -150,6 +150,7 @@ function EditMetricModal({
             <label>
               <DisableableInput
                 type="checkbox"
+                name="criticality"
                 checked={critical}
                 onChange={updateCriticality}
                 disabled={CanarySettings.disableConfigEdit}
@@ -162,6 +163,7 @@ function EditMetricModal({
             <label>
               <DisableableInput
                 type="checkbox"
+                name="dataRequired"
                 checked={dataRequired}
                 onChange={updateDataRequired}
                 disabled={CanarySettings.disableConfigEdit}
