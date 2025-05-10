@@ -4,6 +4,7 @@ import com.netflix.spinnaker.fiat.permissions.ExternalUser
 import com.google.api.services.directory.model.Group;
 import com.google.api.services.directory.model.Groups;
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class GoogleDirectoryUserRolesProviderSpec extends Specification {
     GoogleDirectoryUserRolesProvider.Config config = new GoogleDirectoryUserRolesProvider.Config()
@@ -21,7 +22,7 @@ class GoogleDirectoryUserRolesProviderSpec extends Specification {
 
         GoogleDirectoryUserRolesProvider provider = new GoogleDirectoryUserRolesProvider() {
             @Override
-            Groups getGroupsFromEmail(String email) {
+            Groups getGroupsFromEmailRecursively(String email) {
                 return groups
             }
         }
@@ -75,9 +76,41 @@ class GoogleDirectoryUserRolesProviderSpec extends Specification {
 
         then:
         result6.name.size() == 0
+    }
 
+    @Unroll
+    def "should recursively collect all nested groups if expandIndirectGroups is #expandIndirectGroups"() {
+        given:
+        config.expandIndirectGroups = expandIndirectGroups
+        def provider = Spy(GoogleDirectoryUserRolesProvider) {
+            getGroupsFromEmail("root@example.com") >> new Groups(groups: [
+                new Group(email: "child1@example.com"),
+                new Group(email: "child2@example.com")
+            ])
+            getGroupsFromEmail("child1@example.com") >> new Groups(groups: [
+                new Group(email: "grandchild1@example.com")
+            ])
+            getGroupsFromEmail("child2@example.com") >> new Groups(groups: [
+                new Group(email: "grandchild2@example.com"),
+                new Group(email: "child1@example.com")
+            ])
+            getGroupsFromEmail("grandchild1@example.com") >> new Groups(groups: [])
+            getGroupsFromEmail("grandchild2@example.com") >> null
+        }
+        provider.setConfig(config)
 
+        when:
+        def result = provider.getGroupsFromEmailRecursively("root@example.com")
 
+        then:
+        result.groups*.email.containsAll(groupsContent)
+        result.groups.size() == totalEmails
+
+        where:
+        expandIndirectGroups | totalEmails | groupsContent
+        true                 | 4           | ["child1@example.com", "child2@example.com", "grandchild1@example.com", "grandchild2@example.com"]
+        false                | 2           | ["child1@example.com", "child2@example.com"]
+        
     }
 
     private static ExternalUser externalUser(String id) {

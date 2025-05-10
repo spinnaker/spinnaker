@@ -244,6 +244,21 @@ class ServerGroupsUrlBuilder implements IUrlBuilder {
       { inherit: false },
     );
 
+    if (
+      input.provider === 'ecs' ||
+      (input.provider && input.provider.includes('ecs')) ||
+      input.provider === 'aws' ||
+      (input.provider && input.provider.includes('aws'))
+    ) {
+      const serverGroupParts = input.serverGroup.split('-');
+      let clusterName = input.serverGroup;
+      if (serverGroupParts.length > 1 && serverGroupParts[serverGroupParts.length - 1].match(/^v\d+$/)) {
+        clusterName = serverGroupParts.slice(0, -1).join('-');
+      }
+
+      return UrlBuilderUtils.buildUrl(href, { clusters: `${input.account}:${clusterName}` });
+    }
+
     return UrlBuilderUtils.buildUrl(href, { q: input.serverGroup, acct: input.account, reg: input.region });
   }
 }
