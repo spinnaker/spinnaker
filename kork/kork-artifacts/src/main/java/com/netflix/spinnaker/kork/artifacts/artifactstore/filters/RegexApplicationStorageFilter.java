@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Salesforce Inc.
+ * Copyright 2025 Apple Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.artifacts.artifactstore;
+package com.netflix.spinnaker.kork.artifacts.artifactstore.filters;
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.regex.Pattern;
 
-/** A no-op ArtifactStoreStorer. In other words, don't actually store the artifact. */
-public class NoopArtifactStoreStorer implements ArtifactStoreStorer {
+public class RegexApplicationStorageFilter implements ApplicationStorageFilter {
+  private final Pattern filterRegex;
 
-  public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
-    return artifact;
+  public RegexApplicationStorageFilter(String regex) {
+    this.filterRegex = Pattern.compile(regex);
+  }
+
+  @Override
+  public boolean filter(String application) {
+    return filterRegex.matcher(application).matches();
   }
 }
