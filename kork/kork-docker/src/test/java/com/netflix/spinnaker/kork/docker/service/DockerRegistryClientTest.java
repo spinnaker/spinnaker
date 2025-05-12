@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.docker;
+package com.netflix.spinnaker.kork.docker.service;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -31,9 +31,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.docker.model.DockerBearerToken;
 import com.netflix.spinnaker.kork.docker.model.DockerRegistryCatalog;
 import com.netflix.spinnaker.kork.docker.model.DockerRegistryTags;
-import com.netflix.spinnaker.kork.docker.service.DockerBearerTokenService;
-import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient;
-import com.netflix.spinnaker.kork.docker.service.RegistryService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import java.util.Arrays;
