@@ -499,7 +499,8 @@ class DockerRegistryClient {
     }
     if (queryParamsString) {
       queryParams = queryParamsString.split("&").collectEntries { param ->
-        def (key, value) = param.split("=")
+        // ensures two strings are returned even when a query parameter has no value(returns empty string).
+        def (key, value) = param.split("=", 2)
         [key, value]
       }
     }
