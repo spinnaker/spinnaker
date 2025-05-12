@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
@@ -247,5 +248,36 @@ public class DockerRegistryClientTest {
     DockerRegistryTags dockerRegistryTags = dockerRegistryClient.getTags("library/nginx");
     String[] tags = (String[]) tagsResponse.get("tags");
     assertIterableEquals(Arrays.asList(tags), dockerRegistryTags.getTags());
+  }
+
+  @Test
+  public void getTags_WithNextLink_Having_No_QueryParam_Value() {
+    wmDockerRegistry.stubFor(
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader(
+                        "link",
+                        "</v2/library/nginx/tags/list?last=1-alpine-slim&n=5&orderby=>; rel=\"next\"")
+                    .withBody(tagsResponseString)));
+    wmDockerRegistry.stubFor(
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?last=1-alpine-slim&n=5&orderby="))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader(
+                        "link",
+                        // to test the logic when `?` is not present in the link header
+                        "</v2/library/nginx/tags/list1>; rel=\"next\"")
+                    .withBody(tagsSecondResponseString)));
+    wmDockerRegistry.stubFor(
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list1\\?n=5"))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(tagsThirdResponseString)));
+
+    Throwable thrown = catchThrowable(() -> dockerRegistryClient.getTags("library/nginx"));
+    assertThat(thrown).isInstanceOf(ArrayIndexOutOfBoundsException.class);
+    assertThat(thrown).hasMessage("Index 1 out of bounds for length 1");
   }
 }
