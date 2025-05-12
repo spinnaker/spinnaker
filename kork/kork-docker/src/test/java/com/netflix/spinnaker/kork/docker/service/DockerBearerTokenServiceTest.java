@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.docker;
+package com.netflix.spinnaker.kork.docker.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -23,8 +23,6 @@ import static org.mockito.Mockito.when;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.kork.docker.model.DockerBearerToken;
-import com.netflix.spinnaker.kork.docker.service.DockerBearerTokenService;
-import com.netflix.spinnaker.kork.docker.service.RegistryService;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
