@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
+package com.netflix.spinnaker.kork.docker.service;
 
-import groovy.transform.ToString
+public class DockerUserAgent {
+  public static String getUserAgent() {
+    String version;
+    try {
+      version = DockerUserAgent.class.getPackage().getImplementationVersion();
+    } catch (Exception _ignored) {
+      version = "Unknown";
+    }
 
-@ToString(includeNames = true)
-class DockerBearerToken {
-  // One of token, access_token, or bearer_token will be filled by the request.
-  String token
-  String access_token
-  String bearer_token
-  int expires_in
-  String issued_at
+    return "Spinnaker/" + version;
+  }
 }

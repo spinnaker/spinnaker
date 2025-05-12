@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception
+package com.netflix.spinnaker.kork.docker.model;
 
-import groovy.transform.InheritConstructors
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import lombok.Data;
+import lombok.ToString;
 
-@InheritConstructors
-class DockerRegistryAuthenticationException extends RuntimeException {}
+@Data
+@ToString(callSuper = false, includeFieldNames = true)
+public class DockerRegistryTags {
+  @JsonProperty("name")
+  private String name;
+
+  @JsonProperty("tags")
+  private List<String> tags;
+}
