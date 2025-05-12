@@ -20,7 +20,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
@@ -276,8 +275,7 @@ public class DockerRegistryClientTest {
             .willReturn(
                 aResponse().withStatus(HttpStatus.OK.value()).withBody(tagsThirdResponseString)));
 
-    Throwable thrown = catchThrowable(() -> dockerRegistryClient.getTags("library/nginx"));
-    assertThat(thrown).isInstanceOf(ArrayIndexOutOfBoundsException.class);
-    assertThat(thrown).hasMessage("Index 1 out of bounds for length 1");
+    DockerRegistryTags dockerRegistryTags = dockerRegistryClient.getTags("library/nginx");
+    assertEquals(15, dockerRegistryTags.getTags().size());
   }
 }
