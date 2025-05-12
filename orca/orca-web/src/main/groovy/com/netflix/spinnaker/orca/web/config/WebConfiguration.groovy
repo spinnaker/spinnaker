@@ -74,18 +74,6 @@ class WebConfiguration {
     OrcaObjectMapper.getInstance()
   }
 
-  @Bean(name = "objectMapper") ObjectMapper orcaObjectMapper(Optional<SerializerHookRegistry> serializerModifier) {
-    ObjectMapper mapper = OrcaObjectMapper.getInstance();
-    SimpleModule module = new SimpleModule("artifact-store")
-    if (serializerModifier.isPresent()) {
-      // We need this serializer for storing into the object store before going into the Spinnaker DBs
-      module.setSerializerModifier(serializerModifier.get())
-    }
-
-    mapper.registerModule(module)
-    return mapper;
-  }
-
   @Bean
   FilterRegistrationBean authenticatedRequestFilter() {
     def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true))
