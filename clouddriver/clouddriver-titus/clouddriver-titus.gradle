@@ -2,7 +2,7 @@ apply plugin: "com.google.protobuf"
 
 ext {
   protobufVersion = '3.21.12'
-  grpcVersion = '1.45.1'
+  grpcVersion = '1.63.0'
 }
 
 dependencies {
@@ -16,7 +16,7 @@ dependencies {
   implementation project(":clouddriver-saga")
   implementation project(":clouddriver-security")
 
-  implementation "javax.inject:javax.inject:1"
+  implementation "jakarta.inject:jakarta.inject-api:2.0.1"
   implementation "com.amazonaws:aws-java-sdk"
   implementation "com.google.protobuf:protobuf-java"
   implementation "com.google.protobuf:protobuf-java-util"
@@ -80,7 +80,7 @@ protobuf {
   }
   generateProtoTasks {
     all()*.plugins {
-      grpc {}
+      grpc {option 'jakarta_omit'}
     }
   }
 }

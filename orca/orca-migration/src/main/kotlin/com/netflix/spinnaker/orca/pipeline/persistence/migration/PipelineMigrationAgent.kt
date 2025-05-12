@@ -54,8 +54,7 @@ class PipelineMigrationAgent(
         .retrievePipelinesForPipelineConfigId(pipelineConfigId, executionCriteria)
         .filter { !previouslyMigratedPipelineIds.contains(it.id) }
         .toList()
-        .toBlocking()
-        .single()
+        .blockingGet()
 
       if (unmigratedPipelines.isNotEmpty()) {
         log.info("${unmigratedPipelines.size} pipelines to migrate ($pipelineConfigId) [$index/${allPipelineConfigIds.size}]")

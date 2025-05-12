@@ -35,7 +35,7 @@ dependencies {
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.security:spring-security-test"
-  testImplementation "com.github.tomakehurst:wiremock-jre8"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "io.spinnaker.kork:kork-core"
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 

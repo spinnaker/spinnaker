@@ -27,7 +27,7 @@ import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES

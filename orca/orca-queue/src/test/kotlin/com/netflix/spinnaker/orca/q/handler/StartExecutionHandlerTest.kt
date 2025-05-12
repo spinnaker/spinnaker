@@ -57,7 +57,7 @@ import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
-import rx.Observable.just
+import io.reactivex.rxjava3.core.Observable.just
 
 object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 

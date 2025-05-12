@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Bean
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 /**
  * Wrapper class for a collection of BitBucket clients

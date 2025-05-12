@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kork.telemetry.caffeine;
 
+import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.netflix.spectator.api.Counter;
@@ -71,20 +72,14 @@ public class CaffeineStatsCounter implements StatsCounter {
   }
 
   @Override
-  @SuppressWarnings("deprecation")
-  public void recordEviction() {
-    recordEviction(1);
-  }
-
-  @Override
-  public void recordEviction(int weight) {
+  public void recordEviction(int weight, RemovalCause cause) {
     evictionCount.increment();
     evictionWeight.increment(weight);
   }
 
   @Override
   public CacheStats snapshot() {
-    return new CacheStats(
+    return CacheStats.of(
         hitCount.count(),
         missCount.count(),
         loadSuccessCount.count(),

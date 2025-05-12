@@ -48,6 +48,7 @@ import org.testcontainers.DockerClientFactory
 import java.lang.System.currentTimeMillis
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
 import javax.sql.DataSource
+import io.reactivex.rxjava3.core.Observable
 
 class SqlExecutionRepositoryTest : JUnit5Minutests {
 
@@ -309,7 +310,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         sqlExecutionRepository.store(pipelineExecution2)
 
         val observable = sqlExecutionRepository.retrievePipelinesForApplication("application-2")
-        val executions = observable.toList().toBlocking().single()
+        val executions = observable.toList().blockingGet()
         assertThat(executions.map(PipelineExecution::getApplication).single()).isEqualTo("application-2")
       }
     }
