@@ -1,8 +1,8 @@
 import { REST } from '../api/ApiService';
 import type { IArtifact, IManifest } from '../domain';
+import { getContentReference } from '../pipeline';
 import { ArtifactService } from '../pipeline/config/triggers/artifacts/ArtifactService';
 import { decodeUnicodeBase64 } from '../utils';
-import { getContentReference } from '../pipeline';
 
 export class ManifestReader {
   public static getManifest(account: string, location: string, name: string): PromiseLike<IManifest> {

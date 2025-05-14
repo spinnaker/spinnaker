@@ -1,8 +1,10 @@
-import { MAP_ARTIFACT_TYPE_REMOTE, ManifestReader } from '@spinnaker/core';
-import type { IArtifact } from '@spinnaker/core';
-import type { IStageManifest } from '../../../../../manifest';
 import { from, of } from 'rxjs';
-import { map, mergeMap, catchError, toArray, filter } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap, toArray } from 'rxjs/operators';
+
+import { ManifestReader, MAP_ARTIFACT_TYPE_REMOTE } from '@spinnaker/core';
+import type { IArtifact } from '@spinnaker/core';
+
+import type { IStageManifest } from '../../../../../manifest';
 
 /**
  * Retrieves manifests.

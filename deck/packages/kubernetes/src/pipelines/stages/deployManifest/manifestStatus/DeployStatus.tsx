@@ -7,9 +7,9 @@ import { CollapsibleElement, ExecutionDetailsSection, SETTINGS, StageFailureMess
 import { ManifestStatus } from './ManifestStatus';
 import type { IStageManifest } from '../../../../manifest/manifest.service';
 import { KubernetesManifestService } from '../../../../manifest/manifest.service';
+import { fetchManifests } from './utils/fetchManifests';
 
 import './DeployStatus.less';
-import { fetchManifests } from './utils/fetchManifests';
 
 export interface IManifestSubscription {
   id: string;
