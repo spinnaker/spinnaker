@@ -1,5 +1,6 @@
 import type { Rule } from 'eslint';
 import type { ImportDeclaration, ImportDefaultSpecifier, ImportNamespaceSpecifier, ImportSpecifier } from 'estree';
+import { getImportName } from '../utils/ast';
 
 const CSS_IMPORT = /\.(css|less|scss|sass)$/;
 const MODULE_PATH_REGEX = /[./]*(.*)$/;
@@ -58,7 +59,7 @@ const sortImportSpecifiers = (importDeclaration: ImportDeclaration) => {
     return importDeclaration;
   }
 
-  importSpecifiers.sort((a, b) => a.imported.name.localeCompare(b.imported.name));
+  importSpecifiers.sort((a, b) => getImportName(a.imported).localeCompare(getImportName(b.imported)));
 
   importDeclaration.specifiers = [defaultSpecifier, namespaceSpecifier, ...importSpecifiers].filter(
     (specifier) => !!specifier,

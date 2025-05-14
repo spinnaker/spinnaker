@@ -3,27 +3,57 @@ import { registerDefaultFixtures } from '../../support';
 describe('amazon ecs: ECSApp Server Group', () => {
   beforeEach(() => {
     registerDefaultFixtures();
-    cy.route('/applications/ecsapp/pipelines?**', 'fixture:ecs/pipelines/pipelines.json');
-    cy.route('/images/find?*', 'fixture:ecs/shared/images.json');
-    cy.route('/applications/ecsapp/pipelineConfigs', 'fixture:ecs/pipelines/pipelineConfigs.json');
-    cy.route('/pipelineConfigs/**', 'fixture:ecs/pipelines/pipelineConfigs.json');
-    cy.route('/networks/aws', 'fixture:ecs/default/networks.aws-ecs.json');
-    cy.route('/applications/ecsapp/serverGroups', 'fixture:ecs/clusters/serverGroups.json');
-    cy.route('/ecs/serviceDiscoveryRegistries', 'fixture:ecs/shared/serviceDiscoveryRegistries.json');
-    cy.route('/ecs/ecsClusters', 'fixture:ecs/shared/ecsClusters.json');
-    cy.route('/ecs/ecsClusterDescriptions/**', 'fixture:ecs/shared/ecsDescribeClusters.json');
-    cy.route('/ecs/secrets', []);
-    cy.route('/ecs/cloudMetrics/alarms', []);
-    cy.route('/artifacts/credentials', 'fixture:ecs/shared/artifacts.json');
-    cy.route('/roles/ecs', 'fixture:ecs/shared/roles.json');
-    cy.route('/subnets/ecs', 'fixture:ecs/shared/subnets.json');
-    cy.route('/loadBalancers?provider=ecs', 'fixture:ecs/shared/lb.json');
-    cy.route('/applications/ecsapp/clusters', 'fixture:ecs/clusters/clusters.json');
-    cy.route('/applications/ecsapp/loadBalancers', 'fixture:ecs/clusters/loadbalancers.json');
-    cy.route(
-      '/applications/ecsapp/serverGroups/**/aws-prod-ecsdemo-v000?includeDetails=false',
-      'fixture:ecs/clusters/serverGroup.ecsdemo-v000.json',
-    );
+
+    cy.intercept('/applications/ecsapp/pipelines?**', {
+      fixture: 'ecs/pipelines/pipelines.json',
+    });
+    cy.intercept('/images/find?*', {
+      fixture: 'ecs/shared/images.json',
+    });
+    cy.intercept('/applications/ecsapp/pipelineConfigs', {
+      fixture: 'ecs/pipelines/pipelineConfigs.json',
+    });
+    cy.intercept('/pipelineConfigs/**', {
+      fixture: 'ecs/pipelines/pipelineConfigs.json',
+    });
+    cy.intercept('/networks/aws', {
+      fixture: 'ecs/default/networks.aws-ecs.json',
+    });
+    cy.intercept('/applications/ecsapp/serverGroups', {
+      fixture: 'ecs/clusters/serverGroups.json',
+    });
+    cy.intercept('/ecs/serviceDiscoveryRegistries', {
+      fixture: 'ecs/shared/serviceDiscoveryRegistries.json',
+    });
+    cy.intercept('/ecs/ecsClusters', {
+      fixture: 'ecs/shared/ecsClusters.json',
+    });
+    cy.intercept('/ecs/ecsClusterDescriptions/**', {
+      fixture: 'ecs/shared/ecsDescribeClusters.json',
+    });
+    cy.intercept('/ecs/secrets', []);
+    cy.intercept('/ecs/cloudMetrics/alarms', []);
+    cy.intercept('/artifacts/credentials', {
+      fixture: 'ecs/shared/artifacts.json',
+    });
+    cy.intercept('/roles/ecs', {
+      fixture: 'ecs/shared/roles.json',
+    });
+    cy.intercept('/subnets/ecs', {
+      fixture: 'ecs/shared/subnets.json',
+    });
+    cy.intercept('/loadBalancers?provider=ecs', {
+      fixture: 'ecs/shared/lb.json',
+    });
+    cy.intercept('/applications/ecsapp/clusters', {
+      fixture: 'ecs/clusters/clusters.json',
+    });
+    cy.intercept('/applications/ecsapp/loadBalancers', {
+      fixture: 'ecs/clusters/loadbalancers.json',
+    });
+    cy.intercept('/applications/ecsapp/serverGroups/**/aws-prod-ecsdemo-v000?includeDetails=false', {
+      fixture: 'ecs/clusters/serverGroup.ecsdemo-v000.json',
+    });
   });
 
   it('configure a new server group with artifacts', () => {
@@ -206,7 +236,9 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
     cy.get('.glyphicon-edit').click();
 
-    cy.get('[data-test-id="ServerGroup.customCapacityProvider.name.0"]').find('.Select-value-label').should('have.text', 'FARGATE_SPOT');
+    cy.get('[data-test-id="ServerGroup.customCapacityProvider.name.0"]')
+      .find('.Select-value-label')
+      .should('have.text', 'FARGATE_SPOT');
     cy.get('[data-test-id="ServerGroup.capacityProvider.base.0"]').should('have.value', '1');
     cy.get('[data-test-id="ServerGroup.capacityProvider.weight.0"]').should('have.value', '2');
 
@@ -226,13 +258,12 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="ServerGroup.clusterName"]').type('example-app-test-Cluster-NSnYsTXmCfV2');
     cy.get('span:contains("example-app-test-Cluster-NSnYsTXmCfV2")').click();
 
-
-    cy.get('task-definition-react .evaluateTaskDef [type="checkbox"]').check()
+    cy.get('task-definition-react .evaluateTaskDef [type="checkbox"]').check();
 
     cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
     cy.get('.glyphicon-edit').click();
 
-    cy.get('.evaluateTaskDef [type="checkbox"]').check({force: true}).should('be.checked');
+    cy.get('.evaluateTaskDef [type="checkbox"]').check({ force: true }).should('be.checked');
 
     cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
     cy.get('[data-test-id="Pipeline.revertChanges"]').click();
