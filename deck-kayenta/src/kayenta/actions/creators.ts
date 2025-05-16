@@ -40,6 +40,9 @@ export const updateMetricDirection = createAction<{ id: string; direction: strin
 export const updateMetricNanStrategy = createAction<{ id: string; strategy: string }>(
   Actions.UPDATE_METRIC_NAN_STRATEGY,
 );
+export const updateMetricOutlierStrategy = createAction<{ id: string; strategy: string }>(
+  Actions.UPDATE_METRIC_OUTLIER_STRATEGY,
+);
 export const updateMetricCriticality = createAction<{ id: string; critical: boolean }>(
   Actions.UPDATE_METRIC_CRITICALITY,
 );
