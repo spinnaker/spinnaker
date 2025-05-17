@@ -79,6 +79,7 @@ dependencies {
 
     testImplementation "com.squareup.okhttp3:mockwebserver"
     testImplementation "io.spinnaker.kork:kork-jedis-test"
+    testImplementation "io.spinnaker.kork:kork-retrofit"
     testImplementation "org.apache.groovy:groovy-datetime"
     testImplementation "org.apache.groovy:groovy-json"
     testImplementation "org.junit.jupiter:junit-jupiter-api"
@@ -86,4 +87,5 @@ dependencies {
 
     testImplementation "com.squareup.retrofit2:retrofit-mock"
     testImplementation "com.github.tomakehurst:wiremock-jre8"
+    testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 }
