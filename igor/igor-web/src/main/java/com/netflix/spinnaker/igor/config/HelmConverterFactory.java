@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.config;
 
 import com.amazonaws.util.IOUtils;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.annotation.Annotation;
@@ -32,7 +33,12 @@ import retrofit2.Retrofit;
 public class HelmConverterFactory extends Factory {
   private static final MediaType DEFAULT_MEDIA_TYPE =
       MediaType.get("application/json; charset=UTF-8");
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper;
+
+  public HelmConverterFactory() {
+    this.objectMapper = new ObjectMapper();
+    this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  }
 
   @Override
   public Converter<?, RequestBody> requestBodyConverter(
