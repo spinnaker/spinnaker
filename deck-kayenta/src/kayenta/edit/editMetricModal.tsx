@@ -30,6 +30,7 @@ interface IEditMetricModalDispatchProps {
   changeGroup: (event: any) => void;
   updateDirection: (event: any) => void;
   updateNanStrategy: (event: any) => void;
+  updateOutlierStrategy: (event: any) => void;
   updateCriticality: (event: any) => void;
   updateDataRequired: (event: any) => void;
   confirm: () => void;
@@ -58,6 +59,7 @@ function EditMetricModal({
   isTemplateValid,
   updateDirection,
   updateNanStrategy,
+  updateOutlierStrategy,
   updateCriticality,
   updateDataRequired,
   useInlineTemplateEditor,
@@ -70,6 +72,7 @@ function EditMetricModal({
 
   const direction = metric.analysisConfigurations?.canary?.direction ?? 'either';
   const nanStrategy = metric.analysisConfigurations?.canary?.nanStrategy ?? 'default';
+  const outlierStrategy = metric.analysisConfigurations?.canary?.outliers?.strategy ?? 'default';
   const critical = metric.analysisConfigurations?.canary?.critical ?? false;
   const dataRequired = metric.analysisConfigurations?.canary?.mustHaveData ?? false;
   const isConfirmDisabled =
@@ -195,6 +198,29 @@ function EditMetricModal({
               action={updateNanStrategy}
             />
           </FormRow>
+          <FormRow label="Outlier Strategy" helpId="canary.config.outlierStrategy">
+            <RadioChoice
+              value="default"
+              label="Default (keep)"
+              name="outlierStrategy"
+              current={outlierStrategy}
+              action={updateOutlierStrategy}
+            />
+            <RadioChoice
+              value="remove"
+              label="Remove"
+              name="outlierStrategy"
+              current={outlierStrategy}
+              action={updateOutlierStrategy}
+            />
+            <RadioChoice
+              value="keep"
+              label="Keep"
+              name="outlierStrategy"
+              current={outlierStrategy}
+              action={updateOutlierStrategy}
+            />
+          </FormRow>
           <EditMetricEffectSizes />
           <MetricConfigurerDelegator />
           {templatesEnabled && !useInlineTemplateEditor && <FilterTemplateSelector />}
@@ -240,6 +266,9 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     },
     updateNanStrategy: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(Creators.updateMetricNanStrategy({ id: target.dataset.id, strategy: target.value }));
+    },
+    updateOutlierStrategy: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
+      dispatch(Creators.updateMetricOutlierStrategy({ id: target.dataset.id, strategy: target.value }));
     },
     updateCriticality: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(Creators.updateMetricCriticality({ id: target.dataset.id, critical: Boolean(target.checked) }));
