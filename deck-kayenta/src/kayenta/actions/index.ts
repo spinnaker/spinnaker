@@ -19,6 +19,7 @@ export const EDIT_METRIC_CONFIRM = 'edit_metric_modal_confirm';
 export const EDIT_METRIC_CANCEL = 'edit_metric_modal_cancel';
 export const UPDATE_METRIC_DIRECTION = 'update_metric_direction';
 export const UPDATE_METRIC_NAN_STRATEGY = 'update_metric_nan_strategy';
+export const UPDATE_METRIC_OUTLIER_STRATEGY = 'update_metric_outlier_strategy';
 export const UPDATE_METRIC_CRITICALITY = 'update_metric_criticality';
 export const UPDATE_METRIC_DATA_REQUIRED = 'update_metric_data_required';
 export const UPDATE_EFFECT_SIZE = 'update_effect_size';
