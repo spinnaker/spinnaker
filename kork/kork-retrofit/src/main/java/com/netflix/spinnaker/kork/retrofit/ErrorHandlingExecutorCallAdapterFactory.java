@@ -79,7 +79,7 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
      * it cannot be handled by this factory
      */
     if (getRawType(returnType) != Call.class) {
-      return null;
+      return new LegacySignatureCallAdapter(callbackExecutor, returnType, retrofit);
     }
 
     if (!(returnType instanceof ParameterizedType)) {
