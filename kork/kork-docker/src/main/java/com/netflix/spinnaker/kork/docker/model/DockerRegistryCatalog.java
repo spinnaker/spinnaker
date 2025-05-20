@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,20 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.netflix.spinnaker.clouddriver.docker.registry.api.v2;
+package com.netflix.spinnaker.kork.docker.model;
 
-public class DockerUserAgent {
-  public static String getUserAgent() {
-    String version;
-    try {
-      version = DockerUserAgent.class.getPackage().getImplementationVersion();
-    } catch (Exception _ignored) {
-      version = "Unknown";
-    }
+import java.util.List;
+import lombok.Data;
+import lombok.ToString;
 
-    return "Spinnaker/" + version;
-  }
+@Data
+@ToString(callSuper = false, includeFieldNames = true)
+public class DockerRegistryCatalog {
+  private List<String> repositories = List.of();
 }
