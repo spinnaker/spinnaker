@@ -16,15 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.provider.agent
 
-import com.netflix.spinnaker.cats.agent.*
+import com.netflix.spinnaker.cats.agent.AccountAware
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.AgentIntervalAware
+import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryTags
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.DefaultCacheDataBuilder
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.Keys
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProviderUtils
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials
+import com.netflix.spinnaker.kork.docker.model.DockerRegistryTags
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.util.logging.Slf4j
 

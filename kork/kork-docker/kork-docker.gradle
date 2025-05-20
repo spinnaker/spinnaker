@@ -1,0 +1,31 @@
+apply plugin: "java-library"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  implementation project(":kork-annotations")
+  implementation project(":kork-retrofit")
+  implementation project(":kork-exceptions")
+  implementation project(":kork-web")
+
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  api "org.slf4j:slf4j-api"
+  implementation "org.apache.commons:commons-lang3"
+
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation 'org.mockito:mockito-inline'
+  testImplementation "org.mockito:mockito-junit-jupiter"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "com.github.tomakehurst:wiremock-jre8"
+
+
+
+}
