@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerOkClientProvider
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
 import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistryConfigException
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.docker.service.DockerOkClientProvider
+import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j

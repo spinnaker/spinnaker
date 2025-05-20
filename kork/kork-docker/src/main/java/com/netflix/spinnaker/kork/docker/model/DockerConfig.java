@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
+package com.netflix.spinnaker.kork.docker.model;
 
-import groovy.transform.ToString
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.ToString;
 
-@ToString(includeNames = true)
-class DockerRegistryTags {
-  String name
-  List<String> tags
+@Data
+@ToString(callSuper = false, includeFieldNames = true)
+public class DockerConfig {
+  @JsonProperty("mediaType")
+  private String mediaType;
+
+  @JsonProperty("digest")
+  private String digest;
+
+  @JsonProperty("size")
+  private int size;
 }
-
-@ToString(includeNames = true)
-class DockerRegistryCatalog {
-  List<String> repositories
-}
-
