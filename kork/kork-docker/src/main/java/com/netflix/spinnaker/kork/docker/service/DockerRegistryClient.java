@@ -366,15 +366,11 @@ public class DockerRegistryClient {
             () ->
                 Retrofit2SyncCall.executeCall(
                     registryService.getDigestContent(
-                        name,
-                        digest,
-                        tokenService.getBasicAuthHeader(),
-                        DockerUserAgent.getUserAgent())),
+                        name, digest, tokenService.getBasicAuthHeader(), USER_AGENT)),
             // withToken: authenticated call with token
             (token) ->
                 Retrofit2SyncCall.executeCall(
-                    registryService.getDigestContent(
-                        name, digest, token, DockerUserAgent.getUserAgent())),
+                    registryService.getDigestContent(name, digest, token, USER_AGENT)),
             name);
 
     return (Map) convertResponseBody(response.body(), Map.class);
@@ -386,11 +382,11 @@ public class DockerRegistryClient {
         () ->
             Retrofit2SyncCall.executeCall(
                 registryService.getManifest(
-                    name, tag, tokenService.getBasicAuthHeader(), DockerUserAgent.getUserAgent())),
+                    name, tag, tokenService.getBasicAuthHeader(), USER_AGENT)),
         // withToken: authenticated call with token
         (token) ->
             Retrofit2SyncCall.executeCall(
-                registryService.getManifest(name, tag, token, DockerUserAgent.getUserAgent())),
+                registryService.getManifest(name, tag, token, USER_AGENT)),
         name);
   }
 
@@ -400,12 +396,10 @@ public class DockerRegistryClient {
         // withoutToken: unauthenticated call
         () ->
             Retrofit2SyncCall.executeCall(
-                registryService.downloadBlob(
-                    path, tokenService.getBasicAuthHeader(), DockerUserAgent.getUserAgent())),
+                registryService.downloadBlob(path, tokenService.getBasicAuthHeader(), USER_AGENT)),
         // withToken: authenticated call with token
         (token) ->
-            Retrofit2SyncCall.executeCall(
-                registryService.downloadBlob(path, token, DockerUserAgent.getUserAgent())),
+            Retrofit2SyncCall.executeCall(registryService.downloadBlob(path, token, USER_AGENT)),
         repository);
   }
 
@@ -415,12 +409,11 @@ public class DockerRegistryClient {
         () ->
             Retrofit2SyncCall.executeCall(
                 registryService.getSchemaV2Manifest(
-                    name, tag, tokenService.getBasicAuthHeader(), DockerUserAgent.getUserAgent())),
+                    name, tag, tokenService.getBasicAuthHeader(), USER_AGENT)),
         // withToken: authenticated call with token
         (token) ->
             Retrofit2SyncCall.executeCall(
-                registryService.getSchemaV2Manifest(
-                    name, tag, token, DockerUserAgent.getUserAgent())),
+                registryService.getSchemaV2Manifest(name, tag, token, USER_AGENT)),
         name);
   }
 
@@ -566,7 +559,11 @@ public class DockerRegistryClient {
       String[] params = queryParamsString.split("&");
       for (String param : params) {
         String[] kv = param.split("=", 2);
-        if (kv.length == 2) queryParams.put(kv[0], kv[1]);
+        if (kv.length == 2) {
+          queryParams.put(kv[0], kv[1]);
+        } else if (kv.length == 1) {
+          queryParams.put(kv[0], null);
+        }
       }
     }
     return new Pair<>(nextPathNew, queryParams);
@@ -611,21 +608,17 @@ public class DockerRegistryClient {
                           registryService.get(
                               path,
                               tokenService.getBasicAuthHeader(),
-                              DockerUserAgent.getUserAgent(),
+                              USER_AGENT,
                               finalQueryParams))
                       : Retrofit2SyncCall.executeCall(
                           registryService.getCatalog(
-                              tokenService.getBasicAuthHeader(),
-                              DockerUserAgent.getUserAgent(),
-                              finalQueryParams)),
+                              tokenService.getBasicAuthHeader(), USER_AGENT, finalQueryParams)),
               token ->
                   path != null
                       ? Retrofit2SyncCall.executeCall(
-                          registryService.get(
-                              path, token, DockerUserAgent.getUserAgent(), finalQueryParams))
+                          registryService.get(path, token, USER_AGENT, finalQueryParams))
                       : Retrofit2SyncCall.executeCall(
-                          registryService.getCatalog(
-                              token, DockerUserAgent.getUserAgent(), finalQueryParams)),
+                          registryService.getCatalog(token, USER_AGENT, finalQueryParams)),
               "_catalog");
     } catch (Exception e) {
       log.warn("Error encountered during catalog of {}", path, e);
@@ -660,24 +653,19 @@ public class DockerRegistryClient {
                 path != null
                     ? Retrofit2SyncCall.executeCall(
                         registryService.get(
-                            path,
-                            tokenService.getBasicAuthHeader(),
-                            DockerUserAgent.getUserAgent(),
-                            finalQueryParams))
+                            path, tokenService.getBasicAuthHeader(), USER_AGENT, finalQueryParams))
                     : Retrofit2SyncCall.executeCall(
                         registryService.getTags(
                             repository,
                             tokenService.getBasicAuthHeader(),
-                            DockerUserAgent.getUserAgent(),
+                            USER_AGENT,
                             finalQueryParams)),
             token ->
                 path != null
                     ? Retrofit2SyncCall.executeCall(
-                        registryService.get(
-                            path, token, DockerUserAgent.getUserAgent(), finalQueryParams))
+                        registryService.get(path, token, USER_AGENT, finalQueryParams))
                     : Retrofit2SyncCall.executeCall(
-                        registryService.getTags(
-                            repository, token, DockerUserAgent.getUserAgent(), finalQueryParams)),
+                        registryService.getTags(repository, token, USER_AGENT, finalQueryParams)),
             repository);
     String nextPath = findNextLink(response != null ? response.headers() : null);
     DockerRegistryTags tags =
@@ -751,10 +739,8 @@ public class DockerRegistryClient {
     return request(
         () ->
             Retrofit2SyncCall.executeCall(
-                registryService.checkVersion(basicAuthHeader, DockerUserAgent.getUserAgent())),
-        token ->
-            Retrofit2SyncCall.executeCall(
-                registryService.checkVersion(token, DockerUserAgent.getUserAgent())),
+                registryService.checkVersion(basicAuthHeader, USER_AGENT)),
+        token -> Retrofit2SyncCall.executeCall(registryService.checkVersion(token, USER_AGENT)),
         "v2 version check");
   }
 

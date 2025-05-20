@@ -443,6 +443,36 @@ public class DockerRegistryClientTest {
         .getToken(Mockito.eq(repository), Mockito.eq(authenticateDetails));
   }
 
+  @Test
+  public void getTags_WithNextLink_Having_No_QueryParam_Value() {
+    wmDockerRegistry.stubFor(
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader(
+                        "link",
+                        "</v2/library/nginx/tags/list?last=1-alpine-slim&n=5&orderby=>; rel=\"next\"")
+                    .withBody(tagsResponseString)));
+    wmDockerRegistry.stubFor(
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?last=1-alpine-slim&orderby=&n=5"))
+            .willReturn(
+                aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader(
+                        "link",
+                        // to test the logic when `?` is not present in the link header
+                        "</v2/library/nginx/tags/list1>; rel=\"next\"")
+                    .withBody(tagsSecondResponseString)));
+    wmDockerRegistry.stubFor(
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list1\\?n=5"))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(tagsThirdResponseString)));
+
+    DockerRegistryTags dockerRegistryTags = dockerRegistryClient.getTags("library/nginx");
+    assertEquals(15, dockerRegistryTags.getTags().size());
+  }
+
   public static SpinnakerHttpException makeSpinnakerHttpException(String authenticateDetails) {
     String url = "https://some-url";
     String BearerString = "Bearer " + authenticateDetails;

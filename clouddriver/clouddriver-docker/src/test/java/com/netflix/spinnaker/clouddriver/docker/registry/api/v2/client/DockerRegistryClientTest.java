@@ -264,7 +264,7 @@ public class DockerRegistryClientTest {
                         "</v2/library/nginx/tags/list?last=1-alpine-slim&n=5&orderby=>; rel=\"next\"")
                     .withBody(tagsResponseString)));
     wmDockerRegistry.stubFor(
-        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?last=1-alpine-slim&n=5&orderby="))
+        WireMock.get(urlMatching("/v2/library/nginx/tags/list\\?last=1-alpine-slim&orderby=&n=5"))
             .willReturn(
                 aResponse()
                     .withStatus(HttpStatus.OK.value())
