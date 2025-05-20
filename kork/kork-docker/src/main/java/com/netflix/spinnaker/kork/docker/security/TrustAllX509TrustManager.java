@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.docker.registry.security
+package com.netflix.spinnaker.kork.docker.security;
 
-import java.security.cert.CertificateException
-import java.security.cert.X509Certificate
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.X509TrustManager;
 
-import javax.net.ssl.X509TrustManager
-
-class TrustAllX509TrustManager implements X509TrustManager {
-
-  @Override
-  void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
-  }
+public class TrustAllX509TrustManager implements X509TrustManager {
 
   @Override
-  void checkClientTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
-  }
+  public void checkClientTrusted(X509Certificate[] chain, String authType)
+      throws CertificateException {}
 
   @Override
-  X509Certificate[] getAcceptedIssuers() {
+  public void checkServerTrusted(X509Certificate[] chain, String authType)
+      throws CertificateException {}
+
+  @Override
+  public X509Certificate[] getAcceptedIssuers() {
     X509Certificate[] result = new X509Certificate[0];
     return result;
   }
-
 }
