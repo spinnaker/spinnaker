@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Netflix, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client;
 
-import com.netflix.spinnaker.clouddriver.docker.registry.security.TrustAllX509TrustManager;
+package com.netflix.spinnaker.kork.docker.service;
+
+import com.netflix.spinnaker.kork.docker.security.TrustAllX509TrustManager;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

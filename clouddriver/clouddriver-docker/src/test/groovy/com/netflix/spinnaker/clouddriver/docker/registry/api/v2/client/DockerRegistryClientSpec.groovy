@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
+import com.netflix.spinnaker.kork.docker.model.DockerBearerToken
+import com.netflix.spinnaker.kork.docker.model.DockerRegistryTags
+import com.netflix.spinnaker.kork.docker.service.DockerBearerTokenService
+import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient
+import com.netflix.spinnaker.kork.docker.service.RegistryService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import okhttp3.MediaType
 import okhttp3.Protocol
@@ -44,7 +47,7 @@ class DockerRegistryClientSpec extends Specification {
   DockerRegistryClient client
   def dockerBearerTokenService = Mock(DockerBearerTokenService)
 
-  def stubbedRegistryService = Stub(DockerRegistryClient.DockerRegistryService){
+  def stubbedRegistryService = Stub(RegistryService){
     String tagsJson = "{\"name\":\"library/ubuntu\",\"tags\":[\"latest\",\"xenial\",\"rolling\"]}"
     Response tagsResponse =  Response.success(200, ResponseBody.create(MediaType.parse("application/json"), tagsJson))
     getTags(_,_,_,_) >> Calls.response(tagsResponse)
@@ -143,12 +146,12 @@ class DockerRegistryClientSpec extends Specification {
   }
 
   void "DockerRegistryClient uses correct user agent"() {
-    def mockService  = Mock(DockerRegistryClient.DockerRegistryService);
+    def mockService  = Mock(RegistryService);
     client = new DockerRegistryClient("https://index.docker.io",100,"","",mockService, dockerBearerTokenService)
 
     when:
     client.checkV2Availability()
-    def userAgent = client.userAgent
+    def userAgent = client.USER_AGENT
 
     then:
     userAgent.startsWith("Spinnaker")
@@ -189,7 +192,7 @@ class DockerRegistryClientSpec extends Specification {
     setup:
     def authenticateDetails = "realm=\"https://auth.docker.io/token\",service=\"registry.docker.io\",scope=\"repository:${REPOSITORY1}:pull\""
     DockerBearerToken token = new DockerBearerToken()
-    token.bearer_token = "bearer-token"
+    token.bearerToken = "bearer-token"
 
     when:
     client = new DockerRegistryClient("https://index.docker.io", 100, "", "", stubbedRegistryService, dockerBearerTokenService)
