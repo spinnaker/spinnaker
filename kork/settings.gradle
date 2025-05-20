@@ -31,6 +31,7 @@ include(
   "kork-credentials",
   "kork-credentials-api",
   "kork-crypto",
+  "kork-docker",
   "kork-eureka",
   "kork-exceptions",
   "kork-expressions",
