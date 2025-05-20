@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
+import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient
 
 class DockerRegistryCredentials {
   private final DockerRegistryClient client
