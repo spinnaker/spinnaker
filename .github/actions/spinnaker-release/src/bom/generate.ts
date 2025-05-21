@@ -4,6 +4,7 @@ import { services } from './services/all';
 import * as util from '../util';
 import { fromCurrent, VersionsDotYml } from './versionsDotYml';
 import { forVersion, Changelog } from './changelog';
+import { Version } from '../versions';
 
 export async function generate(): Promise<void> {
   const bom = await generateBom().catch((err) => {
@@ -38,10 +39,13 @@ export async function generate(): Promise<void> {
 async function generateBom(): Promise<Bom> {
   core.info('Running BoM generator');
 
-  const version = util.getInput('version');
+  const version = Version.parse(util.getInput('version'));
+  if (!version) {
+    throw new Error('Valid version must be provided to generate a BoM');
+  }
   const bom = new Bom(version);
   for (const service of services) {
-    bom.setService(service);
+    bom.setService(service, version);
   }
 
   return bom;
