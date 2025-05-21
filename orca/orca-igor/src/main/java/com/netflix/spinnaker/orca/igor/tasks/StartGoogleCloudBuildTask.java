@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -28,14 +29,13 @@ import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
-import java.io.IOException;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
-import retrofit.client.Response;
 
 @Component
 @RequiredArgsConstructor
@@ -109,12 +109,10 @@ public class StartGoogleCloudBuildTask implements Task {
     Map<String, Object> buildDefinition =
         retrySupport.retry(
             () -> {
-              try {
-                Response buildText = oortService.fetchArtifact(buildDefinitionArtifact);
-                Object result = yamlParser.get().load(buildText.getBody().in());
+              try (ResponseBody buildText =
+                  Retrofit2SyncCall.execute(oortService.fetchArtifact(buildDefinitionArtifact))) {
+                Object result = yamlParser.get().load(buildText.byteStream());
                 return (Map<String, Object>) result;
-              } catch (IOException e) {
-                throw new RuntimeException(e);
               }
             },
             10,

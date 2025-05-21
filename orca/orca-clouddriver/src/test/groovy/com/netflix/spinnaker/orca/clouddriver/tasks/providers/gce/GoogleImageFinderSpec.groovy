@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -47,7 +48,7 @@ class GoogleImageFinderSpec extends Specification {
 
     then:
     1 * oortService.findImage("gce", "mypackage", null, null, ["tag:engine": "spinnaker"]) >> {
-      [
+      Calls.response([
         [
           imageName : "image-0",
           attributes: [creationDate: bCD("2014")],
@@ -63,7 +64,7 @@ class GoogleImageFinderSpec extends Specification {
           attributes: [creationDate: bCD("2015")],
           tags      : tags
         ]
-      ]
+      ])
     }
     0 * _
 

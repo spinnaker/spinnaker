@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.google.gson.Gson
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -138,7 +137,7 @@ class MonitorKatoTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then: 'should set the retry count'
-    MonitorKatoTask.MAX_HTTP_INTERNAL_RETRIES * kato.lookupTask(taskId, false) >> { notFoundException() }
+    1 * kato.lookupTask(taskId, false) >> { notFoundException() }
     result.context['kato.task.notFoundRetryCount'] == 1
     result.status == ExecutionStatus.RUNNING
     notThrown(SpinnakerHttpException)
@@ -147,8 +146,8 @@ class MonitorKatoTaskSpec extends Specification {
     stage.context.put('kato.task.notFoundRetryCount', 1)
     result = task.execute(stage)
 
-    then: 'should increment task count'
-    MonitorKatoTask.MAX_HTTP_INTERNAL_RETRIES * kato.lookupTask(taskId, false) >> { notFoundException() }
+    then: 'should increment task count '
+    1 * kato.lookupTask(taskId, false) >> { notFoundException() }
     result.context['kato.task.notFoundRetryCount'] == 2
     result.status == ExecutionStatus.RUNNING
     notThrown(SpinnakerHttpException)

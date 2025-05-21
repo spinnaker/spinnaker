@@ -11,6 +11,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.oracle;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
@@ -48,8 +49,9 @@ public class OracleImageFinder implements ImageFinder {
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
     List<OracleImage> allMatchedImages =
-        oortService
-            .findImage(getCloudProvider(), packageName, null, null, prefixTags(freeformTags))
+        Retrofit2SyncCall.execute(
+                oortService.findImage(
+                    getCloudProvider(), packageName, null, null, prefixTags(freeformTags)))
             .stream()
             .map(imageAsMap -> objectMapper.convertValue(imageAsMap, OracleImage.class))
             .sorted()

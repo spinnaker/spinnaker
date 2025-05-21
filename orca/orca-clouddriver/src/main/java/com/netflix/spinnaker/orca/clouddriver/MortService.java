@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import groovy.transform.EqualsAndHashCode;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,20 +29,21 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface MortService {
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
-  SecurityGroup getSecurityGroup(
+  Call<SecurityGroup> getSecurityGroup(
       @Path("account") String account,
       @Path("type") String type,
       @Path("securityGroupName") String securityGroupName,
       @Path("region") String region);
 
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
-  SecurityGroup getSecurityGroup(
+  Call<SecurityGroup> getSecurityGroup(
       @Path("account") String account,
       @Path("type") String type,
       @Path("securityGroupName") String securityGroupName,
@@ -49,13 +51,14 @@ public interface MortService {
       @Query("vpcId") String vpcId);
 
   @GET("/vpcs")
-  Collection<VPC> getVPCs();
+  Call<Collection<VPC>> getVPCs();
 
   @GET("/search")
-  List<SearchResult> getSearchResults(@Query("q") String searchTerm, @Query("type") String type);
+  Call<List<SearchResult>> getSearchResults(
+      @Query("q") String searchTerm, @Query("type") String type);
 
   @GET("/credentials/{account}")
-  Map getAccountDetails(@Path("account") String account);
+  Call<Map> getAccountDetails(@Path("account") String account);
 
   class SearchResult {
     int totalMatches;
@@ -139,8 +142,9 @@ public interface MortService {
 
                 if (securityGroupName == null) {
                   List<SearchResult> searchResults =
-                      mortService.getSearchResults(
-                          (String) securityGroup.get("id"), "securityGroups");
+                      Retrofit2SyncCall.execute(
+                          mortService.getSearchResults(
+                              (String) securityGroup.get("id"), "securityGroups"));
                   securityGroupName =
                       searchResults != null
                           ? (String) searchResults.get(0).results.get(0).get("name")
@@ -166,7 +170,8 @@ public interface MortService {
 
     static SecurityGroup findById(MortService mortService, String securityGroupId) {
       List<SearchResult> searchResults =
-          mortService.getSearchResults(securityGroupId, "securityGroups");
+          Retrofit2SyncCall.execute(
+              mortService.getSearchResults(securityGroupId, "securityGroups"));
 
       Map securityGroup = null;
       if (!searchResults.isEmpty()
@@ -181,12 +186,13 @@ public interface MortService {
             String.format("Security group (%s) does not exist", securityGroupId));
       }
 
-      return mortService.getSecurityGroup(
-          (String) securityGroup.getOrDefault("account", null),
-          searchResults.get(0).platform,
-          (String) securityGroup.get("name"),
-          (String) securityGroup.getOrDefault("region", null),
-          (String) securityGroup.getOrDefault("vpcId", null));
+      return Retrofit2SyncCall.execute(
+          mortService.getSecurityGroup(
+              (String) securityGroup.getOrDefault("account", null),
+              searchResults.get(0).platform,
+              (String) securityGroup.get("name"),
+              (String) securityGroup.getOrDefault("region", null),
+              (String) securityGroup.getOrDefault("vpcId", null)));
     }
   }
 

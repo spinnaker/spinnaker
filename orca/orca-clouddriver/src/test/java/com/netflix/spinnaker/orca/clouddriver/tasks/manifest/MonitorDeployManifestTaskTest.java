@@ -60,6 +60,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 import retrofit.converter.JacksonConverter;
 import retrofit.mime.TypedByteArray;
+import retrofit2.mock.Calls;
 
 @ExtendWith(MockitoExtension.class)
 @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
@@ -210,7 +211,7 @@ final class MonitorDeployManifestTaskTest {
         .thenReturn("ns");
 
     when(oortService.getManifest("account", "ns", "pod owner-clouddriver-pod-name", false))
-        .thenReturn(manifestBuilder().stable(true).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.RUNNING);

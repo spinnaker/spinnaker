@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.artifacts;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -50,7 +51,9 @@ public class FindArtifactsFromResourceTask implements CloudProviderAware, Task {
     Manifest manifest =
         retrySupport.retry(
             () ->
-                oortService.getManifest(account, stageData.location, stageData.manifestName, false),
+                Retrofit2SyncCall.execute(
+                    oortService.getManifest(
+                        account, stageData.location, stageData.manifestName, false)),
             5,
             1000,
             true);

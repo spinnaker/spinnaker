@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -130,12 +131,12 @@ class SourceResolverSpec extends Specification {
       'app-test',
       'aws',
       'us-west-1',
-      'current_asg_dynamic') >> new ServerGroup(
+      'current_asg_dynamic') >> Calls.response(new ServerGroup(
     [
       "name": "app-test-v009",
       "region": "us-west-1",
       "createdTime": 1
-    ])
+    ]))
 
     source?.account == 'test'
     source?.region == 'us-west-1'
@@ -178,12 +179,12 @@ class SourceResolverSpec extends Specification {
       'app-test',
       'cloudfoundry',
       'org2 > space2',
-      'current_asg_dynamic') >> new ServerGroup(
+      'current_asg_dynamic') >> Calls.response(new ServerGroup(
     [
       "name": "app-test-v009",
       "region": "org2 > space2",
       "createdTime": 1
-    ])
+    ]))
 
     source?.account == 'test2'
     source?.region == 'org2 > space2'

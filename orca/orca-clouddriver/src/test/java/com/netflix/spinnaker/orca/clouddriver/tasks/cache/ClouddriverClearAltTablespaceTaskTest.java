@@ -21,21 +21,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class ClouddriverClearAltTablespaceTaskTest {
 
@@ -51,7 +52,7 @@ public class ClouddriverClearAltTablespaceTaskTest {
   }
 
   @Test
-  void testSpinnakerServerExceptionHandling() {
+  void testSpinnakerHttpExceptionHandling() {
 
     String namespace = "test-namespace";
     StageExecution stageExecution = new StageExecutionImpl();
@@ -60,25 +61,33 @@ public class ClouddriverClearAltTablespaceTaskTest {
 
     context.put("namespace", namespace);
     stageExecution.setContext(context);
-    Response mockResponse =
-        new Response(
-            "http://foo.com/admin/db/truncate/" + namespace,
-            400,
-            "bad-request",
-            Collections.emptyList(),
-            null);
 
-    RetrofitError retrofitError =
-        RetrofitError.httpError(
-            "https://foo.com/admin/db/truncate/" + namespace, mockResponse, null, null);
-    SpinnakerServerException spinnakerServerException = new SpinnakerServerException(retrofitError);
-    errors.add(spinnakerServerException.getMessage());
+    SpinnakerHttpException spinnakerHttpException = makeSpinnakerHttpException(400);
 
-    when(cloudDriverCacheService.clearNamespace(namespace)).thenThrow(spinnakerServerException);
+    errors.add(spinnakerHttpException.getMessage());
+
+    when(cloudDriverCacheService.clearNamespace(namespace)).thenThrow(spinnakerHttpException);
     TaskResult taskResult = clouddriverClearAltTablespaceTask.execute(stageExecution);
 
     assertEquals(taskResult.getStatus(), ExecutionStatus.TERMINAL);
     assertTrue(taskResult.getContext().containsKey("errors"));
     assertEquals(errors.toString(), taskResult.getContext().get("errors").toString());
+  }
+
+  public static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+    String url = "https://some-url";
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"));
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

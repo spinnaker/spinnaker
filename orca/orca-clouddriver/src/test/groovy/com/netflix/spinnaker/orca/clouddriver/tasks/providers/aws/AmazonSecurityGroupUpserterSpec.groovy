@@ -20,15 +20,17 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.filterForSecurityGroupIngress
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class AmazonSecurityGroupUpserterSpec extends Specification {
 
@@ -39,10 +41,10 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
   def ctx = [securityGroupName: "SG1", credentials: "test"]
 
   @Shared
-  def error404 = RetrofitError.httpError(null, new Response("", HTTP_NOT_FOUND, "Not Found", [], null), null, null)
+  def error404 = makeSpinnakerHttpException(404)
 
   @Shared
-  def notFoundException = new SpinnakerHttpException(error404)
+  def notFoundException = error404
 
   def "should throw exception on missing region"() {
     given:
@@ -63,7 +65,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
     }
     def stage = new StageExecutionImpl(pipe, "upsertSecurityGroup", context)
       upserter.mortService = Mock(MortService) {
-        1 * getVPCs() >> allVPCs
+        1 * getVPCs() >> Calls.response(allVPCs)
       }
 
     when:
@@ -103,7 +105,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
     given:
       upserter.mortService = Stub(MortService) {
         getSecurityGroup(_, _, _, _, _) >> {
-          currentSecurityGroupProvider.call()
+          Calls.response(currentSecurityGroupProvider.call())
         }
       }
     def pipe = pipeline {
@@ -148,5 +150,22 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
           [startPort: it, endPort: it]
         }
     ]
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
+    String url = "https://mort";
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), message))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }
