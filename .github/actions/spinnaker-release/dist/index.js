@@ -63265,6 +63265,7 @@ const fs = __importStar(__nccwpck_require__(7147));
 const os = __importStar(__nccwpck_require__(2037));
 const util = __importStar(__nccwpck_require__(2629));
 const uuid = __importStar(__nccwpck_require__(3730));
+const versions_1 = __nccwpck_require__(3296);
 const monorepo = util.getInput('monorepo-location');
 const docsRepo = util.getInput('docs-repo-location');
 const partitions = [
@@ -63292,7 +63293,7 @@ const partitions = [
 const conventionalCommit = /.+\((.+)\):\s*(.+)/;
 async function forVersion(version, previousVersion) {
     if (!previousVersion) {
-        const parsed = util.parseVersion(version);
+        const parsed = versions_1.Version.parse(version);
         if (!parsed) {
             throw new Error(`Unable to parse version ${version}`);
         }
@@ -63324,7 +63325,7 @@ function filterCommits(commits) {
         .filter((c) => !(c.includes('Merge') && c.includes(' into '))));
 }
 async function generate(version, previousVersion) {
-    const parsed = util.parseVersion(version);
+    const parsed = versions_1.Version.parse(version);
     if (!parsed) {
         throw new Error(`Failed to parse version ${version}`);
     }
@@ -63985,6 +63986,7 @@ const yaml_1 = __nccwpck_require__(4083);
 const stored_yml_1 = __nccwpck_require__(1479);
 const util = __importStar(__nccwpck_require__(2629));
 const core = __importStar(__nccwpck_require__(2186));
+const versions_1 = __nccwpck_require__(3296);
 function empty() {
     return new VersionsDotYml([], '', '', []);
 }
@@ -64060,6 +64062,12 @@ class VersionsDotYml extends stored_yml_1.StoredYml {
             minimumHalyardVersion: versionStr,
             version: versionStr,
         });
+        // Update top-level metadata if this is the most recent version
+        const allVersionsSorted = (0, versions_1.parseAndSortVersionsAsStr)(this.versions.map((it) => it.version));
+        if (allVersionsSorted[0] === versionStr) {
+            this.latestHalyard = versionStr;
+            this.latestSpinnaker = versionStr;
+        }
     }
     removeVersion(versionStr) {
         this.versions = this.versions.filter((v) => v.version !== versionStr);
@@ -64466,7 +64474,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseVersion = exports.getInput = void 0;
+exports.getInput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 function getInput(name) {
     if (!name)
@@ -64476,26 +64484,105 @@ function getInput(name) {
     return core.getInput(name) || core.getInput(dehyphenated);
 }
 exports.getInput = getInput;
-function parseVersion(version) {
-    const split = version.split('.');
-    if (split.length != 3)
-        return null;
-    try {
-        const major = parseInt(split[0]);
-        const minor = parseInt(split[1]);
-        const patch = parseInt(split[2]);
-        return {
-            major,
-            minor,
-            patch,
-        };
+
+
+/***/ }),
+
+/***/ 3296:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
     }
-    catch (e) {
-        core.error(e);
-        return null;
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseAndSortVersionsAsStr = exports.parseAndSortVersions = exports.sortVersions = exports.Version = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+class Version {
+    major;
+    minor;
+    patch;
+    constructor(major, minor, patch) {
+        this.major = major;
+        this.minor = minor;
+        this.patch = patch;
+    }
+    static parse(version) {
+        const split = version.split('.');
+        if (split.length != 3)
+            return null;
+        try {
+            const major = parseInt(split[0]);
+            const minor = parseInt(split[1]);
+            const patch = parseInt(split[2]);
+            return new Version(major, minor, patch);
+        }
+        catch (e) {
+            core.error(e);
+            return null;
+        }
+    }
+    static compare(a, b) {
+        if (a.major > b.major)
+            return 1;
+        if (a.major < b.major)
+            return -1;
+        if (a.major === b.major) {
+            if (a.minor > b.minor)
+                return 1;
+            if (a.minor < b.minor)
+                return -1;
+            if (a.minor === b.minor) {
+                if (a.patch > b.patch)
+                    return 1;
+                if (a.patch < b.patch)
+                    return -1;
+            }
+        }
+        return 0;
+    }
+    toString() {
+        return `${this.major}.${this.minor}.${this.patch}`;
     }
 }
-exports.parseVersion = parseVersion;
+exports.Version = Version;
+// Sorts all provided versions descending
+function sortVersions(versions) {
+    return versions.sort(Version.compare).reverse();
+}
+exports.sortVersions = sortVersions;
+// Does the above but also parses them
+function parseAndSortVersions(versionStrs) {
+    const parsed = versionStrs.map(Version.parse).filter((x) => !!x);
+    // TS doesn't understand null filtering exactly apparently, so this cast is here
+    return sortVersions(parsed);
+}
+exports.parseAndSortVersions = parseAndSortVersions;
+function parseAndSortVersionsAsStr(versionStrs) {
+    return parseAndSortVersions(versionStrs).map((it) => it.toString());
+}
+exports.parseAndSortVersionsAsStr = parseAndSortVersionsAsStr;
 
 
 /***/ }),
