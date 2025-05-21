@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -60,7 +61,8 @@ public class DeleteDeliveryConfigTask implements Task {
 
   public Optional<DeliveryConfig> getDeliveryConfig(String id) {
     try {
-      DeliveryConfig deliveryConfig = front50Service.getDeliveryConfig(id);
+      DeliveryConfig deliveryConfig =
+          Retrofit2SyncCall.execute(front50Service.getDeliveryConfig(id));
       return Optional.of(deliveryConfig);
     } catch (SpinnakerHttpException e) {
       // ignore an unknown (404) or unauthorized (403, 401)

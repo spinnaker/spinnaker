@@ -142,7 +142,7 @@ class OperationsController {
     }
 
     try {
-      Map pipelineConfig = AuthenticatedRequest.allowAnonymous({ front50Service.getPipeline(pipelineConfigId) })
+      Map pipelineConfig = AuthenticatedRequest.allowAnonymous({ Retrofit2SyncCall.execute(front50Service.getPipeline(pipelineConfigId)) })
       pipelineConfig.trigger = trigger
       return pipelineConfig
     } catch (SpinnakerHttpException e) {

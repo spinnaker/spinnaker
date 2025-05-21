@@ -91,7 +91,7 @@ public class CheckIfApplicationExistsForServerGroupTaskTest {
             front50Service, oortService, objectMapper, retrySupport, configurationProperties);
 
     assert front50Service != null;
-    when(front50Service.get("testapp")).thenReturn(front50Application);
+    when(front50Service.get("testapp")).thenReturn(Calls.response(front50Application));
     stageExecution.setContext(getStageContext(applicationNameSource));
 
     // when:

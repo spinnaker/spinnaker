@@ -36,7 +36,6 @@ import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import com.netflix.spinnaker.orca.pipeline.util.PackageType
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import java.time.Duration
 import org.slf4j.Logger
@@ -81,7 +80,7 @@ class CreateBakeTask implements RetryableTask {
       if (front50Service != null) {
         String appName = stage.execution.application
         Application application =
-            retrySupport.retry({ return front50Service.get(appName) }, 5, Duration.ofMillis(2000), false)
+            retrySupport.retry({ return Retrofit2SyncCall.execute(front50Service.get(appName)) }, 5, Duration.ofMillis(2000), false)
         String user = application.email
         if (user != null && user != "") {
           stage.context.user = user

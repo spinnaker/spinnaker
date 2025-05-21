@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.front50.tasks;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -26,13 +28,14 @@ import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 @Component
 public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
@@ -99,18 +102,19 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
         .filter(m -> m.supports(pipeline))
         .forEach(m -> m.mutate(pipeline));
 
-    Response response =
-        front50Service.deletePipeline(
-            pipeline.get("application").toString(), pipeline.get("name").toString());
+    Response<ResponseBody> response =
+        Retrofit2SyncCall.executeCall(
+            front50Service.deletePipeline(
+                pipeline.get("application").toString(), pipeline.get("name").toString()));
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deletepipeline");
     outputs.put("application", pipeline.get("application"));
     outputs.put("pipeline.name", pipeline.get("name"));
 
-    try {
+    try (ResponseBody body = response.body()) {
       Map<String, Object> savedPipeline =
-          (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
+          objectMapper.readValue(body.byteStream(), new TypeReference<>() {});
       outputs.put("pipeline.id", savedPipeline.get("id"));
     } catch (Exception e) {
       log.error("Unable to deserialize saved pipeline, reason: ", e);
@@ -121,7 +125,7 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
     }
 
     final ExecutionStatus status;
-    if (response.getStatus() == HttpStatus.OK.value()) {
+    if (response.code() == HttpStatus.OK.value()) {
       status = ExecutionStatus.SUCCEEDED;
     } else {
       if (isSavingMultiplePipelines) {
@@ -161,7 +165,7 @@ public class DeletePipelineTask implements CloudProviderAware, RetryableTask {
     String applicationName = (String) newPipeline.get("application");
     String newPipelineID = (String) newPipeline.get("id");
     if (!StringUtils.isEmpty(newPipelineID)) {
-      return front50Service.getPipelines(applicationName).stream()
+      return Retrofit2SyncCall.execute(front50Service.getPipelines(applicationName)).stream()
           .filter(m -> m.containsKey("id"))
           .filter(m -> m.get("id").equals(newPipelineID))
           .findFirst()

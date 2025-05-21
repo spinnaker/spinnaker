@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import retrofit.RetrofitError
 import retrofit.client.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -41,7 +42,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> []
+    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([])
 
     notThrown(PipelineValidationFailed)
 
@@ -58,9 +59,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> [
+    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ]
+    ])
     0 * _
 
     notThrown(PipelineValidationFailed)
@@ -70,9 +71,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> [
+    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ]
+    ])
     0 * _
 
     notThrown(PipelineValidationFailed)
@@ -81,7 +82,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> Calls.response(
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false])
     0 * _
 
     notThrown(PipelineValidationFailed)
@@ -99,9 +101,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> [
+    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
-    ]
+    ])
     0 * _
 
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
@@ -110,7 +112,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> Calls.response(
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true])
     0 * _
 
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
@@ -124,9 +127,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
   def "allows enabled strategy to run"() {
     given:
-    front50Service.getStrategies(execution.application) >> [
+    front50Service.getStrategies(execution.application) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ]
+    ])
 
     when:
     validator.checkRunnable(execution)
@@ -145,9 +148,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
   def "prevents disabled strategy from running"() {
     given:
-    front50Service.getStrategies(execution.application) >> [
+    front50Service.getStrategies(execution.application) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
-    ]
+    ])
 
     when:
     validator.checkRunnable(execution)
@@ -169,7 +172,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> Calls.response([id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false])
 
     notThrown(PipelineValidationFailed)
 

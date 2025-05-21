@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import java.util.Map;
@@ -162,7 +163,7 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
       RetrySupport retrySupport = new RetrySupport();
       return retrySupport.retry(
           () ->
-              front50Service.getPipelines(applicationName).stream()
+              Retrofit2SyncCall.execute(front50Service.getPipelines(applicationName)).stream()
                   .filter(p -> pipelineName.equals(p.getOrDefault("name", null)))
                   .findFirst()
                   .orElse(null),

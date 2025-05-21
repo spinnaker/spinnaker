@@ -53,9 +53,9 @@ class DeleteApplicationTaskSpec extends Specification {
   void "should delete global application if it was only associated with a single account"() {
     given:
     task.front50Service = Mock(Front50Service) {
-      1 * get(config.application.name) >> new Application()
-      1 * delete(config.application.name)
-      1 * deletePermission(config.application.name)
+      1 * get(config.application.name) >> Calls.response(new Application())
+      1 * delete(config.application.name) >> Calls.response(null)
+      1 * deletePermission(config.application.name) >> Calls.response(null)
       0 * _._
     }
     task.keelService = Mock(KeelService) {
@@ -73,9 +73,9 @@ class DeleteApplicationTaskSpec extends Specification {
     given:
     Application application = new Application()
     task.front50Service = Mock(Front50Service) {
-      1 * get(config.application.name) >> application
-      1 * delete(config.application.name)
-      1 * deletePermission(config.application.name)
+      1 * get(config.application.name) >> Calls.response(application)
+      1 * delete(config.application.name) >> Calls.response(null)
+      1 * deletePermission(config.application.name) >> Calls.response(null)
       0 * _._
     }
     task.keelService = Mock(KeelService) {
@@ -92,7 +92,10 @@ class DeleteApplicationTaskSpec extends Specification {
   void "should ignore not found errors when deleting managed delivery data"() {
     given:
     task.front50Service = Mock(Front50Service) {
-      get(config.application.name) >> new Application()
+      1 * get(config.application.name) >> Calls.response(new Application())
+      1 * delete(config.application.name) >> Calls.response(null)
+      1 * deletePermission(config.application.name) >> Calls.response(null)
+      0 * _._
     }
     task.keelService = Mock(KeelService) {
       1 * deleteDeliveryConfig(config.application.name) >>

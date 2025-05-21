@@ -27,7 +27,9 @@ import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -123,7 +125,7 @@ class SaveServiceAccountTaskSpec extends Specification {
     }
 
     1 * front50Service.saveServiceAccount(expectedServiceAccount) >> {
-      new Response('http://front50', 200, 'OK', [], null)
+      Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
     }
 
     result.status == ExecutionStatus.SUCCEEDED
@@ -195,7 +197,7 @@ class SaveServiceAccountTaskSpec extends Specification {
     }
 
     1 * front50Service.saveServiceAccount(expectedServiceAccount) >> {
-      new Response('http://front50', 200, 'OK', [], null)
+      Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
     }
 
     result.status == ExecutionStatus.SUCCEEDED
@@ -230,7 +232,7 @@ class SaveServiceAccountTaskSpec extends Specification {
     1 * front50Service.saveServiceAccount({ it.name != null }) >> { ServiceAccount serviceAccount ->
       uuid = serviceAccount.name - "@managed-service-account"
       expectedServiceAccountName = serviceAccount.name
-      new Response('http://front50', 200, 'OK', [], null)
+      Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
     }
 
     result.status == ExecutionStatus.SUCCEEDED
@@ -271,7 +273,7 @@ class SaveServiceAccountTaskSpec extends Specification {
     }
 
     1 * front50Service.saveServiceAccount(expectedServiceAccount) >> {
-      new Response('http://front50', 200, 'OK', [], null)
+      Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
     }
 
     result.status == ExecutionStatus.SUCCEEDED

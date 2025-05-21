@@ -22,4 +22,5 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-front50"))
   implementation("org.springframework.boot:spring-boot-autoconfigure")
+  implementation("io.spinnaker.kork:kork-retrofit")
 }

@@ -23,6 +23,7 @@ import com.hubspot.jinjava.interpret.TemplateSyntaxException;
 import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.tree.TagNode;
 import com.hubspot.jinjava.util.HelperStringTokenizer;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
@@ -86,7 +87,7 @@ public class StrategyIdTag implements Tag {
     name = checkContext(name, context);
 
     List<Map<String, Object>> strategies =
-        Optional.ofNullable(front50Service.getStrategies(application))
+        Optional.ofNullable(Retrofit2SyncCall.execute(front50Service.getStrategies(application)))
             .orElse(Collections.emptyList());
     Map<String, Object> result = findStrategy(strategies, application, name);
     return (String) result.get("id");

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipeline.persistence.migration
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -45,7 +46,7 @@ class OrchestrationMigrationAgent(
       setStatuses(ExecutionStatus.COMPLETED.map { it.name })
     }
 
-    val allApplications = front50Service.allApplications
+    val allApplications = Retrofit2SyncCall.execute(front50Service.allApplications)
     log.info("Found ${allApplications.size} applications")
 
     allApplications.forEachIndexed { index, application ->
