@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
@@ -88,7 +89,7 @@ class DeleteApplicationTask extends AbstractFront50Task {
         // delete Managed Delivery data
         if (keelService != null) {
           log.debug("Deleting Managed Delivery data for {}", application.name)
-          keelService.deleteDeliveryConfig(application.name)
+          Retrofit2SyncCall.executeCall(keelService.deleteDeliveryConfig(application.name))
         }
       }
     } catch (SpinnakerHttpException httpException){
