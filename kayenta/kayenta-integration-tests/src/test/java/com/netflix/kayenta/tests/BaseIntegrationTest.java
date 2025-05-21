@@ -18,7 +18,6 @@ package com.netflix.kayenta.tests;
 import com.netflix.kayenta.Main;
 import com.netflix.kayenta.configuration.EmbeddedPrometheusBootstrapConfiguration;
 import com.netflix.kayenta.configuration.MetricsReportingConfiguration;
-import com.netflix.kayenta.prometheus.config.PrometheusConfigurationProperties;
 import com.netflix.kayenta.prometheus.config.PrometheusManagedAccount;
 import com.netflix.kayenta.prometheus.config.PrometheusResponseConverter;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
@@ -36,8 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.metrics.AutoConfigureMetrics;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -53,13 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     TestInstance.Lifecycle
         .PER_CLASS) // This way Spring will create only one instance of the test class and will
 // allow non-static @BeforeAll.
-@DirtiesContext(
-    classMode =
-        DirtiesContext.ClassMode
-            .AFTER_CLASS) // Each test class extends this class gets a fresh Spring application
-// context
 public abstract class BaseIntegrationTest {
-
   @Autowired protected Environment environment;
 
   private Integer managementPort;
@@ -69,19 +62,16 @@ public abstract class BaseIntegrationTest {
   @Autowired private AccountCredentialsRepository accountCredentialsRepository;
 
   @Autowired PrometheusResponseConverter prometheusConverter;
-  @Autowired PrometheusConfigurationProperties prometheusConfigurationProperties;
   @Autowired RetrofitClientFactory retrofitClientFactory;
   @Autowired OkHttpClient okHttpClient;
 
   @Autowired EmbeddedPrometheusBootstrapConfiguration prometheusConfig;
 
-  private boolean setupDone = false;
+  @Autowired ConfigurableEnvironment env;
 
   @BeforeAll
   public void setupPrometheusAccounts() throws InterruptedException {
-    if (setupDone) {
-      return;
-    }
+    prometheusConfig.startPrometheusServer(env);
 
     int retries = 30; // wait up to 30 seconds
     String prometheusPortStr = null;
@@ -126,8 +116,7 @@ public abstract class BaseIntegrationTest {
               prometheusManagedAccount.setPrometheusRemoteService(prometheusRemoteService);
             });
 
-    Thread.sleep(60000); // 1 minute
-    setupDone = true;
+    Thread.sleep(30000); // 1/2 minute
   }
 
   protected int getManagementPort() {
