@@ -18,14 +18,15 @@ package com.netflix.spinnaker.orca.kayenta
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
 import java.time.Duration
 import java.time.Instant
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.POST
-import retrofit.http.PUT
-import retrofit.http.Path
-import retrofit.http.Query
 
 interface KayentaService {
 
@@ -38,25 +39,25 @@ interface KayentaService {
     @Query("configurationAccountName") configurationAccountName: String?,
     @Query("storageAccountName") storageAccountName: String?,
     @Body canaryExecutionRequest: CanaryExecutionRequest
-  ): Map<*, *>
+  ): Call<Map<String, String>>
 
   @GET("/canary/{canaryExecutionId}")
   fun getCanaryResults(
-    @Query("storageAccountName") storageAccountName: String?,
-    @Path("canaryExecutionId") canaryExecutionId: String
-  ): CanaryResults
+    @Path("canaryExecutionId") canaryExecutionId: String,
+    @Query("storageAccountName") storageAccountName: String?
+    ): Call<CanaryResults>
 
   @PUT("/pipelines/{executionId}/cancel")
   fun cancelPipelineExecution(
     @Path("executionId") executionId: String,
     @Body ignored: String
-  ): Map<*, *>
+  ): Call<Void>
 
   @GET("/credentials")
-  fun getCredentials(): List<KayentaCredential>
+  fun getCredentials(): Call<List<KayentaCredential>>
 
   @GET("/canaryConfig")
-  fun getAllCanaryConfigs(): List<KayentaCanaryConfig>
+  fun getAllCanaryConfigs(): Call<List<KayentaCanaryConfig>>
 }
 
 data class CanaryExecutionRequest(
