@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as git from '../git/git';
 import * as util from '../util';
+import { Version } from '../versions';
 
 // Default overrides for certain BoM entries
 // Will be overridden by action input, if provided
@@ -19,39 +20,15 @@ export abstract class Service {
     this.inputOverrides = this.getInputOverrides();
   }
 
-  getBranch(): string {
-    // If a `branch` input is not provided, attempt to infer it from the `version`
-    const inputBranch = util.getInput('branch');
-    if (!inputBranch) {
-      const version = util.getInput('version');
-      const versionParts = version.split('.');
-
-      if (versionParts.length == 3) {
-        // Release branches are named release-<year>.<major>.x
-        return `release-${versionParts[0]}.${versionParts[1]}.x`;
-      } else if (versionParts.length == 2 && versionParts[0] == 'main') {
-        return 'main';
-      } else {
-        throw new Error(
-          `Cannot infer branch to determine which service versions to use: ${version} - please specify in inputs.`,
-        );
-      }
-    } else {
-      return inputBranch;
-    }
+  getLastTag(bomVersion: Version): git.Tag | undefined {
+    return git.findServiceTag(this.name, bomVersion);
   }
 
-  getLastTag(): git.Tag | undefined {
-    return git.findServiceTag(this.name, this.getBranch());
-  }
-
-  getVersion(): string {
-    const globalVersionOverride = util.getInput('version-override');
+  getVersion(bomVersion: Version): string {
     let version =
       this.inputOverrides?.version ||
       this.overrides?.version ||
-      globalVersionOverride ||
-      this.getLastTag()?.name;
+      this.getLastTag(bomVersion)?.name;
 
     // Strip the service prefix if it's a tag
     const tagPrefix = `${this.name}-`;
@@ -65,11 +42,11 @@ export abstract class Service {
     return version;
   }
 
-  getCommit(): string {
+  getCommit(bomVersion: Version): string {
     const commit =
       this.inputOverrides?.commit ||
       this.overrides?.commit ||
-      this.getLastTag()?.sha;
+      this.getLastTag(bomVersion)?.sha;
     if (!commit) {
       throw new Error(`Unable to resolve commit for service ${this.name}`);
     }
