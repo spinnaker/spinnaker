@@ -23,7 +23,9 @@ import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import okhttp3.Request
 import retrofit.RetrofitError
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -54,7 +56,7 @@ class MonitorAwsCodeBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.getAwsCodeBuildExecution(ACCOUNT, BUILD_ID) >> igorResponse
+    1 * igorService.getAwsCodeBuildExecution(ACCOUNT, BUILD_ID) >> Calls.response(igorResponse)
     0 * igorService._
     result.getStatus() == executionStatus
     result.getContext().buildInfo == igorResponse
@@ -89,8 +91,6 @@ class MonitorAwsCodeBuildTaskSpec extends Specification {
   }
 
   def stubNetworkError() {
-    return new SpinnakerNetworkException(Stub(RetrofitError) {
-      getKind() >> RetrofitError.Kind.NETWORK
-    })
+    return new SpinnakerNetworkException(new IOException("timeout"), new Request.Builder().url("http://some-url").build())
   }
 }
