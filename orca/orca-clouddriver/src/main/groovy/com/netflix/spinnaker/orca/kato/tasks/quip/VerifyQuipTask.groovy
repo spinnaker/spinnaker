@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
@@ -67,7 +68,7 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
       String hostName = valueMap.privateIpAddress ?: valueMap.hostName
       def instanceService = createInstanceService("http://${hostName}:5050")
       try {
-        instanceService.listTasks()
+        Retrofit2SyncCall.executeCall(instanceService.listTasks())
       } catch(SpinnakerServerException e) {
         allInstancesHaveQuip = false
       }

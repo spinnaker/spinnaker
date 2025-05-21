@@ -39,6 +39,7 @@ dependencies {
   implementation("javax.validation:validation-api")
   implementation("org.jetbrains:annotations")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
+  implementation("com.squareup.retrofit2:converter-jackson")
 
   api("io.spinnaker.kork:kork-web")
 
@@ -63,7 +64,6 @@ dependencies {
   testImplementation("io.mockk:mockk")
   testImplementation("ru.lanwen.wiremock:wiremock-junit5:1.3.1")
   testImplementation("com.squareup.retrofit2:retrofit")
-  testImplementation("com.squareup.retrofit2:converter-jackson")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
 
   testCompileOnly("org.projectlombok:lombok")
