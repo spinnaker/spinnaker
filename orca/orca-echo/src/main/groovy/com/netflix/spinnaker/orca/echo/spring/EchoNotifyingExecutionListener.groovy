@@ -61,13 +61,15 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
           addApplicationNotifications(execution)
         }
         AuthenticatedRequest.allowAnonymous({
-          echoService.recordEvent(
-            details: [
-              source     : "orca",
-              type       : "orca:${execution.type}:starting".toString(),
-              application: execution.application,
-            ],
-            content: buildContent(execution)
+          Retrofit2SyncCall.execute(
+            echoService.recordEvent(
+              details: [
+                source     : "orca",
+                type       : "orca:${execution.type}:starting".toString(),
+                application: execution.application,
+              ],
+              content: buildContent(execution)
+            )
           )
         })
       }
@@ -89,13 +91,15 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
           addApplicationNotifications(execution)
         }
         AuthenticatedRequest.allowAnonymous({
-          echoService.recordEvent(
-            details: [
-              source     : "orca",
-              type       : "orca:${execution.type}:${wasSuccessful ? "complete" : "failed"}".toString(),
-              application: execution.application,
-            ],
-            content: buildContent(execution)
+          Retrofit2SyncCall.execute(
+            echoService.recordEvent(
+              details: [
+                source     : "orca",
+                type       : "orca:${execution.type}:${wasSuccessful ? "complete" : "failed"}".toString(),
+                application: execution.application,
+              ],
+              content: buildContent(execution)
+            )
           )
         })
       }

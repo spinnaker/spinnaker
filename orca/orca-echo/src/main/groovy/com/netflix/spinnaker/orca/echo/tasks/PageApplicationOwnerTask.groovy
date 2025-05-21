@@ -84,15 +84,17 @@ class PageApplicationOwnerTask implements RetryableTask {
     }
 
     // echo service will not send a proper response back if there is an error, it will just throw an exception
-    echoService.create(
-      new EchoService.Notification(
-        to: allPagerDutyKeys,
-        notificationType: EchoService.Notification.Type.PAGER_DUTY,
-        source: new EchoService.Notification.Source(user: stage.execution.authentication.user),
-        additionalContext: [
-          message: stage.context.message,
-          details: details
-        ]
+    Retrofit2SyncCall.execute(
+      echoService.create(
+        new EchoService.Notification(
+          to: allPagerDutyKeys,
+          notificationType: EchoService.Notification.Type.PAGER_DUTY,
+          source: new EchoService.Notification.Source(user: stage.execution.authentication.user),
+          additionalContext: [
+            message: stage.context.message,
+            details: details
+          ]
+        )
       )
     )
 
