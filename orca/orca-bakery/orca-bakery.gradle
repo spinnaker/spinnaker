@@ -34,12 +34,19 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
 
   testImplementation(project(":orca-test-groovy"))
+  testImplementation(project(":orca-test"))
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-core")
-
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation ("org.springframework:spring-test")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("io.spinnaker.kork:kork-retrofit2")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testImplementation("org.spockframework:spock-core")
+  testImplementation("org.spockframework:spock-spring")
+
 }
 test {
   useJUnitPlatform()

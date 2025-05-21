@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.bakery.BakerySelector
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -44,7 +45,7 @@ class MonitorBakeTaskSpec extends Specification {
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
     def stage = new StageExecutionImpl(pipeline, "bake", [region: "us-west-1", status: previousStatus])
     def bakery = Mock(BakeryService) {
-      lookupStatus(stage.context.region, id) >> new BakeStatus(id: id, state: bakeState, result: bakeResult)
+      lookupStatus(stage.context.region, id) >> Calls.response(new BakeStatus(id: id, state: bakeState, result: bakeResult))
     }
 
     and:
@@ -84,7 +85,7 @@ class MonitorBakeTaskSpec extends Specification {
     def stage = new StageExecutionImpl(pipeline, "bake", [region: "us-west-1", status: previousStatus])
     def bakery = Mock(BakeryService) {
       lookupStatus(stage.context.region, id) >>
-          new BakeStatus(id: id, state: state, result: null)
+          Calls.response(new BakeStatus(id: id, state: state, result: null))
     }
 
     and:
@@ -122,7 +123,7 @@ class MonitorBakeTaskSpec extends Specification {
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
     def stage = new StageExecutionImpl(pipeline, "bake", [region: "us-west-1", status: previousStatus])
     def bakery = Mock(BakeryService) {
-      lookupStatus(stage.context.region, id) >> new BakeStatus(id: id, state: BakeStatus.State.COMPLETED)
+      lookupStatus(stage.context.region, id) >> Calls.response(new BakeStatus(id: id, state: BakeStatus.State.COMPLETED))
     }
 
     and:
