@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 
 import java.util.concurrent.TimeUnit
@@ -58,8 +59,8 @@ class ResolveQuipVersionTask implements RetryableTask {
       throw new UnsupportedOperationException("You have not enabled baking for this orca instance. Set bakery.enabled: true")
     }
     if (roscoApisEnabled) {
-      def baseImage = bakeryService.getBaseImage(stage.context.cloudProviderType as String,
-        stage.context.baseOs as String).toBlocking().single()
+      def baseImage = Retrofit2SyncCall.execute(bakeryService.getBaseImage(stage.context.cloudProviderType as String,
+        stage.context.baseOs as String)).toBlocking().single()
       packageType = baseImage.packageType
     } else {
       packageType = new OperatingSystem(stage.context.baseOs as String).getPackageType()

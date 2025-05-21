@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -105,7 +106,7 @@ class CreateBakeTask implements RetryableTask {
       }
 
       def bakeStatus = retrySupport.retry(
-          { return bakery.service.createBake(stage.context.region as String, bake, rebake) },
+          { return Retrofit2SyncCall.execute(bakery.service.createBake(stage.context.region as String, bake, rebake)) },
           5,
           Duration.ofMillis(2000),
           false)
@@ -220,7 +221,7 @@ class CreateBakeTask implements RetryableTask {
 
   private static PackageType getBaseOsPackageType(SelectedService<BakeryService> bakery, StageExecution stage) {
     bakery.config.roscoApisEnabled
-        ? bakery.service.getBaseImage(stage.context.cloudProviderType as String, stage.context.baseOs as String).packageType
+        ? Retrofit2SyncCall.execute(bakery.service.getBaseImage(stage.context.cloudProviderType as String, stage.context.baseOs as String)).packageType
         : new OperatingSystem(stage.context.baseOs as String).getPackageType()
   }
 }
