@@ -63156,7 +63156,7 @@ class Bom extends stored_yml_1.StoredYml {
         this.dependencies = this.getDefaultDependencies();
         this.services = new Map();
         this.timestamp = new Date().toISOString();
-        this.version = version;
+        this.version = version.toString();
     }
     getDefaultArtifactSources() {
         return new Map(Object.entries({
@@ -63187,10 +63187,10 @@ class Bom extends stored_yml_1.StoredYml {
             version: version,
         })));
     }
-    setService(service) {
+    setService(service, version) {
         this.services.set(service.name, new Map(Object.entries({
-            commit: service.getCommit(),
-            version: service.getVersion(),
+            commit: service.getCommit(version),
+            version: service.getVersion(version),
         })));
     }
     setTimestamp(timestamp) {
@@ -63265,6 +63265,7 @@ const fs = __importStar(__nccwpck_require__(7147));
 const os = __importStar(__nccwpck_require__(2037));
 const util = __importStar(__nccwpck_require__(2629));
 const uuid = __importStar(__nccwpck_require__(3730));
+const versions_1 = __nccwpck_require__(3296);
 const monorepo = util.getInput('monorepo-location');
 const docsRepo = util.getInput('docs-repo-location');
 const partitions = [
@@ -63292,7 +63293,7 @@ const partitions = [
 const conventionalCommit = /.+\((.+)\):\s*(.+)/;
 async function forVersion(version, previousVersion) {
     if (!previousVersion) {
-        const parsed = util.parseVersion(version);
+        const parsed = versions_1.Version.parse(version);
         if (!parsed) {
             throw new Error(`Unable to parse version ${version}`);
         }
@@ -63324,7 +63325,7 @@ function filterCommits(commits) {
         .filter((c) => !(c.includes('Merge') && c.includes(' into '))));
 }
 async function generate(version, previousVersion) {
-    const parsed = util.parseVersion(version);
+    const parsed = versions_1.Version.parse(version);
     if (!parsed) {
         throw new Error(`Failed to parse version ${version}`);
     }
@@ -63513,6 +63514,7 @@ const all_1 = __nccwpck_require__(873);
 const util = __importStar(__nccwpck_require__(2629));
 const versionsDotYml_1 = __nccwpck_require__(7341);
 const changelog_1 = __nccwpck_require__(9173);
+const versions_1 = __nccwpck_require__(3296);
 async function generate() {
     const bom = await generateBom().catch((err) => {
         core.error('Failed to generate BoM');
@@ -63539,10 +63541,13 @@ async function generate() {
 exports.generate = generate;
 async function generateBom() {
     core.info('Running BoM generator');
-    const version = util.getInput('version');
+    const version = versions_1.Version.parse(util.getInput('version'));
+    if (!version) {
+        throw new Error('Valid version must be provided to generate a BoM');
+    }
     const bom = new bom_1.Bom(version);
     for (const service of all_1.services) {
-        bom.setService(service);
+        bom.setService(service, version);
     }
     return bom;
 }
@@ -63627,36 +63632,13 @@ class Service {
         this.overrides = overrides;
         this.inputOverrides = this.getInputOverrides();
     }
-    getBranch() {
-        // If a `branch` input is not provided, attempt to infer it from the `version`
-        const inputBranch = util.getInput('branch');
-        if (!inputBranch) {
-            const version = util.getInput('version');
-            const versionParts = version.split('.');
-            if (versionParts.length == 3) {
-                // Release branches are named release-<year>.<major>.x
-                return `release-${versionParts[0]}.${versionParts[1]}.x`;
-            }
-            else if (versionParts.length == 2 && versionParts[0] == 'main') {
-                return 'main';
-            }
-            else {
-                throw new Error(`Cannot infer branch to determine which service versions to use: ${version} - please specify in inputs.`);
-            }
-        }
-        else {
-            return inputBranch;
-        }
+    getLastTag(bomVersion) {
+        return git.findServiceTag(this.name, bomVersion);
     }
-    getLastTag() {
-        return git.findServiceTag(this.name, this.getBranch());
-    }
-    getVersion() {
-        const globalVersionOverride = util.getInput('version-override');
+    getVersion(bomVersion) {
         let version = this.inputOverrides?.version ||
             this.overrides?.version ||
-            globalVersionOverride ||
-            this.getLastTag()?.name;
+            this.getLastTag(bomVersion)?.name;
         // Strip the service prefix if it's a tag
         const tagPrefix = `${this.name}-`;
         if (version?.startsWith(tagPrefix)) {
@@ -63667,10 +63649,10 @@ class Service {
         }
         return version;
     }
-    getCommit() {
+    getCommit(bomVersion) {
         const commit = this.inputOverrides?.commit ||
             this.overrides?.commit ||
-            this.getLastTag()?.sha;
+            this.getLastTag(bomVersion)?.sha;
         if (!commit) {
             throw new Error(`Unable to resolve commit for service ${this.name}`);
         }
@@ -63985,6 +63967,7 @@ const yaml_1 = __nccwpck_require__(4083);
 const stored_yml_1 = __nccwpck_require__(1479);
 const util = __importStar(__nccwpck_require__(2629));
 const core = __importStar(__nccwpck_require__(2186));
+const versions_1 = __nccwpck_require__(3296);
 function empty() {
     return new VersionsDotYml([], '', '', []);
 }
@@ -64060,6 +64043,12 @@ class VersionsDotYml extends stored_yml_1.StoredYml {
             minimumHalyardVersion: versionStr,
             version: versionStr,
         });
+        // Update top-level metadata if this is the most recent version
+        const allVersionsSorted = (0, versions_1.parseAndSortVersionsAsStr)(this.versions.map((it) => it.version));
+        if (allVersionsSorted[0] === versionStr) {
+            this.latestHalyard = versionStr;
+            this.latestSpinnaker = versionStr;
+        }
     }
     removeVersion(versionStr) {
         this.versions = this.versions.filter((v) => v.version !== versionStr);
@@ -64292,6 +64281,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const child_process_1 = __nccwpck_require__(2081);
 const github_1 = __nccwpck_require__(5438);
 const util = __importStar(__nccwpck_require__(2629));
+const versions_1 = __nccwpck_require__(3296);
 exports.github = (0, github_1.getOctokit)(util.getInput('github-pat'));
 function gitCmd(command, execOpts) {
     const out = gitCmdMulti(command, execOpts);
@@ -64332,23 +64322,12 @@ function parseTag(name) {
     };
 }
 exports.parseTag = parseTag;
-function findServiceTag(service, branch) {
+function findServiceTag(service, bomVersion) {
     // Find the newest tag with the provided prefix, if exists, and parse it
     if (!service) {
         throw new Error(`Tag service must not be empty`);
     }
-    // Trim the release-part off the branch, since that's not part of the tag
-    if (branch.startsWith('release-')) {
-        branch = branch.slice(8);
-    }
-    // Same for the .x
-    if (branch.endsWith('.x')) {
-        branch = branch.slice(0, -2);
-    }
-    if (!branch) {
-        throw new Error(`Tag branch must not be empty`);
-    }
-    return findTag(`${service}-${branch}`);
+    return findTag(`${service}-${bomVersion.toString()}`);
 }
 exports.findServiceTag = findServiceTag;
 // Tag of the form <service>-<train>-<build_number>
@@ -64366,30 +64345,28 @@ function findTag(prefix) {
         ?.filter((it) => it.startsWith(prefix))
         ?.filter((it) => {
         // Ensure this matches standard tag format - all other tags should be disregarded
-        return isAutoIncrementTag(it) || isReleaseTag(it);
+        // A release tag looks like: <service>-<release_version> e.g. clouddriver-2025.0.2
+        return isReleaseTag(it);
     })
-        ?.sort((a, b) => {
-        // Basic sorting fails beyond single-digit numbers, e.g. 10 < 2, so sort by parts
-        // All tags should have three parts - service-branch-number, and the tags are prefiltered to fit that format
-        // So, all we need to do is compare the third value
-        const aSplit = a.split('-');
-        const bSplit = b.split('-');
-        const aNum = parseInt(aSplit.slice(-1)[0]);
-        const bNum = parseInt(bSplit.slice(-1)[0]);
-        // Sort in reverse order
-        if (aNum > bNum)
-            return -1;
-        if (aNum < bNum)
-            return 1;
-        return 0;
-    });
+        ?.map((it) => {
+        // Parse the version portion of the release tag
+        return {
+            name: it,
+            version: versions_1.Version.parse(it.split('-')[1]),
+        };
+    })
+        // Filter out anything that didn't parse
+        ?.filter((it) => !!it.version)
+        // TS doesn't understand null filtering yet, so there are !s asserting they are non-null
+        // Sort all the entries by version descending
+        ?.sort((a, b) => versions_1.Version.compare(a.version, b.version) * -1);
     if (!tags || !tags.length) {
         core.warning(`No tags found for prefix ${prefix}`);
         return undefined;
     }
     return {
-        name: tags[0],
-        sha: gitCmd(`git rev-parse ${tags[0]}`),
+        name: tags[0].name,
+        sha: gitCmd(`git rev-parse ${tags[0].name}`),
     };
 }
 exports.findTag = findTag;
@@ -64466,7 +64443,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseVersion = exports.getInput = void 0;
+exports.getInput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 function getInput(name) {
     if (!name)
@@ -64476,26 +64453,110 @@ function getInput(name) {
     return core.getInput(name) || core.getInput(dehyphenated);
 }
 exports.getInput = getInput;
-function parseVersion(version) {
-    const split = version.split('.');
-    if (split.length != 3)
-        return null;
-    try {
-        const major = parseInt(split[0]);
-        const minor = parseInt(split[1]);
-        const patch = parseInt(split[2]);
-        return {
-            major,
-            minor,
-            patch,
-        };
+
+
+/***/ }),
+
+/***/ 3296:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
     }
-    catch (e) {
-        core.error(e);
-        return null;
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseAndSortVersionsAsStr = exports.parseAndSortVersions = exports.sortVersions = exports.Version = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+class Version {
+    major;
+    minor;
+    patch;
+    constructor(major, minor, patch) {
+        this.major = major;
+        this.minor = minor;
+        this.patch = patch;
+    }
+    static parse(version) {
+        const split = version.split('.');
+        if (split.length != 3)
+            return null;
+        try {
+            const major = parseInt(split[0]);
+            const minor = parseInt(split[1]);
+            const patch = parseInt(split[2]);
+            return new Version(major, minor, patch);
+        }
+        catch (e) {
+            core.error(e);
+            return null;
+        }
+    }
+    static compare(a, b) {
+        if (a.major > b.major)
+            return 1;
+        if (a.major < b.major)
+            return -1;
+        if (a.major === b.major) {
+            if (a.minor > b.minor)
+                return 1;
+            if (a.minor < b.minor)
+                return -1;
+            if (a.minor === b.minor) {
+                if (a.patch > b.patch)
+                    return 1;
+                if (a.patch < b.patch)
+                    return -1;
+            }
+        }
+        return 0;
+    }
+    equals(version) {
+        return (this.major === version.major &&
+            this.minor === version.minor &&
+            this.patch === version.patch);
+    }
+    toString() {
+        return `${this.major}.${this.minor}.${this.patch}`;
     }
 }
-exports.parseVersion = parseVersion;
+exports.Version = Version;
+// Sorts all provided versions descending
+function sortVersions(versions) {
+    return versions.sort(Version.compare).reverse();
+}
+exports.sortVersions = sortVersions;
+// Does the above but also parses them
+function parseAndSortVersions(versionStrs) {
+    const parsed = versionStrs.map(Version.parse).filter((x) => !!x);
+    // TS doesn't understand null filtering exactly apparently, so this cast is here
+    return sortVersions(parsed);
+}
+exports.parseAndSortVersions = parseAndSortVersions;
+function parseAndSortVersionsAsStr(versionStrs) {
+    return parseAndSortVersions(versionStrs).map((it) => it.toString());
+}
+exports.parseAndSortVersionsAsStr = parseAndSortVersionsAsStr;
 
 
 /***/ }),

@@ -106,6 +106,13 @@ describe('EditMetricModal', () => {
     expect(store.dispatch).toHaveBeenCalledWith(Creators.updateMetricNanStrategy({ id: '1', strategy: 'replace' }));
   });
 
+  it('calls updateOutlierStrategy when the outlier strategy is changed', () => {
+    const component = buildComponent({});
+    const changeOutlierStrategyEvent = { target: { value: 'remove', dataset: { id: '1' } } };
+    component.find('input[name="outlierStrategy"][value="remove"]').simulate('change', changeOutlierStrategyEvent);
+    expect(store.dispatch).toHaveBeenCalledWith(Creators.updateMetricOutlierStrategy({ id: '1', strategy: 'remove' }));
+  });
+
   it('calls updateCriticality when the criticality checkbox is changed', () => {
     const component = buildComponent({});
     const changeCriticalityEvent = { target: { checked: true, dataset: { id: '1' } } };

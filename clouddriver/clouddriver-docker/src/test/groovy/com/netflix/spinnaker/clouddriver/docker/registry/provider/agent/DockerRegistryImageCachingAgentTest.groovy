@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.docker.registry.provider.agent
 
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryTags
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials
+import com.netflix.spinnaker.kork.docker.model.DockerRegistryTags
+import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient
 import spock.lang.Specification
 
 import java.time.Instant

@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as util from '../util';
 import * as uuid from 'uuid';
+import { Version } from '../versions';
 
 const monorepo = util.getInput('monorepo-location');
 const docsRepo = util.getInput('docs-repo-location');
@@ -39,7 +40,7 @@ export async function forVersion(
   previousVersion: string,
 ): Promise<Changelog> {
   if (!previousVersion) {
-    const parsed = util.parseVersion(version);
+    const parsed = Version.parse(version);
     if (!parsed) {
       throw new Error(`Unable to parse version ${version}`);
     }
@@ -86,7 +87,7 @@ async function generate(
   version: string,
   previousVersion: string,
 ): Promise<Changelog> {
-  const parsed = util.parseVersion(version);
+  const parsed = Version.parse(version);
   if (!parsed) {
     throw new Error(`Failed to parse version ${version}`);
   }
