@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.orca.echo.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener
@@ -32,7 +31,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -42,10 +41,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.Endpoint
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
-import static retrofit.Endpoints.newFixedEndpoint
+
 
 @Configuration
 @Import([RetrofitConfiguration])
@@ -55,26 +51,13 @@ import static retrofit.Endpoints.newFixedEndpoint
 class EchoConfiguration {
 
   @Autowired OkHttpClientProvider clientProvider
-  @Autowired RestAdapter.LogLevel retrofitLogLevel
   @Autowired ObjectMapper objectMapper
 
   @Bean
-  Endpoint echoEndpoint(
-    @Value('${echo.base-url}') String echoBaseUrl) {
-    newFixedEndpoint(echoBaseUrl)
-  }
-
-  @Bean
-  EchoService echoService(Endpoint echoEndpoint) {
-    new RestAdapter.Builder()
-      .setEndpoint(echoEndpoint)
-      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("echo", echoEndpoint.url), true)))
-      .setLogLevel(retrofitLogLevel)
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .setLog(new RetrofitSlf4jLog(EchoService))
-      .setConverter(new JacksonConverter())
-      .build()
-      .create(EchoService)
+  EchoService echoService(@Value('${echo.base-url}') String echoBaseUrl, ServiceClientProvider serviceClientProvider) {
+    serviceClientProvider.getService(
+        EchoService,
+        new DefaultServiceEndpoint("echo", RetrofitUtils.getBaseUrl(echoBaseUrl)))
   }
 
   @Bean
