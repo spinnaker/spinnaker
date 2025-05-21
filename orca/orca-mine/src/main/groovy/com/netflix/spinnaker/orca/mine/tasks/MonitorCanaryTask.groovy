@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 
@@ -57,7 +58,7 @@ class MonitorCanaryTask implements CloudProviderAware, OverridableTimeoutRetryab
 
     try {
       outputs << [
-        canary : mineService.getCanary(context.canary.id)
+        canary : Retrofit2SyncCall.execute(mineService.getCanary(context.canary.id))
       ]
     } catch (SpinnakerServerException e) {
       log.error("Exception occurred while getting canary with id ${context.canary.id} from mine service", e)

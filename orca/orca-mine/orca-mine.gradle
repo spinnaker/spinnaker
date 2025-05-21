@@ -20,6 +20,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
   implementation(project(":orca-clouddriver"))
+  implementation(project(":orca-clouddriver"))
   testImplementation(project(":orca-test-groovy"))
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
@@ -29,6 +30,8 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation("org.assertj:assertj-core")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
 
