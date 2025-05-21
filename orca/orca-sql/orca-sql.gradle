@@ -23,6 +23,7 @@ dependencies {
   implementation(project(":keiko-core"))
 
   implementation(project(":orca-core"))
+  implementation(project(":orca-test"))
   implementation(project(":orca-interlink"))
   implementation(project(":orca-queue"))
 
