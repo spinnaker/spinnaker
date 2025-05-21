@@ -3,6 +3,7 @@ import { parse } from 'yaml';
 import { StoredYml } from '../gcp/stored_yml';
 import * as util from '../util';
 import * as core from '@actions/core';
+import { parseAndSortVersionsAsStr } from '../versions';
 
 export interface IllegalVersion {
   reason: string;
@@ -115,6 +116,16 @@ export class VersionsDotYml extends StoredYml {
       minimumHalyardVersion: versionStr,
       version: versionStr,
     });
+
+    // Update top-level metadata if this is the most recent version
+    const allVersionsSorted = parseAndSortVersionsAsStr(
+      this.versions.map((it) => it.version),
+    );
+
+    if (allVersionsSorted[0] === versionStr) {
+      this.latestHalyard = versionStr;
+      this.latestSpinnaker = versionStr;
+    }
   }
 
   removeVersion(versionStr: string) {
