@@ -78,7 +78,7 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.createGoogleCloudBuild(ACCOUNT, BUILD) >> igorResponse
+    1 * igorService.createGoogleCloudBuild(ACCOUNT, BUILD) >> Calls.response(igorResponse)
     result.context.buildInfo == igorResponse
   }
 
@@ -102,7 +102,7 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
 
     then:
     1 * igorService.runGoogleCloudBuildTrigger(
-      ACCOUNT,"myTriggerId",{ it.getBranchName() == "myBranch" }) >> igorResponse
+      ACCOUNT,"myTriggerId",{ it.getBranchName() == "myBranch" }) >> Calls.response(igorResponse)
 
     result.context.buildInfo == igorResponse
   }
@@ -133,7 +133,7 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
     oortService.fetchArtifact(artifact) >>  Calls.response(ResponseBody.create(objectMapper.writeValueAsString(RAW_BUILD), MediaType.parse("application/json")))
     1 * contextParameterProcessor.process(RAW_BUILD, _, _) >> BUILD
 
-    1 * igorService.createGoogleCloudBuild(ACCOUNT, BUILD) >> igorResponse
+    1 * igorService.createGoogleCloudBuild(ACCOUNT, BUILD) >> Calls.response(igorResponse)
     result.context.buildInfo == igorResponse
   }
 }

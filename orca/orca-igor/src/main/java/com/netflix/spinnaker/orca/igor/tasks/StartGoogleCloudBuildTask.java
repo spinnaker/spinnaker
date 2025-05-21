@@ -59,21 +59,24 @@ public class StartGoogleCloudBuildTask implements Task {
     switch (stageDefinition.getBuildDefinitionSource()) {
       case ARTIFACT:
         result =
-            igorService.createGoogleCloudBuild(
-                stageDefinition.getAccount(),
-                getBuildDefinitionFromArtifact(stage, stageDefinition));
+            Retrofit2SyncCall.execute(
+                igorService.createGoogleCloudBuild(
+                    stageDefinition.getAccount(),
+                    getBuildDefinitionFromArtifact(stage, stageDefinition)));
         break;
       case TRIGGER:
         result =
-            igorService.runGoogleCloudBuildTrigger(
-                stageDefinition.getAccount(),
-                stageDefinition.getTriggerId(),
-                stageDefinition.getRepoSource());
+            Retrofit2SyncCall.execute(
+                igorService.runGoogleCloudBuildTrigger(
+                    stageDefinition.getAccount(),
+                    stageDefinition.getTriggerId(),
+                    stageDefinition.getRepoSource()));
         break;
       default:
         result =
-            igorService.createGoogleCloudBuild(
-                stageDefinition.getAccount(), stageDefinition.getBuildDefinition());
+            Retrofit2SyncCall.execute(
+                igorService.createGoogleCloudBuild(
+                    stageDefinition.getAccount(), stageDefinition.getBuildDefinition()));
     }
 
     Map<String, Object> context = stage.getContext();
