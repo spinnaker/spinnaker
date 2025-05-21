@@ -76,12 +76,18 @@ public class EmbeddedPrometheusBootstrapConfiguration {
               .waitingFor(prometheusWaitStrategy)
               .withStartupTimeout(Duration.ofSeconds(30));
 
+      startPrometheusServer(env);
+    };
+  }
+
+  public void startPrometheusServer(ConfigurableEnvironment env) {
+    if (prometheusContainer != null && !prometheusContainer.isRunning()) {
       prometheusContainer.start();
 
       Map<String, Object> prometheusEnv =
           registerEnvironment(env, prometheusContainer.getMappedPort(PROMETHEUS_INTERNAL_PORT));
       log.info("Started Prometheus server. Connection details: {}", prometheusEnv);
-    };
+    }
   }
 
   private int waitForManagementPort() {
@@ -98,15 +104,6 @@ public class EmbeddedPrometheusBootstrapConfiguration {
     }
     throw new IllegalStateException(
         "Property 'local.management.port' not available after waiting!");
-  }
-
-  private int getManagementPort() {
-    String managementPortStr = environment.getProperty("local.management.port");
-    if (managementPortStr == null) {
-      throw new IllegalStateException(
-          "Property 'local.management.port' not available yet! Maybe server not started?");
-    }
-    return Integer.parseInt(managementPortStr);
   }
 
   private void exposeManagementPort(int managementPort) {

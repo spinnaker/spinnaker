@@ -27,23 +27,8 @@ import org.springframework.http.HttpStatus;
 public class ManagementTest extends BaseIntegrationTest {
 
   @Test
-  public void prometheusTargetsAreAllReportingUp() throws InterruptedException {
-    int retries = 30; // wait up to 30 seconds
-    String prometheusPortStr = null;
-
-    while (retries-- > 0) {
-      prometheusPortStr = environment.getProperty("embedded.prometheus.port");
-      if (prometheusPortStr != null) {
-        break;
-      }
-      Thread.sleep(1000);
-    }
-
-    if (prometheusPortStr == null) {
-      throw new IllegalStateException("embedded.prometheus.port not set even after waiting!");
-    }
-
-    int prometheusPort = Integer.parseInt(prometheusPortStr);
+  public void prometheusTargetsAreAllReportingUp() {
+    int prometheusPort = Integer.parseInt(environment.getProperty("embedded.prometheus.port"));
 
     awaitThirtySecondsUntil(
         () ->
