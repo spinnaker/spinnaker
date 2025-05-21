@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/lodash": "^4.17.17",
     "@vercel/ncc": "^0.38.1",
     "prettier": "^3.0.3",
     "ts-node": "^10.9.2",
@@ -23,6 +24,7 @@
     "@actions/github": "^6.0.0",
     "@google-cloud/storage": "^7.5.0",
     "dayjs": "^1.11.13",
+    "lodash": "^4.17.21",
     "uuid": "^11.1.0",
     "yaml": "^2.3.4"
   }
