@@ -22,7 +22,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.KeelService
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -59,7 +62,7 @@ class DeleteApplicationTaskSpec extends Specification {
       0 * _._
     }
     task.keelService = Mock(KeelService) {
-      1 * deleteDeliveryConfig(config.application.name)
+      1 * deleteDeliveryConfig(config.application.name) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]"))
     }
 
     when:
@@ -79,7 +82,7 @@ class DeleteApplicationTaskSpec extends Specification {
       0 * _._
     }
     task.keelService = Mock(KeelService) {
-      1 * deleteDeliveryConfig(config.application.name)
+      1 * deleteDeliveryConfig(config.application.name) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]"))
     }
 
     when:
@@ -98,8 +101,7 @@ class DeleteApplicationTaskSpec extends Specification {
       0 * _._
     }
     task.keelService = Mock(KeelService) {
-      1 * deleteDeliveryConfig(config.application.name) >>
-          new Response("http://keel", 404, "not found", [], null)
+      1 * deleteDeliveryConfig(config.application.name) >> Calls.response(Response.error(404, ResponseBody.create(MediaType.parse("application/json"), "not found")))
     }
 
     when:
