@@ -1,16 +1,17 @@
 package com.netflix.spinnaker.orca.gremlin
 
-import retrofit.http.Body
-import retrofit.http.DELETE
-import retrofit.http.GET
-import retrofit.http.Header
-import retrofit.http.Headers
-import retrofit.http.POST
-import retrofit.http.Path
-import retrofit.http.Query
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Headers
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface GremlinService {
-  @POST("/attacks/new")
+  @POST("attacks/new")
   @Headers(
     "Content-Type: application/json",
     "X-Gremlin-Agent: spinnaker/0.1.0"
@@ -18,25 +19,25 @@ interface GremlinService {
   fun create(
     @Header("Authorization") authHeader: String,
     @Body attackParameters: AttackParameters
-  ): String
+  ): Call<String>
 
-  @GET("/executions")
+  @GET("executions")
   @Headers(
     "X-Gremlin-Agent: spinnaker/0.1.0"
   )
   fun getStatus(
     @Header("Authorization") authHeader: String,
     @Query("taskId") attackGuid: String
-  ): List<AttackStatus>
+  ): Call<List<AttackStatus>>
 
-  @DELETE("/attacks/{attackGuid}")
+  @DELETE("attacks/{attackGuid}")
   @Headers(
     "X-Gremlin-Agent: spinnaker/0.1.0"
   )
   fun haltAttack(
     @Header("Authorization") authHeader: String,
     @Path("attackGuid") attackGuid: String
-  ): Void
+  ): Call<Void>
 }
 
 data class AttackParameters(

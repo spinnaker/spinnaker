@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.gremlin.pipeline;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
@@ -46,7 +47,7 @@ public class GremlinStage implements StageDefinitionBuilder, CancellableStage {
             .orElse(false);
 
     if (!isAttackCompleted) {
-      gremlinService.haltAttack(getApiKey(ctx), getAttackGuid(ctx));
+      Retrofit2SyncCall.executeCall(gremlinService.haltAttack(getApiKey(ctx), getAttackGuid(ctx)));
       return new CancellableStage.Result(stage, ctx);
     }
     return null;
