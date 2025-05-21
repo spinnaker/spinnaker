@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -225,7 +226,7 @@ class GetCommitsTask implements DiffTask {
   }
 
   Map getRepoInfo(String application) {
-    Application app = front50Service.get(application)
+    Application app = Retrofit2SyncCall.execute(front50Service.get(application))
     return [repoType: app?.details()?.repoType, projectKey: app?.details()?.repoProjectKey, repositorySlug: app?.details()?.repoSlug]
   }
 

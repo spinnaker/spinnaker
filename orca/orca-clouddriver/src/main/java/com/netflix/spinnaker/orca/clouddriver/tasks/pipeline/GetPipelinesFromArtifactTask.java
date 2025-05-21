@@ -106,7 +106,7 @@ public class GetPipelinesFromArtifactTask implements Task {
             .flatMap(
                 appName -> {
                   final List<Map<String, Object>> existingAppPipelines =
-                      front50Service.getPipelines(appName);
+                      Retrofit2SyncCall.execute(front50Service.getPipelines(appName));
                   final List<Map> specifiedAppPipelines = finalPipelinesFromArtifact.get(appName);
                   return specifiedAppPipelines.stream()
                       .map(

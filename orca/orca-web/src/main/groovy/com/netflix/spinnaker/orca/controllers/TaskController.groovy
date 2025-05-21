@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.*
@@ -337,7 +338,7 @@ class TaskController {
     if (application == "*") {
       pipelineConfigIds = getPipelineConfigIdsOfReadableApplications()
     } else {
-      List<Map<String, Object>> pipelines = front50Service.getPipelines(application, false)
+      List<Map<String, Object>> pipelines = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false))
       pipelines = pipelines.stream().filter({ pipeline ->
         if (pipelineName != null && pipelineName != "") {
           return pipeline.get("name") == pipelineName
@@ -606,9 +607,9 @@ class TaskController {
     )
 
     // get all relevant pipeline and strategy configs from front50
-    def pipelineConfigIds = front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null)*.id as List<String>
+    def pipelineConfigIds = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null))*.id as List<String>
     log.debug("received ${pipelineConfigIds.size()} pipelines for application: $application from front50")
-    def strategyConfigIds = front50Service.getStrategies(application)*.id as List<String>
+    def strategyConfigIds = Retrofit2SyncCall.execute(front50Service.getStrategies(application))*.id as List<String>
     log.debug("received ${strategyConfigIds.size()} strategies for application: $application from front50")
 
     def allFront50PipelineConfigIds = pipelineConfigIds + strategyConfigIds
@@ -766,9 +767,9 @@ class TaskController {
 
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   private List<String> getPipelineConfigIdsOfReadableApplications() {
-    List<String> applicationNames = front50Service.getAllApplications()*.name as List<String>
+    List<String> applicationNames = Retrofit2SyncCall.execute(front50Service.getAllApplications())*.name as List<String>
     List<String> pipelineConfigIds = applicationNames.stream()
-      .map { applicationName -> front50Service.getPipelines(applicationName, false)*.id as List<String> }
+      .map { applicationName -> Retrofit2SyncCall.execute(front50Service.getPipelines(applicationName, false))*.id as List<String> }
       .flatMap { c -> c.stream() }
       .collect(Collectors.toList())
 

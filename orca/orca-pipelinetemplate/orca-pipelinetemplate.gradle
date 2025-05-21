@@ -32,5 +32,6 @@ dependencies {
   testImplementation("org.spockframework:spock-unitils")
   testImplementation("org.apache.groovy:groovy-json")
   testImplementation("io.spinnaker.fiat:fiat-core")
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 }

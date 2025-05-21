@@ -23,8 +23,13 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
+import okhttp3.MediaType
+import okhttp3.ResponseBody
 import retrofit.RetrofitError
 import retrofit.client.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -61,8 +66,8 @@ class UpsertApplicationTaskSpec extends Specification {
     def app = new Application(config.application + [user: config.user])
     task.front50Service = Mock(Front50Service) {
       1 * get(config.application.name) >> { throw notFoundError() }
-      1 * create(app)
-      1 * updatePermission(*_)
+      1 * create(app) >> Calls.response(null)
+      1 * updatePermission(*_) >> Calls.response(null)
       0 * _._
     }
 
@@ -82,8 +87,8 @@ class UpsertApplicationTaskSpec extends Specification {
       name: "application", owner: "owner", description: "description"
     )
     task.front50Service = Mock(Front50Service) {
-      1 * get(config.application.name) >> existingApplication
-      1 * update("application", application)
+      1 * get(config.application.name) >> Calls.response(existingApplication)
+      1 * update("application", application) >> Calls.response(null)
       0 * updatePermission(*_)
       0 * _._
     }
@@ -105,10 +110,10 @@ class UpsertApplicationTaskSpec extends Specification {
       if (initialState == null) {
         1 * get(config.application.name) >> { throw notFoundError() }
       } else {
-        1 * get(config.application.name) >> initialState
+        1 * get(config.application.name) >> Calls.response(initialState)
       }
-      1 * "${operation}"(*_)
-      _ * updatePermission(*_)
+      1 * "${operation}"(*_) >> Calls.response(null)
+      _ * updatePermission(*_) >> Calls.response(null)
       0 * _._
     }
 
@@ -141,15 +146,15 @@ class UpsertApplicationTaskSpec extends Specification {
     }
 
     task.front50Service = Mock(Front50Service) {
-      1 * get(*_) >> new Application()
-      1 * update(*_)
+      1 * get(*_) >> Calls.response(new Application())
+      1 * update(*_) >> Calls.response(null)
     }
 
     when:
     task.execute(pipeline.stages.first())
 
     then:
-    permissionsUpdateCount * task.front50Service.updatePermission(*_)
+    permissionsUpdateCount * task.front50Service.updatePermission(*_) >> Calls.response(null)
 
     where:
     permissions                                                 || permissionsUpdateCount
@@ -159,11 +164,20 @@ class UpsertApplicationTaskSpec extends Specification {
   }
 
   private static SpinnakerHttpException notFoundError() {
-    return new SpinnakerHttpException(RetrofitError.httpError(
-      "http://front50",
-      new Response("http://front50", 404, "Not Found", [], null),
-      null,
-      null
-    ))
+    String url = "https://mort";
+
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
+            404,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"));
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

@@ -32,6 +32,7 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import retrofit.RetrofitError
 import retrofit.client.Response
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -197,7 +198,7 @@ class GetCommitsTaskSpec extends Specification {
     }
 
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     def sg = new ServerGroup(launchConfig: [imageId: sourceImage])
     task.cloudDriverService = cloudDriverService
@@ -240,7 +241,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
@@ -286,7 +287,7 @@ class GetCommitsTaskSpec extends Specification {
     and:
     task.scmService = scmService
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application()
+    1 * front50Service.get(app) >> Calls.response(new Application())
 
     when:
     def result = task.execute(stage)
@@ -344,7 +345,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
@@ -392,7 +393,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
@@ -455,7 +456,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])

@@ -137,7 +137,8 @@ public abstract class AbstractCheckIfApplicationExistsTask implements Task {
     return retrySupport.retry(
         () -> {
           try {
-            Application fetchedApplication = front50Service.get(applicationName);
+            Application fetchedApplication =
+                Retrofit2SyncCall.execute(front50Service.get(applicationName));
             if (fetchedApplication == null) {
               log.warn("Application: " + applicationName + " does not exist in front50");
             } else {

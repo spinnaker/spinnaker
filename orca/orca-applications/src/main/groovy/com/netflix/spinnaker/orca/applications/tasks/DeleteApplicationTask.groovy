@@ -69,12 +69,12 @@ class DeleteApplicationTask extends AbstractFront50Task {
     Map<String, Object> outputs = [:]
 
     try {
-      def existingApplication = front50Service.get(application.name)
+      def existingApplication = Retrofit2SyncCall.execute(front50Service.get(application.name))
       if (existingApplication) {
         outputs.previousState = existingApplication
-        front50Service.delete(application.name)
+        Retrofit2SyncCall.executeCall(front50Service.delete(application.name))
         try {
-          front50Service.deletePermission(application.name)
+          Retrofit2SyncCall.executeCall(front50Service.deletePermission(application.name))
         } catch (SpinnakerHttpException re) {
           if (re.responseCode == 404) {
             return TaskResult.SUCCEEDED

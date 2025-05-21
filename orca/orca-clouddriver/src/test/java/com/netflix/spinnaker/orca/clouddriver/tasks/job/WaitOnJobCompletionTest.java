@@ -164,7 +164,7 @@ public final class WaitOnJobCompletionTest {
 
     when(mockKatoRestService.collectJob(any(), any(), any(), any()))
         .thenReturn(Calls.response(mockResponseBody));
-    when(mockFront50Service.get(any())).thenReturn(new Application("atest"));
+    when(mockFront50Service.get(any())).thenReturn(Calls.response(new Application("atest")));
 
     StageExecutionImpl myStage =
         createStageWithContextWithoutExecutionApplication(

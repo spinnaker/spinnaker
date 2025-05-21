@@ -17,7 +17,9 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -29,13 +31,14 @@ import com.netflix.spinnaker.orca.front50.pipeline.SavePipelineStage;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 @Component
 public class SavePipelineTask implements RetryableTask {
@@ -125,11 +128,11 @@ public class SavePipelineTask implements RetryableTask {
       pipelineModelMutators.stream().filter(m -> m.supports(pipe)).forEach(m -> m.mutate(pipe));
     }
 
-    Response response;
+    Response<ResponseBody> response;
     if (isBulkSavingPipelines) {
-      response = front50Service.savePipelines(pipelines, staleCheck);
+      response = Retrofit2SyncCall.executeCall(front50Service.savePipelines(pipelines, staleCheck));
     } else {
-      response = front50Service.savePipeline(pipeline, staleCheck);
+      response = Retrofit2SyncCall.executeCall(front50Service.savePipeline(pipeline, staleCheck));
     }
 
     Map<String, Object> outputs = new HashMap<>();
@@ -137,8 +140,8 @@ public class SavePipelineTask implements RetryableTask {
     outputs.put("application", stage.getContext().get("application"));
 
     Map<String, Object> saveResult = new HashMap<>();
-    try {
-      saveResult = (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
+    try (ResponseBody body = response.body()) {
+      saveResult = objectMapper.readValue(body.byteStream(), new TypeReference<>() {});
     } catch (Exception e) {
       log.error("Unable to deserialize save pipeline(s) result, reason: ", e);
     }
@@ -151,7 +154,7 @@ public class SavePipelineTask implements RetryableTask {
     }
 
     final ExecutionStatus status;
-    if (response.getStatus() == HttpStatus.OK.value()) {
+    if (response.code() == HttpStatus.OK.value()) {
       status = ExecutionStatus.SUCCEEDED;
     } else {
       if (isSavingMultiplePipelines) {
@@ -196,7 +199,7 @@ public class SavePipelineTask implements RetryableTask {
     String newPipelineID = (String) newPipeline.get("id");
     if (StringUtils.isNotEmpty(newPipelineID)) {
       try {
-        return front50Service.getPipeline(newPipelineID);
+        return Retrofit2SyncCall.execute(front50Service.getPipeline(newPipelineID));
       } catch (SpinnakerHttpException e) {
         // Return a null if pipeline with expected id not found
         if (e.getResponseCode() == HTTP_NOT_FOUND) {
