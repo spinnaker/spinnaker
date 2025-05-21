@@ -26,8 +26,9 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -129,7 +130,7 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
 
     then:
     artifactUtils.getBoundArtifactForStage(stage, null, artifact) >> artifact
-    oortService.fetchArtifact(artifact) >> new Response("", 200, "", Collections.emptyList(), new TypedString(objectMapper.writeValueAsString(RAW_BUILD)))
+    oortService.fetchArtifact(artifact) >>  Calls.response(ResponseBody.create(objectMapper.writeValueAsString(RAW_BUILD), MediaType.parse("application/json")))
     1 * contextParameterProcessor.process(RAW_BUILD, _, _) >> BUILD
 
     1 * igorService.createGoogleCloudBuild(ACCOUNT, BUILD) >> igorResponse

@@ -27,11 +27,9 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.Cluster;
@@ -45,14 +43,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpStatus;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class DetermineSourceServerGroupTaskTest {
 
@@ -82,16 +81,13 @@ public class DetermineSourceServerGroupTaskTest {
 
   @BeforeAll
   public static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
-    RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
 
     oortService =
-        new RestAdapter.Builder()
-            .setRequestInterceptor(new SpinnakerRequestInterceptor(true))
-            .setEndpoint(wmRuntimeInfo.getHttpBaseUrl())
-            .setClient(new Ok3Client())
-            .setLogLevel(retrofitLogLevel)
-            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-            .setConverter(new JacksonConverter(objectMapper))
+        new Retrofit.Builder()
+            .baseUrl(wmRuntimeInfo.getHttpBaseUrl())
+            .client(new OkHttpClient())
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
             .build()
             .create(OortService.class);
   }
@@ -138,7 +134,7 @@ public class DetermineSourceServerGroupTaskTest {
     assertThatThrownBy(() -> determineSourceServerGroupTask.execute(stage))
         .isExactlyInstanceOf(SpinnakerHttpException.class)
         .hasMessage(
-            "Status: 403, URL: http://localhost:"
+            "Status: 403, Method: GET, URL: http://localhost:"
                 + wireMock.getPort()
                 + "/applications/testCluster/clusters/test/testCluster/aws/us-east-1/serverGroups/target/ancestor_asg_dynamic, Message: Forbidden");
   }

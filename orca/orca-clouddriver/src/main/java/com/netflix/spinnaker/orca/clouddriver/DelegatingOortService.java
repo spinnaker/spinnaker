@@ -24,8 +24,9 @@ import com.netflix.spinnaker.orca.clouddriver.model.ManifestCoordinates;
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup;
 import java.util.List;
 import java.util.Map;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
-import retrofit.client.Response;
+import retrofit2.Call;
 
 public class DelegatingOortService extends DelegatingClouddriverService<OortService>
     implements OortService {
@@ -35,36 +36,38 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public Response getCluster(String app, String account, String cluster, String cloudProvider) {
+  public Call<ResponseBody> getCluster(
+      String app, String account, String cluster, String cloudProvider) {
     return getService().getCluster(app, account, cluster, cloudProvider);
   }
 
   @Override
-  public Manifest getManifest(String account, String name, boolean includeEvents) {
+  public Call<Manifest> getManifest(String account, String name, boolean includeEvents) {
     return getService().getManifest(account, name, includeEvents);
   }
 
   @Override
-  public Manifest getManifest(String account, String location, String name, boolean includeEvents) {
+  public Call<Manifest> getManifest(
+      String account, String location, String name, boolean includeEvents) {
     return StringUtils.isEmpty(location)
         ? getService().getManifest(account, name, includeEvents)
         : getService().getManifest(account, location, name, includeEvents);
   }
 
   @Override
-  public ManifestCoordinates getDynamicManifest(
+  public Call<ManifestCoordinates> getDynamicManifest(
       String account, String location, String kind, String app, String cluster, String criteria) {
     return getService().getDynamicManifest(account, location, kind, app, cluster, criteria);
   }
 
   @Override
-  public List<ManifestCoordinates> getClusterManifests(
+  public Call<List<ManifestCoordinates>> getClusterManifests(
       String account, String location, String kind, String app, String cluster) {
     return getService().getClusterManifests(account, location, kind, app, cluster);
   }
 
   @Override
-  public Response getServerGroupFromCluster(
+  public Call<ResponseBody> getServerGroupFromCluster(
       String app,
       String account,
       String cluster,
@@ -76,30 +79,31 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public List<ServerGroup> getServerGroupsFromClusterTyped(
+  public Call<List<ServerGroup>> getServerGroupsFromClusterTyped(
       String app, String account, String cluster, String serverGroup, String cloudProvider) {
     return getService()
         .getServerGroupsFromClusterTyped(app, account, cluster, serverGroup, cloudProvider);
   }
 
   @Override
-  public Response getServerGroups(String app) {
+  public Call<List<ServerGroup>> getServerGroups(String app) {
     return getService().getServerGroups(app);
   }
 
   @Deprecated
   @Override
-  public Response getServerGroup(String app, String account, String region, String serverGroup) {
+  public Call<ResponseBody> getServerGroup(
+      String app, String account, String region, String serverGroup) {
     return getService().getServerGroup(app, account, region, serverGroup);
   }
 
   @Override
-  public Response getServerGroup(String account, String serverGroup, String region) {
+  public Call<ResponseBody> getServerGroup(String account, String serverGroup, String region) {
     return getService().getServerGroup(account, serverGroup, region);
   }
 
   @Override
-  public ServerGroup getTargetServerGroup(
+  public Call<ServerGroup> getTargetServerGroup(
       String app,
       String account,
       String cluster,
@@ -110,7 +114,7 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public Map<String, Object> getServerGroupSummary(
+  public Call<Map<String, Object>> getServerGroupSummary(
       String app,
       String account,
       String cluster,
@@ -125,66 +129,66 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public Response getSearchResults(String searchTerm, String type, String cloudProvider) {
+  public Call<ResponseBody> getSearchResults(String searchTerm, String type, String cloudProvider) {
     return getService().getSearchResults(searchTerm, type, cloudProvider);
   }
 
   @Override
-  public Response getApplication(String app) {
+  public Call<ResponseBody> getApplication(String app) {
     return getService().getApplication(app);
   }
 
   @Override
-  public Response getInstance(String account, String region, String instanceId) {
+  public Call<ResponseBody> getInstance(String account, String region, String instanceId) {
     return getService().getInstance(account, region, instanceId);
   }
 
   @Override
-  public Response fetchArtifact(Artifact artifact) {
+  public Call<ResponseBody> fetchArtifact(Artifact artifact) {
     return getService().fetchArtifact(artifact);
   }
 
   @Override
-  public List<Map> getLoadBalancerDetails(
+  public Call<List<Map>> getLoadBalancerDetails(
       String provider, String account, String region, String name) {
     return getService().getLoadBalancerDetails(provider, account, region, name);
   }
 
   @Override
-  public List<Ami> getByAmiId(String type, String account, String region, Object imageId) {
+  public Call<List<Ami>> getByAmiId(String type, String account, String region, Object imageId) {
     return getService().getByAmiId(type, account, region, imageId);
   }
 
   @Override
-  public List<Map> findImage(
+  public Call<List<Map>> findImage(
       String cloudProvider, String query, String account, String region, Map additionalFilters) {
     return getService().findImage(cloudProvider, query, account, region, additionalFilters);
   }
 
   @Override
-  public List<Map<String, Object>> getEntityTags(
+  public Call<List<Map<String, Object>>> getEntityTags(
       String cloudProvider, String entityType, String entityId, String account, String region) {
     return getService().getEntityTags(cloudProvider, entityType, entityId, account, region);
   }
 
   @Override
-  public List<Map> getEntityTags(Map parameters) {
+  public Call<List<Map>> getEntityTags(Map parameters) {
     return getService().getEntityTags(parameters);
   }
 
   @Override
-  public Map getCloudFormationStack(String stackId) {
+  public Call<Map> getCloudFormationStack(String stackId) {
     return getService().getCloudFormationStack(stackId);
   }
 
   @Override
-  public Map getServiceInstance(
+  public Call<Map<String, Object>> getServiceInstance(
       String account, String cloudProvider, String region, String serviceInstanceName) {
     return getService().getServiceInstance(account, cloudProvider, region, serviceInstanceName);
   }
 
   @Override
-  public List<Map<String, Object>> getCredentials(boolean expand) {
+  public Call<List<Map<String, Object>>> getCredentials(boolean expand) {
     return getService().getCredentials(expand);
   }
 }

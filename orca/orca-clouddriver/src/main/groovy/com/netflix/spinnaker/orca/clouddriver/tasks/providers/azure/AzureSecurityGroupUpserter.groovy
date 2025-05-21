@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.azure
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.MortService
@@ -47,10 +48,10 @@ class AzureSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvider
 
   boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, StageExecution _) {
     try {
-      return mortService.getSecurityGroup(upsertedSecurityGroup.accountName,
+      return Retrofit2SyncCall.execute(mortService.getSecurityGroup(upsertedSecurityGroup.accountName,
         cloudProvider,
         upsertedSecurityGroup.name,
-        upsertedSecurityGroup.region)
+        upsertedSecurityGroup.region))
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() != 404) {
         throw e

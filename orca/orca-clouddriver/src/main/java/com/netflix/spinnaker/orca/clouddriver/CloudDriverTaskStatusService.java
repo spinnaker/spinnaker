@@ -18,13 +18,15 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskOwner;
-import retrofit.http.GET;
-import retrofit.http.Path;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
 
 public interface CloudDriverTaskStatusService {
   @GET("/task/{id}")
-  Task lookupTask(@Path("id") String id);
+  Call<Task> lookupTask(@Path("id") String id);
 
   @GET("/{cloudProvider}/task/{id}/owner")
-  TaskOwner lookupTaskOwner(@Path("cloudProvider") String cloudProvider, @Path("id") String id);
+  Call<TaskOwner> lookupTaskOwner(
+      @Path("cloudProvider") String cloudProvider, @Path("id") String id);
 }

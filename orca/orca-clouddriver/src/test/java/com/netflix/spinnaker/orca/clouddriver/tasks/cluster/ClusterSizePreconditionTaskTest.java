@@ -21,28 +21,28 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.jakewharton.retrofit.Ok3Client;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpStatus;
 import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class ClusterSizePreconditionTaskTest {
 
@@ -62,13 +62,11 @@ public class ClusterSizePreconditionTaskTest {
     RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
 
     oortService =
-        new RestAdapter.Builder()
-            .setRequestInterceptor(new SpinnakerRequestInterceptor(true))
-            .setEndpoint(wmRuntimeInfo.getHttpBaseUrl())
-            .setClient(new Ok3Client())
-            .setLogLevel(retrofitLogLevel)
-            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-            .setConverter(new JacksonConverter(objectMapper))
+        new Retrofit.Builder()
+            .baseUrl(wmRuntimeInfo.getHttpBaseUrl())
+            .client(new OkHttpClient())
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+            .addConverterFactory(JacksonConverterFactory.create())
             .build()
             .create(OortService.class);
   }
@@ -115,9 +113,9 @@ public class ClusterSizePreconditionTaskTest {
     simulateFault("/applications/foo/clusters/test/foo/aws", "{non-json-response}", HttpStatus.OK);
 
     assertThatThrownBy(() -> clusterSizePreconditionTask.execute(stage))
-        .isExactlyInstanceOf(SpinnakerConversionException.class)
+        .isExactlyInstanceOf(JsonParseException.class)
         .hasMessage(
-            "com.fasterxml.jackson.core.JsonParseException: Unexpected character ('n' (code 110)): was expecting double-quote to start field name\n"
-                + " at [Source: (ByteArrayInputStream); line: 1, column: 3]");
+            "Unexpected character ('n' (code 110)): was expecting double-quote to start field name\n"
+                + " at [Source: (okio.Buffer$inputStream$1); line: 1, column: 3]");
   }
 }

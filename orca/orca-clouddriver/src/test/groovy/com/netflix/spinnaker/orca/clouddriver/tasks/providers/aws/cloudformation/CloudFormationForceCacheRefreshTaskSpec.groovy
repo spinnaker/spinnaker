@@ -22,8 +22,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
@@ -64,7 +66,7 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
     def taskResult = task.execute(stage)
 
     then:
-    1 * cacheService.forceCacheUpdate(PROVIDER, CloudFormationForceCacheRefreshTask.REFRESH_TYPE, refreshDetails) >> mockResponse(HTTP_ACCEPTED)
+    1 * cacheService.forceCacheUpdate(PROVIDER, CloudFormationForceCacheRefreshTask.REFRESH_TYPE, refreshDetails) >> Calls.response(mockResponse(HTTP_ACCEPTED))
     0 * cacheService._
     taskResult.getStatus() == ExecutionStatus.RUNNING
   }
@@ -77,7 +79,7 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
     def taskResult = task.execute(stage)
 
     then:
-    1 * cacheService.forceCacheUpdate(PROVIDER, CloudFormationForceCacheRefreshTask.REFRESH_TYPE, refreshDetails) >> mockResponse(HTTP_OK)
+    1 * cacheService.forceCacheUpdate(PROVIDER, CloudFormationForceCacheRefreshTask.REFRESH_TYPE, refreshDetails) >> Calls.response(mockResponse(HTTP_OK))
     0 * cacheService._
     taskResult.getStatus() == ExecutionStatus.SUCCEEDED
   }
@@ -91,7 +93,7 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
     def taskResult = task.execute(stage)
 
     then:
-    1 * cacheService.forceCacheUpdate(PROVIDER, REFRESH_TYPE, refreshDetails) >> mockResponse(HTTP_ACCEPTED)
+    1 * cacheService.forceCacheUpdate(PROVIDER, REFRESH_TYPE, refreshDetails) >> Calls.response(mockResponse(HTTP_ACCEPTED))
     0 * cacheService._
     taskResult.getStatus() == ExecutionStatus.RUNNING
 
@@ -101,7 +103,7 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
     taskResult = task.execute(stage)
 
     then:
-    1 * cacheStatusService.pendingForceCacheUpdates(PROVIDER, REFRESH_TYPE) >> [pendingRefresh(refreshDetails)]
+    1 * cacheStatusService.pendingForceCacheUpdates(PROVIDER, REFRESH_TYPE) >> Calls.response([pendingRefresh(refreshDetails)])
     0 * cacheService._
     taskResult.getStatus() == ExecutionStatus.RUNNING
 
@@ -111,7 +113,7 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
     taskResult = task.execute(stage)
 
     then:
-    1 * cacheStatusService.pendingForceCacheUpdates(PROVIDER, REFRESH_TYPE) >> [processedRefresh(refreshDetails)]
+    1 * cacheStatusService.pendingForceCacheUpdates(PROVIDER, REFRESH_TYPE) >> Calls.response([processedRefresh(refreshDetails)])
     0 * cacheService._
     taskResult.getStatus() == ExecutionStatus.SUCCEEDED
   }
@@ -124,13 +126,11 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
   }
 
   private Response mockResponse(int status ) {
-    def oortResponse
+    def oortResponse = ""
     if (status == HTTP_ACCEPTED) {
       oortResponse = "{\"cachedIdentifiersByType\" : {\"stacks\" : [ \"aws:stacks:delivery-dev:eu-west-1:arn:aws:cloudformation:eu-west-1:549172523946:stack/StackName/676a9750-3baa-11eb-80fb-061510aab3dd\" ] } }".stripIndent()
-      return new Response('', status, 'OK', [], new TypedString(oortResponse))
-    } else {
-      return new Response( "", status, "", [], null)
     }
+    return Response.success(status, ResponseBody.create(MediaType.parse("application/json"), oortResponse))
   }
 
 

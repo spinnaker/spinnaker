@@ -53,6 +53,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
+import retrofit2.mock.Calls;
 
 @ExtendWith(MockitoExtension.class)
 final class DeployManifestStageTest {
@@ -127,18 +128,20 @@ final class DeployManifestStageTest {
   void rolloutStrategyRedBlack() {
     givenManifestIsStable();
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
-        .thenReturn(
-            ImmutableList.of(
-                ManifestCoordinates.builder()
-                    .name("my-rs-v000")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build(),
-                ManifestCoordinates.builder()
-                    .name("my-rs-v001")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build()));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    ImmutableList.of(
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v000")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build(),
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v001")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build())));
     Map<String, Object> context =
         getContext(
             DeployManifestContext.builder()
@@ -177,18 +180,20 @@ final class DeployManifestStageTest {
   void rolloutStrategyBlueGreen() {
     givenManifestIsStable();
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
-        .thenReturn(
-            ImmutableList.of(
-                ManifestCoordinates.builder()
-                    .name("my-rs-v000")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build(),
-                ManifestCoordinates.builder()
-                    .name("my-rs-v001")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build()));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    ImmutableList.of(
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v000")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build(),
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v001")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build())));
     Map<String, Object> context =
         getContext(
             DeployManifestContext.builder()
@@ -228,18 +233,20 @@ final class DeployManifestStageTest {
   void rolloutBlueGreenStrategyDeletesOldManifest() {
     givenManifestIsNotStable();
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
-        .thenReturn(
-            ImmutableList.of(
-                ManifestCoordinates.builder()
-                    .name("my-rs-v000")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build(),
-                ManifestCoordinates.builder()
-                    .name("my-rs-v001")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build()));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    ImmutableList.of(
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v000")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build(),
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v001")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build())));
     Map<String, Object> context =
         getContext(
             DeployManifestContext.builder()
@@ -280,18 +287,20 @@ final class DeployManifestStageTest {
   void rolloutBlueGreenStrategyDuringScalingDisablesOldManifest() {
     givenManifestIsNotStableDueToScaling();
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
-        .thenReturn(
-            ImmutableList.of(
-                ManifestCoordinates.builder()
-                    .name("my-rs-v000")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build(),
-                ManifestCoordinates.builder()
-                    .name("my-rs-v001")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build()));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    ImmutableList.of(
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v000")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build(),
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v001")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build())));
     Map<String, Object> context =
         getContext(
             DeployManifestContext.builder()
@@ -329,18 +338,20 @@ final class DeployManifestStageTest {
   @Test
   void rolloutStrategyHighlander() {
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
-        .thenReturn(
-            ImmutableList.of(
-                ManifestCoordinates.builder()
-                    .name("my-rs-v000")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build(),
-                ManifestCoordinates.builder()
-                    .name("my-rs-v001")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build()));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    ImmutableList.of(
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v000")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build(),
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v001")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build())));
     Map<String, Object> context =
         getContext(
             DeployManifestContext.builder()
@@ -379,13 +390,15 @@ final class DeployManifestStageTest {
   @Test
   void rolloutStrategyNoClusterSiblings() {
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
-        .thenReturn(
-            ImmutableList.of(
-                ManifestCoordinates.builder()
-                    .name("my-rs-v001")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build()));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    ImmutableList.of(
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v001")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build())));
     Map<String, Object> context =
         getContext(
             DeployManifestContext.builder()
@@ -409,13 +422,15 @@ final class DeployManifestStageTest {
   @Test
   void rolloutStrategyBlueGreenNoClusterSiblings() {
     when(oortService.getClusterManifests(ACCOUNT, NAMESAPCE, "replicaSet", APPLICATION, CLUSTER))
-        .thenReturn(
-            ImmutableList.of(
-                ManifestCoordinates.builder()
-                    .name("my-rs-v001")
-                    .kind("replicaSet")
-                    .namespace(NAMESAPCE)
-                    .build()));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    ImmutableList.of(
+                        ManifestCoordinates.builder()
+                            .name("my-rs-v001")
+                            .kind("replicaSet")
+                            .namespace(NAMESAPCE)
+                            .build())));
     Map<String, Object> context =
         getContext(
             DeployManifestContext.builder()
@@ -511,7 +526,7 @@ final class DeployManifestStageTest {
 
   private void givenManifestIs(Manifest manifest) {
     when(oortService.getManifest(anyString(), anyString(), anyString(), anyBoolean()))
-        .thenReturn(manifest);
+        .thenAnswer(invocation -> Calls.response(manifest));
   }
 
   @DisplayName(

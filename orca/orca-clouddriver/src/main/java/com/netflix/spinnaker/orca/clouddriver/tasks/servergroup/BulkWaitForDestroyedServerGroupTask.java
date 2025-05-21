@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -32,11 +33,12 @@ import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHa
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 @Component
 public class BulkWaitForDestroyedServerGroupTask implements CloudProviderAware, RetryableTask {
@@ -55,20 +57,23 @@ public class BulkWaitForDestroyedServerGroupTask implements CloudProviderAware, 
     Map<String, List<String>> regionToServerGroups =
         (Map<String, List<String>>) stage.getContext().get("deploy.server.groups");
     List<String> serverGroupNames = regionToServerGroups.get(region);
-    try {
-      Response response =
-          oortService.getCluster(
-              monikerHelper.getAppNameFromStage(stage, serverGroupNames.get(0)),
-              getCredentials(stage),
-              monikerHelper.getClusterNameFromStage(stage, serverGroupNames.get(0)),
-              getCloudProvider(stage));
 
-      // TODO: get rid of explicit status code handling
-      if (response.getStatus() != 200) {
+    try {
+      Response<ResponseBody> response =
+          Retrofit2SyncCall.executeCall(
+              oortService.getCluster(
+                  monikerHelper.getAppNameFromStage(stage, serverGroupNames.get(0)),
+                  getCredentials(stage),
+                  monikerHelper.getClusterNameFromStage(stage, serverGroupNames.get(0)),
+                  getCloudProvider(stage)));
+
+      if (!response.isSuccessful()) {
         return TaskResult.RUNNING;
       }
-
-      Cluster cluster = objectMapper.readValue(response.getBody().in(), Cluster.class);
+      Cluster cluster;
+      try (ResponseBody body = response.body()) {
+        cluster = objectMapper.readValue(body.byteStream(), Cluster.class);
+      }
       Map<String, Object> output = new HashMap<>();
       output.put("remainingInstances", Collections.emptyList());
       if (cluster == null || cluster.getServerGroups() == null) {
