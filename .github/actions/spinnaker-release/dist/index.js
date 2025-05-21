@@ -63156,7 +63156,7 @@ class Bom extends stored_yml_1.StoredYml {
         this.dependencies = this.getDefaultDependencies();
         this.services = new Map();
         this.timestamp = new Date().toISOString();
-        this.version = version;
+        this.version = version.toString();
     }
     getDefaultArtifactSources() {
         return new Map(Object.entries({
@@ -63187,10 +63187,10 @@ class Bom extends stored_yml_1.StoredYml {
             version: version,
         })));
     }
-    setService(service) {
+    setService(service, version) {
         this.services.set(service.name, new Map(Object.entries({
-            commit: service.getCommit(),
-            version: service.getVersion(),
+            commit: service.getCommit(version),
+            version: service.getVersion(version),
         })));
     }
     setTimestamp(timestamp) {
@@ -63514,6 +63514,7 @@ const all_1 = __nccwpck_require__(873);
 const util = __importStar(__nccwpck_require__(2629));
 const versionsDotYml_1 = __nccwpck_require__(7341);
 const changelog_1 = __nccwpck_require__(9173);
+const versions_1 = __nccwpck_require__(3296);
 async function generate() {
     const bom = await generateBom().catch((err) => {
         core.error('Failed to generate BoM');
@@ -63540,10 +63541,13 @@ async function generate() {
 exports.generate = generate;
 async function generateBom() {
     core.info('Running BoM generator');
-    const version = util.getInput('version');
+    const version = versions_1.Version.parse(util.getInput('version'));
+    if (!version) {
+        throw new Error('Valid version must be provided to generate a BoM');
+    }
     const bom = new bom_1.Bom(version);
     for (const service of all_1.services) {
-        bom.setService(service);
+        bom.setService(service, version);
     }
     return bom;
 }
@@ -63628,36 +63632,13 @@ class Service {
         this.overrides = overrides;
         this.inputOverrides = this.getInputOverrides();
     }
-    getBranch() {
-        // If a `branch` input is not provided, attempt to infer it from the `version`
-        const inputBranch = util.getInput('branch');
-        if (!inputBranch) {
-            const version = util.getInput('version');
-            const versionParts = version.split('.');
-            if (versionParts.length == 3) {
-                // Release branches are named release-<year>.<major>.x
-                return `release-${versionParts[0]}.${versionParts[1]}.x`;
-            }
-            else if (versionParts.length == 2 && versionParts[0] == 'main') {
-                return 'main';
-            }
-            else {
-                throw new Error(`Cannot infer branch to determine which service versions to use: ${version} - please specify in inputs.`);
-            }
-        }
-        else {
-            return inputBranch;
-        }
+    getLastTag(bomVersion) {
+        return git.findServiceTag(this.name, bomVersion);
     }
-    getLastTag() {
-        return git.findServiceTag(this.name, this.getBranch());
-    }
-    getVersion() {
-        const globalVersionOverride = util.getInput('version-override');
+    getVersion(bomVersion) {
         let version = this.inputOverrides?.version ||
             this.overrides?.version ||
-            globalVersionOverride ||
-            this.getLastTag()?.name;
+            this.getLastTag(bomVersion)?.name;
         // Strip the service prefix if it's a tag
         const tagPrefix = `${this.name}-`;
         if (version?.startsWith(tagPrefix)) {
@@ -63668,10 +63649,10 @@ class Service {
         }
         return version;
     }
-    getCommit() {
+    getCommit(bomVersion) {
         const commit = this.inputOverrides?.commit ||
             this.overrides?.commit ||
-            this.getLastTag()?.sha;
+            this.getLastTag(bomVersion)?.sha;
         if (!commit) {
             throw new Error(`Unable to resolve commit for service ${this.name}`);
         }
@@ -64300,6 +64281,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const child_process_1 = __nccwpck_require__(2081);
 const github_1 = __nccwpck_require__(5438);
 const util = __importStar(__nccwpck_require__(2629));
+const versions_1 = __nccwpck_require__(3296);
 exports.github = (0, github_1.getOctokit)(util.getInput('github-pat'));
 function gitCmd(command, execOpts) {
     const out = gitCmdMulti(command, execOpts);
@@ -64340,23 +64322,12 @@ function parseTag(name) {
     };
 }
 exports.parseTag = parseTag;
-function findServiceTag(service, branch) {
+function findServiceTag(service, bomVersion) {
     // Find the newest tag with the provided prefix, if exists, and parse it
     if (!service) {
         throw new Error(`Tag service must not be empty`);
     }
-    // Trim the release-part off the branch, since that's not part of the tag
-    if (branch.startsWith('release-')) {
-        branch = branch.slice(8);
-    }
-    // Same for the .x
-    if (branch.endsWith('.x')) {
-        branch = branch.slice(0, -2);
-    }
-    if (!branch) {
-        throw new Error(`Tag branch must not be empty`);
-    }
-    return findTag(`${service}-${branch}`);
+    return findTag(`${service}-${bomVersion.toString()}`);
 }
 exports.findServiceTag = findServiceTag;
 // Tag of the form <service>-<train>-<build_number>
@@ -64374,30 +64345,28 @@ function findTag(prefix) {
         ?.filter((it) => it.startsWith(prefix))
         ?.filter((it) => {
         // Ensure this matches standard tag format - all other tags should be disregarded
-        return isAutoIncrementTag(it) || isReleaseTag(it);
+        // A release tag looks like: <service>-<release_version> e.g. clouddriver-2025.0.2
+        return isReleaseTag(it);
     })
-        ?.sort((a, b) => {
-        // Basic sorting fails beyond single-digit numbers, e.g. 10 < 2, so sort by parts
-        // All tags should have three parts - service-branch-number, and the tags are prefiltered to fit that format
-        // So, all we need to do is compare the third value
-        const aSplit = a.split('-');
-        const bSplit = b.split('-');
-        const aNum = parseInt(aSplit.slice(-1)[0]);
-        const bNum = parseInt(bSplit.slice(-1)[0]);
-        // Sort in reverse order
-        if (aNum > bNum)
-            return -1;
-        if (aNum < bNum)
-            return 1;
-        return 0;
-    });
+        ?.map((it) => {
+        // Parse the version portion of the release tag
+        return {
+            name: it,
+            version: versions_1.Version.parse(it.split('-')[1]),
+        };
+    })
+        // Filter out anything that didn't parse
+        ?.filter((it) => !!it.version)
+        // TS doesn't understand null filtering yet, so there are !s asserting they are non-null
+        // Sort all the entries by version descending
+        ?.sort((a, b) => versions_1.Version.compare(a.version, b.version) * -1);
     if (!tags || !tags.length) {
         core.warning(`No tags found for prefix ${prefix}`);
         return undefined;
     }
     return {
-        name: tags[0],
-        sha: gitCmd(`git rev-parse ${tags[0]}`),
+        name: tags[0].name,
+        sha: gitCmd(`git rev-parse ${tags[0].name}`),
     };
 }
 exports.findTag = findTag;
@@ -64561,6 +64530,11 @@ class Version {
             }
         }
         return 0;
+    }
+    equals(version) {
+        return (this.major === version.major &&
+            this.minor === version.minor &&
+            this.patch === version.patch);
     }
     toString() {
         return `${this.major}.${this.minor}.${this.patch}`;
