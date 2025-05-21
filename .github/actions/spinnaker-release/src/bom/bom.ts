@@ -2,6 +2,7 @@ import { Service } from './service';
 import { StoredYml } from '../gcp/stored_yml';
 import * as util from '../util';
 import * as Path from 'path';
+import { Version } from '../versions';
 
 export class Bom extends StoredYml {
   artifactSources: Map<string, string>;
@@ -10,13 +11,13 @@ export class Bom extends StoredYml {
   timestamp: string;
   version: string;
 
-  constructor(version: string) {
+  constructor(version: Version) {
     super();
     this.artifactSources = this.getDefaultArtifactSources();
     this.dependencies = this.getDefaultDependencies();
     this.services = new Map<string, Map<string, string>>();
     this.timestamp = new Date().toISOString();
-    this.version = version;
+    this.version = version.toString();
   }
 
   getDefaultArtifactSources(): Map<string, string> {
@@ -67,13 +68,13 @@ export class Bom extends StoredYml {
     );
   }
 
-  setService(service: Service) {
+  setService(service: Service, version: Version) {
     this.services.set(
       service.name,
       new Map(
         Object.entries({
-          commit: service.getCommit(),
-          version: service.getVersion(),
+          commit: service.getCommit(version),
+          version: service.getVersion(version),
         }),
       ),
     );

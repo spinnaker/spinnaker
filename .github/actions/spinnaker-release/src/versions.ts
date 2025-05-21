@@ -44,6 +44,14 @@ export class Version {
     return 0;
   }
 
+  equals(version: Version) {
+    return (
+      this.major === version.major &&
+      this.minor === version.minor &&
+      this.patch === version.patch
+    );
+  }
+
   toString() {
     return `${this.major}.${this.minor}.${this.patch}`;
   }
