@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Client
 
 import javax.annotation.Nonnull
 
@@ -35,9 +34,6 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
 
   @Autowired
   ObjectMapper objectMapper
-
-  @Autowired
-  Client retrofitClient
 
   @Nonnull
   @Override

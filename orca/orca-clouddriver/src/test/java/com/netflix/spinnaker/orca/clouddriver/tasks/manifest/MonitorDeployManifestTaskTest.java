@@ -48,6 +48,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,10 +58,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.annotation.DirtiesContext;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.converter.JacksonConverter;
-import retrofit.mime.TypedByteArray;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.mock.Calls;
 
 @ExtendWith(MockitoExtension.class)
@@ -86,8 +87,6 @@ final class MonitorDeployManifestTaskTest {
   private final Registry noopRegistry = new NoopRegistry();
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-
-  private final JacksonConverter jacksonConverter = new JacksonConverter(objectMapper);
 
   private Task katoTask;
 
@@ -426,19 +425,21 @@ final class MonitorDeployManifestTaskTest {
   }
 
   private SpinnakerHttpException notFoundError() {
-    return new SpinnakerHttpException(
-        RetrofitError.httpError(
-            "http://localhost",
-            new Response(
-                "http://localhost",
-                404,
-                "Manifest (account: account, location: ns, name: pod spin-clouddriver-6df9f7768c-zzr2t) not found",
-                List.of(),
-                new TypedByteArray(
-                    "application/json",
-                    "{\"error\":\"Not Found\",\"message\":\"Manifest (account: k8s-spinnaker1-v2-account, location: spinnaker, name: spin-clouddriver-6df9f7768c-zzr2t) not found\",\"status\":404,\"timestamp\":\"2021-01-25T18:29:59.277+00:00\"}"
-                        .getBytes())),
-            jacksonConverter,
-            Task.class));
+    String url = "https://localhost";
+
+    Response retrofit2Response =
+        Response.error(
+            404,
+            ResponseBody.create(
+                MediaType.parse("application/json"),
+                "{\"error\":\"Not Found\",\"message\":\"Manifest (account: k8s-spinnaker1-v2-account, location: spinnaker, name: spin-clouddriver-6df9f7768c-zzr2t) not found\",\"status\":404,\"timestamp\":\"2021-01-25T18:29:59.277+00:00\"}"));
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

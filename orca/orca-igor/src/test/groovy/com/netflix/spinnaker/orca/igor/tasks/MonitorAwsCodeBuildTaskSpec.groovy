@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import okhttp3.Request
-import retrofit.RetrofitError
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject

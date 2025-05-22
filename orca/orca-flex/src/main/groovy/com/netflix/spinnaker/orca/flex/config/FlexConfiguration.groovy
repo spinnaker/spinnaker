@@ -22,15 +22,12 @@ import com.netflix.spinnaker.orca.flex.FlexService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.RestAdapter
-import retrofit.client.Client
 
 @Configuration
 @Import(RetrofitConfiguration)
@@ -41,9 +38,6 @@ import retrofit.client.Client
 ])
 @CompileStatic
 class FlexConfiguration {
-
-  @Autowired Client retrofitClient
-  @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean
   FlexService flexService(@Value('${flex.base-url}') String flexBaseUrl, ServiceClientProvider serviceClientProvider) {

@@ -28,7 +28,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundExceptio
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import de.huxhorn.sulky.ulid.ULID
 import okhttp3.Request
-import retrofit.RetrofitError
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll

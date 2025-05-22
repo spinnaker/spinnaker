@@ -25,14 +25,11 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Client
 
 @Deprecated
 @Component
 class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
   @Autowired ObjectMapper objectMapper
-
-  @Autowired Client retrofitClient
 
   long backoffPeriod = 10000
   long timeout = 1200000 // 20mins

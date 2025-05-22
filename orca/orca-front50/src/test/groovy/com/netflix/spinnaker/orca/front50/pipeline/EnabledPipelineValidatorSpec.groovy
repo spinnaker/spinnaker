@@ -21,8 +21,11 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator.PipelineValidationFailed
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
@@ -185,12 +188,21 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def notFoundError() {
-    new SpinnakerHttpException(RetrofitError.httpError(
-      "http://localhost",
-      new Response("http://localhost", HTTP_NOT_FOUND, "Not Found", [], null),
-      null,
-      null
-    ))
+    String url = "https://localhost";
+
+    Response retrofit2Response =
+        Response.error(
+            HTTP_NOT_FOUND,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{\"error\":\"Not Found\"}"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 
 }

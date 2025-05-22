@@ -4,9 +4,6 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import okhttp3.MediaType
 import okhttp3.ResponseBody
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedString
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls

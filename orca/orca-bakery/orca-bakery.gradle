@@ -40,6 +40,7 @@ dependencies {
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-core")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
   testImplementation ("org.springframework:spring-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("io.spinnaker.kork:kork-retrofit2")

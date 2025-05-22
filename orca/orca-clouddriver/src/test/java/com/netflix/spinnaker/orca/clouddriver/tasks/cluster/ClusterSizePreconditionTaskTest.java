@@ -40,7 +40,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpStatus;
-import retrofit.RestAdapter;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -58,9 +57,6 @@ public class ClusterSizePreconditionTaskTest {
 
   @BeforeAll
   public static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
-
-    RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
-
     oortService =
         new Retrofit.Builder()
             .baseUrl(wmRuntimeInfo.getHttpBaseUrl())
