@@ -27,10 +27,11 @@ import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.GsonConverter
-import retrofit.mime.TypedByteArray
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -48,8 +49,6 @@ class MonitorKatoTaskSpec extends Specification {
   }
   KatoService kato = Mock(KatoService)
   DynamicConfigService dynamicConfigService = Mock()
-
-  GsonConverter gsonConverter = new GsonConverter(new Gson())
 
   @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")), dynamicConfigService, retrySupport)
 
@@ -210,7 +209,7 @@ class MonitorKatoTaskSpec extends Specification {
   }
 
   def notFoundException() {
-    throw new SpinnakerHttpException(RetrofitError.httpError("http://localhost", new Response("http://localhost", 404, "Not Found", [], new TypedByteArray("application/json", new byte[0])), gsonConverter, Task))
+    throw makeSpinnakerHttpException(404)
  }
 
   @Unroll
@@ -245,5 +244,24 @@ class MonitorKatoTaskSpec extends Specification {
     ""              | ""                    | ""            | ""
 
     taskId = "kato-task-id"
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+
+    String url = "https://kato";
+
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

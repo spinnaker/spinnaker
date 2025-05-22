@@ -50,7 +50,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
-import retrofit.RetrofitError;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -337,10 +336,6 @@ class SpinnakerServerExceptionHandlerTest {
     assertThat(actualResponse.getOperation()).isEqualTo(expectedResponse.getOperation());
     assertThat(actualResponse.getDetails()).isEqualTo(expectedResponse.getDetails());
     assertThat(actualResponse.isShouldRetry()).isEqualTo(expectedResponse.isShouldRetry());
-  }
-
-  private static SpinnakerHttpException makeSpinnakerHttpException(RetrofitError retrofitError) {
-    return new SpinnakerHttpException(retrofitError);
   }
 
   private static <T> SpinnakerServerException expectingException(Supplier<Call<T>> action) {

@@ -26,10 +26,11 @@ import com.netflix.spinnaker.orca.bakery.api.DeleteBakesRequest
 import com.netflix.spinnaker.orca.bakery.api.BaseImage
 import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfigurationProperties
-import retrofit.http.Body
-import retrofit.http.Path
-import retrofit.http.Query
+
 import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.Path
+import retrofit2.http.Query
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll

@@ -25,8 +25,6 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import okhttp3.MediaType
 import okhttp3.ResponseBody
-import retrofit.RetrofitError
-import retrofit.client.Response
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
