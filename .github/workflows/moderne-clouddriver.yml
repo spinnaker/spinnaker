@@ -1,0 +1,39 @@
+name: Build and Upload Clouddriver
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+      - moderne
+      - release-*
+    paths:
+      - 'clouddriver/**'
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Build the distribution
+      - name: Build Distribution
+        uses: ./.github/actions/moderne/build-distribution
+        with:
+          project: clouddriver
+
+      # Create a tarball of the distribution
+      - name: Tar Distribution
+        uses: ./.github/actions/moderne/tar-distribution
+        with:
+          project: clouddriver
+
+      # Upload the tarball to S3
+      - name: Publish Tarball to S3
+        uses: ./.github/actions/moderne/publish-s3-bucket
+        with:
+          project: clouddriver

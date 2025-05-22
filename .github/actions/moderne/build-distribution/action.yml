@@ -1,0 +1,31 @@
+name: Build Distribution
+description: Builds a distribution for a service
+author: jammy@modern.io
+
+inputs:
+  project:
+    description: Project to build
+    required: true
+  gradle-opts:
+    description: Additional Gradle options set via GRADLE_OPTS
+    default: -Xmx4g -Xms4g
+  gradle-cmd-opts:
+    description: Additional Gradle options set via the command line
+
+runs:
+  using: "composite"
+  steps:
+    # Set up Java for Gradle
+    - uses: actions/setup-java@v4
+      with:
+        java-version: 17
+        distribution: 'zulu'
+        cache: gradle
+
+    # Build the distribution
+    - name: Build Distribution
+      shell: bash
+      env:
+        GRADLE_OPTS: ${{ inputs.gradle-opts }}
+      run: |
+        ./gradlew ${{ inputs.gradle-cmd-opts }} :${{ inputs.project }}:${{ inputs.project }}-web:installDist

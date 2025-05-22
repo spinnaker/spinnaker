@@ -1,0 +1,43 @@
+name: Publish Tar to S3
+description: Publishes the tarball to an S3 bucket
+author: jammy@modern.io
+
+inputs:
+  project:
+    description: Project name of the tarball
+    required: true
+  path:
+    description: Bucket path to where the tar will be uploaded
+    default: opt
+runs:
+  using: "composite"
+  steps:
+    # Publish the tarball to S3
+    - name: Publish Tarball to S3
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        # Remove the 'latest' tag from the previous object for the specific project
+        previous_latest=$(aws s3api list-objects-v2 \
+          --bucket moderne-labs-spinnaker-config \
+          --prefix ${{ inputs.path }}/${{ inputs.project }}- \
+          --query "Contents[?contains(Key, 'latest')].Key" \
+          --output text)
+
+        if [ "$previous_latest" != "None" ]; then
+          aws s3api delete-object-tagging \
+            --bucket moderne-labs-spinnaker-config \
+            --key "$previous_latest"
+        fi
+        
+        # Upload the tarball to S3
+        aws s3 cp ${{ inputs.project }}-${{ github.sha }}.tar \
+          s3://moderne-labs-spinnaker-config/${{ inputs.path }}/${{ inputs.project }}-${{ github.sha }}.tar \
+          --region us-west-2
+        
+        aws s3api put-object-tagging \
+          --bucket moderne-labs-spinnaker-config \
+          --key ${{ inputs.path }}/${{ inputs.project }}-${{ github.sha }}.tar \
+          --tagging 'TagSet=[{Key=latest,Value=true}]'

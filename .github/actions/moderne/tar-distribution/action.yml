@@ -1,0 +1,19 @@
+name: Tar Distribution
+description: Creates a tarball of the built distribution
+author: jammy@modern.io
+
+inputs:
+  project:
+    description: Project to tar
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    # Create a tarball of the distribution
+    - name: Tar Distribution
+      shell: bash
+      run: |
+        tar -cf ${{ inputs.project }}-${{ github.sha }}.tar \
+          -C ${{ inputs.project }}/${{ inputs.project }}-web/build/install \
+          .
