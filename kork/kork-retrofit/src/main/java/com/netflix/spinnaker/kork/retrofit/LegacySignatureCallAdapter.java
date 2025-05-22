@@ -24,6 +24,10 @@ import retrofit2.Call;
 import retrofit2.CallAdapter;
 import retrofit2.Retrofit;
 
+/**
+ * Adapts Retrofit interface return types that are not wrapped in a {@link Call} The Call object
+ * that the Retrofit internals create and provide is just executed immediately
+ */
 @RequiredArgsConstructor
 public class LegacySignatureCallAdapter implements CallAdapter<Object, Object> {
   private final Executor callbackExecutor;
