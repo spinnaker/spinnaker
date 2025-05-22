@@ -6,9 +6,6 @@ inputs:
   project:
     description: Project name of the tarball
     required: true
-  path:
-    description: Bucket path to where the tar will be uploaded
-    default: opt
 runs:
   using: "composite"
   steps:
@@ -16,28 +13,43 @@ runs:
     - name: Publish Tarball to S3
       shell: bash
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        PROJECT: ${{ inputs.project }}
+        SHA: ${{ github.sha }}
+        BUCKET: moderne-labs-spinnaker-distribution
       run: |
-        # Remove the 'latest' tag from the previous object for the specific project
-        previous_latest=$(aws s3api list-objects-v2 \
-          --bucket moderne-labs-spinnaker-config \
-          --prefix ${{ inputs.path }}/${{ inputs.project }}- \
-          --query "Contents[?contains(Key, 'latest')].Key" \
+        set -e
+        
+        NEW_KEY="${PROJECT}-${SHA}.tar"
+        LOCAL_FILE="${PROJECT}-${SHA}.tar"
+        
+        echo "Uploading $LOCAL_FILE to s3://$BUCKET/$NEW_KEY"
+        aws s3 cp "$LOCAL_FILE" "s3://$BUCKET/$NEW_KEY" --region us-west-2
+        
+        echo "Searching for previously tagged 'latest' tarball..."
+        OBJECTS=$(aws s3api list-objects-v2 \
+          --bucket "$BUCKET" \
+          --prefix "${PROJECT}-" \
+          --query "Contents[].Key" \
           --output text)
-
-        if [ "$previous_latest" != "None" ]; then
-          aws s3api delete-object-tagging \
-            --bucket moderne-labs-spinnaker-config \
-            --key "$previous_latest"
-        fi
         
-        # Upload the tarball to S3
-        aws s3 cp ${{ inputs.project }}-${{ github.sha }}.tar \
-          s3://moderne-labs-spinnaker-config/${{ inputs.path }}/${{ inputs.project }}-${{ github.sha }}.tar \
-          --region us-west-2
+        for KEY in $OBJECTS; do
+          if [ "$KEY" != "$NEW_KEY" ]; then
+            TAG=$(aws s3api get-object-tagging \
+              --bucket "$BUCKET" \
+              --key "$KEY" \
+              --query "TagSet[?Key=='latest'].Value" \
+              --output text)
         
+            if [ "$TAG" == "true" ]; then
+              echo "Deleting old 'latest' object: $KEY"
+              aws s3 rm "s3://$BUCKET/$KEY"
+              break
+            fi
+          fi
+        done
+        
+        echo "Tagging $NEW_KEY as 'latest'"
         aws s3api put-object-tagging \
-          --bucket moderne-labs-spinnaker-config \
-          --key ${{ inputs.path }}/${{ inputs.project }}-${{ github.sha }}.tar \
+          --bucket "$BUCKET" \
+          --key "$NEW_KEY" \
           --tagging 'TagSet=[{Key=latest,Value=true}]'

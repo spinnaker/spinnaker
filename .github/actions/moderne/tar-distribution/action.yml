@@ -6,14 +6,28 @@ inputs:
   project:
     description: Project to tar
     required: true
+  distribution-path:
+    description: Optional distribution path
+    required: false
+    default: ""
 
 runs:
   using: "composite"
   steps:
+    - name: Determine distribution path
+      id: vars
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.distribution-path }}" ]]; then
+          echo "path=${{ inputs.project }}/${{ inputs.project }}-web/build/install" >> $GITHUB_OUTPUT
+        else
+          echo "path=${{ inputs.distribution-path }}" >> $GITHUB_OUTPUT
+        fi
+
     # Create a tarball of the distribution
     - name: Tar Distribution
       shell: bash
       run: |
         tar -cf ${{ inputs.project }}-${{ github.sha }}.tar \
-          -C ${{ inputs.project }}/${{ inputs.project }}-web/build/install \
+          -C ${{ steps.vars.outputs.path }} \
           .

@@ -1,4 +1,4 @@
-name: Build and Upload Clouddriver
+name: Build and Upload Deck
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - 'clouddriver/**'
+      - 'deck/**'
 
 jobs:
   build-and-upload:
@@ -21,15 +21,14 @@ jobs:
 
       # Build the distribution
       - name: Build Distribution
-        uses: ./.github/actions/moderne/build-distribution
-        with:
-          project: clouddriver
+        uses: ./.github/actions/moderne/build-deck-distribution
 
       # Create a tarball of the distribution
       - name: Tar Distribution
         uses: ./.github/actions/moderne/tar-distribution
         with:
-          project: clouddriver
+          project: deck
+          distribution-path: deck/build/webpack
 
       # Upload the tarball to S3
       - name: Publish Tarball to S3
@@ -38,4 +37,4 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
-          project: clouddriver
+          project: deck
