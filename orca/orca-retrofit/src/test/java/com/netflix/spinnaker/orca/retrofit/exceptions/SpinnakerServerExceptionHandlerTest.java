@@ -25,6 +25,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
@@ -50,6 +51,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
+import retrofit.RetrofitError;
+import retrofit.converter.GsonConverter;
+import retrofit.mime.TypedString;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -63,6 +67,8 @@ class SpinnakerServerExceptionHandlerTest {
   private static final String URL = mockWebServer.url("https://some-url").toString();
 
   private static final String TASK_NAME = "task name";
+
+  private static final GsonConverter gsonConverter = new GsonConverter(new Gson());
 
   private static final IOException io = new IOException("an IOException");
 
@@ -185,6 +191,19 @@ class SpinnakerServerExceptionHandlerTest {
   }
 
   private static Stream<Arguments> exceptionsForRetryTest() throws Exception {
+    // This isn't retryable because it's not considered an idempotent request
+    // since there's no retrofit http method annotation in the exception's stack
+    // trace.
+    retrofit.client.Response response504 =
+        new retrofit.client.Response(
+            URL,
+            504,
+            "arbitrary reason",
+            List.of(),
+            new TypedString("{ message: \"arbitrary message\" }"));
+    RetrofitError notRetryableRetrofitError = makeRetrofitError(response504);
+    SpinnakerServerException notRetryable = new SpinnakerHttpException(notRetryableRetrofitError);
+
     // This is retryable because HTTP 503 is retryable, regardless of request method
     SpinnakerServerException retryable = makeSpinnakerHttpException(503);
 
@@ -199,6 +218,12 @@ class SpinnakerServerExceptionHandlerTest {
     // way SpinnakerHttpRetrofitHandler generates exceptions, and the way
     // SpinnakerServerExceptionHandler invokes shouldRetry, results in the
     // expected behavior as far as picking up retrofit annotations.
+
+    wmServer.stubFor(
+        WireMock.get(WireMock.urlEqualTo("/whatever"))
+            // Faults are resulting in 500s in ErrorHandlingExecutorCallAdapterFactory so
+            // adding delay to generate network error.
+            .willReturn(WireMock.aResponse().withFixedDelay(10000)));
 
     wmServer.stubFor(
         WireMock.head(WireMock.urlEqualTo("/whatever"))
@@ -227,6 +252,9 @@ class SpinnakerServerExceptionHandlerTest {
             .build()
             .create(DummyRetrofitApi.class);
 
+    // Retryable since it's a network error from an idempotent request
+    SpinnakerServerException idempotentNetworkException = expectingException(api::get);
+
     // Retryable since it's one of the allowed gateway error codes from an
     // idempotent request (502/bad gateway or 504/gateway timeout)
     SpinnakerServerException idempotentGatewayException = expectingException(api::head);
@@ -239,7 +267,9 @@ class SpinnakerServerExceptionHandlerTest {
         expectingException(() -> api.post("whatever"));
 
     return Stream.of(
+        Arguments.of(notRetryable, false),
         Arguments.of(retryable, true),
+        Arguments.of(idempotentNetworkException, true),
         Arguments.of(idempotentGatewayException, true),
         Arguments.of(idempotentThrottlingException, true),
         Arguments.of(nonIdempotentThrottlingException, false));
@@ -343,7 +373,7 @@ class SpinnakerServerExceptionHandlerTest {
     if (thrown instanceof SpinnakerServerException) {
       return (SpinnakerServerException) thrown;
     }
-    throw new IllegalStateException("Callable did not throw an exception");
+    throw new IllegalStateException("Callable did not throw a SpinnakerServerException");
   }
 
   static SpinnakerHttpException makeSpinnakerHttpException(int status) {
@@ -364,5 +394,9 @@ class SpinnakerServerExceptionHandlerTest {
             .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit);
+  }
+
+  private static RetrofitError makeRetrofitError(retrofit.client.Response response) {
+    return RetrofitError.httpError(URL, response, gsonConverter, String.class);
   }
 }
