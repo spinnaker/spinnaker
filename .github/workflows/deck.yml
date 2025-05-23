@@ -11,7 +11,7 @@ on:
       publish-debs:
         description: Publish debs
         type: boolean
-        default: false
+        default: true
       publish-npm:
         description: Publish npm
         type: boolean
@@ -29,7 +29,7 @@ on:
       publish-debs:
         description: Publish debs
         type: boolean
-        default: false
+        default: true
       publish-npm:
         description: Publish npm
         type: boolean
