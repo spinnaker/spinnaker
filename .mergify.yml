@@ -105,7 +105,4 @@ pull_request_rules:
         name: default
       label:
         add: ["auto merged"]
-priority_rules:
-  - name: priority for queue `default`
-    conditions: []
-    priority: 2750
+priority_rules: []
