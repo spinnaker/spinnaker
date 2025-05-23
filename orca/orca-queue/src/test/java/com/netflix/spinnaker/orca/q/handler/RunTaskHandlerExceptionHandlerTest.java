@@ -251,6 +251,7 @@ class RunTaskHandlerExceptionHandlerTest {
   }
 
   private static Stream<SpinnakerHttpException> nonRetryableSpinnakerHttpExceptions() {
+    // irrespective of the exception details, http code 500 is non-retryable
     return Stream.of(
         makeSpinnakerHttpException(500, message),
         makeSpinnakerHttpException(500, messageWithError),
