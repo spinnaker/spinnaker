@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
@@ -57,7 +58,7 @@ class MonitorBakeTask implements OverridableTimeoutRetryableTask {
 
     try {
       def bakery = bakerySelector.select(stage)
-      def newStatus = bakery.service.lookupStatus(region, previousStatus.id)
+      def newStatus = Retrofit2SyncCall.execute(bakery.service.lookupStatus(region, previousStatus.id))
       if (isCanceled(newStatus.state) && previousStatus.state == BakeStatus.State.PENDING) {
         log.info("Original bake was 'canceled', re-baking (executionId: ${stage.execution.id}, previousStatus: ${previousStatus.state})")
         def rebakeResult = createBakeTask.execute(stage)

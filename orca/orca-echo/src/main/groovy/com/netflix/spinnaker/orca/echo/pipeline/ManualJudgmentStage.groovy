@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.echo.pipeline
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -219,29 +220,31 @@ class ManualJudgmentStage implements StageDefinitionBuilder, AuthenticatedStage 
     }
 
     void notify(EchoService echoService, StageExecution stage, String notificationState) {
-      echoService.create(new EchoService.Notification(
-          notificationType: EchoService.Notification.Type.valueOf(type.toUpperCase()),
-          to: address ? [address] : (publisherName ? [publisherName] : null),
-          cc: cc ? [cc] : null,
-          templateGroup: notificationState,
-          severity: EchoService.Notification.Severity.HIGH,
-          source: new EchoService.Notification.Source(
-              executionType: stage.execution.type.toString(),
-              executionId: stage.execution.id,
-              application: stage.execution.application
-          ),
-          additionalContext: [
-              stageName                        : stage.name,
-              stageId                          : stage.refId,
-              restrictExecutionDuringTimeWindow: stage.context.restrictExecutionDuringTimeWindow,
-              execution                        : stage.execution,
-              instructions                     : stage.context.instructions ?: "",
-              message                          : message?.get(notificationState)?.text,
-              judgmentInputs                   : stage.context.judgmentInputs,
-              judgmentInput                    : stage.context.judgmentInput,
-              judgedBy                         : stage.context.lastModifiedBy
-          ]
-      ))
+      Retrofit2SyncCall.execute(
+        echoService.create(new EchoService.Notification(
+            notificationType: EchoService.Notification.Type.valueOf(type.toUpperCase()),
+            to: address ? [address] : (publisherName ? [publisherName] : null),
+            cc: cc ? [cc] : null,
+            templateGroup: notificationState,
+            severity: EchoService.Notification.Severity.HIGH,
+            source: new EchoService.Notification.Source(
+                executionType: stage.execution.type.toString(),
+                executionId: stage.execution.id,
+                application: stage.execution.application
+            ),
+            additionalContext: [
+                stageName                        : stage.name,
+                stageId                          : stage.refId,
+                restrictExecutionDuringTimeWindow: stage.context.restrictExecutionDuringTimeWindow,
+                execution                        : stage.execution,
+                instructions                     : stage.context.instructions ?: "",
+                message                          : message?.get(notificationState)?.text,
+                judgmentInputs                   : stage.context.judgmentInputs,
+                judgmentInput                    : stage.context.judgmentInput,
+                judgedBy                         : stage.context.lastModifiedBy
+            ]
+        ))
+      )
       lastNotifiedByNotificationState[notificationState] = new Date()
     }
   }

@@ -18,7 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import java.util.Map;
-import retrofit.client.Response;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
 
 /**
  * Wrapper around {@link CloudDriverCacheService} which selects an endpoint based on {@link
@@ -35,12 +36,13 @@ public class DelegatingClouddriverCacheService
   }
 
   @Override
-  public Response forceCacheUpdate(String cloudProvider, String type, Map<String, ?> data) {
+  public Call<ResponseBody> forceCacheUpdate(
+      String cloudProvider, String type, Map<String, ?> data) {
     return getService().forceCacheUpdate(cloudProvider, type, data);
   }
 
   @Override
-  public Map<String, Object> clearNamespace(String namespace) {
+  public Call<Map<String, Object>> clearNamespace(String namespace) {
     return getService().clearNamespace(namespace);
   }
 }

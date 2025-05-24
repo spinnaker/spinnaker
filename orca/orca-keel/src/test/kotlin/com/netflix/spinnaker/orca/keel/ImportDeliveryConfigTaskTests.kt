@@ -41,8 +41,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.ResponseBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Protocol
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.contains
@@ -91,7 +96,9 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
     val keelService: KeelService = mockk(relaxUnitFun = true) {
       every {
         publishDeliveryConfig(any())
-      } returns Response("http://keel", 200, "", emptyList(), null)
+      } answers {
+        Calls.response(ResponseBody.create("application/json".toMediaTypeOrNull(), "[]"))
+      }
     }
 
     val subject = ImportDeliveryConfigTask(keelService, scmService, objectMapper)
@@ -104,6 +111,26 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
           context
         )
       )
+  }
+
+  private fun makeSpinnakerHttpException(status: Int, message: String? = "Response.error()"): SpinnakerHttpException {
+    val body = ResponseBody.create("application/json".toMediaTypeOrNull(), "[]")
+    val url = "https://igor"
+    val rawResponse = okhttp3.Response.Builder()
+      .body(body)
+      .code(status)
+      .message(message.toString())
+      .protocol(Protocol.HTTP_1_1)
+      .request((okhttp3.Request.Builder())
+        .url(url)
+        .build())
+      .build()
+    val response = Response.error<Any>(body, rawResponse)
+    val retrofit = Retrofit.Builder()
+      .baseUrl(url)
+      .addConverterFactory(JacksonConverterFactory.create())
+      .build()
+    return SpinnakerHttpException(response, retrofit)
   }
 
   private fun ManifestLocation.toMap() =
@@ -289,11 +316,7 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws SpinnakerHttpException(RetrofitError.httpError(
-              "http://igor",
-              Response("http://igor", 404, "", emptyList(), null),
-              null, null
-            ))
+            } throws makeSpinnakerHttpException(404)
           }
         }
 
@@ -315,11 +338,7 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws SpinnakerHttpException(RetrofitError.httpError(
-              "http://igor",
-              Response("http://igor", 401, "", emptyList(), null),
-              null, null
-            ))
+            } throws makeSpinnakerHttpException(401)
           }
         }
 
@@ -342,11 +361,7 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
                 manifestLocation.manifest,
                 manifestLocation.ref
               )
-            } throws SpinnakerHttpException(RetrofitError.httpError(
-              "http://igor",
-              Response("http://igor", 503, "", emptyList(), null),
-              null, null
-            ))
+            } throws makeSpinnakerHttpException(503)
           }
         }
 

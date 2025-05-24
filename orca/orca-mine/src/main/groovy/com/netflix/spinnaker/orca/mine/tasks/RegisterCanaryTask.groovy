@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
@@ -29,8 +30,7 @@ import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Response
-
+import retrofit2.Response
 import javax.annotation.Nonnull
 
 import static java.util.concurrent.TimeUnit.HOURS
@@ -58,9 +58,9 @@ class RegisterCanaryTask implements Task {
     String canaryId = null
 
     try {
-      Response response = mineService.registerCanary(c)
-      if (response.status == 200 && response.body.mimeType().startsWith('text/plain')) {
-        canaryId = response.body.in().text
+      Response response = Retrofit2SyncCall.executeCall(mineService.registerCanary(c))
+      if (response.code() == 200 && response.body().contentType().toString().startsWith('text/plain')) {
+        canaryId = response.body().byteStream().text
       }
     } catch (SpinnakerHttpException re) {
       def response = [:]
@@ -94,7 +94,7 @@ class RegisterCanaryTask implements Task {
 
     log.info("Registered Canary (executionId: ${stage.execution.id}, stageId: ${stage.id}, canaryId: ${canaryId})")
 
-    def canary = mineService.getCanary(canaryId)
+    def canary = Retrofit2SyncCall.execute(mineService.getCanary(canaryId))
     def outputs = [
       canary              : canary,
       stageTimeoutMs      : getMonitorTimeout(canary),

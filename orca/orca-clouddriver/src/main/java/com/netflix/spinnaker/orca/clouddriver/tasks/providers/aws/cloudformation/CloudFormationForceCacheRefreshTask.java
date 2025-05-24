@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -41,8 +42,9 @@ import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 @Slf4j
 @Component
@@ -127,7 +129,8 @@ public class CloudFormationForceCacheRefreshTask
 
     List<PendingScopedStack> pendingRefreshes =
         objectMapper.convertValue(
-            cacheStatusService.pendingForceCacheUpdates(provider, REFRESH_TYPE),
+            Retrofit2SyncCall.execute(
+                cacheStatusService.pendingForceCacheUpdates(provider, REFRESH_TYPE)),
             new TypeReference<List<PendingScopedStack>>() {});
 
     for (PendingScopedStack stack : pendingRefreshes) {
@@ -142,7 +145,7 @@ public class CloudFormationForceCacheRefreshTask
       }
 
       if (stack.getProcessedCount() > 0 && stack.getCacheTime() > startTime) {
-        log.info("Refresh for {} has been processed {}", stack);
+        log.info("Refresh for {} has been processed", stack);
         stageData.processedStacks.add(matchingStack);
       }
     }
@@ -159,8 +162,10 @@ public class CloudFormationForceCacheRefreshTask
           objectMapper.convertValue(cloudDriverStack, new TypeReference<Map<String, Object>>() {});
 
       try {
-        Response response = cacheService.forceCacheUpdate(provider, REFRESH_TYPE, request);
-        if (response.getStatus() == HTTP_OK) {
+        Response<ResponseBody> response =
+            Retrofit2SyncCall.executeCall(
+                cacheService.forceCacheUpdate(provider, REFRESH_TYPE, request));
+        if (response.code() == HTTP_OK) {
           log.info("Refresh of {} succeeded immediately", stack);
           stageData.processedStacks.add(stack);
         } else {
@@ -218,11 +223,11 @@ public class CloudFormationForceCacheRefreshTask
     return objectMapper.convertValue(stageData, new TypeReference<Map<String, Object>>() {});
   }
 
-  private Optional<String> extractFullStackName(Response response) {
-    try {
+  private Optional<String> extractFullStackName(Response<ResponseBody> response) {
+    try (ResponseBody responseBody = response.body()) {
       CachedResponse cachedResponse =
           objectMapper.readValue(
-              response.getBody().in(), CloudFormationForceCacheRefreshTask.CachedResponse.class);
+              responseBody.byteStream(), CloudFormationForceCacheRefreshTask.CachedResponse.class);
       return cachedResponse.getCachedResponseStacks().getStacks().stream().findFirst();
     } catch (IOException e) {
       throw new IllegalStateException("Malformed response from clouddriver" + e.getMessage(), e);

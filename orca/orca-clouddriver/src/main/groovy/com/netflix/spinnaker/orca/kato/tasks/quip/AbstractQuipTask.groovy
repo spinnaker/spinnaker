@@ -16,26 +16,23 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
-import com.jakewharton.retrofit.Ok3Client
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
+import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils
 import okhttp3.OkHttpClient
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
-
-import static retrofit.RestAdapter.LogLevel.BASIC
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Deprecated
 abstract class AbstractQuipTask implements Task {
   InstanceService createInstanceService(String address) {
-    RestAdapter restAdapter = new RestAdapter.Builder()
-      .setEndpoint(address)
-      .setConverter(new JacksonConverter())
-      .setClient(new Ok3Client(new OkHttpClient(retryOnConnectionFailure: false)))
-      .setLogLevel(BASIC)
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .build()
-    return restAdapter.create(InstanceService.class)
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(address))
+        .client(new OkHttpClient(retryOnConnectionFailure: false))
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build()
+        .create(InstanceService.class);
   }
 }

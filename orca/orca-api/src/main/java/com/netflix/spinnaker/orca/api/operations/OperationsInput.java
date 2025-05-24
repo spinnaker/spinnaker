@@ -18,7 +18,7 @@ public class OperationsInput {
   @Nullable private String cloudProvider;
 
   /** The operations collection. */
-  @Nonnull private Collection<? extends Map<String, Map>> operations;
+  @Nonnull private Collection<Map<String, Map>> operations;
 
   /** The {@link StageExecution} that runs this operation. */
   @Nonnull private StageExecution stageExecution;
@@ -35,7 +35,7 @@ public class OperationsInput {
 
   public static OperationsInput of(
       String cloudProvider,
-      Collection<? extends Map<String, Map>> operations,
+      Collection<Map<String, Map>> operations,
       StageExecution stageExecution) {
     return builder()
         .cloudProvider(cloudProvider)
@@ -45,7 +45,7 @@ public class OperationsInput {
   }
 
   public static OperationsInput of(
-      Collection<? extends Map<String, Map>> operations, StageExecution stageExecution) {
+      Collection<Map<String, Map>> operations, StageExecution stageExecution) {
     return of(null, operations, stageExecution);
   }
 }

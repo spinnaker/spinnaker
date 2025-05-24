@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toMap;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
@@ -48,12 +49,13 @@ public class EcsImageFinder implements ImageFinder {
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
     List<Map> result =
-        oortService.findImage(
-            getCloudProvider(),
-            (String) stage.getContext().get("imageLabelOrSha"),
-            null,
-            null,
-            null);
+        Retrofit2SyncCall.execute(
+            oortService.findImage(
+                getCloudProvider(),
+                (String) stage.getContext().get("imageLabelOrSha"),
+                null,
+                null,
+                null));
 
     List<EcsImage> allMatchedImages =
         result.stream()

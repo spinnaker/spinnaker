@@ -23,9 +23,10 @@ import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.Request
+import okhttp3.ResponseBody
+import retrofit2.Response
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -53,7 +54,7 @@ class StartJenkinsJobTaskSpec extends Specification {
         and:
         task.buildService = Stub(BuildService) {
           build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
-              new Response("", 200, "OK", [], new TypedString(new ObjectMapper().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
+              Response.success(200, ResponseBody.create(MediaType.parse("application/json"),new ObjectMapper().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
         }
 
         when:
@@ -70,7 +71,7 @@ class StartJenkinsJobTaskSpec extends Specification {
       and:
       task.buildService = Stub(BuildService) {
         build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
-            new Response("", 200, "OK", [], new TypedString(new ObjectMapper().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
+            Response.success(200, ResponseBody.create(MediaType.parse("application/json"),new ObjectMapper().writeValueAsString([result: 'SUCCESS', running: true, number: 4])))
       }
 
       when:
@@ -86,7 +87,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
         and:
         task.buildService = Stub(BuildService) {
-            build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >> {throw new SpinnakerServerException(RetrofitError.unexpectedError("http://test", new RuntimeException()))}
+            build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >> {throw new SpinnakerServerException(new RuntimeException("some error"), new Request.Builder().url("http://some-url").build() )}
         }
 
         when:
@@ -103,7 +104,7 @@ class StartJenkinsJobTaskSpec extends Specification {
     and:
     task.buildService = Stub(BuildService) {
       build(stage.context.master, stage.context.job, stage.context.parameters, stage.startTime.toString()) >>
-          new Response("", 202, "OK", [], null)
+          Response.success(202, ResponseBody.create(MediaType.parse("application/json"), "[]"))
     }
 
     when:

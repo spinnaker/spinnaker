@@ -17,17 +17,18 @@
 package com.netflix.spinnaker.orca.deploymentmonitor;
 
 import com.netflix.spinnaker.orca.deploymentmonitor.models.*;
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.POST;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.POST;
 
 public interface DeploymentMonitorService {
-  @POST("/deployment/starting")
-  EvaluateHealthResponse notifyStarting(@Body RequestBase request);
+  @POST("deployment/starting")
+  Call<EvaluateHealthResponse> notifyStarting(@Body RequestBase request);
 
-  @POST("/deployment/completed")
-  Response notifyCompleted(@Body DeploymentCompletedRequest request);
+  @POST("deployment/completed")
+  Call<ResponseBody> notifyCompleted(@Body DeploymentCompletedRequest request);
 
-  @POST("/deployment/evaluateHealth")
-  EvaluateHealthResponse evaluateHealth(@Body EvaluateHealthRequest request);
+  @POST("deployment/evaluateHealth")
+  Call<EvaluateHealthResponse> evaluateHealth(@Body EvaluateHealthRequest request);
 }

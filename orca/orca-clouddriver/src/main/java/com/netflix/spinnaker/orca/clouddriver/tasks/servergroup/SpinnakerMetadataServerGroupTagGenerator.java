@@ -21,6 +21,7 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPEL
 
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -163,8 +164,9 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
       String target) {
     try {
       Map<String, Object> targetServerGroup =
-          oortService.getServerGroupSummary(
-              application, account, cluster, cloudProvider, location, target, "image", "true");
+          Retrofit2SyncCall.execute(
+              oortService.getServerGroupSummary(
+                  application, account, cluster, cloudProvider, location, target, "image", "true"));
 
       Map<String, Object> previousServerGroup = new HashMap<>();
       previousServerGroup.put("name", targetServerGroup.get("serverGroupName"));

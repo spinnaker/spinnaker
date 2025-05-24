@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -24,10 +25,11 @@ import com.netflix.spinnaker.orca.front50.Front50Service;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 @Component
 public class ReorderPipelinesTask implements Task {
@@ -72,17 +74,19 @@ public class ReorderPipelinesTask implements Task {
     Front50Service.ReorderPipelinesCommand reorderPipelinesCommand =
         new Front50Service.ReorderPipelinesCommand(idsToIndices, application);
 
-    Response response =
+    Response<ResponseBody> response =
         isStrategy
-            ? front50Service.reorderPipelineStrategies(reorderPipelinesCommand)
-            : front50Service.reorderPipelines(reorderPipelinesCommand);
+            ? Retrofit2SyncCall.executeCall(
+                front50Service.reorderPipelineStrategies(reorderPipelinesCommand))
+            : Retrofit2SyncCall.executeCall(
+                front50Service.reorderPipelines(reorderPipelinesCommand));
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "reorderpipelines");
     outputs.put("application", application);
 
     return TaskResult.builder(
-            (response.getStatus() == HttpStatus.OK.value())
+            (response.code() == HttpStatus.OK.value())
                 ? ExecutionStatus.SUCCEEDED
                 : ExecutionStatus.TERMINAL)
         .context(outputs)
