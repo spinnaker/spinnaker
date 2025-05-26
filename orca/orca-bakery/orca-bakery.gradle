@@ -41,12 +41,11 @@ dependencies {
   testImplementation("org.mockito:mockito-core")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
   testImplementation("com.squareup.retrofit2:converter-jackson")
-  testImplementation ("org.springframework:spring-test")
+  testImplementation("org.springframework:spring-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("io.spinnaker.kork:kork-retrofit2")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-  testImplementation("org.spockframework:spock-core")
-  testImplementation("org.spockframework:spock-spring")
+  testRuntimeOnly("org.spockframework:spock-spring")
 
 }
 test {
