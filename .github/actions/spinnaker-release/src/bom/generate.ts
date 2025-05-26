@@ -65,6 +65,7 @@ async function generateVersionsYml(): Promise<VersionsDotYml> {
   if (util.getInput('add-to-versions-yml') == 'true') {
     versionsYml.addVersion(util.getInput('version'));
   }
+  versionsYml.collapseVersions();
   return versionsYml;
 }
 
