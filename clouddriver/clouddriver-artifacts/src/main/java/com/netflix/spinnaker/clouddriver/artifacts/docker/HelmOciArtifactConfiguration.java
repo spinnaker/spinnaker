@@ -19,10 +19,8 @@ package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -35,18 +33,16 @@ import org.springframework.context.annotation.Configuration;
   HelmOciDockerArtifactProviderProperties.class,
   HelmOciArtifactProviderProperties.class
 })
-@RequiredArgsConstructor
 @Slf4j
 class HelmOciArtifactConfiguration {
-
-  private final HelmOciDockerArtifactProviderProperties helmOciDockerArtifactProviderProperties;
-
-  private final HelmOciArtifactProviderProperties helmOciArtifactProviderProperties;
 
   @Bean
   public CredentialsTypeProperties<HelmOciDockerArtifactCredentials, HelmOciDockerArtifactAccount>
       helmOciDockerCredentialsProperties(
-          OkHttpClient okHttpClient, HelmOciFileSystem helmChartsFileSystem) {
+          OkHttpClient okHttpClient,
+          HelmOciFileSystem helmChartsFileSystem,
+          ServiceClientProvider serviceClientProvider,
+          HelmOciDockerArtifactProviderProperties helmOciDockerArtifactProviderProperties) {
     return CredentialsTypeProperties
         .<HelmOciDockerArtifactCredentials, HelmOciDockerArtifactAccount>builder()
         .type(HelmOciDockerArtifactCredentials.CREDENTIALS_TYPE)
@@ -67,9 +63,8 @@ class HelmOciArtifactConfiguration {
   }
 
   @Bean
-  public HelmOciFileSystem helmChartsFileSystem() {
+  public HelmOciFileSystem helmChartsFileSystem(
+      HelmOciArtifactProviderProperties helmOciArtifactProviderProperties) {
     return new HelmOciFileSystem(helmOciArtifactProviderProperties);
   }
-
-  @Autowired ServiceClientProvider serviceClientProvider;
 }
