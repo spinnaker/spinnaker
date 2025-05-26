@@ -43,8 +43,6 @@ management:
     base-path: /
     exposure.include: '*'
   endpoint.health.show-details: always
-  server:
-    port: 0
   metrics:
     export:
       graphite:
