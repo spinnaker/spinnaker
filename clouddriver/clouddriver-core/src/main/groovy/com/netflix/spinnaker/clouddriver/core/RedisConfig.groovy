@@ -79,7 +79,7 @@ class RedisConfig {
     )
 
     if (jedisPool instanceof InstrumentedJedisPool) {
-      GenericObjectPool internalPool = ((InstrumentedJedisPool) jedisPool).delegated.internalPool
+      GenericObjectPool internalPool = jedisPool.internalPoolReference
 
       registry.gauge("jedis.pool.maxIdle", internalPool, { GenericObjectPool p -> return p.maxIdle as Double })
       registry.gauge("jedis.pool.minIdle", internalPool, { GenericObjectPool p -> return p.minIdle as Double })
@@ -144,7 +144,7 @@ class RedisConfig {
         }
 
         if (jedisPool instanceof InstrumentedJedisPool) {
-          GenericObjectPool internalPool = ((InstrumentedJedisPool) jedisPool).delegated.internalPool //thx groovy
+          GenericObjectPool internalPool = jedisPool.internalPoolReference //thx groovy
           health.withDetail('maxIdle', internalPool.maxIdle)
           health.withDetail('minIdle', internalPool.minIdle)
           health.withDetail('numActive', internalPool.numActive)
