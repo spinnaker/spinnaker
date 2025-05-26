@@ -57,11 +57,18 @@ public class EmbeddedPrometheusBootstrapConfiguration {
 
   private GenericContainer<?> prometheusContainer;
 
+  /**
+   * Prometheus only starts after the application is fully up and can expose its port dynamically.
+   *
+   * @param env
+   * @param prometheusWaitStrategy
+   * @return
+   */
   @Bean
   public ApplicationListener<ApplicationReadyEvent> prometheus(
       ConfigurableEnvironment env, WaitStrategy prometheusWaitStrategy) {
     return event -> {
-      int managementPort = waitForManagementPort();
+      int managementPort = Integer.parseInt(environment.getProperty("local.management.port"));
       exposeManagementPort(managementPort);
 
       File prometheusConfigFile = createPrometheusConfigFile(managementPort);
@@ -80,14 +87,16 @@ public class EmbeddedPrometheusBootstrapConfiguration {
     };
   }
 
-  public void startPrometheusServer(ConfigurableEnvironment env) {
-    if (prometheusContainer != null && !prometheusContainer.isRunning()) {
-      prometheusContainer.start();
+  public Integer startPrometheusServer(ConfigurableEnvironment env) {
+    prometheusContainer.start();
+    Map<String, Object> prometheusEnv =
+        registerEnvironment(env, prometheusContainer.getMappedPort(PROMETHEUS_INTERNAL_PORT));
+    log.info("Started Prometheus server. Connection details: {}", prometheusEnv);
+    return prometheusContainer.getMappedPort(PROMETHEUS_INTERNAL_PORT);
+  }
 
-      Map<String, Object> prometheusEnv =
-          registerEnvironment(env, prometheusContainer.getMappedPort(PROMETHEUS_INTERNAL_PORT));
-      log.info("Started Prometheus server. Connection details: {}", prometheusEnv);
-    }
+  public GenericContainer<?> getPrometheusContainer() {
+    return prometheusContainer;
   }
 
   private int waitForManagementPort() {
@@ -143,7 +152,7 @@ public class EmbeddedPrometheusBootstrapConfiguration {
   }
 
   public void stopPrometheusContainer() {
-    if (prometheusContainer != null && prometheusContainer.isRunning()) {
+    if (prometheusContainer != null) {
       log.info("Stopping Prometheus container...");
       prometheusContainer.stop();
       log.info("Prometheus container stopped.");

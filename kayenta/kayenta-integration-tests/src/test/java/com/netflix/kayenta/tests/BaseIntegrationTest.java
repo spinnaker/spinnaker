@@ -52,6 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     TestInstance.Lifecycle
         .PER_CLASS) // This way Spring will create only one instance of the test class and will
 // allow non-static @BeforeAll.
+
 public abstract class BaseIntegrationTest {
   @Autowired protected Environment environment;
 
@@ -69,24 +70,41 @@ public abstract class BaseIntegrationTest {
 
   @Autowired ConfigurableEnvironment env;
 
+  /**
+   * As part of {@code EmbeddedPrometheusBootstrapConfiguration}, the Prometheus server is started
+   * during the {@code ApplicationReadyEvent} so that it can bind to the dynamically assigned
+   * application port.
+   *
+   * <p>During the first test class execution, there's a potential race condition where {@code
+   * ApplicationReadyEvent} and {@code @BeforeAll} may execute around the same time. This may result
+   * in the Prometheus server not being fully initialized when the tests begin.
+   *
+   * <p>To handle this, the Prometheus server is started for the first time within {@code
+   * EmbeddedPrometheusBootstrapConfiguration}. For subsequent test class executions, it is started
+   * in {@code @BeforeAll}.
+   */
   @BeforeAll
   public void setupPrometheusAccounts() throws InterruptedException {
-    prometheusConfig.startPrometheusServer(env);
-
-    int retries = 30; // wait up to 30 seconds
     String prometheusPortStr = null;
-
-    while (retries-- > 0) {
-      prometheusPortStr = environment.getProperty("embedded.prometheus.port");
-      if (prometheusPortStr != null) {
-        break;
-      }
-      Thread.sleep(1000);
+    if (prometheusConfig.getPrometheusContainer() != null) {
+      prometheusPortStr = prometheusConfig.startPrometheusServer(env).toString();
     }
 
     if (prometheusPortStr == null) {
-      throw new IllegalStateException("embedded.prometheus.port not set even after waiting!");
+      int retries = 30; // wait up to 30 seconds
+      while (retries-- > 0) {
+        prometheusPortStr = environment.getProperty("embedded.prometheus.port");
+        if (prometheusPortStr != null) {
+          break;
+        }
+        Thread.sleep(1000);
+      }
+
+      if (prometheusPortStr == null) {
+        throw new IllegalStateException("embedded.prometheus.port not set even after waiting!");
+      }
     }
+
     Set<AccountCredentials> accountCredentialsSet =
         accountCredentialsRepository.getAllOf(AccountCredentials.Type.METRICS_STORE);
     String dynamicEndpoint = "http://localhost:" + prometheusPortStr;
@@ -115,8 +133,6 @@ public abstract class BaseIntegrationTest {
 
               prometheusManagedAccount.setPrometheusRemoteService(prometheusRemoteService);
             });
-
-    Thread.sleep(30000); // 1/2 minute
   }
 
   protected int getManagementPort() {
