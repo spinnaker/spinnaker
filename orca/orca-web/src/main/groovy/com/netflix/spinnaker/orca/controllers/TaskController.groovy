@@ -43,7 +43,8 @@ import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
-import rx.schedulers.Schedulers
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.core.Observable
 
 import java.nio.charset.Charset
 import java.time.Clock
@@ -136,7 +137,7 @@ class TaskController {
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
   List<OrchestrationViewModel> list() {
-    executionRepository.retrieve(ORCHESTRATION).toBlocking().iterator.collect {
+    executionRepository.retrieve(ORCHESTRATION).blockingIterable().collect {
       convert it
     }
   }
@@ -226,13 +227,13 @@ class TaskController {
     if (executionIds) {
       List<String> ids = executionIds.split(',')
 
-      List<PipelineExecution> executions = rx.Observable.from(ids.collect {
+      List<PipelineExecution> executions = Observable.fromIterable(ids.collect {
         try {
           executionRepository.retrieve(PIPELINE, it)
         } catch (ExecutionNotFoundException e) {
           null
         }
-      }).subscribeOn(Schedulers.io()).toList().toBlocking().single().findAll()
+      }).subscribeOn(Schedulers.io()).toList().blockingGet().findAll()
 
       if (!expand) {
         unexpandPipelineExecutions(executions)
@@ -242,9 +243,9 @@ class TaskController {
     }
     List<String> ids = pipelineConfigIds.split(',')
 
-    List<PipelineExecution> allPipelines = rx.Observable.merge(ids.collect {
+    List<PipelineExecution> allPipelines = Observable.merge(ids.collect {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
-    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+    }).subscribeOn(Schedulers.io()).toList().blockingGet().sort(startTimeOrId)
 
     if (!expand) {
       unexpandPipelineExecutions(allPipelines)
@@ -620,10 +621,10 @@ class TaskController {
           optimizedGetPipelineExecutions(application, allFront50PipelineConfigIds, executionCriteria)
       )
     } else {
-      allPipelineExecutions = rx.Observable.merge(allFront50PipelineConfigIds.collect {
+      allPipelineExecutions = Observable.merge(allFront50PipelineConfigIds.collect {
         log.debug("processing pipeline config id: $it")
         executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
-      }).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+      }).subscribeOn(Schedulers.io()).toList().blockingGet()
     }
 
     allPipelineExecutions.sort(startTimeOrId)

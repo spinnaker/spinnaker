@@ -23,7 +23,7 @@ import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import rx.Scheduler;
+import io.reactivex.rxjava3.core.Scheduler;
 
 public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Application.Permission>
     implements ApplicationPermissionDAO {

@@ -18,13 +18,16 @@ package com.netflix.spinnaker.kork.actuator.endpoint;
 
 import static java.lang.String.format;
 
+import com.netflix.spinnaker.kork.actuator.ActuatorSanitizingFunction;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.actuate.endpoint.Sanitizer;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
@@ -33,7 +36,9 @@ import org.springframework.core.env.*;
 @Endpoint(id = "resolvedEnv")
 public class ResolvedEnvironmentEndpoint {
 
-  private final Sanitizer sanitizer = new Sanitizer();
+  private final Sanitizer sanitizer;
+  private final ActuatorSanitizingFunction actuatorSanitizingFunction =
+      new ActuatorSanitizingFunction();
   private final Environment environment;
 
   @Autowired
@@ -42,7 +47,8 @@ public class ResolvedEnvironmentEndpoint {
     this.environment = environment;
     Optional.ofNullable(properties.getKeysToSanitize())
         .map(p -> p.toArray(new String[0]))
-        .ifPresent(sanitizer::setKeysToSanitize);
+        .ifPresent(actuatorSanitizingFunction::setKeysToSanitize);
+    sanitizer = new Sanitizer(List.of(actuatorSanitizingFunction));
   }
 
   @ReadOperation
@@ -53,7 +59,9 @@ public class ResolvedEnvironmentEndpoint {
                 property -> property,
                 property -> {
                   try {
-                    return sanitizer.sanitize(property, environment.getProperty(property));
+                    return sanitizer.sanitize(
+                        new SanitizableData(null, property, environment.getProperty(property)),
+                        true);
                   } catch (Exception e) {
                     return format("Exception occurred: %s", e.getMessage());
                   }

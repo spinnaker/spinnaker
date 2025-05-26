@@ -60,10 +60,9 @@ class OrchestrationMigrationAgent(
             else -> 0
           }
         }
-        .limit(1000)
+        .take(1000)
         .toList()
-        .toBlocking()
-        .single()
+        .blockingGet()
 
       if (unmigratedOrchestrations.isNotEmpty()) {
         log.info("${unmigratedOrchestrations.size} orchestrations to migrate ($applicationName) [$index/${allApplications.size}]")

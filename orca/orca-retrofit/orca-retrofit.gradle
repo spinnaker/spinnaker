@@ -24,7 +24,7 @@ dependencies {
   api("com.jakewharton.retrofit:retrofit1-okhttp3-client")
 
   implementation(project(":orca-core"))
-  implementation("io.reactivex:rxjava")
+  implementation("io.reactivex.rxjava3:rxjava")
   implementation("io.spinnaker.kork:kork-retrofit")
   implementation("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
   implementation "com.google.guava:guava"

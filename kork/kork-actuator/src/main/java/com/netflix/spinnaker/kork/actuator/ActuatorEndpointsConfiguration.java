@@ -19,22 +19,28 @@ package com.netflix.spinnaker.kork.actuator;
 
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE + 67)
-public class ActuatorEndpointsConfiguration extends WebSecurityConfigurerAdapter {
+@EnableWebSecurity
+public class ActuatorEndpointsConfiguration {
 
-  @Override
-  public void configure(HttpSecurity http) throws Exception {
+  @Bean
+  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
     // The health endpoint should always be exposed without auth.
-    http.requestMatcher(EndpointRequest.to(HealthEndpoint.class))
-        .authorizeRequests()
+    http.securityMatcher(EndpointRequest.to(HealthEndpoint.class));
+    http.authorizeHttpRequests()
+        .requestMatchers(EndpointRequest.to(HealthEndpoint.class))
+        .permitAll()
         .anyRequest()
-        .permitAll();
+        .authenticated();
+    return http.build();
   }
 }

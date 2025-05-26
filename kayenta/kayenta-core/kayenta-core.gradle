@@ -13,7 +13,7 @@ dependencies {
   api "org.springframework.boot:spring-boot-starter-json"
   api "net.logstash.logback:logstash-logback-encoder"
 
-  api "javax.validation:validation-api"
+  api "jakarta.validation:jakarta.validation-api"
   api "io.swagger.core.v3:swagger-annotations"
 
   testImplementation "io.spinnaker.kork:kork-jedis-test"
