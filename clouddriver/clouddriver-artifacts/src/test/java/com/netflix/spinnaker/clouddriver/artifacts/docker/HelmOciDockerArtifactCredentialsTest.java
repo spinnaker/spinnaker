@@ -84,7 +84,7 @@ public class HelmOciDockerArtifactCredentialsTest {
         HelmOciDockerArtifactAccount.builder()
             .name("test-helm-oci-account")
             .address(wmDockerRegistry.baseUrl())
-            .helmOciRepositories(List.of("test-repo", "another-repo"))
+            .helmOciRepositories(List.of("test-repo", "another-repo/chart"))
             .build();
 
     // Create credentials with mocked dependencies
@@ -111,7 +111,7 @@ public class HelmOciDockerArtifactCredentialsTest {
   @Test
   void testGetArtifactNames() {
     List<String> names = credentials.getArtifactNames();
-    assertEquals(List.of("test-repo", "another-repo"), names);
+    assertEquals(List.of("test-repo", "another-repo/chart"), names);
   }
 
   @Test
@@ -147,7 +147,7 @@ public class HelmOciDockerArtifactCredentialsTest {
   @Test
   void testDownloadArtifact() throws IOException, InterruptedException {
     // Setup
-    String artifactName = "test-repo";
+    String artifactName = "test-repo/chart";
     String version = "1.0.0";
     Artifact artifact = Artifact.builder().name(artifactName).version(version).build();
 

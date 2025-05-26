@@ -56,6 +56,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     List<String> skip
     String catalogFile
     String repositoriesRegex
+    List<String> helmOciRepositories
     Permissions permissions
     DockerOkClientProvider dockerOkClientProvider
     ServiceClientProvider serviceClientProvider
@@ -182,6 +183,11 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
       return this
     }
 
+    Builder helmOciRepositories(List<String> helmOciRepositories) {
+      this.helmOciRepositories = helmOciRepositories
+      return this
+    }
+
     Builder permissions(Permissions permissions) {
       this.permissions = permissions
       this
@@ -221,6 +227,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
         repositoriesRegex,
         insecureRegistry,
         null,
+        helmOciRepositories,
         permissions,
         dockerOkClientProvider,
         serviceClientProvider)
@@ -302,6 +309,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
                                         String repositoriesRegex,
                                         boolean insecureRegistry,
                                         List<String> requiredGroupMembership,
+                                        List<String> helmOciRepositories,
                                         Permissions permissions,
                                         DockerOkClientProvider dockerOkClientProvider,
                                         ServiceClientProvider serviceClientProvider) {
@@ -361,7 +369,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     this.insecureRegistry = insecureRegistry;
     this.skip = skip ?: []
     this.permissions = permissions ?: buildPermissionsFromRequiredGroupMembership(requiredGroupMembership)
-    this.credentials = buildCredentials(repositories, catalogFile, dockerconfigFile)
+    this.credentials = buildCredentials(repositories, catalogFile, dockerconfigFile, helmOciRepositories)
   }
 
   @JsonIgnore
@@ -432,7 +440,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
     return CLOUD_PROVIDER
   }
 
-  private DockerRegistryCredentials buildCredentials(List<String> repositories, String catalogFile, File dockerconfigFile) {
+  private DockerRegistryCredentials buildCredentials(List<String> repositories, String catalogFile, File dockerconfigFile, List<String> helmOciRepositories) {
     try {
       DockerRegistryClient client = (new DockerRegistryClient.Builder())
         .address(address)
@@ -451,7 +459,7 @@ class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<D
         .serviceClientProvider(serviceClientProvider)
         .build()
 
-      return new DockerRegistryCredentials(client, repositories, trackDigests, inspectDigests, skip, sortTagsByDate)
+      return new DockerRegistryCredentials(client, repositories, trackDigests, inspectDigests, skip, sortTagsByDate, helmOciRepositories)
     } catch (SpinnakerHttpException e) {
       if(e.getResponseCode() == 404) {
         throw new DockerRegistryConfigException("No repositories specified for ${name}, and the provided endpoint ${address} does not support /_catalog.")

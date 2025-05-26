@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestMapping
 
 @RestController
-@RequestMapping(["/dockerRegistry/images", "/titus/images"])
-class DockerRegistryImageLookupController extends AbstractDockerRegistryLookupController {
+@RequestMapping(["/dockerRegistry/charts"])
+class DockerRegistryHelmOciLookupController extends AbstractDockerRegistryLookupController {
 
   @Override
   Map generateArtifact(String registry, def repository, def tag, def labels) {
     String reference = "${registry}/${repository}:${tag}"
     [
       name      : repository,
-      type      : "docker",
+      type      : "helm/image",
       version   : tag,
       reference : reference,
       metadata  : [ registry: registry, labels: labels ]
@@ -38,7 +38,7 @@ class DockerRegistryImageLookupController extends AbstractDockerRegistryLookupCo
 
   @Override
   protected String getTaggedImageKey(String account, String repository, String tag) {
-    return Keys.getTaggedImageKey(account, repository, tag)
+    return Keys.getHelmOciTaggedImageKey(account, repository, tag)
   }
 
   @Override
@@ -48,6 +48,6 @@ class DockerRegistryImageLookupController extends AbstractDockerRegistryLookupCo
 
   @Override
   protected String getTaggedImageNamespace() {
-    return Keys.Namespace.TAGGED_IMAGE.ns
+    return Keys.Namespace.TAGGED_HELM_OCI_IMAGE.ns
   }
 }
