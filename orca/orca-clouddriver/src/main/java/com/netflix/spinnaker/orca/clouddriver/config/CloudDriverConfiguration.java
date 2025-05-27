@@ -39,7 +39,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 
 @Configuration
 @Import({RetrofitConfiguration.class, ArtifactStoreConfiguration.class})
@@ -63,7 +62,6 @@ public class CloudDriverConfiguration {
   }
 
   @Bean
-  @Primary
   public ClouddriverRetrofitBuilder clouddriverRetrofitBuilder(
       ObjectMapper objectMapper,
       ServiceClientProvider serviceClientProvider,
@@ -73,9 +71,9 @@ public class CloudDriverConfiguration {
   }
 
   public static class ClouddriverRetrofitBuilder {
-    ObjectMapper objectMapper;
-    ServiceClientProvider serviceClientProvider;
-    CloudDriverConfigurationProperties cloudDriverConfigurationProperties;
+    private final ObjectMapper objectMapper;
+    private final ServiceClientProvider serviceClientProvider;
+    private final CloudDriverConfigurationProperties cloudDriverConfigurationProperties;
 
     ClouddriverRetrofitBuilder(
         ObjectMapper objectMapper,
@@ -188,38 +186,43 @@ public class CloudDriverConfiguration {
     }
 
     @Bean
-    public MortService mortDeployService(ClouddriverRetrofitBuilder builder) {
-      return new DelegatingMortService(builder.buildReadOnlyService(MortService.class));
+    public MortService mortDeployService(ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingMortService(
+          clouddriverRetrofitBuilder.buildReadOnlyService(MortService.class));
     }
 
     @Bean
-    public CloudDriverCacheService clouddriverCacheService(ClouddriverRetrofitBuilder builder) {
+    public CloudDriverCacheService clouddriverCacheService(
+        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
       return new DelegatingClouddriverCacheService(
-          builder.buildWriteableService(CloudDriverCacheService.class));
+          clouddriverRetrofitBuilder.buildWriteableService(CloudDriverCacheService.class));
     }
 
     @Bean
     public CloudDriverCacheStatusService cloudDriverCacheStatusService(
-        ClouddriverRetrofitBuilder builder) {
+        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
       return new DelegatingCloudDriverCacheStatusService(
-          builder.buildReadOnlyService(CloudDriverCacheStatusService.class));
+          clouddriverRetrofitBuilder.buildReadOnlyService(CloudDriverCacheStatusService.class));
     }
 
     @Bean
-    public OortService oortDeployService(ClouddriverRetrofitBuilder builder) {
-      return new DelegatingOortService(builder.buildReadOnlyService(OortService.class));
+    public OortService oortDeployService(ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingOortService(
+          clouddriverRetrofitBuilder.buildReadOnlyService(OortService.class));
     }
 
     @Bean
     public CloudDriverTaskStatusService cloudDriverTaskStatusService(
-        ClouddriverRetrofitBuilder builder) {
+        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
       return new DelegatingCloudDriverTaskStatusService(
-          builder.buildReadOnlyService(CloudDriverTaskStatusService.class));
+          clouddriverRetrofitBuilder.buildReadOnlyService(CloudDriverTaskStatusService.class));
     }
 
     @Bean
-    public KatoRestService katoDeployService(ClouddriverRetrofitBuilder builder) {
-      return new DelegatingKatoRestService(builder.buildWriteableService(KatoRestService.class));
+    public KatoRestService katoDeployService(
+        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingKatoRestService(
+          clouddriverRetrofitBuilder.buildWriteableService(KatoRestService.class));
     }
 
     @Bean
@@ -239,9 +242,9 @@ public class CloudDriverConfiguration {
     }
 
     @Bean
-    FeaturesRestService featuresRestService(ClouddriverRetrofitBuilder builder) {
+    FeaturesRestService featuresRestService(ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
       return new DelegatingFeaturesRestService(
-          builder.buildWriteableService(FeaturesRestService.class));
+          clouddriverRetrofitBuilder.buildWriteableService(FeaturesRestService.class));
     }
   }
 }
