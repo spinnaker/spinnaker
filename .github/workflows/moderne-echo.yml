@@ -1,0 +1,41 @@
+name: Build and Upload Echo
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+    paths:
+      - 'echo/**'
+
+jobs:
+  build-and-upload:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Build the distribution
+      - name: Build Distribution
+        uses: ./.github/actions/moderne/build-distribution
+        with:
+          project: echo
+
+      # Create a tarball of the distribution
+      - name: Tar Distribution
+        uses: ./.github/actions/moderne/tar-distribution
+        with:
+          project: echo
+
+      # Upload the tarball to S3
+      - name: Publish Tarball to S3
+        uses: ./.github/actions/moderne/publish-s3-bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          project: echo

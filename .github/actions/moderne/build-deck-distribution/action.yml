@@ -1,0 +1,33 @@
+name: Build Deck Distribution
+description: Builds a distribution for the deck service
+author: jammy@modern.io
+
+inputs:
+  gradle-opts:
+    description: Additional Gradle options set via GRADLE_OPTS
+    default: -Xmx4g -Xms4g
+  gradle-cmd-opts:
+    description: Additional Gradle options set via the command line
+
+runs:
+  using: "composite"
+  steps:
+    # Set up Java for Gradle
+    - uses: actions/setup-java@v4
+      with:
+        java-version: 17
+        distribution: 'zulu'
+        cache: gradle
+
+    # Set up nodejs if a package.json file is present in that project
+    - uses: ./.github/actions/setup-node
+      with:
+        project: deck
+
+    # Build the distribution
+    - name: Build Distribution
+      shell: bash
+      env:
+        GRADLE_OPTS: ${{ inputs.gradle-opts }}
+      run: |
+        ./gradlew ${{ inputs.gradle-cmd-opts }} :deck:build --no-daemon -PskipTests
