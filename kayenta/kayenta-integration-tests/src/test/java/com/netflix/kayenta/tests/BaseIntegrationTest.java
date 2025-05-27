@@ -108,7 +108,7 @@ public abstract class BaseIntegrationTest {
    * Prometheus instance.
    */
   @BeforeAll
-  public void setupPrometheusAccounts() {
+  public void setUp() {
     prometheusPort = prometheusConfig.startPrometheusServer(env);
 
     Set<AccountCredentials> accountCredentialsSet =
