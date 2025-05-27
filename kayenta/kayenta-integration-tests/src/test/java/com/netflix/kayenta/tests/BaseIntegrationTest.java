@@ -52,7 +52,26 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     TestInstance.Lifecycle
         .PER_CLASS) // This way Spring will create only one instance of the test class and will
 // allow non-static @BeforeAll.
-
+/**
+ * Base test class for integration tests that require a Prometheus server.
+ *
+ * <p>This abstract class is intended to be extended by other test classes that depend on
+ * Prometheus. It provides lifecycle management for a locally embedded Prometheus server, including
+ * setup and cleanup, and exposes utility methods to retrieve dynamically assigned ports for the
+ * application, management endpoints, and Prometheus itself.
+ *
+ * <p>Key responsibilities:
+ *
+ * <ul>
+ *   <li>Starts an embedded Prometheus server before any tests in the class run (@BeforeAll).
+ *   <li>Wires {@link PrometheusManagedAccount} instances to communicate with the embedded
+ *       Prometheus.
+ *   <li>Stops the Prometheus container after all tests in the class have run (@AfterAll).
+ *   <li>Provides helper methods to access dynamically assigned ports.
+ * </ul>
+ *
+ * <p>Dependencies are injected via Spring and expected to be available in the test context.
+ */
 public abstract class BaseIntegrationTest {
   @Autowired protected Environment environment;
 
@@ -70,44 +89,31 @@ public abstract class BaseIntegrationTest {
 
   @Autowired ConfigurableEnvironment env;
 
+  private int prometheusPort;
+
   /**
-   * As part of {@code EmbeddedPrometheusBootstrapConfiguration}, the Prometheus server is started
-   * during the {@code ApplicationReadyEvent} so that it can bind to the dynamically assigned
-   * application port.
+   * Sets up Prometheus-managed accounts before running any tests.
    *
-   * <p>During the first test class execution, there's a potential race condition where {@code
-   * ApplicationReadyEvent} and {@code @BeforeAll} may execute around the same time. This may result
-   * in the Prometheus server not being fully initialized when the tests begin.
+   * <p>This method:
    *
-   * <p>To handle this, the Prometheus server is started for the first time within {@code
-   * EmbeddedPrometheusBootstrapConfiguration}. For subsequent test class executions, it is started
-   * in {@code @BeforeAll}.
+   * <ul>
+   *   <li>Starts the Prometheus server and gets its dynamic port.
+   *   <li>Retrieves all {@link PrometheusManagedAccount} instances from the account repository.
+   *   <li>Updates each account's endpoint to point to the running local Prometheus instance.
+   *   <li>Creates and assigns a {@link PrometheusRemoteService} client for each account using
+   *       Retrofit.
+   * </ul>
+   *
+   * <p>This setup ensures that all Prometheus-managed accounts communicate with the locally started
+   * Prometheus instance.
    */
   @BeforeAll
-  public void setupPrometheusAccounts() throws InterruptedException {
-    String prometheusPortStr = null;
-    if (prometheusConfig.getPrometheusContainer() != null) {
-      prometheusPortStr = prometheusConfig.startPrometheusServer(env).toString();
-    }
-
-    if (prometheusPortStr == null) {
-      int retries = 30; // wait up to 30 seconds
-      while (retries-- > 0) {
-        prometheusPortStr = environment.getProperty("embedded.prometheus.port");
-        if (prometheusPortStr != null) {
-          break;
-        }
-        Thread.sleep(1000);
-      }
-
-      if (prometheusPortStr == null) {
-        throw new IllegalStateException("embedded.prometheus.port not set even after waiting!");
-      }
-    }
+  public void setupPrometheusAccounts() {
+    prometheusPort = prometheusConfig.startPrometheusServer(env);
 
     Set<AccountCredentials> accountCredentialsSet =
         accountCredentialsRepository.getAllOf(AccountCredentials.Type.METRICS_STORE);
-    String dynamicEndpoint = "http://localhost:" + prometheusPortStr;
+    String dynamicEndpoint = "http://localhost:" + prometheusPort;
 
     accountCredentialsSet.stream()
         .filter(credentials -> credentials instanceof PrometheusManagedAccount)
@@ -153,6 +159,10 @@ public abstract class BaseIntegrationTest {
     serverPort = environment.getProperty("local.server.port", Integer.class);
 
     return serverPort;
+  }
+
+  protected int getPrometheusPort() {
+    return prometheusPort;
   }
 
   @AfterAll
