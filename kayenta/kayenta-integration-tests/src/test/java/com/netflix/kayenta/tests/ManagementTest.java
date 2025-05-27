@@ -28,12 +28,10 @@ public class ManagementTest extends BaseIntegrationTest {
 
   @Test
   public void prometheusTargetsAreAllReportingUp() {
-    int prometheusPort = Integer.parseInt(environment.getProperty("embedded.prometheus.port"));
-
     awaitThirtySecondsUntil(
         () ->
             given()
-                .port(prometheusPort)
+                .port(getPrometheusPort())
                 .get("/api/v1/targets")
                 .prettyPeek()
                 .then()

@@ -18,19 +18,13 @@ package com.netflix.kayenta.configuration;
 
 import static com.playtika.test.common.utils.ContainerUtils.containerLogsConsumer;
 
-import com.netflix.kayenta.utils.EnvironmentUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.testcontainers.Testcontainers;
@@ -47,8 +41,7 @@ public class EmbeddedPrometheusBootstrapConfiguration {
   private static final int PROMETHEUS_INTERNAL_PORT = 9090;
   private final Environment environment;
 
-  @Bean
-  public WaitStrategy prometheusWaitStrategy() {
+  private WaitStrategy prometheusWaitStrategy() {
     return new HttpWaitStrategy()
         .forPath("/status")
         .forPort(PROMETHEUS_INTERNAL_PORT)
@@ -58,61 +51,45 @@ public class EmbeddedPrometheusBootstrapConfiguration {
   private GenericContainer<?> prometheusContainer;
 
   /**
-   * Prometheus only starts after the application is fully up and can expose its port dynamically.
+   * Builds and configures a Prometheus container using Testcontainers.
    *
-   * @param env
-   * @param prometheusWaitStrategy
-   * @return
+   * <p>This method:
+   *
+   * <ul>
+   *   <li>Reads the application's management port from the environment.
+   *   <li>Generates a Prometheus config file to scrape metrics from that port.
+   *   <li>Creates a {@link GenericContainer} for Prometheus with the config file and required
+   *       settings.
+   * </ul>
+   *
+   * @param env the Spring environment used to access configuration properties
+   * @return a configured Prometheus container (not yet started)
    */
-  @Bean
-  public ApplicationListener<ApplicationReadyEvent> prometheus(
-      ConfigurableEnvironment env, WaitStrategy prometheusWaitStrategy) {
-    return event -> {
-      int managementPort = Integer.parseInt(environment.getProperty("local.management.port"));
-      exposeManagementPort(managementPort);
+  private GenericContainer prometheus(ConfigurableEnvironment env) {
+    int managementPort = Integer.parseInt(environment.getProperty("local.management.port"));
+    exposeManagementPort(managementPort);
 
-      File prometheusConfigFile = createPrometheusConfigFile(managementPort);
+    File prometheusConfigFile = createPrometheusConfigFile(managementPort);
 
-      prometheusContainer =
-          new GenericContainer<>("prom/prometheus:v2.10.0")
-              .withLogConsumer(containerLogsConsumer(log))
-              .withExposedPorts(PROMETHEUS_INTERNAL_PORT)
-              .withCopyFileToContainer(
-                  MountableFile.forHostPath(prometheusConfigFile.getAbsolutePath()),
-                  "/etc/prometheus/prometheus.yml")
-              .waitingFor(prometheusWaitStrategy)
-              .withStartupTimeout(Duration.ofSeconds(30));
+    prometheusContainer =
+        new GenericContainer<>("prom/prometheus:v2.10.0")
+            .withLogConsumer(containerLogsConsumer(log))
+            .withExposedPorts(PROMETHEUS_INTERNAL_PORT)
+            .withCopyFileToContainer(
+                MountableFile.forHostPath(prometheusConfigFile.getAbsolutePath()),
+                "/etc/prometheus/prometheus.yml")
+            .waitingFor(prometheusWaitStrategy())
+            .withStartupTimeout(Duration.ofSeconds(30));
 
-      startPrometheusServer(env);
-    };
-  }
-
-  public Integer startPrometheusServer(ConfigurableEnvironment env) {
-    prometheusContainer.start();
-    Map<String, Object> prometheusEnv =
-        registerEnvironment(env, prometheusContainer.getMappedPort(PROMETHEUS_INTERNAL_PORT));
-    log.info("Started Prometheus server. Connection details: {}", prometheusEnv);
-    return prometheusContainer.getMappedPort(PROMETHEUS_INTERNAL_PORT);
-  }
-
-  public GenericContainer<?> getPrometheusContainer() {
     return prometheusContainer;
   }
 
-  private int waitForManagementPort() {
-    int retries = 30; // wait up to 30 seconds
-    while (retries-- > 0) {
-      String managementPortStr = environment.getProperty("local.management.port");
-      if (managementPortStr != null) {
-        return Integer.parseInt(managementPortStr);
-      }
-      try {
-        Thread.sleep(1000); // wait 1 second
-      } catch (InterruptedException ignored) {
-      }
+  public int startPrometheusServer(ConfigurableEnvironment env) {
+    if (prometheusContainer == null) {
+      prometheusContainer = prometheus(env);
     }
-    throw new IllegalStateException(
-        "Property 'local.management.port' not available after waiting!");
+    prometheusContainer.start();
+    return prometheusContainer.getMappedPort(PROMETHEUS_INTERNAL_PORT);
   }
 
   private void exposeManagementPort(int managementPort) {
@@ -142,13 +119,6 @@ public class EmbeddedPrometheusBootstrapConfiguration {
     } catch (IOException e) {
       throw new RuntimeException("Failed to create prometheus.yml dynamically", e);
     }
-  }
-
-  private Map<String, Object> registerEnvironment(ConfigurableEnvironment environment, int port) {
-    Map<String, Object> map = new LinkedHashMap<>();
-    map.put("embedded.prometheus.port", port);
-    EnvironmentUtils.registerPropertySource("embeddedPrometheusInfo", environment, map);
-    return map;
   }
 
   public void stopPrometheusContainer() {
