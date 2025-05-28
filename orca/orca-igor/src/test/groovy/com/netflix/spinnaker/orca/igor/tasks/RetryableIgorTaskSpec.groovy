@@ -22,8 +22,12 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.igor.model.RetryableStageDefinition
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.Request
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -112,15 +116,24 @@ class RetryableIgorTaskSpec extends Specification {
   }
 
   def stubHttpError(int statusCode) {
-    return new SpinnakerHttpException(Stub(RetrofitError) {
-      getKind() >> RetrofitError.Kind.HTTP
-      getResponse() >> new Response("", statusCode, "", Collections.emptyList(), null)
-    })
+    String url = "https://localhost";
+
+    Response retrofit2Response =
+        Response.error(
+            statusCode,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 
   def stubNetworkError() {
-    return new SpinnakerNetworkException(Stub(RetrofitError) {
-      getKind() >> RetrofitError.Kind.NETWORK
-    })
+    return new SpinnakerNetworkException(new IOException("timeout"), new Request.Builder().url("http://some-url").build())
   }
 }

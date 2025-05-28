@@ -30,4 +30,7 @@ dependencies {
 
   testImplementation(project(":orca-test-groovy"))
   testRuntimeOnly("net.bytebuddy:byte-buddy")
+
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
 }

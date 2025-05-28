@@ -17,71 +17,57 @@
 package com.netflix.spinnaker.orca.clouddriver
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.netflix.spinnaker.config.ServiceEndpoint
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
+import com.netflix.spinnaker.config.DefaultServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfigurationProperties
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import okhttp3.OkHttpClient
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import retrofit.RequestInterceptor
+import com.netflix.spinnaker.orca.test.Retrofit2TestConfig
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_OK
-import static retrofit.RestAdapter.LogLevel.FULL
 
+@SpringBootTest (
+    classes = [Retrofit2TestConfig],
+    webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class KatoRestServiceSpec extends Specification {
 
-  public WireMockServer wireMockServer = new WireMockServer(0)
+  public static WireMockServer wireMockServer = new WireMockServer(0)
 
   @Subject
   KatoRestService service
 
+  @Autowired
+  DefaultServiceClientProvider serviceClientProvider
+
   @Subject
   CloudDriverTaskStatusService taskStatusService
-
-  RequestInterceptor noopInterceptor = new RequestInterceptor() {
-    @Override
-    void intercept(RequestInterceptor.RequestFacade request) {
-      // do nothing
-    }
-  }
 
   def mapper = OrcaObjectMapper.newInstance()
 
   private static final taskId = "e1jbn3"
 
-  @BeforeAll
-  def setup() {
+  def setupSpec() {
     wireMockServer.start()
     configureFor(wireMockServer.port())
-    def cfg = new CloudDriverConfiguration()
-    def builder = cfg.clouddriverRetrofitBuilder(
-      mapper,
-      new OkHttpClientProvider([new OkHttpClientBuilderProvider() {
-        @Override
-        Boolean supports(ServiceEndpoint service) {
-          return true
-        }
-        @Override
-        OkHttpClient.Builder get(ServiceEndpoint service) {
-          return new OkHttpClient().newBuilder()
-        }
-      }]),
-      FULL,
-      noopInterceptor,
-      new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: wireMockServer.url("/"))))
-    service = cfg.katoDeployService(builder)
-    taskStatusService = cfg.cloudDriverTaskStatusService(builder)
   }
 
-  @AfterAll
-  def cleanup() {
+  def setup() {
+    def cfg = new CloudDriverConfiguration()
+    def builder = cfg.clouddriverRetrofitBuilder(
+        mapper,
+        serviceClientProvider,
+        new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: wireMockServer.url("/"))))
+    service = builder.katoDeployService(builder)
+    taskStatusService = builder.cloudDriverTaskStatusService(builder)
+  }
+
+
+  def cleanupSpec() {
     wireMockServer.stop()
   }
 
@@ -105,7 +91,7 @@ class KatoRestServiceSpec extends Specification {
     def operation = [:]
 
     expect: "kato should return the details of the task it created"
-    with(service.requestOperations(requestId, [operation])) {
+    with(Retrofit2SyncCall.execute(service.requestOperations(requestId, [operation]))) {
       it.id == taskId
     }
 
@@ -131,7 +117,7 @@ class KatoRestServiceSpec extends Specification {
     )
 
     expect:
-    with(taskStatusService.lookupTask(taskId)) {
+    with(Retrofit2SyncCall.execute(taskStatusService.lookupTask(taskId))) {
       id == taskId
       status.completed
       status.failed

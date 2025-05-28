@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
@@ -49,17 +50,17 @@ class WaitForDestroyedServerGroupTask implements CloudProviderAware, RetryableTa
     ClusterDescriptor clusterDescriptor = getClusterDescriptor(stage)
     try {
       //TODO: figure out how to eliminate the response status code handling directly
-      def response = oortService.getCluster(
+      def response = Retrofit2SyncCall.executeCall(oortService.getCluster(
           clusterDescriptor.app,
           clusterDescriptor.account,
           clusterDescriptor.name,
-          clusterDescriptor.cloudProvider)
+          clusterDescriptor.cloudProvider))
 
-      if (response.status != 200) {
+      if (response.code() != 200) {
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
 
-      Map cluster = objectMapper.readValue(response.body.in().text, Map)
+      Map cluster = objectMapper.readValue(response.body().byteStream().text, Map)
       if (!cluster || !cluster.serverGroups) {
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([remainingInstances: []]).build()
       }

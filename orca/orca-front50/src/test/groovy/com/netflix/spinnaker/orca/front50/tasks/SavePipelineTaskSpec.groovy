@@ -25,8 +25,10 @@ import com.netflix.spinnaker.orca.front50.PipelineModelMutator
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import groovy.json.JsonOutput
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
+import retrofit2.Response
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -58,10 +60,11 @@ class SavePipelineTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * mutator.supports(pipeline) >> true
-    1 * mutator.mutate(pipeline)
-    1 * front50Service.savePipeline(pipeline, _) >> {
-      new Response('http://front50', 200, 'OK', [], null)
+    1 * mutator.supports(_) >> true
+    1 * mutator.mutate(_)
+    1 * front50Service.getPipeline(_ as String) >> Calls.response(pipeline)
+    1 * front50Service.savePipeline(_, _) >> {
+       Calls.response(ResponseBody.create(MediaType.parse("application/json"),"{}"))
     }
     result.status == ExecutionStatus.SUCCEEDED
     result.context == ImmutableMap.copyOf([
@@ -91,10 +94,10 @@ class SavePipelineTaskSpec extends Specification {
     ]
 
     when:
-    front50Service.getPipeline(_ as String) >> existingPipeline
+    front50Service.getPipeline(_ as String) >> Calls.response(existingPipeline)
     front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       receivedIndex = newPipeline.get("index")
-      new Response('http://front50', 200, 'OK', [], null)
+      return Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
     }
     task.execute(stage)
 
@@ -123,10 +126,10 @@ class SavePipelineTaskSpec extends Specification {
     ]
 
     when:
-    front50Service.getPipelines(_) >> [existingPipeline]
+    front50Service.getPipelines(_) >> Calls.response([existingPipeline])
     front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       receivedIndex = newPipeline.get("index")
-      new Response('http://front50', 200, 'OK', [], null)
+      return Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
     }
     task.execute(stage)
 
@@ -158,7 +161,7 @@ class SavePipelineTaskSpec extends Specification {
     stage.getContext().put('pipeline.serviceAccount', serviceAccountFromSaveServiceAccountTask)
     front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
       actualRunAsUser = newPipeline.get("triggers")[0]?.runAsUser
-      new Response('http://front50', 200, 'OK', [], null)
+      return Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
     }
     task.execute(stage)
 
@@ -191,9 +194,9 @@ class SavePipelineTaskSpec extends Specification {
     ])
 
     when:
-    front50Service.getPipelines(_) >> []
+    front50Service.getPipelines(_) >> Calls.response([])
     front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
-      new Response('http://front50', 500, 'OK', [], null)
+      Calls.response(Response.error(500, ResponseBody.create(MediaType.parse("application/json"), "[]")))
     }
     def result = task.execute(stage)
 
@@ -214,9 +217,9 @@ class SavePipelineTaskSpec extends Specification {
     ])
 
     when:
-    front50Service.getPipelines(_) >> []
+    front50Service.getPipelines(_) >> Calls.response([])
     front50Service.savePipeline(_, _) >> { Map<String, Object> newPipeline, Boolean staleCheck ->
-      new Response('http://front50', 500, 'OK', [], null)
+      Calls.response(Response.error(500, ResponseBody.create(MediaType.parse("application/json"), "[]")))
     }
     def result = task.execute(stage)
 
@@ -267,19 +270,15 @@ class SavePipelineTaskSpec extends Specification {
 
     then:
     1 * front50Service.savePipelines(pipelines, _) >> {
-      new Response('http://front50',
-          200,
-          'OK',
-          [],
-          new TypedString(new JsonOutput().toJson(
+      Calls.response(Response.success(200, ResponseBody.create(MediaType.parse("application/json"),
+          new JsonOutput().toJson(
               [
                   successful_pipelines_count: 4,
                   successful_pipelines: ["pipeline1", "pipeline2", "pipeline3", "pipeline4"],
                   failed_pipelines_count: 0,
                   failed_pipelines: []
               ]
-          ))
-      )
+          ))))
     }
     result == TaskResult.builder(ExecutionStatus.SUCCEEDED)
         .context([
@@ -338,7 +337,7 @@ class SavePipelineTaskSpec extends Specification {
 
     then:
     1 * front50Service.savePipelines(pipelines, _) >> {
-      new Response('http://front50', 500, 'OK', [], null)
+      Calls.response(Response.error(500, ResponseBody.create(MediaType.parse("application/json"), "[]")))
     }
     result.status == ExecutionStatus.TERMINAL
   }

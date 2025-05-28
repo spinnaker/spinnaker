@@ -21,8 +21,12 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator.PipelineValidationFailed
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -41,7 +45,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> []
+    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([])
 
     notThrown(PipelineValidationFailed)
 
@@ -58,9 +62,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> [
+    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ]
+    ])
     0 * _
 
     notThrown(PipelineValidationFailed)
@@ -70,9 +74,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> [
+    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ]
+    ])
     0 * _
 
     notThrown(PipelineValidationFailed)
@@ -81,7 +85,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> Calls.response(
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false])
     0 * _
 
     notThrown(PipelineValidationFailed)
@@ -99,9 +104,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> [
+    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
-    ]
+    ])
     0 * _
 
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
@@ -110,7 +115,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> Calls.response(
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true])
     0 * _
 
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
@@ -124,9 +130,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
   def "allows enabled strategy to run"() {
     given:
-    front50Service.getStrategies(execution.application) >> [
+    front50Service.getStrategies(execution.application) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ]
+    ])
 
     when:
     validator.checkRunnable(execution)
@@ -145,9 +151,9 @@ class EnabledPipelineValidatorSpec extends Specification {
 
   def "prevents disabled strategy from running"() {
     given:
-    front50Service.getStrategies(execution.application) >> [
+    front50Service.getStrategies(execution.application) >> Calls.response([
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
-    ]
+    ])
 
     when:
     validator.checkRunnable(execution)
@@ -169,7 +175,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> Calls.response([id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false])
 
     notThrown(PipelineValidationFailed)
 
@@ -182,12 +188,21 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def notFoundError() {
-    new SpinnakerHttpException(RetrofitError.httpError(
-      "http://localhost",
-      new Response("http://localhost", HTTP_NOT_FOUND, "Not Found", [], null),
-      null,
-      null
-    ))
+    String url = "https://localhost";
+
+    Response retrofit2Response =
+        Response.error(
+            HTTP_NOT_FOUND,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{\"error\":\"Not Found\"}"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 
 }

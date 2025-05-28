@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -32,7 +33,7 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
   void "should throw exception if load balancer does not exist"() {
     given:
     task.oortService = Mock(OortService) {
-      1 * getLoadBalancerDetails("aws", "test", "us-west-1", "example-frontend") >> { return [] }
+      1 * getLoadBalancerDetails("aws", "test", "us-west-1", "example-frontend") >> { return Calls.response([]) }
       0 * _
     }
 
@@ -49,7 +50,13 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
   void "should throw exception if any target specifies > 1 regions"() {
     given:
     task.oortService = Mock(OortService) {
-      1 * getLoadBalancerDetails("aws", "test", "us-west-1", "example-frontend") >> { return [["a": "b"]] }
+      1 * getLoadBalancerDetails("aws", "test", "us-west-1", "example-frontend") >> { return Calls.response([["a": "b"]]) }
+      0 * _
+    }
+    task.mortService = Mock(MortService) {
+      1 * getVPCs() >> {
+        return Calls.response(null)
+      }
       0 * _
     }
 
@@ -72,14 +79,22 @@ class CopyAmazonLoadBalancerTaskSpec extends Specification {
     given:
     task.oortService = Mock(OortService) {
       1 * getLoadBalancerDetails("aws", "test", "us-west-1", "example-frontend") >> {
-        return [currentLoadBalancer]
+        return Calls.response([currentLoadBalancer])
       }
+      0 * _
     }
     task.katoService = Mock(KatoService) {
       1 * requestOperations(_) >> { List params ->
         assert (params[0] as List).size() == targets.size()
         taskId
       }
+      0 * _
+    }
+    task.mortService = Mock(MortService) {
+      1 * getVPCs() >> {
+        return Calls.response(null)
+      }
+      0 * _
     }
 
     when:

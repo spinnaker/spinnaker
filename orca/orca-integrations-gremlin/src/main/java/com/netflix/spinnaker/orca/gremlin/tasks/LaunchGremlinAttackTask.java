@@ -4,6 +4,7 @@ import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.COMMAND_T
 import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.GUID_KEY;
 import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.TARGET_TEMPLATE_ID_KEY;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -48,7 +49,7 @@ public class LaunchGremlinAttackTask implements Task {
 
     final AttackParameters newAttack = new AttackParameters(commandViaTemplate, targetViaTemplate);
 
-    final String createdGuid = gremlinService.create(apiKey, newAttack);
+    final String createdGuid = Retrofit2SyncCall.execute(gremlinService.create(apiKey, newAttack));
     final Map<String, Object> responseMap = new HashMap<>();
     responseMap.put(GUID_KEY, createdGuid);
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(responseMap).build();

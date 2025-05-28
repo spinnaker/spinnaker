@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -146,7 +147,7 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
 
       InputStream jobStream
       retrySupport.retry({
-        jobStream = katoRestService.collectJob(appName, account, location, name).body.in()
+        jobStream = Retrofit2SyncCall.execute(katoRestService.collectJob(appName, account, location, name)).byteStream()
       },
           configProperties.getJobStatusRetry().maxAttempts,
           Duration.ofMillis(configProperties.getJobStatusRetry().getBackOffInMs()),
@@ -308,7 +309,7 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
     Map<String, Object> properties = [:]
     try {
       retrySupport.retry({
-        properties = katoRestService.getFileContents(appName, account, location, name, propertyFile)
+        properties = Retrofit2SyncCall.execute(katoRestService.getFileContents(appName, account, location, name, propertyFile))
       },
           configProperties.getFileContentRetry().maxAttempts,
           Duration.ofMillis(configProperties.getFileContentRetry().getBackOffInMs()),
@@ -424,13 +425,13 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
       if (succeededPod.isPresent()) {
         String podName = (succeededPod.get() as Map).get("name")
         retrySupport.retry({
-          properties = katoRestService.getFileContentsFromKubernetesPod(
+          properties = Retrofit2SyncCall.execute(katoRestService.getFileContentsFromKubernetesPod(
               appName,
               account,
               namespace,
               podName,
               propertyFile
-          )
+          ))
         },
             configProperties.getFileContentRetry().maxAttempts,
             Duration.ofMillis(configProperties.getFileContentRetry().getBackOffInMs()),

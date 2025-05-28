@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kayenta.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
@@ -49,7 +50,7 @@ class MonitorKayentaCanaryTask(
 
   override fun execute(stage: StageExecution): TaskResult {
     val context = stage.mapTo<MonitorKayentaCanaryContext>()
-    val canaryResults = kayentaService.getCanaryResults(context.storageAccountName, context.canaryPipelineExecutionId)
+    val canaryResults = Retrofit2SyncCall.execute(kayentaService.getCanaryResults(context.canaryPipelineExecutionId, context.storageAccountName))
 
     if (canaryResults.executionStatus == SUCCEEDED) {
       val canaryScore = canaryResults.result!!.judgeResult.score.score
@@ -104,7 +105,7 @@ class MonitorKayentaCanaryTask(
 
     var credentialType = ""
     if (context.metricsAccountName != null) {
-      val allCredentials = kayentaService.getCredentials()
+      val allCredentials = Retrofit2SyncCall.execute(kayentaService.getCredentials())
       val credential = allCredentials.find({ it.name == context.metricsAccountName })
       credentialType = if (credential != null) {
         credential.type

@@ -29,7 +29,8 @@ import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthRespons
 import com.netflix.spinnaker.orca.deploymentmonitor.models.MonitoredDeployInternalStageData
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
+import okhttp3.Request
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider
 import spock.lang.Unroll
@@ -47,7 +48,7 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
     given:
     def monitorServiceStub = Stub(DeploymentMonitorService) {
       evaluateHealth(_) >> {
-        throw new SpinnakerServerException(RetrofitError.networkError("url", new IOException()))
+        throw new SpinnakerServerException(new IOException(), new Request.Builder().url("http://some-url").build())
       }
     }
 
@@ -107,12 +108,12 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
 //    }
 //
       evaluateHealth(_) >> {
-        return new EvaluateHealthResponse()
+        return Calls.response(new EvaluateHealthResponse())
       } >> {
         EvaluateHealthResponse response = new EvaluateHealthResponse()
         response.nextStep = new DeploymentStep()
 
-        return response
+        return Calls.response(response)
       }
     }
 

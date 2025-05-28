@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servicebroker;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -52,7 +53,9 @@ public abstract class AbstractWaitForServiceTask implements CloudProviderAware, 
 
     return TaskResult.ofStatus(
         oortStatusToTaskStatus(
-            oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName)));
+            Retrofit2SyncCall.execute(
+                oortService.getServiceInstance(
+                    account, cloudProvider, region, serviceInstanceName))));
   }
 
   protected abstract ExecutionStatus oortStatusToTaskStatus(Map m);

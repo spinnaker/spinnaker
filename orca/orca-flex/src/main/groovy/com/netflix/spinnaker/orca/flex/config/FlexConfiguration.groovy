@@ -16,24 +16,18 @@
 
 package com.netflix.spinnaker.orca.flex.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.orca.flex.FlexService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.Endpoint
-import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.converter.JacksonConverter
-import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
@@ -45,25 +39,10 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 class FlexConfiguration {
 
-  @Autowired Client retrofitClient
-  @Autowired RestAdapter.LogLevel retrofitLogLevel
-
   @Bean
-  Endpoint flexEndpoint(
-    @Value('${flex.base-url}') String flexBaseUrl) {
-    newFixedEndpoint(flexBaseUrl)
-  }
-
-  @Bean
-  FlexService flexService(Endpoint flexEndpoint, ObjectMapper mapper) {
-    new RestAdapter.Builder()
-      .setEndpoint(flexEndpoint)
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .setLog(new RetrofitSlf4jLog(FlexService))
-      .setConverter(new JacksonConverter(mapper))
-      .build()
-      .create(FlexService)
+  FlexService flexService(@Value('${flex.base-url}') String flexBaseUrl, ServiceClientProvider serviceClientProvider) {
+    serviceClientProvider.getService(
+        FlexService,
+        new DefaultServiceEndpoint("flex", RetrofitUtils.getBaseUrl(flexBaseUrl)))
   }
 }

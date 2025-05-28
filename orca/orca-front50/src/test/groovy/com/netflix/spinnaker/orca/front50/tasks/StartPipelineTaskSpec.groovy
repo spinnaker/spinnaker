@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -43,7 +44,7 @@ class StartPipelineTaskSpec extends Specification {
   def "should trigger the dependent pipeline with the correct context and parentPipelineStageId"() {
     given:
     def pipelineConfig = [id: "testStrategyId", application: "orca", name: "testStrategy"]
-    1 * front50Service.getStrategies(_) >> [pipelineConfig]
+    1 * front50Service.getStrategies(_) >> Calls.response([pipelineConfig])
     def stage = stage {
       type = "whatever"
       context = [

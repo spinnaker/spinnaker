@@ -22,7 +22,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.KeelService
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -53,13 +56,13 @@ class DeleteApplicationTaskSpec extends Specification {
   void "should delete global application if it was only associated with a single account"() {
     given:
     task.front50Service = Mock(Front50Service) {
-      1 * get(config.application.name) >> new Application()
-      1 * delete(config.application.name)
-      1 * deletePermission(config.application.name)
+      1 * get(config.application.name) >> Calls.response(new Application())
+      1 * delete(config.application.name) >> Calls.response(null)
+      1 * deletePermission(config.application.name) >> Calls.response(null)
       0 * _._
     }
     task.keelService = Mock(KeelService) {
-      1 * deleteDeliveryConfig(config.application.name)
+      1 * deleteDeliveryConfig(config.application.name) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]"))
     }
 
     when:
@@ -73,13 +76,13 @@ class DeleteApplicationTaskSpec extends Specification {
     given:
     Application application = new Application()
     task.front50Service = Mock(Front50Service) {
-      1 * get(config.application.name) >> application
-      1 * delete(config.application.name)
-      1 * deletePermission(config.application.name)
+      1 * get(config.application.name) >> Calls.response(application)
+      1 * delete(config.application.name) >> Calls.response(null)
+      1 * deletePermission(config.application.name) >> Calls.response(null)
       0 * _._
     }
     task.keelService = Mock(KeelService) {
-      1 * deleteDeliveryConfig(config.application.name)
+      1 * deleteDeliveryConfig(config.application.name) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]"))
     }
 
     when:
@@ -92,11 +95,13 @@ class DeleteApplicationTaskSpec extends Specification {
   void "should ignore not found errors when deleting managed delivery data"() {
     given:
     task.front50Service = Mock(Front50Service) {
-      get(config.application.name) >> new Application()
+      1 * get(config.application.name) >> Calls.response(new Application())
+      1 * delete(config.application.name) >> Calls.response(null)
+      1 * deletePermission(config.application.name) >> Calls.response(null)
+      0 * _._
     }
     task.keelService = Mock(KeelService) {
-      1 * deleteDeliveryConfig(config.application.name) >>
-          new Response("http://keel", 404, "not found", [], null)
+      1 * deleteDeliveryConfig(config.application.name) >> Calls.response(Response.error(404, ResponseBody.create(MediaType.parse("application/json"), "not found")))
     }
 
     when:

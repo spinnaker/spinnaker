@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.front50.spring
 
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
@@ -76,7 +77,10 @@ class DependentPipelineExecutionListener implements ExecutionListener {
 
     def status = convertStatus(execution)
     def pipelines =
-      AuthenticatedRequest.allowAnonymous({front50ConfigurationProperties.useTriggeredByEndpoint ? front50Service.getTriggeredPipelines(execution.pipelineConfigId,status) : front50Service.getAllPipelines()})
+      AuthenticatedRequest.allowAnonymous({
+        front50ConfigurationProperties.useTriggeredByEndpoint ?
+            Retrofit2SyncCall.execute(front50Service.getTriggeredPipelines(execution.pipelineConfigId,status)) :
+            Retrofit2SyncCall.execute(front50Service.getAllPipelines())})
     if (executionPreprocessors) {
       // Resolve templated pipelines if enabled.
       pipelines = pipelines.collect { pipeline ->

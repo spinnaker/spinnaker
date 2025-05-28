@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -75,7 +76,7 @@ class MonitorCanaryStage implements StageDefinitionBuilder, CancellableStage {
     try {
       if (canaryId) {
         // will not have a `canaryId` if the failure occurred prior to registration
-        cancelCanaryResults = mineService.cancelCanary(canaryId, "Pipeline execution (${stage.execution?.id}) canceled")
+        cancelCanaryResults = Retrofit2SyncCall.execute(mineService.cancelCanary(canaryId, "Pipeline execution (${stage.execution?.id}) canceled"))
         log.info("Canceled canary in mine (canaryId: ${canaryId}, stageId: ${stage.id}, executionId: ${stage.execution.id})")
       }
     } catch (Exception e) {

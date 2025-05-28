@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -75,7 +76,7 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage {
   Map cancelCanary(StageExecution stage, String reason)  {
     if(stage?.context?.canary?.id) {
       try {
-        def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, reason)
+        def cancelCanaryResults = Retrofit2SyncCall.execute(mineService.cancelCanary(stage.context.canary.id as String, reason))
         log.info("Canceled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id}): ${reason}")
         return cancelCanaryResults
       } catch (SpinnakerHttpException e) {

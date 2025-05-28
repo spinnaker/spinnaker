@@ -32,6 +32,7 @@ import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
+import retrofit2.mock.Calls
 import strikt.api.expect
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
@@ -72,7 +73,7 @@ class KubernetesPreconfiguredJobSpec : JUnit5Minutests {
           }
           """.trimIndent()
 
-        every { katoRestService.requestOperations(any(), any(), any()) } returns TaskId("1")
+        every { katoRestService.requestOperations(any(), any(), any()) } returns Calls.response(TaskId("1"))
 
         val resp = subject.post("/orchestrate") {
           contentType = MediaType.APPLICATION_JSON

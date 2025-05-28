@@ -27,7 +27,8 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import de.huxhorn.sulky.ulid.ULID
-import retrofit.RetrofitError
+import okhttp3.Request
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -56,7 +57,7 @@ class ExecutionsImportControllerSpec extends Specification {
 
     then:
     thrown(InvalidRequestException)
-    1 * front50Service.get('testapp') >> { new Application(name: 'testapp') }
+    1 * front50Service.get('testapp') >> { Calls.response(new Application(name: 'testapp')) }
     1 * executionRepository.retrieve(ExecutionType.PIPELINE, executionId) >> { throw new ExecutionNotFoundException('No execution')}
     0 * _
 
@@ -76,7 +77,7 @@ class ExecutionsImportControllerSpec extends Specification {
 
     then:
     noExceptionThrown()
-    1 * front50Service.get('testapp') >> { new Application(name: 'testapp') }
+    1 * front50Service.get('testapp') >> { Calls.response(new Application(name: 'testapp')) }
     1 * executionRepository.retrieve(ExecutionType.PIPELINE, executionId) >> { throw new ExecutionNotFoundException('No execution')}
     1 * executionRepository.store(execution)
     0 * _
@@ -98,7 +99,7 @@ class ExecutionsImportControllerSpec extends Specification {
 
     then:
     noExceptionThrown()
-    1 * front50Service.get('testapp') >> { throw new SpinnakerServerException(RetrofitError.unexpectedError('http://test.front50.com', new RuntimeException()))}
+    1 * front50Service.get('testapp') >> { throw new SpinnakerServerException(new RuntimeException(), new Request.Builder().url("http://some-url").build())}
     1 * executionRepository.retrieve(ExecutionType.PIPELINE, executionId) >> { throw new ExecutionNotFoundException('No execution')}
     1 * executionRepository.store(execution)
     0 * _

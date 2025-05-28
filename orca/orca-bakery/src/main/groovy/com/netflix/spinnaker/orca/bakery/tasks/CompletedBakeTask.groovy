@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -40,7 +41,7 @@ class CompletedBakeTask implements Task {
   TaskResult execute(@Nonnull StageExecution stage) {
     def bakery = bakerySelector.select(stage)
     def bakeStatus = stage.context.status as BakeStatus
-    def bake = bakery.service.lookupBake(stage.context.region as String, bakeStatus.resourceId)
+    def bake = Retrofit2SyncCall.execute(bakery.service.lookupBake(stage.context.region as String, bakeStatus.resourceId))
     // This treatment of ami allows both the aws and gce bake results to be propagated.
     def results = [
       ami: bake.ami ?: bake.imageName,

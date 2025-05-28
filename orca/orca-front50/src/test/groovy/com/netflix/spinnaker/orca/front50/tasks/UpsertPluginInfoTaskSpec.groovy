@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.PluginInfo
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -51,7 +52,7 @@ class UpsertPluginInfoTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * front50Service.upsertPluginInfo(pluginInfo) >> pluginInfo
+    1 * front50Service.upsertPluginInfo(pluginInfo) >> Calls.response(pluginInfo)
     result.status == ExecutionStatus.SUCCEEDED
   }
 }
