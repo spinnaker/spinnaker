@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -55,7 +56,8 @@ public class Front50SchemeLoader implements TemplateSchemeLoader {
     String id = uri.getRawAuthority();
     try {
       Map<String, Object> pipelineTemplate =
-          AuthenticatedRequest.allowAnonymous(() -> front50Service.getPipelineTemplate(id));
+          AuthenticatedRequest.allowAnonymous(
+              () -> Retrofit2SyncCall.execute(front50Service.getPipelineTemplate(id)));
       return objectMapper.convertValue(pipelineTemplate, new TypeReference<>() {});
     } catch (Exception e) {
       throw new TemplateLoaderException(e);

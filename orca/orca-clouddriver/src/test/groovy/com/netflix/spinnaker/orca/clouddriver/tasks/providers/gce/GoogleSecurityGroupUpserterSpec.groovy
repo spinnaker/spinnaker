@@ -20,8 +20,12 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -89,14 +93,14 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
       def result = upserter.isSecurityGroupUpserted(sg, stage)
 
     then:
-      1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> sg
+      1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> Calls.response(sg)
       result
 
     when:
       result = upserter.isSecurityGroupUpserted(sg, stage)
 
     then:
-      1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> null
+      1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> Calls.response(null)
       !result
 
     when:
@@ -104,7 +108,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
 
     then:
       1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> {
-        throw new SpinnakerHttpException(RetrofitError.httpError("/", new Response("", 404, "", [], null), null, null))
+        throw makeSpinnakerHttpException(404)
       }
     !result
 
@@ -113,7 +117,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
 
     then:
       1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> {
-        throw new SpinnakerHttpException(RetrofitError.httpError("/", new Response("", 400, "", [], null), null, null))
+        throw makeSpinnakerHttpException(400)
       }
       thrown(SpinnakerHttpException)
   }
@@ -162,7 +166,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
       def result = upserter.isSecurityGroupUpserted(sg, stage)
 
     then:
-      1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> sg
+      1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> Calls.response(sg)
       result == matches
 
     where:
@@ -171,5 +175,22 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
       8084          | "192.168.1.100"     || false
       8083          | "192.168.1.101"     || false
       8084          | "192.168.1.101"     || false
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
+    String url = "https://mort";
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), message))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
@@ -64,7 +65,7 @@ class RunCanaryPipelineStage(
       log.info(format("Cancelling stage (stageId: %s: executionId: %s, canaryPipelineExecutionId: %s, context: %s)", stage.id, stage.execution.id, canaryPipelineExecutionId, stage.context))
 
       try {
-        kayentaService.cancelPipelineExecution(canaryPipelineExecutionId, "")
+        Retrofit2SyncCall.execute(kayentaService.cancelPipelineExecution(canaryPipelineExecutionId, ""))
       } catch (e: Exception) {
         log.error(format("Failed to cancel stage (stageId: %s, executionId: %s), e: %s", stage.id, stage.execution.id, e.message), e)
       }

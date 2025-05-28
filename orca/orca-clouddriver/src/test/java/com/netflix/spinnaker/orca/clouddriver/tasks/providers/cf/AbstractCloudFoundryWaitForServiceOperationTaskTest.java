@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import javax.annotation.Nullable;
+import retrofit2.mock.Calls;
 
 class AbstractCloudFoundryWaitForServiceOperationTaskTest<T extends AbstractWaitForServiceTask> {
   protected final String operationType;
@@ -55,7 +56,7 @@ class AbstractCloudFoundryWaitForServiceOperationTaskTest<T extends AbstractWait
             matches(cloudProvider),
             matches(region),
             matches(serviceInstanceName)))
-        .thenReturn(serviceInstance);
+        .thenReturn(Calls.response(serviceInstance));
 
     T task = subjectConstructor.apply(oortService);
 

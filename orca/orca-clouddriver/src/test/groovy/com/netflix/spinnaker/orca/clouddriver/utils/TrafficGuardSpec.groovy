@@ -31,8 +31,12 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -91,7 +95,7 @@ class TrafficGuardSpec extends Specification {
 
     then: 'we never look up anything in clouddriver if traffic guards are not enabled'
     notThrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     0 * cloudDriverService._
   }
 
@@ -105,7 +109,7 @@ class TrafficGuardSpec extends Specification {
     then:
     def e = thrown(TrafficGuardException)
     e.message.startsWith("This cluster ('app-foo' in test/us-east-1) has traffic guards enabled.")
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
@@ -124,7 +128,7 @@ class TrafficGuardSpec extends Specification {
     then:
     def e = thrown(TrafficGuardException)
     e.message.startsWith("Could not find server group 'app-foo-v999'")
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
@@ -142,7 +146,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     notThrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 2, 0, [namespace: 'us-east-1']),
@@ -161,7 +165,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     thrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 2),
@@ -182,7 +186,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     notThrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 2),
@@ -212,7 +216,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     thrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * dynamicConfigService.getConfig(Double.class, TrafficGuard.MIN_CAPACITY_RATIO, 0d) >> 0.40d
   }
 
@@ -231,7 +235,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     notThrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
   }
 
   void "should still make sure that capacity does not drop to 0 for pinned server groups"() {
@@ -250,7 +254,7 @@ class TrafficGuardSpec extends Specification {
     then:
     def e = thrown(TrafficGuardException)
     e.message.contains("would leave the cluster with no instances up")
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
   }
 
   @Unroll
@@ -267,7 +271,7 @@ class TrafficGuardSpec extends Specification {
     then:
     def e = thrown(TrafficGuardException)
     e.message.contains("would leave the cluster with 1 instance up")
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * dynamicConfigService.getConfig(Double.class, TrafficGuard.MIN_CAPACITY_RATIO, 0d) >> 0.4d
 
     where:
@@ -303,7 +307,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     notThrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * dynamicConfigService.getConfig(Double.class, TrafficGuard.MIN_CAPACITY_RATIO, 0d) >> 0.40d
   }
 
@@ -322,7 +326,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     notThrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
   }
 
   void "should throw exception when target server group is the only one in cluster"() {
@@ -334,7 +338,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     thrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [makeServerGroup(targetName, 1)]
     ]))
@@ -349,7 +353,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     thrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
@@ -366,7 +370,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     noExceptionThrown()
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [makeServerGroup(targetName, 0, 1)]
     ]))
@@ -382,7 +386,7 @@ class TrafficGuardSpec extends Specification {
     then:
     def e = thrown(TrafficGuardException)
     e.message.startsWith('Could not find cluster')
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.empty()
   }
 
@@ -395,7 +399,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     notThrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
@@ -412,7 +416,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     thrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.maybeCluster("app", "test", "app-foo", "aws") >> Optional.of(ModelUtils.cluster([
       serverGroups: [
         makeServerGroup(targetName, 1),
@@ -430,7 +434,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     result == expected
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
 
     where:
     cluster | account | guardStack | guardDetail | guardAccount | guardLocation || expected
@@ -454,7 +458,7 @@ class TrafficGuardSpec extends Specification {
     !applicationDetails.containsKey("trafficGuards")
     result == false
     1 * front50Service.get("app") >> {
-      throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null))
+      throw makeSpinnakerHttpException(404)
     }
   }
 
@@ -477,7 +481,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     result == false
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
   }
 
   void "instance termination should fail when last healthy instance in only server group in cluster"() {
@@ -491,7 +495,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     thrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >>
       [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
     1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >> Optional.of(new TargetServerGroup(targetServerGroup))
@@ -509,7 +513,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     thrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >>
       [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
     1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >> Optional.of(new TargetServerGroup(targetServerGroup))
@@ -531,7 +535,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     notThrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >>
       [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
     1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >> Optional.of(new TargetServerGroup(targetServerGroup))
@@ -553,7 +557,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     thrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >> [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
     1 * cloudDriverService.getSearchResults("i-2", "instances", "aws") >> [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
     1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >> Optional.of(new TargetServerGroup(targetServerGroup))
@@ -574,7 +578,7 @@ class TrafficGuardSpec extends Specification {
 
     then:
     notThrown(TrafficGuardException)
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.getSearchResults("i-1", "instances", "aws") >>
       [new SearchResultSet(results: [[account: "test", region: location.value, serverGroup: targetName]])]
     1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >>
@@ -592,7 +596,7 @@ class TrafficGuardSpec extends Specification {
     then:
     notThrown(TrafficGuardException)
 
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     1 * cloudDriverService.getTargetServerGroup("test", targetName, location.value) >>
       Optional.of(new TargetServerGroup(makeServerGroup(targetName, 0, 0, [instances: [[name: "i-1"]]])))
     0 * _
@@ -608,7 +612,7 @@ class TrafficGuardSpec extends Specification {
     then:
     notThrown(TrafficGuardException)
 
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> Calls.response(application)
     0 * _
   }
 
@@ -618,5 +622,22 @@ class TrafficGuardSpec extends Specification {
     }
     applicationDetails.putIfAbsent("trafficGuards", [])
     applicationDetails.get("trafficGuards") << guard
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
+    String url = "https://mort";
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), message))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

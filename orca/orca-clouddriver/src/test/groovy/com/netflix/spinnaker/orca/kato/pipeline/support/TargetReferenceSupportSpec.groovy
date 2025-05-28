@@ -23,8 +23,11 @@ import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -271,7 +274,7 @@ class TargetReferenceSupportSpec extends Specification {
 
     then:
     1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> {
-      throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://clouddriver", 404, "null", [], null), null, null, null, null))
+      throw makeSpinnakerHttpException(404)
     }
     thrown TargetReferenceNotFoundException
   }
@@ -290,8 +293,27 @@ class TargetReferenceSupportSpec extends Specification {
 
     then:
     1 * cloudDriverService.getCluster("kato", "prod", "kato-main", "aws") >> {
-      throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://clouddriver", 429, "null", [], null), null, null, null, null))
+      throw makeSpinnakerHttpException(429)
     }
     thrown SpinnakerHttpException
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+
+    String url = "https://clouddriver";
+
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

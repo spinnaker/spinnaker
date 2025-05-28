@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.keel.task
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
@@ -74,7 +75,7 @@ constructor(
       }
 
       log.debug("Publishing manifest ${context.manifest} to keel on behalf of $user")
-      keelService.publishDeliveryConfig(deliveryConfig)
+      Retrofit2SyncCall.executeCall(keelService.publishDeliveryConfig(deliveryConfig))
 
       TaskResult.builder(ExecutionStatus.SUCCEEDED).context(emptyMap<String, Any?>()).build()
     } catch (e: SpinnakerServerException) {

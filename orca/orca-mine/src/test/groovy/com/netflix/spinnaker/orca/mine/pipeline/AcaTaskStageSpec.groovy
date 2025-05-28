@@ -6,6 +6,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 /*
@@ -60,7 +61,7 @@ class AcaTaskStageSpec extends Specification {
     stage.status == ExecutionStatus.NOT_STARTED
 
     and: "the canary should be cancelled"
-    1 * mineService.cancelCanary(_, _)
+    1 * mineService.cancelCanary(_, _) >> Calls.response(null)
   }
 
   def "restart aca task should not cancel off the original canary if there is no canary id and clean up the stage context"() {

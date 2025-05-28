@@ -22,10 +22,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Client
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.Request
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -72,7 +72,6 @@ class VerifyQuipTaskSpec extends Specification {
 
   def setup() {
     task.objectMapper = new ObjectMapper()
-    task.retrofitClient = Stub(Client)
   }
 
   @Unroll
@@ -225,16 +224,16 @@ class VerifyQuipTaskSpec extends Specification {
       "instances"      : ["i-123": ["hostName": "http://foo.com"], "i-234": ["hostName": "http://foo2.com"]]
     ])
 
-    Response instanceResponse = new Response('http://oort', 200, 'OK', [], new TypedString(instance))
+    ResponseBody instanceResponse = ResponseBody.create(MediaType.parse("application/json"), instance)
 
     when:
     TaskResult result = task.execute(stage)
 
     then:
     2 * task.createInstanceService(_) >> instanceService
-    1 * instanceService.listTasks() >> instanceResponse
+    1 * instanceService.listTasks() >> Calls.response(instanceResponse)
     1 * instanceService.listTasks() >> {
-      throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))
+      throw new SpinnakerServerException(new RuntimeException(null), new Request.Builder().url("http://some-url").build())
     }
     !result?.context
     thrown(RuntimeException)
@@ -262,14 +261,14 @@ class VerifyQuipTaskSpec extends Specification {
       "instances"      : ["i-123": ["hostName": "http://foo.com"], "i-234": ["hostName": "http://foo2.com"]]
     ])
 
-    Response instanceResponse = new Response('http://instance.com', 200, 'OK', [], new TypedString(instance))
+    ResponseBody instanceResponse = ResponseBody.create(MediaType.parse("application/json"), instance)
 
     when:
     TaskResult result = task.execute(stage)
 
     then:
     2 * task.createInstanceService(_) >> instanceService
-    2 * instanceService.listTasks() >> instanceResponse
+    2 * instanceService.listTasks() >> { return Calls.response(instanceResponse) }
     //result.context?.instances?.size() == 2
     result.status == ExecutionStatus.SUCCEEDED
 

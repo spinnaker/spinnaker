@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -87,7 +88,7 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
   }
 
   protected List<Map> getMortResults(String applicationName, String type) {
-    def mortResults = mortService.getSearchResults(applicationName, type)
+    def mortResults = Retrofit2SyncCall.execute(mortService.getSearchResults(applicationName, type))
     return mortResults ? mortResults[0].results : []
   }
 }

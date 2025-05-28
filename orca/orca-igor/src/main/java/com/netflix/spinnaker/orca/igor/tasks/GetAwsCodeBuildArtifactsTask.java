@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -39,8 +40,9 @@ public class GetAwsCodeBuildArtifactsTask extends RetryableIgorTask<AwsCodeBuild
   @Override
   public @Nonnull TaskResult tryExecute(@Nonnull AwsCodeBuildStageDefinition stageDefinition) {
     List<Artifact> artifacts =
-        igorService.getAwsCodeBuildArtifacts(
-            stageDefinition.getAccount(), getBuildId(stageDefinition.getBuildInfo().getArn()));
+        Retrofit2SyncCall.execute(
+            igorService.getAwsCodeBuildArtifacts(
+                stageDefinition.getAccount(), getBuildId(stageDefinition.getBuildInfo().getArn())));
     Map<String, List<Artifact>> outputs = Collections.singletonMap("artifacts", artifacts);
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build();
   }

@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -68,7 +69,8 @@ public class PlanTemplateDependentsTask implements RetryableTask {
                     "/pipelineTemplate", PipelineTemplate.class, pipelineTemplateObjectMapper);
 
     List<Map<String, Object>> dependentPipelines =
-        front50Service.getPipelineTemplateDependents(pipelineTemplate.getId(), false);
+        Retrofit2SyncCall.execute(
+            front50Service.getPipelineTemplateDependents(pipelineTemplate.getId(), false));
 
     Map<String, Object> errorResponses = new HashMap<>();
     for (Map<String, Object> dependentPipeline : dependentPipelines) {

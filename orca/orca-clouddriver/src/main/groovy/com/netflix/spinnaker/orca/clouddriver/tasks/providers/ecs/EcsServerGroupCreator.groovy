@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.ecs
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
@@ -27,8 +28,8 @@ import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import groovy.util.logging.Slf4j
+import okhttp3.ResponseBody
 import org.springframework.beans.factory.annotation.Autowired
-import retrofit.client.Response
 
 import javax.annotation.Nullable
 import org.springframework.stereotype.Component
@@ -131,10 +132,10 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
 
   private Supplier<Iterable<Object>> fetchAndParseArtifact(Artifact artifact) {
     return { ->
-      Response artifactText = oortService.fetchArtifact(artifact)
+      ResponseBody artifactText = Retrofit2SyncCall.execute(oortService.fetchArtifact(artifact))
       try {
-        if(artifactText != null && artifactText.getBody() != null){
-          return yamlParser.get().loadAll(artifactText.getBody().in());
+        if(artifactText != null){
+          return yamlParser.get().loadAll(artifactText.byteStream());
         } else{
           throw new ConfigurationException("Invalid artifact configuration or task definition artifact is null")
         }

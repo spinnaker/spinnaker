@@ -19,7 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException
-import retrofit.RetrofitError
+import okhttp3.Request
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -48,7 +49,7 @@ class Front50SchemeLoaderSpec extends Specification {
 
     then:
     front50Service.getPipelineTemplate("myTemplateId") >> {
-      throw new SpinnakerNetworkException(RetrofitError.networkError("http://front50/no-exist", new IOException("resource not found")))
+      throw new SpinnakerNetworkException(new IOException("timeout"), new Request.Builder().url("http://some-url").build())
     }
     def e = thrown(TemplateLoaderException)
     e.cause instanceof SpinnakerNetworkException
@@ -68,7 +69,7 @@ class Front50SchemeLoaderSpec extends Specification {
     def result = schemeLoader.load(new URI('spinnaker://myTemplateId'))
 
     then:
-    front50Service.getPipelineTemplate('myTemplateId') >> { return template }
+    front50Service.getPipelineTemplate('myTemplateId') >> { return Calls.response(template) }
     result.schema == template.schema
     result.id == template.id
     result.metadata.name == template.metadata.name
