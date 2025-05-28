@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -43,7 +44,8 @@ public class CloudFoundryWaitForDeployServiceTask extends AbstractWaitForService
     String serviceInstanceName = stage.mapTo("/service.instance.name", String.class);
 
     Map<String, Object> serviceInstance =
-        oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName);
+        Retrofit2SyncCall.execute(
+            oortService.getServiceInstance(account, cloudProvider, region, serviceInstanceName));
 
     ExecutionStatus status = oortStatusToTaskStatus(serviceInstance);
 

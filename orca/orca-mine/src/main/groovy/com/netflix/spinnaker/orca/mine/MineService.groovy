@@ -16,22 +16,22 @@
 
 package com.netflix.spinnaker.orca.mine
 
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.DELETE
-import retrofit.http.GET
-import retrofit.http.POST
-import retrofit.http.PUT
-import retrofit.http.Path
-import retrofit.http.Query
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface MineService {
   @POST('/registerCanary')
-  Response registerCanary(@Body Map canary)
+  Call<ResponseBody> registerCanary(@Body Map canary)
 
   @GET('/canaries/{id}')
-  Map getCanary(@Path('id') String id)
+  Call<Map> getCanary(@Path('id') String id)
 
   @DELETE('/canaries/{id}/cancel')
-  Map cancelCanary(@Path('id') String id, @Query('reason') String reason)
+  Call<Map> cancelCanary(@Path('id') String id, @Query('reason') String reason)
 }

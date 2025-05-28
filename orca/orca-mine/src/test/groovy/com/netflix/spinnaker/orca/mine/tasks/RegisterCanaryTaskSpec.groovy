@@ -20,8 +20,9 @@ import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import retrofit2.mock.Calls
+import okhttp3.MediaType
+import okhttp3.ResponseBody
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -109,12 +110,12 @@ class RegisterCanaryTaskSpec extends Specification {
     then:
     1 * mineService.registerCanary(_) >> { Map c ->
       captured = c
-      new Response('http:/mine', 200, 'OK', [], new TypedString('canaryId'))
+      Calls.response(ResponseBody.create(MediaType.parse("text/plain"), "canaryId"))
     }
 
     then:
     1 * mineService.getCanary("canaryId") >> {
-      captured
+      Calls.response(captured)
     }
     result.context.canary
     with(result.context.canary) {
@@ -143,10 +144,10 @@ class RegisterCanaryTaskSpec extends Specification {
     def result = task.execute(deployCanaryStage)
 
     then:
-    1 * mineService.registerCanary(_) >> { Map c ->
-      new Response('http:/mine', 200, 'OK', [], new TypedString('canaryId'))
+    1 * mineService.registerCanary(_) >> {
+      Calls.response(ResponseBody.create(MediaType.parse("text/plain"), "canaryId"))
     }
-    1 * mineService.getCanary("canaryId") >> canary
+    1 * mineService.getCanary("canaryId") >> { return Calls.response(canary) }
 
     result.context.stageTimeoutMs == expectedTimeoutHours * 60 * 60 * 1000
 

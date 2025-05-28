@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.bakery.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -35,7 +36,6 @@ import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import com.netflix.spinnaker.orca.pipeline.util.PackageType
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import java.time.Duration
 import org.slf4j.Logger
@@ -80,7 +80,7 @@ class CreateBakeTask implements RetryableTask {
       if (front50Service != null) {
         String appName = stage.execution.application
         Application application =
-            retrySupport.retry({ return front50Service.get(appName) }, 5, Duration.ofMillis(2000), false)
+            retrySupport.retry({ return Retrofit2SyncCall.execute(front50Service.get(appName)) }, 5, Duration.ofMillis(2000), false)
         String user = application.email
         if (user != null && user != "") {
           stage.context.user = user
@@ -105,7 +105,7 @@ class CreateBakeTask implements RetryableTask {
       }
 
       def bakeStatus = retrySupport.retry(
-          { return bakery.service.createBake(stage.context.region as String, bake, rebake) },
+          { return Retrofit2SyncCall.execute(bakery.service.createBake(stage.context.region as String, bake, rebake)) },
           5,
           Duration.ofMillis(2000),
           false)
@@ -220,7 +220,7 @@ class CreateBakeTask implements RetryableTask {
 
   private static PackageType getBaseOsPackageType(SelectedService<BakeryService> bakery, StageExecution stage) {
     bakery.config.roscoApisEnabled
-        ? bakery.service.getBaseImage(stage.context.cloudProviderType as String, stage.context.baseOs as String).packageType
+        ? Retrofit2SyncCall.execute(bakery.service.getBaseImage(stage.context.cloudProviderType as String, stage.context.baseOs as String)).packageType
         : new OperatingSystem(stage.context.baseOs as String).getPackageType()
   }
 }

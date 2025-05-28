@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -47,7 +48,7 @@ class MonitorAcaTaskTask implements CloudProviderAware, OverridableTimeoutRetrya
     ]
 
     try {
-      def canary = AuthenticatedRequest.allowAnonymous({ mineService.getCanary(context.canary.id) })
+      def canary = AuthenticatedRequest.allowAnonymous({ Retrofit2SyncCall.execute(mineService.getCanary(context.canary.id)) })
       outputs << [
           canary: canary
       ]

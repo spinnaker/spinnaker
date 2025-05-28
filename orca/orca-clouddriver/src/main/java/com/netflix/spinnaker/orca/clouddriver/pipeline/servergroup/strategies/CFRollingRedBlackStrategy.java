@@ -20,6 +20,7 @@ import static com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySup
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -38,12 +39,12 @@ import com.netflix.spinnaker.orca.pipeline.WaitStage;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import groovy.util.logging.Slf4j;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -51,7 +52,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
-import retrofit.client.Response;
 
 /**
  * CFRollingRedBlackStrategy is a rolling red/black strategy specifically made for Cloud Foundry to
@@ -130,18 +130,17 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
         throw new IllegalArgumentException("Unable to bind the manifest artifact");
       }
 
-      Response manifestText = oort.fetchArtifact(boundArtifact);
-      try {
-        Object manifestYml = yamlParser.get().load(manifestText.getBody().in());
+      try (ResponseBody manifestText =
+          Retrofit2SyncCall.execute(oort.fetchArtifact(boundArtifact))) {
+        Object manifestYml = yamlParser.get().load(manifestText.byteStream());
         Map<String, List<Map<String, Object>>> applicationManifests =
-            objectMapper.convertValue(
-                manifestYml, new TypeReference<Map<String, List<Map<String, Object>>>>() {});
+            objectMapper.convertValue(manifestYml, new TypeReference<>() {});
         List<Map<String, Object>> applications = applicationManifests.get("applications");
         Map<String, Object> applicationConfiguration = applications.get(0);
         manifest.put("direct", applicationConfiguration);
         manifest.remove("artifact");
         manifest.remove("artifactId");
-      } catch (IOException e) {
+      } catch (Exception e) {
         log.warn("Failure fetching/parsing manifests from {}", boundArtifact, e);
         throw new IllegalStateException(e);
       }

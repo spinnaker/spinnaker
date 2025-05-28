@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
-import com.netflix.spinnaker.orca.clouddriver.pipeline.job.model.JobStatus
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -109,11 +110,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     def stage = new StageExecutionImpl(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4])
 
     and:
-    def exception = Stub(RetrofitError) {
-      getResponse() >> new Response('', httpStatus, '', [], null)
-    }
-
-    def httpException = new SpinnakerHttpException(exception)
+    def httpException = makeSpinnakerHttpException(httpStatus)
 
     task.buildService = Stub(BuildService) {
       getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> { throw httpException }
@@ -186,5 +183,24 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     MonitorJenkinsJobTask.JenkinsJobStatus.FAILURE  || "Job failed (see Jenkins)"
     MonitorJenkinsJobTask.JenkinsJobStatus.SUCCESS  || false
     MonitorJenkinsJobTask.JenkinsJobStatus.UNSTABLE || "Job is unstable"
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+
+    String url = "https://localhost";
+
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

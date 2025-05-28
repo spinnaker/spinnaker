@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -67,12 +68,12 @@ class TargetServerGroupResolver {
   private TargetServerGroup resolveByTarget(TargetServerGroup.Params params, Location location) {
     try {
       ServerGroup tsg = fetchWithRetries {
-        oortService.getTargetServerGroup(params.app,
+        Retrofit2SyncCall.execute(oortService.getTargetServerGroup(params.app,
           params.credentials,
           params.cluster,
           params.cloudProvider,
           location.value,
-          params.target.name())
+          params.target.name()))
       }
       if (!tsg) {
         throw new TargetServerGroup.NotFoundException("Unable to locate ${params.target.name()} in $params.credentials/$location.value/$params.cluster")
@@ -87,13 +88,13 @@ class TargetServerGroupResolver {
   private TargetServerGroup resolveByServerGroupName(TargetServerGroup.Params params, Location location) {
     // TODO(ttomsu): Add zonal support to this op. (e.g. the region param).  Note that adding a region changes the response type from a List to a singleServerGroup
     List<ServerGroup> tsgList = fetchWithRetries {
-      oortService.getServerGroupsFromClusterTyped(
+      Retrofit2SyncCall.execute(oortService.getServerGroupsFromClusterTyped(
         params.app,
         params.credentials,
         params.cluster,
         params.serverGroupName,
         params.cloudProvider
-      )
+      ))
     }
     // Without zonal support in the getServerGroup call above, we have to do the filtering here.
     def tsg = tsgList?.find { ServerGroup tsg -> tsg.region == location.value || tsg.zones?.contains(location.value) || tsg.namespace == location.value }

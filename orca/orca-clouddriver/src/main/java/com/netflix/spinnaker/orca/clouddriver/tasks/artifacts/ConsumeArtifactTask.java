@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -31,8 +32,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
 
 @Component
 public class ConsumeArtifactTask implements Task {
@@ -67,9 +68,9 @@ public class ConsumeArtifactTask implements Task {
     InputStream fetchedArtifact =
         retrySupport.retry(
             () -> {
-              Response artifactBody = oort.fetchArtifact(artifact);
-              try {
-                return artifactBody.getBody().in();
+              try (ResponseBody artifactBody =
+                  Retrofit2SyncCall.execute(oort.fetchArtifact(artifact))) {
+                return artifactBody.byteStream();
               } catch (Exception e) {
                 throw new IllegalStateException("Failed to fetch artifact.");
               }
@@ -80,7 +81,7 @@ public class ConsumeArtifactTask implements Task {
 
     try {
       Map<String, Object> parsed =
-          objectMapper.readValue(fetchedArtifact, new TypeReference<Map<String, Object>>() {});
+          objectMapper.readValue(fetchedArtifact, new TypeReference<>() {});
 
       // null values in the parsed result cause calls to TaskBuilder::context to throw an exception
       // so we remove them to avoid that.

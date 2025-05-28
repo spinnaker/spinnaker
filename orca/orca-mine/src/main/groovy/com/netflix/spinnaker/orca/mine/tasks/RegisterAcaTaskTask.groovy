@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -24,8 +25,7 @@ import com.netflix.spinnaker.orca.mine.MineService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Response
-
+import retrofit2.Response
 import javax.annotation.Nonnull
 
 import static java.util.concurrent.TimeUnit.HOURS
@@ -47,16 +47,16 @@ class RegisterAcaTaskTask implements Task {
 
     log.info("Registering Canary (executionId: ${stage.execution.id}, canary: ${c})")
 
-    Response response = mineService.registerCanary(c)
+    Response response = Retrofit2SyncCall.executeCall(mineService.registerCanary(c))
     String canaryId
 
-    if (response.status == 200 && response.body.mimeType().startsWith('text/plain')) {
-      canaryId = response.body.in().text
+    if (response.code() == 200 && response.body().contentType().toString().startsWith('text/plain')) {
+      canaryId = response.body().byteStream().text
     } else {
       throw new IllegalStateException("Unable to handle $response")
     }
 
-    def canary = mineService.getCanary(canaryId)
+    def canary = Retrofit2SyncCall.execute(mineService.getCanary(canaryId))
     def outputs = [
       canary: canary,
       continueOnUnhealthy: stage.context.continueOnUnhealthy ?: false,

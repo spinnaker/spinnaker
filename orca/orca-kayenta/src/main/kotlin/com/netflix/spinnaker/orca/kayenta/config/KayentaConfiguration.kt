@@ -17,27 +17,20 @@
 package com.netflix.spinnaker.orca.kayenta.config
 
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kayenta.KayentaService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.Endpoint
-import retrofit.Endpoints.newFixedEndpoint
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.RestAdapter.LogLevel
-import retrofit.client.Client
-import retrofit.converter.JacksonConverter
 import com.netflix.spinnaker.orca.kayenta.pipeline.functions.KayentaConfigExpressionFunctionProvider
+import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils
 
 
 @Configuration
@@ -50,37 +43,17 @@ import com.netflix.spinnaker.orca.kayenta.pipeline.functions.KayentaConfigExpres
 class KayentaConfiguration {
 
   @Bean
-  fun kayentaEndpoint(
-    @Value("\${kayenta.base-url}") kayentaBaseUrl: String
-  ): Endpoint {
-    return newFixedEndpoint(kayentaBaseUrl)
-  }
-
-  @Bean
-  fun kayentaRetrofitLogLevel(
-    @Value("\${kayenta.retrofit.log.level:BASIC}") logLevel: String
-  ) = LogLevel.valueOf(logLevel)
-
-  @Bean
   fun kayentaService(
-    retrofitClient: Client,
-    kayentaEndpoint: Endpoint,
-    @Qualifier("kayentaRetrofitLogLevel") retrofitLogLevel: LogLevel,
-    spinnakerRequestInterceptor: RequestInterceptor
+    @Value("\${kayenta.base-url}") kayentaBaseUrl: String,
+    serviceClientProvider: ServiceClientProvider,
   ): KayentaService {
     val mapper = OrcaObjectMapper
       .newInstance()
       .disable(WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
-    return RestAdapter.Builder()
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setEndpoint(kayentaEndpoint)
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(RetrofitSlf4jLog(KayentaService::class.java))
-      .setConverter(JacksonConverter(mapper))
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .build()
-      .create(KayentaService::class.java)
+    return serviceClientProvider.getService(
+      KayentaService::class.java,
+      DefaultServiceEndpoint("kayenta", RetrofitUtils.getBaseUrl(kayentaBaseUrl)),
+      mapper)
   }
 
   @Bean

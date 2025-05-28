@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
@@ -70,7 +71,7 @@ class MonitorCanaryStageSpec extends Specification {
     1 * canaryStageBuilder.cancel(canaryStage) >> {
       new CancellableStage.Result(stage, [:])
     }
-    1 * mineService.cancelCanary("canaryId", _) >> { return [canceled: true] }
+    1 * mineService.cancelCanary("canaryId", _) >> { return Calls.response([canceled: true]) }
   }
 
   def "should raise exception if no upstream canary stage found"() {
