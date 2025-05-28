@@ -39,6 +39,7 @@ import org.mockito.Mockito
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import retrofit2.mock.Calls
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -160,13 +161,13 @@ class TaskControllerTest : JUnit5Minutests {
         .execute()
       Mockito.`when`(front50Service.getPipelines("test-app", false,null))
         .thenReturn(
-          listOf(
+          Calls.response(listOf(
             mapOf("id" to "1"),
-            mapOf("id" to "2"))
+            mapOf("id" to "2")))
         )
 
       Mockito.`when`(front50Service.getStrategies("test-app"))
-        .thenReturn(listOf())
+        .thenReturn(Calls.response(listOf()))
     }
 
     fun cleanUp() {

@@ -20,6 +20,7 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPEL
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.LongTaskTimer;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.front50.Front50Service;
@@ -32,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,7 +159,8 @@ public class UnusedPipelineDisablePollingNotificationAgent
               app -> {
                 log.debug("Evaluating " + app + " for unused pipelines");
                 List<String> pipelineConfigIds =
-                    front50service.getPipelines(app, false, true).stream()
+                    Retrofit2SyncCall.execute(front50service.getPipelines(app, false, true))
+                        .stream()
                         .map(p -> (String) p.get("id"))
                         .collect(Collectors.toList());
 
@@ -220,16 +223,23 @@ public class UnusedPipelineDisablePollingNotificationAgent
    * @param pipelineConfigId the pipeline config ID to disable
    */
   public void disableFront50PipelineConfigId(String pipelineConfigId) {
-    Map<String, Object> pipeline = front50service.getPipeline(pipelineConfigId);
+    Map<String, Object> pipeline =
+        Retrofit2SyncCall.execute(front50service.getPipeline(pipelineConfigId));
     if (pipeline.get("disabled") == null || !(boolean) pipeline.get("disabled")) {
       pipeline.put("disabled", true);
+      ResponseBody responseBody = null;
       try {
-        front50service.updatePipeline(pipelineConfigId, pipeline);
+        responseBody =
+            Retrofit2SyncCall.execute(front50service.updatePipeline(pipelineConfigId, pipeline));
       } catch (SpinnakerHttpException e) {
         if (Arrays.asList(404, 403).contains(e.getResponseCode())) {
           log.warn("Failed to disable pipeline " + pipelineConfigId + " due to " + e.getMessage());
         } else {
           throw e;
+        }
+      } finally {
+        if (responseBody != null) {
+          responseBody.close();
         }
       }
     }

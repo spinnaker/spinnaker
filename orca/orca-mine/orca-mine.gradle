@@ -29,6 +29,8 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation("org.assertj:assertj-core")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
 

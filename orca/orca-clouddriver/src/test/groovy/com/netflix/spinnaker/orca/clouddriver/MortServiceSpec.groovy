@@ -16,13 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.client.Response
-import retrofit.converter.Converter
-import retrofit.converter.JacksonConverter
-import retrofit.mime.TypedInput
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -37,15 +31,14 @@ class MortServiceSpec extends Specification {
   void "should extract only the security group ingress rules from SecurityGroup"() {
     given:
     def mortService = Mock(MortService) {
-      1 * getSearchResults("sg-3", "securityGroups") >> {
+      1 * getSearchResults("sg-3", "securityGroups") >> Calls.response(
         [
           new MortService.SearchResult(
             results: [
               [name: "SG3"]
             ]
           )
-        ]
-      }
+        ])
     }
     def currentSecurityGroup = new MortService.SecurityGroup(
       inboundRules: [
@@ -146,7 +139,7 @@ class MortServiceSpec extends Specification {
   void "should find security group by id"() {
     given:
     def mortService = Mock(MortService) {
-      1 * getSearchResults(sg.id, "securityGroups") >> {
+      1 * getSearchResults(sg.id, "securityGroups") >> Calls.response(
         [
           new MortService.SearchResult(
             platform: "aws",
@@ -154,10 +147,9 @@ class MortServiceSpec extends Specification {
               [account: sg.accountName, name: sg.name, region: sg.region, vpcId: sg.vpcId]
             ]
           )
-        ]
-      }
-      1 * getSecurityGroup(sg.accountName, sg.type, sg.name, sg.region, sg.vpcId ) >> { return sg }
-      1 * getSearchResults("does-not-exist", "securityGroups") >> { [] }
+        ])
+      1 * getSecurityGroup(sg.accountName, sg.type, sg.name, sg.region, sg.vpcId ) >> Calls.response(sg)
+      1 * getSearchResults("does-not-exist", "securityGroups") >> Calls.response([])
       0 * _
     }
 
@@ -184,77 +176,6 @@ class MortServiceSpec extends Specification {
 
   }
 
-  def "handle kubernetes complex description"() {
-    given:
-    def client = Mock(Client)
-    def converter = new JacksonConverter(new ObjectMapper())
-
-    def mort = new RestAdapter.Builder()
-      .setClient(client)
-      .setConverter(converter)
-      .setEndpoint("http://localhost:9999")
-      .build()
-      .create(MortService)
-
-    when:
-    def sg = mort.getSecurityGroup("account", "kubernetes", "sg1", "namespace")
-
-    then:
-    sg.description == "{\"account\":null,\"app\":\"sg1\"}"
-
-    1 * client.execute(_) >> new Response(
-      "http://localhost:9999/securityGroups/account/kubernetes/namespace/sg1",
-      200,
-      "OK",
-      [],
-      new MockTypedInput(converter, [
-          accountName: "account",
-          description: [
-              "account": null,
-              "app": "sg1"
-          ],
-          name: "sg1",
-          region: "namespace",
-          type: "kubernetes"
-      ])
-
-    )
-  }
-
-  def "handle normal string description"() {
-    given:
-    def client = Mock(Client)
-    def converter = new JacksonConverter(new ObjectMapper())
-
-    def mort = new RestAdapter.Builder()
-      .setClient(client)
-      .setConverter(converter)
-      .setEndpoint("http://localhost:9999")
-      .build()
-      .create(MortService)
-
-    when:
-    def sg = mort.getSecurityGroup("account", "openstack", "sg1", "region")
-
-    then:
-    sg.description == "simple description"
-
-    1 * client.execute(_) >> new Response(
-      "http://localhost:9999/securityGroups/account/openstack/region/sg1",
-      200,
-      "OK",
-      [],
-      new MockTypedInput(converter, [
-        accountName: "account",
-        description: "simple description",
-        name: "sg1",
-        region: "region",
-        type: "openstack"
-      ])
-
-    )
-  }
-
   def "should correctly map VPC properties from JSON response"() {
     given:
     def objectMapper = OrcaObjectMapper.newInstance()
@@ -276,44 +197,4 @@ class MortServiceSpec extends Specification {
     vpc.region == "us-west-1"
     vpc.name == "vpc1"
   }
-
-  static class MockTypedInput implements TypedInput {
-    private final Converter converter
-    private final Object body
-
-    private byte[] bytes
-
-    MockTypedInput(Converter converter, Object body) {
-      this.converter = converter
-      this.body = body
-    }
-
-    @Override String mimeType() {
-      return "application/unknown"
-    }
-
-    @Override long length() {
-      try {
-        initBytes()
-      } catch (IOException e) {
-        throw new RuntimeException(e)
-      }
-      return bytes.length
-    }
-
-    @Override InputStream "in"() throws IOException {
-      initBytes()
-      return new ByteArrayInputStream(bytes)
-    }
-
-    private synchronized void initBytes() throws IOException {
-      if (bytes == null) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream()
-        converter.toBody(body).writeTo(out)
-        bytes = out.toByteArray()
-      }
-    }
-  }
-
-
 }

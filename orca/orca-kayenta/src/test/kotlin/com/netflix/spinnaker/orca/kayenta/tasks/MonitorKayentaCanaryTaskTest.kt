@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.kayenta.CanaryResults
 import com.netflix.spinnaker.orca.kayenta.KayentaService
 import com.netflix.spinnaker.orca.kayenta.JudgeResult
 import com.netflix.spinnaker.orca.kayenta.JudgeScore
+import com.netflix.spinnaker.orca.kayenta.KayentaCredential
 import com.netflix.spinnaker.orca.kayenta.Thresholds
 import com.netflix.spinnaker.orca.kayenta.pipeline.RunCanaryPipelineStage
 import org.jetbrains.spek.api.Spek
@@ -32,6 +33,7 @@ import org.jetbrains.spek.api.dsl.given
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
+import retrofit2.mock.Calls
 import java.time.Duration
 import java.time.Instant
 
@@ -50,7 +52,8 @@ object MonitorKayentaCanaryTaskSpec : Spek({
     null
   );
   val kayentaService: KayentaService = Mockito.mock(KayentaService::class.java)
-  `when`(kayentaService.getCanaryResults(Mockito.anyString(), Mockito.anyString())).thenReturn(canaryResults)
+  `when`(kayentaService.getCanaryResults(Mockito.anyString(), Mockito.anyString())).thenAnswer{Calls.response(canaryResults)}
+  `when`(kayentaService.getCredentials()).thenAnswer{Calls.response(listOf( KayentaCredential("foo", "bar")))}
   val subject: MonitorKayentaCanaryTask = MonitorKayentaCanaryTask(kayentaService)
 
   describe("aggregating canary scores") {

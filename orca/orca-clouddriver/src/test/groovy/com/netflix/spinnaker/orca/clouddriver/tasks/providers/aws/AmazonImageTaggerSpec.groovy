@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTaggerSpec
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
+import retrofit2.mock.Calls
 import spock.lang.Unroll
 
 class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
@@ -56,14 +57,13 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
 
     and:
     if (foundById) {
-      1 * oortService.findImage("aws", "ami-id", null, null, null) >> {
-        [["imageName": "ami-name"]]
-      }
-      1 * oortService.findImage("aws", "ami-name", null, null, null) >> { [] }
+      1 * oortService.findImage("aws", "ami-id", null, null, null) >> Calls.response(
+          [["imageName": "ami-name"]])
+      1 * oortService.findImage("aws", "ami-name", null, null, null) >> Calls.response([])
     } else if (imageId != null) {
-      1 * oortService.findImage("aws", imageId, null, null, null) >> { [] }
+      1 * oortService.findImage("aws", imageId, null, null, null) >> Calls.response([])
     } else {
-      1 * oortService.findImage("aws", imageName, null, null, null) >> { [] }
+      1 * oortService.findImage("aws", imageName, null, null, null) >> Calls.response([])
     }
 
     when:
@@ -115,19 +115,15 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     pipeline.stages << stage1 << stage2 << stage3
 
     when:
-    1 * oortService.findImage("aws", "ami-1", _, _, _) >> {
-      [[imageName: name]]
-    }
+    1 * oortService.findImage("aws", "ami-1", _, _, _) >> Calls.response([[imageName: name]])
 
-    1 * oortService.findImage("aws", "ami-2", _, _, _) >> {
-      [[imageName: name]]
-    }
+    1 * oortService.findImage("aws", "ami-2", _, _, _) >> Calls.response([[imageName: name]])
 
     1 * oortService.findImage("aws", name, _, _, _) >> {
-      [[
+      Calls.response([[
          imageName: name,
          amis     : ["us-east-1": ["ami-1"]]
-       ]]
+       ]])
     }
 
     imageTagger.getOperationContext(stage3)
@@ -137,15 +133,11 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     e.shouldRetry == true
 
     when:
-    1 * oortService.findImage("aws", "ami-1", _, _, _) >> {
-      [[imageName: name]]
-    }
+    1 * oortService.findImage("aws", "ami-1", _, _, _) >> Calls.response([[imageName: name]])
 
-    1 * oortService.findImage("aws", "ami-2", _, _, _) >> {
-      [[imageName: name]]
-    }
+    1 * oortService.findImage("aws", "ami-2", _, _, _) >> Calls.response([[imageName: name]])
 
-    1 * oortService.findImage("aws", name, _, _, _) >> {
+    1 * oortService.findImage("aws", name, _, _, _) >> Calls.response(
       [[
          imageName: name,
          amis     : [
@@ -154,7 +146,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
          ],
          accounts : ["compute"]
        ]]
-    }
+    )
 
     imageTagger.getOperationContext(stage3)
 
@@ -176,12 +168,12 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     def operationContext = imageTagger.getOperationContext(stage)
 
     then:
-    1 * oortService.findImage("aws", "my-ami", null, null, null) >> {
+    1 * oortService.findImage("aws", "my-ami", null, null, null) >> Calls.response(
       [
         [imageName: "my-ami-v2", accounts: ["test"], amis: ["us-east-1": ["my-ami-00002"]]],
         [imageName: "my-ami", accounts: ["test", "prod"], amis: ["us-east-1": ["my-ami-00001"]], tagsByImageId: ["my-ami-00001": [tag1: "originalValue1"]]]
       ]
-    }
+    )
 
     operationContext.operations.size() == 2
     operationContext.operations[0]["upsertImageTags"] == [
@@ -215,16 +207,16 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     def operationContext = imageTagger.getOperationContext(stage)
 
     then:
-    1 * oortService.findImage("aws", "my-ami-1", null, null, null) >> {
+    1 * oortService.findImage("aws", "my-ami-1", null, null, null) >> Calls.response(
       [
         [imageName: "my-ami-1", accounts: ["test"], amis: ["us-east-1": ["my-ami-00002"]]]
       ]
-    }
-    1 * oortService.findImage("aws", "my-ami-2", null, null, null) >> {
+    )
+    1 * oortService.findImage("aws", "my-ami-2", null, null, null) >> Calls.response(
       [
         [imageName: "my-ami-2", accounts: ["test"], amis: ["us-west-1": ["my-ami-00001"]]]
       ]
-    }
+    )
 
     operationContext.operations.size() == 2
     operationContext.operations[0]["upsertImageTags"] == [

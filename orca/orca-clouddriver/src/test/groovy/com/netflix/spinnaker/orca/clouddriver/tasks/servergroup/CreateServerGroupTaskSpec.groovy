@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import com.netflix.spinnaker.orca.api.operations.OperationsInput
 import com.netflix.spinnaker.orca.api.operations.OperationsRunner
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
-import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.model.KatoOperationsContext
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -123,7 +123,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def result = deployTask.execute(deployStage)
 
     then:
-    _ * mortService.getAccountDetails("abc") >> [:]
+    _ * mortService.getAccountDetails("abc") >> Calls.response([:])
     1 * operationsRunner.run(_) >> {
       OperationsInput operationsInput = it[0]
       operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
@@ -182,7 +182,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def result = deployTask.execute(deployStage)
 
     then:
-    _ * mortService.getAccountDetails("abc") >> [:]
+    _ * mortService.getAccountDetails("abc") >> Calls.response([:])
     1 * operationsRunner.run(_) >> {
       OperationsInput operationsInput = it[0]
       operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
@@ -258,7 +258,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def result = deployTask.execute(deployStage)
 
     then:
-    _ * mortService.getAccountDetails("abc") >> [:]
+    _ * mortService.getAccountDetails("abc") >> Calls.response([:])
     1 * operationsRunner.run(_) >> {
       OperationsInput operationsInput = it[0]
       operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
@@ -315,7 +315,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def result = deployTask.execute(deployStage)
 
     then:
-    _ * mortService.getAccountDetails("abc") >> [:]
+    _ * mortService.getAccountDetails("abc") >> Calls.response([:])
     1 * operationsRunner.run(_) >> {
       OperationsInput operationsInput = it[0]
       operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
@@ -384,7 +384,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def result = deployTask.execute(deployStage)
 
     then:
-    _ * mortService.getAccountDetails("abc") >> [:]
+    _ * mortService.getAccountDetails("abc") >> Calls.response([:])
     1 * operationsRunner.run(_) >> {
       OperationsInput operationsInput = it[0]
       operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
@@ -450,7 +450,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def result = deployTask.execute(deployStage)
 
     then:
-    _ * mortService.getAccountDetails("abc") >> [:]
+    _ * mortService.getAccountDetails("abc") >> Calls.response([:])
     1 * operationsRunner.run(_) >> {
       OperationsInput operationsInput = it[0]
       operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
@@ -545,7 +545,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def resultA = deployTaskA.execute(deployStageA)
 
     then:
-    _ * mortService.getAccountDetails("abc") >> [:]
+    _ * mortService.getAccountDetails("abc") >> Calls.response([:])
     1 * operationsRunner.run(_) >> {
       OperationsInput operationsInput = it[0]
       operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchA
@@ -559,7 +559,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def resultB = deployTaskB.execute(deployStageB)
 
     then:
-    _ * mortService.getAccountDetails("abc") >> [:]
+    _ * mortService.getAccountDetails("abc") >> Calls.response([:])
     1 * operationsRunner.run(_) >> {
       OperationsInput operationsInput = it[0]
       operationsInput.getOperations()[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchB

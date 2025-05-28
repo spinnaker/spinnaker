@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.front50.pipeline;
 
 import static java.lang.String.format;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
@@ -63,7 +64,7 @@ public class EnabledPipelineValidator implements PipelineValidator {
         // attempt an optimized lookup via pipeline history vs fetching all pipelines for the
         // application and filtering
         Map<String, Object> pipelineConfig =
-            front50Service.getPipeline(pipeline.getPipelineConfigId());
+            Retrofit2SyncCall.execute(front50Service.getPipeline(pipeline.getPipelineConfigId()));
 
         if ((boolean) pipelineConfig.getOrDefault("disabled", false)) {
           throw new PipelineIsDisabled(
@@ -83,8 +84,9 @@ public class EnabledPipelineValidator implements PipelineValidator {
 
     List<Map<String, Object>> pipelines =
         isStrategy(pipeline)
-            ? front50Service.getStrategies(pipeline.getApplication())
-            : front50Service.getPipelines(pipeline.getApplication(), false);
+            ? Retrofit2SyncCall.execute(front50Service.getStrategies(pipeline.getApplication()))
+            : Retrofit2SyncCall.execute(
+                front50Service.getPipelines(pipeline.getApplication(), false));
     pipelines.stream()
         .filter(it -> it.get("id").equals(pipeline.getPipelineConfigId()))
         .findFirst()

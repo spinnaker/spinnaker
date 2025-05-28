@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.securitygroup
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -43,11 +44,11 @@ class CopySecurityGroupTask implements Task {
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     def operation = stage.mapTo(StageData)
-    def currentSecurityGroup = mortService.getSecurityGroup(
+    def currentSecurityGroup = Retrofit2SyncCall.execute(mortService.getSecurityGroup(
       operation.credentials, operation.provider, operation.name, operation.region, operation.vpcId
-    )
+    ))
 
-    def allVPCs = mortService.getVPCs()
+    def allVPCs = Retrofit2SyncCall.execute(mortService.getVPCs())
 
     def securityGroupIngress = filterForSecurityGroupIngress(mortService, currentSecurityGroup)
     def operations = operation.targets.collect {

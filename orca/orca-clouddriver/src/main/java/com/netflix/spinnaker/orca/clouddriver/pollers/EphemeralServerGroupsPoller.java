@@ -26,6 +26,7 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
@@ -277,7 +278,7 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
 
   private Optional<Application> getApplication(String applicationName) {
     try {
-      return Optional.of(front50Service.get(applicationName));
+      return Optional.of(Retrofit2SyncCall.execute(front50Service.get(applicationName)));
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
         return Optional.empty();

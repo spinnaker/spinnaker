@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -65,7 +66,9 @@ class StartPipelineTask implements Task {
     Boolean isStrategy = stage.context.pipelineParameters?.strategy ?: false
     String pipelineId = isStrategy ? stage.context.pipelineId : stage.context.pipeline
 
-    List<Map<String, Object>> pipelines = isStrategy ? front50Service.getStrategies(application) : front50Service.getPipelines(application, false)
+    List<Map<String, Object>> pipelines = isStrategy ?
+        Retrofit2SyncCall.execute(front50Service.getStrategies(application)) :
+        Retrofit2SyncCall.execute(front50Service.getPipelines(application, false))
     Map<String, Object> pipelineConfig = pipelines.find { it.id == pipelineId }
 
     if (!pipelineConfig) {

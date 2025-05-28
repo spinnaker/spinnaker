@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import java.util.ArrayList;
@@ -83,7 +84,8 @@ public abstract class ImageTagger {
       for (String upstreamImageId : upstreamImageIds) {
         // attempt to lookup the equivalent image name (given the upstream amiId/imageId)
         List<Map> allMatchedImages =
-            oortService.findImage(getCloudProvider(), upstreamImageId, null, null, null);
+            Retrofit2SyncCall.execute(
+                oortService.findImage(getCloudProvider(), upstreamImageId, null, null, null));
         if (allMatchedImages.isEmpty()) {
           throw new ImageNotFound(format("No image found (imageId: %s)", upstreamImageId), true);
         }
@@ -102,7 +104,8 @@ public abstract class ImageTagger {
 
     for (String targetImageName : imageNames) {
       List<Map> allMatchedImages =
-          oortService.findImage(getCloudProvider(), targetImageName, null, null, null);
+          Retrofit2SyncCall.execute(
+              oortService.findImage(getCloudProvider(), targetImageName, null, null, null));
       Map matchedImage =
           allMatchedImages.stream()
               .filter(image -> image.get("imageName").equals(targetImageName))

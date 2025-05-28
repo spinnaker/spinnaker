@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -50,7 +51,7 @@ class StopAwsCodeBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.stopAwsCodeBuild(ACCOUNT, _) >> igorResponse
+    1 * igorService.stopAwsCodeBuild(ACCOUNT, _) >> Calls.response(igorResponse)
     result.status == ExecutionStatus.SUCCEEDED
     result.context.buildInfo.arn == igorResponse.arn
   }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -62,7 +63,7 @@ class MonitorCanaryTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * mineService.getCanary(stage.context.canary.id) >> canaryConf
+    1 * mineService.getCanary(stage.context.canary.id) >> Calls.response(canaryConf)
     result.status == executionStatus
 
     where:
@@ -101,7 +102,7 @@ class MonitorCanaryTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * mineService.getCanary(stage.context.canary.id) >> canaryConf
+    1 * mineService.getCanary(stage.context.canary.id) >> Calls.response(canaryConf)
     result.context.stageTimeoutMs == expected
 
     where:
@@ -179,7 +180,7 @@ class MonitorCanaryTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * mineService.getCanary(stage.context.canary.id) >> canaryConf
+    1 * mineService.getCanary(stage.context.canary.id) >> Calls.response(canaryConf)
     1 * katoService.requestOperations('aws', { ops ->
       ops.size() == 2 &&
       ops.find(containsFirstServerGroup) &&
@@ -247,7 +248,7 @@ class MonitorCanaryTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * mineService.getCanary(canaryConf.id) >> canaryConf
+    1 * mineService.getCanary(canaryConf.id) >> Calls.response(canaryConf)
     1 * katoService.requestOperations('aws', { ops ->
       ops.size() == 2 &&
       ops.find(containsFirstServerGroup)

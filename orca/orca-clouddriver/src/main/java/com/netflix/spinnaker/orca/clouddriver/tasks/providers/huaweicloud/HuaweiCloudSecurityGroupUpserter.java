@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.huaweicloud;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.MortService;
@@ -87,11 +88,12 @@ public class HuaweiCloudSecurityGroupUpserter implements SecurityGroupUpserter, 
 
     try {
       MortService.SecurityGroup securityGroup =
-          mortService.getSecurityGroup(
-              upsertedSecurityGroup.getAccountName(),
-              getCloudProvider(),
-              upsertedSecurityGroup.getName(),
-              upsertedSecurityGroup.getRegion());
+          Retrofit2SyncCall.execute(
+              mortService.getSecurityGroup(
+                  upsertedSecurityGroup.getAccountName(),
+                  getCloudProvider(),
+                  upsertedSecurityGroup.getName(),
+                  upsertedSecurityGroup.getRegion()));
 
       return securityGroup != null;
     } catch (SpinnakerHttpException e) {

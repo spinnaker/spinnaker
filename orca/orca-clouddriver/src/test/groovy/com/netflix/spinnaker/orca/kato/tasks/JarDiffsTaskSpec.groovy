@@ -27,9 +27,10 @@ import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.Request
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -80,10 +81,10 @@ class JarDiffsTaskSpec extends Specification {
     1 * task.createInstanceService(_) >> instanceService
 
     def sourceJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.4.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
-    Response jarsResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(sourceJarsResponse))
+    ResponseBody jarsResponse = ResponseBody.create(MediaType.parse("application/json"),sourceJarsResponse)
 
     when:
-    1 * instanceService.getJars() >> jarsResponse
+    1 * instanceService.getJars() >> Calls.response(jarsResponse)
     def result = task.getJarList([foo: [hostName : "bar"]])
 
     then:
@@ -101,11 +102,11 @@ class JarDiffsTaskSpec extends Specification {
     1 * task.createInstanceService("http://bar2:8077") >> instanceService
 
     def sourceJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.4.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
-    Response jarsResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(sourceJarsResponse))
+    ResponseBody jarsResponse = ResponseBody.create(MediaType.parse("application/json"),sourceJarsResponse)
 
     when:
-    1 * instanceService.getJars() >> {throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
-    1 * instanceService.getJars() >> jarsResponse
+    1 * instanceService.getJars() >> { throw new SpinnakerServerException(new RuntimeException(null), new Request.Builder().url("http://some-url").build()) }
+    1 * instanceService.getJars() >> Calls.response(jarsResponse)
     def result = task.getJarList([foo: [hostName : "bar"], foo2: [hostName : "bar2"]])
 
     then:
@@ -122,7 +123,7 @@ class JarDiffsTaskSpec extends Specification {
     5 * task.createInstanceService("http://bar:8077") >> instanceService
 
     when:
-    5 * instanceService.getJars() >> {throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
+    5 * instanceService.getJars() >> { throw new SpinnakerServerException(new RuntimeException(null), new Request.Builder().url("http://some-url").build()) }
     def result = task.getJarList((1..5).collectEntries { ["${it}": [hostName : "bar"]] })
 
     then:
@@ -136,11 +137,11 @@ class JarDiffsTaskSpec extends Specification {
     0 * task.createInstanceService("http://bar3:8077")
 
     def sourceJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.4.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
-    Response jarsResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(sourceJarsResponse))
+    ResponseBody jarsResponse = ResponseBody.create(MediaType.parse("application/json"),sourceJarsResponse)
 
     when:
-    1 * instanceService.getJars() >> {throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
-    1 * instanceService.getJars() >> jarsResponse
+    1 * instanceService.getJars() >> { throw new SpinnakerServerException(new RuntimeException(null), new Request.Builder().url("http://some-url").build())  }
+    1 * instanceService.getJars() >> Calls.response(jarsResponse)
     def result = task.getJarList([foo: [hostName : "bar"], foo2: [hostName : "bar2"], foo3: [hostName : "bar3"]])
 
     then:
@@ -158,8 +159,8 @@ class JarDiffsTaskSpec extends Specification {
     2 * task.createInstanceService(_) >> instanceService
     def sourceJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.4.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
     def targetJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.5.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
-    Response sourceResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(sourceJarsResponse))
-    Response targetResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(targetJarsResponse))
+    ResponseBody sourceResponse = ResponseBody.create(MediaType.parse("application/json"), sourceJarsResponse)
+    ResponseBody targetResponse = ResponseBody.create(MediaType.parse("application/json"), targetJarsResponse)
 
     def config = [
       "account": "test",
@@ -178,8 +179,8 @@ class JarDiffsTaskSpec extends Specification {
     task.oortHelper = oortHelper
     1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v000", false) >> sourceExpectedInstances
     1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v002", false) >> targetExpectedInstances
-    1 * instanceService.getJars() >> sourceResponse
-    1 * instanceService.getJars() >> targetResponse
+    1 * instanceService.getJars() >> Calls.response(sourceResponse)
+    1 * instanceService.getJars() >> Calls.response(targetResponse)
 
     TaskResult result = task.execute(stage)
 
@@ -196,8 +197,8 @@ class JarDiffsTaskSpec extends Specification {
     2 * task.createInstanceService(_) >> instanceService
     def sourceJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.4.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
     def targetJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.5.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
-    Response sourceResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(sourceJarsResponse))
-    Response targetResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(targetJarsResponse))
+    ResponseBody sourceResponse = ResponseBody.create(MediaType.parse("application/json"), sourceJarsResponse)
+    ResponseBody targetResponse = ResponseBody.create(MediaType.parse("application/json"), targetJarsResponse)
 
     def config = [
       "account": "test",
@@ -216,8 +217,8 @@ class JarDiffsTaskSpec extends Specification {
     task.oortHelper = oortHelper
     1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v000", false) >> sourceExpectedInstances
     1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v002", false) >> targetExpectedInstances
-    1 * instanceService.getJars() >> {throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
-    1 * instanceService.getJars() >> targetResponse
+    1 * instanceService.getJars() >> { throw new SpinnakerServerException(new RuntimeException(null), new Request.Builder().url("http://some-url").build()) }
+    1 * instanceService.getJars() >> Calls.response(targetResponse)
 
     TaskResult result = task.execute(stage)
 

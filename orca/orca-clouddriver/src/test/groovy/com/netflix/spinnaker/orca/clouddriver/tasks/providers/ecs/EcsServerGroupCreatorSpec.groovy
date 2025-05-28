@@ -19,7 +19,9 @@ import com.google.common.collect.Maps
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -220,7 +222,7 @@ class EcsServerGroupCreatorSpec extends Specification {
 
     then:
 
-    1 * oortService.fetchArtifact(*_) >> new retrofit.client.Response('http://oort.com', 200, 'Okay', [], new TypedString(response))
+    1 * oortService.fetchArtifact(*_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"),response))
     0 * oortService._
     operations[0].createServerGroup.spelProcessedTaskDefinitionArtifact.toString().equals(expected)
 
@@ -257,7 +259,7 @@ class EcsServerGroupCreatorSpec extends Specification {
 
     then:
 
-    1 * oortService.fetchArtifact(*_) >> new retrofit.client.Response('http://oort.com', 200, 'Okay', [], new TypedString(response))
+    1 * oortService.fetchArtifact(*_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"),response))
     0 * oortService._
     operations[0].createServerGroup.spelProcessedTaskDefinitionArtifact.toString().equals(expected)
 
@@ -335,7 +337,7 @@ class EcsServerGroupCreatorSpec extends Specification {
 
     then:
 
-    1 * oortService.fetchArtifact(*_) >> new retrofit.client.Response('http://oort.com', 200, 'Okay', [], new TypedString(response))
+    1 * oortService.fetchArtifact(*_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"),response))
     0 * oortService._
     operations[0].createServerGroup.spelProcessedTaskDefinitionArtifact.toString().equals(expected)
 
@@ -374,7 +376,7 @@ class EcsServerGroupCreatorSpec extends Specification {
 
     then:
 
-    1 * oortService.fetchArtifact(*_) >> new retrofit.client.Response('http://oort.com', 200, 'Okay', [], new TypedString(response))
+    1 * oortService.fetchArtifact(*_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"),response))
     0 * oortService._
     operations[0].createServerGroup.spelProcessedTaskDefinitionArtifact.toString().equals(expected)
 

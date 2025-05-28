@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -53,10 +54,10 @@ class GoogleSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
 
   boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, StageExecution stage) {
     try {
-      MortService.SecurityGroup existingSecurityGroup = mortService.getSecurityGroup(upsertedSecurityGroup.accountName,
+      MortService.SecurityGroup existingSecurityGroup = Retrofit2SyncCall.execute(mortService.getSecurityGroup(upsertedSecurityGroup.accountName,
                                                                                      cloudProvider,
                                                                                      upsertedSecurityGroup.name,
-                                                                                     upsertedSecurityGroup.region)
+                                                                                     upsertedSecurityGroup.region))
 
       // Short-circuit the comparison logic if we can't retrieve the cached security group.
       if (!existingSecurityGroup) {

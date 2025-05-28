@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -40,8 +41,9 @@ public class GetGoogleCloudBuildArtifactsTask
   @Override
   public @Nonnull TaskResult tryExecute(@Nonnull GoogleCloudBuildStageDefinition stageDefinition) {
     List<Artifact> artifacts =
-        igorService.getGoogleCloudBuildArtifacts(
-            stageDefinition.getAccount(), stageDefinition.getBuildInfo().getId());
+        Retrofit2SyncCall.execute(
+            igorService.getGoogleCloudBuildArtifacts(
+                stageDefinition.getAccount(), stageDefinition.getBuildInfo().getId()));
     Map<String, List<Artifact>> outputs = Collections.singletonMap("artifacts", artifacts);
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(outputs).build();
   }
