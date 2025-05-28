@@ -17,6 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.netflix.spinnaker.orca.exceptions.PreconditionFailureException
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.mock.Calls
 
 import java.util.concurrent.atomic.AtomicInteger
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -24,8 +28,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -60,10 +62,10 @@ class ClusterSizePreconditionTaskSpec extends Specification {
 
   def 'checks cluster size'() {
     setup:
-    def body = new TypedByteArray('application/json', objectMapper.writeValueAsBytes([
-      serverGroups: serverGroups
-    ]))
-    def response = new Response('http://foo', 200, 'OK', [], body)
+    String body = objectMapper.writeValueAsString([
+        serverGroups: serverGroups
+    ])
+    Response response =  Response.success(200, ResponseBody.create(MediaType.parse("application/json"), body))
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), 'checkCluster', [
       context: [
         credentials: credentials,
@@ -76,7 +78,7 @@ class ClusterSizePreconditionTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * oortService.getCluster('foo', 'test', 'foo', 'aws') >> response
+    1 * oortService.getCluster('foo', 'test', 'foo', 'aws') >> Calls.response(response)
 
     result.status == ExecutionStatus.SUCCEEDED
 
@@ -93,10 +95,10 @@ class ClusterSizePreconditionTaskSpec extends Specification {
 
   def 'fails if cluster size wrong'() {
     setup:
-    def body = new TypedByteArray('application/json', objectMapper.writeValueAsBytes([
-      serverGroups: serverGroups
-    ]))
-    def response = new Response('http://foo', 200, 'OK', [], body)
+    String body = objectMapper.writeValueAsString([
+        serverGroups: serverGroups
+    ])
+    Response response =  Response.success(200, ResponseBody.create(MediaType.parse("application/json"), body))
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), 'checkCluster', [
       context: [
         credentials: credentials,
@@ -109,7 +111,7 @@ class ClusterSizePreconditionTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    1 * oortService.getCluster('foo', 'test', 'foo', 'aws') >> response
+    1 * oortService.getCluster('foo', 'test', 'foo', 'aws') >> Calls.response(response)
 
     thrown(PreconditionFailureException)
 

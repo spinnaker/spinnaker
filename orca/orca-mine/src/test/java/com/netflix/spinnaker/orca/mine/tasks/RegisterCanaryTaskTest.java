@@ -27,30 +27,30 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.jakewharton.retrofit.Ok3Client;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.mine.MineService;
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpStatus;
-import retrofit.RestAdapter;
-import retrofit.client.Response;
-import retrofit.converter.JacksonConverter;
-import retrofit.mime.TypedString;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class RegisterCanaryTaskTest {
 
@@ -68,16 +68,12 @@ public class RegisterCanaryTaskTest {
 
   @BeforeAll
   static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
-    RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
-
     mineService =
-        new RestAdapter.Builder()
-            .setEndpoint(wmRuntimeInfo.getHttpBaseUrl())
-            .setClient(new Ok3Client())
-            .setLogLevel(retrofitLogLevel)
-            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-            .setLog(new RetrofitSlf4jLog(MineService.class))
-            .setConverter(new JacksonConverter(objectMapper))
+        new Retrofit.Builder()
+            .baseUrl(wmRuntimeInfo.getHttpBaseUrl())
+            .client(new OkHttpClient())
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
             .build()
             .create(MineService.class);
 
@@ -119,13 +115,10 @@ public class RegisterCanaryTaskTest {
 
     var url = "https://mine.service.com/registerCanary";
 
-    Response response =
-        new Response(
-            url,
+    Response<ResponseBody> response =
+        Response.error(
             HttpStatus.NOT_ACCEPTABLE.value(),
-            HttpStatus.NOT_ACCEPTABLE.getReasonPhrase(),
-            List.of(),
-            new TypedString("canaryId"));
+            ResponseBody.create(MediaType.parse("text/plain"), "canaryId"));
 
     String errorResponseBody = objectMapper.writeValueAsString(response);
 
@@ -152,10 +145,8 @@ public class RegisterCanaryTaskTest {
                 "Unable to register canary (executionId: %s, stageId: %s canary: %s)",
                 deployCanaryStage.getExecution().getId(), deployCanaryStage.getId(), canary))
         .hasMessageContaining("response: [")
-        .hasMessageContaining("reason:" + HttpStatus.NOT_ACCEPTABLE.getReasonPhrase())
-        .hasMessageContaining("body:[bytes:Y2FuYXJ5SWQ=]")
         .hasMessageContaining("errorKind:HTTP")
-        .hasMessageContaining("url:" + url)
+        .hasMessageContaining("successful:false")
         .hasMessageContaining("status:" + HttpStatus.NOT_ACCEPTABLE.value());
   }
 

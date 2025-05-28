@@ -24,8 +24,9 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.ConsumeArtifactTas
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -54,7 +55,7 @@ class ConsumeArtifactTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * oortService.fetchArtifact(*_) >> new Response('http://oort.com', 200, 'Okay', [], new TypedString(response))
+    1 * oortService.fetchArtifact(*_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"), response))
     0 * oortService._
     result.status == ExecutionStatus.SUCCEEDED
     result.outputs == expected

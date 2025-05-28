@@ -20,8 +20,11 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -62,7 +65,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     def result = waitForCloudFormationCompletionTask.execute(stage)
 
     then:
-    1 * oortService.getCloudFormationStack('stackId') >> stack
+    1 * oortService.getCloudFormationStack('stackId') >> Calls.response(stack)
     result.status == expectedResult
     result.outputs == stack
     def deleteChangeSet = result.context.get('deleteChangeSet')
@@ -94,7 +97,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     def result = waitForCloudFormationCompletionTask.execute(stage)
 
     then:
-    1 * oortService.getCloudFormationStack('stackId') >> stack
+    1 * oortService.getCloudFormationStack('stackId') >> Calls.response(stack)
     result.status == expectedResult
     result.outputs.isEmpty()
 
@@ -115,7 +118,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
     def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
-    def error404 = new SpinnakerHttpException(RetrofitError.httpError("url", new Response("url", 404, "reason", [], null), null, null))
+    def error404 = makeSpinnakerHttpException(404)
 
     when:
     def result = waitForCloudFormationCompletionTask.execute(stage)
@@ -154,7 +157,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     def result = waitForCloudFormationCompletionTask.execute(stage)
 
     then:
-    1 * oortService.getCloudFormationStack('stackId') >> stack
+    1 * oortService.getCloudFormationStack('stackId') >> Calls.response(stack)
     RuntimeException ex = thrown()
     ex.message.startsWith(expectedMessage)
 
@@ -177,7 +180,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
       'kato.tasks': [[resultObjects: [[stackId: 'stackId']]]]
     ]
     def stage = new StageExecutionImpl(pipeline, 'test', 'test', context)
-    def error500 = new SpinnakerHttpException(RetrofitError.httpError("url", new Response("url", 500, "reason", [], null), null, null))
+    def error500 = makeSpinnakerHttpException(500)
 
     when:
     def result = waitForCloudFormationCompletionTask.execute(stage)
@@ -185,7 +188,7 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     then:
     1 * oortService.getCloudFormationStack('stackId') >> { throw error500 }
     RuntimeException ex = thrown()
-    ex.message == "Status: 500, URL: url, Message: reason"
+    ex.message == "Status: 500, Method: GET, URL: http://localhost/, Message: arbitrary message"
     result == null
   }
 
@@ -214,13 +217,30 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     def result = waitForCloudFormationCompletionTask.execute(stage)
 
     then:
-    1 * oortService.getCloudFormationStack('stackId') >> stack
+    1 * oortService.getCloudFormationStack('stackId') >> Calls.response(stack)
     result.status == expectedResult
 
     where:
     status                        | expectedResult
     'CREATE_IN_PROGRESS'          | ExecutionStatus.RUNNING
     'CREATE_COMPLETE'             | ExecutionStatus.SUCCEEDED
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
+    String url = "https://oort";
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), message))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 
 }

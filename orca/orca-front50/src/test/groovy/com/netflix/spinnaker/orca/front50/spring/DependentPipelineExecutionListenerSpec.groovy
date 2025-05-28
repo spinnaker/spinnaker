@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.front50.config.Front50ConfigurationProperties
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.V2Util
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -70,9 +71,9 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     pipeline.status = status
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> [
+    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> Calls.response([
       pipelineConfig, pipelineConfigWithRunAsUser
-    ]
+    ])
 
     when:
     listener.afterExecution(null, pipeline, null, true)
@@ -94,9 +95,9 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     pipeline.status = status
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> [
+    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> Calls.response([
       pipelineConfig, pipelineConfigWithRunAsUser, v2MptPipelineConfig
-    ]
+    ])
     GroovyMock(V2Util, global: true)
     V2Util.planPipeline(_, _, v2MptPipelineConfig) >> v2MptPipelineConfig
 
@@ -120,9 +121,9 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     pipeline.status = ExecutionStatus.SUCCEEDED
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, "successful") >> [
+    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, "successful") >> Calls.response([
       v2MptPipelineConfig, v2MptPipelineConfig
-    ]
+    ])
     GroovyMock(V2Util, global: true)
     V2Util.planPipeline(_, _, v2MptPipelineConfig) >>
       {throw new Exception("planning failed")} >>
@@ -142,14 +143,14 @@ class DependentPipelineExecutionListenerSpec extends Specification {
       it.status = status
       it.tasks = [Mock(TaskExecution)]
     }
-
+    front50ConfigurationProperties.setUseTriggeredByEndpoint(false)
     pipeline.pipelineConfigId = id
 
     pipelineConfig.triggers.first().status = ['successful']
 
-    front50Service.getAllPipelines() >> [
+    front50Service.getAllPipelines() >> Calls.response([
       pipelineConfig
-    ]
+    ])
 
     when:
     listener.afterExecution(null, pipeline, null, true)
@@ -173,9 +174,9 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     pipeline.status = ExecutionStatus.SUCCEEDED
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, "successful") >> [
+    front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, "successful") >> Calls.response([
       pipelineConfig, pipelineConfig, pipelineConfig
-    ]
+    ])
 
     when:
     listener.afterExecution(null, pipeline, null, true)
@@ -190,14 +191,13 @@ class DependentPipelineExecutionListenerSpec extends Specification {
       it.status = ExecutionStatus.SUCCEEDED
       it.tasks = [Mock(TaskExecution)]
     }
-
+    front50ConfigurationProperties.setUseTriggeredByEndpoint(false)
     pipelineConfig.triggers.first().enabled = false
 
-
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    front50Service.getAllPipelines() >> [
+    front50Service.getAllPipelines() >> { return Calls.response([
       pipelineConfig
-    ]
+    ])}
 
     when:
     listener.afterExecution(null, pipeline, null, true)
@@ -211,13 +211,13 @@ class DependentPipelineExecutionListenerSpec extends Specification {
       it.status = ExecutionStatus.SUCCEEDED
       it.tasks = [Mock(TaskExecution)]
     }
-
+    front50ConfigurationProperties.setUseTriggeredByEndpoint(false)
     pipelineConfig.triggers.first().pipeline = null
     pipeline.pipelineConfigId = null
 
-    front50Service.getAllPipelines() >> [
+    front50Service.getAllPipelines() >> Calls.response([
       pipelineConfig
-    ]
+    ])
 
     when:
     listener.afterExecution(null, pipeline, null, true)
@@ -237,12 +237,12 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
     if (useTriggeredByEndpoint) {
-      1 * front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> [
+      1 * front50Service.getTriggeredPipelines(pipeline.pipelineConfigId, DependentPipelineExecutionListener.convertStatus(pipeline)) >> Calls.response([
         pipelineConfig, pipelineConfigWithRunAsUser
-      ]
+      ])
       0 * front50Service.getAllPipelines()
     } else {
-      1 * front50Service.getAllPipelines() >> [ pipelineConfig, pipelineConfigWithRunAsUser ]
+      1 * front50Service.getAllPipelines() >> Calls.response([ pipelineConfig, pipelineConfigWithRunAsUser ])
       0 * front50Service.getTriggeredPipelines(_, _)
     }
 

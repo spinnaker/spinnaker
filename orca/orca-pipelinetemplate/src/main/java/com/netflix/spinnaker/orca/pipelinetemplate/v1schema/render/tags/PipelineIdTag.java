@@ -23,6 +23,7 @@ import com.hubspot.jinjava.interpret.TemplateSyntaxException;
 import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.tree.TagNode;
 import com.hubspot.jinjava.util.HelperStringTokenizer;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
@@ -84,7 +85,8 @@ public class PipelineIdTag implements Tag {
     List<Map<String, Object>> pipelines =
         AuthenticatedRequest.allowAnonymous(
             () ->
-                Optional.ofNullable(front50Service.getPipelines(appName, false))
+                Optional.ofNullable(
+                        Retrofit2SyncCall.execute(front50Service.getPipelines(appName, false)))
                     .orElse(Collections.emptyList()));
     Map<String, Object> result = findPipeline(pipelines, application, name);
     return (String) result.get("id");

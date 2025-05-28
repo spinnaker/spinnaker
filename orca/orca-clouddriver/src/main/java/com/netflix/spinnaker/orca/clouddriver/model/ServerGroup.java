@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.orca.clouddriver.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.moniker.Moniker;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class ServerGroup {
   public String name;

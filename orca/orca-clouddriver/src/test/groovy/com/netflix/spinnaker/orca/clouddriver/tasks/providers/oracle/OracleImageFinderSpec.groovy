@@ -15,6 +15,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -42,11 +43,11 @@ class OracleImageFinderSpec extends Specification {
 
     when:
     Collection<ImageFinder.ImageDetails> imageDetails = oracleImageFinder.byTags(
-      stage, "imageName*", ["version": "latest"], []) 
+      stage, "imageName*", ["version": "latest"], [])
 
     then:
     1 * oortService.findImage("oracle", "imageName*", null, null, ["tag:version": "latest"]) >> {
-      imagesFromMockClouddriver()
+      Calls.response(imagesFromMockClouddriver())
     }
     0 * _
 
@@ -70,7 +71,7 @@ class OracleImageFinderSpec extends Specification {
 
     then:
     1 * oortService.findImage("oracle", "image*", null, null, ["tag:version": "latest"]) >> {
-      imagesFromMockClouddriver()
+      Calls.response(imagesFromMockClouddriver())
     }
     0 * _
 

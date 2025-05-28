@@ -31,7 +31,7 @@ import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentCompletedRe
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentMonitorStageConfig
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -45,7 +45,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
     given:
     def monitorServiceStub = Stub(DeploymentMonitorService) {
       notifyCompleted(_) >> {
-        return new Response("", 200, "OK", [], null)
+        return Calls.response(null)
       }
     }
 
@@ -80,7 +80,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
     } as DeploymentCompletedRequest) >> { DeploymentCompletedRequest request ->
       assert request.status == DeploymentCompletedRequest.DeploymentStatus.SUCCESS &&
         request.rollback == DeploymentCompletedRequest.DeploymentStatus.ROLLBACK_NOT_PERFORMED
-      new Response('', 200, 'OK', [], null)
+      return Calls.response(null)
     }
 
 
@@ -95,7 +95,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
     } as DeploymentCompletedRequest) >> { DeploymentCompletedRequest request ->
       assert request.status == DeploymentCompletedRequest.DeploymentStatus.FAILURE &&
         request.rollback == DeploymentCompletedRequest.DeploymentStatus.ROLLBACK_NOT_PERFORMED
-      new Response('', 200, 'OK', [], null)
+      return Calls.response(null)
     }
 
     result.status == ExecutionStatus.SUCCEEDED
@@ -106,7 +106,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
     def monitorServiceStub = Stub(DeploymentMonitorService) {
 
       notifyCompleted(_) >> {
-        return new Response("", 200, "OK", [], null)
+        return Calls.response(null)
       }
     }
 
@@ -149,7 +149,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
       it != null
     } as DeploymentCompletedRequest) >> { DeploymentCompletedRequest request ->
       assert request.rollback == DeploymentCompletedRequest.DeploymentStatus.SUCCESS
-      new Response('', 200, 'OK', [], null)
+      return Calls.response(null)
     }
 
     when: 'rollback was initiated and failed'
@@ -163,7 +163,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
       it != null
     } as DeploymentCompletedRequest) >> { DeploymentCompletedRequest request ->
       assert request.rollback == DeploymentCompletedRequest.DeploymentStatus.FAILURE
-      new Response('', 200, 'OK', [], null)
+      return Calls.response(null)
     }
 
     result.status == ExecutionStatus.SUCCEEDED

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kayenta.tasks
 
 import com.netflix.spinnaker.kork.exceptions.UserException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
@@ -42,7 +43,7 @@ class RunKayentaCanaryTask(
       throw UserException("Invalid canaryConfigId. Was the correct configName or configId used?")
     }
 
-    val canaryPipelineExecutionId = kayentaService.create(
+    val canaryPipelineExecutionId = Retrofit2SyncCall.execute(kayentaService.create(
       context.canaryConfigId,
       stage.execution.application,
       stage.execution.id,
@@ -50,7 +51,7 @@ class RunKayentaCanaryTask(
       context.configurationAccountName,
       context.storageAccountName,
       CanaryExecutionRequest(context.scopes, context.scoreThresholds, context.siteLocal)
-    )["canaryExecutionId"] as String
+    ))["canaryExecutionId"] as String
 
     val outputs = mapOf(
       "canaryPipelineExecutionId" to canaryPipelineExecutionId,

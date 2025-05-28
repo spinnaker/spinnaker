@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -58,7 +59,8 @@ public class UpsertPluginInfoTask implements Task {
             stage.getContext().get("pluginInfo"), new TypeReference<PluginInfo>() {});
 
     log.debug("Upserting front50 plugin info `{}`", pluginInfo.getId());
-    PluginInfo upsertedPluginInfo = front50Service.upsertPluginInfo(pluginInfo);
+    PluginInfo upsertedPluginInfo =
+        Retrofit2SyncCall.execute(front50Service.upsertPluginInfo(pluginInfo));
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("pluginInfo", upsertedPluginInfo);

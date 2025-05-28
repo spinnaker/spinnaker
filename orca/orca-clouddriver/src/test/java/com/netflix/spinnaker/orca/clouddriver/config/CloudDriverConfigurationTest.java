@@ -19,10 +19,11 @@ package com.netflix.spinnaker.orca.clouddriver.config;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory;
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService;
 import com.netflix.spinnaker.orca.test.YamlFileApplicationContextInitializer;
 import java.util.List;
@@ -37,8 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(
@@ -77,16 +76,13 @@ public class CloudDriverConfigurationTest extends YamlFileApplicationContextInit
         new OkHttpClientProvider(List.of(okHttpClientBuilderProvider));
 
     ObjectMapper objectMapper = new ObjectMapper();
-    RestAdapter.LogLevel logLevel = RestAdapter.LogLevel.FULL;
-    RequestInterceptor requestInterceptor = new SpinnakerRequestInterceptor(true);
+    DefaultServiceClientProvider serviceClientProvider =
+        new DefaultServiceClientProvider(
+            List.of(new Retrofit2ServiceFactory(okHttpClientProvider)), objectMapper);
 
     this.clouddriverRetrofitBuilder =
         new CloudDriverConfiguration.ClouddriverRetrofitBuilder(
-            objectMapper,
-            okHttpClientProvider,
-            logLevel,
-            requestInterceptor,
-            cloudDriverConfigurationProperties);
+            objectMapper, serviceClientProvider, cloudDriverConfigurationProperties);
   }
 
   @DisplayName("when selector config is a YAML list, successfully constructs a SelectableService")

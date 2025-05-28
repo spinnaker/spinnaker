@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
@@ -117,7 +118,7 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     def defaultSecurityGroupsForAccount = defaultSecurityGroups
     try {
       // Check for any explicitly provided per-account security group defaults (and use them)
-      def accountDetails = mortService.getAccountDetails(operation.credentials as String)
+      def accountDetails = Retrofit2SyncCall.execute(mortService.getAccountDetails(operation.credentials as String))
       if (accountDetails.defaultSecurityGroups != null) {
         defaultSecurityGroupsForAccount = accountDetails.defaultSecurityGroups as List<String>
       }

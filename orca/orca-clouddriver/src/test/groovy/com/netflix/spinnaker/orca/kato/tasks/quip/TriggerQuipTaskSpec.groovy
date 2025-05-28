@@ -18,6 +18,11 @@ package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
+import okhttp3.MediaType
+import okhttp3.Request
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.mock.Calls
 
 import java.nio.charset.Charset
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -26,10 +31,6 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Client
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -46,7 +47,6 @@ class TriggerQuipTaskSpec extends Specification {
 
   def setup() {
     task.objectMapper = mapper
-    task.retrofitClient = Stub(Client)
   }
 
   @Shared
@@ -64,14 +64,10 @@ class TriggerQuipTaskSpec extends Specification {
   }
 
   @Shared
-  Response instanceResponse = mkResponse([ref: "/tasks/93fa4"])
-  @Shared
-  Response instanceResponse2 = mkResponse([ref: "/tasks/abcd"])
-  @Shared
-  Response instanceResponse3 = mkResponse([ref: "/tasks/efghi"])
+  ResponseBody instanceResponse = mkResponseBody([ref: "/tasks/93fa4"])
 
-  private Response mkResponse(Object body) {
-    new Response('http://foo.com', 200, 'OK', [], new TypedByteArray("application/json", mapper.writeValueAsString(body).getBytes(Charset.forName("UTF8"))))
+  private ResponseBody mkResponseBody(Object body) {
+    ResponseBody.create(MediaType.parse("application/json"),mapper.writeValueAsString(body).getBytes(Charset.forName("UTF8")))
   }
 
   @Unroll
@@ -90,12 +86,16 @@ class TriggerQuipTaskSpec extends Specification {
     stage.parentStageId = versionStage.id
 
     instances.size() * task.createInstanceService(_) >> instanceService
+//    def iterator = response.collect { return Calls.response(it) }.iterator()
+
 
     when:
     TaskResult result = task.execute(stage)
 
     then:
-    instances.size() * instanceService.patchInstance(app, "1.2", "") >>> response
+    instances.size() * instanceService.patchInstance(app, "1.2", "") >>> response.collect { Calls.response(it) }
+
+
     result.context.taskIds == dnsTaskMap
     result.context.instanceIds.sort() == instances.keySet().sort()
     result.context.skippedInstances == [:]
@@ -108,9 +108,9 @@ class TriggerQuipTaskSpec extends Specification {
     region = "us-east-1"
 
     instances | response | dnsTaskMap
-    ["i-1234": ["hostName": "foo.com"]] | [instanceResponse] | ["foo.com": "93fa4"]
-    ["i-1234": ["hostName": "foo.com"], "i-2345": ["hostName": "foo2.com"]] | [instanceResponse, instanceResponse2] | ["foo.com": "93fa4", "foo2.com": "abcd"]
-    ["i-1234": ["hostName": "foo.com"], "i-2345": ["hostName": "foo2.com"], "i-3456": ["hostName": "foo3.com"]] | [instanceResponse, instanceResponse2, instanceResponse3] | ["foo.com": "93fa4", "foo2.com": "abcd", "foo3.com": "efghi"]
+    ["i-1234": ["hostName": "foo.com"]] | [mkResponseBody([ref: "/tasks/93fa4"])] | ["foo.com": "93fa4"]
+    ["i-1234": ["hostName": "foo.com"], "i-2345": ["hostName": "foo2.com"]] | [mkResponseBody([ref: "/tasks/93fa4"]), mkResponseBody([ref: "/tasks/abcd"])] | ["foo.com": "93fa4", "foo2.com": "abcd"]
+    ["i-1234": ["hostName": "foo.com"], "i-2345": ["hostName": "foo2.com"], "i-3456": ["hostName": "foo3.com"]] | [mkResponseBody([ref: "/tasks/93fa4"]), mkResponseBody([ref: "/tasks/abcd"]), mkResponseBody([ref: "/tasks/efghi"])] | ["foo.com": "93fa4", "foo2.com": "abcd", "foo3.com": "efghi"]
   }
 
   def "checks versions and skips up to date instances in skipUpToDate mode"() {
@@ -134,8 +134,11 @@ class TriggerQuipTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    2 * instanceService.getCurrentVersion(app) >>> currentVersions
-    1 * instanceService.patchInstance(app, "1.2", "") >> patchResponse
+    2 * instanceService.getCurrentVersion(app) >>>  [
+        Calls.response(currentVersions[0]),
+        Calls.response(currentVersions[1])
+    ]
+    1 * instanceService.patchInstance(app, "1.2", "") >> Calls.response(patchResponse)
 
     result.context.instances == patchInstances
     result.context.skippedInstances == skipInstances
@@ -150,8 +153,8 @@ class TriggerQuipTaskSpec extends Specification {
     patchInstances = ['i-1': [hostName: 'foo1.com']]
     skipInstances = ['i-2': [hostName: 'foo2.com']]
     instances = patchInstances + skipInstances
-    currentVersions = [mkResponse([version: "1.1"]), mkResponse([version: "1.2"])]
-    patchResponse = mkResponse(["ref": "/tasks/12345"])
+    currentVersions = [mkResponseBody([version: "1.1"]), mkResponseBody([version: "1.2"])]
+    patchResponse = mkResponseBody(["ref": "/tasks/12345"])
   }
 
   @Unroll
@@ -179,10 +182,10 @@ class TriggerQuipTaskSpec extends Specification {
       // need to do this since I can't stick exceptions on the data table
       if (it) {
         1 * instanceService.patchInstance(app, patchVersion, "") >> {
-          throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))
+          throw new SpinnakerServerException(new RuntimeException(""), new Request.Builder().url("http://some-url").build())
         }
       } else {
-        1 * instanceService.patchInstance(app, patchVersion, "") >> instanceResponse
+        1 * instanceService.patchInstance(app, patchVersion, "") >> Calls.response(instanceResponse)
       }
     }
 
@@ -253,8 +256,8 @@ class TriggerQuipTaskSpec extends Specification {
 
     then:
     2 * instanceService.getCurrentVersion(app) >> {
-      throw new SpinnakerNetworkException(RetrofitError.networkError('http://foo', new IOException('failed')))
-    } >> mkResponse([version: patchVersion])
+      throw new SpinnakerNetworkException(new IOException("failed"), new Request.Builder().url("http://foo").build())
+    } >> { return Calls.response(mkResponseBody([version: patchVersion])) }
 
     result.context.skippedInstances.keySet() == ["i-1234"] as Set
 

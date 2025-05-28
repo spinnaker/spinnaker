@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import static java.lang.String.format;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -49,7 +50,7 @@ public class LoadPluginReleaseTask implements RetryableTask {
 
     PluginInfo pluginInfo;
     try {
-      pluginInfo = front50Service.getPluginInfo(pluginId);
+      pluginInfo = Retrofit2SyncCall.execute(front50Service.getPluginInfo(pluginId));
     } catch (Exception e) {
       log.error("Failed to retrieve plugin info for '{}'", pluginId, e);
       return TaskResult.RUNNING;

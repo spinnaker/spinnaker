@@ -7,6 +7,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRender
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -22,7 +23,7 @@ class StrategyIdSpec extends Specification {
   @Unroll
   def 'should render strategy id'() {
     given:
-    front50Service.getStrategies('myApp') >>  [
+    front50Service.getStrategies('myApp') >> Calls.response([
       [
         name: 'Deploy and destroy server group',
         id: '9595429f-afa0-4c34-852b-01a9a01967f9',
@@ -38,7 +39,7 @@ class StrategyIdSpec extends Specification {
         id: '1685429e-beb1-4d35-963c-123456789012',
         stages: []
       ]
-    ]
+    ])
 
     expect:
     renderer.render(
@@ -55,13 +56,13 @@ class StrategyIdSpec extends Specification {
 
   def 'should render strategy id from another app'() {
     given:
-    front50Service.getStrategies('testApp') >>  [
+    front50Service.getStrategies('testApp') >>  Calls.response([
       [
         name: 'Strategy in different app',
         id: '1685429e-beb1-4d35-963c-02b9a01977e1',
         stages: []
       ]
-    ]
+    ])
 
     expect:
     renderer.render(
@@ -76,13 +77,13 @@ class StrategyIdSpec extends Specification {
 
   def 'should render strategy id using variables defined in context'() {
     given:
-    front50Service.getStrategies('myApp') >>  [
+    front50Service.getStrategies('myApp') >>  Calls.response([
       [
         name: 'Deploy and destroy server group',
         id: '9595429f-afa0-4c34-852b-01a9a01967f9',
         stages: []
       ]
-    ]
+    ])
 
     RenderContext context = new DefaultRenderContext('myApp', null, [:])
     context.variables.put("pipelineName", "Deploy and destroy server group")
@@ -101,13 +102,13 @@ class StrategyIdSpec extends Specification {
     renderer.render('{% strategyId name="Deploy and destroy server group" %}', context)
 
     then: 'application should be inferred from context'
-    1 * front50Service.getStrategies(applicationInContext) >>  [
+    1 * front50Service.getStrategies(applicationInContext) >>  Calls.response([
       [
         name: 'Deploy and destroy server group',
         id: '9595429f-afa0-4c34-852b-01a9a01967f9',
         stages: []
       ]
-    ]
+    ])
 
     when: 'template is missing required fields (name)'
     renderer.render('{% strategyId application=myApp %}', context)
@@ -125,7 +126,7 @@ class StrategyIdSpec extends Specification {
     renderer.render('{% strategyId name="Deploy and destroy server group" %}', context)
 
     then:
-    1 * front50Service.getStrategies(applicationInContext) >>  []
+    1 * front50Service.getStrategies(applicationInContext) >>  Calls.response([])
     thrown(TemplateRenderException)
   }
 }

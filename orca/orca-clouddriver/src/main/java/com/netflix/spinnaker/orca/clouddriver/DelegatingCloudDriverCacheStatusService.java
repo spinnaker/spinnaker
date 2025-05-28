@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import java.util.Collection;
 import java.util.Map;
+import retrofit2.Call;
 
 public class DelegatingCloudDriverCacheStatusService
     extends DelegatingClouddriverService<CloudDriverCacheStatusService>
@@ -29,7 +30,7 @@ public class DelegatingCloudDriverCacheStatusService
   }
 
   @Override
-  public Collection<Map> pendingForceCacheUpdates(String cloudProvider, String type) {
+  public Call<Collection<Map>> pendingForceCacheUpdates(String cloudProvider, String type) {
     return getService().pendingForceCacheUpdates(cloudProvider, type);
   }
 }
