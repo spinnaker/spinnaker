@@ -36,7 +36,6 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-test")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("com.squareup.retrofit2:converter-jackson")
-  testImplementation("com.github.tomakehurst:wiremock-jre8")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
   testRuntimeOnly("org.springframework:spring-test")
