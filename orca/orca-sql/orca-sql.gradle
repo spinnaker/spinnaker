@@ -23,7 +23,6 @@ dependencies {
   implementation(project(":keiko-core"))
 
   implementation(project(":orca-core"))
-  implementation(project(":orca-test"))
   implementation(project(":orca-interlink"))
   implementation(project(":orca-queue"))
 
@@ -42,6 +41,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.44.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.44.0")
 
+  testImplementation(project(":orca-test"))
   testImplementation(project(":orca-core-tck"))
   testImplementation(project(":orca-test-groovy"))
   testImplementation("io.spinnaker.kork:kork-sql-test")

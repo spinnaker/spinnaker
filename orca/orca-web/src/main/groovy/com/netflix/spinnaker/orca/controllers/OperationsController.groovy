@@ -47,7 +47,6 @@ import groovy.util.logging.Slf4j
 import javassist.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import retrofit.http.Query
 
 import javax.servlet.http.HttpServletResponse
 
@@ -113,12 +112,12 @@ class OperationsController {
   }
 
   @RequestMapping(value = "/plan", method = RequestMethod.POST)
-  Map<String, Object> plan(@RequestBody Map pipeline, @Query("resolveArtifacts") boolean resolveArtifacts, HttpServletResponse response) {
+  Map<String, Object> plan(@RequestBody Map pipeline, @RequestParam("resolveArtifacts") boolean resolveArtifacts, HttpServletResponse response) {
     return planPipeline(pipeline, resolveArtifacts)
   }
 
   @RequestMapping(value = "/plan/{pipelineConfigId}", method = RequestMethod.POST)
-  Map<String, Object> planPipelineConfig(@PathVariable String pipelineConfigId, @Query("resolveArtifacts") boolean resolveArtifacts, @RequestBody Map trigger) {
+  Map<String, Object> planPipelineConfig(@PathVariable String pipelineConfigId, @RequestParam("resolveArtifacts") boolean resolveArtifacts, @RequestBody Map trigger) {
     Map pipelineConfig = buildPipelineConfig(pipelineConfigId, trigger)
     return planPipeline(pipelineConfig, resolveArtifacts)
   }

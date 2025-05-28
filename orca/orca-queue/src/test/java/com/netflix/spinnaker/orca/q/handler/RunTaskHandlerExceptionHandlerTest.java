@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
@@ -62,19 +63,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import okhttp3.MediaType;
-import okhttp3.Protocol;
-import okhttp3.Request;
-import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+import retrofit.converter.GsonConverter;
+import retrofit.mime.TypedString;
 
 /**
  * It's potentially a better test to use spring to configure all available ExceptionHandlers. To be
@@ -83,18 +83,66 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
  * / simplify the test and explicitly list them.
  */
 class RunTaskHandlerExceptionHandlerTest {
+  private static final String URL = "https://some-url";
 
-  private static final String message = "{ \"message\": \"arbitrary message\" }";
-  private static final String messageWithError =
-      "{ \"message\": \"arbitrary message\", \"error\": \"error property\" }";
-  private static final String messageWithException =
-      "{ \"message\": \"arbitrary message\", \"exception\": \"exception property\" }";
-  private static final String messageWithErrors =
-      "{ \"message\": \"arbitrary message\", \"errors\": [\"error one\", \"error two\"] }";
-  private static final String messageWithErrorAndErrors =
-      "{ \"message\": \"arbitrary message\", \"error\": \"error property\", \"errors\": [\"error one\", \"error two\"] }";
-  private static final String messageWithErrorAndErrorsAndMessages =
-      "{ \"message\": \"arbitrary message\", \"error\": \"error property\", \"errors\": [\"error one\", \"error two\"], \"messages\": [\"message one\", \"message two\"] }";
+  private static final Response response =
+      new Response(
+          URL,
+          500,
+          "arbitrary reason",
+          List.of(),
+          new TypedString("{ message: \"arbitrary message\" }"));
+
+  private static final Response response503 =
+      new Response(
+          URL,
+          503,
+          "arbitrary reason",
+          List.of(),
+          new TypedString("{ message: \"arbitrary message\" }"));
+
+  private static final Response responseWithError =
+      new Response(
+          URL,
+          500,
+          "arbitrary reason",
+          List.of(),
+          new TypedString("{ message: \"arbitrary message\", error: \"error property\" }"));
+
+  private static final Response responseWithException =
+      new Response(
+          URL,
+          500,
+          "arbitrary reason",
+          List.of(),
+          new TypedString("{ message: \"arbitrary message\", exception: \"exception property\" }"));
+
+  private static final Response responseWithErrors =
+      new Response(
+          URL,
+          500,
+          "arbitrary reason",
+          List.of(),
+          new TypedString(
+              "{ message: \"arbitrary message\", errors: [\"error one\", \"error two\"] }"));
+
+  private static final Response responseWithErrorAndErrors =
+      new Response(
+          URL,
+          500,
+          "arbitrary reason",
+          List.of(),
+          new TypedString(
+              "{ message: \"arbitrary message\", error: \"error property\", errors: [\"error one\", \"error two\"] }"));
+
+  private static final Response responseWithErrorAndErrorsAndMessages =
+      new Response(
+          URL,
+          500,
+          "arbitrary reason",
+          List.of(),
+          new TypedString(
+              "{ message: \"arbitrary message\", error: \"error property\", errors: [\"error one\", \"error two\"], messages: [\"message one\", \"message two\"] }"));
 
   private SpinnakerServerExceptionHandler spinnakerServerExceptionHandler =
       new SpinnakerServerExceptionHandler();
@@ -198,6 +246,16 @@ class RunTaskHandlerExceptionHandlerTest {
         .thenReturn(pipeline);
   }
 
+  private static Stream<RetrofitError> nonRetryableRetrofitErrors() {
+    return Stream.of(
+        makeRetrofitError(response),
+        makeRetrofitError(responseWithError),
+        makeRetrofitError(responseWithException),
+        makeRetrofitError(responseWithErrors),
+        makeRetrofitError(responseWithErrorAndErrors),
+        makeRetrofitError(responseWithErrorAndErrorsAndMessages));
+  }
+
   @ParameterizedTest(name = "{index} => taskThrowsSpinnakerHttpExceptionNoRetry {0}")
   @MethodSource("nonRetryableSpinnakerHttpExceptions")
   void taskThrowsSpinnakerHttpExceptionNoRetry(SpinnakerHttpException spinnakerHttpException) {
@@ -226,7 +284,6 @@ class RunTaskHandlerExceptionHandlerTest {
 
     ImmutableMap.Builder<String, Object> builder =
         ImmutableMap.<String, Object>builder()
-            .put("method", "GET")
             .put("kind", "HTTP")
             .put("error", error)
             .put("errors", errors)
@@ -251,21 +308,16 @@ class RunTaskHandlerExceptionHandlerTest {
   }
 
   private static Stream<SpinnakerHttpException> nonRetryableSpinnakerHttpExceptions() {
-    // irrespective of the exception details, http code 500 is non-retryable
-    return Stream.of(
-        makeSpinnakerHttpException(500, message),
-        makeSpinnakerHttpException(500, messageWithError),
-        makeSpinnakerHttpException(500, messageWithException),
-        makeSpinnakerHttpException(500, messageWithErrors),
-        makeSpinnakerHttpException(500, messageWithErrorAndErrors),
-        makeSpinnakerHttpException(500, messageWithErrorAndErrorsAndMessages));
+    return nonRetryableRetrofitErrors()
+        .map(retrofitError -> makeSpinnakerHttpException(retrofitError));
   }
 
   @Test
   void taskThrowsSpinnakerServerExceptionRetryable() {
     // given an arbitrary SpinnakerServerException that SpinnakerServerExceptionHandler considers
     // retryable
-    SpinnakerServerException spinnakerServerException = makeSpinnakerHttpException(503, message);
+    SpinnakerServerException spinnakerServerException =
+        makeSpinnakerHttpException(makeRetrofitError(response503));
     doThrow(spinnakerServerException).when(dummyTask).execute(any());
 
     // when
@@ -278,12 +330,15 @@ class RunTaskHandlerExceptionHandlerTest {
     assertThat(stageExecution.getContext().get("exception")).isNull();
   }
 
+  @Disabled("until the SpinnakerHttpException constructor can handle non-json responses")
   @Test
   void taskThrowsSpinnakerHttpExceptionNonJsonResponse() {
     // given an arbitrary SpinnakerHttpException that SpinnakerServerExceptionHandler doesn't
     // consider retryable
+    Response response =
+        new Response(URL, 500, "arbitrary reason", List.of(), new TypedString("non-json response"));
     SpinnakerHttpException spinnakerHttpException =
-        makeSpinnakerHttpException(500, "non-json response");
+        makeSpinnakerHttpException(makeRetrofitError(response));
     doThrow(spinnakerHttpException).when(dummyTask).execute(any());
 
     // when
@@ -299,9 +354,9 @@ class RunTaskHandlerExceptionHandlerTest {
     // RetrofitExceptionHandler, when it existed.
     Map<String, Object> responseDetails =
         Map.of(
-            "error", spinnakerHttpException.getMessage(),
+            "error", spinnakerHttpException.getReason(),
             "errors", List.of(),
-            "method", "GET",
+            "responseBody", "non-json response",
             "kind", "HTTP",
             "url", spinnakerHttpException.getUrl(),
             "status", spinnakerHttpException.getResponseCode());
@@ -324,33 +379,12 @@ class RunTaskHandlerExceptionHandlerTest {
     assertThat(actualResponse.isShouldRetry()).isEqualTo(expectedResponse.isShouldRetry());
   }
 
-  public static SpinnakerHttpException makeSpinnakerHttpException(int status, String message) {
+  private static SpinnakerHttpException makeSpinnakerHttpException(RetrofitError retrofitError) {
+    return new SpinnakerHttpException(retrofitError);
+  }
 
-    String url = "https://some-url";
-    MediaType mediaType = MediaType.parse("application/json");
-    ResponseBody body = ResponseBody.create(mediaType, message);
-
-    Request request = new Request.Builder().url(url).build();
-
-    okhttp3.Response rawResponse =
-        new okhttp3.Response.Builder()
-            .body(body)
-            .code(status)
-            .message(message)
-            .protocol(Protocol.HTTP_1_1)
-            .request(request)
-            .build();
-
-    // Simulating Retrofit Response.error
-    retrofit2.Response<Object> response = retrofit2.Response.error(body, rawResponse);
-
-    Retrofit retrofit =
-        new Retrofit.Builder()
-            .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
-            .build();
-
-    return new SpinnakerHttpException(response, retrofit);
+  private static RetrofitError makeRetrofitError(Response response) {
+    return RetrofitError.httpError(URL, response, new GsonConverter(new Gson()), String.class);
   }
 
   static class TasksProvider implements ObjectProvider<Collection<Task>> {
