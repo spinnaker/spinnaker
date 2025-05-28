@@ -16,37 +16,29 @@
 
 package com.netflix.spinnaker.orca.deploymentmonitor;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.exceptions.UserException;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog;
+import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.client.Client;
-import retrofit.converter.JacksonConverter;
 
 public class DeploymentMonitorServiceProvider {
   private static final Logger log = LoggerFactory.getLogger(DeploymentMonitorServiceProvider.class);
 
-  private Client retrofitClient;
-  private RestAdapter.LogLevel retrofitLogLevel;
-  private RequestInterceptor spinnakerRequestInterceptor;
+  private ServiceClientProvider serviceClientProvider;
   private List<DeploymentMonitorDefinition> deploymentMonitors;
   private HashMap<String, DeploymentMonitorService> serviceCache;
 
   public DeploymentMonitorServiceProvider(
-      Client retrofitClient,
-      RestAdapter.LogLevel retrofitLogLevel,
-      RequestInterceptor spinnakerRequestInterceptor,
+      ServiceClientProvider serviceClientProvider,
       List<DeploymentMonitorDefinition> deploymentMonitors) {
-    this.retrofitClient = retrofitClient;
-    this.retrofitLogLevel = retrofitLogLevel;
-    this.spinnakerRequestInterceptor = spinnakerRequestInterceptor;
+    this.serviceClientProvider = serviceClientProvider;
     this.deploymentMonitors = deploymentMonitors;
     this.serviceCache = new HashMap<>();
 
@@ -75,16 +67,11 @@ public class DeploymentMonitorServiceProvider {
       log.info("Instantiating deployment monitor {} -> {}", definition, definition.getBaseUrl());
 
       DeploymentMonitorService service =
-          new RestAdapter.Builder()
-              .setRequestInterceptor(spinnakerRequestInterceptor)
-              .setEndpoint(definition.getBaseUrl())
-              .setClient(retrofitClient)
-              .setLogLevel(retrofitLogLevel)
-              .setLog(new RetrofitSlf4jLog(DeploymentMonitorService.class))
-              .setConverter(new JacksonConverter())
-              .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-              .build()
-              .create(DeploymentMonitorService.class);
+          serviceClientProvider.getService(
+              DeploymentMonitorService.class,
+              new DefaultServiceEndpoint(
+                  "deploymentmonitor", RetrofitUtils.getBaseUrl(definition.getBaseUrl())),
+              new ObjectMapper());
 
       serviceCache.put(definition.getId(), service);
     }

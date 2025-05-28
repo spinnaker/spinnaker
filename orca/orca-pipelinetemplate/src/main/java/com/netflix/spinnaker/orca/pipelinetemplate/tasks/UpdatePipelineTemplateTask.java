@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -28,11 +29,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 @Component
 public class UpdatePipelineTemplateTask implements RetryableTask, SavePipelineTemplateTask {
@@ -79,17 +81,18 @@ public class UpdatePipelineTemplateTask implements RetryableTask, SavePipelineTe
 
     validate(pipelineTemplate);
 
-    Response response =
-        front50Service.updatePipelineTemplate(
-            (String) stage.getContext().get("id"),
-            (Map<String, Object>) stage.decodeBase64("/pipelineTemplate", Map.class));
+    Response<ResponseBody> response =
+        Retrofit2SyncCall.executeCall(
+            front50Service.updatePipelineTemplate(
+                (String) stage.getContext().get("id"),
+                (Map<String, Object>) stage.decodeBase64("/pipelineTemplate", Map.class)));
 
     // TODO rz - app & account context?
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "updatepipelinetemplate");
     outputs.put("pipelineTemplate.id", pipelineTemplate.getId());
 
-    if (response.getStatus() == HttpStatus.OK.value()) {
+    if (response.code() == HttpStatus.OK.value()) {
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
     }
 

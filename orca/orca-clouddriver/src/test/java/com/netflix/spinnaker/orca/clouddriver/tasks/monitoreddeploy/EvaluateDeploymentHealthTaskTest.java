@@ -33,11 +33,14 @@ import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.google.common.collect.Iterables;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
+import com.netflix.spinnaker.config.ServiceEndpoint;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider;
@@ -54,6 +57,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import okhttp3.OkHttpClient;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +68,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
-import retrofit.RestAdapter;
 
 public class EvaluateDeploymentHealthTaskTest {
 
@@ -111,14 +115,8 @@ public class EvaluateDeploymentHealthTaskTest {
   void setup(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
-    RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
-
     DeploymentMonitorServiceProvider deploymentMonitorServiceProvider =
-        new DeploymentMonitorServiceProvider(
-            new Ok3Client(),
-            retrofitLogLevel,
-            new SpinnakerRequestInterceptor(true),
-            deploymentMonitorDefinitions);
+        getDeploymentMonitorServiceProvider();
     evaluateDeploymentHealthTask =
         new EvaluateDeploymentHealthTask(deploymentMonitorServiceProvider, new NoopRegistry());
 
@@ -132,6 +130,36 @@ public class EvaluateDeploymentHealthTaskTest {
     stage = new StageExecutionImpl(pipeline, "evaluateDeploymentHealth", contextMap);
 
     memoryAppender = new MemoryAppender(EvaluateDeploymentHealthTask.class);
+  }
+
+  private static @NotNull DeploymentMonitorServiceProvider getDeploymentMonitorServiceProvider() {
+    OkHttpClientProvider okHttpClientProvider = getOkHttpClientProvider();
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    DefaultServiceClientProvider serviceClientProvider =
+        new DefaultServiceClientProvider(
+            List.of(new Retrofit2ServiceFactory(okHttpClientProvider)), objectMapper);
+
+    return new DeploymentMonitorServiceProvider(
+        serviceClientProvider, deploymentMonitorDefinitions);
+  }
+
+  private static @NotNull OkHttpClientProvider getOkHttpClientProvider() {
+    OkHttpClientBuilderProvider okHttpClientBuilderProvider =
+        new OkHttpClientBuilderProvider() {
+          @Override
+          public @NotNull Boolean supports(@NotNull ServiceEndpoint service) {
+            return true;
+          }
+
+          @Override
+          public OkHttpClient.@NotNull Builder get(@NotNull ServiceEndpoint service) {
+            return new OkHttpClient().newBuilder();
+          }
+        };
+    OkHttpClientProvider okHttpClientProvider =
+        new OkHttpClientProvider(List.of(okHttpClientBuilderProvider));
+    return okHttpClientProvider;
   }
 
   private static UUID simulateResponse(

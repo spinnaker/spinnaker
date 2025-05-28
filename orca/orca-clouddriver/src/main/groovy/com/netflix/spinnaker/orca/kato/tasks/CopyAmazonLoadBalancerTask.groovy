@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -48,9 +49,9 @@ class CopyAmazonLoadBalancerTask implements Task {
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     def operation = stage.mapTo(StageData)
-    def currentLoadBalancer = oortService.getLoadBalancerDetails(
+    def currentLoadBalancer = Retrofit2SyncCall.execute(oortService.getLoadBalancerDetails(
       "aws", operation.credentials, operation.region, operation.name
-    ).getAt(0)
+    )).getAt(0)
 
     if (!currentLoadBalancer) {
       throw new IllegalStateException("Load balancer does not exist (name: ${operation.name}, account: ${operation.credentials}, region: ${operation.region})")
@@ -58,7 +59,7 @@ class CopyAmazonLoadBalancerTask implements Task {
 
     def securityGroups = getSecurityGroupNames(currentLoadBalancer)
 
-    def allVPCs = mortService.getVPCs()
+    def allVPCs = Retrofit2SyncCall.execute(mortService.getVPCs())
     def operations = operation.targets.collect { StageData.Target target ->
       if (target.availabilityZones.size() != 1) {
         throw new IllegalStateException("Must specify one (and only one) region/availability zones per target")

@@ -30,8 +30,12 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -197,7 +201,7 @@ class GetCommitsTaskSpec extends Specification {
     }
 
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     def sg = new ServerGroup(launchConfig: [imageId: sourceImage])
     task.cloudDriverService = cloudDriverService
@@ -240,7 +244,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
@@ -260,7 +264,7 @@ class GetCommitsTaskSpec extends Specification {
 
     then:
     1 * scmService.compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
-      throw new SpinnakerHttpException(RetrofitError.httpError("http://stash.com", new Response("http://stash.com", 500, "test reason", [], null), null, null))
+      throw makeSpinnakerHttpException(500)
     }
     result.status == taskStatus
 
@@ -286,7 +290,7 @@ class GetCommitsTaskSpec extends Specification {
     and:
     task.scmService = scmService
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application()
+    1 * front50Service.get(app) >> Calls.response(new Application())
 
     when:
     def result = task.execute(stage)
@@ -344,7 +348,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
@@ -392,7 +396,7 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
@@ -403,14 +407,14 @@ class GetCommitsTaskSpec extends Specification {
 
     1 * cloudDriverService.getByAmiId("aws", account, region, sourceImage) >> {
       if (sourceThrowException) {
-        throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null))
+        throw makeSpinnakerHttpException(404)
       }
       return sourceResponse
     }
 
     (sourceThrowException ? 0 : 1) * cloudDriverService.getByAmiId("aws", account, region, targetImage) >> {
       if (targetThrowException) {
-        throw new SpinnakerHttpException(new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null))
+        throw makeSpinnakerHttpException(404)
       }
       return targetResponse
     }
@@ -449,13 +453,13 @@ class GetCommitsTaskSpec extends Specification {
     and:
     task.scmService = Stub(ScmService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
-        throw new SpinnakerHttpException(RetrofitError.httpError("http://stash.com", new Response("http://stash.com", 404, "test reason", [], null), null, null))
+        throw makeSpinnakerHttpException(404)
       }
     }
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+    1 * front50Service.get(app) >> Calls.response(new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash"))
 
     and:
     def response = new ServerGroup(launchConfig: [imageId: sourceImage])
@@ -638,5 +642,24 @@ class GetCommitsTaskSpec extends Specification {
     targetImage = "ami-target"
     targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+
+    String url = "https://clouddriver";
+
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

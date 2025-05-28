@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.gremlin.tasks;
 
 import static com.netflix.spinnaker.orca.gremlin.pipeline.GremlinStage.TERMINAL_KEY;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -33,7 +34,8 @@ public class MonitorGremlinAttackTask implements OverridableTimeoutRetryableTask
     final String apiKey = GremlinStage.getApiKey(ctx);
     final String attackGuid = GremlinStage.getAttackGuid(ctx);
 
-    final List<AttackStatus> statuses = gremlinService.getStatus(apiKey, attackGuid);
+    final List<AttackStatus> statuses =
+        Retrofit2SyncCall.execute(gremlinService.getStatus(apiKey, attackGuid));
 
     boolean foundFailedAttack = false;
     String failureType = "";

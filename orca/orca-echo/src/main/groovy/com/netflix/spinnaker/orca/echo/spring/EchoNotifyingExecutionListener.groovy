@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.echo.spring
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.echo.EchoService
@@ -60,13 +61,15 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
           addApplicationNotifications(execution)
         }
         AuthenticatedRequest.allowAnonymous({
-          echoService.recordEvent(
-            details: [
-              source     : "orca",
-              type       : "orca:${execution.type}:starting".toString(),
-              application: execution.application,
-            ],
-            content: buildContent(execution)
+          Retrofit2SyncCall.execute(
+            echoService.recordEvent(
+              details: [
+                source     : "orca",
+                type       : "orca:${execution.type}:starting".toString(),
+                application: execution.application,
+              ],
+              content: buildContent(execution)
+            )
           )
         })
       }
@@ -88,13 +91,15 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
           addApplicationNotifications(execution)
         }
         AuthenticatedRequest.allowAnonymous({
-          echoService.recordEvent(
-            details: [
-              source     : "orca",
-              type       : "orca:${execution.type}:${wasSuccessful ? "complete" : "failed"}".toString(),
-              application: execution.application,
-            ],
-            content: buildContent(execution)
+          Retrofit2SyncCall.execute(
+            echoService.recordEvent(
+              details: [
+                source     : "orca",
+                type       : "orca:${execution.type}:${wasSuccessful ? "complete" : "failed"}".toString(),
+                application: execution.application,
+              ],
+              content: buildContent(execution)
+            )
           )
         })
       }
@@ -124,11 +129,11 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
     ApplicationNotifications notifications
     if (user) {
       notifications = AuthenticatedRequest.runAs(user, pipeline.authentication.allowedAccounts ?: [] as Collection<String>, {
-        front50Service.getApplicationNotifications(pipeline.application)
+        Retrofit2SyncCall.execute(front50Service.getApplicationNotifications(pipeline.application))
       }).call()
     } else {
       notifications = AuthenticatedRequest.allowAnonymous({
-        front50Service.getApplicationNotifications(pipeline.application)
+        Retrofit2SyncCall.execute(front50Service.getApplicationNotifications(pipeline.application))
       })
     }
 
