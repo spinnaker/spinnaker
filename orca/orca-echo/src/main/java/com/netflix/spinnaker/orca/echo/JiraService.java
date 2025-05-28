@@ -19,15 +19,16 @@ package com.netflix.spinnaker.orca.echo;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.constraints.NotNull;
+import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
 
 @Component
 public class JiraService {
@@ -42,6 +43,7 @@ public class JiraService {
 
   public CreateJiraIssueResponse createJiraIssue(CreateIssueRequest createIssueRequest)
       throws CreateJiraIssueException {
+    ResponseBody responseBody = null;
     try {
       validateInputs(createIssueRequest);
       EchoService.Notification notification = new EchoService.Notification();
@@ -56,14 +58,19 @@ public class JiraService {
       notification.setSource(source);
       notification.setNotificationType(EchoService.Notification.Type.JIRA);
       notification.setAdditionalContext(ImmutableMap.of("issueContext", createIssueRequest));
-      Response response =
-          AuthenticatedRequest.allowAnonymous(() -> echoService.create(notification));
-      return mapper.readValue(response.getBody().in(), CreateJiraIssueResponse.class);
+      responseBody =
+          AuthenticatedRequest.allowAnonymous(
+              () -> Retrofit2SyncCall.execute(echoService.create(notification)));
+      return mapper.readValue(responseBody.byteStream(), CreateJiraIssueResponse.class);
     } catch (Exception e) {
       throw new CreateJiraIssueException(
           String.format(
               "Failed to create Jira Issue for project %s %s",
               createIssueRequest.getFields().getProject(), e.getMessage()));
+    } finally {
+      if (responseBody != null) {
+        responseBody.close();
+      }
     }
   }
 

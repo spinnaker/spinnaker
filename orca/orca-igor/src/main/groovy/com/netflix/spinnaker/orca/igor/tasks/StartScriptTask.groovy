@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import retrofit.client.Response
+import retrofit2.Response
 
 import javax.annotation.Nonnull
 import java.time.Duration
@@ -100,13 +100,13 @@ class StartScriptTask implements RetryableTask {
     try {
       Response igorResponse = buildService.build(master, job, parameters, stage.startTime.toString())
 
-      if (igorResponse.getStatus() == HttpStatus.ACCEPTED.value()) {
+      if (igorResponse.code() == HttpStatus.ACCEPTED.value()) {
         log.info("script for job=$job on master=$master is pending, waiting for script to start")
         return TaskResult.RUNNING
       }
 
-      if (igorResponse.getStatus() == HttpStatus.OK.value()) {
-        String queuedBuild = igorResponse.body.in().text
+      if (igorResponse.code() == HttpStatus.OK.value()) {
+        String queuedBuild = igorResponse.body().byteStream().text
         return TaskResult
             .builder(ExecutionStatus.SUCCEEDED)
             .context([master: master, job: job, queuedBuild: queuedBuild, REPO_URL: repoUrl ?: 'default'])

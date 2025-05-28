@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import retrofit2.mock.Calls;
 
 class CloudFoundryWaitForDeployServiceTaskTest
     extends AbstractCloudFoundryWaitForServiceOperationTaskTest<
@@ -69,9 +70,10 @@ class CloudFoundryWaitForDeployServiceTaskTest
             matches(region),
             matches(serviceInstanceName)))
         .thenReturn(
-            Map.of(
-                "status", "FAILED",
-                "lastOperationDescription", "Custom description"));
+            Calls.response(
+                Map.of(
+                    "status", "FAILED",
+                    "lastOperationDescription", "Custom description")));
 
     CloudFoundryWaitForDeployServiceTask task = subjectConstructor.apply(oortService);
 

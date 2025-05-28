@@ -23,7 +23,8 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
+import okhttp3.Request
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -55,7 +56,7 @@ class GetAwsCodeBuildArtifactsTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.getAwsCodeBuildArtifacts(ACCOUNT, BUILD_ID) >> artifacts
+    1 * igorService.getAwsCodeBuildArtifacts(ACCOUNT, BUILD_ID) >> Calls.response(artifacts)
     0 * igorService._
     result.getStatus() == ExecutionStatus.SUCCEEDED
     result.getOutputs().get("artifacts") == artifacts
@@ -80,8 +81,6 @@ class GetAwsCodeBuildArtifactsTaskSpec extends Specification {
   }
 
   def stubNetworkError() {
-    return new SpinnakerNetworkException(Stub(RetrofitError) {
-      getKind() >> RetrofitError.Kind.NETWORK
-    })
+    return new SpinnakerNetworkException(new IOException("timeout"), new Request.Builder().url("http://some-url").build())
   }
 }

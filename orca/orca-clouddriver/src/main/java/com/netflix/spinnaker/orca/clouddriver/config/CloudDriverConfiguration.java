@@ -16,15 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector;
@@ -33,7 +29,6 @@ import com.netflix.spinnaker.orca.clouddriver.*;
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfigurationProperties.BaseUrl;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration;
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,9 +39,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
 
 @Configuration
 @Import({RetrofitConfiguration.class, ArtifactStoreConfiguration.class})
@@ -70,37 +62,25 @@ public class CloudDriverConfiguration {
   }
 
   @Bean
-  ClouddriverRetrofitBuilder clouddriverRetrofitBuilder(
+  public ClouddriverRetrofitBuilder clouddriverRetrofitBuilder(
       ObjectMapper objectMapper,
-      OkHttpClientProvider clientProvider,
-      RestAdapter.LogLevel retrofitLogLevel,
-      RequestInterceptor spinnakerRequestInterceptor,
+      ServiceClientProvider serviceClientProvider,
       CloudDriverConfigurationProperties cloudDriverConfigurationProperties) {
     return new ClouddriverRetrofitBuilder(
-        objectMapper,
-        clientProvider,
-        retrofitLogLevel,
-        spinnakerRequestInterceptor,
-        cloudDriverConfigurationProperties);
+        objectMapper, serviceClientProvider, cloudDriverConfigurationProperties);
   }
 
   public static class ClouddriverRetrofitBuilder {
-    ObjectMapper objectMapper;
-    OkHttpClientProvider clientProvider;
-    RestAdapter.LogLevel retrofitLogLevel;
-    RequestInterceptor spinnakerRequestInterceptor;
-    CloudDriverConfigurationProperties cloudDriverConfigurationProperties;
+    private final ObjectMapper objectMapper;
+    private final ServiceClientProvider serviceClientProvider;
+    private final CloudDriverConfigurationProperties cloudDriverConfigurationProperties;
 
     ClouddriverRetrofitBuilder(
         ObjectMapper objectMapper,
-        OkHttpClientProvider clientProvider,
-        RestAdapter.LogLevel retrofitLogLevel,
-        RequestInterceptor spinnakerRequestInterceptor,
+        ServiceClientProvider serviceClientProvider,
         CloudDriverConfigurationProperties cloudDriverConfigurationProperties) {
       this.objectMapper = objectMapper;
-      this.clientProvider = clientProvider;
-      this.retrofitLogLevel = retrofitLogLevel;
-      this.spinnakerRequestInterceptor = spinnakerRequestInterceptor;
+      this.serviceClientProvider = serviceClientProvider;
       this.cloudDriverConfigurationProperties = cloudDriverConfigurationProperties;
     }
 
@@ -201,73 +181,70 @@ public class CloudDriverConfiguration {
     }
 
     public <T> T buildService(Class<T> type, String url) {
-      return new RestAdapter.Builder()
-          .setRequestInterceptor(spinnakerRequestInterceptor)
-          .setEndpoint(newFixedEndpoint(url))
-          .setClient(
-              new Ok3Client(
-                  clientProvider.getClient(new DefaultServiceEndpoint("clouddriver", url), true)))
-          .setLogLevel(retrofitLogLevel)
-          .setLog(new RetrofitSlf4jLog(type))
-          .setConverter(new JacksonConverter(objectMapper))
-          .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-          .build()
-          .create(type);
+      return serviceClientProvider.getService(
+          type, new DefaultServiceEndpoint(type.getSimpleName(), url), objectMapper);
     }
-  }
 
-  @Bean
-  MortService mortDeployService(ClouddriverRetrofitBuilder builder) {
-    return new DelegatingMortService(builder.buildReadOnlyService(MortService.class));
-  }
+    @Bean
+    public MortService mortDeployService(ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingMortService(
+          clouddriverRetrofitBuilder.buildReadOnlyService(MortService.class));
+    }
 
-  @Bean
-  CloudDriverCacheService clouddriverCacheService(ClouddriverRetrofitBuilder builder) {
-    return new DelegatingClouddriverCacheService(
-        builder.buildWriteableService(CloudDriverCacheService.class));
-  }
+    @Bean
+    public CloudDriverCacheService clouddriverCacheService(
+        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingClouddriverCacheService(
+          clouddriverRetrofitBuilder.buildWriteableService(CloudDriverCacheService.class));
+    }
 
-  @Bean
-  CloudDriverCacheStatusService cloudDriverCacheStatusService(ClouddriverRetrofitBuilder builder) {
-    return new DelegatingCloudDriverCacheStatusService(
-        builder.buildReadOnlyService(CloudDriverCacheStatusService.class));
-  }
+    @Bean
+    public CloudDriverCacheStatusService cloudDriverCacheStatusService(
+        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingCloudDriverCacheStatusService(
+          clouddriverRetrofitBuilder.buildReadOnlyService(CloudDriverCacheStatusService.class));
+    }
 
-  @Bean
-  OortService oortDeployService(ClouddriverRetrofitBuilder builder) {
-    return new DelegatingOortService(builder.buildReadOnlyService(OortService.class));
-  }
+    @Bean
+    public OortService oortDeployService(ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingOortService(
+          clouddriverRetrofitBuilder.buildReadOnlyService(OortService.class));
+    }
 
-  @Bean
-  CloudDriverTaskStatusService cloudDriverTaskStatusService(ClouddriverRetrofitBuilder builder) {
-    return new DelegatingCloudDriverTaskStatusService(
-        builder.buildReadOnlyService(CloudDriverTaskStatusService.class));
-  }
+    @Bean
+    public CloudDriverTaskStatusService cloudDriverTaskStatusService(
+        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingCloudDriverTaskStatusService(
+          clouddriverRetrofitBuilder.buildReadOnlyService(CloudDriverTaskStatusService.class));
+    }
 
-  @Bean
-  KatoRestService katoDeployService(ClouddriverRetrofitBuilder builder) {
-    return new DelegatingKatoRestService(builder.buildWriteableService(KatoRestService.class));
-  }
+    @Bean
+    public KatoRestService katoDeployService(
+        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingKatoRestService(
+          clouddriverRetrofitBuilder.buildWriteableService(KatoRestService.class));
+    }
 
-  @Bean
-  KatoService katoService(
-      KatoRestService katoRestService,
-      CloudDriverTaskStatusService cloudDriverTaskStatusService,
-      RetrySupport retrySupport,
-      ObjectMapper objectMapper) {
-    return new KatoService(
-        katoRestService, cloudDriverTaskStatusService, retrySupport, objectMapper);
-  }
+    @Bean
+    KatoService katoService(
+        KatoRestService katoRestService,
+        CloudDriverTaskStatusService cloudDriverTaskStatusService,
+        RetrySupport retrySupport,
+        ObjectMapper objectMapper) {
+      return new KatoService(
+          katoRestService, cloudDriverTaskStatusService, retrySupport, objectMapper);
+    }
 
-  @Bean
-  @ConditionalOnMissingBean(OperationsRunner.class)
-  OperationsRunner katoOperationsRunner(KatoService katoService) {
-    return new KatoOperationsRunner(katoService);
-  }
+    @Bean
+    @ConditionalOnMissingBean(OperationsRunner.class)
+    OperationsRunner katoOperationsRunner(KatoService katoService) {
+      return new KatoOperationsRunner(katoService);
+    }
 
-  @Bean
-  FeaturesRestService featuresRestService(ClouddriverRetrofitBuilder builder) {
-    return new DelegatingFeaturesRestService(
-        builder.buildWriteableService(FeaturesRestService.class));
+    @Bean
+    FeaturesRestService featuresRestService(ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+      return new DelegatingFeaturesRestService(
+          clouddriverRetrofitBuilder.buildWriteableService(FeaturesRestService.class));
+    }
   }
 }

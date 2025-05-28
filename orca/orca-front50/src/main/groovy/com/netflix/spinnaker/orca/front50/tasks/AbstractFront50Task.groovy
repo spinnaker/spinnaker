@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -83,7 +84,7 @@ abstract class AbstractFront50Task implements RetryableTask {
 
   Application fetchApplication(String applicationName) {
     try {
-      return front50Service.get(applicationName)
+      return Retrofit2SyncCall.execute(front50Service.get(applicationName))
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         return null

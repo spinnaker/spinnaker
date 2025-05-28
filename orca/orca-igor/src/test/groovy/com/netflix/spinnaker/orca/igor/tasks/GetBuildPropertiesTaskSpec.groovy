@@ -30,8 +30,11 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -120,15 +123,10 @@ class GetBuildPropertiesTaskSpec extends Specification {
   def "queues the task for re-try after a failed attempt"() {
     given:
     def stage = createStage(PROPERTY_FILE)
-    def igorError = Stub(RetrofitError) {
-      getResponse() >> new Response("", 500, "", Collections.emptyList(), null)
-    }
-
-    def httpException = new SpinnakerHttpException(igorError)
 
     and:
     1 * buildService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER, JOB) >>
-      { throw httpException }
+      { throw makeSpinnakerHttpException(500) }
 
     when:
     TaskResult result = task.execute(stage)
@@ -195,5 +193,24 @@ class GetBuildPropertiesTaskSpec extends Specification {
       buildNumber: BUILD_NUMBER,
       propertyFile: propertyFile
     ])
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+
+    String url = "https://clouddriver";
+
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

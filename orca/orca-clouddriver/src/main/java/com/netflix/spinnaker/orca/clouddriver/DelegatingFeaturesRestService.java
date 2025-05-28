@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import java.util.List;
+import retrofit2.Call;
 
 /**
  * Wrapper around the {@link FeaturesRestService} which selects an endpoint based on {@link
@@ -31,7 +32,7 @@ public class DelegatingFeaturesRestService extends DelegatingClouddriverService<
   }
 
   @Override
-  public List<AvailableStage> getStages() {
+  public Call<List<AvailableStage>> getStages() {
     return getService().getStages();
   }
 }

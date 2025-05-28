@@ -21,6 +21,7 @@ import static java.util.Collections.emptyMap;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -144,8 +145,9 @@ public class DeployCloudrunManifestStage extends ExpressionAwareStageDefinitionB
       String clusterName,
       String namespace,
       String newManifestName) {
-    return oortService
-        .getClusterManifests(account, namespace, "replicaSet", application, clusterName)
+    return Retrofit2SyncCall.execute(
+            oortService.getClusterManifests(
+                account, namespace, "replicaSet", application, clusterName))
         .stream()
         .filter(m -> !m.getFullResourceName().equals(newManifestName))
         .map(ManifestCoordinates::getFullResourceName)

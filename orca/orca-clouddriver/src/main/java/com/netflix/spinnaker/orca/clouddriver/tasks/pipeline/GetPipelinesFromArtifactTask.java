@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.pipeline;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.CharStreams;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -35,11 +35,11 @@ import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
 
 @Component
 @ConditionalOnProperty("front50.enabled")
@@ -106,7 +106,7 @@ public class GetPipelinesFromArtifactTask implements Task {
             .flatMap(
                 appName -> {
                   final List<Map<String, Object>> existingAppPipelines =
-                      front50Service.getPipelines(appName);
+                      Retrofit2SyncCall.execute(front50Service.getPipelines(appName));
                   final List<Map> specifiedAppPipelines = finalPipelinesFromArtifact.get(appName);
                   return specifiedAppPipelines.stream()
                       .map(
@@ -139,16 +139,9 @@ public class GetPipelinesFromArtifactTask implements Task {
   private String getPipelinesArtifactContent(Artifact artifact) {
     return retrySupport.retry(
         () -> {
-          Response response = oort.fetchArtifact(artifact);
-          InputStream artifactInputStream;
-          try {
-            artifactInputStream = response.getBody().in();
-          } catch (IOException e) {
-            log.warn("Failure fetching pipelines from {}", artifact, e);
-            throw new IllegalStateException(e); // forces a retry
-          }
-          try (InputStreamReader rd = new InputStreamReader(artifactInputStream)) {
-            return CharStreams.toString(rd);
+          try (ResponseBody responseBody =
+              Retrofit2SyncCall.execute(oort.fetchArtifact(artifact))) {
+            return responseBody.string();
           } catch (IOException e) {
             log.warn("Failure reading pipelines from {}", artifact, e);
             throw new IllegalStateException(e); // forces a retry

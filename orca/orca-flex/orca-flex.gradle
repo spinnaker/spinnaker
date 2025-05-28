@@ -25,4 +25,6 @@ dependencies {
   implementation("io.spinnaker.kork:kork-core")
   implementation("io.spinnaker.kork:kork-moniker")
   implementation("io.spinnaker.kork:kork-retrofit")
+
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 }

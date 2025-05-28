@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.tencentcloud;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.MortService;
@@ -69,12 +70,13 @@ public class TencentCloudSecurityGroupUpserter
     log.info("Enter tencentcloud isSecurityGroupUpserted with " + upsertedSecurityGroup);
     try {
       SecurityGroup securityGroup =
-          mortService.getSecurityGroup(
-              upsertedSecurityGroup.getAccountName(),
-              cloudProvider,
-              upsertedSecurityGroup.getName(),
-              upsertedSecurityGroup.getRegion(),
-              upsertedSecurityGroup.getVpcId());
+          Retrofit2SyncCall.execute(
+              mortService.getSecurityGroup(
+                  upsertedSecurityGroup.getAccountName(),
+                  cloudProvider,
+                  upsertedSecurityGroup.getName(),
+                  upsertedSecurityGroup.getRegion(),
+                  upsertedSecurityGroup.getVpcId()));
 
       return upsertedSecurityGroup.getName().equals(securityGroup.getName());
     } catch (SpinnakerHttpException e) {

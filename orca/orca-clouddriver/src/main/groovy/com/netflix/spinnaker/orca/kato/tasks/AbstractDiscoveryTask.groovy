@@ -42,7 +42,7 @@ abstract class AbstractDiscoveryTask implements Task {
   @Nonnull
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
-    def taskId = kato.requestOperations([["${action}": stage.context]])
+    def taskId = kato.requestOperations([["${action}": stage.context]] as Collection<Map<String, Map>>)
 
     TaskResult.builder(ExecutionStatus.SUCCEEDED).context([
       "notification.type"           : getAction().toLowerCase(),

@@ -18,11 +18,11 @@ package com.netflix.spinnaker.orca.igor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import retrofit.RestAdapter
-import retrofit.client.Response
-import retrofit.converter.JacksonConverter
+import okhttp3.OkHttpClient
+import retrofit2.Response
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.Retrofit
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -33,7 +33,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import static com.github.tomakehurst.wiremock.client.WireMock.get
 import static com.github.tomakehurst.wiremock.client.WireMock.put
-import static retrofit.Endpoints.newFixedEndpoint
 
 
 class BuildServiceSpecMock extends Specification{
@@ -56,12 +55,12 @@ class BuildServiceSpecMock extends Specification{
   def mapper = new ObjectMapper()
   IgorService igorService
   def setup() {
-    igorService = new RestAdapter.Builder()
-          .setEndpoint(newFixedEndpoint(wireMockServer.url("/")))
-          .setClient(new Ok3Client())
-          .setConverter(new JacksonConverter(mapper))
-          .build()
-          .create(IgorService)
+    igorService = new Retrofit.Builder()
+        .baseUrl(wireMockServer.baseUrl())
+        .client(new OkHttpClient())
+        .addConverterFactory(JacksonConverterFactory.create(mapper))
+        .build()
+        .create(IgorService)
     buildService = new BuildService(igorService, new IgorFeatureFlagProperties(jobNameAsQueryParameter: false))
   }
 
@@ -84,7 +83,7 @@ class BuildServiceSpecMock extends Specification{
     Response response = buildService.build(MASTER, JOB_NAME, PARAMS)
 
     then:
-    response.status == 200
+    response.code() == 200
   }
 
 
@@ -170,7 +169,7 @@ class BuildServiceSpecMock extends Specification{
 
   def "getArtifacts returns build artifacts - jobNameAsQueryParameter:true"() {
     given:
-    String uriPath = "/builds/artifacts/$BUILD_NUMBER/$MASTER?propertyFile=$FILENAME&job=$JOB_NAME_ENCODED"
+    String uriPath = "/builds/artifacts/$BUILD_NUMBER/$MASTER?job=$JOB_NAME_ENCODED&propertyFile=$FILENAME"
     IgorFeatureFlagProperties igorFeatureFlagProperties = new IgorFeatureFlagProperties()
     igorFeatureFlagProperties.setJobNameAsQueryParameter(true)
     buildService = new BuildService(igorService, igorFeatureFlagProperties)

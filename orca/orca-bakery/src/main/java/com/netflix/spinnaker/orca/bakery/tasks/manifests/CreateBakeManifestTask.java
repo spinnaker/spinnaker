@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.bakery.tasks.manifests;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -152,7 +153,9 @@ public class CreateBakeManifestTask implements RetryableTask {
 
     Artifact result =
         retrySupport.retry(
-            () -> bakery.bakeManifest(request.getTemplateRenderer(), request),
+            () ->
+                Retrofit2SyncCall.execute(
+                    bakery.bakeManifest(request.getTemplateRenderer(), request)),
             5,
             Duration.ofMillis(2000),
             false);

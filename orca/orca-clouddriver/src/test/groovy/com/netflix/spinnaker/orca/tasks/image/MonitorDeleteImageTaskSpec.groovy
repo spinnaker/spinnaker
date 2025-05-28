@@ -19,12 +19,13 @@ package com.netflix.spinnaker.orca.tasks.image
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.MonitorDeleteImageTask
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 
 class MonitorDeleteImageTaskSpec extends Specification {
@@ -70,11 +71,20 @@ class MonitorDeleteImageTaskSpec extends Specification {
   }
 
   private void error(int status) {
-    throw new SpinnakerHttpException(RetrofitError.httpError(
-      null,
-      new Response("http://...", status, "...", [], null),
-      null,
-      null
-    ))
+    String url = "https://clouddriver";
+
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    throw new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

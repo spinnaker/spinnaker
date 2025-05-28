@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kayenta.tasks
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -34,7 +35,7 @@ class PropagateDeployedServerGroupScopes(
 ) : Task {
 
   private fun findAccountId(accountName: String): String? {
-    val details = mortService.getAccountDetails(accountName)
+    val details = Retrofit2SyncCall.execute(mortService.getAccountDetails(accountName))
     val accountId = details["accountId"] as String?
     return accountId
   }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks;
 
 import com.netflix.frigga.Names;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -123,7 +124,7 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
         return TaskResult.SUCCEEDED;
       }
 
-      Application application = front50Service.get(applicationName);
+      Application application = Retrofit2SyncCall.execute(front50Service.get(applicationName));
 
       if (application.platformHealthOnly == Boolean.TRUE
           && application.platformHealthOnlyShowOverride != Boolean.TRUE) {

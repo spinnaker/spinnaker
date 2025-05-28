@@ -723,7 +723,7 @@ class OperationsControllerSpec extends Specification {
 
   def "should start pipeline by config id with provided trigger"() {
     given:
-    front50Service.getPipeline("1234") >> [id: '1234', stages: []]
+    front50Service.getPipeline("1234") >> Calls.response([id: '1234', stages: []])
 
     Map trigger = [
       type      : "manual",
