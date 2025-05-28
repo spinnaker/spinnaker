@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTaggerSpec
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Unroll
 
 class GoogleImageTaggerSpec extends ImageTaggerSpec {
@@ -55,13 +56,13 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
     and:
     if (foundById) {
       1 * oortService.findImage("gce", "gce-image-id", null, null, null) >> {
-        [["imageName": "my-gce-image"]]
+        Calls.response([["imageName": "my-gce-image"]])
       }
-      1 * oortService.findImage("gce", "my-gce-image", null, null, null) >> { [] }
+      1 * oortService.findImage("gce", "my-gce-image", null, null, null) >> { Calls.response([]) }
     } else if (imageId != null) {
-      1 * oortService.findImage("gce", imageId, null, null, null) >> { [] }
+      1 * oortService.findImage("gce", imageId, null, null, null) >> { Calls.response([]) }
     } else {
-      1 * oortService.findImage("gce", imageName, null, null, null) >> { [] }
+      1 * oortService.findImage("gce", imageName, null, null, null) >> { Calls.response([]) }
     }
 
     when:
@@ -94,10 +95,10 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
 
     then:
     1 * oortService.findImage("gce", "my-gce-image", null, null, null) >> {
-      [
+      Calls.response([
         [imageName: "my-gce-image-v2", account: "test"],
         [imageName: "my-gce-image", account: "test", tags: [tag1: "originalValue1"]]
-      ]
+      ])
     }
 
     operationContext.operations.size() == 1

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import static com.netflix.spinnaker.orca.TestUtils.getResourceAsStream;
+import static com.netflix.spinnaker.orca.TestUtils.getResource;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,19 +39,18 @@ import com.netflix.spinnaker.orca.front50.model.Application;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.Nullable;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
+import retrofit2.Response;
+import retrofit2.mock.Calls;
 
 public class CheckIfApplicationExistsForServerGroupTaskTest {
   private @Nullable Front50Service front50Service;
@@ -92,7 +91,7 @@ public class CheckIfApplicationExistsForServerGroupTaskTest {
             front50Service, oortService, objectMapper, retrySupport, configurationProperties);
 
     assert front50Service != null;
-    when(front50Service.get("testapp")).thenReturn(front50Application);
+    when(front50Service.get("testapp")).thenReturn(Calls.response(front50Application));
     stageExecution.setContext(getStageContext(applicationNameSource));
 
     // when:
@@ -121,7 +120,9 @@ public class CheckIfApplicationExistsForServerGroupTaskTest {
 
     when(oortService.getApplication("testapp"))
         .thenReturn(
-            getApplicationResponse("clouddriver/tasks/servergroup/clouddriver-application.json"));
+            Calls.response(
+                getApplicationResponse(
+                    "clouddriver/tasks/servergroup/clouddriver-application.json")));
     stageExecution.setContext(getStageContext(applicationNameSource));
 
     // when:
@@ -180,12 +181,10 @@ public class CheckIfApplicationExistsForServerGroupTaskTest {
         "did not find application: invalid app in front50 and in clouddriver";
     when(oortService.getApplication("invalid app"))
         .thenReturn(
-            new Response(
-                "test-url",
-                HttpStatus.NOT_FOUND.value(),
-                "application does not exist",
-                Collections.emptyList(),
-                new TypedByteArray("application/json", new byte[0])));
+            Calls.response(
+                Response.error(
+                    HttpStatus.NOT_FOUND.value(),
+                    ResponseBody.create("", MediaType.parse("application/json")))));
 
     Map<String, Object> stageContext = new HashMap<>();
     stageContext.put("application", "invalid app");
@@ -229,14 +228,8 @@ public class CheckIfApplicationExistsForServerGroupTaskTest {
     return stageContext;
   }
 
-  private Response getApplicationResponse(String resourceName) throws IOException {
-    InputStream jobStatusInputStream = getResourceAsStream(resourceName);
-
-    return new Response(
-        "test-url",
-        200,
-        "test-reason",
-        Collections.emptyList(),
-        new TypedByteArray("application/json", IOUtils.toByteArray(jobStatusInputStream)));
+  private ResponseBody getApplicationResponse(String resourceName) throws IOException {
+    String jobStatus = getResource(resourceName);
+    return ResponseBody.create(MediaType.parse("application/json"), jobStatus);
   }
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kayenta.pipeline.functions;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.kayenta.KayentaCanaryConfig;
 import com.netflix.spinnaker.orca.kayenta.KayentaService;
 import java.util.List;
@@ -71,7 +72,8 @@ public class KayentaConfigExpressionFunctionProvider implements ExpressionFuncti
           "App is a required field for the canaryConfigNameToId function.");
     }
 
-    List<KayentaCanaryConfig> configs = kayentaService.getAllCanaryConfigs();
+    List<KayentaCanaryConfig> configs =
+        Retrofit2SyncCall.execute(kayentaService.getAllCanaryConfigs());
     Optional<KayentaCanaryConfig> found =
         configs.stream()
             .filter(c -> c.getApplications().contains(app))

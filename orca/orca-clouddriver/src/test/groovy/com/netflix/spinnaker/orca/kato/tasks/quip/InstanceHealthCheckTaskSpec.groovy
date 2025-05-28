@@ -22,9 +22,10 @@ import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.ModelUtils
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.Request;
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls;
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -48,7 +49,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
 
     def responses = []
     responseCode?.each {
-      responses << new Response('http://foo.com', it, 'OK', [], new TypedString("Good"))
+      responses << ResponseBody.create(MediaType.parse("application/json"),"[]")
     }
 
     instances.size() * task.createInstanceService(_) >> instanceService
@@ -59,9 +60,9 @@ class InstanceHealthCheckTaskSpec extends Specification {
     then:
     instances.eachWithIndex { def entry, int i ->
       if (responseCode.get(i) == 200) {
-        1 * instanceService.healthCheck("healthCheck") >> responses.get(i)
+        1 * instanceService.healthCheck("healthCheck") >> Calls.response(responses.get(i))
       } else {
-        1 * instanceService.healthCheck("healthCheck") >> { throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null)) }
+        1 * instanceService.healthCheck("healthCheck") >> { throw new SpinnakerServerException(new RuntimeException(""), new Request.Builder().url("http://some-url").build()) }
       }
     }
 
@@ -88,7 +89,8 @@ class InstanceHealthCheckTaskSpec extends Specification {
 
     and:
     task.createInstanceService(_) >> instanceService
-    instanceService.healthCheck("healthCheck") >> new Response('http://foo.com', 200, 'OK', [], new TypedString("Good"))
+    instanceService.healthCheck("healthCheck") >> Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
+
 
     when:
     task.oortHelper = oortHelper
@@ -117,7 +119,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
 
     when:
     1 * oortHelper.getInstancesForCluster(_, _, _) >> ["i-1234" : ModelUtils.instanceInfo(["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"])]
-    1 * instanceService.healthCheck("healthCheck") >> new Response('http://foo.com', 200, 'OK', [], new TypedString("Good"))
+    1 * instanceService.healthCheck("healthCheck") >> Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
     1 * task.createInstanceService(_) >> instanceService
 
     def result = task.execute(stage)

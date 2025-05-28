@@ -23,8 +23,9 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import retrofit2.mock.Calls
+import okhttp3.MediaType
+import okhttp3.ResponseBody
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -89,7 +90,7 @@ class DeployCloudFormationTaskSpec extends Specification {
   def "should fail if context is invalid"() {
     given:
     def pipeline = PipelineExecutionImpl.newPipeline('orca')
-    def template = new TypedString('{ "key": "value" }')
+    def template = '{ "key": "value" }'
     def context = [
       credentials: 'creds',
       cloudProvider: 'aws',
@@ -106,7 +107,7 @@ class DeployCloudFormationTaskSpec extends Specification {
 
     then:
     (_..1) * artifactUtils.getBoundArtifactForStage(stage, 'id', null) >> Artifact.builder().build()
-    (_..1) * oortService.fetchArtifact(_) >> new Response("url", 200, "reason", Collections.emptyList(), template)
+    (_..1) * oortService.fetchArtifact(_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"), template))
     thrown(expectedException)
 
     where:
@@ -141,7 +142,7 @@ class DeployCloudFormationTaskSpec extends Specification {
 
     then:
     1 * artifactUtils.getBoundArtifactForStage(stage, stackArtifactId, _) >> Artifact.builder().build()
-    1 * oortService.fetchArtifact(_) >> new Response("url", 200, "reason", Collections.emptyList(), new TypedString(template))
+    1 * oortService.fetchArtifact(_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"), template))
     1 * katoService.requestOperations("aws", {
       it.get(0).get("deployCloudFormation").containsKey("templateBody")
     }) >> taskId

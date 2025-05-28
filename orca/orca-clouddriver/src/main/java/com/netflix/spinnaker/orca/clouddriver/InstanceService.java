@@ -16,30 +16,32 @@
 
 package com.netflix.spinnaker.orca.clouddriver;
 
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.GET;
-import retrofit.http.PATCH;
-import retrofit.http.Path;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.PATCH;
+import retrofit2.http.Path;
 
 public interface InstanceService {
   // TODO: add concrete result objects vs Response objects
-  @GET("/tasks")
-  Response listTasks();
+  @GET("tasks")
+  Call<ResponseBody> listTasks();
 
-  @GET("/tasks/{id}")
-  Response listTask(@Path("id") String id);
+  @GET("tasks/{id}")
+  Call<ResponseBody> listTask(@Path("id") String id);
 
-  @PATCH("/{app}/{version}")
-  Response patchInstance(
+  @PATCH("{app}/{version}")
+  Call<ResponseBody> patchInstance(
       @Path("app") String app, @Path("version") String version, @Body String body);
 
-  @GET("/{app}/current")
-  Response getCurrentVersion(@Path("app") String app);
+  @GET("{app}/current")
+  Call<ResponseBody> getCurrentVersion(@Path("app") String app);
 
-  @GET("/{healthCheckPath}")
-  Response healthCheck(@Path(value = "healthCheckPath", encode = false) String healthCheckPath);
+  @GET("{healthCheckPath}")
+  Call<ResponseBody> healthCheck(
+      @Path(value = "healthCheckPath", encoded = true) String healthCheckPath);
 
-  @GET("/v1/platform/base/jars")
-  Response getJars();
+  @GET("v1/platform/base/jars")
+  Call<ResponseBody> getJars();
 }

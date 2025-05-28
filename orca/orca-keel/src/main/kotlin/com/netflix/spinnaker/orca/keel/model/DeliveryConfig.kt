@@ -18,5 +18,7 @@ package com.netflix.spinnaker.orca.keel.model
 
 /**
  * A Managed Delivery config file, modeled as a simple Map for now. Keel is expected to validate the format, not orca.
+ * Added @JvnSuppressWildcards as Retrofit2 [com.netflix.spinnaker.orca.KeelService.publishDeliveryConfig]
+ * does not support generic wildcards (?) in type declarations.
  */
-typealias DeliveryConfig = Map<String, Any?>
+typealias DeliveryConfig = Map<String, @JvmSuppressWildcards Any?>

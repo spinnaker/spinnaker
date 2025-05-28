@@ -17,23 +17,36 @@
 package com.netflix.spinnaker.orca.bakery.api
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.config.DefaultServiceClientProvider
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import retrofit.RequestInterceptor
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.ApplicationContext
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static com.google.common.net.HttpHeaders.LOCATION
 import static java.net.HttpURLConnection.*
-import static retrofit.RestAdapter.LogLevel.FULL
 
+import com.netflix.spinnaker.orca.test.Retrofit2TestConfig
+
+@SpringBootTest(
+    classes = [Retrofit2TestConfig],
+    webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class BakeryServiceSpec extends Specification {
 
   static WireMockServer wireMockServer = new WireMockServer(0)
 
   @Subject BakeryService bakery
+
+  @Autowired
+  ApplicationContext applicationContext
+
+  @Autowired
+  DefaultServiceClientProvider serviceClientProvider
 
   private static final region = "us-west-1"
   private static final bake = BakeRequest.Default.copyWith(user: "rfletcher", packageName: "orca")
@@ -55,12 +68,8 @@ class BakeryServiceSpec extends Specification {
   }
 
   def setup() {
-    bakery = new BakeryConfiguration(
-      retrofitClient: new Ok3Client(),
-      retrofitLogLevel: FULL,
-      spinnakerRequestInterceptor: Mock(RequestInterceptor)
-    )
-      .buildService(wireMockServer.url("/"))
+    bakery = new BakeryConfiguration()
+      .buildService(wireMockServer.url("/"), serviceClientProvider)
   }
 
   def cleanupSpec() {
@@ -92,7 +101,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect:
-    with(bakery.lookupStatus(region, statusId)) {
+    with(Retrofit2SyncCall.execute(bakery.lookupStatus(region, statusId))) {
       id == statusId
       state == BakeStatus.State.COMPLETED
       resourceId == bakeId
@@ -111,11 +120,11 @@ class BakeryServiceSpec extends Specification {
     )
 
     when:
-    bakery.lookupStatus(region, statusId)
+    Retrofit2SyncCall.execute(bakery.lookupStatus(region, statusId))
 
     then:
     def ex = thrown(SpinnakerHttpException)
-    ex.response.status == HTTP_NOT_FOUND
+    ex.responseCode == HTTP_NOT_FOUND
   }
 
   def "should return status of newly created bake"() {
@@ -141,7 +150,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake, null)) {
+    with(Retrofit2SyncCall.execute(bakery.createBake(region, bake, null))) {
       id == statusId
       state == BakeStatus.State.PENDING
       resourceId == bakeId
@@ -180,7 +189,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake, null)) {
+    with(Retrofit2SyncCall.execute(bakery.createBake(region, bake, null))) {
       id == statusId
       state == BakeStatus.State.RUNNING
       resourceId == bakeId
@@ -207,7 +216,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect:
-    with(bakery.lookupBake(region, bakeId)) {
+    with(Retrofit2SyncCall.execute(bakery.lookupBake(region, bakeId))) {
       id == bakeId
       ami == "ami"
     }

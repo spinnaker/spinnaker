@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver;
 
 import java.util.List;
-import retrofit.http.GET;
+import retrofit2.Call;
+import retrofit2.http.GET;
 
 public interface FeaturesRestService {
 
   @GET("/features/stages")
-  List<AvailableStage> getStages();
+  Call<List<AvailableStage>> getStages();
 
   public static class AvailableStage {
     public String name;

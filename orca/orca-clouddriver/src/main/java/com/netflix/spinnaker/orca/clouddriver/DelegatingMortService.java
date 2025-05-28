@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import retrofit2.Call;
 
 public class DelegatingMortService extends DelegatingClouddriverService<MortService>
     implements MortService {
@@ -29,29 +30,29 @@ public class DelegatingMortService extends DelegatingClouddriverService<MortServ
   }
 
   @Override
-  public SecurityGroup getSecurityGroup(
+  public Call<SecurityGroup> getSecurityGroup(
       String account, String type, String securityGroupName, String region) {
     return getService().getSecurityGroup(account, type, securityGroupName, region);
   }
 
   @Override
-  public SecurityGroup getSecurityGroup(
+  public Call<SecurityGroup> getSecurityGroup(
       String account, String type, String securityGroupName, String region, String vpcId) {
     return getService().getSecurityGroup(account, type, securityGroupName, region, vpcId);
   }
 
   @Override
-  public Collection<VPC> getVPCs() {
+  public Call<Collection<VPC>> getVPCs() {
     return getService().getVPCs();
   }
 
   @Override
-  public List<SearchResult> getSearchResults(String searchTerm, String type) {
+  public Call<List<SearchResult>> getSearchResults(String searchTerm, String type) {
     return getService().getSearchResults(searchTerm, type);
   }
 
   @Override
-  public Map getAccountDetails(String account) {
+  public Call<Map> getAccountDetails(String account) {
     return getService().getAccountDetails(account);
   }
 }

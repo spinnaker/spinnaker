@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 class UpdatePipelineTemplateStageSpec extends Specification {
@@ -95,7 +96,7 @@ class UpdatePipelineTemplateStageSpec extends Specification {
 
     then:
     1 * front50Service.getPipelineTemplateDependents("myTemplate", true) >> {
-      [pipeline1, pipeline2, pipeline3]
+      Calls.response([pipeline1, pipeline2, pipeline3])
     }
 
     afterStages.size() == 3

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -76,7 +77,8 @@ public class StartAwsCodeBuildTask implements Task {
     appendEnvironmentVariables(requestInput, stageDefinition.getEnvironmentVariables());
 
     AwsCodeBuildExecution execution =
-        igorService.startAwsCodeBuild(stageDefinition.getAccount(), requestInput);
+        Retrofit2SyncCall.execute(
+            igorService.startAwsCodeBuild(stageDefinition.getAccount(), requestInput));
 
     Map<String, Object> context = stage.getContext();
     context.put("buildInfo", execution);

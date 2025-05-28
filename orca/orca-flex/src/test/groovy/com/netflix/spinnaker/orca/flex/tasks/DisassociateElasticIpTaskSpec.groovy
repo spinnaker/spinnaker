@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.flex.FlexService
 import com.netflix.spinnaker.orca.flex.model.ElasticIpResult
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 class DisassociateElasticIpTaskSpec extends Specification {
@@ -28,7 +29,7 @@ class DisassociateElasticIpTaskSpec extends Specification {
     given:
     def flexService = Mock(FlexService) {
       1 * disassociateElasticIp(application, account, cluster, region, elasticIpAddress) >> {
-        return elasticIpResult
+        return Calls.response(elasticIpResult)
       }
       0 * _
     }

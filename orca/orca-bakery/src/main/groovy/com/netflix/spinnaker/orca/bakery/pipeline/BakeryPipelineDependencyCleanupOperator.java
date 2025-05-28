@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.bakery.api.BakeryService;
 import com.netflix.spinnaker.orca.bakery.api.DeleteBakesRequest;
 import com.netflix.spinnaker.orca.notifications.scheduling.PipelineDependencyCleanupOperator;
@@ -36,6 +37,6 @@ public class BakeryPipelineDependencyCleanupOperator implements PipelineDependen
     DeleteBakesRequest deleteBakesRequest = new DeleteBakesRequest();
     deleteBakesRequest.setPipelineExecutionIds(pipelineExecutionIds);
 
-    bakeryService.createDeleteBakesRequest(deleteBakesRequest);
+    Retrofit2SyncCall.execute(bakeryService.createDeleteBakesRequest(deleteBakesRequest));
   }
 }

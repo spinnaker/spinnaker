@@ -20,6 +20,7 @@ import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -161,7 +162,7 @@ public class MonitorFront50Task implements RetryableTask {
 
   private Optional<Map<String, Object>> getPipeline(String id) {
     try {
-      return Optional.of(front50Service.getPipeline(id));
+      return Optional.of(Retrofit2SyncCall.execute(front50Service.getPipeline(id)));
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() == HTTP_NOT_FOUND) {
         return Optional.empty();
@@ -173,7 +174,8 @@ public class MonitorFront50Task implements RetryableTask {
   @SuppressWarnings("unchecked")
   private Optional<Map<String, Object>> getDeliveryConfig(String id) {
     try {
-      DeliveryConfig deliveryConfig = front50Service.getDeliveryConfig(id);
+      DeliveryConfig deliveryConfig =
+          Retrofit2SyncCall.execute(front50Service.getDeliveryConfig(id));
       return Optional.of(objectMapper.convertValue(deliveryConfig, Map.class));
     } catch (SpinnakerHttpException e) {
       // ignore an unknown (404) or unauthorized (403, 401)

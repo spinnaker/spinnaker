@@ -16,12 +16,14 @@
 package com.netflix.spinnaker.orca.igor;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import okhttp3.ResponseBody;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.web.util.UriUtils;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 @RequiredArgsConstructor
 @EnableConfigurationProperties(IgorFeatureFlagProperties.class)
@@ -33,46 +35,59 @@ public class BuildService {
     return UriUtils.encodeFragment(uri, "UTF-8");
   }
 
-  public Response build(String master, String jobName, Map<String, String> queryParams) {
-    return igorService.build(master, encode(jobName), queryParams, "");
+  public Response<ResponseBody> build(
+      String master, String jobName, Map<String, String> queryParams) {
+    return Retrofit2SyncCall.executeCall(
+        igorService.build(master, encode(jobName), queryParams, ""));
   }
 
-  public Response build(
+  public Response<ResponseBody> build(
       String master, String jobName, Map<String, String> queryParams, String startTime) {
-    return igorService.build(master, encode(jobName), queryParams, startTime);
+    return Retrofit2SyncCall.executeCall(
+        igorService.build(master, encode(jobName), queryParams, startTime));
   }
 
   public String stop(String master, String jobName, String queuedBuild, Long buildNumber) {
     return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
-        ? igorService.stopWithJobNameAsQueryParameter(master, jobName, queuedBuild, buildNumber, "")
-        : igorService.stop(master, jobName, queuedBuild, buildNumber, "");
+        ? Retrofit2SyncCall.execute(
+            igorService.stopWithJobNameAsQueryParameter(
+                master, jobName, queuedBuild, buildNumber, ""))
+        : Retrofit2SyncCall.execute(
+            igorService.stop(master, jobName, queuedBuild, buildNumber, ""));
   }
 
   public Map queuedBuild(String master, String item) {
-    return igorService.queuedBuild(master, item);
+    return Retrofit2SyncCall.execute(igorService.queuedBuild(master, item));
   }
 
   public Map<String, Object> getBuild(Long buildNumber, String master, String job) {
     return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
-        ? igorService.getBuildWithJobAsQueryParam(buildNumber, master, encode(job))
-        : igorService.getBuild(buildNumber, master, encode(job));
+        ? Retrofit2SyncCall.execute(
+            igorService.getBuildWithJobAsQueryParam(buildNumber, master, encode(job)))
+        : Retrofit2SyncCall.execute(igorService.getBuild(buildNumber, master, encode(job)));
   }
 
   public Map<String, Object> getPropertyFile(
       Long buildNumber, String fileName, String master, String job) {
     return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
-        ? igorService.getPropertyFileWithJobAsQueryParam(buildNumber, fileName, master, encode(job))
-        : igorService.getPropertyFile(buildNumber, fileName, master, encode(job));
+        ? Retrofit2SyncCall.execute(
+            igorService.getPropertyFileWithJobAsQueryParam(
+                buildNumber, fileName, master, encode(job)))
+        : Retrofit2SyncCall.execute(
+            igorService.getPropertyFile(buildNumber, fileName, master, encode(job)));
   }
 
   public List<Artifact> getArtifacts(Long buildNumber, String fileName, String master, String job) {
     return this.igorFeatureFlagProperties.isJobNameAsQueryParameter()
-        ? igorService.getArtifactsWithJobAsQueryParam(buildNumber, fileName, master, encode(job))
-        : igorService.getArtifacts(buildNumber, fileName, master, encode(job));
+        ? Retrofit2SyncCall.execute(
+            igorService.getArtifactsWithJobAsQueryParam(buildNumber, master, encode(job), fileName))
+        : Retrofit2SyncCall.execute(
+            igorService.getArtifacts(buildNumber, master, encode(job), fileName));
   }
 
-  public Response updateBuild(
+  public Response<ResponseBody> updateBuild(
       String master, String jobName, Long buildNumber, IgorService.UpdatedBuild updatedBuild) {
-    return igorService.update(master, jobName, buildNumber, updatedBuild);
+    return Retrofit2SyncCall.executeCall(
+        igorService.update(master, jobName, buildNumber, updatedBuild));
   }
 }

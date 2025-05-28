@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -26,10 +27,11 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 @Component
 public class CreatePipelineTemplateTask implements RetryableTask, SavePipelineTemplateTask {
@@ -63,18 +65,20 @@ public class CreatePipelineTemplateTask implements RetryableTask, SavePipelineTe
 
     validate(pipelineTemplate);
 
-    Response response =
-        front50Service.savePipelineTemplate(
-            (Map<String, Object>)
-                ((StageExecutionImpl) stage)
-                    .decodeBase64("/pipelineTemplate", Map.class, pipelineTemplateObjectMapper));
+    Response<ResponseBody> response =
+        Retrofit2SyncCall.executeCall(
+            front50Service.savePipelineTemplate(
+                (Map<String, Object>)
+                    ((StageExecutionImpl) stage)
+                        .decodeBase64(
+                            "/pipelineTemplate", Map.class, pipelineTemplateObjectMapper)));
 
     // TODO rz - app & account context?
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "createpipelinetemplate");
     outputs.put("pipelineTemplate.id", pipelineTemplate.getId());
 
-    if (response.getStatus() == HttpStatus.OK.value()) {
+    if (response.code() == HttpStatus.OK.value()) {
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
     }
 
