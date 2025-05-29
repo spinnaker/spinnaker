@@ -268,9 +268,10 @@ class TransactionIsolationMysqlTest {
 
   private void verifyGlobalTransactionIsolationLevel(Statement stmt, String expectedLevel)
       throws SQLException {
-    try (ResultSet global_tx_isolation_rs = stmt.executeQuery("SELECT @@global.tx_isolation")) {
+    try (ResultSet global_tx_isolation_rs =
+        stmt.executeQuery("SELECT @@global.transaction_isolation")) {
       assertThat(global_tx_isolation_rs.next()).isTrue();
-      assertThat(global_tx_isolation_rs.getString("@@global.tx_isolation"))
+      assertThat(global_tx_isolation_rs.getString("@@global.transaction_isolation"))
           .isEqualTo(expectedLevel);
       assertThat(global_tx_isolation_rs.isLast()).isTrue();
     }
@@ -278,9 +279,10 @@ class TransactionIsolationMysqlTest {
 
   private void verifySessionTransactionIsolationLevel(Statement stmt, String expectedLevel)
       throws SQLException {
-    try (ResultSet session_tx_isolation_rs = stmt.executeQuery("SELECT @@tx_isolation")) {
+    try (ResultSet session_tx_isolation_rs = stmt.executeQuery("SELECT @@transaction_isolation")) {
       assertThat(session_tx_isolation_rs.next()).isTrue();
-      assertThat(session_tx_isolation_rs.getString("@@tx_isolation")).isEqualTo(expectedLevel);
+      assertThat(session_tx_isolation_rs.getString("@@transaction_isolation"))
+          .isEqualTo(expectedLevel);
       assertThat(session_tx_isolation_rs.isLast()).isTrue();
     }
   }
