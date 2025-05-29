@@ -141,7 +141,11 @@ public class KubernetesCluster {
     Files.createDirectories(IT_BUILD_HOME);
     String os = "linux";
     String arch = "amd64";
-    // TODO: Support running tests in other os/archs
+
+    if (System.getProperty("os.arch").toLowerCase().equals("aarch64")) {
+      arch = "arm64";
+    }
+
     if (System.getProperty("os.name").toLowerCase().contains("mac")) {
       os = "darwin";
     }
