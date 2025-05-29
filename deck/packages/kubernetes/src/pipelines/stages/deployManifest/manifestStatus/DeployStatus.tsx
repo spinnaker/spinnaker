@@ -7,6 +7,7 @@ import { CollapsibleElement, ExecutionDetailsSection, SETTINGS, StageFailureMess
 import { ManifestStatus } from './ManifestStatus';
 import type { IStageManifest } from '../../../../manifest/manifest.service';
 import { KubernetesManifestService } from '../../../../manifest/manifest.service';
+import { fetchManifests } from './utils/fetchManifests';
 
 import './DeployStatus.less';
 
@@ -38,20 +39,26 @@ export class DeployStatus extends React.Component<IExecutionDetailsSectionProps,
   }
 
   public componentDidUpdate(_prevProps: IExecutionDetailsSectionProps, prevState: IDeployStatusState) {
-    const manifests: IStageManifest[] = get(this.props.stage, ['context', 'outputs.manifests'], []).filter((m) => !!m);
-    const manifestIds = manifests.map((m) => KubernetesManifestService.manifestIdentifier(m)).sort();
-    if (prevState.manifestIds.join('') !== manifestIds.join('')) {
-      this.unsubscribeAll();
-      const subscriptions = manifests.map((manifest) => {
-        const id = KubernetesManifestService.manifestIdentifier(manifest);
-        return {
-          id,
-          unsubscribe: this.subscribeToManifestUpdates(id, manifest),
-          manifest: this.stageManifestToIManifest(manifest, this.props.stage.context.account),
-        };
+    const rawManifests: any[] = get(this.props.stage.context, 'outputs.manifests', []).filter((m) => !!m);
+    fetchManifests(rawManifests)
+      .then((manifests: IStageManifest[]) => {
+        const manifestIds = manifests.map((m) => KubernetesManifestService.manifestIdentifier(m)).sort();
+        if (prevState.manifestIds.join('') !== manifestIds.join('')) {
+          this.unsubscribeAll();
+          const subscriptions = manifests.map((manifest) => {
+            const id = KubernetesManifestService.manifestIdentifier(manifest);
+            return {
+              id,
+              unsubscribe: this.subscribeToManifestUpdates(id, manifest),
+              manifest: this.stageManifestToIManifest(manifest, this.props.stage.context.account),
+            };
+          });
+          this.setState({ subscriptions, manifestIds });
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to fetch manifests:', error);
       });
-      this.setState({ subscriptions, manifestIds });
-    }
   }
 
   private subscribeToManifestUpdates(id: string, manifest: IStageManifest): () => void {
