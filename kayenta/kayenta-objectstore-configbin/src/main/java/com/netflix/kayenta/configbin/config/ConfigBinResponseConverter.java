@@ -18,80 +18,58 @@ package com.netflix.kayenta.configbin.config;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.RequestBody;
-import okio.Buffer;
+import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
-import retrofit.converter.ConversionException;
-import retrofit.converter.Converter;
-import retrofit.mime.TypedInput;
-import retrofit.mime.TypedOutput;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
 
 @Component
 @Slf4j
-public class ConfigBinResponseConverter implements Converter {
+public class ConfigBinResponseConverter extends Converter.Factory {
 
   @Override
-  public String fromBody(TypedInput body, Type type) throws ConversionException {
-    try {
-      ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-      int nRead;
-      byte[] data = new byte[1024];
-      InputStream inputStream = body.in();
-      while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
-        buffer.write(data, 0, nRead);
-      }
-      buffer.flush();
-      byte[] byteArray = buffer.toByteArray();
-      return new String(byteArray, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      log.error("Unable to read response body or convert it to a UTF-8 string", e);
-      return null;
+  public Converter<ResponseBody, ?> responseBodyConverter(
+      Type type, Annotation[] annotations, Retrofit retrofit) {
+    if (type == String.class) {
+      return new StringResponseConverter();
     }
+    return null;
   }
 
   @Override
-  public TypedOutput toBody(Object object) {
-    RequestBody requestBody = (RequestBody) object;
-    return new StringTypedOutput(requestBody);
+  public @Nullable Converter<?, RequestBody> requestBodyConverter(
+      Type type,
+      Annotation[] parameterAnnotations,
+      Annotation[] methodAnnotations,
+      Retrofit retrofit) {
+    if (type == RequestBody.class) {
+      return value -> (RequestBody) value;
+    }
+    return null;
   }
 
-  private static class StringTypedOutput implements TypedOutput {
-    private final RequestBody string;
-
-    StringTypedOutput(RequestBody s) {
-      this.string = s;
-    }
-
+  private static class StringResponseConverter implements Converter<ResponseBody, String> {
     @Override
-    public String fileName() {
-      return null;
-    }
-
-    @Override
-    public String mimeType() {
-      return "application/json; charset=UTF-8";
-    }
-
-    @Override
-    public long length() {
-      try {
-        return string.contentLength();
+    public String convert(ResponseBody value) throws IOException {
+      try (ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+          ResponseBody body = value) {
+        byte[] data = new byte[1024];
+        int nRead;
+        while ((nRead = body.byteStream().read(data, 0, data.length)) != -1) {
+          buffer.write(data, 0, nRead);
+        }
+        buffer.flush();
+        return buffer.toString(StandardCharsets.UTF_8.name());
       } catch (IOException e) {
-        log.error("Unable to determine response body length", e);
-        return 0;
+        log.error("Unable to read response body or convert it to a UTF-8 string", e);
+        return null;
       }
-    }
-
-    @Override
-    public void writeTo(OutputStream out) throws IOException {
-      Buffer buffer = new Buffer();
-      string.writeTo(buffer);
-      buffer.writeTo(out);
     }
   }
 }

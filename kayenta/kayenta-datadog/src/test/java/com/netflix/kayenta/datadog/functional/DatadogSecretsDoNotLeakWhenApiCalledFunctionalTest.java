@@ -37,7 +37,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,8 +82,7 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
         DatadogConfiguration.createDatadogRemoteService(
             retrofitClientFactory,
             objectMapper,
-            new RemoteService().setBaseUrl("http://localhost:" + mockServer.getPort()),
-            new OkHttpClient());
+            new RemoteService().setBaseUrl("http://localhost:" + mockServer.getPort()));
   }
 
   @AfterEach
