@@ -16,28 +16,24 @@
 
 package com.netflix.kayenta.retrofit.config;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Function;
 import okhttp3.Credentials;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import retrofit.Endpoint;
-import retrofit.RestAdapter;
-import retrofit.converter.Converter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Converter.Factory;
+import retrofit2.Retrofit;
 
 @Component
 public class RetrofitClientFactory {
@@ -46,85 +42,69 @@ public class RetrofitClientFactory {
   @VisibleForTesting
   public String retrofitLogLevel;
 
+  @Autowired OkHttp3ClientConfiguration okHttp3ClientConfig;
+
   @VisibleForTesting
   public Function<Class<?>, Slf4jRetrofitLogger> createRetrofitLogger = Slf4jRetrofitLogger::new;
 
-  @Bean
-  JacksonConverter jacksonConverterWithMapper(ObjectMapper objectMapper) {
-    return new JacksonConverter(objectMapper);
-  }
-
-  public <T> T createClient(
-      Class<T> type, Converter converter, RemoteService remoteService, OkHttpClient okHttpClient) {
-    try {
-      return createClient(type, converter, remoteService, okHttpClient, null, null, null, null);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  public <T> T createClient(Class<T> type, Factory converterFactory, RemoteService remoteService) {
+    return createClient(
+        type, converterFactory, remoteService, okHttp3ClientConfig.createForRetrofit2().build());
   }
 
   public <T> T createClient(
       Class<T> type,
-      Converter converter,
+      Factory converterFactory,
       RemoteService remoteService,
-      OkHttpClient okHttpClient,
-      String username,
-      String password,
-      String usernamePasswordFile) {
-    try {
-      return createClient(
-          type,
-          converter,
-          remoteService,
-          okHttpClient,
-          username,
-          password,
-          usernamePasswordFile,
-          null);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+      OkHttpClient okHttpClient) {
+    return createClient(type, converterFactory, remoteService.getBaseUrl(), okHttpClient);
   }
 
   public <T> T createClient(
       Class<T> type,
-      Converter converter,
+      Factory converterFactory,
       RemoteService remoteService,
-      OkHttpClient okHttpClient,
       String username,
       String password,
       String usernamePasswordFile,
       String bearerToken)
       throws IOException {
-    String baseUrl = remoteService.getBaseUrl();
-
-    baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-
-    Endpoint endpoint = newFixedEndpoint(baseUrl);
-
+    OkHttpClient okHttpClient;
     if (!(StringUtils.isEmpty(username)
         && StringUtils.isEmpty(password)
         && StringUtils.isEmpty(usernamePasswordFile)
         && StringUtils.isEmpty(bearerToken))) {
       okHttpClient =
-          createAuthenticatedClient(username, password, usernamePasswordFile, bearerToken);
+          createAuthenticatedClient(
+              okHttp3ClientConfig.createForRetrofit2(),
+              username,
+              password,
+              usernamePasswordFile,
+              bearerToken);
+    } else {
+      okHttpClient = okHttp3ClientConfig.createForRetrofit2().build();
     }
+    return createClient(type, converterFactory, remoteService, okHttpClient);
+  }
 
-    Slf4jRetrofitLogger logger = createRetrofitLogger.apply(type);
+  private <T> T createClient(
+      Class<T> type, Factory converterFactory, String baseUrl, OkHttpClient okHttpClient) {
 
-    return new RestAdapter.Builder()
-        .setEndpoint(endpoint)
-        .setClient(new Ok3Client(okHttpClient))
-        .setConverter(converter)
-        .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-        .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
-        .setLog(logger)
+    return new Retrofit.Builder()
+        .baseUrl(getBaseUrl(baseUrl))
+        .client(okHttpClient)
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(converterFactory)
         .build()
         .create(type);
   }
 
   private static OkHttpClient createAuthenticatedClient(
-      String username, String password, String usernamePasswordFile, String bearerToken)
+      OkHttpClient.Builder okHttp3ClientBuilder,
+      String username,
+      String password,
+      String usernamePasswordFile,
+      String bearerToken)
       throws IOException {
     final String credential;
 
@@ -139,10 +119,22 @@ public class RetrofitClientFactory {
       credential = Credentials.basic(username, password);
     }
 
-    return new OkHttpClient.Builder()
+    return okHttp3ClientBuilder
         .authenticator(
             (route, response) ->
                 response.request().newBuilder().header("Authorization", credential).build())
         .build();
+  }
+
+  public static String getBaseUrl(String suppliedBaseUrl) {
+    HttpUrl parsedUrl = HttpUrl.parse(suppliedBaseUrl);
+    if (parsedUrl == null) {
+      throw new IllegalArgumentException("Invalid URL: " + suppliedBaseUrl);
+    }
+    String baseUrl = parsedUrl.newBuilder().build().toString();
+    if (!baseUrl.endsWith("/")) {
+      baseUrl += "/";
+    }
+    return baseUrl;
   }
 }

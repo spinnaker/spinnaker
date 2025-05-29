@@ -23,25 +23,25 @@ import com.netflix.kayenta.metrics.RetryableQueryException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import retrofit.converter.ConversionException;
-import retrofit.converter.Converter;
-import retrofit.mime.TypedInput;
-import retrofit.mime.TypedOutput;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
 
 @Component
 @Slf4j
 // Atlas returns one json stanza per line; we rely on that here.
 // We are not implementing full, proper SSE handling here.
-public class AtlasSSEConverter implements Converter {
+public class AtlasSSEConverter extends Converter.Factory {
 
   private static final List<String> EXPECTED_RESULTS_TYPE_LIST =
       Arrays.asList("timeseries", "close");
@@ -65,84 +65,116 @@ public class AtlasSSEConverter implements Converter {
   }
 
   @Override
-  public List<AtlasResults> fromBody(TypedInput body, Type type) throws ConversionException {
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(body.in()))) {
-      return processInput(reader);
-    } catch (IOException e) {
-      log.error("Cannot process Atlas results", e);
+  public Converter<ResponseBody, List<AtlasResults>> responseBodyConverter(
+      Type type, Annotation[] annotations, Retrofit retrofit) {
+    if (isListOfAtlasResults(type)) {
+      return new AtlasSSEResponseConverter(kayentaObjectMapper, configName, queryName, queryString);
     }
     return null;
   }
 
-  protected List<AtlasResults> processInput(BufferedReader reader) {
-    List<String[]> tokenizedLines =
-        reader
-            .lines()
-            .filter(line -> !StringUtils.isEmpty(line))
-            .map(line -> line.split(": ", 2))
-            .collect(Collectors.toList());
-
-    tokenizedLines.stream()
-        .map(tokenizedLine -> tokenizedLine[0])
-        .filter(openingToken -> !openingToken.equals("data"))
-        .forEach(
-            nonDataOpeningToken ->
-                log.info(
-                    "Received opening token other than 'data' from Atlas: {}",
-                    nonDataOpeningToken));
-
-    List<AtlasResults> atlasResultsList =
-        tokenizedLines.stream()
-            .map(this::convertTokenizedLineToAtlasResults)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-
-    if (!atlasResultsList.get(atlasResultsList.size() - 1).getType().equals("close")) {
-      log.error("Received data from Atlas that did not terminate with a 'close'.");
-      throw new RetryableQueryException(
-          "Atlas response did not end in a 'close', we cannot guarantee all data was received.");
+  private boolean isListOfAtlasResults(Type type) {
+    if (!(type instanceof java.lang.reflect.ParameterizedType)) {
+      return false;
     }
-
-    return atlasResultsList;
+    java.lang.reflect.ParameterizedType parameterizedType =
+        (java.lang.reflect.ParameterizedType) type;
+    if (parameterizedType.getRawType() != List.class) {
+      return false;
+    }
+    Type[] typeArguments = parameterizedType.getActualTypeArguments();
+    return typeArguments.length > 0 && typeArguments[0] == AtlasResults.class;
   }
 
-  protected AtlasResults convertTokenizedLineToAtlasResults(String[] tokenizedLine) {
-    try {
-      AtlasResults atlasResults =
-          kayentaObjectMapper.readValue(tokenizedLine[1], AtlasResults.class);
-      String atlasResultsType = atlasResults.getType();
+  private static class AtlasSSEResponseConverter
+      implements Converter<ResponseBody, List<AtlasResults>> {
+    private final ObjectMapper objectMapper;
+    private final String configName;
+    private final String queryName;
+    private final String queryString;
 
-      if (StringUtils.isEmpty(atlasResultsType)
-          || !EXPECTED_RESULTS_TYPE_LIST.contains(atlasResultsType)) {
-        if (atlasResultsType.equals("error")) {
-          if (atlasResults.getMessage().contains("IllegalStateException")) {
-            throw new FatalQueryException(
-                "Atlas query"
-                    + ((configName != null) ? " in canary config [" + configName + "]" : "")
-                    + ((queryName != null) ? " for query [" + queryName + "]" : "")
-                    + ((queryString != null) ? " with query string [" + queryString + "]" : "")
-                    + " failed: "
-                    + atlasResults.getMessage());
-          } else {
-            throw new RetryableQueryException("Atlas query failed: " + atlasResults.getMessage());
-          }
-        }
-        log.info(
-            "Received results of type other than 'timeseries' or 'close' from Atlas: {}",
-            atlasResults);
+    public AtlasSSEResponseConverter(
+        ObjectMapper objectMapper, String configName, String queryName, String queryString) {
+      this.objectMapper = objectMapper;
+      this.configName = configName;
+      this.queryName = queryName;
+      this.queryString = queryString;
+    }
 
-        return null;
+    @Override
+    public List<AtlasResults> convert(ResponseBody value) throws IOException {
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(value.byteStream()))) {
+        return processInput(reader);
+      } catch (Exception e) {
+        log.error("Error processing Atlas SSE response", e);
+        throw new IOException("Failed to process Atlas SSE response", e);
+      }
+    }
+
+    protected List<AtlasResults> processInput(BufferedReader reader) {
+      List<String[]> tokenizedLines =
+          reader
+              .lines()
+              .filter(line -> !StringUtils.isEmpty(line))
+              .map(line -> line.split(": ", 2))
+              .collect(Collectors.toList());
+
+      tokenizedLines.stream()
+          .map(tokenizedLine -> tokenizedLine[0])
+          .filter(openingToken -> !openingToken.equals("data"))
+          .forEach(
+              nonDataOpeningToken ->
+                  log.info(
+                      "Received opening token other than 'data' from Atlas: {}",
+                      nonDataOpeningToken));
+
+      List<AtlasResults> atlasResultsList =
+          tokenizedLines.stream()
+              .map(this::convertTokenizedLineToAtlasResults)
+              .filter(Objects::nonNull)
+              .collect(Collectors.toList());
+
+      if (!atlasResultsList.get(atlasResultsList.size() - 1).getType().equals("close")) {
+        log.error("Received data from Atlas that did not terminate with a 'close'.");
+        throw new RetryableQueryException(
+            "Atlas response did not end in a 'close', we cannot guarantee all data was received.");
       }
 
-      return atlasResults;
-    } catch (IOException e) {
-      log.error("Cannot process Atlas results", e);
-      return null;
+      return atlasResultsList;
     }
-  }
 
-  @Override
-  public TypedOutput toBody(Object object) {
-    return null;
+    protected AtlasResults convertTokenizedLineToAtlasResults(String[] tokenizedLine) {
+      try {
+        AtlasResults atlasResults = objectMapper.readValue(tokenizedLine[1], AtlasResults.class);
+        String atlasResultsType = atlasResults.getType();
+
+        if (StringUtils.isEmpty(atlasResultsType)
+            || !EXPECTED_RESULTS_TYPE_LIST.contains(atlasResultsType)) {
+          if (atlasResultsType.equals("error")) {
+            if (atlasResults.getMessage().contains("IllegalStateException")) {
+              throw new FatalQueryException(
+                  "Atlas query"
+                      + ((configName != null) ? " in canary config [" + configName + "]" : "")
+                      + ((queryName != null) ? " for query [" + queryName + "]" : "")
+                      + ((queryString != null) ? " with query string [" + queryString + "]" : "")
+                      + " failed: "
+                      + atlasResults.getMessage());
+            } else {
+              throw new RetryableQueryException("Atlas query failed: " + atlasResults.getMessage());
+            }
+          }
+          log.info(
+              "Received results of type other than 'timeseries' or 'close' from Atlas: {}",
+              atlasResults);
+
+          return null;
+        }
+
+        return atlasResults;
+      } catch (IOException e) {
+        log.error("Cannot process Atlas results", e);
+        return null;
+      }
+    }
   }
 }

@@ -25,17 +25,15 @@ import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-import retrofit.converter.JacksonConverter;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @ConditionalOnProperty("kayenta.graphite.enabled")
@@ -60,9 +58,7 @@ public class GraphiteConfiguration {
       GraphiteConfigurationProperties graphiteConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
       ObjectMapper objectMapper,
-      OkHttpClient okHttpClient,
-      AccountCredentialsRepository accountCredentialsRepository)
-      throws IOException {
+      AccountCredentialsRepository accountCredentialsRepository) {
     GraphiteMetricsService.GraphiteMetricsServiceBuilder graphiteMetricsServiceBuilder =
         GraphiteMetricsService.builder();
 
@@ -83,9 +79,8 @@ public class GraphiteConfiguration {
           accountCredentialsBuilder.graphiteRemoteService(
               retrofitClientFactory.createClient(
                   GraphiteRemoteService.class,
-                  new JacksonConverter(objectMapper),
-                  account.getEndpoint(),
-                  okHttpClient));
+                  JacksonConverterFactory.create(objectMapper),
+                  account.getEndpoint()));
         }
 
         accountCredentialsBuilder.supportedTypes(supportedTypes);

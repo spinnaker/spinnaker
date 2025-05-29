@@ -19,13 +19,13 @@ package com.netflix.kayenta.prometheus.service;
 import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import java.util.List;
-import retrofit.http.GET;
-import retrofit.http.Query;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public interface PrometheusRemoteService {
 
   // See https://prometheus.io/docs/querying/api/#range-queries
-  @GET("/api/v1/query_range")
+  @GET("api/v1/query_range")
   List<PrometheusResults> rangeQuery(
       @Query("query") String query,
       @Query("start") String start,
@@ -33,10 +33,10 @@ public interface PrometheusRemoteService {
       @Query("step") Long step);
 
   // See https://prometheus.io/docs/querying/api/#querying-label-values
-  @GET("/api/v1/label/__name__/values")
+  @GET("api/v1/label/__name__/values")
   PrometheusMetricDescriptorsResponse listMetricDescriptors();
 
   // See https://prometheus.io/docs/prometheus/latest/management_api/#health-check
-  @GET("/-/healthy")
+  @GET("-/healthy")
   String isHealthy();
 }

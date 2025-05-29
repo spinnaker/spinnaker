@@ -22,75 +22,105 @@ import com.google.common.collect.ImmutableList;
 import com.signalfx.signalflow.ChannelMessage;
 import com.signalfx.signalflow.ServerSentEventsTransport;
 import com.signalfx.signalflow.StreamMessage;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import retrofit.converter.ConversionException;
-import retrofit.converter.Converter;
-import retrofit.mime.TypedInput;
-import retrofit.mime.TypedOutput;
-import retrofit.mime.TypedString;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
 
 /**
  * The SignalFx SignalFlow api returns Mime-Type: "text/plain" with a custom body with messages in
  * it. This Converter knows how to parse those responses and return typed Objects
  */
 @Slf4j
-public class SignalFxConverter implements Converter {
+public class SignalFxConverter extends Converter.Factory {
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private static final List<Type> CONVERTIBLE_TYPES =
+  private static final List<Class<?>> CONVERTIBLE_TYPES =
       ImmutableList.of(SignalFlowExecutionResult.class, ErrorResponse.class);
 
+  @SneakyThrows
   @Override
-  public Object fromBody(TypedInput body, Type type) throws ConversionException {
+  public @Nullable Converter<ResponseBody, ?> responseBodyConverter(
+      Type type, Annotation[] annotations, Retrofit retrofit) {
 
     if (!CONVERTIBLE_TYPES.contains(type)) {
-      throw new ConversionException(
+      throw new IOException(
           String.format(
               "The SignalFxConverter Retrofit converter can only handle Types: [ %s ], received: %s",
               CONVERTIBLE_TYPES.stream().map(Type::getTypeName).collect(Collectors.joining(", ")),
               type.getTypeName()));
     }
 
-    if (type.getTypeName().equals(SignalFlowExecutionResult.class.getTypeName())) {
-      return getSignalFlowExecutionResultFromBody(body);
-    } else {
-      return getErrorResponseFromBody(body);
+    if (type == SignalFlowExecutionResult.class) {
+      return new SignalFlowExecutionResultConverter(objectMapper);
+    } else if (type == ErrorResponse.class) {
+      return new ErrorResponseConverter(objectMapper);
     }
-  }
-
-  private ErrorResponse getErrorResponseFromBody(TypedInput body) throws ConversionException {
-    try {
-      return objectMapper.readValue(body.in(), ErrorResponse.class);
-    } catch (Exception e) {
-      throw new ConversionException("Failed to parse error response", e);
-    }
-  }
-
-  private SignalFlowExecutionResult getSignalFlowExecutionResultFromBody(TypedInput body)
-      throws ConversionException {
-    List<ChannelMessage> messages = new LinkedList<>();
-    try (ServerSentEventsTransport.TransportEventStreamParser parser =
-        new ServerSentEventsTransport.TransportEventStreamParser(body.in())) {
-
-      while (parser.hasNext()) {
-        StreamMessage streamMessage = parser.next();
-        ChannelMessage channelMessage = ChannelMessage.decodeStreamMessage(streamMessage);
-        messages.add(channelMessage);
-      }
-    } catch (Exception e) {
-      throw new ConversionException("There was an issue parsing the SignalFlow response", e);
-    }
-    return new SignalFlowExecutionResult(messages);
+    return null;
   }
 
   @Override
-  public TypedOutput toBody(Object object) {
-    String string = (String) object;
-    return new TypedString(string);
+  public @Nullable Converter<?, RequestBody> requestBodyConverter(
+      Type type,
+      Annotation[] parameterAnnotations,
+      Annotation[] methodAnnotations,
+      Retrofit retrofit) {
+    if (type == String.class) {
+      return value -> RequestBody.create((String) value, okhttp3.MediaType.get("text/plain"));
+    }
+    return null;
+  }
+
+  private static class SignalFlowExecutionResultConverter
+      implements Converter<ResponseBody, SignalFlowExecutionResult> {
+    private final ObjectMapper objectMapper;
+
+    SignalFlowExecutionResultConverter(ObjectMapper objectMapper) {
+      this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public SignalFlowExecutionResult convert(ResponseBody value) throws IOException {
+      List<ChannelMessage> messages = new LinkedList<>();
+      try (ServerSentEventsTransport.TransportEventStreamParser parser =
+          new ServerSentEventsTransport.TransportEventStreamParser(value.byteStream())) {
+
+        while (parser.hasNext()) {
+          StreamMessage streamMessage = parser.next();
+          ChannelMessage channelMessage = ChannelMessage.decodeStreamMessage(streamMessage);
+          messages.add(channelMessage);
+        }
+      } catch (Exception e) {
+        throw new IOException("There was an issue parsing the SignalFlow response", e);
+      }
+      return new SignalFlowExecutionResult(messages);
+    }
+  }
+
+  private static class ErrorResponseConverter implements Converter<ResponseBody, ErrorResponse> {
+    private final ObjectMapper objectMapper;
+
+    ErrorResponseConverter(ObjectMapper objectMapper) {
+      this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public ErrorResponse convert(ResponseBody value) throws IOException {
+      try {
+        return objectMapper.readValue(value.charStream(), ErrorResponse.class);
+      } catch (Exception e) {
+        throw new IOException("Failed to parse error response", e);
+      }
+    }
   }
 }
