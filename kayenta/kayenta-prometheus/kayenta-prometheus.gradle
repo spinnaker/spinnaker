@@ -2,4 +2,5 @@ dependencies {
   implementation project(":kayenta-core")
 
   testImplementation "org.mock-server:mockserver-junit-jupiter:5.15.0"
+  testImplementation "com.squareup.retrofit2:converter-jackson"
 }

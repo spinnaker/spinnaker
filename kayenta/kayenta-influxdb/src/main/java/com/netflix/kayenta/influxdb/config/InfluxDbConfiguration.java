@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.influxdb.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.influxdb.metrics.InfluxDbMetricsService;
 import com.netflix.kayenta.influxdb.security.InfluxDbNamedAccountCredentials;
 import com.netflix.kayenta.influxdb.security.InfluxdbCredentials;
@@ -28,7 +27,6 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -59,8 +57,6 @@ public class InfluxDbConfiguration {
       InfluxDbResponseConverter influxDbResponseConverter,
       InfluxDbConfigurationProperties influxDbConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
-      ObjectMapper objectMapper,
-      OkHttpClient okHttpClient,
       AccountCredentialsRepository accountCredentialsRepository)
       throws IOException {
     InfluxDbMetricsService.InfluxDbMetricsServiceBuilder metricsServiceBuilder =
@@ -83,10 +79,7 @@ public class InfluxDbConfiguration {
         if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
           accountCredentialsBuilder.influxDbRemoteService(
               retrofitClientFactory.createClient(
-                  InfluxDbRemoteService.class,
-                  influxDbResponseConverter,
-                  account.getEndpoint(),
-                  okHttpClient));
+                  InfluxDbRemoteService.class, influxDbResponseConverter, account.getEndpoint()));
         }
         accountCredentialsBuilder.supportedTypes(supportedTypes);
       }

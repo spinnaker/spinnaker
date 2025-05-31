@@ -28,8 +28,7 @@ import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import retrofit.converter.JacksonConverter;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 @Builder
@@ -43,18 +42,14 @@ public class BackendUpdater {
   // is likely safe enough.
   @Builder.Default private boolean succeededAtLeastOnce = false;
 
-  boolean run(
-      RetrofitClientFactory retrofitClientFactory,
-      ObjectMapper objectMapper,
-      OkHttpClient okHttpClient) {
+  boolean run(RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper) {
     RemoteService remoteService = new RemoteService();
     remoteService.setBaseUrl(uri);
     BackendsRemoteService backendsRemoteService =
         retrofitClientFactory.createClient(
             BackendsRemoteService.class,
-            new JacksonConverter(objectMapper),
-            remoteService,
-            okHttpClient);
+            JacksonConverterFactory.create(objectMapper),
+            remoteService);
     try {
       List<Backend> backends = AuthenticatedRequest.allowAnonymous(backendsRemoteService::fetch);
       backendDatabase.update(backends);

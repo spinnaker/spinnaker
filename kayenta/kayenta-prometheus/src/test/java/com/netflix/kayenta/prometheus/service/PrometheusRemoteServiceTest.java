@@ -189,12 +189,6 @@ public class PrometheusRemoteServiceTest {
   @SneakyThrows
   private PrometheusRemoteService createClient(Integer port) {
     return retrofitClientFactory.createClient(
-        PrometheusRemoteService.class,
-        prometheusConverter,
-        getRemoteService(port),
-        okHttpClient,
-        null,
-        null,
-        null);
+        PrometheusRemoteService.class, prometheusConverter, getRemoteService(port), okHttpClient);
   }
 }
