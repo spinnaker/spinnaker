@@ -15,6 +15,7 @@ import { KubernetesDefault, KubernetesMatch } from './kubernetes/KubernetesArtif
 import { MavenDefault, MavenMatch } from './maven/MavenArtifactEditor';
 import { OracleDefault, OracleMatch } from './oracle/OracleArtifactEditor';
 import { S3Default, S3Match } from './s3/S3ArtifactEditor';
+import {HelmImageDefault, HelmImageMatch} from "./helm-image/HelmImageArtifactEditor";
 
 export const artifactKindConfigs: IArtifactKindConfig[] = [
   Base64Match,
@@ -49,6 +50,8 @@ export const artifactKindConfigs: IArtifactKindConfig[] = [
   OracleDefault,
   KubernetesMatch,
   KubernetesDefault,
+  HelmImageMatch,
+  HelmImageDefault
 ];
 
 export * from './TriggerArtifactConstraintSelectorInput';
