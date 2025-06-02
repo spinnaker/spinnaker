@@ -7,6 +7,7 @@ import { GcsDefault, GcsMatch } from './gcs/GcsArtifactEditor';
 import { GithubDefault, GithubMatch } from './github/GithubArtifactEditor';
 import { GitlabDefault, GitlabMatch } from './gitlab/GitlabArtifactEditor';
 import { GitRepoDefault, GitRepoMatch } from './gitrepo/GitRepoArtifactEditor';
+import { HelmImageDefault, HelmImageMatch } from './helm-image/HelmImageArtifactEditor';
 import { HelmDefault, HelmMatch } from './helm/HelmArtifactEditor';
 import { HttpDefault, HttpMatch } from './http/HttpArtifactEditor';
 import { IvyDefault, IvyMatch } from './ivy/IvyArtifactEditor';
@@ -15,7 +16,6 @@ import { KubernetesDefault, KubernetesMatch } from './kubernetes/KubernetesArtif
 import { MavenDefault, MavenMatch } from './maven/MavenArtifactEditor';
 import { OracleDefault, OracleMatch } from './oracle/OracleArtifactEditor';
 import { S3Default, S3Match } from './s3/S3ArtifactEditor';
-import {HelmImageDefault, HelmImageMatch} from "./helm-image/HelmImageArtifactEditor";
 
 export const artifactKindConfigs: IArtifactKindConfig[] = [
   Base64Match,
@@ -36,6 +36,8 @@ export const artifactKindConfigs: IArtifactKindConfig[] = [
   GitlabDefault,
   HelmMatch,
   HelmDefault,
+  HelmImageMatch,
+  HelmImageDefault,
   HttpMatch,
   HttpDefault,
   IvyMatch,
@@ -50,8 +52,6 @@ export const artifactKindConfigs: IArtifactKindConfig[] = [
   OracleDefault,
   KubernetesMatch,
   KubernetesDefault,
-  HelmImageMatch,
-  HelmImageDefault
 ];
 
 export * from './TriggerArtifactConstraintSelectorInput';

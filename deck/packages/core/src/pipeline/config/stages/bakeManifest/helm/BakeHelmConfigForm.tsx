@@ -23,7 +23,7 @@ export interface IBakeHelmConfigFormState {
 export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInjectedProps, IBakeHelmConfigFormState> {
   constructor(props: IFormikStageConfigInjectedProps) {
     super(props);
-    this.state = { gitRepoArtifactAccountNames: [], helmImageArtifactAccountNames: [],};
+    this.state = { gitRepoArtifactAccountNames: [], helmImageArtifactAccountNames: [] };
   }
 
   private static readonly excludedArtifactTypes = excludeAllTypesExcept(
@@ -213,8 +213,8 @@ export class BakeHelmConfigForm extends React.Component<IFormikStageConfigInject
           pipeline={this.props.pipeline}
           stage={stage}
         />
-        {(this.state.gitRepoArtifactAccountNames.includes(this.getInputArtifact(stage, 0).account)
-            || this.state.helmImageArtifactAccountNames.includes(this.getInputArtifact(stage, 0).account)) && (
+        {(this.state.gitRepoArtifactAccountNames.includes(this.getInputArtifact(stage, 0).account) ||
+          this.state.helmImageArtifactAccountNames.includes(this.getInputArtifact(stage, 0).account)) && (
           <StageConfigField label="Helm Chart File Path" helpKey="pipeline.config.bake.manifest.helm.chartFilePath">
             <TextInput
               onChange={(e: React.ChangeEvent<any>) => {
