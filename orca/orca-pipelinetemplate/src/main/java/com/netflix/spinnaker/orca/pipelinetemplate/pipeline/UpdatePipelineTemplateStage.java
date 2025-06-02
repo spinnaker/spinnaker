@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.pipeline;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
@@ -76,7 +77,8 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
                 "/pipelineTemplate", PipelineTemplate.class, pipelineTemplateObjectMapper);
 
     List<Map<String, Object>> dependentPipelines =
-        front50Service.getPipelineTemplateDependents(pipelineTemplate.getId(), true);
+        Retrofit2SyncCall.execute(
+            front50Service.getPipelineTemplateDependents(pipelineTemplate.getId(), true));
 
     dependentPipelines.stream()
         .map(pipeline -> configureSavePipelineStage(stage, pipeline))

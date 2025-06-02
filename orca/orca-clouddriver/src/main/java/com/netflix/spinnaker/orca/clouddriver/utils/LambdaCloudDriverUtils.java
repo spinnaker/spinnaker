@@ -22,10 +22,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.google.common.io.CharStreams;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfigurationProperties;
@@ -36,8 +36,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.model.i
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.lambda.model.output.LambdaVerificationStatusOutput;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -52,6 +50,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.pf4j.util.StringUtils;
@@ -468,16 +467,10 @@ public class LambdaCloudDriverUtils {
 
     return retrySupport.retry(
         () -> {
-          retrofit.client.Response response =
-              oort.fetchArtifact(resolvePipelineArtifact(pipelineArtifact));
-          InputStream artifactInputStream;
-          try {
-            artifactInputStream = response.getBody().in();
-          } catch (IOException e) {
-            throw new IllegalStateException(e); // forces a retry
-          }
-          try (InputStreamReader rd = new InputStreamReader(artifactInputStream)) {
-            return CharStreams.toString(rd);
+          try (ResponseBody responseBody =
+              Retrofit2SyncCall.execute(
+                  oort.fetchArtifact(resolvePipelineArtifact(pipelineArtifact)))) {
+            return responseBody.string();
           } catch (IOException e) {
             throw new IllegalStateException(e); // forces a retry
           }

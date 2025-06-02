@@ -31,6 +31,7 @@ dependencies {
   implementation("org.springframework.security:spring-security-core")
   implementation("org.springframework.security:spring-security-web")
   implementation("io.spinnaker.kork:kork-retrofit")
+  implementation("com.squareup.retrofit2:converter-jackson")
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
@@ -43,6 +44,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-junit-jupiter")
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
 }
 
 sourceSets {

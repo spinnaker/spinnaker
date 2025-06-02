@@ -26,13 +26,16 @@ import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.util.ManualJudgmentAuthorization
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.echo.pipeline.ManualJudgmentStage.Notification
 import static com.netflix.spinnaker.orca.echo.pipeline.ManualJudgmentStage.WaitForManualJudgmentTask
 
 class ManualJudgmentStageSpec extends Specification {
-  EchoService echoService = Mock(EchoService)
+  EchoService echoService = Mock(EchoService) {
+    _ * create(_) >> { return Calls.response(null) }
+  }
 
   FiatPermissionEvaluator fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
@@ -189,7 +192,7 @@ class ManualJudgmentStageSpec extends Specification {
       assert n.source.executionType == "pipeline"
       assert n.source.application == "APPLICATION"
       true
-    } as EchoService.Notification)
+    } as EchoService.Notification) >> Calls.response(null)
     0 * _
 
     where:

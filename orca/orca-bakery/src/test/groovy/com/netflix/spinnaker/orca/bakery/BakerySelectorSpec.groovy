@@ -26,9 +26,11 @@ import com.netflix.spinnaker.orca.bakery.api.DeleteBakesRequest
 import com.netflix.spinnaker.orca.bakery.api.BaseImage
 import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfigurationProperties
-import retrofit.http.Body
-import retrofit.http.Path
-import retrofit.http.Query
+
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.Path
+import retrofit2.http.Query
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -127,32 +129,32 @@ class BakerySelectorSpec extends Specification {
     }
 
     @Override
-    Artifact bakeManifest(@Path("type") String type, @Body BakeManifestRequest bakeRequest) {
+    Call<Artifact> bakeManifest(@Path("type") String type, @Body BakeManifestRequest bakeRequest) {
       return null
     }
 
     @Override
-    BakeStatus createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake) {
+    Call<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake) {
       return null
     }
 
     @Override
-    BakeStatus lookupStatus(@Path("region") String region, @Path("statusId") String statusId) {
+    Call<BakeStatus> lookupStatus(@Path("region") String region, @Path("statusId") String statusId) {
       return null
     }
 
     @Override
-    Bake lookupBake(@Path("region") String region, @Path("bakeId") String bakeId) {
+    Call<Bake> lookupBake(@Path("region") String region, @Path("bakeId") String bakeId) {
       return null
     }
 
     @Override
-    Void createDeleteBakesRequest(@Body DeleteBakesRequest deleteBakesRequest) {
+    Call<Void> createDeleteBakesRequest(@Body DeleteBakesRequest deleteBakesRequest) {
       return null
     }
 
     @Override
-    BaseImage getBaseImage(@Path("cloudProvider") String cloudProvider, @Path("imageId") String imageId) {
+    Call<BaseImage> getBaseImage(@Path("cloudProvider") String cloudProvider, @Path("imageId") String imageId) {
       return null
     }
   }

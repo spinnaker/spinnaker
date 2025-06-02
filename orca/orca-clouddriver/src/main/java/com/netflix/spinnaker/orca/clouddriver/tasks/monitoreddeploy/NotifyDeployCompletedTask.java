@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -60,7 +61,7 @@ public class NotifyDeployCompletedTask extends MonitoredDeployBaseTask {
                           foundRollbackStage.getStatus() != ExecutionStatus.SUCCEEDED)));
     }
 
-    monitorDefinition.getService().notifyCompleted(request);
+    Retrofit2SyncCall.executeCall(monitorDefinition.getService().notifyCompleted(request));
     return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED);
   }
 

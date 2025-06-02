@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import retrofit.client.Response
+import retrofit2.Response
 
 import javax.annotation.Nonnull
 import java.time.Duration
@@ -58,13 +58,13 @@ class StartJenkinsJobTask implements RetryableTask {
     try {
       Response igorResponse = buildService.build(master, job, stage.context.parameters, stage.startTime.toString())
 
-      if (igorResponse.getStatus() == HttpStatus.ACCEPTED.value()) {
+      if (igorResponse.code() == HttpStatus.ACCEPTED.value()) {
         log.info("build for job=$job on master=$master is pending, waiting for build to start")
         return TaskResult.RUNNING
       }
 
-      if (igorResponse.getStatus() == HttpStatus.OK.value()) {
-        String queuedBuild = igorResponse.body.in().text
+      if (igorResponse.code() == HttpStatus.OK.value()) {
+        String queuedBuild = igorResponse.body().byteStream().text
         return TaskResult
             .builder(ExecutionStatus.SUCCEEDED)
             .context([queuedBuild: queuedBuild])

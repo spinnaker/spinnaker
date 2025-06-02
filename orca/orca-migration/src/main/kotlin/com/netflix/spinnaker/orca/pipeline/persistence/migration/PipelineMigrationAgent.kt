@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipeline.persistence.migration
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -44,9 +45,9 @@ class PipelineMigrationAgent(
       setStatuses(ExecutionStatus.COMPLETED.map { it.name })
     }
 
-    val allPipelineConfigIds = front50Service.allPipelines.map { it["id"] as String }
+    val allPipelineConfigIds = Retrofit2SyncCall.execute(front50Service.allPipelines).map { it["id"] as String }
       .toMutableList()
-      .let { it + front50Service.allStrategies.map { it["id"] as String } }
+      .let { it + Retrofit2SyncCall.execute(front50Service.allStrategies).map { it["id"] as String } }
     log.info("Found ${allPipelineConfigIds.size} pipeline configs")
 
     allPipelineConfigIds.forEachIndexed { index, pipelineConfigId ->

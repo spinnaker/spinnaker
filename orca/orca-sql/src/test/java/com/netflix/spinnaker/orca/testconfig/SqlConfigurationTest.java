@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.config.SqlConfiguration;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
+import com.netflix.spinnaker.orca.test.Retrofit2TestConfig;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,12 +62,14 @@ class SqlConfigurationTest {
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
           .withPropertyValues(
+              "retrofit.enabled=false",
               "sql.enabled=true",
               "sql.connectionPools.default.default=true",
               "sql.connectionPools.default.jdbcUrl=" + SqlTestUtil.tcJdbcUrl,
               "sql.migration.jdbcUrl=" + SqlTestUtil.tcJdbcUrl)
           .withAllowBeanDefinitionOverriding(true)
-          .withConfiguration(UserConfigurations.of(SqlConfiguration.class));
+          .withConfiguration(
+              UserConfigurations.of(SqlConfiguration.class, Retrofit2TestConfig.class));
 
   @BeforeEach
   void init(TestInfo testInfo) {

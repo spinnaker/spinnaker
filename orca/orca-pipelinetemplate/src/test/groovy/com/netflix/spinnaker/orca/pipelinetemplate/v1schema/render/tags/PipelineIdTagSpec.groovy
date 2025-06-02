@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRender
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -38,7 +39,7 @@ class PipelineIdTagSpec extends Specification {
   @Unroll
   def 'should render pipeline id'() {
     given:
-    front50Service.getPipelines('myApp', false) >>  [
+    front50Service.getPipelines('myApp', false) >>  Calls.response([
       [
         name: 'Bake and Tag',
         application: 'myApp',
@@ -63,7 +64,7 @@ class PipelineIdTagSpec extends Specification {
         id: '1685429e-beb1-4d35-963c-123456789012',
         stages: []
       ]
-    ]
+    ])
 
     expect:
     renderer.render(
@@ -80,14 +81,14 @@ class PipelineIdTagSpec extends Specification {
 
   def 'should render pipeline id using variables defined in context'() {
     given:
-    front50Service.getPipelines('myApp', false) >>  [
+    front50Service.getPipelines('myApp', false) >> Calls.response([
       [
         name: 'Bake and Tag',
         application: 'myApp',
         id: '9595429f-afa0-4c34-852b-01a9a01967f9',
         stages: []
       ]
-    ]
+    ])
 
     RenderContext context = new DefaultRenderContext('myApp', null, [:])
     context.variables.put("pipelineName", "Bake and Tag")
@@ -106,14 +107,14 @@ class PipelineIdTagSpec extends Specification {
     renderer.render('{% pipelineId name="Bake and Tag" %}', context)
 
     then: 'application should be inferred from context'
-    1 * front50Service.getPipelines(applicationInContext, false) >>  [
+    1 * front50Service.getPipelines(applicationInContext, false) >>  Calls.response([
       [
         name: 'Bake and Tag',
         application: 'myApp',
         id: '9595429f-afa0-4c34-852b-01a9a01967f9',
         stages: []
       ]
-    ]
+    ])
 
     when: 'template is missing required fields (name)'
     renderer.render('{% pipelineId application=myApp %}', context)
@@ -131,7 +132,7 @@ class PipelineIdTagSpec extends Specification {
     renderer.render('{% pipelineId name="Bake and Tag" %}', context)
 
     then:
-    1 * front50Service.getPipelines(applicationInContext, false) >>  []
+    1 * front50Service.getPipelines(applicationInContext, false) >>  Calls.response([])
     thrown(TemplateRenderException)
   }
 }

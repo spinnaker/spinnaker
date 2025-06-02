@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
-import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.MortService
@@ -30,7 +30,6 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
@@ -199,7 +198,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
             cluster.buildUrl = createBuildUrl(ami) ?: (stage.execution.trigger instanceof JenkinsTrigger ? stage.execution.trigger.buildInfo?.url : null)
           }
 
-          def accountDetails = mortService.getAccountDetails(cluster.account)
+          def accountDetails = Retrofit2SyncCall.execute(mortService.getAccountDetails(cluster.account))
 
           resultPair[type + "Cluster"] = [
             name          : nameBuilder.combineAppStackDetail(cluster.application, cluster.stack, cluster.freeFormDetails),

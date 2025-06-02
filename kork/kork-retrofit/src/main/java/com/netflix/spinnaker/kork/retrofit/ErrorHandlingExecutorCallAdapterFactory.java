@@ -75,11 +75,11 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
   public CallAdapter<?, ?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
 
     /**
-     * Expected the raw class type from returnType to be {@link Call} class otherwise return null as
-     * it cannot be handled by this factory
+     * If the raw return type is not a {@link Call}, send it to {@link LegacySignatureCallAdapter}
+     * for immediate execution
      */
     if (getRawType(returnType) != Call.class) {
-      return null;
+      return new LegacySignatureCallAdapter(callbackExecutor, returnType, retrofit);
     }
 
     if (!(returnType instanceof ParameterizedType)) {
