@@ -23,9 +23,14 @@ import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
+import com.netflix.spinnaker.orca.webhook.util.WebhookLoggingEventListener;
 import java.lang.reflect.Field;
+import okhttp3.Call;
+import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -149,6 +154,73 @@ class WebhookConfigurationTest {
             ctx -> {
               OkHttpClient client = getOkHttpClient(ctx);
               assertThat(client.connectTimeoutMillis()).isEqualTo(webhookConnectTimeout);
+            });
+  }
+
+  @Test
+  void testNoEventListenerByDefault() {
+    runner.run(
+        ctx -> {
+          OkHttpClient client = getOkHttpClient(ctx);
+          // EventListener.NONE.asFactory() isn't available, so here's an alternative to
+          //
+          // assertThat(client.eventListenerFactory()).isEqualTo(EventListener.NONE.asFactory());
+          EventListener.Factory eventListenerFactory = client.eventListenerFactory();
+          assertThat(eventListenerFactory.create(mock(Call.class))).isEqualTo(EventListener.NONE);
+        });
+  }
+
+  @Test
+  void testEventLoggingDisabled() {
+    runner
+        .withPropertyValues("webhook.eventLoggingEnabled: false")
+        .run(
+            ctx -> {
+              OkHttpClient client = getOkHttpClient(ctx);
+              // EventListener.NONE.asFactory() isn't available, so here's an alternative to
+              //
+              // assertThat(client.eventListenerFactory()).isEqualTo(EventListener.NONE.asFactory());
+              EventListener.Factory eventListenerFactory = client.eventListenerFactory();
+              assertThat(eventListenerFactory.create(mock(Call.class)))
+                  .isEqualTo(EventListener.NONE);
+            });
+  }
+
+  @Test
+  void testEventLoggingEnabled() {
+    runner
+        .withPropertyValues("webhook.eventLoggingEnabled: true")
+        .run(
+            ctx -> {
+              OkHttpClient client = getOkHttpClient(ctx);
+              EventListener.Factory eventListenerFactory = client.eventListenerFactory();
+              // While we're at it, verify the default verbosity
+              assertThat(eventListenerFactory)
+                  .isInstanceOfSatisfying(
+                      WebhookLoggingEventListener.Factory.class,
+                      webhookLoggingEventListener -> {
+                        assertThat(webhookLoggingEventListener.isVerbose()).isEqualTo(false);
+                      });
+            });
+  }
+
+  @ParameterizedTest(name = "{index} => testEventLoggingVerbosity: verbose = {0}")
+  @ValueSource(booleans = {false, true})
+  void testEventLoggingVerbosity(boolean verbose) {
+    runner
+        .withPropertyValues(
+            "webhook.eventLoggingEnabled: true",
+            "webhook.eventLoggingVerbose: " + String.valueOf(verbose))
+        .run(
+            ctx -> {
+              OkHttpClient client = getOkHttpClient(ctx);
+              EventListener.Factory eventListenerFactory = client.eventListenerFactory();
+              assertThat(eventListenerFactory)
+                  .isInstanceOfSatisfying(
+                      WebhookLoggingEventListener.Factory.class,
+                      webhookLoggingEventListener -> {
+                        assertThat(webhookLoggingEventListener.isVerbose()).isEqualTo(verbose);
+                      });
             });
   }
 
