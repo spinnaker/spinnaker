@@ -18,6 +18,7 @@ package com.netflix.kayenta.influxdb.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.influxdb.model.InfluxDbResult;
+import com.netflix.kayenta.metrics.ConversionException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -78,7 +79,7 @@ public class InfluxDbResponseConverter extends Converter.Factory {
     }
 
     @Override
-    public List<InfluxDbResult> convert(ResponseBody value) throws IOException {
+    public List<InfluxDbResult> convert(ResponseBody value) {
       try (BufferedReader reader = new BufferedReader(new InputStreamReader(value.byteStream()))) {
         String json = reader.readLine();
         log.debug("Converting response from influxDb: {}", json);
@@ -122,15 +123,15 @@ public class InfluxDbResponseConverter extends Converter.Factory {
         return influxDbResultsList;
       } catch (IOException e) {
         e.printStackTrace();
-        throw e;
       }
+      return null;
     }
 
     private Map getResultObject(String json) throws IOException {
       Map responseMap = objectMapper.readValue(json, Map.class);
       List<Map> results = (List<Map>) responseMap.get("results");
       if (CollectionUtils.isEmpty(results)) {
-        throw new IOException("Unexpected response from InfluxDB");
+        throw new ConversionException("Unexpected response from InfluxDB");
       }
       return results.get(0);
     }

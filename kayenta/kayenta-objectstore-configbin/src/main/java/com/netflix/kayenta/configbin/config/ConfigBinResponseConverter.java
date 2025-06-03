@@ -56,7 +56,7 @@ public class ConfigBinResponseConverter extends Converter.Factory {
 
   private static class StringResponseConverter implements Converter<ResponseBody, String> {
     @Override
-    public String convert(ResponseBody value) throws IOException {
+    public String convert(ResponseBody value) {
       try (ByteArrayOutputStream buffer = new ByteArrayOutputStream();
           ResponseBody body = value) {
         byte[] data = new byte[1024];

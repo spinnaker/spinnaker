@@ -49,7 +49,7 @@ public class PrometheusRemoteServiceTest {
 
   private MockServerClient mockServerClient;
 
-  RetrofitClientFactory retrofitClientFactory = getRetrofitClientFactory();
+  RetrofitClientFactory retrofitClientFactory = new RetrofitClientFactory();
   ObjectMapper objectMapper = new ObjectMapper();
   PrometheusResponseConverter prometheusConverter = new PrometheusResponseConverter(objectMapper);
   OkHttpClient okHttpClient = new OkHttpClient();
@@ -172,12 +172,6 @@ public class PrometheusRemoteServiceTest {
             .useDelimiter("\\Z")
             .next();
     return StringUtils.replace(text, "\n", "");
-  }
-
-  private RetrofitClientFactory getRetrofitClientFactory() {
-    RetrofitClientFactory factory = new RetrofitClientFactory();
-    factory.retrofitLogLevel = "BASIC";
-    return factory;
   }
 
   private RemoteService getRemoteService(int port) {

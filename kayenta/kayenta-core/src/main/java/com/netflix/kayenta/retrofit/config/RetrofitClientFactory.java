@@ -17,20 +17,16 @@
 package com.netflix.kayenta.retrofit.config;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
-import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.function.Function;
 import okhttp3.Credentials;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import retrofit2.Converter.Factory;
 import retrofit2.Retrofit;
@@ -38,14 +34,7 @@ import retrofit2.Retrofit;
 @Component
 public class RetrofitClientFactory {
 
-  @Value("${retrofit.log-level:BASIC}")
-  @VisibleForTesting
-  public String retrofitLogLevel;
-
   @Autowired OkHttp3ClientConfiguration okHttp3ClientConfig;
-
-  @VisibleForTesting
-  public Function<Class<?>, Slf4jRetrofitLogger> createRetrofitLogger = Slf4jRetrofitLogger::new;
 
   public <T> T createClient(Class<T> type, Factory converterFactory, RemoteService remoteService) {
     return createClient(

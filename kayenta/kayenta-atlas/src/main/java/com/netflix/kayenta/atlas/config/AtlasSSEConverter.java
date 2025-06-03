@@ -102,13 +102,13 @@ public class AtlasSSEConverter extends Converter.Factory {
     }
 
     @Override
-    public List<AtlasResults> convert(ResponseBody value) throws IOException {
+    public List<AtlasResults> convert(ResponseBody value) {
       try (BufferedReader reader = new BufferedReader(new InputStreamReader(value.byteStream()))) {
         return processInput(reader);
-      } catch (Exception e) {
-        log.error("Error processing Atlas SSE response", e);
-        throw new IOException("Failed to process Atlas SSE response", e);
+      } catch (IOException e) {
+        log.error("Cannot process Atlas results", e);
       }
+      return null;
     }
 
     protected List<AtlasResults> processInput(BufferedReader reader) {

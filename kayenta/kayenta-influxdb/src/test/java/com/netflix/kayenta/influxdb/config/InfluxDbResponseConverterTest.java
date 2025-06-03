@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.influxdb.model.InfluxDbResult;
-import java.io.IOException;
+import com.netflix.kayenta.metrics.ConversionException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -131,7 +131,7 @@ public class InfluxDbResponseConverterTest {
   public void deserializeWrongValue() {
     ResponseBody responseBody =
         ResponseBody.create(okhttp3.MediaType.parse(MIME_TYPE), "{\"foo\":\"bar\"}".getBytes());
-    assertThrows(IOException.class, () -> converter.convert(responseBody));
+    assertThrows(ConversionException.class, () -> converter.convert(responseBody));
   }
 
   private static class ParameterizedTypeImpl implements ParameterizedType {
