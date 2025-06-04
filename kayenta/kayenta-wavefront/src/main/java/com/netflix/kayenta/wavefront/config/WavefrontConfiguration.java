@@ -24,17 +24,15 @@ import com.netflix.kayenta.wavefront.metrics.WavefrontMetricsService;
 import com.netflix.kayenta.wavefront.security.WavefrontCredentials;
 import com.netflix.kayenta.wavefront.security.WavefrontNamedAccountCredentials;
 import com.netflix.kayenta.wavefront.service.WavefrontRemoteService;
-import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-import retrofit.converter.JacksonConverter;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @ConditionalOnProperty("kayenta.wavefront.enabled")
@@ -52,9 +50,7 @@ public class WavefrontConfiguration {
       WavefrontConfigurationProperties wavefrontConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
       ObjectMapper objectMapper,
-      OkHttpClient okHttpClient,
-      AccountCredentialsRepository accountCredentialsRepository)
-      throws IOException {
+      AccountCredentialsRepository accountCredentialsRepository) {
     WavefrontMetricsService.WavefrontMetricsServiceBuilder wavefrontMetricsServiceBuilder =
         WavefrontMetricsService.builder();
 
@@ -79,9 +75,8 @@ public class WavefrontConfiguration {
           WavefrontRemoteService wavefrontRemoteService =
               retrofitClientFactory.createClient(
                   WavefrontRemoteService.class,
-                  new JacksonConverter(objectMapper),
-                  wavefrontManagedAccount.getEndpoint(),
-                  okHttpClient);
+                  JacksonConverterFactory.create(objectMapper),
+                  wavefrontManagedAccount.getEndpoint());
 
           wavefrontNamedAccountCredentialsBuilder.wavefrontRemoteService(wavefrontRemoteService);
         }

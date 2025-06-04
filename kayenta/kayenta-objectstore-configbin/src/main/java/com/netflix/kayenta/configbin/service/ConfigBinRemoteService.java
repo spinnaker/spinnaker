@@ -17,31 +17,36 @@
 package com.netflix.kayenta.configbin.service;
 
 import okhttp3.RequestBody;
-import retrofit.client.Response;
-import retrofit.http.*;
+import okhttp3.ResponseBody;
+import retrofit2.http.Body;
+import retrofit2.http.DELETE;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ConfigBinRemoteService {
 
-  @GET("/browse/{ownerApp}/{configType}?pageSize=1000&showDeleted=false")
+  @GET("browse/{ownerApp}/{configType}?pageSize=1000&showDeleted=false")
   String list(
       @Path("ownerApp") String ownerApp,
       @Path("configType") String configType,
       @Query("nextPageId") String nextPageId);
 
-  @DELETE("/{ownerApp}/{configType}/{configName}?user=kayenta&comment=spinnaker")
-  Response delete(
+  @DELETE("{ownerApp}/{configType}/{configName}?user=kayenta&comment=spinnaker")
+  ResponseBody delete(
       @Path("ownerApp") String ownerApp,
       @Path("configType") String configType,
       @Path("configName") String configName);
 
-  @GET("/{ownerApp}/{configType}/{configName}")
+  @GET("{ownerApp}/{configType}/{configName}")
   String get(
       @Path("ownerApp") String ownerApp,
       @Path("configType") String configType,
       @Path("configName") String configName);
 
-  @POST("/{ownerApp}/{configType}/{configName}?overwrite=true&user=kayenta&comment=spinnaker")
-  Response post(
+  @POST("{ownerApp}/{configType}/{configName}?overwrite=true&user=kayenta&comment=spinnaker")
+  ResponseBody post(
       @Path("ownerApp") String ownerApp,
       @Path("configType") String configType,
       @Path("configName") String configName,
