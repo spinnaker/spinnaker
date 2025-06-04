@@ -86,8 +86,6 @@ subprojects { project ->
       api "io.spinnaker.kork:kork-swagger"
       api "io.spinnaker.orca:orca-core"
 
-      api "com.squareup.retrofit:retrofit"
-      api "com.squareup.retrofit:converter-jackson"
 
       testImplementation "org.springframework.boot:spring-boot-starter-test"
       testImplementation "org.spockframework:spock-core"
