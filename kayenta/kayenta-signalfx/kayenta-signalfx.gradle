@@ -117,7 +117,7 @@ dependencies {
   api 'com.signalfx.public:signalfx-java:1.0.5'
 
   testImplementation project(":kayenta-standalone-canary-analysis")
-
+  testImplementation "com.squareup.retrofit2:converter-jackson"
   // Integration Test dependencies
   integrationTestImplementation sourceSets.main.output
   integrationTestImplementation sourceSets.test.output

@@ -21,14 +21,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.influxdb.model.InfluxDbResult;
-import java.io.ByteArrayOutputStream;
+import com.netflix.kayenta.metrics.ConversionException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
-import retrofit.converter.ConversionException;
-import retrofit.mime.TypedByteArray;
-import retrofit.mime.TypedInput;
-import retrofit.mime.TypedOutput;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class InfluxDbResponseConverterTest {
 
@@ -79,43 +82,80 @@ public class InfluxDbResponseConverterTest {
     return results;
   }
 
+  Retrofit retrofit =
+      new Retrofit.Builder()
+          .baseUrl("http://influxdb")
+          .addConverterFactory(JacksonConverterFactory.create())
+          .build();
+
   private final InfluxDbResponseConverter influxDbResponseConverter =
       new InfluxDbResponseConverter(new ObjectMapper());
 
+  Converter<ResponseBody, List<InfluxDbResult>> converter =
+      (Converter<ResponseBody, List<InfluxDbResult>>)
+          influxDbResponseConverter.responseBodyConverter(
+              new ParameterizedTypeImpl(List.class, InfluxDbResult.class),
+              new Annotation[0],
+              retrofit);
+
   @Test
-  public void serialize() throws Exception {
-    List<InfluxDbResult> results = setupAllIntegers();
-    assertThat(influxDbResponseConverter.toBody(results)).isNull();
+  public void serialize_shouldNotSupportRequestConversion() {
+    // The converter doesn't support request body conversion
+    assertThat(
+            influxDbResponseConverter.requestBodyConverter(
+                List.class, new Annotation[0], new Annotation[0], retrofit))
+        .isNull();
   }
 
   @Test
   public void deserialize() throws Exception {
-    List<InfluxDbResult> results = setupAllIntegers();
-    TypedInput input = new TypedByteArray(MIME_TYPE, EXAMPLE_ALL_INTEGERS.getBytes());
-    List<InfluxDbResult> result =
-        (List<InfluxDbResult>) influxDbResponseConverter.fromBody(input, List.class);
-    assertThat(result).isEqualTo(results);
+    List<InfluxDbResult> expectedResults = setupAllIntegers();
+    ResponseBody responseBody =
+        ResponseBody.create(okhttp3.MediaType.parse(MIME_TYPE), EXAMPLE_ALL_INTEGERS.getBytes());
+    List<InfluxDbResult> result = converter.convert(responseBody);
+
+    assertThat(result).isEqualTo(expectedResults);
   }
 
   @Test
   public void deserializeWithFloatValues() throws Exception {
-    List<InfluxDbResult> results = setupWithFloats();
-    TypedInput input = new TypedByteArray(MIME_TYPE, EXAMPLE_WITH_FLOATS.getBytes());
-    List<InfluxDbResult> result =
-        (List<InfluxDbResult>) influxDbResponseConverter.fromBody(input, List.class);
-    assertThat(result).isEqualTo(results);
+    List<InfluxDbResult> expectedResults = setupWithFloats();
+    ResponseBody responseBody =
+        ResponseBody.create(okhttp3.MediaType.parse(MIME_TYPE), EXAMPLE_WITH_FLOATS.getBytes());
+    List<InfluxDbResult> result = converter.convert(responseBody);
+
+    assertThat(result).isEqualTo(expectedResults);
   }
 
   @Test
-  public void deserializeWrongValue() throws Exception {
-    TypedInput input = new TypedByteArray(MIME_TYPE, "{\"foo\":\"bar\"}".getBytes());
-    assertThrows(
-        ConversionException.class, () -> influxDbResponseConverter.fromBody(input, List.class));
+  public void deserializeWrongValue() {
+    ResponseBody responseBody =
+        ResponseBody.create(okhttp3.MediaType.parse(MIME_TYPE), "{\"foo\":\"bar\"}".getBytes());
+    assertThrows(ConversionException.class, () -> converter.convert(responseBody));
   }
 
-  private String asString(TypedOutput typedOutput) throws Exception {
-    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    typedOutput.writeTo(bytes);
-    return new String(bytes.toByteArray());
+  private static class ParameterizedTypeImpl implements ParameterizedType {
+    private final Type rawType;
+    private final Type[] typeArguments;
+
+    public ParameterizedTypeImpl(Type rawType, Type... typeArguments) {
+      this.rawType = rawType;
+      this.typeArguments = typeArguments;
+    }
+
+    @Override
+    public Type[] getActualTypeArguments() {
+      return typeArguments;
+    }
+
+    @Override
+    public Type getRawType() {
+      return rawType;
+    }
+
+    @Override
+    public Type getOwnerType() {
+      return null;
+    }
   }
 }

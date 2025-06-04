@@ -4,6 +4,7 @@ apply plugin: 'scala'
 dependencies {
   implementation project(':kayenta-core')
   implementation project(':kayenta-mannwhitney')
+  implementation "com.squareup.retrofit2:converter-jackson"
 
   api "org.apache.commons:commons-math3"
 
