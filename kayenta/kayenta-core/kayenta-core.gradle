@@ -16,5 +16,7 @@ dependencies {
   api "javax.validation:validation-api"
   api "io.swagger.core.v3:swagger-annotations"
 
+  implementation "com.squareup.retrofit2:converter-jackson"
+
   testImplementation "io.spinnaker.kork:kork-jedis-test"
 }

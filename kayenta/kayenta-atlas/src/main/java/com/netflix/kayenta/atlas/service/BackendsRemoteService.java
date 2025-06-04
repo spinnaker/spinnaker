@@ -18,10 +18,10 @@ package com.netflix.kayenta.atlas.service;
 
 import com.netflix.kayenta.atlas.model.Backend;
 import java.util.List;
-import retrofit.http.GET;
+import retrofit2.http.GET;
 
 public interface BackendsRemoteService {
 
-  @GET("/api/v1/atlas/backends.json")
+  @GET("api/v1/atlas/backends.json")
   List<Backend> fetch();
 }
