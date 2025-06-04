@@ -16,16 +16,16 @@
 
 package com.netflix.kayenta.newrelic.service;
 
-import retrofit.http.GET;
-import retrofit.http.Header;
-import retrofit.http.Headers;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface NewRelicRemoteService {
 
   @Headers("Accept: application/json")
-  @GET("/v1/accounts/{application_key}/query")
+  @GET("v1/accounts/{application_key}/query")
   NewRelicTimeSeries getTimeSeries(
       @Header("X-Query-Key") String apiKey,
       @Path("application_key") String applicationKey,

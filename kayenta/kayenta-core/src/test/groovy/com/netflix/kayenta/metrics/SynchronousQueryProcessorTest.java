@@ -45,9 +45,11 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,8 +57,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @ExtendWith(MockitoExtension.class)
 public class SynchronousQueryProcessorTest {
@@ -131,7 +133,7 @@ public class SynchronousQueryProcessorTest {
             any(CanaryScope.class)))
         .thenThrow(getSpinnakerHttpException(INTERNAL_SERVER_ERROR.value()))
         .thenThrow(getSpinnakerHttpException(BAD_GATEWAY.value()))
-        .thenThrow(getSpinnakerHttpException(HttpStatus.TEMPORARY_REDIRECT.value()))
+        .thenThrow(getSpinnakerHttpException(HttpStatus.GATEWAY_TIMEOUT.value()))
         .thenReturn(response);
 
     processor.executeQuery(
@@ -238,7 +240,8 @@ public class SynchronousQueryProcessorTest {
             any(CanaryScope.class)))
         .thenThrow(
             new SpinnakerNetworkException(
-                RetrofitError.networkError("http://some-url", new SocketTimeoutException())));
+                new SocketTimeoutException("timeout"),
+                new Request.Builder().url("http://some-url").build()));
 
     assertThatThrownBy(
             () ->
@@ -260,11 +263,18 @@ public class SynchronousQueryProcessorTest {
   }
 
   private SpinnakerHttpException getSpinnakerHttpException(int status) {
-    return new SpinnakerHttpException(
-        RetrofitError.httpError(
-            "url",
-            new Response("url", status, "reason", Collections.emptyList(), null),
-            null,
-            null));
+    String url = "https://metrics";
+
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
+            status, ResponseBody.create(MediaType.parse("application/json"), "{}"));
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

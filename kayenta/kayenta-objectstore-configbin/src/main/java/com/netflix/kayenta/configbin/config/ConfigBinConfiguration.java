@@ -26,7 +26,6 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +50,6 @@ public class ConfigBinConfiguration {
       ConfigBinResponseConverter configBinConverter,
       ConfigBinConfigurationProperties configBinConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
-      OkHttpClient okHttpClient,
       AccountCredentialsRepository accountCredentialsRepository) {
     log.debug("Created a ConfigBin StorageService");
     ConfigBinStorageService.ConfigBinStorageServiceBuilder configbinStorageServiceBuilder =
@@ -84,8 +82,7 @@ public class ConfigBinConfiguration {
               retrofitClientFactory.createClient(
                   ConfigBinRemoteService.class,
                   configBinConverter,
-                  configBinManagedAccount.getEndpoint(),
-                  okHttpClient);
+                  configBinManagedAccount.getEndpoint());
           configBinNamedAccountCredentialsBuilder.remoteService(configBinRemoteService);
         }
         configBinNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);

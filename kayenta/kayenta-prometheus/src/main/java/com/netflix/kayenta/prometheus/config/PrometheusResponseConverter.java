@@ -17,32 +17,28 @@
 package com.netflix.kayenta.prometheus.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.kayenta.metrics.ConversionException;
 import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import java.io.IOException;
-import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import retrofit.converter.ConversionException;
-import retrofit.converter.Converter;
-import retrofit.converter.JacksonConverter;
-import retrofit.mime.TypedInput;
-import retrofit.mime.TypedOutput;
+import retrofit2.Converter;
+import retrofit2.Converter.Factory;
+import retrofit2.Retrofit;
 
 @Component
 @Slf4j
-public class PrometheusResponseConverter implements Converter {
-
+public class PrometheusResponseConverter extends Factory {
   private final ObjectMapper kayentaObjectMapper;
 
   @Autowired
@@ -51,22 +47,31 @@ public class PrometheusResponseConverter implements Converter {
   }
 
   @Override
-  public Object fromBody(TypedInput body, Type type) throws ConversionException {
-    if (type == PrometheusMetricDescriptorsResponse.class) {
-      return new JacksonConverter(kayentaObjectMapper).fromBody(body, type);
-    } else if (type == String.class) {
-      try {
-        return toString(body.in(), StandardCharsets.UTF_8);
-      } catch (IOException e) {
-        throw new ConversionException("Failed to parse response from Prometheus", e);
-      }
+  public Converter<ResponseBody, ?> responseBodyConverter(
+      Type type, Annotation[] annotations, Retrofit retrofit) {
+    if (type == PrometheusMetricDescriptorsResponse.class || type == String.class) {
+      return new JacksonResponseConverter<>(kayentaObjectMapper, type);
     } else {
+      return new PrometheusResultsConverter(kayentaObjectMapper);
+    }
+  }
+
+  // Converter to handle Prometheus results conversion
+  private static class PrometheusResultsConverter
+      implements Converter<ResponseBody, List<PrometheusResults>> {
+    private final ObjectMapper objectMapper;
+
+    public PrometheusResultsConverter(ObjectMapper objectMapper) {
+      this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public List<PrometheusResults> convert(ResponseBody value) {
       try {
-        Map responseMap = kayentaObjectMapper.readValue(body.in(), Map.class);
+        Map responseMap = objectMapper.readValue(value.byteStream(), Map.class);
         Map data = (Map) responseMap.get("data");
         List<Map> resultList = (List<Map>) data.get("result");
-        List<PrometheusResults> prometheusResultsList =
-            new ArrayList<PrometheusResults>(resultList.size());
+        List<PrometheusResults> prometheusResultsList = new ArrayList<>(resultList.size());
 
         if (CollectionUtils.isEmpty(resultList)) {
           return null;
@@ -76,7 +81,7 @@ public class PrometheusResponseConverter implements Converter {
           Map<String, String> tags = (Map<String, String>) elem.get("metric");
           String id = tags.remove("__name__");
           List<List> values = (List<List>) elem.get("values");
-          List<Double> dataValues = new ArrayList<Double>(values.size());
+          List<Double> dataValues = new ArrayList<>(values.size());
 
           for (List tuple : values) {
             String val = (String) tuple.get(1);
@@ -120,19 +125,30 @@ public class PrometheusResponseConverter implements Converter {
     }
   }
 
-  private Object toString(InputStream in, Charset charset) {
-    try (Scanner s = new Scanner(in, charset.toString())) {
-      s.useDelimiter("\\A");
-      return s.hasNext() ? s.next() : "";
+  // Simple converter for JSON responses using Jackson
+  private static class JacksonResponseConverter<T> implements Converter<ResponseBody, T> {
+    private final ObjectMapper objectMapper;
+    private final Type type;
+
+    JacksonResponseConverter(ObjectMapper objectMapper, Type type) {
+      this.objectMapper = objectMapper;
+      this.type = type;
+    }
+
+    @Override
+    public T convert(ResponseBody value) throws IOException {
+      try {
+        if (type == String.class) {
+          return (T) value.string();
+        }
+        return objectMapper.readValue(value.byteStream(), objectMapper.constructType(type));
+      } finally {
+        value.close();
+      }
     }
   }
 
   private static long doubleTimestampSecsToLongTimestampMillis(String doubleTimestampSecsAsString) {
     return (long) (Double.parseDouble(doubleTimestampSecsAsString) * 1000);
-  }
-
-  @Override
-  public TypedOutput toBody(Object object) {
-    return null;
   }
 }
