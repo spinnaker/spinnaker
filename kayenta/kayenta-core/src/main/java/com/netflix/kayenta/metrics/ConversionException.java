@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Joseph Motha
+ * Copyright 2025 OpsMx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.kayenta.metrics;
 
-package com.netflix.kayenta.influxdb.service;
+public class ConversionException extends RuntimeException {
+  public ConversionException(String message) {
+    super(message);
+  }
 
-import com.netflix.kayenta.influxdb.model.InfluxDbResult;
-import java.util.List;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
+  public ConversionException(String message, Throwable throwable) {
+    super(message, throwable);
+  }
 
-public interface InfluxDbRemoteService {
-
-  // See
-  // https://docs.influxdata.com/influxdb/v1.5/guides/querying_data/#querying-data-with-the-http-api
-  @GET("query")
-  List<InfluxDbResult> query(@Query("db") String databaseName, @Query("q") String query);
+  public ConversionException(Throwable throwable) {
+    super(throwable);
+  }
 }

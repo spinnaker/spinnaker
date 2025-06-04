@@ -22,9 +22,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.io.ByteStreams;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
-import retrofit.mime.TypedByteArray;
-import retrofit.mime.TypedInput;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class SignalFxRemoteServiceTest {
 
@@ -33,9 +37,21 @@ public class SignalFxRemoteServiceTest {
     InputStream response =
         getClass().getClassLoader().getResourceAsStream("signalfx-signalflow-response.text");
     SignalFxConverter converter = new SignalFxConverter();
-    TypedInput typedInput = new TypedByteArray("text/plain", ByteStreams.toByteArray(response));
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl("http://signalfx")
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+    Converter<ResponseBody, SignalFlowExecutionResult> signalfxResponseConverter =
+        (Converter<ResponseBody, SignalFlowExecutionResult>)
+            converter.responseBodyConverter(
+                SignalFlowExecutionResult.class, new Annotation[0], retrofit);
+
+    ResponseBody signalfxResponseBody =
+        ResponseBody.create(MediaType.parse("text/plain"), ByteStreams.toByteArray(response));
+
     SignalFlowExecutionResult signalFlowExecutionResult =
-        (SignalFlowExecutionResult) converter.fromBody(typedInput, SignalFlowExecutionResult.class);
+        signalfxResponseConverter.convert(signalfxResponseBody);
 
     assertNotNull(signalFlowExecutionResult);
     assertThat(signalFlowExecutionResult.getChannelMessages().size())
