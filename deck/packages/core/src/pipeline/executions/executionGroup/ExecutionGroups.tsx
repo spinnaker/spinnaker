@@ -89,9 +89,30 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     const { groups = [], container, showingDetails } = this.state;
     const hasGroups = groups.length > 0;
     const className = `row pipelines executions ${showingDetails ? 'showing-details' : ''}`;
-    const allGroups = (groups || [])
+
+    const processedExecutionIds = new Set<string>();
+    const deduplicatedGroups = groups.map((group) => ({
+      ...group,
+      executions: [...group.executions],
+      runningExecutions: [...group.runningExecutions],
+    }));
+
+    deduplicatedGroups.forEach((group) => {
+      group.executions = group.executions.filter((execution) => {
+        if (processedExecutionIds.has(execution.id)) return false;
+        processedExecutionIds.add(execution.id);
+        return true;
+      });
+
+      group.runningExecutions = group.runningExecutions.filter((execution) =>
+        group.executions.some((e) => e.id === execution.id),
+      );
+    });
+
+    const nonEmptyGroups = deduplicatedGroups.filter((group) => group.executions.length > 0);
+    const allGroups = (nonEmptyGroups || [])
       .filter((g: IExecutionGroup) => g?.config?.migrationStatus === 'Started')
-      .concat(groups.filter((g) => g?.config?.migrationStatus !== 'Started'));
+      .concat(nonEmptyGroups.filter((g) => g?.config?.migrationStatus !== 'Started'));
 
     const executionGroups = allGroups.map((group: IExecutionGroup) => (
       <ExecutionGroup parent={container} key={group.heading} group={group} application={this.props.application} />
