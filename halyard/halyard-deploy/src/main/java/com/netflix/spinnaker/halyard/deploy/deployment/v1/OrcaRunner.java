@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -30,7 +31,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class OrcaRunner {
@@ -133,7 +133,7 @@ public class OrcaRunner {
         pipeline = getPipeline.get();
         status = pipeline.getStatus();
       }
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       throw new HalException(
           new ProblemBuilder(Problem.Severity.FATAL, "Failed to monitor task: " + e.getMessage())
               .build());
