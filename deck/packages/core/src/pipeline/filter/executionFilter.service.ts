@@ -256,13 +256,26 @@ export class ExecutionFilterService {
     const groups: IExecutionGroup[] = [];
     let executions: IExecution[] = [];
 
-    const processedExecutionIds = new Set<string>();
+    // Check if there are any duplicate execution IDs before applying deduplication
+    const executionIds = filteredExecutions.map((e) => e.id);
+    const uniqueIds = new Set(executionIds);
+    const hasDuplicates = executionIds.length !== uniqueIds.size;
 
-    forOwn(groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
-      const uniqueExecutions = groupedExecutions.filter((execution) => !processedExecutionIds.has(execution.id));
-      uniqueExecutions.forEach((execution) => processedExecutionIds.add(execution.id));
-      executions = executions.concat(uniqueExecutions.sort((a, b) => this.executionSorter(a, b)));
-    });
+    if (hasDuplicates) {
+      // Only apply deduplication if there are actually duplicate executions
+      const processedExecutionIds = new Set<string>();
+
+      forOwn(groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
+        const uniqueExecutions = groupedExecutions.filter((execution) => !processedExecutionIds.has(execution.id));
+        uniqueExecutions.forEach((execution) => processedExecutionIds.add(execution.id));
+        executions = executions.concat(uniqueExecutions.sort((a, b) => this.executionSorter(a, b)));
+      });
+    } else {
+      // No duplicates, use the original logic
+      forOwn(groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
+        executions = executions.concat(groupedExecutions.sort((a, b) => this.executionSorter(a, b)));
+      });
+    }
 
     executions.forEach((execution: IExecution) => {
       const config: IPipeline = application.pipelineConfigs.data.find(
