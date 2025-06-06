@@ -1,0 +1,4 @@
+dependencies {
+  implementation project(":gate-core")
+  implementation "io.spinnaker.kork:kork-core"
+}
