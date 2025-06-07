@@ -34,6 +34,7 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
 import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.io.Console;
 import java.net.ConnectException;
 import java.util.ArrayList;
@@ -49,7 +50,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.nibor.autolink.*;
-import retrofit.RetrofitError;
 
 @Parameters(separators = "=")
 public abstract class NestableCommand {
@@ -221,7 +221,7 @@ public abstract class NestableCommand {
       } else {
         executeThis();
       }
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       if (e.getCause() instanceof ConnectException) {
         AnsiUi.error(e.getCause().getMessage());
         AnsiUi.remediation("Is your daemon running?");
