@@ -110,6 +110,7 @@ public class DockerRegistryConfiguration {
                 .insecureRegistry(a.getInsecureRegistry())
                 .repositories(a.getRepositories())
                 .skip(a.getSkip())
+                .helmOciRepositories(a.getHelmOciRepositories())
                 .permissions(a.getPermissions().build())
                 .dockerOkClientProvider(dockerOkClientProvider)
                 .serviceClientProvider(serviceClientProvider)
