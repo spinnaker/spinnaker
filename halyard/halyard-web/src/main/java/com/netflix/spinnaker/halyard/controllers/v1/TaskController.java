@@ -9,7 +9,6 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import retrofit.http.Body;
 
 @GRpcService
 @RestController
@@ -21,7 +20,7 @@ public class TaskController extends OperationsGrpc.OperationsImplBase {
   }
 
   @RequestMapping(value = "/{uuid:.+}/interrupt", method = RequestMethod.PUT)
-  void interruptTask(@PathVariable String uuid, @Body String ignored) {
+  void interruptTask(@PathVariable String uuid, @RequestBody String ignored) {
     DaemonTask task = TaskRepository.getTask(uuid);
 
     if (task == null) {

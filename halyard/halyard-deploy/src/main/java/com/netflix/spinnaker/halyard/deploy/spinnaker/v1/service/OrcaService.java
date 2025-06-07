@@ -30,8 +30,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
-import retrofit.http.*;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.Headers;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -77,25 +80,25 @@ public abstract class OrcaService extends SpringService<OrcaService.Orca> {
 
   public interface Orca {
     @Headers("Content-type: application/context+json")
-    @POST("/ops")
+    @POST("ops")
     Map<String, Object> submitTask(@Body Map task);
 
-    @POST("/orchestrate")
+    @POST("orchestrate")
     Map<String, Object> orchestrate(@Body Map pipeline);
 
-    @GET("/{id}")
-    Map<String, Object> getRef(@Path(encode = false, value = "id") String id);
+    @GET("{id}")
+    Map<String, Object> getRef(@Path(encoded = true, value = "id") String id);
 
-    @GET("/executions/activeByInstance")
+    @GET("executions/activeByInstance")
     Map<String, ActiveExecutions> getActiveExecutions();
 
-    @POST("/admin/instance/enabled")
-    Response setInstanceStatusEnabled(@Body Map<String, String> request);
+    @POST("admin/instance/enabled")
+    Void setInstanceStatusEnabled(@Body Map<String, String> request);
 
-    @GET("/resolvedEnv")
+    @GET("resolvedEnv")
     Map<String, String> resolvedEnv();
 
-    @GET("/health")
+    @GET("health")
     SpringHealth health();
 
     @Data
