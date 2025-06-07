@@ -28,6 +28,8 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMount;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMountSet;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -39,8 +41,12 @@ import okhttp3.Response;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
-import retrofit.http.*;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -74,23 +80,23 @@ public abstract class VaultServerService extends SpinnakerService<VaultServerSer
   }
 
   public interface Vault {
-    @GET("/v1/sys/init")
+    @GET("v1/sys/init")
     InitStatus initStatus();
 
-    @PUT("/v1/sys/init")
+    @PUT("v1/sys/init")
     InitResponse init(@Body InitRequest initRequest);
 
-    @GET("/v1/sys/seal-status")
+    @GET("v1/sys/seal-status")
     SealStatus sealStatus();
 
-    @PUT("/v1/sys/unseal")
+    @PUT("v1/sys/unseal")
     SealStatus unseal(@Body UnsealRequest unsealRequest);
 
-    @PUT("/v1/secret/{secretName}")
+    @PUT("v1/secret/{secretName}")
     @Headers({"Content-type: application/json"})
     Response putSecret(
         @Header("X-Vault-Token") String token,
-        @Path(value = "secretName", encode = false) String secretName,
+        @Path(value = "secretName", encoded = true) String secretName,
         @Body Object contents);
   }
 
@@ -163,7 +169,7 @@ public abstract class VaultServerService extends SpinnakerService<VaultServerSer
 
     try {
       initStatus = vault.initStatus();
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       throw handleVaultError(e, "check init status");
     }
 
@@ -175,7 +181,7 @@ public abstract class VaultServerService extends SpinnakerService<VaultServerSer
         for (String key : init.getKeys()) {
           vault.unseal(new UnsealRequest().setKey(key));
         }
-      } catch (RetrofitError e) {
+      } catch (SpinnakerServerException e) {
         throw handleVaultError(e, "init vault");
       }
     }
@@ -183,7 +189,7 @@ public abstract class VaultServerService extends SpinnakerService<VaultServerSer
     SealStatus sealStatus;
     try {
       sealStatus = vault.sealStatus();
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       throw handleVaultError(e, "check seal status");
     }
 
@@ -217,10 +223,17 @@ public abstract class VaultServerService extends SpinnakerService<VaultServerSer
     return result;
   }
 
-  private HalException handleVaultError(RetrofitError e, String operation) {
-    if (e.getResponse() != null && e.getResponse().getStatus() == 400) {
-      VaultError ve = (VaultError) e.getBodyAs(VaultError.class);
-      return new HalException(Problem.Severity.FATAL, "Vault is in an invalid state: " + ve, e);
+  private HalException handleVaultError(SpinnakerServerException e, String operation) {
+    if (e instanceof SpinnakerHttpException
+        && ((SpinnakerHttpException) e).getResponseCode() == 400) {
+      Map<String, Object> ve = ((SpinnakerHttpException) e).getResponseBody();
+      String message;
+      if (ve == null) {
+        message = "Vault is in an invalid state: " + e.getMessage();
+      } else {
+        message = "Vault is in an invalid state: " + ve;
+      }
+      return new HalException(Problem.Severity.FATAL, message, e);
     } else {
       return new HalException(
           Problem.Severity.FATAL, "Error reaching vault during operation \"" + operation + "\"", e);

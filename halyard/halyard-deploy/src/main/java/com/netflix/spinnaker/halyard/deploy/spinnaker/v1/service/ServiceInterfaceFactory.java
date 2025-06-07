@@ -17,23 +17,25 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
+import com.netflix.spinnaker.halyard.core.RetrofitUtils;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RestAdapter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Component
 public class ServiceInterfaceFactory {
-  @Autowired Ok3Client ok3Client;
-
-  @Autowired RestAdapter.LogLevel retrofitLogLevel;
+  @Autowired OkHttp3ClientConfiguration okHttp3ClientConfiguration;
 
   public <T> T createService(String endpoint, SpinnakerService<T> service) {
     Class<T> clazz = service.getEndpointClass();
-    return new RestAdapter.Builder()
-        .setClient(ok3Client)
-        .setLogLevel(retrofitLogLevel)
-        .setEndpoint(endpoint)
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(endpoint))
+        .client(okHttp3ClientConfiguration.createForRetrofit2().build())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create())
         .build()
         .create(clazz);
   }

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.ArtifactTemplate;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
@@ -34,6 +33,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.RetrofitUtils;
 import com.netflix.spinnaker.halyard.core.StringBodyRequest;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
@@ -41,12 +41,16 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 public class Daemon {
@@ -1167,7 +1171,7 @@ public class Daemon {
   public static Supplier<Void> publishProfile(
       String bomPath, String artifactName, String profilePath) {
     return () -> {
-      ResponseUnwrapper.get(getService().publishProfile(bomPath, artifactName, profilePath, ""));
+      ResponseUnwrapper.get(getService().publishProfile(artifactName, bomPath, profilePath, ""));
       return null;
     };
   }
@@ -1251,6 +1255,20 @@ public class Daemon {
     }
 
     return objectMapper;
+  }
+
+  private static Retrofit2EncodeCorrectionInterceptor getEncodeCorrectionInterceptor() {
+    if (encodeCorrectionInterceptor == null) {
+      encodeCorrectionInterceptor = new Retrofit2EncodeCorrectionInterceptor();
+    }
+    return encodeCorrectionInterceptor;
+  }
+
+  private static HttpLoggingInterceptor getLoggingInterceptor() {
+    if (loggingInterceptor == null) {
+      loggingInterceptor = new HttpLoggingInterceptor();
+    }
+    return loggingInterceptor;
   }
 
   public static Supplier<Webhook> getWebhook(String deploymentName, boolean validate) {
@@ -1448,13 +1466,22 @@ public class Daemon {
 
   private static DaemonService service;
   private static ObjectMapper objectMapper;
+  private static Retrofit2EncodeCorrectionInterceptor encodeCorrectionInterceptor;
+  private static HttpLoggingInterceptor loggingInterceptor;
 
   private static DaemonService createService(boolean log) {
-    return new RestAdapter.Builder()
-        .setEndpoint(GlobalOptions.getGlobalOptions().getDaemonEndpoint())
-        .setClient(new Ok3Client())
-        .setConverter(new JacksonConverter(getObjectMapper()))
-        .setLogLevel(log ? RestAdapter.LogLevel.FULL : RestAdapter.LogLevel.NONE)
+    HttpLoggingInterceptor.Level retrofit2LogLevel =
+        log ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.NONE;
+    OkHttpClient okHttpClient =
+        new OkHttpClient.Builder()
+            .addInterceptor(getEncodeCorrectionInterceptor())
+            .addInterceptor(getLoggingInterceptor().setLevel(retrofit2LogLevel))
+            .build();
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(GlobalOptions.getGlobalOptions().getDaemonEndpoint()))
+        .client(okHttpClient)
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create(getObjectMapper()))
         .build()
         .create(DaemonService.class);
   }
