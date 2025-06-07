@@ -89,9 +89,44 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     const { groups = [], container, showingDetails } = this.state;
     const hasGroups = groups.length > 0;
     const className = `row pipelines executions ${showingDetails ? 'showing-details' : ''}`;
-    const allGroups = (groups || [])
+
+    // Check if there are any duplicate execution IDs before applying deduplication
+    const allExecutionIds = groups.flatMap((group) => group.executions.map((e) => e.id));
+    const uniqueIds = new Set(allExecutionIds);
+    const hasDuplicates = allExecutionIds.length !== uniqueIds.size;
+
+    let processedGroups;
+
+    if (hasDuplicates) {
+      // Only apply deduplication if there are actually duplicate executions
+      const processedExecutionIds = new Set<string>();
+      const deduplicatedGroups = groups.map((group) => ({
+        ...group,
+        executions: [...group.executions],
+        runningExecutions: [...group.runningExecutions],
+      }));
+
+      deduplicatedGroups.forEach((group) => {
+        group.executions = group.executions.filter((execution) => {
+          if (processedExecutionIds.has(execution.id)) return false;
+          processedExecutionIds.add(execution.id);
+          return true;
+        });
+
+        group.runningExecutions = group.runningExecutions.filter((execution) =>
+          group.executions.some((e) => e.id === execution.id),
+        );
+      });
+
+      processedGroups = deduplicatedGroups.filter((group) => group.executions.length > 0);
+    } else {
+      // No duplicates, use the original groups
+      processedGroups = groups;
+    }
+
+    const allGroups = (processedGroups || [])
       .filter((g: IExecutionGroup) => g?.config?.migrationStatus === 'Started')
-      .concat(groups.filter((g) => g?.config?.migrationStatus !== 'Started'));
+      .concat(processedGroups.filter((g) => g?.config?.migrationStatus !== 'Started'));
 
     const executionGroups = allGroups.map((group: IExecutionGroup) => (
       <ExecutionGroup parent={container} key={group.heading} group={group} application={this.props.application} />
