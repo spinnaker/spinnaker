@@ -26,7 +26,7 @@ import java.time.Duration
 import java.util.Arrays
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
-import javax.annotation.PreDestroy
+import jakarta.annotation.PreDestroy
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.coroutines.CoroutineContext

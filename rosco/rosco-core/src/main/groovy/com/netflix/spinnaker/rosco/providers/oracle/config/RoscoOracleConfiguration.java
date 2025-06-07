@@ -12,7 +12,7 @@ package com.netflix.spinnaker.rosco.providers.oracle.config;
 import com.netflix.spinnaker.rosco.api.BakeRequest;
 import com.netflix.spinnaker.rosco.providers.oracle.OCIBakeHandler;
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.ComponentScan;

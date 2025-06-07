@@ -19,11 +19,11 @@ import static com.netflix.spinnaker.kork.discovery.InstanceStatus.UP;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
+import jakarta.annotation.PreDestroy;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
