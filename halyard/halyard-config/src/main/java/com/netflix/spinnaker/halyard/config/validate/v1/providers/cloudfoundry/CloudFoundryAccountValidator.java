@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.AuthenticationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
@@ -30,9 +29,13 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.CloudFoundryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.util.PropertyUtils;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.core.RetrofitUtils;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
+import java.io.IOException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -44,21 +47,24 @@ import javax.net.ssl.X509TrustManager;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Slf4j
 public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount> {
 
-  private JacksonConverter jacksonConverter = createJacksonConverter();
+  private JacksonConverterFactory jacksonConverterFactory = createJacksonConverterFactory();
   private X509TrustManager x509TrustManager;
-  private Ok3Client secureOkClient = new Ok3Client(createHttpClient(false));
-  private Ok3Client insecureOkClient = new Ok3Client(createHttpClient(true));
+  private OkHttpClient.Builder secureOkClientBuilder = createHttpClientBuilder(false);
+  private OkHttpClient.Builder insecureOkClientBuilder = createHttpClientBuilder(true);
 
   @Override
   public void validate(
@@ -137,26 +143,30 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
 
   private SpaceService createSpaceService(
       String apiHost, boolean skipSslValidation, String user, String password) {
-    return new RestAdapter.Builder()
-        .setEndpoint("https://" + apiHost)
-        .setClient(skipSslValidation ? insecureOkClient : secureOkClient)
-        .setConverter(jacksonConverter)
-        .setRequestInterceptor(
-            request ->
-                request.addHeader(
-                    "Authorization",
-                    "bearer "
-                        + getToken(apiHost, skipSslValidation, user, password).getAccessToken()))
+    OkHttpClient.Builder okClientBuilder =
+        skipSslValidation ? insecureOkClientBuilder : secureOkClientBuilder;
+    AuthInterceptor authInterceptor =
+        new AuthInterceptor(getToken(apiHost, skipSslValidation, user, password).getAccessToken());
+    okClientBuilder.addInterceptor(authInterceptor);
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl("https://" + apiHost))
+        .client(okClientBuilder.build())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(jacksonConverterFactory)
         .build()
         .create(SpaceService.class);
   }
 
   private Token getToken(String apiHost, boolean skipSslValidation, String user, String password) {
+    String baseUrl = RetrofitUtils.getBaseUrl("https://" + apiHost.replaceAll("^api\\.", "login."));
+    OkHttpClient.Builder okClientBuilder =
+        skipSslValidation ? insecureOkClientBuilder : secureOkClientBuilder;
     AuthenticationService uaaService =
-        new RestAdapter.Builder()
-            .setEndpoint("https://" + apiHost.replaceAll("^api\\.", "login."))
-            .setClient(skipSslValidation ? insecureOkClient : secureOkClient)
-            .setConverter(jacksonConverter)
+        new Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(okClientBuilder.build())
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+            .addConverterFactory(jacksonConverterFactory)
             .build()
             .create(AuthenticationService.class);
     Token token = null;
@@ -169,17 +179,18 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
   }
 
   @NotNull
-  private JacksonConverter createJacksonConverter() {
+  private JacksonConverterFactory createJacksonConverterFactory() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     mapper.registerModule(new JavaTimeModule());
-    return new JacksonConverter(mapper);
+    return JacksonConverterFactory.create(mapper);
   }
 
-  private OkHttpClient createHttpClient(boolean skipSslValidation) {
+  private OkHttpClient.Builder createHttpClientBuilder(boolean skipSslValidation) {
     OkHttpClient.Builder oBuilder = new OkHttpClient.Builder();
+    oBuilder.addInterceptor(new Retrofit2EncodeCorrectionInterceptor());
 
     if (skipSslValidation) {
       oBuilder.hostnameVerifier((s, sslSession) -> true);
@@ -211,10 +222,29 @@ public class CloudFoundryAccountValidator extends Validator<CloudFoundryAccount>
       oBuilder.sslSocketFactory(sslContext.getSocketFactory(), x509TrustManager);
     }
 
-    return oBuilder.build();
+    return oBuilder;
   }
 
   private boolean isHttp(String protocol) {
     return "http".equalsIgnoreCase(protocol) || "https".equalsIgnoreCase(protocol);
+  }
+
+  public static class AuthInterceptor implements Interceptor {
+    private final String token;
+
+    public AuthInterceptor(String token) {
+      this.token = token;
+    }
+
+    @Override
+    public @NotNull Response intercept(Chain chain) throws IOException {
+      Request original = chain.request();
+      Request.Builder builder =
+          original
+              .newBuilder()
+              .header("Authorization", "Bearer " + token)
+              .method(original.method(), original.body());
+      return chain.proceed(builder.build());
+    }
   }
 }

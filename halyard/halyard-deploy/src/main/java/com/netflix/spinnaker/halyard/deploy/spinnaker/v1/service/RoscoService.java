@@ -32,7 +32,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.http.GET;
+import retrofit2.http.GET;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -95,13 +95,13 @@ public abstract class RoscoService extends SpringService<RoscoService.Rosco> {
   }
 
   public interface Rosco {
-    @GET("/resolvedEnv")
+    @GET("resolvedEnv")
     Map<String, String> resolvedEnv();
 
-    @GET("/health")
+    @GET("health")
     SpringHealth health();
 
-    @GET("/status/all")
+    @GET("status/all")
     AllStatus getAllStatus();
 
     @Data
