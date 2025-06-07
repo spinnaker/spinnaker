@@ -23,9 +23,9 @@ import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
-import retrofit.RetrofitError;
 
 public abstract class RegistryBackedProfileFactory extends ProfileFactory {
   @Autowired ProfileRegistry profileRegistry;
@@ -38,7 +38,7 @@ public abstract class RegistryBackedProfileFactory extends ProfileFactory {
           version,
           outputFile,
           IOUtils.toString(profileRegistry.readProfile(getArtifact().getName(), version, name)));
-    } catch (RetrofitError | IOException e) {
+    } catch (SpinnakerServerException | IOException e) {
       throw new HalException(
           new ConfigProblemBuilder(
                   FATAL, "Unable to retrieve profile \"" + name + "\": " + e.getMessage())
