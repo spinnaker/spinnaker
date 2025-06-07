@@ -1,4 +1,5 @@
 dependencies {
   implementation project(":gate-core")
   implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-security" // for deprecated User class
 }

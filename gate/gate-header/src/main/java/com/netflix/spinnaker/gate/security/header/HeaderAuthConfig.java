@@ -24,10 +24,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedGrantedAuthoritiesUserDetailsService;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
-/** See https://bwgjoseph.com/spring-security-custom-pre-authentication-flow for background. */
+/**
+ * In combination with HeaderAuthConfigurerAdapter, authenticate the X-SPINNAKER-USER header using
+ * permissions obtained from fiat. See
+ * https://bwgjoseph.com/spring-security-custom-pre-authentication-flow for background.
+ */
 @ConditionalOnProperty("header.enabled")
 @Configuration
 public class HeaderAuthConfig {
@@ -53,6 +56,7 @@ public class HeaderAuthConfig {
     // PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails implements
     // GrantedAuthoritiesContainer, it works with
     // PreAuthenticatedGrantedAuthoritiesUserDetailsService.
+    // HeaderAuthenticationDetailsSource takes care of this.
     requestHeaderAuthenticationFilter.setAuthenticationDetailsSource(
         new HeaderAuthenticationDetailsSource());
     return requestHeaderAuthenticationFilter;
@@ -60,33 +64,31 @@ public class HeaderAuthConfig {
 
   @Bean
   public AuthenticationProvider authenticationProvider() {
-    // The token provided by PreAuthenticatedAuthenticationProvider (a
-    // PreAuthenticatedAuthenticationToken), has details of type
-    // WebAuthenticationDetails, because our RequestHeaderAuthenticationFilter
-    // doesn't set an authenticationDetailsSource, and the default is
-    // WebAuthenticationDetailsSource.
-    //
+    // PreAuthenticatedAuthenticationProvider provides tokens of type
+    // PreAuthenticatedAuthenticationToken.  Because our
+    // RequestHeaderAuthenticationFilter sets an authenticationDetailsSource to
+    // gate's HeaderAuthenticationDetailsSource class, those tokens have details
+    // of type PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails
+    // instead of the default WebAuthenticationDetails.
     PreAuthenticatedAuthenticationProvider provider = new PreAuthenticatedAuthenticationProvider();
 
     // PreAuthenticatedAuthenticationProvider requires an
     // AuthenticationUserDetailsService.  spring-security-web provides
     // PreAuthenticatedGrantedAuthoritiesUserDetailsService which seems
-    // convenient, except it requires that the token's getDetails method returns
-    // an implementation of GrantedAuthoritiesContainer.
-    // WebAuthenticationDetails doesn't implement GrantedAuthoritiesContainer,
-    // so this combination of AuthenticationProvider +
-    // AuthenticationUserDetailsService doesn't work, at least not out of the
-    // box.
+    // convenient.  It requires that the token's getDetails method returns an
+    // implementation of GrantedAuthoritiesContainer, and happily,
+    // PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails implements it.
     //
-    // Do we stick with PreAuthenticatedAuthenticationProvider and implement our
-    // own AuthenticationUserDetailsService (possibly as a child of
-    // PreAuthenticatedGrantedAuthoritiesUserDetailsService), or do we use a
-    // different AuthenticationProvider.  PreAuthenticatedAuthenticationProvider
-    // really does feel like what we want, and (eventually), we do want to get
-    // details (i.e. authorities/roles) from fiat, so implement our own
-    // AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken>.
-    provider.setPreAuthenticatedUserDetailsService(
-        new PreAuthenticatedGrantedAuthoritiesUserDetailsService());
+    // However, there's a snag.  Some parts of gate (e.g. the /auth/user and
+    // /credentials/{account} endpoints) expect a User from kork-security, as
+    // opposed to the UserDetails interface that spring security specifies (or
+    // perhaps the User from spring-security-core.  So,
+    // PreAuthenticatedGrantedAuthoritiesUserDetailsService isn't sufficient.
+    // We eiter need to stop using User from kork-security, or implement
+    // something that generates user details with kork-security User objects.
+    // To try to rock the boat as little as possible, generate kork-security
+    // User objects via gate's own user details service
+    provider.setPreAuthenticatedUserDetailsService(new HeaderAuthenticationUserDetailsService());
     return provider;
   }
 
