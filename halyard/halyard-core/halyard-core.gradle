@@ -19,6 +19,7 @@ dependencies {
   implementation 'com.hubspot.jinjava:jinjava:2.2.3'
   implementation 'org.spockframework:spock-spring'
   implementation 'org.yaml:snakeyaml:1.24'
+  implementation 'com.squareup.retrofit2:retrofit'
 
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
   testImplementation 'org.springframework:spring-test'
