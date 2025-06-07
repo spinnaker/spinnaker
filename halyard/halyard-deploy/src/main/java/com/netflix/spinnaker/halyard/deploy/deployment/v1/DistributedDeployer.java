@@ -35,6 +35,8 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -43,8 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 @Component
 @Slf4j
@@ -236,9 +236,15 @@ public class DistributedDeployer<T extends Account>
                               .connectToPrimaryService(deploymentDetails, runtimeSettings);
                       deployServiceWithOrca(
                           deploymentDetails, resolvedConfiguration, orca, distributedService);
-                    } catch (RetrofitError e) {
-                      String message =
-                          ((Map<String, String>) e.getBodyAs(Map.class)).get("message");
+                    } catch (SpinnakerServerException e) {
+                      String message = e.getMessage();
+                      if (e instanceof SpinnakerHttpException) {
+                        Object messageObj =
+                            ((SpinnakerHttpException) e).getResponseBody().get("message");
+                        if (messageObj != null) {
+                          message = messageObj.toString();
+                        }
+                      }
                       throw new HalException(
                           Problem.Severity.FATAL,
                           "Unable to deploy service with Orca " + e + ": " + message,
@@ -354,15 +360,15 @@ public class DistributedDeployer<T extends Account>
     try {
       Rosco rosco = roscoService.connectToPrimaryService(details, runtimeSettings);
       allStatus = rosco.getAllStatus();
-    } catch (RetrofitError e) {
+    } catch (SpinnakerServerException e) {
       boolean enabled = roscoSettings.getEnabled() != null && roscoSettings.getEnabled();
       if (enabled) {
-        Map<String, String> body = (Map<String, String>) e.getBodyAs(Map.class);
-        String message;
-        if (body != null) {
-          message = body.getOrDefault("message", "no message supplied");
-        } else {
-          message = "no response body";
+        String message = "no response body";
+        if (e instanceof SpinnakerHttpException) {
+          Map<String, Object> body = ((SpinnakerHttpException) e).getResponseBody();
+          if (body != null) {
+            message = (String) body.getOrDefault("message", "no message supplied");
+          }
         }
         throw new HalException(
             Problem.Severity.FATAL,
@@ -373,21 +379,17 @@ public class DistributedDeployer<T extends Account>
             e);
       }
 
-      Response response = e.getResponse();
-      if (response == null) {
-        throw new IllegalStateException("Unknown connection failure: " + e, e);
+      if (e instanceof SpinnakerHttpException httpException) {
+        // 404 when the service couldn't be found, 503 when k8s couldn't establish a connection
+        if (httpException.getResponseCode() == 404 || httpException.getResponseCode() == 503) {
+          log.info("Rosco is not enabled, and there are no server groups to reap");
+          return;
+        }
       }
-
-      // 404 when the service couldn't be found, 503 when k8s couldn't establish a connection
-      if (response.getStatus() == 404 || response.getStatus() == 503) {
-        log.info("Rosco is not enabled, and there are no server groups to reap");
-        return;
-      } else {
-        throw new HalException(
-            Problem.Severity.FATAL,
-            "Rosco is not enabled, but couldn't be connected to for unknown reason: " + e,
-            e);
-      }
+      throw new HalException(
+          Problem.Severity.FATAL,
+          "Rosco is not enabled, but couldn't be connected to for unknown reason: " + e,
+          e);
     }
     RunningServiceDetails roscoDetails =
         roscoService.getRunningServiceDetails(details, runtimeSettings);
@@ -499,16 +501,18 @@ public class DistributedDeployer<T extends Account>
           orca.setInstanceStatusEnabled(disableRequest);
         }
         result.add(version);
-      } catch (RetrofitError e) {
-        Response response = e.getResponse();
-        if (response == null) {
-          log.warn("Unexpected error disabling orca", e);
-        } else if (response.getStatus() == 400
-            && ((Map) e.getBodyAs(Map.class)).containsKey("discovery")) {
-          log.info("Orca instance is managed by eureka");
-          result.add(version);
+      } catch (SpinnakerServerException e) {
+        if (e instanceof SpinnakerHttpException httpException) {
+          if (httpException.getResponseCode() == 400
+              && httpException.getResponseBody() != null
+              && httpException.getResponseBody().containsKey("discovery")) {
+            log.info("Orca instance is managed by eureka");
+            result.add(version);
+          } else {
+            log.warn("Orca version doesn't support explicit disabling of instances", e);
+          }
         } else {
-          log.warn("Orca version doesn't support explicit disabling of instances", e);
+          log.warn("Unexpected error disabling orca", e);
         }
       }
     }
