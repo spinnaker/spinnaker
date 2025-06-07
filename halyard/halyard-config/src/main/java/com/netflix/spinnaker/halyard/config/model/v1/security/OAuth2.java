@@ -69,7 +69,7 @@ public class OAuth2 extends AuthnMethod {
       case GOOGLE:
         newClient.setAccessTokenUri("https://www.googleapis.com/oauth2/v4/token");
         newClient.setUserAuthorizationUri("https://accounts.google.com/o/oauth2/v2/auth");
-        newClient.setScope("profile email");
+        newClient.setScope("profile,email");
 
         newResource.setUserInfoUri("https://www.googleapis.com/oauth2/v3/userinfo");
 
@@ -80,7 +80,7 @@ public class OAuth2 extends AuthnMethod {
       case GITHUB:
         newClient.setAccessTokenUri("https://github.com/login/oauth/access_token");
         newClient.setUserAuthorizationUri("https://github.com/login/oauth/authorize");
-        newClient.setScope("user:email");
+        newClient.setScope("user,email");
 
         newResource.setUserInfoUri("https://api.github.com/user");
 
@@ -93,7 +93,7 @@ public class OAuth2 extends AuthnMethod {
         final String idcsBaseUrl = "https://idcs-${idcsTenantId}.identity.oraclecloud.com";
         newClient.setAccessTokenUri(idcsBaseUrl + "/oauth2/v1/token");
         newClient.setUserAuthorizationUri(idcsBaseUrl + "/oauth2/v1/authorize");
-        newClient.setScope("openid urn:opc:idm:__myscopes__");
+        newClient.setScope("openid,urn:opc:idm:__myscopes__");
 
         newResource.setUserInfoUri(idcsBaseUrl + "/oauth2/v1/userinfo");
 
