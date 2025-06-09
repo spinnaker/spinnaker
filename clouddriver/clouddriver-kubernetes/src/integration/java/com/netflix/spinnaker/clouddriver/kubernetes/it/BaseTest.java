@@ -27,7 +27,12 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest(
@@ -35,6 +40,7 @@ import org.springframework.test.context.TestPropertySource;
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {"spring.config.location = classpath:clouddriver.yml"})
 @ExtendWith(TestLifecycleListener.class)
+@Import(BaseTest.TestConfig.class)
 public abstract class BaseTest {
 
   public static final String APP1_NAME = "testApp1";
@@ -68,5 +74,15 @@ public abstract class BaseTest {
         .statusCode(200)
         .and()
         .body("name", hasItems(ACCOUNT1_NAME));
+  }
+
+  @TestConfiguration
+  static class TestConfig {
+    @Bean
+    public SecurityFilterChain noSecurityFilterChain(HttpSecurity http) throws Exception {
+
+      http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).csrf().disable();
+      return http.build();
+    }
   }
 }
