@@ -22,7 +22,10 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -59,10 +62,10 @@ class DeletePipelineTaskSpec extends Specification {
     2 * mutator.supports(pipeline) >> true
     2 * mutator.mutate(pipeline)
     1 * front50Service.savePipeline(pipeline, _) >> {
-      new Response('http://front50', 200, 'OK', [], null)
+      Calls.response(ResponseBody.create(MediaType.parse("application/json"),""))
     }
     1 * front50Service.deletePipeline(pipeline.application, pipeline.name) >> {
-      new Response('http://front50', 200, 'OK', [], null)
+      Calls.response(ResponseBody.create(MediaType.parse("application/json"),""))
     }
     result.status == ExecutionStatus.SUCCEEDED
     result.context == ImmutableMap.copyOf([
@@ -84,9 +87,9 @@ class DeletePipelineTaskSpec extends Specification {
     ])
 
     when:
-    front50Service.getPipelines(_) >> []
+    front50Service.getPipelines(_) >> Calls.response([])
     front50Service.deletePipeline(_, _) >> {
-      new Response('http://front50', 500, 'OK', [], null)
+      Calls.response(Response.error(500, ResponseBody.create(MediaType.parse("application/json"),"")))
     }
     def result = task.execute(stage)
 

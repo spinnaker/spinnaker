@@ -25,7 +25,6 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
 import java.util.List;
-import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 
 public class SignalFxConfigLoadTest {
@@ -39,10 +38,8 @@ public class SignalFxConfigLoadTest {
     when(signalFxConfigurationProperties.getAccounts())
         .thenReturn(List.of(new SignalFxManagedAccount().setName("Test-account")));
     RetrofitClientFactory mockRetrofitFactory = mock(RetrofitClientFactory.class);
-    OkHttpClient mockOkHttpFactory = mock(OkHttpClient.class);
     new SignalFxConfiguration()
-        .signalFxMetricService(
-            signalFxConfigurationProperties, mockRetrofitFactory, mockOkHttpFactory, accountRepo);
+        .signalFxMetricService(signalFxConfigurationProperties, mockRetrofitFactory, accountRepo);
     assertEquals("signalfx", accountRepo.getRequiredOne("Test-account").getType());
     assertEquals(
         List.of(AccountCredentials.Type.METRICS_STORE),

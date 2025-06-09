@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks.v2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -29,12 +30,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import okhttp3.ResponseBody;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 @Component
 public class UpdateV2PipelineTemplateTask implements RetryableTask, SaveV2PipelineTemplateTask {
@@ -86,13 +88,15 @@ public class UpdateV2PipelineTemplateTask implements RetryableTask, SaveV2Pipeli
     validate(pipelineTemplate);
 
     String tag = (String) stage.getContext().get("tag");
-    Response response =
-        front50Service.updateV2PipelineTemplate(
-            (String) stage.getContext().get("id"),
-            tag,
-            (Map<String, Object>)
-                ((StageExecutionImpl) stage)
-                    .decodeBase64("/pipelineTemplate", Map.class, pipelineTemplateObjectMapper));
+    Response<ResponseBody> response =
+        Retrofit2SyncCall.executeCall(
+            front50Service.updateV2PipelineTemplate(
+                (String) stage.getContext().get("id"),
+                tag,
+                (Map<String, Object>)
+                    ((StageExecutionImpl) stage)
+                        .decodeBase64(
+                            "/pipelineTemplate", Map.class, pipelineTemplateObjectMapper)));
 
     // TODO(jacobkiefer): Reduce duplicated code.
     String templateId =
@@ -103,7 +107,7 @@ public class UpdateV2PipelineTemplateTask implements RetryableTask, SaveV2Pipeli
     outputs.put("notification.type", "updatepipelinetemplate");
     outputs.put("pipelineTemplate.id", templateId);
 
-    if (response.getStatus() == HttpStatus.OK.value()) {
+    if (response.code() == HttpStatus.OK.value()) {
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
     }
 

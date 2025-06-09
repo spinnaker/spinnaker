@@ -20,13 +20,19 @@ import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spectator.api.NoopRegistry;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.time.Instant;
 import java.util.List;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import retrofit.mime.TypedByteArray;
-import retrofit.mime.TypedInput;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /**
  * Integration Test for reproducing and TDD'ing the following issues:
@@ -48,10 +54,24 @@ public class CanaryAnalysisPrometheusMetricsMixerServiceIntegrationTest {
 
   private MetricSetMixerService metricSetMixerService;
 
+  private final Retrofit retrofit =
+      new Retrofit.Builder()
+          .baseUrl("http://prometheus")
+          .addConverterFactory(JacksonConverterFactory.create())
+          .build();
+
+  private Converter<ResponseBody, List<PrometheusResults>> prometheusResultsConverter;
+
   @BeforeEach
   public void before() {
     initMocks(this);
     prometheusResponseConverter = new PrometheusResponseConverter(new ObjectMapper());
+    prometheusResultsConverter =
+        (Converter<ResponseBody, List<PrometheusResults>>)
+            prometheusResponseConverter.responseBodyConverter(
+                new ParameterizedTypeImpl(List.class, PrometheusResults.class),
+                new Annotation[0],
+                retrofit);
     prometheusMetricsService =
         spy(
             PrometheusMetricsService.builder()
@@ -94,11 +114,15 @@ public class CanaryAnalysisPrometheusMetricsMixerServiceIntegrationTest {
 
     String controlPrometheusResponse =
         "{\"status\":\"success\",\"data\":{\"resultType\":\"matrix\",\"result\":[{\"metric\":{},\"values\":[[1554982493.349,\"45\"],[1554982553.349,\"120\"]]}]}}";
-    TypedInput controlInput =
-        new TypedByteArray("application/json", controlPrometheusResponse.getBytes());
+
+    ResponseBody controlResponseBody =
+        ResponseBody.create(
+            MediaType.parse("application/json"), controlPrometheusResponse.getBytes());
+
     @SuppressWarnings("unchecked")
     List<PrometheusResults> controlResults =
-        (List<PrometheusResults>) prometheusResponseConverter.fromBody(controlInput, Object.class);
+        prometheusResultsConverter.convert(controlResponseBody);
+
     when(prometheusRemoteService.rangeQuery(controlQuery, start, end, step))
         .thenReturn(controlResults);
 
@@ -124,12 +148,13 @@ public class CanaryAnalysisPrometheusMetricsMixerServiceIntegrationTest {
 
     String experimentPrometheusResponse =
         "{\"status\":\"success\",\"data\":{\"resultType\":\"matrix\",\"result\":[{\"metric\":{},\"values\":[[1554982493.349,\"124\"],[1554982553.349,\"288\"]]}]}}";
-    TypedInput experimentInput =
-        new TypedByteArray("application/json", experimentPrometheusResponse.getBytes());
+    ResponseBody experimentResponseBody =
+        ResponseBody.create(
+            MediaType.parse("application/json"), experimentPrometheusResponse.getBytes());
+
     @SuppressWarnings("unchecked")
     List<PrometheusResults> experimentResults =
-        (List<PrometheusResults>)
-            prometheusResponseConverter.fromBody(experimentInput, Object.class);
+        prometheusResultsConverter.convert(experimentResponseBody);
     when(prometheusRemoteService.rangeQuery(experimentQuery, start, end, step))
         .thenReturn(experimentResults);
 
@@ -144,5 +169,30 @@ public class CanaryAnalysisPrometheusMetricsMixerServiceIntegrationTest {
 
     assertNotNull(metricSetPairList);
     assertEquals(1, metricSetPairList.size());
+  }
+
+  private static class ParameterizedTypeImpl implements ParameterizedType {
+    private final Type rawType;
+    private final Type[] typeArguments;
+
+    public ParameterizedTypeImpl(Type rawType, Type... typeArguments) {
+      this.rawType = rawType;
+      this.typeArguments = typeArguments;
+    }
+
+    @Override
+    public Type[] getActualTypeArguments() {
+      return typeArguments;
+    }
+
+    @Override
+    public Type getRawType() {
+      return rawType;
+    }
+
+    @Override
+    public Type getOwnerType() {
+      return null;
+    }
   }
 }

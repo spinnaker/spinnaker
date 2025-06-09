@@ -17,10 +17,10 @@
 
 package com.netflix.kayenta.signalfx.service;
 
-import retrofit.http.Body;
-import retrofit.http.Header;
-import retrofit.http.POST;
-import retrofit.http.Query;
+import retrofit2.http.Body;
+import retrofit2.http.Header;
+import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 /** Retrofit interface for SignalFx API calls. */
 public interface SignalFxSignalFlowRemoteService {
@@ -40,7 +40,7 @@ public interface SignalFxSignalFlowRemoteService {
    * @param program The signal flow program to execute
    * @return The list of channel messages from the signal flow output
    */
-  @POST("/v2/signalflow/execute")
+  @POST("v2/signalflow/execute")
   SignalFlowExecutionResult executeSignalFlowProgram(
       @Header("X-SF-TOKEN") String accessToken,
       @Query("start") long startEpochMilli,

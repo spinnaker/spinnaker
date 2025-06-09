@@ -26,8 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -65,7 +64,7 @@ class StopGoogleCloudBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.stopGoogleCloudBuild(ACCOUNT, BUILD_ID) >> igorResponse
+    1 * igorService.stopGoogleCloudBuild(ACCOUNT, BUILD_ID) >> Calls.response(igorResponse)
     result.context.buildInfo == igorResponse
   }
 }

@@ -35,7 +35,7 @@ import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.http.GET;
+import retrofit2.http.GET;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -99,10 +99,10 @@ public abstract class Front50Service extends SpringService<Front50Service.Front5
   }
 
   public interface Front50 {
-    @GET("/resolvedEnv")
+    @GET("resolvedEnv")
     Map<String, String> resolvedEnv();
 
-    @GET("/health")
+    @GET("health")
     SpringHealth health();
   }
 

@@ -42,18 +42,17 @@ import com.netflix.spinnaker.orca.pipeline.WaitStage;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
-import retrofit.client.Response;
-import retrofit.mime.TypedInput;
+import retrofit2.mock.Calls;
 
 class CFRollingRedBlackStrategyTest {
   private CFRollingRedBlackStrategy strategy;
@@ -301,7 +300,7 @@ class CFRollingRedBlackStrategyTest {
     application.put("memory", "64M");
     application.put("diskQuota", "128M");
     Map<String, Object> body = singletonMap("applications", singletonList(application));
-    Response oortServiceResponse = createMockOortServiceResponse(body);
+    ResponseBody oortServiceResponse = createMockOortServiceResponse(body);
     StageExecution deployServerGroupStage =
         new StageExecutionImpl(
             new PipelineExecutionImpl(PIPELINE, "unit"),
@@ -311,7 +310,7 @@ class CFRollingRedBlackStrategyTest {
 
     when(artifactUtils.getBoundArtifactForStage(any(), any(), any()))
         .thenReturn(boundArtifactForStage);
-    when(oortService.fetchArtifact(any())).thenReturn(oortServiceResponse);
+    when(oortService.fetchArtifact(any())).thenReturn(Calls.response(oortServiceResponse));
 
     Map<String, Object> expectedDirect = new HashMap<>();
     expectedDirect.put("memory", "64M");
@@ -370,7 +369,7 @@ class CFRollingRedBlackStrategyTest {
     application.put("memory", "64M");
     application.put("diskQuota", "128M");
     Map<String, Object> body = singletonMap("applications", singletonList(application));
-    Response oortServiceResponse = createMockOortServiceResponse(body);
+    ResponseBody oortServiceResponse = createMockOortServiceResponse(body);
 
     when(targetServerGroupResolver.resolve(any()))
         .thenReturn(singletonList(new TargetServerGroup(Collections.emptyMap())));
@@ -378,7 +377,7 @@ class CFRollingRedBlackStrategyTest {
         .thenReturn(initialSourceCapacity);
     when(artifactUtils.getBoundArtifactForStage(any(), any(), any()))
         .thenReturn(boundArtifactForStage);
-    when(oortService.fetchArtifact(any())).thenReturn(oortServiceResponse);
+    when(oortService.fetchArtifact(any())).thenReturn(Calls.response(oortServiceResponse));
 
     List<StageExecution> stages = strategy.composeFlow(deployServerGroupStage);
 
@@ -419,11 +418,9 @@ class CFRollingRedBlackStrategyTest {
   }
 
   @NotNull
-  private Response createMockOortServiceResponse(Object body) throws IOException {
-    InputStream inputStream = new ByteArrayInputStream(objectMapper.writeValueAsBytes(body));
-    TypedInput typedInput = mock(TypedInput.class);
-    when(typedInput.in()).thenReturn(inputStream);
-    return new Response("url", 200, "success", emptyList(), typedInput);
+  private ResponseBody createMockOortServiceResponse(Object body) throws IOException {
+    return ResponseBody.create(
+        objectMapper.writeValueAsBytes(body), MediaType.parse("application/json"));
   }
 
   @NotNull

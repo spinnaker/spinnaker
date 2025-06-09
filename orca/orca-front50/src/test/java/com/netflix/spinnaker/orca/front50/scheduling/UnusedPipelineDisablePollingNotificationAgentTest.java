@@ -34,11 +34,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.mock.Calls;
 
 class UnusedPipelineDisablePollingNotificationAgentTest {
 
@@ -71,7 +75,9 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
 
     Map<String, Object> pipeline = new HashMap<>();
     pipeline.put("name", "pipeline2");
-    when(front50Service.getPipeline("pipeline2")).thenReturn(pipeline);
+    when(front50Service.getPipeline("pipeline2")).thenReturn(Calls.response(pipeline));
+    when(front50Service.updatePipeline(anyString(), anyMap()))
+        .thenReturn(Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]")));
 
     agent.disableAppPipelines("app1", orcaExecutionsCount, front50PipelineConfigIds);
 
@@ -88,7 +94,9 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
     UnusedPipelineDisablePollingNotificationAgent agent =
         new UnusedPipelineDisablePollingNotificationAgent(
             clusterLock, executionRepository, front50Service, clock, registry, 3600000, 30, false);
-    when(front50Service.getPipeline("pipeline1")).thenReturn(pipeline);
+    when(front50Service.getPipeline("pipeline1")).thenReturn(Calls.response(pipeline));
+    when(front50Service.updatePipeline(anyString(), anyMap()))
+        .thenReturn(Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]")));
 
     agent.disableFront50PipelineConfigId("pipeline1");
 
@@ -107,7 +115,7 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
 
     Map<String, Object> pipeline = new HashMap<>();
     pipeline.put("name", "pipeline2");
-    when(front50Service.getPipeline("pipeline2")).thenReturn(pipeline);
+    when(front50Service.getPipeline("pipeline2")).thenReturn(Calls.response(pipeline));
 
     agent.disableAppPipelines("app1", orcaExecutionsCount, front50PipelineConfigIds);
 
@@ -120,7 +128,7 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
   void disableFront50PipelineConfigId_shouldNotDisableAlreadyDisabledPipeline() {
     Map<String, Object> pipeline = new HashMap<>();
     pipeline.put("disabled", true);
-    when(front50Service.getPipeline("pipeline1")).thenReturn(pipeline);
+    when(front50Service.getPipeline("pipeline1")).thenReturn(Calls.response(pipeline));
     Clock clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
     UnusedPipelineDisablePollingNotificationAgent agent =
         new UnusedPipelineDisablePollingNotificationAgent(
@@ -136,7 +144,9 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
     when(executionRepository.retrieveAllApplicationNames(PIPELINE))
         .thenReturn(List.of("app1", "app2"));
     when(front50Service.getPipelines(anyString(), eq(false), eq(true)))
-        .thenReturn(List.of(Map.of("id", "pipeline1")));
+        .thenReturn(Calls.response(List.of(Map.of("id", "pipeline1"))));
+    when(front50Service.getPipeline(anyString()))
+        .thenReturn(Calls.response(Map.of("disabled", true)));
     when(disabledId.withTag(any())).thenReturn(disabledId);
 
     Clock clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
@@ -147,6 +157,7 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
 
     verify(executionRepository, times(1)).retrieveAllApplicationNames(PIPELINE);
     verify(front50Service, times(2)).getPipelines(anyString(), eq(false), eq(true));
+    verify(front50Service, times(1)).getPipeline(anyString());
   }
 
   @Test
@@ -171,14 +182,8 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
     UnusedPipelineDisablePollingNotificationAgent agent =
         new UnusedPipelineDisablePollingNotificationAgent(
             clusterLock, executionRepository, front50Service, clock, registry, 3600000, 30, false);
-    when(front50Service.getPipeline("pipeline1")).thenReturn(pipeline);
-    doThrow(
-            new SpinnakerHttpException(
-                RetrofitError.httpError(
-                    "http://front50",
-                    new Response("http://front50", 404, "", List.of(), null),
-                    null,
-                    null)))
+    when(front50Service.getPipeline("pipeline1")).thenReturn(Calls.response(pipeline));
+    doThrow(makeSpinnakerHttpException(404))
         .when(front50Service)
         .updatePipeline(eq("pipeline1"), any());
 
@@ -196,14 +201,8 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
     UnusedPipelineDisablePollingNotificationAgent agent =
         new UnusedPipelineDisablePollingNotificationAgent(
             clusterLock, executionRepository, front50Service, clock, registry, 3600000, 30, false);
-    when(front50Service.getPipeline("pipeline1")).thenReturn(pipeline);
-    doThrow(
-            new SpinnakerHttpException(
-                RetrofitError.httpError(
-                    "http://front50",
-                    new Response("http://front50", 500, "", List.of(), null),
-                    null,
-                    null)))
+    when(front50Service.getPipeline("pipeline1")).thenReturn(Calls.response(pipeline));
+    doThrow(makeSpinnakerHttpException(500))
         .when(front50Service)
         .updatePipeline(eq("pipeline1"), any());
 
@@ -212,5 +211,26 @@ class UnusedPipelineDisablePollingNotificationAgentTest {
 
     verify(front50Service, times(1)).getPipeline("pipeline1");
     verify(front50Service, times(1)).updatePipeline(eq("pipeline1"), any());
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+    return makeSpinnakerHttpException(status, null);
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message) {
+    String url = "https://front50";
+    if (message == null) {
+      message = "{ \"message\": \"arbitrary message\" }";
+    }
+    Response retrofit2Response =
+        Response.error(status, ResponseBody.create(MediaType.parse("application/json"), message));
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit);
   }
 }

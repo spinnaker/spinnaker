@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.MortService
@@ -43,7 +44,7 @@ class AmazonSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
       throw new IllegalStateException("Must supply at least one region")
     }
 
-    def allVPCs = mortService.getVPCs()
+    def allVPCs = Retrofit2SyncCall.execute(mortService.getVPCs())
 
     def ops = operation.regions.collect { String region ->
       def vpcId = null
@@ -89,11 +90,11 @@ class AmazonSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
     }
 
     try {
-      MortService.SecurityGroup existingSecurityGroup = mortService.getSecurityGroup(upsertedSecurityGroup.accountName,
+      MortService.SecurityGroup existingSecurityGroup = Retrofit2SyncCall.execute(mortService.getSecurityGroup(upsertedSecurityGroup.accountName,
                                                                                      cloudProvider,
                                                                                      upsertedSecurityGroup.name,
                                                                                      upsertedSecurityGroup.region,
-                                                                                     upsertedSecurityGroup.vpcId)
+                                                                                     upsertedSecurityGroup.vpcId))
 
       Set mortSecurityGroupIngress = filterForSecurityGroupIngress(mortService, existingSecurityGroup) as Set
       Set targetSecurityGroupIngress = Arrays.asList(stage.mapTo("/securityGroupIngress",

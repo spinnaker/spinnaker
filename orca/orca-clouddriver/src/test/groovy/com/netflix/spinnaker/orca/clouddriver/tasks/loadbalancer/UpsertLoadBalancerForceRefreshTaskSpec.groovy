@@ -21,8 +21,10 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
@@ -59,6 +61,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
         assert body.loadBalancerName == "flapjack-frontend"
         assert body.account == "spinnaker"
         assert body.region == "us-west-1"
+        Calls.response(null)
     }
 
     def result = task.execute(stage)
@@ -70,13 +73,15 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
   }
 
   def "checks for pending onDemand keys and awaits processing"() {
+    String json = """
+      {"cachedIdentifiersByType":
+         {"loadBalancers": ["aws:loadBalancers:spinnaker:us-west-1:flapjack-frontend"]}
+      }
+      """
     // Create the forceCacheUpdate request
     when:
     1 * cloudDriverCacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> {
-      new Response("/cache", 202, "OK", [], new TypedString("""
-      {"cachedIdentifiersByType":
-         {"loadBalancers": ["aws:loadBalancers:spinnaker:us-west-1:flapjack-frontend"]}
-      }"""))
+      Calls.response(Response.success(202, ResponseBody.create(MediaType.parse("application/json"), json)))
     }
 
     def result = task.execute(stage)
@@ -89,7 +94,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
 
     // checks for pending, receives empty list and retries
     when:
-    1 * cloudDriverCacheStatusService.pendingForceCacheUpdates('aws', 'LoadBalancer') >> { [] }
+    1 * cloudDriverCacheStatusService.pendingForceCacheUpdates('aws', 'LoadBalancer') >> { Calls.response([]) }
     stage.context = result.context
     result = task.execute(stage)
 
@@ -101,7 +106,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     // sees a pending onDemand key for our load balancers
     when:
     1 * cloudDriverCacheStatusService.pendingForceCacheUpdates('aws', 'LoadBalancer') >> {
-      [[id: "aws:loadBalancers:spinnaker:us-west-1:flapjack-frontend"]]
+      Calls.response([[id: "aws:loadBalancers:spinnaker:us-west-1:flapjack-frontend"]])
     }
 
     stage.context = result.context
@@ -114,7 +119,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
 
     // onDemand key has been processed, task completes
     when:
-    1 * cloudDriverCacheStatusService.pendingForceCacheUpdates('aws', 'LoadBalancer') >> { [] }
+    1 * cloudDriverCacheStatusService.pendingForceCacheUpdates('aws', 'LoadBalancer') >> { Calls.response([]) }
     stage.context = result.context
     result = task.execute(stage)
 

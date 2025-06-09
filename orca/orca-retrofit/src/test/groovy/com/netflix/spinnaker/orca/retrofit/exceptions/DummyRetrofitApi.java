@@ -16,35 +16,36 @@
 
 package com.netflix.spinnaker.orca.retrofit.exceptions;
 
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.DELETE;
-import retrofit.http.GET;
-import retrofit.http.HEAD;
-import retrofit.http.PATCH;
-import retrofit.http.POST;
-import retrofit.http.PUT;
-import retrofit.http.Path;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.DELETE;
+import retrofit2.http.GET;
+import retrofit2.http.HEAD;
+import retrofit2.http.PATCH;
+import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
 
 interface DummyRetrofitApi {
   @GET("/whatever")
-  Response get();
+  Call<ResponseBody> get();
 
   @HEAD("/whatever")
-  Response head();
+  Call<Void> head();
 
   @POST("/whatever")
-  Response post(@Body String data);
+  Call<ResponseBody> post(@Body String data);
 
   @PUT("/whatever")
-  Response put();
+  Call<ResponseBody> put();
 
   @PATCH("/whatever")
-  Response patch(@Body String data);
+  Call<ResponseBody> patch(@Body String data);
 
   @DELETE("/whatever")
-  Response delete();
+  Call<ResponseBody> delete();
 
   @GET("/whatever/{stuff}")
-  Response getWithArg(@Path("stuff") String stuff);
+  Call<ResponseBody> getWithArg(@Path("stuff") String stuff);
 }

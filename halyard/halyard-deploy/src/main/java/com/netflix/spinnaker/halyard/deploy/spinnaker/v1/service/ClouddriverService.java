@@ -35,10 +35,10 @@ import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.http.Body;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.Path;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -123,13 +123,13 @@ public abstract class ClouddriverService extends SpringService<ClouddriverServic
   }
 
   public interface Clouddriver {
-    @POST("/{provider}/ops")
+    @POST("{provider}/ops")
     Response providerOp(@Path("provider") String provider, @Body List<Map<String, Object>> payload);
 
-    @GET("/resolvedEnv")
+    @GET("resolvedEnv")
     Map<String, String> resolvedEnv();
 
-    @GET("/health")
+    @GET("health")
     SpringHealth health();
   }
 

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.applications.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.applications.utils.ApplicationNameValidator
@@ -79,17 +80,17 @@ class UpsertApplicationTask extends AbstractFront50Task implements ApplicationNa
     if (existingApplication) {
       outputs.previousState = existingApplication
       log.info("Updating application (name: ${application.name})")
-      front50Service.update(application.name, application)
+      Retrofit2SyncCall.executeCall(front50Service.update(application.name, application))
     } else {
       log.info("Creating application (name: ${application.name})")
-      front50Service.create(application)
+      Retrofit2SyncCall.executeCall(front50Service.create(application))
       if (application.permission?.permissions == null) {
         application.setPermissions(Permissions.EMPTY)
       }
     }
 
     if (application.permission?.permissions != null) {
-      front50Service.updatePermission(application.name, application.permission)
+      Retrofit2SyncCall.executeCall(front50Service.updatePermission(application.name, application.permission))
     }
 
     outputs.newState = application ?: [:]

@@ -27,16 +27,16 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface SpaceService {
-  @GET("/v3/spaces")
+  @GET("v3/spaces")
   Call<Pagination<Space>> all(
       @Query("page") Integer page,
       @Query("names") String names,
       @Query("organization_guids") String orgGuids);
 
-  @GET("/v3/spaces/{guid}")
+  @GET("v3/spaces/{guid}")
   Call<Space> findById(@Path("guid") String guid);
 
-  @GET("/v2/spaces/{guid}/service_instances")
+  @GET("v2/spaces/{guid}/service_instances")
   Call<Page<ServiceInstance>> getServiceInstancesById(
       @Path("guid") String guid, @Query("page") Integer page, @Query("q") List<String> queryParams);
 }

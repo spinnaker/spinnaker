@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toMap;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.ami.AppVersion;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
@@ -85,13 +86,13 @@ public class AmazonImageFinder implements ImageFinder {
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
     List<AmazonImage> allMatchedImages =
-        oortService
-            .findImage(
-                getCloudProvider(),
-                packageName,
-                stageData.imageOwnerAccount,
-                null,
-                prefixTags(tags))
+        Retrofit2SyncCall.execute(
+                oortService.findImage(
+                    getCloudProvider(),
+                    packageName,
+                    stageData.imageOwnerAccount,
+                    null,
+                    prefixTags(tags)))
             .stream()
             .map(image -> objectMapper.convertValue(image, AmazonImage.class))
             .filter(image -> image.tagsByImageId != null && image.tagsByImageId.size() != 0)

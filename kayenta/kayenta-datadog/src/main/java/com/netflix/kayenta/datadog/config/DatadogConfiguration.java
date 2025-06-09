@@ -27,17 +27,15 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
-import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-import retrofit.converter.JacksonConverter;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @ConditionalOnProperty("kayenta.datadog.enabled")
@@ -62,9 +60,7 @@ public class DatadogConfiguration {
       DatadogConfigurationProperties datadogConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
       ObjectMapper objectMapper,
-      OkHttpClient okHttpClient,
-      AccountCredentialsRepository accountCredentialsRepository)
-      throws IOException {
+      AccountCredentialsRepository accountCredentialsRepository) {
     DatadogMetricsService.DatadogMetricsServiceBuilder metricsServiceBuilder =
         DatadogMetricsService.builder();
 
@@ -89,7 +85,7 @@ public class DatadogConfiguration {
         if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
           accountCredentialsBuilder.datadogRemoteService(
               createDatadogRemoteService(
-                  retrofitClientFactory, objectMapper, account.getEndpoint(), okHttpClient));
+                  retrofitClientFactory, objectMapper, account.getEndpoint()));
         }
         accountCredentialsBuilder.supportedTypes(supportedTypes);
       }
@@ -108,10 +104,9 @@ public class DatadogConfiguration {
   public static DatadogRemoteService createDatadogRemoteService(
       RetrofitClientFactory retrofitClientFactory,
       ObjectMapper objectMapper,
-      RemoteService endpoint,
-      OkHttpClient okHttpClient) {
+      RemoteService endpoint) {
 
     return retrofitClientFactory.createClient(
-        DatadogRemoteService.class, new JacksonConverter(objectMapper), endpoint, okHttpClient);
+        DatadogRemoteService.class, JacksonConverterFactory.create(objectMapper), endpoint);
   }
 }

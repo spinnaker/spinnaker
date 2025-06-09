@@ -39,13 +39,14 @@ import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.List;
 import java.util.Map;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import retrofit.client.Response;
-import retrofit.mime.TypedString;
+import retrofit2.mock.Calls;
 
 @ExtendWith(MockitoExtension.class)
 final class ManifestEvaluatorTest {
@@ -61,11 +62,9 @@ final class ManifestEvaluatorTest {
               .put("metadata", ImmutableMap.builder().put("name", "my-manifest").build())
               .build());
 
-  private final TypedString manifestString =
-      new TypedString("{'metadata': {'name': 'my-manifest'}}");
+  private final String manifestString = "{'metadata': {'name': 'my-manifest'}}";
 
-  private final TypedString spelManifestString =
-      new TypedString("{\"metadata\": {\"name\": \"${manifest}\"}}");
+  private final String spelManifestString = "{\"metadata\": {\"name\": \"${manifest}\"}}";
 
   private final String manifestsWithEmptyDocument =
       "---\n"
@@ -127,12 +126,9 @@ final class ManifestEvaluatorTest {
         .thenReturn(manifestArtifact);
     when(oortService.fetchArtifact(manifestArtifact))
         .thenReturn(
-            new Response(
-                "http://my-url",
-                200,
-                "",
-                ImmutableList.of(),
-                new TypedString(manifestsWithEmptyDocument)));
+            Calls.response(
+                ResponseBody.create(
+                    MediaType.parse("application/json"), manifestsWithEmptyDocument)));
 
     ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
     assertThat(result.getManifests()).isEqualTo(manifests);
@@ -152,7 +148,9 @@ final class ManifestEvaluatorTest {
     when(artifactUtils.getBoundArtifactForStage(stage, null, manifestArtifact))
         .thenReturn(manifestArtifact);
     when(oortService.fetchArtifact(manifestArtifact))
-        .thenReturn(new Response("http://my-url", 200, "", ImmutableList.of(), manifestString));
+        .thenReturn(
+            Calls.response(
+                ResponseBody.create(MediaType.parse("application/json"), manifestString)));
 
     ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
     assertThat(result.getManifests()).isEqualTo(manifests);
@@ -176,7 +174,9 @@ final class ManifestEvaluatorTest {
     when(artifactUtils.getBoundArtifactForStage(stage, "my-manifest-artifact-id", null))
         .thenReturn(manifestArtifact);
     when(oortService.fetchArtifact(manifestArtifact))
-        .thenReturn(new Response("http://my-url", 200, "", ImmutableList.of(), manifestString));
+        .thenReturn(
+            Calls.response(
+                ResponseBody.create(MediaType.parse("application/json"), manifestString)));
 
     ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
     assertThat(result.getManifests()).isEqualTo(manifests);
@@ -233,7 +233,9 @@ final class ManifestEvaluatorTest {
     when(artifactUtils.getBoundArtifactForStage(stage, "my-manifest-artifact-id", null))
         .thenReturn(manifestArtifact);
     when(oortService.fetchArtifact(manifestArtifact))
-        .thenReturn(new Response("http://my-url", 200, "", ImmutableList.of(), manifestString));
+        .thenReturn(
+            Calls.response(
+                ResponseBody.create(MediaType.parse("application/json"), manifestString)));
 
     manifestEvaluator.evaluate(stage, context);
     verifyNoInteractions(contextParameterProcessor);
@@ -304,7 +306,9 @@ final class ManifestEvaluatorTest {
     when(artifactUtils.getBoundArtifactForStage(stage, "my-manifest-artifact-id", null))
         .thenReturn(manifestArtifact);
     when(oortService.fetchArtifact(manifestArtifact))
-        .thenReturn(new Response("http://my-url", 200, "", ImmutableList.of(), spelManifestString));
+        .thenReturn(
+            Calls.response(
+                ResponseBody.create(MediaType.parse("application/json"), spelManifestString)));
     when(contextParameterProcessor.process(anyMap(), isNull(), anyBoolean()))
         .thenReturn(processorResult);
 
@@ -338,7 +342,9 @@ final class ManifestEvaluatorTest {
     when(artifactUtils.getBoundArtifactForStage(stage, "my-manifest-artifact-id", null))
         .thenReturn(manifestArtifact);
     when(oortService.fetchArtifact(manifestArtifact))
-        .thenReturn(new Response("http://my-url", 200, "", ImmutableList.of(), spelManifestString));
+        .thenReturn(
+            Calls.response(
+                ResponseBody.create(MediaType.parse("application/json"), spelManifestString)));
     when(contextParameterProcessor.process(anyMap(), isNull(), anyBoolean()))
         .thenReturn(processorResult);
 

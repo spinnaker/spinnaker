@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -45,8 +46,9 @@ public class MonitorGoogleCloudBuildTask extends RetryableIgorTask<GoogleCloudBu
   @Nonnull
   public TaskResult tryExecute(@Nonnull GoogleCloudBuildStageDefinition stageDefinition) {
     GoogleCloudBuild build =
-        igorService.getGoogleCloudBuild(
-            stageDefinition.getAccount(), stageDefinition.getBuildInfo().getId());
+        Retrofit2SyncCall.execute(
+            igorService.getGoogleCloudBuild(
+                stageDefinition.getAccount(), stageDefinition.getBuildInfo().getId()));
     Map<String, Object> context = new HashMap<>();
     context.put("buildInfo", build);
     return TaskResult.builder(build.getStatus().getExecutionStatus()).context(context).build();

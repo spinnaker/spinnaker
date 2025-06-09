@@ -20,8 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.ResponseBody
+import okhttp3.MediaType
+import retrofit2.mock.Calls
+import retrofit2.Response
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -74,7 +76,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     1 * task.cacheService.forceCacheUpdate(stage.context.cloudProvider, ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> {
       String cloudProvider, String type, Map<String, ? extends Object> body ->
         expectations = body
-        return new Response('clouddriver', 202, 'ok', [], new TypedString("[]"))
+        Calls.response(Response.success(202, ResponseBody.create(MediaType.parse("application/json"),"[]")))
     }
     expectations.serverGroupName == (deployConfig."deploy.server.groups"."us-east-1").get(0)
     expectations.account == deployConfig."account.name"
@@ -109,7 +111,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
     then:
     forceCacheUpdatedServerGroups.size() * task.cacheService.forceCacheUpdate("aws", "ServerGroup", _) >> {
-      return new Response('', executionStatus == SUCCEEDED ? 200 : 202, 'ok', [], new TypedString(""))
+      return Calls.response(Response.success(executionStatus == SUCCEEDED ? 200 : 202, ResponseBody.create(MediaType.parse("application/json"),"")))
     }
     0 * task.cacheService._
     0 * task.cacheStatusService._
@@ -145,7 +147,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
     then:
     3 * task.cacheService.forceCacheUpdate("aws", "ServerGroup", _) >>> responseCodes.collect { responseCode ->
-      new Response('', responseCode, 'ok', [], new TypedString(""))
+      return Calls.response(Response.success(responseCode, ResponseBody.create(MediaType.parse("application/json"),"")))
     }
     0 * task.cacheService._
     0 * task.cacheStatusService._
@@ -174,7 +176,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     def processingComplete = task.processPendingForceCacheUpdates("executionId", "test", "aws", stageData, 0)
 
     then:
-    1 * task.cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> { return pendingForceCacheUpdates }
+    1 * task.cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> { Calls.response(pendingForceCacheUpdates) }
     processingComplete == expectedProcessingComplete
 
     where:

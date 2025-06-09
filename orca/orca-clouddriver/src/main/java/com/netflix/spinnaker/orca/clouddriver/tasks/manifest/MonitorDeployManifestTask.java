@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -218,11 +219,12 @@ public class MonitorDeployManifestTask extends MonitorKatoTask {
 
     try {
       Manifest _ignored =
-          oortService.getManifest(
-              clouddriverAccount,
-              clouddriverNamespace,
-              "pod " + clouddriverPodName.getName(),
-              false);
+          Retrofit2SyncCall.execute(
+              oortService.getManifest(
+                  clouddriverAccount,
+                  clouddriverNamespace,
+                  "pod " + clouddriverPodName.getName(),
+                  false));
       log.info(
           "task ID: {} owner: {} is up and running. No need to force a retry of the task",
           katoTask.getId(),

@@ -5,11 +5,13 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot'
   implementation "io.spinnaker.fiat:fiat-core"
   implementation 'io.spinnaker.kork:kork-secrets'
+  implementation 'io.spinnaker.kork:kork-retrofit'
+  implementation 'io.spinnaker.kork:kork-web'
   implementation 'org.apache.commons:commons-lang3'
   implementation 'org.apache.commons:commons-text:1.10.0'
   implementation 'ch.qos.logback:logback-classic'
-  implementation 'com.squareup.retrofit:retrofit'
-  implementation 'com.squareup.retrofit:converter-jackson'
+  implementation 'com.squareup.retrofit2:retrofit'
+  implementation 'com.squareup.retrofit2:converter-jackson'
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation 'com.fasterxml.jackson.core:jackson-annotations'
   implementation 'com.fasterxml.jackson.core:jackson-core'

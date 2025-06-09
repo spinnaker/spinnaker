@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
 import java.util.Map;
@@ -75,7 +76,8 @@ public class ApplicationExpressionFunctionProvider implements ExpressionFunction
     try {
       RetrySupport retrySupport = new RetrySupport();
       Application application =
-          retrySupport.retry(() -> front50Service.get(applicationName), 3, 1000, true);
+          retrySupport.retry(
+              () -> Retrofit2SyncCall.execute(front50Service.get(applicationName)), 3, 1000, true);
 
       return objectMapper.convertValue(application, new TypeReference<Map<String, Object>>() {});
     } catch (Exception e) {

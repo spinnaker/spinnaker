@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor
 
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 class BuildServiceSpec extends Specification {
@@ -41,7 +42,7 @@ class BuildServiceSpec extends Specification {
     buildService.build(MASTER, JOB_NAME, PARAMS)
 
     then:
-    1 * igorService.build(MASTER, JOB_NAME_ENCODED, PARAMS, '')
+    1 * igorService.build(MASTER, JOB_NAME_ENCODED, PARAMS, '') >> Calls.response(null)
   }
 
   void 'getBuild method encodes the job name'() {
@@ -49,7 +50,7 @@ class BuildServiceSpec extends Specification {
     buildService.getBuild(BUILD_NUMBER, MASTER, JOB_NAME)
 
     then:
-    1 * igorService.getBuild(BUILD_NUMBER, MASTER, JOB_NAME_ENCODED)
+    1 * igorService.getBuild(BUILD_NUMBER, MASTER, JOB_NAME_ENCODED) >> Calls.response(null)
   }
 
   void 'getBuild method get job name in query when flag is true'() {
@@ -61,7 +62,7 @@ class BuildServiceSpec extends Specification {
     buildService.getBuild(BUILD_NUMBER, MASTER, JOB_NAME)
 
     then:
-    1 * igorService.getBuildWithJobAsQueryParam(BUILD_NUMBER, MASTER, JOB_NAME_ENCODED)
+    1 * igorService.getBuildWithJobAsQueryParam(BUILD_NUMBER, MASTER, JOB_NAME_ENCODED) >> Calls.response(null)
   }
 
   void 'getPropertyFile method encodes the job name'() {
@@ -69,7 +70,7 @@ class BuildServiceSpec extends Specification {
     buildService.getPropertyFile(BUILD_NUMBER, FILENAME, MASTER, JOB_NAME)
 
     then:
-    1 * igorService.getPropertyFile(BUILD_NUMBER, FILENAME, MASTER, JOB_NAME_ENCODED)
+    1 * igorService.getPropertyFile(BUILD_NUMBER, FILENAME, MASTER, JOB_NAME_ENCODED) >> Calls.response(null)
   }
 
   void 'getPropertyFile method with job in query when flag is true'() {
@@ -81,7 +82,7 @@ class BuildServiceSpec extends Specification {
     buildService.getPropertyFile(BUILD_NUMBER, FILENAME, MASTER, JOB_NAME)
 
     then:
-    1 * igorService.getPropertyFileWithJobAsQueryParam(BUILD_NUMBER, FILENAME, MASTER, JOB_NAME_ENCODED)
+    1 * igorService.getPropertyFileWithJobAsQueryParam(BUILD_NUMBER, FILENAME, MASTER, JOB_NAME_ENCODED) >> Calls.response(null)
   }
 
   void 'stop method sends job name in path when flag is false'() {
@@ -92,7 +93,7 @@ class BuildServiceSpec extends Specification {
     buildService.stop(MASTER, JOB_NAME, QUEUED_BUILD, BUILD_NUMBER )
 
     then:
-    1 * igorService.stop(MASTER, JOB_NAME, QUEUED_BUILD, BUILD_NUMBER, '')
+    1 * igorService.stop(MASTER, JOB_NAME, QUEUED_BUILD, BUILD_NUMBER, '') >> Calls.response(null)
   }
 
   void 'stop method sends job name in query when flag is true'() {
@@ -103,6 +104,6 @@ class BuildServiceSpec extends Specification {
     buildService.stop(MASTER, JOB_NAME, QUEUED_BUILD, BUILD_NUMBER )
 
     then:
-    1 * igorService.stopWithJobNameAsQueryParameter(MASTER, JOB_NAME, QUEUED_BUILD, BUILD_NUMBER, '')
+    1 * igorService.stopWithJobNameAsQueryParameter(MASTER, JOB_NAME, QUEUED_BUILD, BUILD_NUMBER, '') >> Calls.response(null)
   }
 }

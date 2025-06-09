@@ -20,7 +20,6 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
@@ -34,18 +33,14 @@ import org.springframework.stereotype.Service;
 public class BackendUpdaterService extends AbstractHealthIndicator {
   private final RetrofitClientFactory retrofitClientFactory;
   private final ObjectMapper objectMapper;
-  private final OkHttpClient okHttpClient;
   private final List<BackendUpdater> backendUpdaters = new ArrayList<>();
   private int checksCompleted = 0;
 
   @Autowired
   public BackendUpdaterService(
-      RetrofitClientFactory retrofitClientFactory,
-      ObjectMapper objectMapper,
-      OkHttpClient okHttpClient) {
+      RetrofitClientFactory retrofitClientFactory, ObjectMapper objectMapper) {
     this.retrofitClientFactory = retrofitClientFactory;
     this.objectMapper = objectMapper;
-    this.okHttpClient = okHttpClient;
   }
 
   @Scheduled(initialDelay = 2000, fixedDelay = 122000)
@@ -57,7 +52,7 @@ public class BackendUpdaterService extends AbstractHealthIndicator {
     int checks = 0;
     for (BackendUpdater updater : backendUpdaters) {
       synchronized (this) {
-        boolean result = updater.run(retrofitClientFactory, objectMapper, okHttpClient);
+        boolean result = updater.run(retrofitClientFactory, objectMapper);
         if (result) checks++;
       }
     }

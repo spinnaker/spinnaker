@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.controllers;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
@@ -69,7 +70,7 @@ public class ExecutionsImportController {
     // Check if app exists before importing execution.
     Application application = null;
     try {
-      application = front50Service.get(execution.getApplication());
+      application = Retrofit2SyncCall.execute(front50Service.get(execution.getApplication()));
       log.info("Importing application with name: {}", application.name);
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() != 404) {

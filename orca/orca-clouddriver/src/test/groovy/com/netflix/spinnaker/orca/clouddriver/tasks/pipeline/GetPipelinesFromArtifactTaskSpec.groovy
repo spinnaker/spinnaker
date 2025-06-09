@@ -24,8 +24,9 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType;
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -49,9 +50,8 @@ class GetPipelinesFromArtifactTaskSpec extends Specification {
     then:
     1 * artifactUtils.getBoundArtifactForStage(_, '123', _) >> Artifact.builder().type('http/file')
       .reference('url1').build()
-    1 * oortService.fetchArtifact(_) >> new Response("url1", 200, "reason1", [],
-      new TypedString(pipelineJson))
-    front50Service.getPipelines(_) >> []
+    1 * oortService.fetchArtifact(_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"), pipelineJson))
+    front50Service.getPipelines(_) >> { return Calls.response([]) }
     result.status == ExecutionStatus.SUCCEEDED
     final pipelinesToSave = ((List<Map>) result.context.get("pipelinesToSave"))
     pipelinesToSave.size() == 3
@@ -68,12 +68,11 @@ class GetPipelinesFromArtifactTaskSpec extends Specification {
     then:
     1 * artifactUtils.getBoundArtifactForStage(_, '123', _) >> Artifact.builder().type('http/file')
       .reference('url1').build()
-    1 * oortService.fetchArtifact(_) >> new Response("url1", 200, "reason1", [],
-      new TypedString(pipelineJson))
-    front50Service.getPipelines("app1") >> []
-    front50Service.getPipelines("app2") >> [
+    1 * oortService.fetchArtifact(_) >> Calls.response(ResponseBody.create(MediaType.parse("application/json"),pipelineJson))
+    front50Service.getPipelines("app1") >> { return Calls.response([]) }
+    front50Service.getPipelines("app2") >> { return Calls.response( [
       [name: "just judging", id: "exitingPipelineId"]
-    ]
+    ]) }
     result.status == ExecutionStatus.SUCCEEDED
     final pipelinesToSave = ((List<Map>) result.context.get("pipelinesToSave"))
     pipelinesToSave.size() == 3
