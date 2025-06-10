@@ -32,6 +32,10 @@ import lombok.Builder;
 import lombok.Value;
 import org.springframework.boot.context.properties.ConstructorBinding;
 
+/**
+ * TODO: This class duplicates many properties from DockerRegistryClient and
+ * DockerRegistryNamedAccountCredentials. Future refactoring needed to reduce duplication.
+ */
 @NonnullByDefault
 @Value
 public class HelmOciDockerArtifactAccount implements ArtifactAccount {

@@ -31,6 +31,10 @@ import groovy.util.logging.Slf4j
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
+/**
+ * TODO: Properties in this class are duplicated in HelmOciDockerArtifactAccount and
+ * DockerRegistryClient. Future refactoring needed to reduce duplication.
+ */
 @Slf4j
 class DockerRegistryNamedAccountCredentials extends AbstractAccountCredentials<DockerRegistryCredentials> {
   static class Builder {
