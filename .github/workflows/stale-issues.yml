@@ -12,7 +12,7 @@ jobs:
     steps:
     - name: stale
       # github release 0.1.0
-      uses: gatsbyjs/stale@0dde19eb39fa2003923986adc3608c3e9178ebf3
+      uses: gatsbyjs/stale@c201d45ef4b0ccbd3bb0616f93bae13e73d0a080
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DAYS_BEFORE_STALE: 45
