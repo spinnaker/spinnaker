@@ -255,9 +255,27 @@ export class ExecutionFilterService {
   private static groupExecutions(filteredExecutions: IExecution[], application: Application): IExecutionGroup[] {
     const groups: IExecutionGroup[] = [];
     let executions: IExecution[] = [];
-    forOwn(groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
-      executions = executions.concat(groupedExecutions.sort((a, b) => this.executionSorter(a, b)));
-    });
+
+    // Check if there are any duplicate execution IDs before applying deduplication
+    const executionIds = filteredExecutions.map((e) => e.id);
+    const uniqueIds = new Set(executionIds);
+    const hasDuplicates = executionIds.length !== uniqueIds.size;
+
+    if (hasDuplicates) {
+      // Only apply deduplication if there are actually duplicate executions
+      const processedExecutionIds = new Set<string>();
+
+      forOwn(groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
+        const uniqueExecutions = groupedExecutions.filter((execution) => !processedExecutionIds.has(execution.id));
+        uniqueExecutions.forEach((execution) => processedExecutionIds.add(execution.id));
+        executions = executions.concat(uniqueExecutions.sort((a, b) => this.executionSorter(a, b)));
+      });
+    } else {
+      // No duplicates, use the original logic
+      forOwn(groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
+        executions = executions.concat(groupedExecutions.sort((a, b) => this.executionSorter(a, b)));
+      });
+    }
 
     executions.forEach((execution: IExecution) => {
       const config: IPipeline = application.pipelineConfigs.data.find(
@@ -273,6 +291,11 @@ export class ExecutionFilterService {
     if (sortFilter.groupBy === 'name') {
       const executionGroups = groupBy(executions, 'name');
       forOwn(executionGroups, (groupExecutions, key) => {
+        // Skip empty groups
+        if (groupExecutions.length === 0) {
+          return;
+        }
+
         const matchId = (pipelineConfig: IPipeline) => pipelineConfig.id === groupExecutions[0].pipelineConfigId;
         const config = application.pipelineConfigs.data.concat(application.strategyConfigs?.data ?? []).find(matchId);
         groupExecutions.sort((a, b) => this.executionSorter(a, b));
@@ -291,6 +314,11 @@ export class ExecutionFilterService {
     if (sortFilter.groupBy === 'timeBoundary') {
       const grouped = this.groupByTimeBoundary(executions);
       forOwn(grouped, (groupExecutions: IExecution[], key) => {
+        // Skip empty groups
+        if (groupExecutions.length === 0) {
+          return;
+        }
+
         groupExecutions.sort((a, b) => this.executionSorter(a, b));
         groups.push({
           heading: key,
@@ -333,6 +361,19 @@ export class ExecutionFilterService {
 
   private static executionsAreDifferent(oldGroup: IExecutionGroup, newGroup: IExecutionGroup): boolean {
     let changeDetected = false;
+
+    const uniqueOldExecutions: IExecution[] = [];
+    const oldExecutionIds = new Set<string>();
+
+    oldGroup.executions.forEach((execution) => {
+      if (!oldExecutionIds.has(execution.id)) {
+        uniqueOldExecutions.push(execution);
+        oldExecutionIds.add(execution.id);
+      }
+    });
+
+    oldGroup.executions = uniqueOldExecutions;
+
     oldGroup.executions.forEach((execution) => {
       const newExecution = newGroup.executions.find((g) => g.id === execution.id);
       if (!newExecution) {
@@ -345,14 +386,18 @@ export class ExecutionFilterService {
         }
       }
     });
+
+    const existingExecutionIds = new Set(oldGroup.executions.map((e) => e.id));
+
     newGroup.executions.forEach((execution) => {
-      const oldExecution = oldGroup.executions.find((g) => g.id === execution.id);
-      if (!oldExecution) {
+      if (!existingExecutionIds.has(execution.id)) {
         changeDetected = true;
         $log.debug('new execution found, adding', execution.id);
         oldGroup.executions.push(execution);
+        existingExecutionIds.add(execution.id);
       }
     });
+
     return changeDetected;
   }
 
