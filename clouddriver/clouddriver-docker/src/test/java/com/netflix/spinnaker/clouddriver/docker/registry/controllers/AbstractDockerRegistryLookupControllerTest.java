@@ -360,6 +360,39 @@ class AbstractDockerRegistryLookupControllerTest {
         .andExpect(jsonPath("$[0].artifact.metadata.labels.commitId").value("test-commit"));
   }
 
+  @Test
+  void testFindWithMultiLevelRepository() throws Exception {
+    var permissions = createAuthorizedUserPermission();
+    given(fiatService.getUserPermission(eq("user"))).willReturn(Calls.response(permissions));
+
+    // Setup cache with tagged image data for a multi-level repository path
+    String repository = "org/repo/repoSubfolder";
+    String taggedImageKey = Keys.getTaggedImageKey("test-account", repository, "latest");
+    Map<String, Object> tagAttributes = new HashMap<>();
+    tagAttributes.put("account", "test-account");
+    tagAttributes.put("digest", "sha256:abc123");
+    tagAttributes.put("labels", Map.of("commitId", "test-commit", "version", "1.0.0"));
+
+    cache.merge(
+        Keys.Namespace.TAGGED_IMAGE.getNs(),
+        new DefaultCacheData(taggedImageKey, tagAttributes, Map.of()));
+
+    // Setup credentials
+    var credentials = createTestAccountCredentials(false);
+    accountCredentialsRepository.save(credentials.getName(), credentials);
+
+    // Test find with the multi-level repository path
+    mockMvc
+        .perform(
+            get("/test/registry/find")
+                .queryParam("repository", repository)
+                .queryParam("tag", "latest"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].repository").value(repository))
+        .andExpect(jsonPath("$[0].tag").value("latest"))
+        .andExpect(jsonPath("$[0].account").value("test-account"));
+  }
+
   private static UserPermission.View createAuthorizedUserPermission() {
     return new UserPermission()
         .setId("user")
