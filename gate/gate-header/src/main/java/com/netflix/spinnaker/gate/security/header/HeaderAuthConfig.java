@@ -46,6 +46,21 @@ public class HeaderAuthConfig {
         new RequestHeaderAuthenticationFilter();
     requestHeaderAuthenticationFilter.setPrincipalRequestHeader(Header.USER.getHeader());
     requestHeaderAuthenticationFilter.setAuthenticationManager(authenticationManager);
+
+    // I don't see a way to retrieve the
+    // PreAuthenticatedProcessingRequestMatcher from
+    // RequestHeaderAuthenticationFilter (really
+    // AbstractPreAuthenticatedProcessingFilter).  But, we'd like to be able to
+    // say that e.g. /error and /auth/logout don't require authentication.
+    // Words are hard here.  It's pre-authenticated, as in we've already
+    // identified the user (via X-SPINNAKER-USER), but we haven't retrieved
+    // roles...and for e.g. /error and /auth/logout, we don't want/need to.  It
+    // does seem a little strange to duplicate some information that
+    // AuthConfig.configure sets up, but so be it.
+    HeaderAuthRequestMatcher headerAuthRequestMatcher = new HeaderAuthRequestMatcher();
+    requestHeaderAuthenticationFilter.setRequiresAuthenticationRequestMatcher(
+        headerAuthRequestMatcher);
+
     // Set this to false when there's logic in place to fall back to anonymous,
     // if that turns out to be desirable.
     requestHeaderAuthenticationFilter.setExceptionIfHeaderMissing(true);
