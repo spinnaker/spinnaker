@@ -21,25 +21,32 @@ import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.BOOLEAN;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
+import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.test.context.TestPropertySource;
 import retrofit2.mock.Calls;
 
@@ -70,6 +77,8 @@ public class HeaderAuthTest {
 
   /** To prevent periodic calls to service's /health endpoints */
   @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+
+  @SpyBean RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
 
   @BeforeEach
   void init(TestInfo testInfo) {
@@ -104,6 +113,8 @@ public class HeaderAuthTest {
 
     // Make sure there isn't some exception-handling path that added a message to the response
     assertThat(jsonResponse.containsKey("message")).isFalse();
+
+    verifyRequestProcessing(1);
   }
 
   // TODO: expect anonymous once the code is set up to do that
@@ -121,6 +132,10 @@ public class HeaderAuthTest {
     assertThat(jsonResponse.get("exception"))
         .isEqualTo(PreAuthenticatedCredentialsNotFoundException.class.getName());
     assertThat(jsonResponse.get("status")).isEqualTo(500);
+
+    // FIXME: adjust error/exception handling configuration so
+    // RequestHeaderAuthenticationFilter only processes one request.
+    verifyRequestProcessing(2);
   }
 
   private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
@@ -131,5 +146,24 @@ public class HeaderAuthTest {
     assertThat(response.statusCode()).isEqualTo(expectedStatusCode);
 
     return response.body();
+  }
+
+  /**
+   * Verify the number of times that RequestHeaderAuthenticationFilter processed requests. This is
+   * an implementation detail of spring + spring security, but it tells us something about how the
+   * request is handled, and whether we've got error/exception handling set up properly.
+   */
+  private void verifyRequestProcessing(int desiredNumberOfTimes) throws Exception {
+    // Use reflection to access getPreAuthenticatedPrincipal since it's protected
+    Method getPreAuthenticatedPrincipalMethod =
+        RequestHeaderAuthenticationFilter.class.getDeclaredMethod(
+            "getPreAuthenticatedPrincipal", HttpServletRequest.class);
+    getPreAuthenticatedPrincipalMethod.setAccessible(true);
+
+    // With a Method, this is the cumbersome/non-obvious way to verify it was
+    // called.
+    getPreAuthenticatedPrincipalMethod.invoke(
+        verify(requestHeaderAuthenticationFilter, times(desiredNumberOfTimes)),
+        any(HttpServletRequest.class));
   }
 }
