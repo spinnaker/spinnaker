@@ -7,6 +7,7 @@ import { GcsDefault, GcsMatch } from './gcs/GcsArtifactEditor';
 import { GithubDefault, GithubMatch } from './github/GithubArtifactEditor';
 import { GitlabDefault, GitlabMatch } from './gitlab/GitlabArtifactEditor';
 import { GitRepoDefault, GitRepoMatch } from './gitrepo/GitRepoArtifactEditor';
+import { HelmImageDefault, HelmImageMatch } from './helm-image/HelmImageArtifactEditor';
 import { HelmDefault, HelmMatch } from './helm/HelmArtifactEditor';
 import { HttpDefault, HttpMatch } from './http/HttpArtifactEditor';
 import { IvyDefault, IvyMatch } from './ivy/IvyArtifactEditor';
@@ -35,6 +36,8 @@ export const artifactKindConfigs: IArtifactKindConfig[] = [
   GitlabDefault,
   HelmMatch,
   HelmDefault,
+  HelmImageMatch,
+  HelmImageDefault,
   HttpMatch,
   HttpDefault,
   IvyMatch,
