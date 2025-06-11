@@ -17,36 +17,40 @@
 package com.netflix.spinnaker.gate;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static com.netflix.spinnaker.kork.common.Header.USER;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.BOOLEAN;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
-import com.netflix.spinnaker.kork.common.Header;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
-import org.hamcrest.core.IsNull;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.context.WebApplicationContext;
 import retrofit2.mock.Calls;
 
-@SpringBootTest(classes = Main.class)
+/**
+ * Use SpringBootTest.WebEnvironment so tomcat is involved in the test. This makes it possible to
+ * test more exception handling cases (e.g. no X-SPINNAKER-USER header provided) in a way that's
+ * closer to what happens in running code.
+ */
+@SpringBootTest(classes = Main.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(
     properties = {
       "header.enabled=true",
-      // "security.debug=true",
       "logging.level.org.springframework.security=DEBUG",
       "spring.config.location=classpath:gate-test.yml",
       "services.front50.applicationRefreshInitialDelayMs=3600000"
@@ -55,20 +59,20 @@ public class HeaderAuthTest {
 
   private static final String USERNAME = "test@email.com";
 
-  @Autowired private WebApplicationContext webApplicationContext;
+  private static final TypeReference<Map<String, Object>> mapType = new TypeReference<>() {};
+
+  @LocalServerPort private int port;
+
+  @Autowired ObjectMapper objectMapper;
 
   @MockBean ClouddriverService clouddriverService;
 
   /** To prevent periodic calls to service's /health endpoints */
   @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
-  private MockMvc webAppMockMvc;
-
   @BeforeEach
   void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
-
-    webAppMockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
 
     // To keep DefaultProviderLookupService.loadAccounts happy
     when(clouddriverService.getAccountDetails()).thenReturn(Calls.response(List.of()));
@@ -76,25 +80,29 @@ public class HeaderAuthTest {
 
   @Test
   void testGetUser() throws Exception {
-    webAppMockMvc
-        .perform(
-            get("/auth/user")
-                .accept(MediaType.APPLICATION_JSON_VALUE)
-                .characterEncoding(StandardCharsets.UTF_8.toString())
-                .header(Header.USER.getHeader(), USERNAME))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.email").value(USERNAME))
-        .andExpect(jsonPath("$.username").value(USERNAME))
-        .andExpect(jsonPath("$.firstName").value(IsNull.nullValue()))
-        .andExpect(jsonPath("$.lastName").value(IsNull.nullValue()))
-        .andExpect(jsonPath("$.roles").isEmpty())
-        .andExpect(jsonPath("$.allowedAccounts").isEmpty())
-        .andExpect(jsonPath("$.enabled").value(true))
-        .andExpect(jsonPath("$.authorities").isEmpty())
-        .andExpect(jsonPath("$.accountNonExpired").value(true))
-        .andExpect(jsonPath("$.accountNonLocked").value(true))
-        .andExpect(jsonPath("$.credentialsNonExpired").value(true));
+    URI uri = new URI("http://localhost:" + port + "/auth/user");
+
+    HttpRequest request =
+        HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
+
+    String response = callGate(request, 200);
+
+    Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
+
+    assertThat(jsonResponse.get("email")).isEqualTo(USERNAME);
+    assertThat(jsonResponse.get("username")).isEqualTo(USERNAME);
+    assertThat(jsonResponse.get("firstName")).isNull();
+    assertThat(jsonResponse.get("lastName")).isNull();
+    assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("allowedAccounts")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("enabled")).asInstanceOf(BOOLEAN).isTrue();
+    assertThat(jsonResponse.get("authorities")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("accountNonExpired")).asInstanceOf(BOOLEAN).isTrue();
+    assertThat(jsonResponse.get("accountNonLocked")).asInstanceOf(BOOLEAN).isTrue();
+    assertThat(jsonResponse.get("credentialsNonExpired")).asInstanceOf(BOOLEAN).isTrue();
+
+    // Make sure there isn't some exception-handling path that added a message to the response
+    assertThat(jsonResponse.containsKey("message")).isFalse();
   }
 
   // TODO: expect anonymous once the code is set up to do that
@@ -108,4 +116,14 @@ public class HeaderAuthTest {
   //      .andDo(print())
   //      .andExpect(status().isOk());
   // }
+
+  private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
+    HttpClient client = HttpClient.newBuilder().build();
+
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    assertThat(response.statusCode()).isEqualTo(expectedStatusCode);
+
+    return response.body();
+  }
 }
