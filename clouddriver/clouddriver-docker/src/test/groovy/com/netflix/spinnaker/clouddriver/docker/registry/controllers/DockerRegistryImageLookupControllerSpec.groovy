@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.docker.registry.controllers
 
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.Keys
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
@@ -88,7 +87,9 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
 
   void "When finding images with includeDetails == false"() {
     when:
-    def result = dockerRegistryImageLookupController.find(new DockerRegistryImageLookupController.LookupOptions(includeDetails: false))
+    def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.includeDetails = false
+    def result = dockerRegistryImageLookupController.find(lookupOptions)
 
     then:
     result.size() == 1
@@ -102,7 +103,9 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
 
   void "When finding images with includeDetails == true"() {
     when:
-    def result = dockerRegistryImageLookupController.find(new DockerRegistryImageLookupController.LookupOptions(includeDetails: true))
+    def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.includeDetails = true
+    def result = dockerRegistryImageLookupController.find(lookupOptions)
 
     then:
     result.size() == 1
@@ -119,8 +122,9 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
 
   void "When finding images with filtered repository for an image that exists" () {
     when:
-    def result = dockerRegistryImageLookupController.find(
-      new DockerRegistryImageLookupController.LookupOptions(repository: "test-repo"))
+    def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.repository = "test-repo"
+    def result = dockerRegistryImageLookupController.find(lookupOptions)
 
     then:
     result.size() == 1
@@ -132,8 +136,10 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
 
   void "When finding images with filtered repository and tag for an image that exists" () {
     when:
-    def result = dockerRegistryImageLookupController.find(
-      new DockerRegistryImageLookupController.LookupOptions(repository: "test-repo", tag: "1.0"))
+    def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.repository = "test-repo"
+    lookupOptions.tag = "1.0"
+    def result = dockerRegistryImageLookupController.find(lookupOptions)
 
     then:
     result.size() == 1
@@ -145,8 +151,9 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
 
   void "When finding images with filtered repository for an image that does not exist" () {
     when:
-    def result = dockerRegistryImageLookupController.find(
-      new DockerRegistryImageLookupController.LookupOptions(repository: "wrong-repo"))
+    def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.repository = "wrong-repo"
+    def result = dockerRegistryImageLookupController.find(lookupOptions)
 
     then:
     result.size() == 0
@@ -154,8 +161,9 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
 
   void "When finding images with filtered tag for a tag that does not exist" () {
     when:
-    def result = dockerRegistryImageLookupController.find(
-      new DockerRegistryImageLookupController.LookupOptions(repository: "wrong-tag"))
+    def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.repository = "wrong-tag"
+    def result = dockerRegistryImageLookupController.find(lookupOptions)
 
     then:
     result.size() == 0
@@ -191,7 +199,9 @@ class DockerRegistryImageLookupControllerSpec extends Specification {
     )
 
     when:
-    def result = dockerRegistryImageLookupController.find(new DockerRegistryImageLookupController.LookupOptions(includeDetails: true))
+    def lookupOptions = new AbstractDockerRegistryLookupController.LookupOptions()
+    lookupOptions.includeDetails = true
+    def result = dockerRegistryImageLookupController.find(lookupOptions)
 
     then:
     result.size() == 1
