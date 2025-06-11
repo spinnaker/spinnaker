@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.controllers;
+
+package com.netflix.spinnaker.gate;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -23,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.kork.common.Header;
@@ -51,7 +51,7 @@ import retrofit2.mock.Calls;
       "spring.config.location=classpath:gate-test.yml",
       "services.front50.applicationRefreshInitialDelayMs=3600000"
     })
-public class AuthControllerTest {
+public class HeaderAuthTest {
 
   private static final String USERNAME = "test@email.com";
 
