@@ -79,7 +79,7 @@ public class HeaderAuthTest {
   }
 
   @Test
-  void testGetUser() throws Exception {
+  void testAuthUserWithUser() throws Exception {
     URI uri = new URI("http://localhost:" + port + "/auth/user");
 
     HttpRequest request =
@@ -106,16 +106,22 @@ public class HeaderAuthTest {
   }
 
   // TODO: expect anonymous once the code is set up to do that
-  // @Test
-  // void testGetUserWithNoUser() throws Exception {
-  //  webAppMockMvc
-  //      .perform(
-  //          get("/auth/user")
-  //              .accept(MediaType.APPLICATION_JSON_VALUE)
-  //              .characterEncoding(StandardCharsets.UTF_8.toString()))
-  //      .andDo(print())
-  //      .andExpect(status().isOk());
-  // }
+  @Test
+  void testAuthUserWithNoUser() throws Exception {
+    URI uri = new URI("http://localhost:" + port + "/auth/user");
+
+    HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+
+    String response = callGate(request, 500);
+
+    // FIXME: we'd rather have a json response with the exception message than html
+    //
+    // Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
+    //
+    // assertThat(jsonResponse.get("message")).isEqualTo("X-SPINNAKER-USER header not found in
+    // request.");
+    assertThat(response).contains("<title>HTTP Status 500 – Internal Server Error</title>");
+  }
 
   private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
     HttpClient client = HttpClient.newBuilder().build();
