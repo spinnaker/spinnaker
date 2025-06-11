@@ -46,6 +46,10 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
+/**
+ * TODO: Properties in this class are duplicated in HelmOciDockerArtifactAccount and
+ * DockerRegistryNamedAccountCredentials. Future refactoring needed to reduce duplication.
+ */
 @Slf4j
 @Getter
 public class DockerRegistryClient {

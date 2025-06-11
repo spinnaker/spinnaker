@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Armory
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,22 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts.gitRepo;
+package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
 import com.netflix.spinnaker.clouddriver.artifacts.utilities.AbstractArtifactCachedFileSystem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
-public class GitRepoFileSystem extends AbstractArtifactCachedFileSystem {
-  private static final String CLONES_HOME = "gitrepos";
+public class HelmOciFileSystem extends AbstractArtifactCachedFileSystem {
 
-  private final GitRepoArtifactProviderProperties config;
+  private static final String CLONES_HOME = "helmcharts";
 
-  public GitRepoFileSystem(GitRepoArtifactProviderProperties properties) {
+  private final HelmOciArtifactProviderProperties config;
+
+  public HelmOciFileSystem(HelmOciArtifactProviderProperties properties) {
     super(CLONES_HOME);
     this.config = properties;
   }
@@ -54,10 +54,10 @@ public class GitRepoFileSystem extends AbstractArtifactCachedFileSystem {
 
   @Scheduled(
       fixedDelayString =
-          "${artifacts.git-repo.clone-retention-check-ms:"
-              + GitRepoArtifactProviderProperties.DEFAULT_CLONE_RETENTION_CHECK_MS
+          "${artifacts.helm-oci.clone-retention-check-ms:"
+              + HelmOciArtifactProviderProperties.DEFAULT_CLONE_RETENTION_CHECK_MS
               + "}")
-  private void deleteExpiredRepos() {
-    deleteExpiredClones("git");
+  private void deleteExpiredHelmCharts() {
+    deleteExpiredClones("helm/image chart");
   }
 }

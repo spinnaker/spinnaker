@@ -97,7 +97,7 @@ public abstract class HelmBakeTemplateUtils<T extends BakeManifestRequest> {
     Artifact helmTypeTemplateArtifact = inputArtifacts.get(0);
     String artifactType = Optional.ofNullable(helmTypeTemplateArtifact.getType()).orElse("");
 
-    if ("git/repo".equals(artifactType)) {
+    if ("git/repo".equals(artifactType) || "helm/image".equals(artifactType)) {
       env.downloadArtifactTarballAndExtract(getArtifactDownloader(), helmTypeTemplateArtifact);
 
       helmTypeFilePath = env.resolvePath(Optional.ofNullable(filePath).orElse(""));

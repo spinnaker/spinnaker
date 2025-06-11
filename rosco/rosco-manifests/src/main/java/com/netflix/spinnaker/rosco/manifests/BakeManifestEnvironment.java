@@ -96,6 +96,9 @@ public final class BakeManifestEnvironment implements AutoCloseable {
             Files.createDirectory(archiveEntryOutput);
           }
         } else {
+          if (!Files.exists(archiveEntryOutput.getParent())) {
+            Files.createDirectories(archiveEntryOutput.getParent());
+          }
           Files.copy(tarArchiveInputStream, archiveEntryOutput);
         }
       }

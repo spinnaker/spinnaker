@@ -57,3 +57,4 @@ ArtifactIconService.registerType(ArtifactTypePatterns.JENKINS_FILE, jenkinsFileI
 ArtifactIconService.registerType(ArtifactTypePatterns.MAVEN_FILE, mavenFileIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.HTTP_FILE, httpFileIcon);
 ArtifactIconService.registerType(ArtifactTypePatterns.ORACLE_OBJECT, oracleObjectIcon);
+ArtifactIconService.registerType(ArtifactTypePatterns.HELM_IMAGE, helmChartIcon);
