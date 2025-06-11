@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.test.context.TestPropertySource;
 import retrofit2.mock.Calls;
 
@@ -114,13 +115,12 @@ public class HeaderAuthTest {
 
     String response = callGate(request, 500);
 
-    // FIXME: we'd rather have a json response with the exception message than html
-    //
-    // Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
-    //
-    // assertThat(jsonResponse.get("message")).isEqualTo("X-SPINNAKER-USER header not found in
-    // request.");
-    assertThat(response).contains("<title>HTTP Status 500 – Internal Server Error</title>");
+    Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
+    assertThat(jsonResponse.get("message"))
+        .isEqualTo("X-SPINNAKER-USER header not found in request.");
+    assertThat(jsonResponse.get("exception"))
+        .isEqualTo(PreAuthenticatedCredentialsNotFoundException.class.getName());
+    assertThat(jsonResponse.get("status")).isEqualTo(500);
   }
 
   private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
