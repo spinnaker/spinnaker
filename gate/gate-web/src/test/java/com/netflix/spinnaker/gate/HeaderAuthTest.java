@@ -133,9 +133,7 @@ public class HeaderAuthTest {
         .isEqualTo(PreAuthenticatedCredentialsNotFoundException.class.getName());
     assertThat(jsonResponse.get("status")).isEqualTo(500);
 
-    // FIXME: adjust error/exception handling configuration so
-    // RequestHeaderAuthenticationFilter only processes one request.
-    verifyRequestProcessing(2);
+    verifyRequestProcessing(1);
   }
 
   private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
