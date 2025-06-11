@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider;
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProvider;
+import com.netflix.spinnaker.clouddriver.docker.registry.provider.agent.DockerRegistryHelmOciCachingAgent;
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.agent.DockerRegistryImageCachingAgent;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -154,5 +155,77 @@ class DockerRegistryCredentialsLifecycleHandlerTest {
     // We removed account1 so only agent2 should remain
     assertThat(provider.getAgents()).hasSize(1);
     assertThat(provider.getAgents()).contains(agent2);
+  }
+
+  @Test
+  public void testHelmOciRepositoriesAddsProperAgents() {
+    DockerRegistryCloudProvider dockerRegistryCloudProvider = new DockerRegistryCloudProvider();
+    DockerRegistryProvider provider = new DockerRegistryProvider(dockerRegistryCloudProvider);
+    DockerRegistryCredentialsLifecycleHandler handler =
+        new DockerRegistryCredentialsLifecycleHandler(provider, dockerRegistryCloudProvider);
+
+    // Check we start with no agents
+    assertThat(provider.getAgents()).isEmpty();
+
+    DockerRegistryNamedAccountCredentials dockerRegistryNamedAccountCredentials =
+        mock(DockerRegistryNamedAccountCredentials.class);
+    when(dockerRegistryNamedAccountCredentials.getName()).thenReturn("docker");
+    when(dockerRegistryNamedAccountCredentials.getCacheThreads()).thenReturn(1);
+    when(dockerRegistryNamedAccountCredentials.getCacheIntervalSeconds()).thenReturn(10L);
+    when(dockerRegistryNamedAccountCredentials.getRegistry()).thenReturn("registry");
+    when(dockerRegistryNamedAccountCredentials.getCredentials())
+        .thenReturn(mock(DockerRegistryCredentials.class));
+    when(dockerRegistryNamedAccountCredentials.getCredentials().getHelmOciRepositories())
+        .thenReturn(List.of("repo1/chart", "repo2/chart2"));
+
+    handler.credentialsAdded(dockerRegistryNamedAccountCredentials);
+
+    assertThat(provider.getAgents()).hasSize(2);
+    assertThat(
+            provider.getAgents().stream()
+                .filter(agent -> agent instanceof DockerRegistryHelmOciCachingAgent)
+                .count())
+        .isEqualTo(1);
+    assertThat(
+            provider.getAgents().stream()
+                .filter(agent -> agent instanceof DockerRegistryImageCachingAgent)
+                .count())
+        .isEqualTo(1);
+  }
+
+  @Test
+  public void testEmptyHelmOciRepositoriesDoesNotAddAgent() {
+    DockerRegistryCloudProvider dockerRegistryCloudProvider = new DockerRegistryCloudProvider();
+    DockerRegistryProvider provider = new DockerRegistryProvider(dockerRegistryCloudProvider);
+    DockerRegistryCredentialsLifecycleHandler handler =
+        new DockerRegistryCredentialsLifecycleHandler(provider, dockerRegistryCloudProvider);
+
+    // Check we start with no agents
+    assertThat(provider.getAgents()).isEmpty();
+
+    DockerRegistryNamedAccountCredentials dockerRegistryNamedAccountCredentials =
+        mock(DockerRegistryNamedAccountCredentials.class);
+    when(dockerRegistryNamedAccountCredentials.getName()).thenReturn("docker");
+    when(dockerRegistryNamedAccountCredentials.getCacheThreads()).thenReturn(1);
+    when(dockerRegistryNamedAccountCredentials.getCacheIntervalSeconds()).thenReturn(10L);
+    when(dockerRegistryNamedAccountCredentials.getRegistry()).thenReturn("registry");
+    when(dockerRegistryNamedAccountCredentials.getCredentials())
+        .thenReturn(mock(DockerRegistryCredentials.class));
+    when(dockerRegistryNamedAccountCredentials.getCredentials().getHelmOciRepositories())
+        .thenReturn(List.of());
+
+    handler.credentialsAdded(dockerRegistryNamedAccountCredentials);
+
+    assertThat(provider.getAgents()).hasSize(1);
+    assertThat(
+            provider.getAgents().stream()
+                .filter(agent -> agent instanceof DockerRegistryHelmOciCachingAgent)
+                .count())
+        .isEqualTo(0);
+    assertThat(
+            provider.getAgents().stream()
+                .filter(agent -> agent instanceof DockerRegistryImageCachingAgent)
+                .count())
+        .isEqualTo(1);
   }
 }

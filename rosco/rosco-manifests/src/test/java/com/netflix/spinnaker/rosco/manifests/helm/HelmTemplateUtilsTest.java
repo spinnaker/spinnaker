@@ -742,6 +742,119 @@ final class HelmTemplateUtilsTest {
           .containsExactly("---", "key1: \"valu&e1\"", "key2: \"value2:\"", "key4: true");
     }
   }
+
+  @Test
+  public void buildBakeRecipeWithHelmImageArtifact(@TempDir Path tempDir) throws IOException {
+    // helm/image artifacts appear as a tarball, so create one that contains a helm chart.
+    addTestHelmChart(tempDir);
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmConfigurationProperties helmConfigurationProperties =
+        new RoscoHelmConfigurationProperties();
+    HelmTemplateUtils helmTemplateUtils =
+        new HelmTemplateUtils(
+            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+
+    HelmBakeManifestRequest request = new HelmBakeManifestRequest();
+
+    Artifact artifact =
+        Artifact.builder()
+            .type("helm/image")
+            .artifactAccount("docker-helm-account")
+            .version("1.0.0")
+            .name("repo/chart")
+            .build();
+
+    // Set up the mock artifactDownloader to supply the tarball that represents
+    // the helm/image artifact
+    when(artifactDownloader.downloadArtifact(artifact)).thenReturn(makeTarball(tempDir));
+
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setNamespace("default");
+    request.setOverrides(Collections.emptyMap());
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = helmTemplateUtils.buildBakeRecipe(env, request);
+
+      // Make sure we're really testing the helm/image logic
+      verify(artifactDownloader).downloadArtifact(artifact);
+
+      // Make sure the BakeManifestEnvironment has the files in our helm/image artifact.
+      assertTrue(env.resolvePath("Chart.yaml").toFile().exists());
+      assertTrue(env.resolvePath("values.yaml").toFile().exists());
+      assertTrue(env.resolvePath("templates/foo.yaml").toFile().exists());
+    }
+  }
+
+  @Test
+  public void buildBakeRecipeWithHelmImageArtifactUsingHelmChartFilePath(@TempDir Path tempDir)
+      throws IOException {
+    // Create a tarball with a helm chart in a sub directory
+    String subDirName = "subdir";
+    Path subDir = tempDir.resolve(subDirName);
+    addTestHelmChart(subDir);
+
+    ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
+    RoscoHelmConfigurationProperties helmConfigurationProperties =
+        new RoscoHelmConfigurationProperties();
+    HelmTemplateUtils helmTemplateUtils =
+        new HelmTemplateUtils(
+            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+
+    HelmBakeManifestRequest request = new HelmBakeManifestRequest();
+
+    // So we know where to look for the path to the chart in the resulting helm
+    // template command, specify the renderer.  Use HELM2 since the path appears
+    // earlier in the argument list.
+    request.setTemplateRenderer(BakeManifestRequest.TemplateRenderer.HELM2);
+
+    // Note that supplying a location for a helm/image artifact doesn't change the
+    // path in the resulting tarball.  It's here because it's likely that it's
+    // used together with helmChartFilePath.  Removing it wouldn't change the
+    // test.
+    Artifact artifact =
+        Artifact.builder()
+            .type("helm/image")
+            .artifactAccount("docker-helm-account")
+            .version("1.0.0")
+            .name("repo/chart")
+            .location(subDirName)
+            .build();
+
+    // Set up the mock artifactDownloader to supply the tarball that represents
+    // the helm/image artifact
+    when(artifactDownloader.downloadArtifact(artifact)).thenReturn(makeTarball(tempDir));
+
+    request.setInputArtifacts(Collections.singletonList(artifact));
+    request.setOverrides(Collections.emptyMap());
+
+    // This is the key part of this test.
+    request.setHelmChartFilePath(subDirName);
+
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = helmTemplateUtils.buildBakeRecipe(env, request);
+
+      // Make sure we're really testing the helm/image logic
+      verify(artifactDownloader).downloadArtifact(artifact);
+
+      // Make sure the BakeManifestEnvironment has the files in our git/repo
+      // artifact in the expected location.
+      assertTrue(env.resolvePath(Path.of(subDirName, "Chart.yaml")).toFile().exists());
+      assertTrue(env.resolvePath(Path.of(subDirName, "values.yaml")).toFile().exists());
+      assertTrue(env.resolvePath(Path.of(subDirName, "templates/foo.yaml")).toFile().exists());
+
+      // And that the helm template command includes the path to the subdirectory
+      //
+      // Given that we're using the HELM2 renderer, the expected elements in the
+      // command list are:
+      //
+      // 0 - the helm executable
+      // 1 - template
+      // 2 - the path to Chart.yaml
+      assertEquals(env.resolvePath(subDirName).toString(), recipe.getCommand().get(2));
+    }
+  }
+
   /**
    * Add a helm chart for testing
    *

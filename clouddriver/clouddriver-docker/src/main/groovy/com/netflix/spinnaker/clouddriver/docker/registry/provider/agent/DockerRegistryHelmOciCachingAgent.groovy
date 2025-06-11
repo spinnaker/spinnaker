@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -20,26 +20,24 @@ import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.Keys
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials
-import com.netflix.spinnaker.kork.docker.model.DockerRegistryTags
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import groovy.util.logging.Slf4j
 
 import static java.util.Collections.unmodifiableSet
 
 @Slf4j
-class DockerRegistryImageCachingAgent extends AbstractDockerRegistryCachingAgent {
+class DockerRegistryHelmOciCachingAgent extends AbstractDockerRegistryCachingAgent {
   static final Set<AgentDataType> types = unmodifiableSet([
-    AgentDataType.Authority.AUTHORITATIVE.forType(Keys.Namespace.TAGGED_IMAGE.ns),
+    AgentDataType.Authority.AUTHORITATIVE.forType(Keys.Namespace.TAGGED_HELM_OCI_IMAGE.ns),
     AgentDataType.Authority.AUTHORITATIVE.forType(Keys.Namespace.IMAGE_ID.ns)
   ] as Set)
 
-  DockerRegistryImageCachingAgent(DockerRegistryCloudProvider dockerRegistryCloudProvider,
-                                  String accountName,
-                                  DockerRegistryCredentials credentials,
-                                  int index,
-                                  int threadCount,
-                                  Long intervalSecs,
-                                  String registry) {
+  DockerRegistryHelmOciCachingAgent(DockerRegistryCloudProvider dockerRegistryCloudProvider,
+                                    String accountName,
+                                    DockerRegistryCredentials credentials,
+                                    int index,
+                                    int threadCount,
+                                    Long intervalSecs,
+                                    String registry) {
     super(dockerRegistryCloudProvider, accountName, credentials, index, threadCount, intervalSecs, registry)
   }
 
@@ -50,16 +48,16 @@ class DockerRegistryImageCachingAgent extends AbstractDockerRegistryCachingAgent
 
   @Override
   protected List<String> getRepositories() {
-    return credentials.repositories
+    return credentials.helmOciRepositories
   }
 
   @Override
   protected String getTaggedImageKey(String account, String repository, String tag) {
-    return Keys.getTaggedImageKey(account, repository, tag)
+    return Keys.getHelmOciTaggedImageKey(account, repository, tag)
   }
 
   @Override
   protected Keys.Namespace getTaggedImageNamespace() {
-    return Keys.Namespace.TAGGED_IMAGE
+    return Keys.Namespace.TAGGED_HELM_OCI_IMAGE
   }
 }
