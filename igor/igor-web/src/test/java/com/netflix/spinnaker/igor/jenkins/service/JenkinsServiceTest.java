@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.igor.jenkins.service;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -32,7 +30,6 @@ import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient;
 import com.netflix.spinnaker.igor.model.Crumb;
 import com.netflix.spinnaker.igor.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeAll;
@@ -86,12 +83,9 @@ public class JenkinsServiceTest {
     wmJenkins.stubFor(
         WireMock.post("/job/job1/build").willReturn(WireMock.aResponse().withStatus(201)));
 
-    // TODO: fix this issue
-    Throwable thrown = catchThrowable(() -> jenkinsService.build("job1"));
-    assertThat(thrown).isInstanceOf(SpinnakerConversionException.class);
-    assertThat(thrown.getMessage())
-        .contains(
-            "Failed to process response body: Unexpected EOF in prolog\n"
-                + " at [row,col {unknown-source}]: [1,0]");
+    jenkinsService.build("job1");
+
+    wmJenkins.verify(1, WireMock.getRequestedFor(WireMock.urlEqualTo("/crumbIssuer/api/xml")));
+    wmJenkins.verify(1, WireMock.postRequestedFor(WireMock.urlEqualTo("/job/job1/build")));
   }
 }
