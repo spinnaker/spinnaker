@@ -84,10 +84,10 @@ interface JenkinsClient {
     Call<QueuedJob> getQueuedItem(@Path('itemNumber') Long item)
 
     @POST('job/{jobName}/build')
-    Call<Response<ResponseBody>> build(@Path(value = 'jobName', encoded = true) String jobName, @Body String emptyRequest, @Header("Jenkins-Crumb") String crumb)
+    Call<Void> build(@Path(value = 'jobName', encoded = true) String jobName, @Body String emptyRequest, @Header("Jenkins-Crumb") String crumb)
 
     @POST('job/{jobName}/buildWithParameters')
-    Call<Response<ResponseBody>> buildWithParameters(@Path(value = 'jobName', encoded = true) String jobName, @QueryMap Map<String, String> queryParams, @Body String EmptyRequest, @Header("Jenkins-Crumb") String crumb)
+    Call<Void> buildWithParameters(@Path(value = 'jobName', encoded = true) String jobName, @QueryMap Map<String, String> queryParams, @Body String EmptyRequest, @Header("Jenkins-Crumb") String crumb)
 
     @FormUrlEncoded
     @POST('job/{jobName}/{buildNumber}/submitDescription')
