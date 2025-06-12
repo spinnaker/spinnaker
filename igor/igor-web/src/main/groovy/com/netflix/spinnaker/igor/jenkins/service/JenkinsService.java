@@ -186,7 +186,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
 
   @Override
   public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
-    Response<ResponseBody> response = buildWithParameters(job, queryParameters);
+    Response<Void> response = buildWithParameters(job, queryParameters);
     if (response.code() != 201) {
       throw new BuildJobError("Received a non-201 status when submitting job '" + job + "'");
     }
@@ -246,16 +246,15 @@ public class JenkinsService implements BuildOperations, BuildProperties {
     }
   }
 
-  public Response<ResponseBody> build(String jobName) {
+  public Response<Void> build(String jobName) {
     return circuitBreaker.executeSupplier(
-        () -> Retrofit2SyncCall.execute(jenkinsClient.build(encode(jobName), "", getCrumb())));
+        () -> Retrofit2SyncCall.executeCall(jenkinsClient.build(encode(jobName), "", getCrumb())));
   }
 
-  public Response<ResponseBody> buildWithParameters(
-      String jobName, Map<String, String> queryParams) {
+  public Response<Void> buildWithParameters(String jobName, Map<String, String> queryParams) {
     return circuitBreaker.executeSupplier(
         () ->
-            Retrofit2SyncCall.execute(
+            Retrofit2SyncCall.executeCall(
                 jenkinsClient.buildWithParameters(encode(jobName), queryParams, "", getCrumb())));
   }
 
