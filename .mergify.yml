@@ -112,3 +112,9 @@ priority_rules:
           and:
             - label=no-squash
     priority: 2250
+  - name: priority for queue `default`
+    conditions:
+      - not:
+          and:
+            - label=no-squash
+    priority: 2250
