@@ -136,6 +136,24 @@ public class HeaderAuthTest {
     verifyRequestProcessing(1);
   }
 
+  @Test
+  void testSpinnakerTomcatErrorValve() throws Exception {
+    // If error handling is configured properly, other tests don't exercise
+    // SpinnakerTomcatErrorValve, so let's exercise it here.an-invalid-character")
+    URI uri = new URI("http://localhost:" + port + "/bracket-is-an-invalid-character?[foo]");
+
+    HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+
+    String response = callGate(request, 400);
+
+    Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
+    assertThat(jsonResponse.get("message"))
+        .isEqualTo(
+            "Invalid character found in the request target [/bracket-is-an-invalid-character?[foo] ]. The valid characters are defined in RFC 7230 and RFC 3986");
+    assertThat(jsonResponse.get("exception")).isEqualTo(IllegalArgumentException.class.getName());
+    assertThat(jsonResponse.get("status")).isEqualTo(400);
+  }
+
   private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
     HttpClient client = HttpClient.newBuilder().build();
 
