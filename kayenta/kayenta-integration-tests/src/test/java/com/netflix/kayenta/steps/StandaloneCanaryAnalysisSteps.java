@@ -31,13 +31,26 @@ import io.restassured.response.ValidatableResponse;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 
 @RequiredArgsConstructor
 public class StandaloneCanaryAnalysisSteps {
 
-  private final int serverPort;
+  private final Environment environment;
   private final CanaryAnalysisCasesConfigurationProperties cases;
+
+  private Integer serverPort;
+
+  private int getServerPort() {
+    if (serverPort != null) {
+      return serverPort;
+    }
+
+    serverPort = environment.getProperty("local.server.port", Integer.class);
+
+    return serverPort;
+  }
 
   public String createCanaryAnalysis(
       String caseName,
@@ -50,7 +63,7 @@ public class StandaloneCanaryAnalysisSteps {
 
     ValidatableResponse createAnalysisResponse =
         given()
-            .port(serverPort)
+            .port(getServerPort())
             .header("Content-Type", "application/json")
             .queryParam("metricsAccountName", metricsAccountName)
             .queryParam("storageAccountName", storageAccountName)
@@ -85,7 +98,7 @@ public class StandaloneCanaryAnalysisSteps {
 
   public ValidatableResponse getCanaryAnalysisExecution(String canaryAnalysisExecutionId) {
     return given()
-        .port(serverPort)
+        .port(getServerPort())
         .get("/standalone_canary_analysis/" + canaryAnalysisExecutionId)
         .then();
   }

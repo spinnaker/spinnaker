@@ -17,15 +17,19 @@ package com.netflix.kayenta.tests.standalone;
 
 import static org.hamcrest.CoreMatchers.is;
 
+import com.netflix.kayenta.configuration.EmbeddedGraphiteBootstrapConfiguration;
 import com.netflix.kayenta.steps.StandaloneCanaryAnalysisSteps;
 import com.netflix.kayenta.tests.BaseIntegrationTest;
 import io.restassured.response.ValidatableResponse;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
 
   @Autowired protected StandaloneCanaryAnalysisSteps steps;
+
+  @Autowired private EmbeddedGraphiteBootstrapConfiguration graphiteBootstrapConfiguration;
 
   @Test
   public void canaryAnalysisIsSuccessful() {
@@ -67,5 +71,10 @@ public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
         .body(
             "canaryAnalysisExecutionResult.canaryScoreMessage",
             is("Final canary score 0.0 is not above the marginal score threshold."));
+  }
+
+  @AfterAll
+  public void stopContainer() {
+    graphiteBootstrapConfiguration.stopGraphite();
   }
 }
