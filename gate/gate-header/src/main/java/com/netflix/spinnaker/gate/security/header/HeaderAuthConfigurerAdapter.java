@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.header;
 
+import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,10 +33,13 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 @SpinnakerAuthConfig
 @EnableWebSecurity
 public class HeaderAuthConfigurerAdapter extends WebSecurityConfigurerAdapter {
+  @Autowired AuthConfig authConfig;
+
   @Autowired RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+    authConfig.configure(http);
     http.addFilter(requestHeaderAuthenticationFilter);
   }
 }

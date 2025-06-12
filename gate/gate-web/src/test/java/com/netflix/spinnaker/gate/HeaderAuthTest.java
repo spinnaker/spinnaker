@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.gate;
 
-import static org.mockito.Mockito.when;
 import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.BOOLEAN;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -97,6 +99,8 @@ public class HeaderAuthTest {
 
   @MockBean OrcaService orcaService;
 
+  @Autowired FiatPermissionEvaluator fiatPermissionEvaluator;
+
   @BeforeEach
   void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
@@ -105,6 +109,15 @@ public class HeaderAuthTest {
     when(clouddriverService.getAccountDetails()).thenReturn(Calls.response(List.of()));
 
     when(orcaServiceSelector.select()).thenReturn(orcaService);
+  }
+
+  @AfterEach
+  void cleanup() {
+    // Clean up the permissions cache in FiatPermissionEvaluator since we don't
+    // get a fresh bean for each test.  There's an invalidateAll method on the
+    // permissions cache, but FiatPermissionEvaluator doesn't expose it.  For
+    // now we're testing with one user, so this is sufficient.
+    fiatPermissionEvaluator.invalidatePermission(USERNAME);
   }
 
   @Test
@@ -163,6 +176,9 @@ public class HeaderAuthTest {
     HttpRequest request =
         HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
 
+    when(fiatService.getUserPermission(USERNAME))
+        .thenReturn(Calls.response(new UserPermission.View().setName(USERNAME).setAdmin(false)));
+
     String response = callGate(request, 200);
 
     Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
@@ -184,9 +200,11 @@ public class HeaderAuthTest {
 
     verifyRequestProcessing(1);
 
-    // Verify that there were no interactions with fiat.  This changes if
-    // header auth ever does put roles in the security context.
-    verifyNoInteractions(fiatService);
+    // Verify interactions with fiat.  This could changes if header auth ever
+    // does put roles in the security context.  At the moment it's
+    // FiatSessionFilter that's causing calls to fiat.
+    verify(fiatService).getUserPermission(USERNAME);
+    verifyNoMoreInteractions(fiatService);
   }
 
   // TODO: expect anonymous once the code is set up to do that
@@ -240,19 +258,22 @@ public class HeaderAuthTest {
             .POST(HttpRequest.BodyPublishers.ofString("{}"))
             .build();
 
-    // FIXME: disable csrf so gate allows this request
-    //
-    // String response = callGate(request, 200);
-    //
-    // // An arbitrary response from orcaService.startPipeline
-    // assertThat(response).isEqualTo("{}");
-    //
-    // verify(orcaService).startPipeline(anyMap(), eq(USERNAME));
-    // verifyNoMoreInteractions(orcaService);
+    when(fiatService.getUserPermission(USERNAME))
+        .thenReturn(Calls.response(new UserPermission.View().setName(USERNAME).setAdmin(false)));
 
-    callGate(request, 403);
+    // arbitrary execution info
+    when(orcaService.startPipeline(anyMap(), eq(USERNAME))).thenReturn(Calls.response(Map.of()));
 
-    verifyNoInteractions(orcaService);
+    String response = callGate(request, 200);
+
+    // The response from orcaService.startPipeline configured above
+    assertThat(response).isEqualTo("{}");
+
+    verify(fiatService).getUserPermission(USERNAME);
+    verifyNoMoreInteractions(fiatService);
+
+    verify(orcaService).startPipeline(anyMap(), eq(USERNAME));
+    verifyNoMoreInteractions(orcaService);
   }
 
   private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
