@@ -24,9 +24,14 @@ import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import java.lang.reflect.Method;
@@ -36,6 +41,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +67,8 @@ import retrofit2.mock.Calls;
       "header.enabled=true",
       "logging.level.org.springframework.security=DEBUG",
       "spring.config.location=classpath:gate-test.yml",
-      "services.front50.applicationRefreshInitialDelayMs=3600000"
+      "services.front50.applicationRefreshInitialDelayMs=3600000",
+      "services.fiat.enabled=true"
     })
 public class HeaderAuthTest {
 
@@ -80,6 +87,8 @@ public class HeaderAuthTest {
 
   @SpyBean RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
 
+  @MockBean FiatService fiatService;
+
   @BeforeEach
   void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
@@ -95,6 +104,18 @@ public class HeaderAuthTest {
     HttpRequest request =
         HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
 
+    // simulate a role from fiat
+    when(fiatService.getUserPermission(USERNAME))
+        .thenReturn(
+            Calls.response(
+                new UserPermission.View()
+                    .setName(USERNAME)
+                    .setAdmin(false)
+                    .setRoles(
+                        Set.of(
+                            new Role.View()
+                                .setName("testRole")
+                                .setSource(Role.Source.LDAP))))); // arbitrary
     String response = callGate(request, 200);
 
     Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
@@ -103,10 +124,12 @@ public class HeaderAuthTest {
     assertThat(jsonResponse.get("username")).isEqualTo(USERNAME);
     assertThat(jsonResponse.get("firstName")).isNull();
     assertThat(jsonResponse.get("lastName")).isNull();
-    assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).contains("testRole");
     assertThat(jsonResponse.get("allowedAccounts")).asInstanceOf(LIST).isEmpty();
     assertThat(jsonResponse.get("enabled")).asInstanceOf(BOOLEAN).isTrue();
-    assertThat(jsonResponse.get("authorities")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("authorities"))
+        .asInstanceOf(LIST)
+        .contains(Map.of("authority", "testRole"));
     assertThat(jsonResponse.get("accountNonExpired")).asInstanceOf(BOOLEAN).isTrue();
     assertThat(jsonResponse.get("accountNonLocked")).asInstanceOf(BOOLEAN).isTrue();
     assertThat(jsonResponse.get("credentialsNonExpired")).asInstanceOf(BOOLEAN).isTrue();
@@ -115,6 +138,12 @@ public class HeaderAuthTest {
     assertThat(jsonResponse.containsKey("message")).isFalse();
 
     verifyRequestProcessing(1);
+
+    // Verify that gate called fiat
+    verify(fiatService).getUserPermission(USERNAME);
+
+    // Verify that there were no other fiat interactions
+    verifyNoMoreInteractions(fiatService);
   }
 
   // TODO: expect anonymous once the code is set up to do that
