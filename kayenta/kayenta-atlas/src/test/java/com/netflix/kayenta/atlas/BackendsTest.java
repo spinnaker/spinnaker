@@ -17,18 +17,30 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.configuration.ObjectPostProcessorConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @Configuration
-@ComponentScan({"com.netflix.kayenta.retrofit.config"})
-class BackendsConfig {}
+@ComponentScan({"com.netflix.kayenta.retrofit.config", "com.netflix.spinnaker.config"})
+class BackendsConfig {
+  @Bean
+  public ObjectPostProcessor<Object> objectPostProcessor(AutowireCapableBeanFactory beanFactory) {
+    return new ObjectPostProcessorConfiguration().objectPostProcessor(beanFactory);
+  }
+}
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {BackendsConfig.class})
+@ContextConfiguration(
+    classes = {BackendsConfig.class, TaskExecutorBuilder.class, AuthenticationConfiguration.class})
 public class BackendsTest {
   @Autowired private ResourceLoader resourceLoader;
 

@@ -18,21 +18,22 @@ package com.netflix.spinnaker.orca.flex
 
 import com.netflix.spinnaker.orca.flex.model.ElasticIpRequest
 import com.netflix.spinnaker.orca.flex.model.ElasticIpResult
-import retrofit.http.Body
-import retrofit.http.DELETE
-import retrofit.http.POST
-import retrofit.http.Path
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface FlexService {
-  @POST("/applications/{application}/clusters/{account}/{cluster}/elasticIps/{region}")
-  ElasticIpResult associateElasticIp(@Path("application") String application,
-                                     @Path("account") String account,
-                                     @Path("cluster") String cluster,
-                                     @Path("region") String region,
-                                     @Body ElasticIpRequest request)
+  @POST("applications/{application}/clusters/{account}/{cluster}/elasticIps/{region}")
+  Call<ElasticIpResult> associateElasticIp(@Path("application") String application,
+                                           @Path("account") String account,
+                                           @Path("cluster") String cluster,
+                                           @Path("region") String region,
+                                           @Body ElasticIpRequest request)
 
-  @DELETE("/applications/{application}/clusters/{account}/{cluster}/elasticIps/{region}/{address}")
-  ElasticIpResult disassociateElasticIp(@Path("application") String application,
+  @DELETE("applications/{application}/clusters/{account}/{cluster}/elasticIps/{region}/{address}")
+  Call<ElasticIpResult> disassociateElasticIp(@Path("application") String application,
                                         @Path("account") String account,
                                         @Path("cluster") String cluster,
                                         @Path("region") String region,

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +30,7 @@ public class FeaturesService {
   }
 
   public boolean isStageAvailable(String stageType) {
-    return featuresRestService.getStages().stream()
+    return Retrofit2SyncCall.execute(featuresRestService.getStages()).stream()
         .anyMatch(s -> s.enabled && stageType.equals(s.name));
   }
 

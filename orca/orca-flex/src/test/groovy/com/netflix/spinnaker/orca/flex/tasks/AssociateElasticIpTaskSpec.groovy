@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.flex.FlexService
 import com.netflix.spinnaker.orca.flex.model.ElasticIpResult
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 class AssociateElasticIpTaskSpec extends Specification {
@@ -30,7 +31,7 @@ class AssociateElasticIpTaskSpec extends Specification {
       1 * associateElasticIp(application, account, cluster, region, _) >> { application_local, account_local, cluster_local, region_local, elasticIp ->
         assert elasticIp.type == elasticIpType
         assert elasticIp.address == elasticIpAddress
-        return elasticIpResult
+        return Calls.response(elasticIpResult)
       }
       0 * _
     }

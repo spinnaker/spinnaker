@@ -28,6 +28,7 @@ import com.google.common.collect.Streams;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.BindArtifact;
@@ -36,7 +37,6 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
-import java.io.InputStream;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
@@ -48,11 +48,11 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
-import retrofit.client.Response;
 
 /** This class handles resolving a list of manifests and associated artifacts. */
 @Component
@@ -157,9 +157,9 @@ public class ManifestEvaluator implements CloudProviderAware {
 
   private Supplier<Iterable<Object>> fetchAndParseManifestYaml(Artifact manifestArtifact) {
     return () -> {
-      Response manifestText = oortService.fetchArtifact(manifestArtifact);
-      try (InputStream body = manifestText.getBody().in()) {
-        return yamlParser.get().loadAll(body);
+      try (ResponseBody manifestText =
+          Retrofit2SyncCall.execute(oortService.fetchArtifact(manifestArtifact))) {
+        return yamlParser.get().loadAll(manifestText.byteStream());
       } catch (Exception e) {
         throw new IllegalStateException(e);
       }

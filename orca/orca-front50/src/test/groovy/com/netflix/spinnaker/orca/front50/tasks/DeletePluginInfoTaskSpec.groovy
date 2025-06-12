@@ -21,7 +21,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -44,7 +47,7 @@ class DeletePluginInfoTaskSpec extends Specification {
 
     then:
     1 * front50Service.deletePluginInfo(pluginId) >> {
-      new Response('http://front50', 204, 'No Content', [], null)
+      Calls.response(Response.success(204, ResponseBody.create(MediaType.parse("application/json"), "")))
     }
     result.status == ExecutionStatus.SUCCEEDED
   }

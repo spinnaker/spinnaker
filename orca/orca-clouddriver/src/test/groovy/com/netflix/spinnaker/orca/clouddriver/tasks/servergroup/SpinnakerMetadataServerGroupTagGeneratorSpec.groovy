@@ -19,8 +19,11 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -44,12 +47,7 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
   }
 
   @Shared
-  def notFoundError = new SpinnakerHttpException(RetrofitError.httpError(
-    null,
-    new Response("http://google.com", HTTP_NOT_FOUND, "Not Found", [], null),
-    null,
-    null
-  ))
+  def notFoundError = makeSpinnakerHttpException(HTTP_NOT_FOUND)
 
 //  @Unroll
 //  def "should build spinnaker:metadata tag for pipeline"() {
@@ -156,18 +154,18 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
 
     then: "metadata should be returned"
     1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "NEWEST", "image", "true") >> {
-      return [
+      Calls.response( [
         serverGroupName: "application-v002",
         imageId        : "ami-f234567",
         imageName      : "my_image"
-      ]
+      ])
     }
     1 * oortService.getServerGroupSummary("application", "account", "cluster", "aws", "us-west-2", "ANCESTOR", "image", "true") >> {
-      return [
+      Calls.response( [
         serverGroupName: "application-v001",
         imageId        : "ami-1234567",
         imageName      : "my_image"
-      ]
+      ])
     }
     0 * oortService._
     previousServerGroupMetadata == [
@@ -201,11 +199,11 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
 
     then: "previous server group == NEWEST"
     1 * oortService.getServerGroupSummary("application", "account", "cluster", "titus", "us-west-2", "NEWEST", "image", "true") >> {
-      return [
+      Calls.response( [
         serverGroupName: "application-v001",
         imageId        : "1234567",
         imageName      : "my_image"
-      ]
+      ])
     }
     0 * oortService._
     previousServerGroupMetadata == [
@@ -222,18 +220,18 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
 
     then: "previous server group == ANCESTOR"
     1 * oortService.getServerGroupSummary("application", "account", "cluster", "titus", "us-west-2", "NEWEST", "image", "true") >> {
-      return [
+      Calls.response( [
         serverGroupName: "application-v002",
         imageId        : "1234567",
         imageName      : "my_image"
-      ]
+      ])
     }
     1 * oortService.getServerGroupSummary("application", "account", "cluster", "titus", "us-west-2", "ANCESTOR", "image", "true") >> {
-      return [
+      Calls.response( [
         serverGroupName: "application-v001",
         imageId        : "1234567",
         imageName      : "my_image"
-      ]
+      ])
     }
     0 * oortService._
     previousServerGroupMetadata == [
@@ -242,5 +240,22 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
       imageName    : "my_image",
       cloudProvider: "titus"
     ]
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
+    String url = "https://mort";
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), message))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

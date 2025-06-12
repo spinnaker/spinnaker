@@ -22,10 +22,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Client
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.Request
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -38,7 +38,6 @@ class MonitorQuipTaskSpec extends Specification {
 
   def setup() {
     task.objectMapper = new ObjectMapper()
-    task.retrofitClient = Stub(Client)
   }
 
   @Unroll
@@ -53,7 +52,7 @@ class MonitorQuipTaskSpec extends Specification {
 
     def responses = []
     status?.each {
-      responses << new Response('http://foo.com', 200, 'OK', [], new TypedString("{\"status\" : \"${it}\"}"))
+      responses << ResponseBody.create(MediaType.parse("application/json"),"{\"status\" : \"${it}\"}")
     }
 
     instances.size() * task.createInstanceService(_) >> instanceService
@@ -63,7 +62,7 @@ class MonitorQuipTaskSpec extends Specification {
 
     then:
     taskIds.eachWithIndex { def entry, int i ->
-      1 * instanceService.listTask(entry.value) >> responses.get(i)
+      1 * instanceService.listTask(entry.value) >> { return Calls.response(responses.get(i)) }
     }
 
     result.status == executionStatus
@@ -90,7 +89,7 @@ class MonitorQuipTaskSpec extends Specification {
 
     def responses = []
     status?.each {
-      responses << new Response('http://foo.com', 200, 'OK', [], new TypedString("{\"status\" : \"${it}\"}"))
+      responses << ResponseBody.create(MediaType.parse("application/json"),"{\"status\" : \"${it}\"}")
     }
     task.createInstanceService(_) >> instanceService
 
@@ -99,7 +98,7 @@ class MonitorQuipTaskSpec extends Specification {
 
     then:
     taskIds.eachWithIndex { def entry, int i ->
-      instanceService.listTask(entry.value) >> responses.get(i)
+      instanceService.listTask(entry.value) >> { return Calls.response(responses.get(i)) }
     }
     thrown(RuntimeException)
 
@@ -126,7 +125,7 @@ class MonitorQuipTaskSpec extends Specification {
 
     then:
     taskIds.eachWithIndex { def entry, int i ->
-      instanceService.listTask(entry.value) >> { throw new SpinnakerServerException(new RetrofitError(null, null, null, null, null, null, null))}
+      instanceService.listTask(entry.value) >> { throw new SpinnakerServerException(new RuntimeException(""), new Request.Builder().url("http://some-url").build())}
     }
     result.status == ExecutionStatus.RUNNING
 
@@ -152,7 +151,7 @@ class MonitorQuipTaskSpec extends Specification {
 
     then:
     taskIds.eachWithIndex { def entry, int i ->
-      instanceService.listTask(entry.value) >> new Response('http://foo.com', 200, 'OK', [], new TypedString("{\"noStatus\" : \"foo\"}"))
+      instanceService.listTask(entry.value) >> { return Calls.response(ResponseBody.create(MediaType.parse("application/json"),"{\"noStatus\" : \"foo\"}")) }
     }
     thrown(RuntimeException)
 

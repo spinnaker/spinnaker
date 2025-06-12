@@ -26,11 +26,11 @@ import com.netflix.spinnaker.halyard.core.memoize.v1.ExpiringConcurrentMap;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import java.io.IOException;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 @Component
 public class VersionsService {
@@ -66,7 +66,7 @@ public class VersionsService {
 
     try {
       return profileRegistry.readBom(version);
-    } catch (RetrofitError | IOException e) {
+    } catch (SpinnakerServerException | IOException e) {
       throw new HalException(
           new ConfigProblemBuilder(
                   FATAL,

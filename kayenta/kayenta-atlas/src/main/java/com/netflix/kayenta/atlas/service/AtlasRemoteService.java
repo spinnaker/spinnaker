@@ -18,12 +18,12 @@ package com.netflix.kayenta.atlas.service;
 
 import com.netflix.kayenta.atlas.model.AtlasResults;
 import java.util.List;
-import retrofit.http.GET;
-import retrofit.http.Query;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public interface AtlasRemoteService {
 
-  @GET("/api/v2/fetch")
+  @GET("api/v2/fetch")
   List<AtlasResults> fetch(
       @Query("q") String q,
       @Query("s") Long start,

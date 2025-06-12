@@ -1,15 +1,17 @@
 import * as Path from 'path';
+import _ from 'lodash';
 import { parse } from 'yaml';
 import { StoredYml } from '../gcp/stored_yml';
 import * as util from '../util';
 import * as core from '@actions/core';
+import { parseAndSortVersionsAsStr, Version } from '../versions';
 
 export interface IllegalVersion {
   reason: string;
   version: string;
 }
 
-export interface Version {
+export interface VersionEntry {
   alias: string;
   changelog: string;
   lastUpdate: number;
@@ -58,13 +60,13 @@ export class VersionsDotYml extends StoredYml {
   illegalVersions: Array<IllegalVersion>;
   latestHalyard: string;
   latestSpinnaker: string;
-  versions: Array<Version>;
+  versions: Array<VersionEntry>;
 
   constructor(
     illegalVersions: Array<IllegalVersion>,
     latestHalyard: string,
     latestSpinnaker: string,
-    versions: Array<Version>,
+    versions: Array<VersionEntry>,
   ) {
     super();
     this.illegalVersions = illegalVersions;
@@ -115,10 +117,60 @@ export class VersionsDotYml extends StoredYml {
       minimumHalyardVersion: versionStr,
       version: versionStr,
     });
+
+    // Update our latest if we need to
+    this.updateLatestMetadata();
   }
 
   removeVersion(versionStr: string) {
     this.versions = this.versions.filter((v) => v.version !== versionStr);
+
+    // Update our latest if we need to
+    this.updateLatestMetadata();
+  }
+
+  updateLatestMetadata() {
+    // Find the biggest version in the file
+    const allVersionsSorted = parseAndSortVersionsAsStr(
+      this.versions.map((it) => it.version),
+    );
+
+    // Update top-level metadata
+    const newest = allVersionsSorted[0];
+    this.latestHalyard = newest;
+    this.latestSpinnaker = newest;
+  }
+
+  // Reduce the list of versions to only the most recent patch for each major/minor
+  collapseVersions() {
+    // Group by major/minor, then sort each group by patch, then take the first from each group
+    this.versions = _(this.versions)
+      .groupBy((it) => {
+        const parsed = Version.parse(it.version)!;
+        return `${parsed.major}.${parsed.minor}`;
+      })
+      .map((group) => {
+        return group.sort((a, b) => {
+          const parsedA = Version.parse(a.version)!;
+          const parsedB = Version.parse(b.version)!;
+          return parsedB.patch - parsedA.patch;
+        })[0];
+      })
+      .value();
+
+    // Reduce the total number of available releases to 3
+    // This to retain compatibility with old buildtool-generated releases while they are supported
+    // We can remove this in the future if we decide on a number different from 3
+    this.versions = this.versions
+      .sort((a, b) => {
+        const parsedA = Version.parse(a.version)!;
+        const parsedB = Version.parse(b.version)!;
+        return Version.compare(parsedA, parsedB) * -1;
+      })
+      .slice(0, 3);
+
+    // Update our latest if we need to
+    this.updateLatestMetadata();
   }
 
   override getBucket(): string {

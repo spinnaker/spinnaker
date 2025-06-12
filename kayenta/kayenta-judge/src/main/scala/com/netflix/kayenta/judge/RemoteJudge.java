@@ -27,13 +27,14 @@ import com.netflix.kayenta.judge.service.RemoteJudgeService;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import retrofit.converter.JacksonConverter;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Component
 @ConditionalOnProperty("kayenta.remote-judge.enabled")
@@ -43,16 +44,19 @@ public class RemoteJudge extends CanaryJudge {
   private final RetrofitClientFactory retrofitClientFactory;
   private final ObjectMapper kayentaObjectMapper;
   private final RemoteService endpoint;
+  private final OkHttp3ClientConfiguration okHttp3ClientConfig;
 
   private final String JUDGE_NAME = "RemoteJudge-v1.0";
 
   public RemoteJudge(
       RetrofitClientFactory retrofitClientFactory,
       ObjectMapper kayentaObjectMapper,
-      RemoteJudgeConfigurationProperties config) {
+      RemoteJudgeConfigurationProperties config,
+      OkHttp3ClientConfiguration okHttp3ClientConfig) {
     this.retrofitClientFactory = retrofitClientFactory;
     this.kayentaObjectMapper = kayentaObjectMapper;
     this.endpoint = config.getEndpoint();
+    this.okHttp3ClientConfig = okHttp3ClientConfig;
 
     log.info("Configured " + JUDGE_NAME + " with base URI " + endpoint.getBaseUrl());
   }
@@ -74,7 +78,8 @@ public class RemoteJudge extends CanaryJudge {
       List<MetricSetPair> metricSetPairList) {
 
     OkHttpClient okHttpClient =
-        new OkHttpClient.Builder()
+        okHttp3ClientConfig
+            .createForRetrofit2()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(90, TimeUnit.SECONDS)
             .build();
@@ -82,7 +87,7 @@ public class RemoteJudge extends CanaryJudge {
     RemoteJudgeService remoteJudge =
         retrofitClientFactory.createClient(
             RemoteJudgeService.class,
-            new JacksonConverter(kayentaObjectMapper),
+            JacksonConverterFactory.create(kayentaObjectMapper),
             endpoint,
             okHttpClient);
 

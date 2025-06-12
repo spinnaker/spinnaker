@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import { execSync } from 'child_process';
 import { getOctokit } from '@actions/github';
 import * as util from '../util';
+import { Version } from '../versions';
 
 export interface Tag {
   name: string;
@@ -59,28 +60,14 @@ export function parseTag(name: string): Tag | undefined {
 
 export function findServiceTag(
   service: string,
-  branch: string,
+  bomVersion: Version,
 ): Tag | undefined {
   // Find the newest tag with the provided prefix, if exists, and parse it
   if (!service) {
     throw new Error(`Tag service must not be empty`);
   }
 
-  // Trim the release-part off the branch, since that's not part of the tag
-  if (branch.startsWith('release-')) {
-    branch = branch.slice(8);
-  }
-
-  // Same for the .x
-  if (branch.endsWith('.x')) {
-    branch = branch.slice(0, -2);
-  }
-
-  if (!branch) {
-    throw new Error(`Tag branch must not be empty`);
-  }
-
-  return findTag(`${service}-${branch}`);
+  return findTag(`${service}-${bomVersion.toString()}`);
 }
 
 // Tag of the form <service>-<train>-<build_number>
@@ -100,22 +87,21 @@ export function findTag(prefix: string) {
     ?.filter((it) => it.startsWith(prefix))
     ?.filter((it) => {
       // Ensure this matches standard tag format - all other tags should be disregarded
-      return isAutoIncrementTag(it) || isReleaseTag(it);
+      // A release tag looks like: <service>-<release_version> e.g. clouddriver-2025.0.2
+      return isReleaseTag(it);
     })
-    ?.sort((a, b) => {
-      // Basic sorting fails beyond single-digit numbers, e.g. 10 < 2, so sort by parts
-      // All tags should have three parts - service-branch-number, and the tags are prefiltered to fit that format
-      // So, all we need to do is compare the third value
-      const aSplit = a.split('-');
-      const bSplit = b.split('-');
-      const aNum = parseInt(aSplit.slice(-1)[0]);
-      const bNum = parseInt(bSplit.slice(-1)[0]);
-
-      // Sort in reverse order
-      if (aNum > bNum) return -1;
-      if (aNum < bNum) return 1;
-      return 0;
-    });
+    ?.map((it) => {
+      // Parse the version portion of the release tag
+      return {
+        name: it,
+        version: Version.parse(it.split('-')[1]),
+      };
+    })
+    // Filter out anything that didn't parse
+    ?.filter((it) => !!it.version)
+    // TS doesn't understand null filtering yet, so there are !s asserting they are non-null
+    // Sort all the entries by version descending
+    ?.sort((a, b) => Version.compare(a.version!, b.version!) * -1);
 
   if (!tags || !tags.length) {
     core.warning(`No tags found for prefix ${prefix}`);
@@ -123,7 +109,7 @@ export function findTag(prefix: string) {
   }
 
   return {
-    name: tags[0],
-    sha: gitCmd(`git rev-parse ${tags[0]}`)!,
+    name: tags[0].name,
+    sha: gitCmd(`git rev-parse ${tags[0].name}`)!,
   };
 }

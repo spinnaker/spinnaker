@@ -29,10 +29,12 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.PackageType
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.converter.JacksonConverter
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls;
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -244,13 +246,7 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
-  def error404 = RetrofitError.httpError(
-    null,
-    new Response("", HTTP_NOT_FOUND, "Not Found", [], new TypedString("{ \"messages\": [\"Error Message\"]}")),
-    new JacksonConverter(),
-    null
-  )
-  def httpError404 = new SpinnakerHttpException(error404)
+  def httpError404 = makeSpinnakerHttpException(HTTP_NOT_FOUND)
 
   def setup() {
     task.mapper = mapper
@@ -280,16 +276,16 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(bakeStage)
 
     then:
-    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> runningStatus
+    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> Calls.response(runningStatus)
   }
 
   def "creates a bake for the correct region with rosco"() {
     given:
     def bakery = Mock(BakeryService) {
-      getBaseImage(*_) >> new BaseImage().with {
+      getBaseImage(*_) >> Calls.response(new BaseImage().with {
         packageType = PackageType.DEB
         it
-      }
+      })
     }
 
     and:
@@ -310,7 +306,7 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(bakeStage)
 
     then:
-    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> runningStatus
+    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> Calls.response(runningStatus)
   }
 
   def "should surface error message (if available) on a 404"() {
@@ -335,7 +331,7 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(bakeStage)
 
     then:
-    5 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> {
+    1 * bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> {
       throw httpError404
     }
     IllegalStateException e = thrown()
@@ -348,7 +344,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
-        runningStatus
+        Calls.response(runningStatus)
       }
     }
 
@@ -395,7 +391,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
-        runningStatus
+        Calls.response(runningStatus)
       }
     }
 
@@ -519,7 +515,7 @@ class CreateBakeTaskSpec extends Specification {
   def "outputs the status of the bake"() {
     given:
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> runningStatus
+      createBake(*_) >> Calls.response(runningStatus)
     }
 
     and:
@@ -549,7 +545,7 @@ class CreateBakeTaskSpec extends Specification {
   def "outputs the packageName of the bake"() {
     given:
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> runningStatus
+      createBake(*_) >> Calls.response(runningStatus)
     }
 
     and:
@@ -589,7 +585,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> runningStatus
+      createBake(*_) >> Calls.response(runningStatus)
     }
 
     and:
@@ -640,7 +636,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> runningStatus
+      createBake(*_) >> Calls.response(runningStatus)
     }
 
     and:
@@ -689,7 +685,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> runningStatus
+      createBake(*_) >> Calls.response(runningStatus)
     }
 
     and:
@@ -738,7 +734,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> runningStatus
+      createBake(*_) >> Calls.response(runningStatus)
     }
 
     and:
@@ -787,7 +783,7 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> runningStatus
+      createBake(*_) >> Calls.response(runningStatus)
     }
 
     and:
@@ -868,7 +864,7 @@ class CreateBakeTaskSpec extends Specification {
           it.buildNumber == "69"
         it.commitHash == null
       },
-      null) >> runningStatus
+      null) >> Calls.response(runningStatus)
 
     where:
     triggerInfo      | contextInfo
@@ -922,7 +918,7 @@ class CreateBakeTaskSpec extends Specification {
           it.buildNumber == null &&
           it.commitHash == null
       },
-      null) >> runningStatus
+      null) >> Calls.response(runningStatus)
 
     where:
     triggerInfo      | contextInfo
@@ -976,7 +972,7 @@ class CreateBakeTaskSpec extends Specification {
           it.buildNumber == null &&
           it.commitHash == null
       },
-      null) >> runningStatus
+      null) >> Calls.response(runningStatus)
 
     where:
     triggerInfo | contextInfo
@@ -996,7 +992,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
-        runningStatus
+        Calls.response(runningStatus)
       }
     }
 
@@ -1037,7 +1033,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
-        runningStatus
+        Calls.response(runningStatus)
       }
     }
 
@@ -1081,7 +1077,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
-        runningStatus
+        Calls.response(runningStatus)
       }
     }
 
@@ -1124,7 +1120,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakery = Mock(BakeryService) {
       1 * createBake(*_) >> {
         bake = it[1]
-        runningStatus
+        Calls.response(runningStatus)
       }
     }
 
@@ -1162,7 +1158,7 @@ class CreateBakeTaskSpec extends Specification {
   def "sets previouslyBaked flag to #previouslyBaked when status is #status.state"() {
     given:
     def bakery = Stub(BakeryService) {
-      createBake(*_) >> status
+      createBake(*_) >> Calls.response(status)
     }
 
     and:
@@ -1223,7 +1219,7 @@ class CreateBakeTaskSpec extends Specification {
           it.baseLabel == "release" &&
           it.baseOs == "ubuntu"
       } as BakeRequest,
-      "1") >> runningStatus
+      "1") >> Calls.response(runningStatus)
     0 * _
   }
 
@@ -1262,7 +1258,7 @@ class CreateBakeTaskSpec extends Specification {
           it.baseLabel == "release" &&
           it.baseOs == "ubuntu"
       } as BakeRequest,
-      queryParameter) >> runningStatus
+      queryParameter) >> Calls.response(runningStatus)
     0 * _
 
     when:
@@ -1280,7 +1276,7 @@ class CreateBakeTaskSpec extends Specification {
           it.baseLabel == "release" &&
           it.baseOs == "ubuntu"
       } as BakeRequest,
-      null) >> runningStatus
+      null) >> Calls.response(runningStatus)
     0 * _
 
     where:
@@ -1373,5 +1369,24 @@ class CreateBakeTaskSpec extends Specification {
     2 * task.artifactUtils.getBoundArtifactForId(stage, _) >> Artifact.builder().build()
     1 * task.artifactUtils.getAllArtifacts(_) >> []
     bakeResult.getPackageArtifacts().size() == 2
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+
+    String url = "https://bakery";
+
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"messages\": [\"Error Message\"]}"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

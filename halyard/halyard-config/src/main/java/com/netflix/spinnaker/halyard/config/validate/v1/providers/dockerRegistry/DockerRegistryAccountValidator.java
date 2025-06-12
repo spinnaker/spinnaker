@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DefaultDockerOkClientProvider;
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryCatalog;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
@@ -30,6 +28,8 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import com.netflix.spinnaker.kork.docker.model.DockerRegistryCatalog;
+import com.netflix.spinnaker.kork.docker.service.DefaultDockerOkClientProvider;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.nio.charset.Charset;

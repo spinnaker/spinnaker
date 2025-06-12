@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.flex.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.flex.model.ElasticIpResult
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
@@ -25,11 +26,13 @@ import org.springframework.stereotype.Component
 class AssociateElasticIpTask extends AbstractElasticIpTask {
   @Override
   ElasticIpResult performRequest(StageData stageData) {
-    flexService.associateElasticIp(stageData.application,
+    Retrofit2SyncCall.execute(
+        flexService.associateElasticIp(stageData.application,
             stageData.account,
             stageData.cluster,
             stageData.region,
             stageData.elasticIp)
+    )
   }
 
   @Override

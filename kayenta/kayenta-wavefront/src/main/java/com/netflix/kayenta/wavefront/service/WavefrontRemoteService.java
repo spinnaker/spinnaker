@@ -15,12 +15,12 @@
  */
 package com.netflix.kayenta.wavefront.service;
 
-import retrofit.http.GET;
-import retrofit.http.Header;
-import retrofit.http.Query;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.Query;
 
 public interface WavefrontRemoteService {
-  @GET("/api/v2/chart/api")
+  @GET("api/v2/chart/api")
   WavefrontTimeSeries fetch(
       @Header("Authorization") String authorization,
       @Query("n") String name,

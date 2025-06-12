@@ -30,14 +30,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
-import retrofit.converter.JacksonConverter;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Configuration
 @ConditionalOnProperty("kayenta.newrelic.enabled")
@@ -87,7 +86,6 @@ public class NewRelicConfiguration {
       NewRelicConfigurationProperties newrelicConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
       ObjectMapper objectMapper,
-      OkHttpClient okHttpClient,
       AccountCredentialsRepository accountCredentialsRepository) {
 
     NewRelicMetricsService.NewRelicMetricsServiceBuilder metricsServiceBuilder =
@@ -121,9 +119,8 @@ public class NewRelicConfiguration {
           accountCredentialsBuilder.newRelicRemoteService(
               retrofitClientFactory.createClient(
                   NewRelicRemoteService.class,
-                  new JacksonConverter(objectMapper),
-                  endpoint,
-                  okHttpClient));
+                  JacksonConverterFactory.create(objectMapper),
+                  endpoint));
         }
         accountCredentialsBuilder.supportedTypes(supportedTypes);
       }
