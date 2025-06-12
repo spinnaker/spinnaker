@@ -35,6 +35,8 @@ import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
+import com.netflix.spinnaker.gate.services.internal.OrcaService;
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -52,6 +54,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.MediaType;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.test.context.TestPropertySource;
@@ -90,12 +93,18 @@ public class HeaderAuthTest {
 
   @MockBean FiatService fiatService;
 
+  @MockBean OrcaServiceSelector orcaServiceSelector;
+
+  @MockBean OrcaService orcaService;
+
   @BeforeEach
   void init(TestInfo testInfo) {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
 
     // To keep DefaultProviderLookupService.loadAccounts happy
     when(clouddriverService.getAccountDetails()).thenReturn(Calls.response(List.of()));
+
+    when(orcaServiceSelector.select()).thenReturn(orcaService);
   }
 
   @Test
@@ -215,6 +224,35 @@ public class HeaderAuthTest {
             "Invalid character found in the request target [/bracket-is-an-invalid-character?[foo] ]. The valid characters are defined in RFC 7230 and RFC 3986");
     assertThat(jsonResponse.get("exception")).isEqualTo(IllegalArgumentException.class.getName());
     assertThat(jsonResponse.get("status")).isEqualTo(400);
+  }
+
+  @Test
+  void testCsrfDisabled() throws Exception {
+    // Choose an arbitrary endpoint that only works if csrf is disabled.  That
+    // is, any endpoint with an http method that DefaultRequiresCsrfMatcher
+    // doesn't allow.  Something besides: GET, HEAD, TRACE, OPTIONS.
+    URI uri = new URI("http://localhost:" + port + "/pipelines/start");
+
+    HttpRequest request =
+        HttpRequest.newBuilder(uri)
+            .header(USER.getHeader(), USERNAME)
+            .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .POST(HttpRequest.BodyPublishers.ofString("{}"))
+            .build();
+
+    // FIXME: disable csrf so gate allows this request
+    //
+    // String response = callGate(request, 200);
+    //
+    // // An arbitrary response from orcaService.startPipeline
+    // assertThat(response).isEqualTo("{}");
+    //
+    // verify(orcaService).startPipeline(anyMap(), eq(USERNAME));
+    // verifyNoMoreInteractions(orcaService);
+
+    callGate(request, 403);
+
+    verifyNoInteractions(orcaService);
   }
 
   private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
