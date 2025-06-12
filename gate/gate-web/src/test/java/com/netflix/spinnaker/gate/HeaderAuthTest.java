@@ -24,6 +24,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -144,6 +145,39 @@ public class HeaderAuthTest {
 
     // Verify that there were no other fiat interactions
     verifyNoMoreInteractions(fiatService);
+  }
+
+  @Test
+  void testRawAuthUserWithUser() throws Exception {
+    URI uri = new URI("http://localhost:" + port + "/auth/rawUser");
+
+    HttpRequest request =
+        HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
+
+    String response = callGate(request, 200);
+
+    Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
+
+    assertThat(jsonResponse.get("email")).isEqualTo(USERNAME);
+    assertThat(jsonResponse.get("username")).isEqualTo(USERNAME);
+    assertThat(jsonResponse.get("firstName")).isNull();
+    assertThat(jsonResponse.get("lastName")).isNull();
+    assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("allowedAccounts")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("enabled")).asInstanceOf(BOOLEAN).isTrue();
+    assertThat(jsonResponse.get("authorities")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("accountNonExpired")).asInstanceOf(BOOLEAN).isTrue();
+    assertThat(jsonResponse.get("accountNonLocked")).asInstanceOf(BOOLEAN).isTrue();
+    assertThat(jsonResponse.get("credentialsNonExpired")).asInstanceOf(BOOLEAN).isTrue();
+
+    // Make sure there isn't some exception-handling path that added a message to the response
+    assertThat(jsonResponse.containsKey("message")).isFalse();
+
+    verifyRequestProcessing(1);
+
+    // Verify that there were no interactions with fiat.  This changes if
+    // header auth ever does put roles in the security context.
+    verifyNoInteractions(fiatService);
   }
 
   // TODO: expect anonymous once the code is set up to do that
