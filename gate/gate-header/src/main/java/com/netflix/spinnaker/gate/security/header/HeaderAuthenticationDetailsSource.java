@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.gate.security.header;
 
-import java.util.Collection;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails;
 
 /**
@@ -30,14 +28,26 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedG
 public class HeaderAuthenticationDetailsSource
     implements AuthenticationDetailsSource<
         HttpServletRequest, PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails> {
-
+  /**
+   * As header authentication is currently (13-jun-25) configured in gate,
+   * AbstractPreAuthenticatedProcessingFilter.doAuthenticate calls buildDetails with the request,
+   * and stores the return value in the details of an unauthenticated
+   * PreAuthenticatedAuthenticationToken before calling
+   * PreAuthenticatedAuthenticationProvider.authenticate (and so before
+   * HeaderAuthenticationUserDetailsService.createUserDetails.
+   */
   @Override
   public PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails buildDetails(
       HttpServletRequest request) {
-
-    // TODO: get authorities from fiat
-    Collection<GrantedAuthority> authorities = Set.of();
-
-    return new PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails(request, authorities);
+    // Note that there's a choice about whether to call fiat here, or in
+    // HeaderAuthenticationUserDetailsService.createUserDetails.  To try to act
+    // more like the gate-oauth module (see
+    // SpinnakerUserInfoTokenServices.loadAuthentication), let's leave
+    // authorities empty here, and leave it to
+    // HeaderAuthenticationUserDetailsService.createUserDetails to build a kork
+    // User object with the appropriate roles + allowedAccounts from which it
+    // derives authorities.  If we ever migrate to using GrantedAuthorities and
+    // can ditch the kork User object, the logic to call fiat likely moves here.
+    return new PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails(request, Set.of());
   }
 }
