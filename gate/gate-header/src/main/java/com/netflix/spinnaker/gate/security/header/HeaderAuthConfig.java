@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.security.header;
 
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
+import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.common.Header;
 import org.apache.catalina.Container;
 import org.apache.catalina.core.StandardHost;
@@ -85,7 +86,7 @@ public class HeaderAuthConfig {
 
   @Bean
   public AuthenticationProvider authenticationProvider(
-      AllowedAccountsSupport allowedAccountsSupport) {
+      PermissionService permissionService, AllowedAccountsSupport allowedAccountsSupport) {
     // PreAuthenticatedAuthenticationProvider provides tokens of type
     // PreAuthenticatedAuthenticationToken.  Because our
     // RequestHeaderAuthenticationFilter sets an authenticationDetailsSource to
@@ -111,7 +112,7 @@ public class HeaderAuthConfig {
     // To try to rock the boat as little as possible, generate kork-security
     // User objects via gate's own user details service
     provider.setPreAuthenticatedUserDetailsService(
-        new HeaderAuthenticationUserDetailsService(allowedAccountsSupport));
+        new HeaderAuthenticationUserDetailsService(permissionService, allowedAccountsSupport));
     return provider;
   }
 
