@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.header;
 
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.kork.common.Header;
 import org.apache.catalina.Container;
 import org.apache.catalina.core.StandardHost;
@@ -68,12 +69,13 @@ public class HeaderAuthConfig {
     // By default, RequestHeaderAuthenticationFilter returns
     // PreAuthenticatedAuthenticationToken tokens whose details are of type
     // WebAuthenticationDetails, since that's the default in
-    // AbstractPreAuthenticatedProcessingFilter.  So we have a place to put
-    // roles from fiat, let's use
-    // PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails.  It's
-    // authorities property is perfect for fiat roles.  And, since
-    // PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails implements
-    // GrantedAuthoritiesContainer, it works with
+    // AbstractPreAuthenticatedProcessingFilter.  To pave the way to migrate to
+    // "real" GrantedAuthorities, as opposed roles and allowedAccounts in kork's
+    // User class (which derives authorities from roles), let's use
+    // PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails.
+    //
+    // Since PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails
+    // implements GrantedAuthoritiesContainer, it works with
     // PreAuthenticatedGrantedAuthoritiesUserDetailsService.
     // HeaderAuthenticationDetailsSource takes care of this.
     requestHeaderAuthenticationFilter.setAuthenticationDetailsSource(
@@ -82,7 +84,8 @@ public class HeaderAuthConfig {
   }
 
   @Bean
-  public AuthenticationProvider authenticationProvider() {
+  public AuthenticationProvider authenticationProvider(
+      AllowedAccountsSupport allowedAccountsSupport) {
     // PreAuthenticatedAuthenticationProvider provides tokens of type
     // PreAuthenticatedAuthenticationToken.  Because our
     // RequestHeaderAuthenticationFilter sets an authenticationDetailsSource to
@@ -107,7 +110,8 @@ public class HeaderAuthConfig {
     // something that generates user details with kork-security User objects.
     // To try to rock the boat as little as possible, generate kork-security
     // User objects via gate's own user details service
-    provider.setPreAuthenticatedUserDetailsService(new HeaderAuthenticationUserDetailsService());
+    provider.setPreAuthenticatedUserDetailsService(
+        new HeaderAuthenticationUserDetailsService(allowedAccountsSupport));
     return provider;
   }
 

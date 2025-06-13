@@ -30,7 +30,10 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
+import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatService;
@@ -134,10 +137,15 @@ public class HeaderAuthTest {
                 new UserPermission.View()
                     .setName(USERNAME)
                     .setAdmin(false)
+                    .setAccounts(
+                        Set.of(
+                            new Account.View()
+                                .setName("test-account-a")
+                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
                     .setRoles(
                         Set.of(
                             new Role.View()
-                                .setName("testRole")
+                                .setName("testRoleA")
                                 .setSource(Role.Source.LDAP))))); // arbitrary
     String response = callGate(request, 200);
 
@@ -147,12 +155,14 @@ public class HeaderAuthTest {
     assertThat(jsonResponse.get("username")).isEqualTo(USERNAME);
     assertThat(jsonResponse.get("firstName")).isNull();
     assertThat(jsonResponse.get("lastName")).isNull();
-    assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).contains("testRole");
-    assertThat(jsonResponse.get("allowedAccounts")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).containsExactly("testRoleA");
+    assertThat(jsonResponse.get("allowedAccounts"))
+        .asInstanceOf(LIST)
+        .containsExactly("test-account-a");
     assertThat(jsonResponse.get("enabled")).asInstanceOf(BOOLEAN).isTrue();
     assertThat(jsonResponse.get("authorities"))
         .asInstanceOf(LIST)
-        .contains(Map.of("authority", "testRole"));
+        .contains(Map.of("authority", "testRoleA"));
     assertThat(jsonResponse.get("accountNonExpired")).asInstanceOf(BOOLEAN).isTrue();
     assertThat(jsonResponse.get("accountNonLocked")).asInstanceOf(BOOLEAN).isTrue();
     assertThat(jsonResponse.get("credentialsNonExpired")).asInstanceOf(BOOLEAN).isTrue();
@@ -170,14 +180,28 @@ public class HeaderAuthTest {
   }
 
   @Test
-  void testRawAuthUserWithUser() throws Exception {
+  void testAuthRawUserWithUser() throws Exception {
     URI uri = new URI("http://localhost:" + port + "/auth/rawUser");
 
     HttpRequest request =
         HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
 
     when(fiatService.getUserPermission(USERNAME))
-        .thenReturn(Calls.response(new UserPermission.View().setName(USERNAME).setAdmin(false)));
+        .thenReturn(
+            Calls.response(
+                new UserPermission.View()
+                    .setName(USERNAME)
+                    .setAdmin(false)
+                    .setAccounts(
+                        Set.of(
+                            new Account.View()
+                                .setName("test-account-b")
+                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
+                    .setRoles(
+                        Set.of(
+                            new Role.View()
+                                .setName("testRoleB")
+                                .setSource(Role.Source.LDAP))))); // arbitrary
 
     String response = callGate(request, 200);
 
@@ -188,7 +212,9 @@ public class HeaderAuthTest {
     assertThat(jsonResponse.get("firstName")).isNull();
     assertThat(jsonResponse.get("lastName")).isNull();
     assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).isEmpty();
-    assertThat(jsonResponse.get("allowedAccounts")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("allowedAccounts"))
+        .asInstanceOf(LIST)
+        .containsExactly("test-account-b");
     assertThat(jsonResponse.get("enabled")).asInstanceOf(BOOLEAN).isTrue();
     assertThat(jsonResponse.get("authorities")).asInstanceOf(LIST).isEmpty();
     assertThat(jsonResponse.get("accountNonExpired")).asInstanceOf(BOOLEAN).isTrue();
@@ -200,9 +226,7 @@ public class HeaderAuthTest {
 
     verifyRequestProcessing(1);
 
-    // Verify interactions with fiat.  This could changes if header auth ever
-    // does put roles in the security context.  At the moment it's
-    // FiatSessionFilter that's causing calls to fiat.
+    // Verify interactions with fiat.
     verify(fiatService).getUserPermission(USERNAME);
     verifyNoMoreInteractions(fiatService);
   }
@@ -259,7 +283,16 @@ public class HeaderAuthTest {
             .build();
 
     when(fiatService.getUserPermission(USERNAME))
-        .thenReturn(Calls.response(new UserPermission.View().setName(USERNAME).setAdmin(false)));
+        .thenReturn(
+            Calls.response(
+                new UserPermission.View()
+                    .setName(USERNAME)
+                    .setAdmin(false)
+                    .setAccounts(
+                        Set.of(
+                            new Account.View()
+                                .setName("test-account-c")
+                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))));
 
     // arbitrary execution info
     when(orcaService.startPipeline(anyMap(), eq(USERNAME))).thenReturn(Calls.response(Map.of()));
