@@ -17,7 +17,10 @@
 package com.netflix.spinnaker.gate.security.header;
 
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
+import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.security.User;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Set;
 import org.springframework.security.core.Authentication;
@@ -35,10 +38,16 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedG
 public class HeaderAuthenticationUserDetailsService
     extends PreAuthenticatedGrantedAuthoritiesUserDetailsService {
 
+  private final PermissionService permissionService;
+
   private final AllowedAccountsSupport allowedAccountsSupport;
 
-  public HeaderAuthenticationUserDetailsService(AllowedAccountsSupport allowedAccountsSupport) {
+  private final RetrySupport retrySupport = new RetrySupport();
+
+  public HeaderAuthenticationUserDetailsService(
+      PermissionService permissionService, AllowedAccountsSupport allowedAccountsSupport) {
     super();
+    this.permissionService = permissionService;
     this.allowedAccountsSupport = allowedAccountsSupport;
   }
 
@@ -52,11 +61,30 @@ public class HeaderAuthenticationUserDetailsService
    * @param authorities authorities from the token. These come from
    *     HeaderAuthenticationDetailsSource.buildDetails. Currently ignored as authorities are
    *     derived from roles in User objects.
-   * @return a kork User object
+   * @return a kork User object that PreAuthenticatedAuthenticationProvider.authenticate uses to
+   *     build an authenticated PreAuthenticatedAuthenticationToken
    */
   @Override
   protected UserDetails createUserDetails(
       Authentication token, Collection<? extends GrantedAuthority> authorities) {
+
+    // Log the user in.  This invalidates the cache in gate, and logs the user
+    // in to fiat.  What this actually means is:
+    // - load roles for this user from fiat's provider
+    // - persist the permissions for this user
+    //
+    // This way, subsequent calls to fiat to retrieve permissions for the user
+    // are guaranteed to get them.  Without this, there are potentially races
+    // with role syncing in fiat.
+    retrySupport.retry(
+        () -> {
+          permissionService.login(token.getName());
+          return null;
+        },
+        5,
+        Duration.ofMillis(2000),
+        false);
+
     User user = new User();
 
     // Part of UserDetails

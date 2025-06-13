@@ -130,6 +130,8 @@ public class HeaderAuthTest {
     HttpRequest request =
         HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
 
+    when(fiatService.loginUser(USERNAME)).thenReturn(Calls.response((Void) null));
+
     // simulate a role from fiat
     when(fiatService.getUserPermission(USERNAME))
         .thenReturn(
@@ -173,6 +175,7 @@ public class HeaderAuthTest {
     verifyRequestProcessing(1);
 
     // Verify that gate called fiat
+    verify(fiatService).loginUser(USERNAME);
     verify(fiatService).getUserPermission(USERNAME);
 
     // Verify that there were no other fiat interactions
@@ -185,6 +188,8 @@ public class HeaderAuthTest {
 
     HttpRequest request =
         HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
+
+    when(fiatService.loginUser(USERNAME)).thenReturn(Calls.response((Void) null));
 
     when(fiatService.getUserPermission(USERNAME))
         .thenReturn(
@@ -227,6 +232,7 @@ public class HeaderAuthTest {
     verifyRequestProcessing(1);
 
     // Verify interactions with fiat.
+    verify(fiatService).loginUser(USERNAME);
     verify(fiatService).getUserPermission(USERNAME);
     verifyNoMoreInteractions(fiatService);
   }
@@ -282,6 +288,8 @@ public class HeaderAuthTest {
             .POST(HttpRequest.BodyPublishers.ofString("{}"))
             .build();
 
+    when(fiatService.loginUser(USERNAME)).thenReturn(Calls.response((Void) null));
+
     when(fiatService.getUserPermission(USERNAME))
         .thenReturn(
             Calls.response(
@@ -302,6 +310,7 @@ public class HeaderAuthTest {
     // The response from orcaService.startPipeline configured above
     assertThat(response).isEqualTo("{}");
 
+    verify(fiatService).loginUser(USERNAME);
     verify(fiatService).getUserPermission(USERNAME);
     verifyNoMoreInteractions(fiatService);
 
