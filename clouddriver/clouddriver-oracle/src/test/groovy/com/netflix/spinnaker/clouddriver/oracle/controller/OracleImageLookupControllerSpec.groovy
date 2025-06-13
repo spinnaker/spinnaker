@@ -13,7 +13,7 @@ import com.netflix.spinnaker.clouddriver.oracle.model.OracleImage
 import com.netflix.spinnaker.clouddriver.oracle.provider.view.OracleImageProvider
 import spock.lang.Specification
 
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 class OracleImageLookupControllerSpec extends Specification {
 

@@ -45,7 +45,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import org.slf4j.MDC
 import org.springframework.context.ApplicationContext
 import org.springframework.context.support.StaticApplicationContext
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 

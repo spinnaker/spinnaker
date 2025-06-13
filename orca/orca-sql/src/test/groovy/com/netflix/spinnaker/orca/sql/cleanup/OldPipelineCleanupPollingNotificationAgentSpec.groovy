@@ -110,14 +110,14 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
     executionRepository.store(buildExecution(app, 2))
 
     when:
-    def allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
+    def allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().blockingGet().unique()
 
     then:
     allExecutions.size() == 12
 
     when:
     cleanupAgent.tick()
-    allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
+    allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().blockingGet().unique()
 
     then:
     // preserve any execution more recent than `thresholdDays` _AND_
@@ -135,14 +135,14 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
     executionRepository.store(buildExecution(app, 49))
 
     when:
-    def allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
+    def allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().blockingGet().unique()
 
     then:
     allExecutions.size() == 12
 
     when:
     cleanupAgent.tick()
-    allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().toBlocking().first().unique()
+    allExecutions = executionRepository.retrievePipelinesForApplication(app).toList().blockingGet().unique()
 
     then:
     // preserve any execution more recent than `thresholdDays` _AND_
