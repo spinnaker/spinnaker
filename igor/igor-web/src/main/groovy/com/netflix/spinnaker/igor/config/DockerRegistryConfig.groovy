@@ -21,8 +21,8 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.ClouddriverService
-import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties

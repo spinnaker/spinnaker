@@ -2,11 +2,19 @@ package com.netflix.spinnaker.orca.config
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.SerializationFeature
+<<<<<<< HEAD
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.gremlin.GremlinConverter
 import com.netflix.spinnaker.orca.gremlin.GremlinService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+=======
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
+import com.netflix.spinnaker.orca.gremlin.GremlinService
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+>>>>>>> f5c9edb340 (fix(docker): fix missing slash issue of docker registry client's base url (#7110))
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan

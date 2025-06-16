@@ -18,7 +18,12 @@ package com.netflix.spinnaker.orca.kayenta.config
 
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider
+<<<<<<< HEAD
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+=======
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
+>>>>>>> f5c9edb340 (fix(docker): fix missing slash issue of docker registry client's base url (#7110))
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kayenta.KayentaService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration

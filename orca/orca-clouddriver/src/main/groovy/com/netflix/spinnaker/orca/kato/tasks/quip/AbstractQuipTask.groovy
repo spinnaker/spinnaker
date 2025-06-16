@@ -16,8 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
+<<<<<<< HEAD
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+=======
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
+>>>>>>> f5c9edb340 (fix(docker): fix missing slash issue of docker registry client's base url (#7110))
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import okhttp3.OkHttpClient
