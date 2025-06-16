@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.model.DockerBearerToken;
 import com.netflix.spinnaker.kork.docker.model.DockerRegistryCatalog;
 import com.netflix.spinnaker.kork.docker.model.DockerRegistryTags;
@@ -131,6 +133,23 @@ public class DockerRegistryClientTest {
         .addConverterFactory(JacksonConverterFactory.create())
         .build()
         .create(type);
+  }
+
+  @Test
+  public void testBaseUrlWithoutTrailingSlash() {
+    ServiceClientProvider mockProvider = Mockito.mock(ServiceClientProvider.class);
+    assertThatCode(
+            () ->
+                new DockerRegistryClient(
+                    "http://localhost/api",
+                    5000,
+                    5,
+                    "",
+                    "",
+                    true,
+                    new DefaultDockerOkClientProvider(),
+                    mockProvider))
+        .doesNotThrowAnyException();
   }
 
   @Test

@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.mine.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
