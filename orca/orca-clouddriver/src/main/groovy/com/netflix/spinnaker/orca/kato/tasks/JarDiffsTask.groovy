@@ -19,9 +19,9 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
-import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils
 import org.slf4j.Logger
 
 import java.util.concurrent.TimeUnit
