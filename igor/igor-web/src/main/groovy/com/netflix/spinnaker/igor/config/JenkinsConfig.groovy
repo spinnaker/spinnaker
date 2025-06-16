@@ -28,8 +28,8 @@ import com.netflix.spinnaker.igor.config.client.JenkinsRetrofitRequestIntercepto
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildServices
-import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
