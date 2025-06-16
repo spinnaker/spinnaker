@@ -61,6 +61,7 @@ dependencies {
 
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
   testImplementation project(":gate-basic")
+  testImplementation project(":gate-header")
   testImplementation project(":gate-oauth2")
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "com.squareup.okhttp3:mockwebserver"

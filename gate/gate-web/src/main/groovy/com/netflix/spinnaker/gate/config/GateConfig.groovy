@@ -57,7 +57,6 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
@@ -121,7 +120,6 @@ class GateConfig {
   }
 
   @Bean
-  @Primary
   FiatService fiatService() {
     // always create the fiat service even if 'services.fiat.enabled' is 'false' (it can be enabled dynamically)
     createClient "fiat", FiatService, null, true
