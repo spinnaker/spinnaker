@@ -19,8 +19,8 @@ package com.netflix.spinnaker.igor.scm.bitbucket.client
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.config.BitBucketProperties
 import com.netflix.spinnaker.igor.scm.AbstractScmMaster
-import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import okhttp3.Credentials
 import okhttp3.Interceptor
 import okhttp3.Request

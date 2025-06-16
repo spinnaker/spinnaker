@@ -30,6 +30,7 @@ import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFacto
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.io.File;
 import java.nio.file.Files;
 import java.time.Instant;
@@ -238,7 +239,7 @@ public class DockerRegistryClient {
     this.tokenService = new DockerBearerTokenService(serviceClientProvider);
     this.registryService =
         new Retrofit.Builder()
-            .baseUrl(address)
+            .baseUrl(RetrofitUtils.getBaseUrl(address))
             .client(okClientProvider.provide(address, clientTimeoutMillis, insecureRegistry))
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(JacksonConverterFactory.create())
