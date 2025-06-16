@@ -21,11 +21,10 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.slack.SlackAppService
 import com.netflix.spinnaker.echo.slack.SlackClient
 import com.netflix.spinnaker.echo.slack.SlackService
-import com.netflix.spinnaker.echo.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import okhttp3.HttpUrl
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties

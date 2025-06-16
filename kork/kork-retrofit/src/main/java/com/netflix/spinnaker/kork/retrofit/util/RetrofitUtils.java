@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.retrofit.util;
+package com.netflix.spinnaker.kork.retrofit.util;
 
 import okhttp3.HttpUrl;
 

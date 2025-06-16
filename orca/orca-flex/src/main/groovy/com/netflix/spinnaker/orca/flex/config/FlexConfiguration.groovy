@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.flex.config
 
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.flex.FlexService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
