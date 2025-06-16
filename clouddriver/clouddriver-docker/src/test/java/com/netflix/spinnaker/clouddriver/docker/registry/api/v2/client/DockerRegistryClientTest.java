@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
@@ -31,6 +32,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService;
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import java.util.Arrays;
 import java.util.Map;
@@ -110,6 +112,25 @@ public class DockerRegistryClientTest {
         .addConverterFactory(JacksonConverterFactory.create())
         .build()
         .create(type);
+  }
+
+  @Test
+  public void testBaseUrlWithoutTrailingSlash() {
+    ServiceClientProvider mockProvider = Mockito.mock(ServiceClientProvider.class);
+    Throwable thrown =
+        catchThrowable(
+            () ->
+                new DockerRegistryClient(
+                    "http://localhost/api",
+                    5000,
+                    5,
+                    "",
+                    "",
+                    true,
+                    new DefaultDockerOkClientProvider(),
+                    mockProvider));
+    assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
+    assertThat(thrown.getMessage()).contains("baseUrl must end in /: http://localhost/api");
   }
 
   @Test
