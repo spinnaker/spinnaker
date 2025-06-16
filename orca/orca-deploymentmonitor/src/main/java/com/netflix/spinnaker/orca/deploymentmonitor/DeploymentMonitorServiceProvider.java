@@ -21,7 +21,7 @@ import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.exceptions.UserException;
-import com.netflix.spinnaker.orca.retrofit.util.RetrofitUtils;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
