@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -138,8 +138,7 @@ public class DockerRegistryClientTest {
   @Test
   public void testBaseUrlWithoutTrailingSlash() {
     ServiceClientProvider mockProvider = Mockito.mock(ServiceClientProvider.class);
-    Throwable thrown =
-        catchThrowable(
+    assertThatCode(
             () ->
                 new DockerRegistryClient(
                     "http://localhost/api",
@@ -149,9 +148,8 @@ public class DockerRegistryClientTest {
                     "",
                     true,
                     new DefaultDockerOkClientProvider(),
-                    mockProvider));
-    assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
-    assertThat(thrown.getMessage()).contains("baseUrl must end in /: http://localhost/api");
+                    mockProvider))
+        .doesNotThrowAnyException();
   }
 
   @Test
