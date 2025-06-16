@@ -19,18 +19,11 @@ package com.netflix.spinnaker.orca.igor.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
-<<<<<<< HEAD
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
-=======
-import com.netflix.spinnaker.kork.client.ServiceClientProvider
-import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
-import com.netflix.spinnaker.orca.igor.IgorService
-import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
->>>>>>> f5c9edb340 (fix(docker): fix missing slash issue of docker registry client's base url (#7110))
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value

@@ -17,13 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-<<<<<<< HEAD
 import com.jakewharton.retrofit.Ok3Client;
-=======
-import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
-import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
-import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
->>>>>>> f5c9edb340 (fix(docker): fix missing slash issue of docker registry client's base url (#7110))
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RestAdapter;

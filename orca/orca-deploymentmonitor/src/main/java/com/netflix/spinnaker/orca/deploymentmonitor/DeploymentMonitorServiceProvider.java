@@ -18,12 +18,8 @@ package com.netflix.spinnaker.orca.deploymentmonitor;
 
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.exceptions.UserException;
-<<<<<<< HEAD
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog;
-=======
-import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
->>>>>>> f5c9edb340 (fix(docker): fix missing slash issue of docker registry client's base url (#7110))
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;

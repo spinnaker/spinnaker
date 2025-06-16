@@ -41,12 +41,6 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
-<<<<<<< HEAD
-=======
-import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
-import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
->>>>>>> f5c9edb340 (fix(docker): fix missing slash issue of docker registry client's base url (#7110))
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;

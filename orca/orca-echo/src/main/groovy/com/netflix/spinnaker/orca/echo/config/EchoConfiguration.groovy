@@ -21,11 +21,7 @@ import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-<<<<<<< HEAD
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
-=======
-import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
->>>>>>> f5c9edb340 (fix(docker): fix missing slash issue of docker registry client's base url (#7110))
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener
@@ -36,10 +32,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-<<<<<<< HEAD
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
-=======
->>>>>>> f5c9edb340 (fix(docker): fix missing slash issue of docker registry client's base url (#7110))
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
