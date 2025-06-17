@@ -23,10 +23,8 @@ import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -81,6 +79,7 @@ import retrofit2.mock.Calls;
       "spring.config.location=classpath:gate-test.yml",
       "services.front50.applicationRefreshInitialDelayMs=3600000",
       "services.fiat.enabled=true",
+      "fiat.session-filter.enabled=false",
       "provided-id-request-filter.enabled=true",
       "logging.level.com.netflix.spinnaker.gate.filters=DEBUG"
     })
@@ -242,31 +241,9 @@ public class HeaderAuthTest {
     verify(fiatService).getUserPermission(USERNAME);
     verifyNoMoreInteractions(fiatService);
 
-    // Extract the session cookie from the response and use it to make another request
+    // Verify there's no session cookie in the response
     Optional<String> sessionCookieOptional = response.headers().firstValue("set-cookie");
-    assertThat(sessionCookieOptional).isPresent();
-
-    System.out.println("using cookie '" + sessionCookieOptional.get() + "'");
-
-    reset(fiatPermissionEvaluator);
-    reset(fiatService);
-    reset(requestHeaderAuthenticationFilter);
-
-    // Note, no username, only a session cookie
-    HttpRequest requestTwo =
-        HttpRequest.newBuilder(uri).GET().header("Cookie", sessionCookieOptional.get()).build();
-
-    HttpResponse<String> responseTwo = callGate(requestTwo, 200);
-
-    // Make sure RequestHeaderAuthenticationFilter didn't do any work
-    verifyRequestProcessing(0);
-
-    // And that gate didn't communicate with fiat.
-    verifyNoInteractions(fiatService);
-
-    // FiatSessionFilter still uses fiatPermissionEvaluator, so expect one interaction.
-    verify(fiatPermissionEvaluator).getPermission(USERNAME);
-    verifyNoMoreInteractions(fiatPermissionEvaluator);
+    assertThat(sessionCookieOptional).isEmpty();
   }
 
   // TODO: expect anonymous once the code is set up to do that
