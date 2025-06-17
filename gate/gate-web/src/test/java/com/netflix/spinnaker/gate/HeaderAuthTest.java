@@ -23,8 +23,10 @@ import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +50,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -104,7 +107,7 @@ public class HeaderAuthTest {
 
   @MockBean OrcaService orcaService;
 
-  @Autowired FiatPermissionEvaluator fiatPermissionEvaluator;
+  @SpyBean FiatPermissionEvaluator fiatPermissionEvaluator;
 
   @BeforeEach
   void init(TestInfo testInfo) {
@@ -151,9 +154,10 @@ public class HeaderAuthTest {
                             new Role.View()
                                 .setName("testRoleA")
                                 .setSource(Role.Source.LDAP))))); // arbitrary
-    String response = callGate(request, 200);
 
-    Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
+    HttpResponse<String> response = callGate(request, 200);
+
+    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
 
     assertThat(jsonResponse.get("email")).isEqualTo(USERNAME);
     assertThat(jsonResponse.get("username")).isEqualTo(USERNAME);
@@ -210,9 +214,9 @@ public class HeaderAuthTest {
                                 .setName("testRoleB")
                                 .setSource(Role.Source.LDAP))))); // arbitrary
 
-    String response = callGate(request, 200);
+    HttpResponse<String> response = callGate(request, 200);
 
-    Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
+    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
 
     assertThat(jsonResponse.get("email")).isEqualTo(USERNAME);
     assertThat(jsonResponse.get("username")).isEqualTo(USERNAME);
@@ -237,6 +241,32 @@ public class HeaderAuthTest {
     verify(fiatService).loginUser(USERNAME);
     verify(fiatService).getUserPermission(USERNAME);
     verifyNoMoreInteractions(fiatService);
+
+    // Extract the session cookie from the response and use it to make another request
+    Optional<String> sessionCookieOptional = response.headers().firstValue("set-cookie");
+    assertThat(sessionCookieOptional).isPresent();
+
+    System.out.println("using cookie '" + sessionCookieOptional.get() + "'");
+
+    reset(fiatPermissionEvaluator);
+    reset(fiatService);
+    reset(requestHeaderAuthenticationFilter);
+
+    // Note, no username, only a session cookie
+    HttpRequest requestTwo =
+        HttpRequest.newBuilder(uri).GET().header("Cookie", sessionCookieOptional.get()).build();
+
+    HttpResponse<String> responseTwo = callGate(requestTwo, 200);
+
+    // Make sure RequestHeaderAuthenticationFilter didn't do any work
+    verifyRequestProcessing(0);
+
+    // And that gate didn't communicate with fiat.
+    verifyNoInteractions(fiatService);
+
+    // FiatSessionFilter still uses fiatPermissionEvaluator, so expect one interaction.
+    verify(fiatPermissionEvaluator).getPermission(USERNAME);
+    verifyNoMoreInteractions(fiatPermissionEvaluator);
   }
 
   // TODO: expect anonymous once the code is set up to do that
@@ -246,9 +276,9 @@ public class HeaderAuthTest {
 
     HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
-    String response = callGate(request, 500);
+    HttpResponse<String> response = callGate(request, 500);
 
-    Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
+    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
     assertThat(jsonResponse.get("message"))
         .isEqualTo("X-SPINNAKER-USER header not found in request.");
     assertThat(jsonResponse.get("exception"))
@@ -266,9 +296,9 @@ public class HeaderAuthTest {
 
     HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
 
-    String response = callGate(request, 400);
+    HttpResponse<String> response = callGate(request, 400);
 
-    Map<String, Object> jsonResponse = objectMapper.readValue(response, mapType);
+    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
     assertThat(jsonResponse.get("message"))
         .isEqualTo(
             "Invalid character found in the request target [/bracket-is-an-invalid-character?[foo] ]. The valid characters are defined in RFC 7230 and RFC 3986");
@@ -307,10 +337,10 @@ public class HeaderAuthTest {
     // arbitrary execution info
     when(orcaService.startPipeline(anyMap(), eq(USERNAME))).thenReturn(Calls.response(Map.of()));
 
-    String response = callGate(request, 200);
+    HttpResponse<String> response = callGate(request, 200);
 
     // The response from orcaService.startPipeline configured above
-    assertThat(response).isEqualTo("{}");
+    assertThat(response.body()).isEqualTo("{}");
 
     verify(fiatService).loginUser(USERNAME);
     verify(fiatService).getUserPermission(USERNAME);
@@ -320,14 +350,15 @@ public class HeaderAuthTest {
     verifyNoMoreInteractions(orcaService);
   }
 
-  private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
+  private HttpResponse<String> callGate(HttpRequest request, int expectedStatusCode)
+      throws Exception {
     HttpClient client = HttpClient.newBuilder().build();
 
     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
     assertThat(response.statusCode()).isEqualTo(expectedStatusCode);
 
-    return response.body();
+    return response;
   }
 
   /**
