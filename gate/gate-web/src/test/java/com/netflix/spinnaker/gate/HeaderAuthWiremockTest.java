@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.gate;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -78,7 +78,9 @@ import retrofit2.mock.Calls;
       "logging.level.org.springframework.security=DEBUG",
       "spring.config.location=classpath:gate-test.yml",
       "services.front50.applicationRefreshInitialDelayMs=3600000",
-      "services.fiat.enabled=true"
+      "services.fiat.enabled=true",
+      "provided-id-request-filter.enabled=true",
+      "logging.level.com.netflix.spinnaker.gate.filters=DEBUG"
     })
 public class HeaderAuthWiremockTest {
 
@@ -176,22 +178,15 @@ public class HeaderAuthWiremockTest {
     callGate(request, 200);
 
     // No USER.getHeader() means there's no X-SPINNAKER-USER in the request to fiat.  This is OK.
-    //
-    // FIXME: No REQUEST_ID.getHeader() similarly means there's no
-    // X-SPINNAKER-REQUEST-ID in the request.  This is a bug.  The correct
-    // request to fiat contains X-SPINNAKER-REQUEST-ID with the value provided
-    // to gate (i.e. TEST_REQUEST_ID).
     wmFiat.verify(
         postRequestedFor(urlPathEqualTo("/roles/" + encodedUserId))
             .withoutHeader(USER.getHeader())
-            .withoutHeader(REQUEST_ID.getHeader()));
+            .withHeader(REQUEST_ID.getHeader(), equalTo(TEST_REQUEST_ID)));
 
-    // FIXME: X-SPINNAKER-REQUEST-ID is present, but it's not equal to
-    // TEST_REQUEST_ID which is a bug.  Currently it has an random UUID.
     wmFiat.verify(
         getRequestedFor(urlPathEqualTo("/authorize/" + encodedUserId))
             .withoutHeader(USER.getHeader())
-            .withHeader(REQUEST_ID.getHeader(), notMatching(TEST_REQUEST_ID)));
+            .withHeader(REQUEST_ID.getHeader(), equalTo(TEST_REQUEST_ID)));
   }
 
   private String callGate(HttpRequest request, int expectedStatusCode) throws Exception {
