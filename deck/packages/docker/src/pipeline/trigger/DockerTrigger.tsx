@@ -3,8 +3,8 @@ import React from 'react';
 import type { IDockerTrigger, IExecutionTriggerStatusComponentProps } from '@spinnaker/core';
 import { Registry } from '@spinnaker/core';
 
-import { DockerTriggerConfig } from './DockerTriggerConfig';
 import { DockerHelmOciTriggerConfig } from './DockerHelmOciTriggerConfig';
+import { DockerTriggerConfig } from './DockerTriggerConfig';
 import { DockerTriggerTemplate } from './DockerTriggerTemplate';
 
 const DockerTriggerExecutionStatus = (props: IExecutionTriggerStatusComponentProps) => {

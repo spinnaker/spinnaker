@@ -6,7 +6,8 @@ import Select from 'react-select';
 import type { IAccount, IFindImageParams } from '@spinnaker/core';
 import { AccountService, HelpField, Tooltip, ValidationMessage } from '@spinnaker/core';
 
-import {DockerChartImageReader, IDockerImage} from './DockerImageReader';
+import type { IDockerImage } from './DockerImageReader';
+import { DockerChartImageReader } from './DockerImageReader';
 import type { IDockerImageParts } from './DockerImageUtils';
 import { DockerImageUtils } from './DockerImageUtils';
 

@@ -9,7 +9,8 @@ import { debounceTime, switchMap } from 'rxjs/operators';
 import type { IDockerTrigger, IPipelineCommand, ITriggerTemplateComponentProps } from '@spinnaker/core';
 import { HelpField, Spinner, TetheredSelect } from '@spinnaker/core';
 
-import {DockerChartImageReader, IDockerLookupType} from '../../image';
+import type { IDockerLookupType } from '../../image';
+import { DockerChartImageReader } from '../../image';
 import { DockerImageReader } from '../../image';
 
 const lookupTypeOptions = [
@@ -93,7 +94,7 @@ export class DockerTriggerTemplate extends React.Component<
         imageReference = `${imageName}:${tagOrDigest}`;
       }
       // Use 'helm/image' artifact type for helm/oci triggers, otherwise use 'docker/image'
-      const artifactType = trigger.type === 'docker' ? "docker/image" : 'helm/image';
+      const artifactType = trigger.type === 'docker' ? 'docker/image' : 'helm/image';
 
       this.props.updateCommand('extraFields.artifacts', [
         {

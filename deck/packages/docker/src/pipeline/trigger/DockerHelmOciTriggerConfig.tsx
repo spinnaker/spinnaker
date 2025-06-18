@@ -2,8 +2,8 @@ import type { FormikProps } from 'formik';
 import React from 'react';
 
 import type { IDockerTrigger } from '@spinnaker/core';
-import {DockerChartAndTagSelector, IDockerChartAndTagChanges} from "../../image/DockerChartAndTagSelector";
-
+import type { IDockerChartAndTagChanges } from '../../image/DockerChartAndTagSelector';
+import { DockerChartAndTagSelector } from '../../image/DockerChartAndTagSelector';
 
 export interface IDockerTriggerConfigProps {
   formik: FormikProps<IDockerTrigger>;
