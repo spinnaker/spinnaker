@@ -34,8 +34,8 @@ class NexusPublishExtension {
     this.project = project
     ObjectFactory props = project.objects
     enabled = props.property(Boolean).convention(false)
-    nexusStagingUrl = props.property(String).convention("https://s01.oss.sonatype.org/service/local/")
-    nexusSnapshotUrl = props.property(String).convention("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    nexusStagingUrl = props.property(String).convention("https://ossrh-staging-api.central.sonatype.com/service/local/")
+    nexusSnapshotUrl = props.property(String).convention("https://central.sonatype.com/repository/maven-snapshots/")
     nexusStagingProfileId = props.property(String).convention("b6b58aed9c738")
   }
 
