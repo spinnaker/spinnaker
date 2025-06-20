@@ -34,7 +34,9 @@ import com.netflix.spinnaker.fiat.permissions.RedisPermissionRepositoryConfigPro
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
 import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager
 import com.netflix.spinnaker.kork.lock.LockManager
 import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.boot.actuate.health.Health
@@ -48,6 +50,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.time.Clock
 import java.util.concurrent.Callable
 
 class UserRolesSyncerSpec extends Specification {
@@ -58,8 +61,8 @@ class UserRolesSyncerSpec extends Specification {
   Registry registry = new NoopRegistry()
 
   @Shared
-  @AutoCleanup("stop")
-  GenericContainer embeddedRedis
+  @AutoCleanup("destroy")
+  EmbeddedRedis embeddedRedis
 
   @Shared
   ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
@@ -73,22 +76,31 @@ class UserRolesSyncerSpec extends Specification {
   @Shared
   RedisPermissionsRepository repo
 
+  LockManager lockManager
+
   def setupSpec() {
-    embeddedRedis = new GenericContainer(DockerImageName.parse("library/redis:5-alpine")).withExposedPorts(6379)
-    embeddedRedis.start()
-    jedisPool = new JedisPool(embeddedRedis.host, embeddedRedis.getMappedPort(6379))
-    jedis = jedisPool.getResource()
+    embeddedRedis = EmbeddedRedis.embed()
+    jedis = embeddedRedis.jedis
     jedis.flushDB()
   }
 
   def setup() {
     repo = new RedisPermissionsRepository(
         objectMapper,
-        new JedisClientDelegate(jedisPool),
+            new JedisClientDelegate(embeddedRedis.pool as JedisPool),
         [new Application(), new Account(), new ServiceAccount(), new Role(), new BuildService()],
         new RedisPermissionRepositoryConfigProps(prefix: "unittests"),
         RetryRegistry.ofDefaults()
     )
+
+    lockManager = new RedisLockManager(
+            null, // will fall back to running node name
+            Clock.systemDefaultZone(),
+            registry,
+            objectMapper,
+            new JedisClientDelegate(embeddedRedis.pool as JedisPool),
+            Optional.empty(),
+            Optional.empty())
   }
 
   def cleanup() {
@@ -140,12 +152,6 @@ class UserRolesSyncerSpec extends Specification {
     }
 
     def permissionsResolver = Mock(PermissionsResolver)
-
-    def lockManager = Mock(LockManager) {
-      _ * acquireLock() >> { LockManager.LockOptions lockOptions, Callable onLockAcquiredCallback ->
-        onLockAcquiredCallback.call()
-      }
-    }
 
     @Subject
     def syncer = new UserRolesSyncer(
