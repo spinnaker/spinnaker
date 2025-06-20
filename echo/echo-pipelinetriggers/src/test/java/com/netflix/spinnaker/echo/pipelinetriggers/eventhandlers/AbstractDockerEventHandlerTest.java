@@ -265,7 +265,7 @@ public class AbstractDockerEventHandlerTest {
 
     @Override
     protected String getArtifactType() {
-      return "helm/chart";
+      return "helm/image";
     }
   }
 }
