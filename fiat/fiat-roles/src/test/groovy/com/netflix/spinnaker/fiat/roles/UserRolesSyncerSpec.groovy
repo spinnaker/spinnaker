@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
+import com.netflix.spinnaker.fiat.config.SyncConfig
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
@@ -77,6 +78,8 @@ class UserRolesSyncerSpec extends Specification {
   RedisPermissionsRepository repo
 
   LockManager lockManager
+
+  SyncConfig syncConfigProperties = new SyncConfig()
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
@@ -158,11 +161,8 @@ class UserRolesSyncerSpec extends Specification {
         new DiscoveryStatusListener(true),
         registry,
         lockManager,
-        new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), permissionsResolver, repo, serviceAccountProvider, registry, 1, 1)),
-        1,
-        1,
-        1,
-        ""
+        new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), permissionsResolver, repo, serviceAccountProvider, registry, syncConfigProperties)),
+        syncConfigProperties
     )
 
     expect:
@@ -228,11 +228,8 @@ class UserRolesSyncerSpec extends Specification {
         new DiscoveryStatusListener(discoveryStatusEnabled),
         registry,
         lockManager,
-        new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), null, null, null, registry, 1, 1)),
-        1,
-        1,
-        1,
-        ""
+        new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), null, null, null, registry, syncConfigProperties)),
+        syncConfigProperties
     )
 
     when:
@@ -311,12 +308,8 @@ class UserRolesSyncerSpec extends Specification {
                             repo,
                             serviceAccountProvider,
                             registry,
-                            1,
-                            1)),
-            1,
-            1,
-            1,
-            ""
+                            syncConfigProperties)),
+            syncConfigProperties
     )
 
     expect:

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.fiat.roles;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
+import com.netflix.spinnaker.fiat.config.SyncConfig;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
@@ -39,7 +40,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
@@ -55,8 +55,7 @@ public class Synchronizer {
   private final PermissionsRepository permissionsRepository;
   private final ResourceProvider<ServiceAccount> serviceAccountProvider;
   private final Registry registry;
-  private final long retryIntervalMs;
-  private final long syncDelayTimeoutMs;
+  private final SyncConfig syncConfigProperties;
 
   public Synchronizer(
       ResourceProvidersHealthIndicator healthIndicator,
@@ -64,25 +63,28 @@ public class Synchronizer {
       PermissionsRepository permissionsRepository,
       ResourceProvider<ServiceAccount> serviceAccountProvider,
       Registry registry,
-      @Value("${fiat.write-mode.retry-interval-ms:10000}") long retryIntervalMs,
-      @Value("${fiat.write-mode.sync-delay-ms:600000}") long syncDelayTimeoutMs) {
-    this.retryIntervalMs = retryIntervalMs;
-    this.syncDelayTimeoutMs = syncDelayTimeoutMs;
+      SyncConfig syncConfigProperties) {
     this.permissionsResolver = permissionsResolver;
     this.permissionsRepository = permissionsRepository;
     this.serviceAccountProvider = serviceAccountProvider;
     this.registry = registry;
     this.healthIndicator = healthIndicator;
+    this.syncConfigProperties = syncConfigProperties;
   }
 
   public long syncAndReturn(List<String> roles) {
     FixedBackOff backoff = new FixedBackOff();
-    backoff.setInterval(this.retryIntervalMs);
-    backoff.setMaxAttempts(Math.floorDiv(this.syncDelayTimeoutMs, this.retryIntervalMs) + 1);
+    backoff.setInterval(this.syncConfigProperties.getRetryIntervalMs());
+    backoff.setMaxAttempts(
+        Math.floorDiv(
+                this.syncConfigProperties.getSyncDelayTimeoutMs(),
+                this.syncConfigProperties.getRetryIntervalMs())
+            + 1);
     BackOffExecution backOffExec = backoff.start();
 
     // after this point the execution will get rescheduled
-    final long timeout = System.currentTimeMillis() + this.syncDelayTimeoutMs;
+    final long timeout =
+        System.currentTimeMillis() + this.syncConfigProperties.getSyncDelayTimeoutMs();
 
     if (!this.isServerHealthy()) {
       log.warn(
