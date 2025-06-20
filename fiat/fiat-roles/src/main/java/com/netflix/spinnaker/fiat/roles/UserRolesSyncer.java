@@ -21,8 +21,6 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.config.SyncConfig;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
-import com.netflix.spinnaker.kork.lock.LockManager;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -38,7 +36,6 @@ import org.springframework.stereotype.Component;
 @ConditionalOnExpression("${fiat.write-mode.enabled:true}")
 public class UserRolesSyncer {
   private final DiscoveryStatusListener discoveryStatusListener;
-  private final LockManager lockManager;
   private final Registry registry;
   private final Gauge userRolesSyncCount;
   private final UserRolesSyncStrategy syncStrategy;
@@ -48,12 +45,9 @@ public class UserRolesSyncer {
   public UserRolesSyncer(
       DiscoveryStatusListener discoveryStatusListener,
       Registry registry,
-      LockManager lockManager,
       UserRolesSyncStrategy syncStrategy,
       SyncConfig syncConfigProperties) {
     this.discoveryStatusListener = discoveryStatusListener;
-
-    this.lockManager = lockManager;
     this.registry = registry;
     this.userRolesSyncCount = registry.gauge(metricName("syncCount"));
     this.syncStrategy = syncStrategy;
@@ -70,28 +64,13 @@ public class UserRolesSyncer {
       return;
     }
 
-    LockManager.LockOptions lockOptions =
-        new LockManager.LockOptions()
-            .withLockName(syncConfigProperties.getLockName())
-            .withMaximumLockDuration(
-                Duration.ofMillis(
-                    syncConfigProperties.getSyncDelayMs()
-                        + syncConfigProperties.getSyncDelayTimeoutMs()))
-            .withSuccessInterval(Duration.ofMillis(syncConfigProperties.getSyncDelayMs()))
-            .withFailureInterval(Duration.ofMillis(syncConfigProperties.getSyncFailureDelayMs()));
-
-    lockManager.acquireLock(
-        lockOptions,
-        () -> {
-          try {
-            timeIt(
-                "syncTime",
-                () -> userRolesSyncCount.set(syncStrategy.syncAndReturn(new ArrayList<>())));
-          } catch (Exception e) {
-            log.error("User roles synchronization failed", e);
-            userRolesSyncCount.set(-1);
-          }
-        });
+    try {
+      timeIt(
+          "syncTime", () -> userRolesSyncCount.set(syncStrategy.syncAndReturn(new ArrayList<>())));
+    } catch (Exception e) {
+      log.error("User roles synchronization failed", e);
+      userRolesSyncCount.set(-1);
+    }
   }
 
   public long syncAndReturn(List<String> roles) {
