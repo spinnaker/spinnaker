@@ -30,6 +30,7 @@ import com.netflix.spinnaker.fiat.model.resources.BuildService
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.permissions.ExternalUser
+import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionRepositoryConfigProps
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
@@ -37,12 +38,11 @@ import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager
 import com.netflix.spinnaker.kork.lock.LockManager
 import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.boot.actuate.health.Health
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.utility.DockerImageName
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup
@@ -53,6 +53,8 @@ import spock.lang.Unroll
 
 import java.time.Clock
 import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.function.Consumer
 
 class UserRolesSyncerSpec extends Specification {
 
@@ -69,9 +71,6 @@ class UserRolesSyncerSpec extends Specification {
   ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
 
   @Shared
-  JedisPool jedisPool
-
-  @Shared
   Jedis jedis
 
   @Shared
@@ -81,6 +80,8 @@ class UserRolesSyncerSpec extends Specification {
 
   SyncConfig syncConfigProperties = new SyncConfig()
 
+  RedisClientDelegate redisClientDelegate
+
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
     jedis = embeddedRedis.jedis
@@ -88,9 +89,10 @@ class UserRolesSyncerSpec extends Specification {
   }
 
   def setup() {
+    redisClientDelegate = new JedisClientDelegate(embeddedRedis.pool as JedisPool)
     repo = new RedisPermissionsRepository(
         objectMapper,
-            new JedisClientDelegate(embeddedRedis.pool as JedisPool),
+        redisClientDelegate,
         [new Application(), new Account(), new ServiceAccount(), new Role(), new BuildService()],
         new RedisPermissionRepositoryConfigProps(prefix: "unittests"),
         RetryRegistry.ofDefaults()
@@ -160,8 +162,7 @@ class UserRolesSyncerSpec extends Specification {
     def syncer = new UserRolesSyncer(
         new DiscoveryStatusListener(true),
         registry,
-        lockManager,
-        new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), permissionsResolver, repo, serviceAccountProvider, registry, syncConfigProperties)),
+        new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), permissionsResolver, repo, serviceAccountProvider, registry, redisClientDelegate, syncConfigProperties, lockManager)),
         syncConfigProperties
     )
 
@@ -223,12 +224,26 @@ class UserRolesSyncerSpec extends Specification {
   @Unroll
   def "should only schedule sync when in-service"() {
     given:
-    def lockManager = Mock(LockManager)
+    def permissionsResolver = Mock(PermissionsResolver) {
+      resolveUnrestrictedUser() >> new UserPermission().setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+    }
+    def serviceAccountProvider = Mock(ResourceProvider) {
+      getAll() >> []
+    }
+    def lockManager = Mock(LockManager) {
+      _ * acquireLock() >> { LockManager.LockOptions lockOptions, Callable onLockAcquiredCallback ->
+        return new LockManager.AcquireLockResponse<>(null, onLockAcquiredCallback.call(), LockManager.LockStatus.ACQUIRED, new RuntimeException(), true);
+      }
+    }
+    redisClientDelegate.withCommandsClient({ c ->
+      c.set("spinnaker:fiat:user_roles:last_sync_time", (System.currentTimeMillis() + 10000).toString())
+      c.set("spinnaker:fiat:user_roles:count", String.valueOf(1));
+    } as Consumer)
+
     def userRolesSyncer = new UserRolesSyncer(
         new DiscoveryStatusListener(discoveryStatusEnabled),
         registry,
-        lockManager,
-        new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), null, null, null, registry, syncConfigProperties)),
+        new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), permissionsResolver, repo, serviceAccountProvider, registry, redisClientDelegate, syncConfigProperties, lockManager)),
         syncConfigProperties
     )
 
@@ -300,7 +315,6 @@ class UserRolesSyncerSpec extends Specification {
     def syncer = new UserRolesSyncer(
             new DiscoveryStatusListener(false),
             registry,
-            lockManager,
             new UserRolesSyncStrategy.DefaultSynchronizationStrategy(
                     new Synchronizer(
                             new AlwaysUpHealthIndicator(),
@@ -308,7 +322,9 @@ class UserRolesSyncerSpec extends Specification {
                             repo,
                             serviceAccountProvider,
                             registry,
-                            syncConfigProperties)),
+                            redisClientDelegate,
+                            syncConfigProperties,
+                            lockManager)),
             syncConfigProperties
     )
 
@@ -325,6 +341,246 @@ class UserRolesSyncerSpec extends Specification {
     repo.getAllById() == allUsers.collectEntries { [ it.id, it.roles]}
     [user1, user2, user3, newServiceAcct, abcServiceAcct, unrestrictedUser]
             .forEach({ it -> repo.get(it.getId()).get() == it.merge(unrestrictedUser) })
+  }
+
+  @Unroll
+  def "should update user roles & add service accounts when invoked by concurrent requests"() {
+    setup:
+    def extRoleA = new Role("extRoleA").setSource(Role.Source.EXTERNAL)
+    def extRoleB = new Role("extRoleB").setSource(Role.Source.EXTERNAL)
+    def extRoleC = new Role("extRoleC").setSource(Role.Source.EXTERNAL)
+    def user1 = new UserPermission()
+            .setId("user1")
+            .setAccounts([new Account().setName("account1")] as Set)
+            .setRoles([extRoleA] as Set)
+    def user2 = new UserPermission()
+            .setId("user2")
+            .setAccounts([new Account().setName("account2")] as Set)
+            .setRoles([extRoleB] as Set)
+    def user3 = new UserPermission()
+            .setId("user3")
+            .setAccounts([new Account().setName("account3")] as Set)
+            .setRoles([extRoleC] as Set)
+    def unrestrictedUser = new UserPermission()
+            .setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+            .setAccounts([new Account().setName("unrestrictedAccount")] as Set)
+
+    def abcServiceAcct = new UserPermission().setId("abc").setRoles([extRoleC] as Set)
+    def xyzServiceAcct = new UserPermission().setId("xyz@domain.com")
+
+    repo.put(user1)
+    repo.put(user2)
+    repo.put(user3)
+    repo.put(unrestrictedUser)
+
+    def newUser2 = new UserPermission()
+            .setId("user2")
+            .setAccounts([new Account().setName("accountX")] as Set)
+            .setRoles([extRoleB] as Set)
+    def newUser3 = new UserPermission()
+            .setId("user3")
+            .setAccounts([new Account().setName("accountX")] as Set)
+            .setRoles([extRoleC] as Set)
+
+    def serviceAccountProvider = Mock(ResourceProvider) {
+      getAll() >> [new ServiceAccount().setName("abc").setMemberOf(["extRoleC"]),
+                   new ServiceAccount().setName("xyz@domain.com")]
+    }
+
+    def permissionsResolver = Mock(PermissionsResolver)
+
+    def extUsers
+    def expectedResolveOutput
+    def expectedResult
+    if (syncRoles == null || syncRoles.isEmpty()) {
+      extUsers = [
+              new ExternalUser()
+                      .setId(user1.id)
+                      .setExternalRoles([new Role("extrolea").setSource(Role.Source.EXTERNAL)] as List<Role>),
+              new ExternalUser()
+                      .setId(user2.id)
+                      .setExternalRoles([new Role("extroleb").setSource(Role.Source.EXTERNAL)] as List<Role>),
+              new ExternalUser()
+                      .setId(abcServiceAcct.id)
+                      .setExternalRoles([new Role("extrolec").setSource(Role.Source.EXTERNAL)] as List<Role>),
+              new ExternalUser()
+                      .setId(xyzServiceAcct.id)
+                      .setExternalRoles([]),
+              new ExternalUser()
+                      .setId(user3.id)
+                      .setExternalRoles([new Role("extrolec").setSource(Role.Source.EXTERNAL)] as List<Role>)
+      ]
+
+      expectedResolveOutput = [
+              "user1"         : user1,
+              "user2"         : newUser2,
+              "user3"         : newUser3,
+              "abc"           : abcServiceAcct,
+              "xyz@domain.com": xyzServiceAcct
+      ]
+
+      expectedResult = [
+              "user1"         : user1.getRoles() + unrestrictedUser.getRoles(),
+              "user2"         : newUser2.getRoles() + unrestrictedUser.getRoles(),
+              "user3"         : newUser3.getRoles() + unrestrictedUser.getRoles(),
+              "abc"           : abcServiceAcct.getRoles() + unrestrictedUser.getRoles(),
+              "xyz@domain.com": xyzServiceAcct.getRoles() + unrestrictedUser.getRoles(),
+              (UNRESTRICTED)  : unrestrictedUser.getRoles()
+      ]
+    } else {
+      extUsers =  [
+              new ExternalUser()
+                      .setId(abcServiceAcct.id)
+                      .setExternalRoles([new Role("extrolec").setSource(Role.Source.EXTERNAL)] as List<Role>),
+              new ExternalUser()
+                      .setId(user3.id)
+                      .setExternalRoles([new Role("extrolec").setSource(Role.Source.EXTERNAL)] as List<Role>)
+      ]
+      expectedResolveOutput = [
+              "user3"         : newUser3,
+              "abc"           : abcServiceAcct
+      ]
+
+      expectedResult = [
+              "user1"         : user1.getRoles() + unrestrictedUser.getRoles(),
+              "user2"         : user2.getRoles() + unrestrictedUser.getRoles(),
+              "user3"         : newUser3.getRoles() + unrestrictedUser.getRoles(),
+              "abc"           : abcServiceAcct.getRoles() + unrestrictedUser.getRoles(),
+              (UNRESTRICTED)  : unrestrictedUser.getRoles()
+      ]
+    }
+
+
+    @Subject
+    def syncer = new UserRolesSyncer(
+            new DiscoveryStatusListener(true),
+            registry,
+            new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), permissionsResolver, repo, serviceAccountProvider, registry, redisClientDelegate, syncConfigProperties, lockManager)),
+            syncConfigProperties
+    )
+
+    expect:
+    repo.getAllById() == [
+            "user1"       : user1.getRoles() + unrestrictedUser.getRoles(),
+            "user2"       : user2.getRoles() + unrestrictedUser.getRoles(),
+            "user3"       : user3.getRoles() + unrestrictedUser.getRoles(),
+            (UNRESTRICTED): unrestrictedUser.getRoles()
+    ]
+
+    when:
+    def results = new ArrayList(10)
+    def futures = new ArrayList(10)
+
+    def threadPool = Executors.newFixedThreadPool(10)
+    try {
+      10.times {
+        futures.add(threadPool.submit({ ->
+          syncer.syncAndReturn(syncRoles)
+        } as Callable))
+      }
+      futures.each {results.add(it.get())}
+    } finally {
+      threadPool.shutdown()
+    }
+
+    then:
+    permissionsResolver.resolve(extUsers) >> expectedResolveOutput
+    permissionsResolver.resolveUnrestrictedUser() >> unrestrictedUser
+
+    expect:
+    repo.getAllById() == expectedResult
+
+    results.each {
+      assert it == extUsers.size()
+    }
+
+    where:
+    syncRoles << [null, [], ["extrolec"]]
+
+  }
+
+
+  @Unroll
+  def "should handle exceptions when handling concurrent requests"() {
+    setup:
+    def extRoleA = new Role("extRoleA").setSource(Role.Source.EXTERNAL)
+    def extRoleB = new Role("extRoleB").setSource(Role.Source.EXTERNAL)
+    def extRoleC = new Role("extRoleC").setSource(Role.Source.EXTERNAL)
+    def user1 = new UserPermission()
+            .setId("user1")
+            .setAccounts([new Account().setName("account1")] as Set)
+            .setRoles([extRoleA] as Set)
+    def user2 = new UserPermission()
+            .setId("user2")
+            .setAccounts([new Account().setName("account2")] as Set)
+            .setRoles([extRoleB] as Set)
+    def user3 = new UserPermission()
+            .setId("user3")
+            .setAccounts([new Account().setName("account3")] as Set)
+            .setRoles([extRoleC] as Set)
+    def unrestrictedUser = new UserPermission()
+            .setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+            .setAccounts([new Account().setName("unrestrictedAccount")] as Set)
+
+    repo.put(user1)
+    repo.put(user2)
+    repo.put(user3)
+    repo.put(unrestrictedUser)
+
+    def serviceAccountProvider = Mock(ResourceProvider) {
+      getAll() >> [new ServiceAccount().setName("abc").setMemberOf(["extRoleC"]),
+                   new ServiceAccount().setName("xyz@domain.com")]
+    }
+
+    def permissionsResolver = Mock(PermissionsResolver)
+
+    syncConfigProperties.setSyncDelayTimeoutMs(50)
+
+    @Subject
+    def syncer = new UserRolesSyncer(
+            new DiscoveryStatusListener(true),
+            registry,
+            new UserRolesSyncStrategy.DefaultSynchronizationStrategy(new Synchronizer(new AlwaysUpHealthIndicator(), permissionsResolver, repo, serviceAccountProvider, registry, redisClientDelegate, syncConfigProperties, lockManager)),
+            syncConfigProperties
+    )
+
+    expect:
+    repo.getAllById() == [
+            "user1"       : user1.getRoles() + unrestrictedUser.getRoles(),
+            "user2"       : user2.getRoles() + unrestrictedUser.getRoles(),
+            "user3"       : user3.getRoles() + unrestrictedUser.getRoles(),
+            (UNRESTRICTED): unrestrictedUser.getRoles()
+    ]
+
+    when:
+    def results = new ArrayList(2)
+    def futures = new ArrayList(2)
+
+    def threadPool = Executors.newFixedThreadPool(2)
+    try {
+      2.times {
+        futures.add(threadPool.submit({ ->
+          syncer.syncAndReturn(syncRoles)
+        } as Callable))
+      }
+      futures.each {results.add(it.get())}
+    } finally {
+      threadPool.shutdown()
+    }
+
+    then:
+    permissionsResolver.resolve(_ as List) >> {
+      throw new PermissionResolutionException("permission resolution failed from provider")
+    }
+    permissionsResolver.resolveUnrestrictedUser() >> unrestrictedUser
+
+    expect:
+    results.each {
+      assert it == 0
+    }
+
+    where:
+    syncRoles  << [["extrolec"]]
   }
 
   class AlwaysUpHealthIndicator extends ResourceProvidersHealthIndicator {
