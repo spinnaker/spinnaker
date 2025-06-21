@@ -87,6 +87,18 @@ class AuthController {
     return user
   }
 
+  @Operation(summary = "Get raw user")
+  @RequestMapping(value = "/rawUser", method = RequestMethod.GET)
+  User rawUser(@Parameter(hidden = true) @SpinnakerUser User user) {
+    if (!user) {
+      log.info("GET /auth/rawUser: null user")
+      return user
+    }
+
+    log.info("GET /auth/rawUser: username: '${user.getUsername()}' email: '${user.getEmail()}' roles: '${user.getRoles()}'")
+    return user
+  }
+
   @Operation(summary = "Get service accounts", hidden=true)
   @RequestMapping(value = "/user/serviceAccounts", method = RequestMethod.GET)
   List<String> getServiceAccounts(@Parameter(hidden = true) @SpinnakerUser User user,
