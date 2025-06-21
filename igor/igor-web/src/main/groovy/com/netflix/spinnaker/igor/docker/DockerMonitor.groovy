@@ -37,6 +37,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.stereotype.Service
@@ -62,7 +63,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
                   DynamicConfigService dynamicConfigService,
                   DiscoveryStatusListener discoveryStatusListener,
                   Optional < LockService > lockService,
-                  DockerRegistryCache cache,
+                  @Qualifier("DockerRegistryCache") DockerRegistryCache cache,
                   DockerRegistryAccounts dockerRegistryAccounts,
                   Optional<EchoService> echoService,
                   Optional<KeelService> keelService,
@@ -125,7 +126,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         return new DockerPollingDelta(items: delta, cachedImages: cachedImages)
     }
 
-    private UpdateType getUpdateType(Set<String> cachedImages, String imageId, TaggedImage image, boolean trackDigests) {
+    protected UpdateType getUpdateType(Set<String> cachedImages, String imageId, TaggedImage image, boolean trackDigests) {
         if (!cachedImages.contains(imageId)) {
             // We have not seen this tag before; do a full update
             return UpdateType.full()
@@ -241,18 +242,18 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         return upperThreshold
     }
 
-    private static class DockerPollingDelta implements PollingDelta<ImageDelta> {
+  protected static class DockerPollingDelta implements PollingDelta<ImageDelta> {
         List<ImageDelta> items
         Set<String> cachedImages
     }
 
-    private static class ImageDelta implements DeltaItem {
+  protected static class ImageDelta implements DeltaItem {
         String imageId
         TaggedImage image
         boolean sendEvent = true
     }
 
-    private static class UpdateType {
+  protected static class UpdateType {
         final boolean updateCache
         final boolean sendEvent
 

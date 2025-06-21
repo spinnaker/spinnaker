@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,21 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
+import com.netflix.spinnaker.echo.model.trigger.HelmOciEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of TriggerEventHandler for events of type {@link DockerEvent}, which occur when a
- * new container is pushed to a docker registry.
+ * Implementation of TriggerEventHandler for events of type {@link HelmOciEvent}, which occur when a
+ * new Helm chart is pushed to an OCI registry.
  */
 @Component
-public class DockerEventHandler extends AbstractDockerEventHandler<DockerEvent> {
-  private static final String TRIGGER_TYPE = "docker";
+public class HelmOciEventHandler extends AbstractDockerEventHandler<HelmOciEvent> {
+  private static final String TRIGGER_TYPE = "helm/oci";
 
   @Autowired
-  public DockerEventHandler(
+  public HelmOciEventHandler(
       Registry registry,
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator) {
@@ -41,12 +41,12 @@ public class DockerEventHandler extends AbstractDockerEventHandler<DockerEvent> 
 
   @Override
   public boolean handleEventType(String eventType) {
-    return eventType.equalsIgnoreCase(DockerEvent.TYPE);
+    return eventType.equalsIgnoreCase(HelmOciEvent.TYPE);
   }
 
   @Override
-  public Class<DockerEvent> getEventType() {
-    return DockerEvent.class;
+  public Class<HelmOciEvent> getEventType() {
+    return HelmOciEvent.class;
   }
 
   @Override
@@ -56,6 +56,6 @@ public class DockerEventHandler extends AbstractDockerEventHandler<DockerEvent> 
 
   @Override
   protected String getArtifactType() {
-    return "docker/image";
+    return "helm/image";
   }
 }
