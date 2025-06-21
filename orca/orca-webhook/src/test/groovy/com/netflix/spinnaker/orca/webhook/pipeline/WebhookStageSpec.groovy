@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.webhook.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
@@ -95,7 +96,7 @@ class WebhookStageSpec extends Specification {
   def 'json format is respected'() {
     given:
     def json = JsonOutput.toJson([cancelMethod: methodString, method: methodString])
-    def mapper = new ObjectMapper()
+    def mapper = OrcaObjectMapper.getInstance()
 
     when:
     def data = mapper.readValue(json, WebhookStage.StageData)

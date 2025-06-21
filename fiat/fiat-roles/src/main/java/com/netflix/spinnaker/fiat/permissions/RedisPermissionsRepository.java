@@ -43,7 +43,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.jpountz.lz4.*;
 import redis.clients.jedis.*;
-import redis.clients.jedis.commands.BinaryJedisCommands;
+import redis.clients.jedis.commands.JedisBinaryCommands;
 import redis.clients.jedis.util.SafeEncoder;
 
 /**
@@ -324,7 +324,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     byte[] key = userKey(id, resourceType);
 
     byte[] compressedData =
-        redisRead(timeoutContext, (ThrowingFunction<BinaryJedisCommands, byte[]>) c -> c.get(key));
+        redisRead(timeoutContext, (ThrowingFunction<JedisBinaryCommands, byte[]>) c -> c.get(key));
 
     if (compressedData == null || compressedData.length == 0) {
       return null;
@@ -577,7 +577,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
     }
   }
 
-  private <T> T redisRead(TimeoutContext timeoutContext, Function<BinaryJedisCommands, T> fn) {
+  private <T> T redisRead(TimeoutContext timeoutContext, Function<JedisBinaryCommands, T> fn) {
     return retryRegistry
         .retry(REDIS_READ_RETRY)
         .executeSupplier(

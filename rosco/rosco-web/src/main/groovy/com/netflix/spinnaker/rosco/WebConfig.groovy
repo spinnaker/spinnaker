@@ -1,4 +1,4 @@
-/*
+  /*
  * Copyright 2016 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,11 +26,11 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
 @CompileStatic
-public class WebConfig extends WebMvcConfigurerAdapter {
+public class WebConfig implements WebMvcConfigurer {
 
   @Autowired
   Registry registry

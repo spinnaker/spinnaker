@@ -51,7 +51,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.commands.ScriptingCommands
+import redis.clients.jedis.commands.ScriptingKeyCommands
 import redis.clients.jedis.exceptions.JedisDataException
 import redis.clients.jedis.params.ZAddParams.zAddParams
 import redis.clients.jedis.util.Pool
@@ -341,7 +341,7 @@ class RedisQueue(
     }
   }
 
-  internal fun ScriptingCommands.readMessageWithLock(): Triple<String, Instant, String?>? {
+  internal fun ScriptingKeyCommands.readMessageWithLock(): Triple<String, Instant, String?>? {
     try {
       val response = evalsha(
         readMessageWithLockScriptSha,

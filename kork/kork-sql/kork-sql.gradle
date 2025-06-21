@@ -14,7 +14,7 @@ dependencies {
   api "com.zaxxer:HikariCP"
 
   implementation 'com.github.blagerweij:liquibase-sessionlock:1.5.0'
-  implementation "javax.validation:validation-api"
+  implementation "jakarta.validation:jakarta.validation-api"
   implementation "org.hibernate.validator:hibernate-validator"
 
   testImplementation project(":kork-sql-test")
