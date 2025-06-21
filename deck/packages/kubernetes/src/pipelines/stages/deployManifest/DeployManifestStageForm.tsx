@@ -31,6 +31,7 @@ import type { IManifestSelector } from '../../../manifest/selector/IManifestSele
 import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
 import LabelEditor from '../../../manifest/selector/labelEditor/LabelEditor';
 import { ManifestBasicSettings } from '../../../manifest/wizard/BasicSettings';
+import { fetchManifests } from './manifestStatus/utils/fetchManifests';
 
 interface IDeployManifestStageConfigFormProps {
   accounts: IAccountDetails[];
@@ -58,12 +59,9 @@ export class DeployManifestStageForm extends React.Component<
 
   public constructor(props: IDeployManifestStageConfigFormProps & IFormikStageConfigInjectedProps) {
     super(props);
-    const stage = this.props.formik.values;
-    const manifests: any[] = get(props.formik.values, 'manifests');
-    const isTextManifest: boolean = get(props.formik.values, 'source') === ManifestSource.TEXT;
     this.state = {
-      rawManifest: !isEmpty(manifests) && isTextManifest ? yamlDocumentsToString(manifests) : '',
-      overrideNamespace: get(stage, 'namespaceOverride', '') !== '',
+      rawManifest: '',
+      overrideNamespace: false,
       selector: {
         account: '',
         location: '',
@@ -72,6 +70,26 @@ export class DeployManifestStageForm extends React.Component<
       },
       labelSelectors: [],
     };
+  }
+
+  public componentDidMount(): void {
+    const stage = this.props.formik.values;
+    const rawManifests: any[] = get(this.props.formik.values, 'manifests');
+    const isTextManifest: boolean = get(this.props.formik.values, 'source') === ManifestSource.TEXT;
+    fetchManifests(rawManifests)
+      .then((manifests: any[]) => {
+        this.setState({
+          rawManifest: !isEmpty(manifests) && isTextManifest ? yamlDocumentsToString(manifests) : '',
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to fetch manifests:', error);
+      })
+      .finally(() => {
+        this.setState({
+          overrideNamespace: get(stage, 'namespaceOverride', '') !== '',
+        });
+      });
   }
 
   private getSourceOptions = (): Array<Option<string>> => {

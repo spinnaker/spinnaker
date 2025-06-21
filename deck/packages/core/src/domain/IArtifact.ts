@@ -15,3 +15,4 @@ export interface IArtifact {
 
 export const ARTIFACT_TYPE_EMBEDDED = 'embedded/base64';
 export const ARTIFACT_TYPE_REMOTE = 'remote/base64';
+export const MAP_ARTIFACT_TYPE_REMOTE = 'remote/map/base64';
