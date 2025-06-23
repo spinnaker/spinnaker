@@ -97,6 +97,7 @@ public class Synchronizer {
   }
 
   public long syncAndReturn(List<String> roles) {
+    // if no roles are specified, sync all
     if (roles == null || roles.isEmpty()) {
       return syncAllUserRoles();
     }
@@ -179,6 +180,22 @@ public class Synchronizer {
     }
   }
 
+  /**
+   * Synchronizes all user roles across the system with distributed locking to ensure thread safety.
+   *
+   * <p>This method coordinates role synchronization across multiple instances using Redis for
+   * distributed locking. Only one instance will perform the actual synchronization while others
+   * wait for the result. The synchronization process includes:
+   *
+   * <ul>
+   *   <li>Acquiring a distributed lock to prevent concurrent syncs across instances
+   *   <li>Updating the last sync time in Redis
+   *   <li>Coordinating between threads to prevent redundant sync operations
+   * </ul>
+   *
+   * @return The count of user roles that were synchronized
+   * @throws RuntimeException if there are issues during the synchronization process
+   */
   private long syncAllUserRoles() {
     // this is the timestamp at which a thread attempts to refresh
     long syncAttemptTime = System.currentTimeMillis();
