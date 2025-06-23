@@ -143,7 +143,7 @@ public class AbstractDockerEventHandlerTest {
     assertNotNull(helmOciArtifacts);
     assertEquals(1, helmOciArtifacts.size());
     Artifact helmOciArtifact = helmOciArtifacts.get(0);
-    assertEquals("helm/chart", helmOciArtifact.getType());
+    assertEquals("helm/image", helmOciArtifact.getType());
     assertEquals("registry.example.com/charts/nginx", helmOciArtifact.getName());
     assertEquals("1.0.0", helmOciArtifact.getVersion());
     assertEquals("registry.example.com/charts/nginx:1.0.0", helmOciArtifact.getReference());
