@@ -20,11 +20,11 @@ import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-import java.util.Arrays;
+import io.swagger.v3.oas.models.media.Schema;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import javax.annotation.Nullable;
-import org.springdoc.core.SpringDocUtils;
+import java.util.Map;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -45,11 +45,6 @@ public class SwaggerConfig {
 
   @Bean
   public OpenAPI gateApi() {
-    Arrays.stream((ignoredClasses()))
-        .forEach(
-            each -> {
-              SpringDocUtils.getConfig().addJavaTypeToIgnore(each);
-            });
     return new OpenAPI()
         .info(new Info().description(description).title(title).contact(new Contact().name(contact)))
         .externalDocs(
@@ -58,20 +53,22 @@ public class SwaggerConfig {
                 .description("Spinnaker Documentation"));
   }
 
-  private static Class[] ignoredClasses() {
-    return IGNORED_CLASS_NAMES.stream()
-        .map(SwaggerConfig::getClassIfPresent)
-        .filter(Objects::nonNull)
-        .toArray(Class[]::new);
-  }
-
-  @Nullable
-  private static Class<?> getClassIfPresent(String name) {
-    try {
-      return Class.forName(name);
-    } catch (ClassNotFoundException e) {
-      return null;
-    }
+  @Bean
+  public OpenApiCustomizer ignoreGroovyMetaClassCustomizer() {
+    return openApi -> {
+      if (openApi.getComponents() != null) {
+        Map<String, Schema> schemas = openApi.getComponents().getSchemas();
+        if (schemas != null) {
+          Iterator<Map.Entry<String, Schema>> iterator = schemas.entrySet().iterator();
+          while (iterator.hasNext()) {
+            Map.Entry<String, Schema> entry = iterator.next();
+            if ("groovy.lang.MetaClass".equals(entry.getKey())) {
+              iterator.remove(); // remove schema for groovy.lang.MetaClass
+            }
+          }
+        }
+      }
+    };
   }
 
   public void setTitle(String title) {
