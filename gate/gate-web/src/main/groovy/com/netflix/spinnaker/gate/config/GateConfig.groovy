@@ -31,6 +31,8 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
+import com.netflix.spinnaker.gate.filters.ProvidedIdRequestFilter
+import com.netflix.spinnaker.gate.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
 import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
 import com.netflix.spinnaker.gate.filters.ResetAuthenticatedRequestFilter
@@ -69,7 +71,9 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 @Configuration
 @Slf4j
-@EnableConfigurationProperties([PipelineControllerConfigProperties, ApplicationConfigurationProperties])
+@EnableConfigurationProperties([PipelineControllerConfigProperties,
+                                ApplicationConfigurationProperties,
+                                ProvidedIdRequestFilterConfigurationProperties])
 @Import([PluginsAutoConfiguration, DeckPluginConfiguration, PluginWebConfiguration])
 class GateConfig {
 
@@ -336,6 +340,20 @@ class GateConfig {
     return frb
   }
 
+  /**
+   * Ensure that tracing identifiers (e.g. X-SPINNAKER-REQUEST-ID,
+   * X-SPINNAKER-EXECUTION-ID) make it to the MDC early.  This way they're
+   * available for logging during the security filter chain, and are including
+   * in requests made during authentication (e.g. to fiat).
+   */
+  @ConditionalOnProperty("provided-id-request-filter.enabled")
+  @Bean
+  FilterRegistrationBean<ProvidedIdRequestFilter> providedIdRequestFilter(ProvidedIdRequestFilterConfigurationProperties providedIdRequestFilterConfigurationProperties) {
+    def frb = new FilterRegistrationBean<>(new ProvidedIdRequestFilter(providedIdRequestFilterConfigurationProperties));
+    frb.order = Ordered.HIGHEST_PRECEDENCE + 2
+    return frb
+  }
+
   @Bean
   FilterRegistrationBean<RequestSheddingFilter> requestSheddingFilter(DynamicConfigService dynamicConfigService) {
     def frb = new FilterRegistrationBean<>(new RequestSheddingFilter(dynamicConfigService, registry))
@@ -343,9 +361,10 @@ class GateConfig {
     /*
      * This filter should:
      * - be placed early in the request chain to allow for requests to be shed prior to the security filter chain.
-     * - be placed after the RequestLoggingFilter such that shed requests are logged.
+     * - be placed after the RequestLoggingFilter (if enabled) such that shed requests are logged.
+     * - be placed after the ProvidedIdRequestFilter (if enabled) such that shed requests are logged.
      */
-    frb.order = Ordered.HIGHEST_PRECEDENCE + 2
+    frb.order = Ordered.HIGHEST_PRECEDENCE + 3
     return frb
   }
 
