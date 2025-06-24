@@ -77,7 +77,9 @@ import retrofit2.mock.Calls;
       "logging.level.org.springframework.security=DEBUG",
       "spring.config.location=classpath:gate-test.yml",
       "services.front50.applicationRefreshInitialDelayMs=3600000",
-      "services.fiat.enabled=true"
+      "services.fiat.enabled=true",
+      "provided-id-request-filter.enabled=true",
+      "logging.level.com.netflix.spinnaker.gate.filters=DEBUG"
     })
 public class HeaderAuthTest {
 
