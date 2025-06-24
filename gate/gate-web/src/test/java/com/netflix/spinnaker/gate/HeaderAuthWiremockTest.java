@@ -79,6 +79,7 @@ import retrofit2.mock.Calls;
       "spring.config.location=classpath:gate-test.yml",
       "services.front50.applicationRefreshInitialDelayMs=3600000",
       "services.fiat.enabled=true",
+      "fiat.session-filter.enabled=false",
       "provided-id-request-filter.enabled=true",
       "logging.level.com.netflix.spinnaker.gate.filters=DEBUG"
     })
