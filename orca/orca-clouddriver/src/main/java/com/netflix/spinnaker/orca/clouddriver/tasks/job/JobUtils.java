@@ -23,6 +23,7 @@ import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
+import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +66,7 @@ public class JobUtils implements CloudProviderAware {
 
       String name = names.get(0);
       Names parsedName = Names.parseName(name);
-      Moniker moniker = (Moniker) stage.getContext().get("moniker");
+      Moniker moniker = MonikerHelper.monikerFromStage(stage);
       String appName, validAppName;
 
       if (moniker != null) {
