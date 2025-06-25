@@ -18,36 +18,28 @@ dependencies {
 }
 
 gradlePlugin {
-  plugins {
-    spinnakerProject {
-      id = 'io.spinnaker.project'
-      implementationClass = 'com.netflix.spinnaker.gradle.project.SpinnakerProjectPlugin'
-    }
-    spinnakerPackage {
-      id = 'io.spinnaker.package'
-      implementationClass = 'com.netflix.spinnaker.gradle.application.SpinnakerPackagePlugin'
-    }
-    spinnakerArtifactRegistryPublish {
-      id = 'io.spinnaker.artifactregistry-publish'
-      implementationClass = 'com.netflix.spinnaker.gradle.publishing.artifactregistry.ArtifactRegistryPublishPlugin'
-    }
-  }
-}
-
-gradlePlugin {
   website = 'https://spinnaker.io'
   vcsUrl = 'https://github.com/spinnaker/spinnaker-gradle-project'
 
   plugins {
     spinnakerProject {
+      id = 'io.spinnaker.project'
+      implementationClass = 'com.netflix.spinnaker.gradle.project.SpinnakerProjectPlugin'
+      description = 'Build configuration for Spinnaker projects'
       displayName = 'Build configuration for Spinnaker projects'
       tags.set(['spinnaker'])
     }
     spinnakerPackage {
+      id = 'io.spinnaker.package'
+      implementationClass = 'com.netflix.spinnaker.gradle.application.SpinnakerPackagePlugin'
+      description = 'OS Packaging for Spinnaker applications'
       displayName = 'OS Packaging for Spinnaker applications'
       tags.set(['spinnaker'])
     }
     spinnakerArtifactRegistryPublish {
+      id = 'io.spinnaker.artifactregistry-publish'
+      implementationClass = 'com.netflix.spinnaker.gradle.publishing.artifactregistry.ArtifactRegistryPublishPlugin'
+      description = 'Google Artifact Registry publishing for spinnaker packages'
       displayName = 'Google Artifact Registry publishing for spinnaker packages'
       tags.set(['spinnaker'])
     }
