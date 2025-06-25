@@ -49,6 +49,12 @@ tasks.register('closeAndReleaseNexusStagingRepository') { task ->
   }
 }
 
+tasks.register('publishToMavenLocal') { task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':publishToMavenLocal')
+  }
+}
+
 tasks.register('test') { task ->
   mainProjects.each { build ->
     task.dependsOn build.task(':test')
