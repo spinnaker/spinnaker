@@ -5,6 +5,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-swagger"
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.squareup.okhttp3:okhttp"
   implementation "com.squareup.retrofit2:retrofit"

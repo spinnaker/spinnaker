@@ -5,6 +5,7 @@ dependencies {
   implementation "org.apache.groovy:groovy-json"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-web"
 

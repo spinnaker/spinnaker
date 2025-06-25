@@ -29,6 +29,7 @@ dependencies {
   implementation("io.spinnaker.fiat:fiat-core")
   implementation("io.spinnaker.fiat:fiat-api")
   implementation("io.spinnaker.kork:kork-retrofit")
+  implementation("io.spinnaker.kork:kork-retrofit2")
 
   testImplementation("com.squareup.retrofit2:retrofit-mock")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
