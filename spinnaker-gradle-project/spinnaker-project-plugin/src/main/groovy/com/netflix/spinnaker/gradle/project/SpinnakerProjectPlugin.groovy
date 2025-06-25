@@ -71,7 +71,7 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
     //   when things like "build" or "publish" are run from the project root
     // When the task name is NOT run from the top level, we have to recurse through the subprojects ourselves
     // So, assemble and publish implement that below
-    def defaultTasks = ['assemble', 'check', 'clean', 'test', 'publish']
+    def defaultTasks = ['assemble', 'check', 'clean', 'test', 'publish', 'publishToMavenLocal']
     for(String taskName in defaultTasks) {
       dependOnTasksRecursively(project, taskName)
     }

@@ -29,6 +29,15 @@ class PublishingPlugin implements Plugin<Project> {
             pub.artifact(it)
           }
           addLicenseMetadata(pub)
+          // Use enforcedPlatform versions
+          pub.versionMapping {
+            it.usage("java-api") {
+              it.fromResolutionOf("runtimeClasspath")
+            }
+            it.usage("java-runtime") {
+              it.fromResolutionResult()
+            }
+          }
         }
         // Presence of a module metadata file causes IntelliJ to not associate -sources jars with libraries.
         //  removing for now, can revisit if there is a good reason to have .modules
@@ -45,6 +54,15 @@ class PublishingPlugin implements Plugin<Project> {
         publishingExtension.publications.create(PUBLICATION_NAME, MavenPublication) { pub ->
           pub.from(project.components.getByName("javaPlatform"))
           addLicenseMetadata(pub)
+          // Use enforcedPlatform versions
+          pub.versionMapping {
+            it.usage("java-api") {
+              it.fromResolutionOf("runtimeClasspath")
+            }
+            it.usage("java-runtime") {
+              it.fromResolutionResult()
+            }
+          }
         }
       }
       // Presence of a module metadata file causes some weird failures in kork spinnaker-dependencies and we don't
