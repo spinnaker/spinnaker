@@ -143,7 +143,8 @@ public class EchoServiceTest {
 
     @Bean
     public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
-      return new SpinnakerRequestHeaderInterceptor(false);
+      return new SpinnakerRequestHeaderInterceptor(
+          false /* propagateSpinnakerHeaders */, Collections.emptyList() /* addtionalHeaders */);
     }
 
     @Bean

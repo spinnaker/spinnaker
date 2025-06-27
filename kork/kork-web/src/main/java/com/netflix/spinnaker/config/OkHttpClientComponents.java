@@ -88,7 +88,8 @@ public class OkHttpClientComponents {
 
   @Bean
   public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
-    return new SpinnakerRequestHeaderInterceptor(clientProperties.getPropagateSpinnakerHeaders());
+    return new SpinnakerRequestHeaderInterceptor(
+        clientProperties.getPropagateSpinnakerHeaders(), clientProperties.getAdditionalHeaders());
   }
 
   @Bean

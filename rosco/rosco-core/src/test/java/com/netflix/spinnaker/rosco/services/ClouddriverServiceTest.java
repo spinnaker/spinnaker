@@ -103,7 +103,8 @@ public class ClouddriverServiceTest {
   static class TestConfig {
     @Bean
     public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
-      return new SpinnakerRequestHeaderInterceptor(false);
+      return new SpinnakerRequestHeaderInterceptor(
+          false /* propagateSpinnakerHeaders */, Collections.emptyList() /* additionalHeaders */);
     }
     // SpinnakerRequestInterceptor is not needed for retrofit2 client but due to the way retrofit1
     // and retrofit2 specific beans are mixed up in kork, this is needed for now. Once the beans
