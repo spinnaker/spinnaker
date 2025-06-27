@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,35 @@
 package com.netflix.spinnaker.echo.model.trigger;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+/**
+ * Abstract base class for Docker-like events that share a common structure. This includes both
+ * DockerEvent and HelmOciEvent.
+ */
+@Data
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DockerEvent extends AbstractDockerEvent {
-  public static final String TYPE = "DOCKER";
+public abstract class AbstractDockerEvent extends TriggerEvent {
+  /** Get the event type string. */
+  public abstract String getEventType();
 
-  @Override
-  public String getEventType() {
-    return TYPE;
+  /** The content of the event. */
+  protected Content content;
+
+  /** Common content structure for Docker-like events. */
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class Content {
+    private String account;
+    private String registry;
+    private String repository;
+    private String tag;
+    private String digest;
   }
 }

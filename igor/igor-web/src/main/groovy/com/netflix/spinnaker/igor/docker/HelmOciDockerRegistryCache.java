@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+/** Cache for Helm OCI Docker Registry data. */
 @Service
-@Qualifier("DockerRegistryCache")
-public class DockerRegistryCache {
+@Qualifier("HelmOciDockerRegistryCache")
+public class HelmOciDockerRegistryCache extends DockerRegistryCache {
 
-  static final String ID = "dockerRegistry";
+  static final String ID = "helmOciDockerRegistry";
 
   // docker-digest must conform to hash:hashvalue. The string "~" explicitly avoids this to act as
   // an "empty" placeholder.
@@ -40,17 +41,19 @@ public class DockerRegistryCache {
   private final IgorConfigurationProperties igorConfigurationProperties;
 
   @Autowired
-  public DockerRegistryCache(
+  public HelmOciDockerRegistryCache(
       RedisClientDelegate redisClientDelegate,
       IgorConfigurationProperties igorConfigurationProperties) {
+    super(redisClientDelegate, igorConfigurationProperties);
     this.redisClientDelegate = redisClientDelegate;
     this.igorConfigurationProperties = igorConfigurationProperties;
   }
 
+  @Override
   public Set<String> getImages(String account) {
     Set<String> result = new HashSet<>();
     redisClientDelegate.withKeyScan(
-        makeIndexPattern(prefix(), account),
+        makeHelmOciIndexPattern(prefix(), account),
         1000,
         page -> {
           result.addAll(page.getResults());
@@ -58,18 +61,22 @@ public class DockerRegistryCache {
     return result;
   }
 
+  @Override
   public String getLastDigest(String account, String repository, String tag) {
     String key = new DockerRegistryV2Key(prefix(), ID, account, repository, tag).toString();
     return redisClientDelegate.withCommandsClient(
         c -> {
           Map<String, String> res = c.hgetAll(key);
-          if (res.get("digest").equals(EMPTY_DIGEST)) {
+          if (res.isEmpty()
+              || res.get("digest") == null
+              || res.get("digest").equals(EMPTY_DIGEST)) {
             return null;
           }
           return res.get("digest");
         });
   }
 
+  @Override
   public void setLastDigest(String account, String repository, String tag, String digest) {
     String key = new DockerRegistryV2Key(prefix(), ID, account, repository, tag).toString();
     String d = digest == null ? EMPTY_DIGEST : digest;
@@ -79,7 +86,7 @@ public class DockerRegistryCache {
         });
   }
 
-  static String makeIndexPattern(String prefix, String account) {
+  private String makeHelmOciIndexPattern(String prefix, String account) {
     return format("%s:%s:v2:%s:*", prefix, ID, account);
   }
 
