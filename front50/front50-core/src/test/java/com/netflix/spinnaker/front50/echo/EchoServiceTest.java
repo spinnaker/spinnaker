@@ -46,6 +46,7 @@ import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
 import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
+import java.util.Collections;
 import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -136,7 +137,8 @@ public class EchoServiceTest {
     // this can be removed
     @Bean
     public RequestInterceptor spinnakerRequestInterceptor() {
-      return new SpinnakerRequestInterceptor(false);
+      return new SpinnakerRequestInterceptor(
+          false /* propagateSpinnakerHeaders */, Collections.emptyList() /* additionalHeaders */);
     }
 
     @Bean
