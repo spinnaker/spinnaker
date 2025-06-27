@@ -23,6 +23,7 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.capabilities.CapabilitiesService;
 import com.netflix.spinnaker.orca.commands.ForceExecutionCancellationCommand;
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties;
@@ -67,6 +68,37 @@ class WebConfigurationTest {
   void metricsInterceptorPresent() {
     // A basic assertion about a bean that WebConfiguration provides.
     runner.run(ctx -> assertThat(ctx).hasBean("metricsInterceptor"));
+  }
+
+  @Test
+  void testProvidedIdRequestFilterBeanCreatedWhenPropertyEnabled() {
+    runner
+        .withPropertyValues("provided-id-request-filter.enabled=true")
+        .run(
+            ctx -> {
+              assertThat(ctx).hasBean("providedIdRequestFilter");
+              assertThat(ctx).hasSingleBean(ProvidedIdRequestFilterConfigurationProperties.class);
+            });
+  }
+
+  @Test
+  void testProvidedIdRequestFilterBeanNotCreatedWhenPropertyDisabled() {
+    runner
+        .withPropertyValues("provided-id-request-filter.enabled=false")
+        .run(
+            ctx -> {
+              assertThat(ctx).doesNotHaveBean("providedIdRequestFilter");
+              assertThat(ctx).hasSingleBean(ProvidedIdRequestFilterConfigurationProperties.class);
+            });
+  }
+
+  @Test
+  void testProvidedIdRequestFilterBeanNotCreatedWhenPropertyNotSet() {
+    runner.run(
+        ctx -> {
+          assertThat(ctx).doesNotHaveBean("providedIdRequestFilter");
+          assertThat(ctx).hasSingleBean(ProvidedIdRequestFilterConfigurationProperties.class);
+        });
   }
 
   static class TestDependencyConfiguration {
