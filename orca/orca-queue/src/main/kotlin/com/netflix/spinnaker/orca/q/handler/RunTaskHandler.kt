@@ -475,12 +475,14 @@ class RunTaskHandler(
       if (taskModel.startTime != null) {
         MDC.put("taskStartTime", taskModel.startTime.toString())
       }
+      execution.additionalHeaders.forEach(MDC::put)
 
       block.invoke()
     } finally {
       MDC.remove("stageType")
       MDC.remove("taskType")
       MDC.remove("taskStartTime")
+      execution.additionalHeaders.keys.forEach(MDC::remove)
     }
   }
 
