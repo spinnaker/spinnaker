@@ -73,8 +73,8 @@ public class BuildServiceTest {
   }
 
   private static BuildService buildService;
-  private static final String ENDPOINT_WITH_INCORRECT_ENCODING =
-      "/masters/master/jobs/job1?param1=value%2Bwith%2Bspaces";
+  private static final String ENDPOINT_WITH_CORRECT_ENCODING =
+      "/masters/master/jobs/job1?param1=value+with+spaces";
 
   @Autowired DefaultServiceClientProvider defaultServiceClientProvider;
 
@@ -91,14 +91,11 @@ public class BuildServiceTest {
   @Test
   public void testBuildServiceBuildApi() {
     wmIgor.stubFor(
-        WireMock.put(
-                urlEqualTo(
-                    ENDPOINT_WITH_INCORRECT_ENCODING)) // FIXME: the query params should be encoded
-            // with spaces, and not with +
+        WireMock.put(urlEqualTo(ENDPOINT_WITH_CORRECT_ENCODING))
             .willReturn(WireMock.aResponse().withStatus(200)));
     buildService.build("master", "job1", Map.of("param1", "value with spaces"));
 
-    wmIgor.verify(1, putRequestedFor(urlEqualTo(ENDPOINT_WITH_INCORRECT_ENCODING)));
+    wmIgor.verify(1, putRequestedFor(urlEqualTo(ENDPOINT_WITH_CORRECT_ENCODING)));
   }
 
   static class TestConfig {
