@@ -51,6 +51,6 @@ tasks.register('clean') {
 }
 
 tasks.register('publish') {
-  dependsOn ":spinnaker-project-plugin:publish"
-  dependsOn ":spinnaker-extensions:publish"
+  dependsOn ":spinnaker-project-plugin:publishPlugins"
+  dependsOn ":spinnaker-extensions:publishPlugins"
 }
