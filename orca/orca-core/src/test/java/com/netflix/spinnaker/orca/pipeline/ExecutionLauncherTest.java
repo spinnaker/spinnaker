@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
@@ -28,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.MDC;
 import org.springframework.context.ApplicationEventPublisher;
 
 public class ExecutionLauncherTest {
@@ -43,6 +47,9 @@ public class ExecutionLauncherTest {
       mock(ApplicationEventPublisher.class);
   private ExecutionConfigurationProperties executionConfigurationProperties =
       new ExecutionConfigurationProperties();
+  private ProvidedIdRequestFilterConfigurationProperties
+      providedIdRequestFilterConfigurationProperties =
+          new ProvidedIdRequestFilterConfigurationProperties();
 
   ExecutionLauncher executionLauncher =
       new ExecutionLauncher(
@@ -53,7 +60,8 @@ public class ExecutionLauncherTest {
           applicationEventPublisher,
           Optional.empty() /* pipelineValidator */,
           Optional.empty() /* registry */,
-          executionConfigurationProperties);
+          executionConfigurationProperties,
+          providedIdRequestFilterConfigurationProperties);
 
   @Test
   public void parsePipelinePopulatesRootId() {
@@ -80,5 +88,37 @@ public class ExecutionLauncherTest {
     PipelineExecution topLevelPipelineExecution2 =
         executionLauncher.parsePipeline(pipelineConfig, "");
     assertThat(topLevelPipelineExecution2.getRootId()).isEqualTo(TEST_EXECUTION_ID);
+  }
+
+  @ParameterizedTest(name = "parsePipelinePopulatesAdditionalHeaders: enabled = {0}")
+  @ValueSource(booleans = {false, true})
+  public void parsePipelinePopulatesAdditionalHeaders(boolean enabled) {
+    // Given an arbitrary pipleine configuration
+    Map<String, Object> pipelineConfig =
+        Map.of(
+            "application", TEST_APPLICATION,
+            "name", TEST_PIPELINE_NAME,
+            "executionId", TEST_EXECUTION_ID,
+            "stages", List.of());
+
+    // And that ProvidedRequestIdConfigurationProperties has additionalHeaders defined
+    providedIdRequestFilterConfigurationProperties.setEnabled(enabled);
+    Map<String, String> additionalHeaders = Map.of("X-foo", "foo-value", "X-bar", "bar-value");
+    providedIdRequestFilterConfigurationProperties.setAdditionalHeaders(
+        additionalHeaders.keySet().stream().toList());
+
+    // And that values of those headers exist in the MDC
+    additionalHeaders.forEach(MDC::put);
+
+    // When parsing the pipeline configuration and building an execution
+    PipelineExecution pipelineExecution =
+        executionLauncher.parsePipeline(pipelineConfig, null /* rootId */);
+
+    // Then the execution's additionalHeaders contain the values from the MDC (if enabled)
+    if (enabled) {
+      assertThat(pipelineExecution.getAdditionalHeaders()).isEqualTo(additionalHeaders);
+    } else {
+      assertThat(pipelineExecution.getAdditionalHeaders()).isEmpty();
+    }
   }
 }

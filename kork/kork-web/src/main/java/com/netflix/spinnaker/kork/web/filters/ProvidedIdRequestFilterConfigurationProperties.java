@@ -24,6 +24,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "provided-id-request-filter")
 public class ProvidedIdRequestFilterConfigurationProperties {
 
+  private boolean enabled;
+
   /** The headers to include in the MDC. */
   private List<String> headers =
       List.of(Header.REQUEST_ID.getHeader(), Header.EXECUTION_ID.getHeader());

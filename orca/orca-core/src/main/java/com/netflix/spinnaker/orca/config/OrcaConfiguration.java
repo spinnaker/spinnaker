@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigura
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.DefaultStageResolver;
 import com.netflix.spinnaker.orca.DynamicStageResolver;
 import com.netflix.spinnaker.orca.DynamicTaskImplementationResolver;
@@ -97,7 +98,8 @@ import rx.schedulers.Schedulers;
   TaskOverrideConfigurationProperties.class,
   ExecutionConfigurationProperties.class,
   ExpressionProperties.class,
-  TaskConfigurationProperties.class
+  TaskConfigurationProperties.class,
+  ProvidedIdRequestFilterConfigurationProperties.class
 })
 public class OrcaConfiguration {
   @Bean

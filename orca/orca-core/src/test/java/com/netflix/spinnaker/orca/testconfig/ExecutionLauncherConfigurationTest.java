@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.common.Header;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties;
@@ -56,7 +57,10 @@ import org.springframework.test.context.ContextConfiguration;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(
-    classes = ExecutionConfigurationProperties.class,
+    classes = {
+      ExecutionConfigurationProperties.class,
+      ProvidedIdRequestFilterConfigurationProperties.class
+    },
     initializers = ExecutionLauncherConfigurationTest.class)
 @EnableConfigurationProperties
 @SpringBootTest
@@ -72,6 +76,10 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
 
   // autowiring this so that it can mimic how springboot will initialize it at app startup
   @Autowired private ExecutionConfigurationProperties executionConfigurationProperties;
+
+  @Autowired
+  private ProvidedIdRequestFilterConfigurationProperties
+      providedIdRequestFilterConfigurationProperties;
 
   @Override
   protected String getResourceLocation() {
@@ -95,7 +103,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             applicationEventPublisher,
             pipelineValidator,
             registry,
-            executionConfigurationProperties);
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
   }
 
   @DisplayName(
@@ -138,7 +147,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             applicationEventPublisher,
             pipelineValidator,
             registry,
-            executionConfigurationProperties);
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
 
     // when
     // deployManifest orchestration type should now be able to run
@@ -232,7 +242,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             applicationEventPublisher,
             pipelineValidator,
             registry,
-            executionConfigurationProperties);
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
 
     // when
     PipelineExecution pipelineExecution =
@@ -270,7 +281,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             applicationEventPublisher,
             pipelineValidator,
             registry,
-            executionConfigurationProperties);
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
 
     // when
     PipelineExecution pipelineExecution =
@@ -326,7 +338,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             applicationEventPublisher,
             pipelineValidator,
             registry,
-            executionConfigurationProperties);
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
 
     // when
     PipelineExecution pipelineExecution =
@@ -360,7 +373,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             applicationEventPublisher,
             pipelineValidator,
             registry,
-            executionConfigurationProperties);
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
 
     // when
     // childPipeline pipeline type should be able to run
@@ -398,7 +412,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             applicationEventPublisher,
             pipelineValidator,
             registry,
-            executionConfigurationProperties);
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
 
     // when
     // childPipeline pipeline type should be able to run
@@ -436,7 +451,8 @@ public class ExecutionLauncherConfigurationTest extends YamlFileApplicationConte
             applicationEventPublisher,
             pipelineValidator,
             registry,
-            executionConfigurationProperties);
+            executionConfigurationProperties,
+            providedIdRequestFilterConfigurationProperties);
 
     // when
     // childPipeline pipeline type should be able to run
