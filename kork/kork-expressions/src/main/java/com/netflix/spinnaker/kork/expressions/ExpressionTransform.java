@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -146,7 +147,8 @@ public class ExpressionTransform {
     return (String) transform(source, evaluationContext, summary, Collections.emptyMap());
   }
 
-  private Object transform(
+  @VisibleForTesting
+  public Object transform(
       Object source,
       EvaluationContext evaluationContext,
       ExpressionEvaluationSummary summary,
