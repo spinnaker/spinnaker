@@ -27,10 +27,10 @@ import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO;
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Clock;
 import java.util.concurrent.Executors;
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
 
 public class SqlPipelineDAOTestConfiguration {
 

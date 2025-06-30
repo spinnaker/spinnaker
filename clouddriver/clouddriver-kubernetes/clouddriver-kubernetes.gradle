@@ -103,6 +103,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation "org.apache.groovy:groovy-templates"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation 'org.springframework.security:spring-security-test'
 
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework.boot:spring-boot-starter-test"

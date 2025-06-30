@@ -24,7 +24,7 @@ import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import rx.Scheduler;
+import io.reactivex.rxjava3.core.Scheduler;
 
 public class DefaultNotificationDAO extends StorageServiceSupport<Notification>
     implements NotificationDAO {
