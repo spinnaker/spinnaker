@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.util.StringUtils;
@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
 @Order(2000)
 @RequiredArgsConstructor
 @NonnullByDefault
-public class X509Config extends WebSecurityConfigurerAdapter {
+public class X509Config {
   private final AuthConfig authConfig;
   private final X509AuthenticationUserDetailsService x509AuthenticationUserDetailsService;
 
@@ -54,10 +54,10 @@ public class X509Config extends WebSecurityConfigurerAdapter {
       onParam_ = {@Value("${x509.subject-principal-regex:}")})
   private String subjectPrincipalRegex;
 
-  @Override
-  public void configure(HttpSecurity http) throws Exception {
+  @Bean
+  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
     authConfig.configure(http);
-    http.securityContext(
+    return http.securityContext(
             context -> context.securityContextRepository(new NullSecurityContextRepository()))
         .x509(
             x509 -> {
@@ -69,7 +69,8 @@ public class X509Config extends WebSecurityConfigurerAdapter {
         // x509 is the catch-all if configured, this will auth apiPort connections and
         // any additional ports that get installed and removes the requestMatcher
         // installed by authConfig
-        .requestMatcher(AnyRequestMatcher.INSTANCE);
+        .securityMatcher(AnyRequestMatcher.INSTANCE)
+        .build();
   }
 
   @Bean

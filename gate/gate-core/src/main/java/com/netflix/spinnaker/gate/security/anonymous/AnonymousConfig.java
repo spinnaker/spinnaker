@@ -29,13 +29,14 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -49,7 +50,7 @@ import org.springframework.util.CollectionUtils;
 @EnableWebSecurity
 @Order(Ordered.LOWEST_PRECEDENCE)
 @RequiredArgsConstructor
-public class AnonymousConfig extends WebSecurityConfigurerAdapter {
+public class AnonymousConfig {
   private static final String key = "spinnaker-anonymous";
   private static final String defaultEmail = "anonymous";
 
@@ -57,16 +58,15 @@ public class AnonymousConfig extends WebSecurityConfigurerAdapter {
   private final FiatStatus fiatStatus;
   @Getter private final List<String> anonymousAllowedAccounts = new CopyOnWriteArrayList<>();
 
-  @Override
-  @SuppressWarnings("deprecation")
-  public void configure(HttpSecurity http) throws Exception {
+  @Bean
+  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
     updateAnonymousAccounts();
     // Not using the ImmutableUser version in order to update allowedAccounts.
     User principal = new User();
     principal.setEmail(defaultEmail);
     principal.setAllowedAccounts(anonymousAllowedAccounts);
 
-    http.anonymous().key(key).principal(principal).and().csrf().disable();
+    return http.anonymous().key(key).principal(principal).and().csrf().disable().build();
   }
 
   @Scheduled(fixedDelay = 60000L)
