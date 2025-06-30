@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.trigger.HelmOciEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import java.util.Collections;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,8 +30,9 @@ import org.springframework.stereotype.Component;
  * new Helm chart is pushed to an OCI registry.
  */
 @Component
-public class HelmOciEventHandler extends AbstractDockerEventHandler<HelmOciEvent> {
+public class HelmOciEventHandler extends AbstractOCIRegistryEventHandler<HelmOciEvent> {
   private static final String TRIGGER_TYPE = "helm/oci";
+  private static final List<String> SUPPORTED_TYPES = Collections.singletonList(TRIGGER_TYPE);
 
   @Autowired
   public HelmOciEventHandler(
@@ -57,5 +60,10 @@ public class HelmOciEventHandler extends AbstractDockerEventHandler<HelmOciEvent
   @Override
   protected String getArtifactType() {
     return "helm/image";
+  }
+
+  @Override
+  public List<String> supportedTriggerTypes() {
+    return SUPPORTED_TYPES;
   }
 }

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
-import com.netflix.spinnaker.echo.model.trigger.AbstractDockerEvent;
+import com.netflix.spinnaker.echo.model.trigger.AbstractOCIRegistryEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collections;
@@ -35,10 +35,10 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @param <T> The specific event type (DockerEvent or HelmOciEvent)
  */
-public abstract class AbstractDockerEventHandler<T extends AbstractDockerEvent>
+public abstract class AbstractOCIRegistryEventHandler<T extends AbstractOCIRegistryEvent>
     extends BaseTriggerEventHandler<T> {
 
-  protected AbstractDockerEventHandler(
+  protected AbstractOCIRegistryEventHandler(
       Registry registry,
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator) {
@@ -52,11 +52,6 @@ public abstract class AbstractDockerEventHandler<T extends AbstractDockerEvent>
   protected abstract String getArtifactType();
 
   @Override
-  public List<String> supportedTriggerTypes() {
-    return Collections.singletonList(getTriggerType());
-  }
-
-  @Override
   public boolean isSuccessfulTriggerEvent(T event) {
     // The event should always report a tag
     String tag = event.getContent().getTag();
@@ -64,9 +59,9 @@ public abstract class AbstractDockerEventHandler<T extends AbstractDockerEvent>
   }
 
   protected List<Artifact> getArtifactsFromEvent(T event, Trigger trigger) {
-    AbstractDockerEvent.Content content = event.getContent();
-    String name = content.getRegistry() + "/" + content.getRepository();
-    String reference = name + ":" + content.getTag();
+    AbstractOCIRegistryEvent.Content content = event.getContent();
+    String name = content.getName();
+    String reference = content.getReference();
     return Collections.singletonList(
         Artifact.builder()
             .type(getArtifactType())
@@ -107,7 +102,7 @@ public abstract class AbstractDockerEventHandler<T extends AbstractDockerEvent>
   }
 
   protected boolean isMatchingTrigger(T event, Trigger trigger) {
-    AbstractDockerEvent.Content content = event.getContent();
+    AbstractOCIRegistryEvent.Content content = event.getContent();
     String account = content.getAccount();
     String repository = content.getRepository();
     String eventTag = content.getTag();

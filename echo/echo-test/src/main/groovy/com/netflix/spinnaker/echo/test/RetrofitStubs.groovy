@@ -101,7 +101,7 @@ trait RetrofitStubs {
       digest = inDigest
     }
     def res = new DockerEvent()
-    res.content = new AbstractDockerEvent.Content("account", "registry", "repository", tag, digest)
+    res.content = new AbstractOCIRegistryEvent.Content("account", "registry", "repository", tag, digest)
     res.details = new Metadata([type: DockerEvent.TYPE, source: "spock"])
     return res
   }
@@ -120,7 +120,7 @@ trait RetrofitStubs {
       digest = inDigest
     }
     def res = new HelmOciEvent()
-    res.content = new AbstractDockerEvent.Content("account", "registry", "repository", tag, digest)
+    res.content = new AbstractOCIRegistryEvent.Content("account", "registry", "repository", tag, digest)
     res.details = new Metadata([type: HelmOciEvent.TYPE, source: "spock"])
     return res
   }

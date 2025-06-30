@@ -21,7 +21,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class HelmOciEvent extends AbstractDockerEvent {
+public class HelmOciEvent extends AbstractOCIRegistryEvent {
   public static final String TYPE = "HELM/OCI";
 
   @Override

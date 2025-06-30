@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class AbstractDockerEvent extends TriggerEvent {
+public abstract class AbstractOCIRegistryEvent extends TriggerEvent {
   /** Get the event type string. */
   public abstract String getEventType();
 
@@ -47,5 +47,23 @@ public abstract class AbstractDockerEvent extends TriggerEvent {
     private String repository;
     private String tag;
     private String digest;
+
+    /**
+     * Get the fully qualified name of the image (registry/repository).
+     *
+     * @return The fully qualified name
+     */
+    public String getName() {
+      return registry + "/" + repository;
+    }
+
+    /**
+     * Get the full reference of the image including tag (registry/repository:tag).
+     *
+     * @return The full reference
+     */
+    public String getReference() {
+      return getName() + ":" + tag;
+    }
   }
 }

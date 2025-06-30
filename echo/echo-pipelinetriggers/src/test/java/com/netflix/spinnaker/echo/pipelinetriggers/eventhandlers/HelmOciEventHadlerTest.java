@@ -28,7 +28,7 @@ import com.netflix.spinnaker.echo.api.events.Metadata;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
-import com.netflix.spinnaker.echo.model.trigger.AbstractDockerEvent;
+import com.netflix.spinnaker.echo.model.trigger.AbstractOCIRegistryEvent;
 import com.netflix.spinnaker.echo.model.trigger.HelmOciEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
@@ -74,7 +74,7 @@ public class HelmOciEventHadlerTest {
   private HelmOciEvent createHelmOciEvent(String tag, String digest) {
     HelmOciEvent event = new HelmOciEvent();
     event.setContent(
-        new AbstractDockerEvent.Content("account", "registry", "repository", tag, digest));
+        new AbstractOCIRegistryEvent.Content("account", "registry", "repository", tag, digest));
     // Initialize details if null
     if (event.getDetails() == null) {
       event.setDetails(new Metadata());

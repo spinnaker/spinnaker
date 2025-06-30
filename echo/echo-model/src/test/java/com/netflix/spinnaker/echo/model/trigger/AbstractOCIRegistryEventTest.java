@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 
-public class AbstractDockerEventTest {
+public class AbstractOCIRegistryEventTest {
 
   @Test
   public void testDockerEventType() {
@@ -42,7 +42,7 @@ public class AbstractDockerEventTest {
     DockerEvent event = new DockerEvent();
 
     // Create and set content
-    AbstractDockerEvent.Content content = new AbstractDockerEvent.Content();
+    AbstractOCIRegistryEvent.Content content = new AbstractOCIRegistryEvent.Content();
     content.setAccount("testAccount");
     content.setRegistry("testRegistry");
     content.setRepository("testRepository");
@@ -65,7 +65,7 @@ public class AbstractDockerEventTest {
     HelmOciEvent event = new HelmOciEvent();
 
     // Create and set content
-    AbstractDockerEvent.Content content = new AbstractDockerEvent.Content();
+    AbstractOCIRegistryEvent.Content content = new AbstractOCIRegistryEvent.Content();
     content.setAccount("testAccount");
     content.setRegistry("testRegistry");
     content.setRepository("testRepository");

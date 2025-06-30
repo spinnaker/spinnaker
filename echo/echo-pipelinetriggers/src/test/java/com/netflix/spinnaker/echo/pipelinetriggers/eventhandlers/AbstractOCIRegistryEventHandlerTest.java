@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
-import com.netflix.spinnaker.echo.model.trigger.AbstractDockerEvent;
+import com.netflix.spinnaker.echo.model.trigger.AbstractOCIRegistryEvent;
 import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
 import com.netflix.spinnaker.echo.model.trigger.HelmOciEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
@@ -39,7 +39,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class AbstractDockerEventHandlerTest {
+public class AbstractOCIRegistryEventHandlerTest {
 
   private Registry registry;
   private ObjectMapper objectMapper;
@@ -72,24 +72,24 @@ public class AbstractDockerEventHandlerTest {
   public void testIsSuccessfulTriggerEvent() {
     // Create Docker event with tag
     DockerEvent dockerEvent = new DockerEvent();
-    AbstractDockerEvent.Content dockerContent = new AbstractDockerEvent.Content();
+    AbstractOCIRegistryEvent.Content dockerContent = new AbstractOCIRegistryEvent.Content();
     dockerContent.setTag("v1.0.0");
     dockerEvent.setContent(dockerContent);
 
     // Create Helm OCI event with tag
     HelmOciEvent helmOciEvent = new HelmOciEvent();
-    AbstractDockerEvent.Content helmOciContent = new AbstractDockerEvent.Content();
+    AbstractOCIRegistryEvent.Content helmOciContent = new AbstractOCIRegistryEvent.Content();
     helmOciContent.setTag("v1.0.0");
     helmOciEvent.setContent(helmOciContent);
 
     // Create events with no tag
     DockerEvent emptyDockerEvent = new DockerEvent();
-    AbstractDockerEvent.Content emptyDockerContent = new AbstractDockerEvent.Content();
+    AbstractOCIRegistryEvent.Content emptyDockerContent = new AbstractOCIRegistryEvent.Content();
     emptyDockerContent.setTag("");
     emptyDockerEvent.setContent(emptyDockerContent);
 
     HelmOciEvent emptyHelmOciEvent = new HelmOciEvent();
-    AbstractDockerEvent.Content emptyHelmOciContent = new AbstractDockerEvent.Content();
+    AbstractOCIRegistryEvent.Content emptyHelmOciContent = new AbstractOCIRegistryEvent.Content();
     emptyHelmOciContent.setTag("");
     emptyHelmOciEvent.setContent(emptyHelmOciContent);
 
@@ -106,7 +106,7 @@ public class AbstractDockerEventHandlerTest {
   public void testGetArtifactsFromEvent() {
     // Create Docker event
     DockerEvent dockerEvent = new DockerEvent();
-    AbstractDockerEvent.Content dockerContent = new AbstractDockerEvent.Content();
+    AbstractOCIRegistryEvent.Content dockerContent = new AbstractOCIRegistryEvent.Content();
     dockerContent.setRegistry("docker.io");
     dockerContent.setRepository("library/nginx");
     dockerContent.setTag("1.19");
@@ -114,7 +114,7 @@ public class AbstractDockerEventHandlerTest {
 
     // Create Helm OCI event
     HelmOciEvent helmOciEvent = new HelmOciEvent();
-    AbstractDockerEvent.Content helmOciContent = new AbstractDockerEvent.Content();
+    AbstractOCIRegistryEvent.Content helmOciContent = new AbstractOCIRegistryEvent.Content();
     helmOciContent.setRegistry("registry.example.com");
     helmOciContent.setRepository("charts/nginx");
     helmOciContent.setTag("1.0.0");
@@ -207,8 +207,9 @@ public class AbstractDockerEventHandlerTest {
     assertFalse(helmOciEventHandler.isValidTrigger(noRepositoryTrigger));
   }
 
-  /** Test implementation of AbstractDockerEventHandler for Docker events. */
-  private static class TestDockerEventHandler extends AbstractDockerEventHandler<DockerEvent> {
+  /** Test implementation of AbstractOCIRegistryEventHandler for Docker events. */
+  private static class TestDockerEventHandler extends AbstractOCIRegistryEventHandler<DockerEvent> {
+    private static final List<String> SUPPORTED_TYPES = Collections.singletonList("docker");
 
     public TestDockerEventHandler(
         Registry registry,
@@ -236,10 +237,17 @@ public class AbstractDockerEventHandlerTest {
     protected String getArtifactType() {
       return "docker/image";
     }
+
+    @Override
+    public List<String> supportedTriggerTypes() {
+      return SUPPORTED_TYPES;
+    }
   }
 
-  /** Test implementation of AbstractDockerEventHandler for Helm OCI events. */
-  private static class TestHelmOciEventHandler extends AbstractDockerEventHandler<HelmOciEvent> {
+  /** Test implementation of AbstractOCIRegistryEventHandler for Helm OCI events. */
+  private static class TestHelmOciEventHandler
+      extends AbstractOCIRegistryEventHandler<HelmOciEvent> {
+    private static final List<String> SUPPORTED_TYPES = Collections.singletonList("helm/oci");
 
     public TestHelmOciEventHandler(
         Registry registry,
@@ -266,6 +274,11 @@ public class AbstractDockerEventHandlerTest {
     @Override
     protected String getArtifactType() {
       return "helm/image";
+    }
+
+    @Override
+    public List<String> supportedTriggerTypes() {
+      return SUPPORTED_TYPES;
     }
   }
 }

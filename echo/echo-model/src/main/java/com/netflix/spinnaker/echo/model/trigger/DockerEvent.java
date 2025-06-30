@@ -21,7 +21,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DockerEvent extends AbstractDockerEvent {
+public class DockerEvent extends AbstractOCIRegistryEvent {
   public static final String TYPE = "DOCKER";
 
   @Override
