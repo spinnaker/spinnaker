@@ -19,7 +19,7 @@ import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.swagger.v3.oas.annotations.Operation
 
 import java.util.concurrent.TimeUnit
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
