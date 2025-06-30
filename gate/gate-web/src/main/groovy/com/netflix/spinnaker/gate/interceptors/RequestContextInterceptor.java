@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.gate.interceptors;
 
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-public class RequestContextInterceptor extends HandlerInterceptorAdapter {
+public class RequestContextInterceptor implements HandlerInterceptor {
 
   private static Pattern applicationPattern = Pattern.compile("/applications/([^/]+)");
   private static Pattern orchestrationMatch = Pattern.compile("/(?:tasks$|tasks/)");
