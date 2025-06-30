@@ -4,7 +4,9 @@ spring:
       matching-strategy: ANT_PATH_MATCHER
   application:
     name: gate
-
+security:
+  webhooks:
+    default-auth-enabled: true
 services:
   clouddriver.baseUrl: "http://localhost:7002"
 
