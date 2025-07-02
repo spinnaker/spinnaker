@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.config.yaml;
+package com.netflix.spinnaker.kork.yaml;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -6,6 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "spinnaker.yaml")
 @Data
 public class YamlParserProperties {
-  private int maxAliasesForCollections;
-  private int codePointLimit;
+  private Integer maxAliasesForCollections;
+  private Integer codePointLimit;
 }

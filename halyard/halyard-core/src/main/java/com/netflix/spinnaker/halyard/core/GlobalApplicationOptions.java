@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import lombok.Data;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +54,7 @@ public class GlobalApplicationOptions {
 
   public static GlobalApplicationOptions getInstance() {
     if (GlobalApplicationOptions.options == null) {
-      Yaml yamlParser = new Yaml(new SafeConstructor());
+      Yaml yamlParser = YamlHelper.newYamlSafeConstructor();
       ObjectMapper objectMapper = new ObjectMapper();
 
       objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

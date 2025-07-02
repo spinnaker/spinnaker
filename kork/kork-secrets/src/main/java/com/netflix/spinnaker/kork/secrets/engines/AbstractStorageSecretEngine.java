@@ -25,7 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import org.yaml.snakeyaml.Yaml;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 
 public abstract class AbstractStorageSecretEngine implements SecretEngine {
   protected static final String STORAGE_BUCKET = "b";
@@ -108,7 +108,7 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
   }
 
   protected void parseAsYaml(String fileURI, InputStream inputStream) {
-    Map<String, Object> parsed = new Yaml().load(inputStream);
+    Map<String, Object> parsed = YamlHelper.newYaml().load(inputStream);
     cache.put(fileURI, parsed);
   }
 
