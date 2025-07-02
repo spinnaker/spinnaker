@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.Executors;
-
-import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -31,8 +30,6 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
-import org.yaml.snakeyaml.representer.Representer;
 
 @Component
 public class ResourceConfig {

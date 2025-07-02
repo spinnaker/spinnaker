@@ -29,11 +29,8 @@ import com.netflix.spinnaker.kork.yaml.YamlHelper
 import groovy.util.logging.Slf4j
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.constructor.SafeConstructor
 
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLSession
