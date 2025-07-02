@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.config.yaml;
+package com.netflix.spinnaker.kork.yaml;
 
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition;

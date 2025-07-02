@@ -20,6 +20,8 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -102,7 +104,7 @@ public class ResourceConfig {
     DumperOptions options = new DumperOptions();
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
     options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
-    return new Yaml(new SafeConstructor(), new Representer(), options);
+    return YamlHelper.newYamlDumperOptions(options);
   }
 
   private String normalizePath(String path) {
