@@ -47,4 +47,4 @@ jobs:
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
           ORG_GRADLE_PROJECT_version: ${{ steps.version.outputs.version }}
         run: |
-          ./gradlew --info -Pgradle.publish.key="${GRADLE_PUBLISH_KEY}" -Pgradle.publish.secret="${GRADLE_PUBLISH_SECRET}" :spinnaker-gradle-project:publishPlugins
+          ./gradlew --info -Pgradle.publish.key="${GRADLE_PUBLISH_KEY}" -Pgradle.publish.secret="${GRADLE_PUBLISH_SECRET}" :spinnaker-gradle-project:publish

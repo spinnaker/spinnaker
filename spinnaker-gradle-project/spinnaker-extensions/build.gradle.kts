@@ -58,6 +58,7 @@ gradlePlugin {
     create("serviceExtension") {
       id = "io.spinnaker.plugin.service-extension"
       implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin"
+      description = "Spinnaker service extension development plugin"
       displayName = "Spinnaker service extension development plugin"
       tags.set(listOf("spinnaker"))
     }
@@ -65,6 +66,7 @@ gradlePlugin {
     create("uiExtension") {
       id = "io.spinnaker.plugin.ui-extension"
       implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerUIExtensionPlugin"
+      description = "Spinnaker UI extension development plugin"
       displayName = "Spinnaker UI extension development plugin"
       tags.set(listOf("spinnaker"))
     }
@@ -72,6 +74,7 @@ gradlePlugin {
     create("bundler") {
       id = "io.spinnaker.plugin.bundler"
       implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerExtensionsBundlerPlugin"
+      description = "Spinnaker extension bundler plugin"
       displayName = "Spinnaker extension bundler plugin"
       tags.set(listOf("spinnaker"))
     }
@@ -79,6 +82,7 @@ gradlePlugin {
     create("compatibilityTestRunner") {
       id = "io.spinnaker.plugin.compatibility-test-runner"
       implementationClass = "com.netflix.spinnaker.gradle.extension.compatibility.SpinnakerCompatibilityTestRunnerPlugin"
+      description = "Spinnaker compatibility test runner"
       displayName = "Spinnaker compatibility test runner"
       tags.set(listOf("spinnaker"))
     }
