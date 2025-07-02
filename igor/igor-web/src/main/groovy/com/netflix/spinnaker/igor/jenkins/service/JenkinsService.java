@@ -49,6 +49,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
@@ -286,7 +287,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
       try (InputStream propertyStream =
           this.getPropertyFile(job, build.getNumber(), path).byteStream()) {
         if (fileName.endsWith(".yml") || fileName.endsWith(".yaml")) {
-          Yaml yml = new Yaml(new SafeConstructor());
+          Yaml yml = YamlHelper.newYamlSafeConstructor();
           map = yml.load(propertyStream);
         } else if (fileName.endsWith(".json")) {
           map = objectMapper.readValue(propertyStream, new TypeReference<Map<String, Object>>() {});

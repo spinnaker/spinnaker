@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.config.yaml;
+package com.netflix.spinnaker.kork.yaml;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

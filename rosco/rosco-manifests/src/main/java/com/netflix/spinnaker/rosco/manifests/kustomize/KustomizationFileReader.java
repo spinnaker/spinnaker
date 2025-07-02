@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.io.IOException;
@@ -91,7 +92,7 @@ public class KustomizationFileReader {
   private Kustomization convert(Artifact artifact) throws IOException {
     Representer representer = new Representer();
     representer.getPropertyUtils().setSkipMissingProperties(true);
-    return new Yaml(new Constructor(Kustomization.class), representer).load(downloadFile(artifact));
+    return YamlHelper.newYamlRepresenter(new Constructor(Kustomization.class), representer).load(downloadFile(artifact));
   }
 
   private InputStream downloadFile(Artifact artifact) throws IOException {
