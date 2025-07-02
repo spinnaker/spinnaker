@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.okhttp;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
@@ -32,6 +34,8 @@ import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import retrofit2.Call;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -133,6 +138,67 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
     assertThat(queryParams[2]).isEqualTo("");
   }
 
+  @Test
+  public void testRepeatingQueryParams() throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    List<String> qry1List =
+        List.of("/*/action", "/*/build", "/*/property[not(parameterDefinition)");
+    String qry2 = "qryVal2";
+    List<String> qry3List = List.of("foo", "bar");
+    String expectedUrl =
+        "/test/get?qry1="
+            + encodedString("/*/action")
+            + "&qry1="
+            + encodedString("/*/build")
+            + "&qry1="
+            + encodedString("/*/property[not(parameterDefinition)")
+            + "&qry2="
+            + encodedString("qryVal2")
+            + "&qry3="
+            + encodedString("foo")
+            + "&qry3="
+            + encodedString("bar");
+    String incorrectUrl =
+        "/test/get?qry1="
+            + encodedString("/*/action")
+            + "&qry2="
+            + encodedString("qryVal2")
+            + "&qry3="
+            + encodedString("foo");
+    List<String> expectedResponse =
+        Stream.concat(Stream.concat(qry1List.stream(), qry3List.stream()), Stream.of(qry2))
+            .toList();
+    List<String> incorrectResponse = List.of("/*/action", "qryVal2", "foo");
+
+    // return all the received query param values as list for both the correct and incorrect URLs
+    wireMock.stubFor(
+        get(expectedUrl)
+            .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
+
+    wireMock.stubFor(
+        get(incorrectUrl)
+            .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(incorrectResponse))));
+
+    OkHttpClient okHttpClient =
+        okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
+    QueryParamTestService service =
+        new Retrofit.Builder()
+            .baseUrl(endpoint.getBaseUrl())
+            .client(okHttpClient)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+            .create(QueryParamTestService.class);
+
+    List<String> result =
+        service.getQueryParamTestRequest(qry1List, qry2, qry3List).execute().body();
+
+    assertThat(result).contains("/*/action", "qryVal2", "foo");
+
+    // FIXME: the following list of strings are skipped in the encoding process. Fix this.
+    assertThat(result).doesNotContain("/*/build", "/*/property[not(parameterDefinition)", "bar");
+    assertThat(result).hasSize(3); // supposed to be 6
+  }
+
   private Retrofit2Service getRetrofit2Service(String baseUrl, OkHttpClient okHttpClient) {
 
     return new Retrofit.Builder()
@@ -168,5 +234,13 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
         @Query(value = "qry1", encoded = true) String qry1,
         @Query(value = "qry2", encoded = true) String qry2,
         @Query(value = "qry3", encoded = true) String qry3);
+  }
+
+  interface QueryParamTestService {
+    @GET("test/get")
+    Call<List<String>> getQueryParamTestRequest(
+        @Query(value = "qry1", encoded = true) List<String> qry1,
+        @Query(value = "qry2", encoded = true) String qry2,
+        @Query(value = "qry3", encoded = true) List<String> qry3);
   }
 }
