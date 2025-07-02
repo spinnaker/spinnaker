@@ -185,6 +185,52 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
     assertThat(result).containsAll(expectedResponse);
   }
 
+  @Test
+  public void testRepeatingQueryParams_withinUrl() throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    List<String> qry1List =
+        List.of("/*/action", "/*/build", "/*/property[not(parameterDefinition)");
+    String qry2 = "qryVal2";
+    List<String> qry3List = List.of("foo", "bar");
+    String expectedUrl =
+        "/test/get?qry1="
+            + encodedString("/*/action")
+            + "&qry1="
+            + encodedString("/*/build")
+            + "&qry1="
+            + encodedString("/*/property[not(parameterDefinition)")
+            + "&qry2="
+            + encodedString("qryVal2")
+            + "&qry3="
+            + encodedString("foo")
+            + "&qry3="
+            + encodedString("bar");
+
+    List<String> expectedResponse =
+        Stream.concat(Stream.concat(qry1List.stream(), qry3List.stream()), Stream.of(qry2))
+            .toList();
+
+    // return all the received query param values as list
+    wireMock.stubFor(
+        get(expectedUrl)
+            .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
+
+    OkHttpClient okHttpClient =
+        okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
+    QueryParamTestService service =
+        new Retrofit.Builder()
+            .baseUrl(endpoint.getBaseUrl())
+            .client(okHttpClient)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+            .create(QueryParamTestService.class);
+
+    List<String> result = service.getQueryParamTestRequest2().execute().body();
+
+    assertThat(result).hasSize(6);
+    assertThat(result).containsAll(expectedResponse);
+  }
+
   private Retrofit2Service getRetrofit2Service(String baseUrl, OkHttpClient okHttpClient) {
 
     return new Retrofit.Builder()
@@ -228,5 +274,9 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
         @Query(value = "qry1", encoded = true) List<String> qry1,
         @Query(value = "qry2", encoded = true) String qry2,
         @Query(value = "qry3", encoded = true) List<String> qry3);
+
+    @GET(
+        "test/get?qry1=/*/action&qry1=/*/build&qry1=/*/property[not(parameterDefinition)&qry2=qryVal2&qry3=foo&qry3=bar")
+    Call<List<String>> getQueryParamTestRequest2();
   }
 }
