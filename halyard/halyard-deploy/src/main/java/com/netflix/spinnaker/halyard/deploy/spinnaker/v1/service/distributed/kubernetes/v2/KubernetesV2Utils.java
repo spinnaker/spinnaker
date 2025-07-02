@@ -37,6 +37,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -164,12 +166,12 @@ public class KubernetesV2Utils {
   }
 
   public String prettify(String input) {
-    Yaml yaml = new Yaml(new SafeConstructor());
+    Yaml yaml = YamlHelper.newYamlSafeConstructor();
     return yaml.dump(yaml.load(input));
   }
 
   public Map<String, Object> parseManifest(String input) {
-    Yaml yaml = new Yaml(new SafeConstructor());
+    Yaml yaml = YamlHelper.newYamlSafeConstructor();
     return mapper.convertValue(yaml.load(input), new TypeReference<Map<String, Object>>() {});
   }
 
