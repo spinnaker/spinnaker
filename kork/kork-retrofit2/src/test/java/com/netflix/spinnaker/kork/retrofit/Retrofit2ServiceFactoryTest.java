@@ -23,8 +23,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,7 +38,6 @@ import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
-import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
@@ -220,14 +217,8 @@ public class Retrofit2ServiceFactoryTest {
     assertDoesNotThrow(
         () -> serviceClientProvider.getService(Retrofit2TestService.class, serviceEndpoint));
 
-    // FIXME: This should not throw exception
-    Throwable thrown =
-        catchThrowable(
-            () ->
-                serviceClientProvider.getService(Retrofit2CallTestService.class, serviceEndpoint));
-    assertThat(thrown).isInstanceOf(SystemException.class);
-    assertThat(thrown.getMessage())
-        .contains("No service client provider found for url (http://localhost:1234)");
+    assertDoesNotThrow(
+        () -> serviceClientProvider.getService(Retrofit2CallTestService.class, serviceEndpoint));
   }
 
   @Configuration
