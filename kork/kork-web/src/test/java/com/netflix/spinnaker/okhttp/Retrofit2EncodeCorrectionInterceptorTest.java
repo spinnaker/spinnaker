@@ -158,26 +158,15 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
             + encodedString("foo")
             + "&qry3="
             + encodedString("bar");
-    String incorrectUrl =
-        "/test/get?qry1="
-            + encodedString("/*/action")
-            + "&qry2="
-            + encodedString("qryVal2")
-            + "&qry3="
-            + encodedString("foo");
+
     List<String> expectedResponse =
         Stream.concat(Stream.concat(qry1List.stream(), qry3List.stream()), Stream.of(qry2))
             .toList();
-    List<String> incorrectResponse = List.of("/*/action", "qryVal2", "foo");
 
-    // return all the received query param values as list for both the correct and incorrect URLs
+    // return all the received query param values as list
     wireMock.stubFor(
         get(expectedUrl)
             .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
-
-    wireMock.stubFor(
-        get(incorrectUrl)
-            .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(incorrectResponse))));
 
     OkHttpClient okHttpClient =
         okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
@@ -192,11 +181,8 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
     List<String> result =
         service.getQueryParamTestRequest(qry1List, qry2, qry3List).execute().body();
 
-    assertThat(result).contains("/*/action", "qryVal2", "foo");
-
-    // FIXME: the following list of strings are skipped in the encoding process. Fix this.
-    assertThat(result).doesNotContain("/*/build", "/*/property[not(parameterDefinition)", "bar");
-    assertThat(result).hasSize(3); // supposed to be 6
+    assertThat(result).hasSize(6);
+    assertThat(result).containsAll(expectedResponse);
   }
 
   private Retrofit2Service getRetrofit2Service(String baseUrl, OkHttpClient okHttpClient) {
