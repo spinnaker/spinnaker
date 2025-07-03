@@ -17,45 +17,37 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.BuildService
+import com.netflix.spinnaker.gate.Main
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import groovy.json.JsonSlurper
-import okhttp3.mockwebserver.MockWebServer
+import org.spockframework.spring.SpringBean
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
-
+import retrofit2.mock.Calls
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
+@SpringBootTest(classes = Main)
+@TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml"])
+@AutoConfigureMockMvc
 class BuildControllerSpec extends Specification {
 
-  MockMvc mockMvc
-  BuildService buildService
-  IgorService igorService
-
-  def server = new MockWebServer()
-
+  @Autowired
+  private MockMvc mockMvc
+  @SpringBean IgorService igorService = Mock()
   @Shared def MASTER = 'MASTER'
   @Shared def BUILD_NUMBER = 123
   @Shared def JOB_NAME = "name/with/slashes and spaces"
   @Shared def JOB_NAME_LEGACY = "job"
   @Shared def JOB_NAME_ENCODED = "name/with/slashes%20and%20spaces"
 
-  void cleanup() {
-    server.shutdown()
-  }
-
-  void setup() {
-    igorService = Mock(IgorService)
-    buildService = new BuildService(igorService: igorService)
-    server.start()
-    mockMvc = MockMvcBuilders.standaloneSetup(new BuildController(buildService: buildService)).build()
-  }
 
   @Unroll
   void 'should get a list of masters'() {

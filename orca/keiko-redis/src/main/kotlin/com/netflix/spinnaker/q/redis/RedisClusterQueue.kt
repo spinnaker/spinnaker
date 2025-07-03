@@ -360,11 +360,14 @@ class RedisClusterQueue(
   fun JedisCluster.multi(block: Transaction.() -> Unit) =
     getConnectionFromSlot(JedisClusterCRC16.getSlot(queueKey))
       .use { c ->
-        c.multi()
-          .let { tx ->
-            tx.block()
-            tx.exec()
-          }
+        // Send MULTI command to start a transaction
+        c.sendCommand(redis.clients.jedis.Protocol.Command.MULTI)
+        // Wrap the connection in a Transaction object
+        val tx = Transaction(c)
+        // Execute the block on the Transaction
+        tx.block()
+        // Commit the transaction
+        tx.exec()
       }
 
   private fun ackMessage(fingerprint: String) {

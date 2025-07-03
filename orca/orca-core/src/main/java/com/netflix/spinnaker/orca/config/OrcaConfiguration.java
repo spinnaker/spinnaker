@@ -50,6 +50,8 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionRunner;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Collection;
@@ -73,8 +75,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
 
 @Configuration
 @ComponentScan({

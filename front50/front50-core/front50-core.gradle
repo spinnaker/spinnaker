@@ -24,10 +24,10 @@ dependencies {
   implementation "org.springframework.security:spring-security-web"
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-retrofit"
-  implementation "io.reactivex:rxjava"
+  implementation "io.reactivex.rxjava3:rxjava"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.squareup.retrofit:converter-jackson"
-  implementation "javax.validation:validation-api"
+  implementation "jakarta.validation:jakarta.validation-api"
   implementation "org.hibernate.validator:hibernate-validator"
   api "com.github.ben-manes.caffeine:guava"
 

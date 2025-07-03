@@ -5,7 +5,7 @@ dependencies {
 
   implementation "com.google.guava:guava"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
-  implementation "org.springdoc:springdoc-openapi-ui"
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui"
   implementation "org.springframework:spring-webmvc"
   implementation "io.swagger.core.v3:swagger-annotations"
   implementation "io.swagger.core.v3:swagger-core"

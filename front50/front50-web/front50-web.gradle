@@ -38,7 +38,7 @@ dependencies {
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "io.swagger.core.v3:swagger-annotations"
   implementation "commons-codec:commons-codec"
-  implementation "javax.validation:validation-api"
+  implementation "jakarta.validation:jakarta.validation-api"
 
   runtimeOnly "io.spinnaker.kork:kork-runtime"
 
@@ -46,7 +46,7 @@ dependencies {
   testImplementation project(":front50-test")
   testImplementation project(":front50-sql")
   testImplementation "io.spinnaker.kork:kork-sql-test"
-  testImplementation "io.reactivex:rxjava"
+  testImplementation "io.reactivex.rxjava3:rxjava"
   testImplementation "org.apache.groovy:groovy-json"
 
   // Add each included cloud provider project as a runtime dependency
