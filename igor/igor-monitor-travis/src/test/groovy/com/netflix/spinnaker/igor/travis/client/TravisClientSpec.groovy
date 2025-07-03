@@ -30,7 +30,6 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.config.TravisConfig
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import spock.lang.Shared
@@ -830,7 +829,7 @@ class TravisClientSpec extends Specification {
         )
         server.start()
         OkHttp3ClientConfiguration okHttpClientConfig = new OkHttp3ClientConfiguration(
-            new OkHttpClientConfigurationProperties(), null, HttpLoggingInterceptor.Level.BASIC, null, null, null);
+            new OkHttpClientConfigurationProperties(), [], [], null);
         client = new TravisConfig().travisClient(server.url('/').toString(), 3000, mapper, okHttpClientConfig)
     }
 }

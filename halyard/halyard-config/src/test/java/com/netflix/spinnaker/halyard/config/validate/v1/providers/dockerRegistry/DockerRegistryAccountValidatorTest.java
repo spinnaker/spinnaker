@@ -24,6 +24,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.config.DefaultServiceClientProvider;
+import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientConfiguration;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -33,6 +38,7 @@ import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import com.netflix.spinnaker.kork.docker.model.DockerBearerToken;
 import com.netflix.spinnaker.kork.docker.model.DockerRegistryCatalog;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration;
 import com.netflix.spinnaker.kork.secrets.SecretEngineRegistry;
 import com.netflix.spinnaker.kork.secrets.SecretManager;
 import java.util.List;
@@ -40,6 +46,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
@@ -54,6 +61,14 @@ import org.springframework.context.annotation.Configuration;
       FileService.class,
       ConfigFileService.class,
       CloudConfigResourceService.class,
+      DefaultServiceClientProvider.class,
+      Retrofit2ServiceFactoryAutoConfiguration.class,
+      OkHttpClientProvider.class,
+      DefaultOkHttpClientBuilderProvider.class,
+      RawOkHttpClientConfiguration.class,
+      NoopRegistry.class,
+      TaskExecutorBuilder.class,
+      ObjectMapper.class,
       DockerRegistryAccountValidatorTest.TestConfig.class
     })
 public class DockerRegistryAccountValidatorTest {

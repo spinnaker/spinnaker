@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
-import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor
 import okhttp3.Dispatcher
-import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.Interceptor
 import org.springframework.beans.factory.ObjectFactory
+import org.springframework.beans.factory.annotation.Qualifier
 
 import static com.google.common.base.Preconditions.checkState
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
@@ -48,47 +47,29 @@ import java.util.concurrent.TimeUnit
 @Component
 class OkHttp3ClientConfiguration {
   private final OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
-  private final OkHttp3MetricsInterceptor okHttp3MetricsInterceptor
+  private final List<Interceptor> commonInterceptors;
+  private final List<Interceptor> retrofit2Interceptors;
   private final ObjectFactory<OkHttpClient.Builder> httpClientBuilderFactory
-
-  /**
-   * Logging level for retrofit2 client calls
-  */
-  private final HttpLoggingInterceptor.Level retrofit2LogLevel
-
-  /**
-   *  {@link okhttp3.Interceptor} which adds spinnaker auth headers to requests when retrofit2 client used
-   */
-  private final SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor
-
-  /**
-   * {@link okhttp3.Interceptor} for correcting partial encoding done by Retrofit2.  Do not use in retrofit1.
-   */
-  private final Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor
 
   @Autowired
   OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-                             OkHttp3MetricsInterceptor okHttp3MetricsInterceptor,
-                             HttpLoggingInterceptor.Level retrofit2LogLevel,
-                             SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor,
-                             Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor,
+                             @Qualifier("retrofit-common") List<Interceptor> commonInterceptors,
+                             @Qualifier("retrofit2") List<Interceptor> retrofit2Interceptors,
                              ObjectFactory<OkHttpClient.Builder> httpClientBuilderFactory) {
     this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
-    this.okHttp3MetricsInterceptor = okHttp3MetricsInterceptor
-    this.retrofit2LogLevel = retrofit2LogLevel
-    this.spinnakerRequestHeaderInterceptor = spinnakerRequestHeaderInterceptor
-    this.retrofit2EncodeCorrectionInterceptor = retrofit2EncodeCorrectionInterceptor
+    this.commonInterceptors = commonInterceptors
+    this.retrofit2Interceptors = retrofit2Interceptors
     this.httpClientBuilderFactory = httpClientBuilderFactory
   }
 
   public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
                                     OkHttp3MetricsInterceptor okHttp3MetricsInterceptor) {
-    this(okHttpClientConfigurationProperties, okHttp3MetricsInterceptor, null, null, null,
+    this(okHttpClientConfigurationProperties, [], [okHttp3MetricsInterceptor] as List<Interceptor>,
       { new OkHttpClient.Builder() })
   }
 
   public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
-    this(okHttpClientConfigurationProperties, null)
+    this(okHttpClientConfigurationProperties, [], [], { new OkHttpClient.Builder() })
   }
 
   /**
@@ -102,8 +83,8 @@ class OkHttp3ClientConfiguration {
 
     OkHttpClient.Builder okHttpClientBuilder = createBasicClient()
 
-    if (okHttp3MetricsInterceptor != null) {
-      okHttpClientBuilder.addInterceptor(okHttp3MetricsInterceptor)
+    commonInterceptors.each {
+      okHttpClientBuilder.addInterceptor(it)
     }
 
     if (!okHttpClientConfigurationProperties.keyStore && !okHttpClientConfigurationProperties.trustStore) {
@@ -119,34 +100,21 @@ class OkHttp3ClientConfiguration {
    */
   OkHttpClient.Builder createForRetrofit2() {
     if (okHttpClientConfigurationProperties.refreshableKeys.enabled) {
-      // already configured via OkHttpClientCustomizer beans
+      retrofit2Interceptors.each {
+        httpClientBuilderFactory.object.addInterceptor(it)
+      }
       return httpClientBuilderFactory.object
     }
 
     OkHttpClient.Builder okHttpClientBuilder = createBasicClient()
 
-    /**
-     * {@link okhttp3.Interceptor} are sequential, insert spinnakerRequestHeaderInterceptor initially,
-     * so next okhttp interceptor aware of these spinnaker auth headers when retrofit2 client used.
-     */
-    if (spinnakerRequestHeaderInterceptor != null) {
-      okHttpClientBuilder.addInterceptor(spinnakerRequestHeaderInterceptor)
+    commonInterceptors.each {
+      okHttpClientBuilder.addInterceptor(it)
     }
 
-    if (okHttp3MetricsInterceptor != null) {
-      okHttpClientBuilder.addInterceptor(okHttp3MetricsInterceptor)
+    retrofit2Interceptors.each {
+      okHttpClientBuilder.addInterceptor(it)
     }
-
-    if (retrofit2EncodeCorrectionInterceptor != null) {
-      okHttpClientBuilder.addInterceptor(retrofit2EncodeCorrectionInterceptor)
-    }
-
-    /**
-     * The logging functionality was removed in Retrofit2, since the required HTTP layer is now completely based on OkHttp.
-     * Recommend to add logging as the last interceptor, because this will also log the information
-     * which you added with previous interceptors to your request.
-     */
-    okHttpClientBuilder.addInterceptor(new HttpLoggingInterceptor().setLevel(retrofit2LogLevel))
 
     if (!okHttpClientConfigurationProperties.keyStore && !okHttpClientConfigurationProperties.trustStore) {
       return okHttpClientBuilder

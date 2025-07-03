@@ -21,7 +21,6 @@ import brave.Tracing
 import brave.http.HttpTracing
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.RetrofitConfiguration
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory
@@ -59,7 +58,6 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
             TaskExecutionAutoConfiguration::class.java,
             DefaultOkHttpClientBuilderProvider::class.java,
             OkHttpClientComponents::class.java,
-            RetrofitConfiguration::class.java,
             TestConfiguration::class.java
           ))
       }
@@ -89,7 +87,7 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
                 .getClient(DefaultServiceEndpoint("retrofit1", "https://www.test.com"))
                 .interceptors
                 .count { it is Retrofit2EncodeCorrectionInterceptor }
-            ).isEqualTo(1) //FIXME: should be 0
+            ).isEqualTo(0)
           }
         }
       }
