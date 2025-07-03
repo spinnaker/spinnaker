@@ -7,7 +7,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
   implementation "org.apache.groovy:groovy-json"
-  implementation "org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure"
+  implementation "org.springframework.boot:spring-boot-starter-oauth2-client"
   implementation "org.springframework.session:spring-session-core"
 
   testImplementation "com.squareup.retrofit2:retrofit-mock"
