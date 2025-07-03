@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2025 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DockerEvent extends AbstractOCIRegistryEvent {
-  public static final String TYPE = "DOCKER";
+public class HelmOciEvent extends AbstractOCIRegistryEvent {
+  public static final String TYPE = "HELM/OCI";
 
   @Override
   public String getEventType() {
