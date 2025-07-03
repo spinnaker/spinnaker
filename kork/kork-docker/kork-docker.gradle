@@ -6,6 +6,7 @@ dependencies {
 
   implementation project(":kork-annotations")
   implementation project(":kork-retrofit")
+  implementation project(":kork-retrofit2")
   implementation project(":kork-exceptions")
   implementation project(":kork-web")
 

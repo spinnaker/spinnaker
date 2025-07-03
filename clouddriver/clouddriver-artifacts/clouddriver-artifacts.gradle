@@ -33,6 +33,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.kork:kork-docker"
   implementation "io.spinnaker.kork:kork-web"
