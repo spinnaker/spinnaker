@@ -32,7 +32,6 @@ dependencies {
   implementation(project(":orca-deploymentmonitor"))
   implementation("io.spinnaker.kork:kork-moniker")
   implementation("io.spinnaker.kork:kork-retrofit")
-  implementation("io.spinnaker.kork:kork-retrofit2")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("io.kubernetes:client-java")
   implementation("com.amazonaws:aws-java-sdk-lambda")
@@ -62,11 +61,8 @@ dependencies {
   testImplementation("io.strikt:strikt-core")
   testImplementation("io.mockk:mockk")
   testImplementation("ru.lanwen.wiremock:wiremock-junit5:1.3.1")
-<<<<<<< HEAD
-=======
   testImplementation("com.squareup.retrofit2:retrofit")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
->>>>>>> bf30261697 (fix(retrofit2): fix a broken scenario related to LegacySignatureCallAdapter (#7131))
 
   testCompileOnly("org.projectlombok:lombok")
   testAnnotationProcessor("org.projectlombok:lombok")
