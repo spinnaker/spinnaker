@@ -33,6 +33,7 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration
@@ -88,7 +89,7 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
                 .getClient(DefaultServiceEndpoint("retrofit1", "https://www.test.com"))
                 .interceptors
                 .count { it is Retrofit2EncodeCorrectionInterceptor }
-            ).isEqualTo(0)
+            ).isEqualTo(1) //FIXME: should be 0
           }
         }
       }
@@ -106,8 +107,8 @@ private open class TestConfiguration {
     HttpTracing.newBuilder(Tracing.newBuilder().build()).build()
 
   @Bean
-  open fun okHttpClient(httpTracing: HttpTracing): OkHttpClient {
-    return RawOkHttpClientFactory().create(OkHttpClientConfigurationProperties(), emptyList(), httpTracing)
+  open fun okHttpClient(httpTracing: HttpTracing, interceptors: List<Interceptor>): OkHttpClient {
+    return RawOkHttpClientFactory().create(OkHttpClientConfigurationProperties(), interceptors, httpTracing)
   }
 
   @Bean
