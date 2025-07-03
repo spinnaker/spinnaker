@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -208,6 +209,18 @@ public class Retrofit2ServiceFactoryTest {
         exception.getMessage());
   }
 
+  @Test
+  void testRetrofit2Client_withLegacySignatureCallAdapter() {
+    ServiceEndpoint serviceEndpoint =
+        new DefaultServiceEndpoint("retrofit2service", "http://localhost:1234");
+
+    assertDoesNotThrow(
+        () -> serviceClientProvider.getService(Retrofit2TestService.class, serviceEndpoint));
+
+    assertDoesNotThrow(
+        () -> serviceClientProvider.getService(Retrofit2CallTestService.class, serviceEndpoint));
+  }
+
   @Configuration
   public static class Retrofit2TestConfig {
 
@@ -222,5 +235,11 @@ public class Retrofit2ServiceFactoryTest {
 
     @GET("test")
     Call<Map<String, String>> getSomething();
+  }
+
+  public interface Retrofit2CallTestService {
+
+    @GET("nocall")
+    Map<String, String> getNoCall();
   }
 }
