@@ -67,7 +67,7 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
         run { ctx: AssertableApplicationContext ->
           expect {
             that(ctx.getBeansOfType(ServiceClientProvider::class.java)).get { size }.isEqualTo(1)
-            that(ctx.getBean(ServiceClientProvider::class.java).getService(Retrofit1Service::class.java, DefaultServiceEndpoint("retrofit1", "https://www.test.com"))).isA<Retrofit1Service>()
+            that(ctx.getBean(ServiceClientProvider::class.java).getService(Retrofit1Service::class.java, DefaultServiceEndpoint("retrofit1", "https://www.test.com"), ServiceClientProvider.RetrofitVersion.RETROFIT1)).isA<Retrofit1Service>()
           }
         }
       }
