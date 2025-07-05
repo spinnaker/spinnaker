@@ -60,7 +60,7 @@ public class Retrofit2TestConfig {
 
   @Bean
   public ServiceClientFactory serviceClientFactory(OkHttpClientProvider okHttpClientProvider) {
-    return new Retrofit2ServiceFactory(okHttpClientProvider);
+    return new Retrofit2ServiceFactory(okHttpClientProvider, List.of());
   }
 
   @Bean

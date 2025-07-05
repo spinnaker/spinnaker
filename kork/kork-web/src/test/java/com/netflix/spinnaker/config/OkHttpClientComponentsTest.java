@@ -45,9 +45,9 @@ class OkHttpClientComponentsTest {
   void verifyValidConfiguration() {
     runner.run(
         ctx -> {
-          assertThat(ctx).hasSingleBean(SpinnakerRequestInterceptor.class);
-          assertThat(ctx).hasSingleBean(SpinnakerRequestHeaderInterceptor.class);
-          assertThat(ctx).hasSingleBean(Retrofit2EncodeCorrectionInterceptor.class);
+          assertThat(ctx).doesNotHaveBean(SpinnakerRequestInterceptor.class);
+          assertThat(ctx).doesNotHaveBean(SpinnakerRequestHeaderInterceptor.class);
+          assertThat(ctx).doesNotHaveBean(Retrofit2EncodeCorrectionInterceptor.class);
           assertThat(ctx).hasSingleBean(OkHttp3MetricsInterceptor.class);
         });
   }

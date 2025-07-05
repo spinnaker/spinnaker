@@ -31,6 +31,7 @@ import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
@@ -114,7 +115,7 @@ class FunctionalSpec extends Specification {
     System.setProperty("spring.profiles.active", "test")
     System.setProperty("retrofit.enabled", "false")
     def spring = new SpringApplication()
-    spring.setSources([FunctionalConfiguration, OkHttpClientProvider] as Set)
+    spring.setSources([FunctionalConfiguration, OkHttpClientProvider, Retrofit2ServiceFactoryAutoConfiguration] as Set)
     ctx = spring.run()
 
     def localPort = ctx.environment.getProperty("local.server.port")

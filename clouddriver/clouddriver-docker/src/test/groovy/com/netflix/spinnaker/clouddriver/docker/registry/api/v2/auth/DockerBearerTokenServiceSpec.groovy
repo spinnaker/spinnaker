@@ -35,7 +35,7 @@ import spock.lang.Specification
 
 
 @SpringBootTest(
-  classes = [OkHttpClientConfigurationProperties, Retrofit2ServiceFactory, ServiceClientProvider, OkHttpClientProvider,
+  classes = [Retrofit2ServiceFactory, ServiceClientProvider, OkHttpClientProvider,
     Retrofit2EncodeCorrectionInterceptor, OkHttpClient, DefaultServiceClientProvider,  DefaultOkHttpClientBuilderProvider,
     Retrofit2ServiceFactoryAutoConfiguration, ObjectMapper],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
