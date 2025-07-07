@@ -29,7 +29,7 @@ import com.netflix.spinnaker.keel.resources.SpecMigrator
 import com.netflix.spinnaker.keel.titus.jackson.registerKeelTitusApiModule
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * Component that wraps up keel configuration once all other beans have been instantiated.
