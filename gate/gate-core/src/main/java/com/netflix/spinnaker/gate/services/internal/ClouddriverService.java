@@ -207,6 +207,14 @@ public interface ClouddriverService {
       @Path("imageId") String imageId);
 
   @Headers("Accept: application/json")
+  @GET("/{provider}/charts/{account}/{region}/{imageId}")
+  Call<List<Map>> getChartImageDetails(
+      @Path("provider") String provider,
+      @Path("account") String account,
+      @Path("region") String region,
+      @Path("imageId") String imageId);
+
+  @Headers("Accept: application/json")
   @GET("/projects/{project}/clusters")
   Call<List<Map>> getProjectClusters(@Path("project") String project);
 
@@ -230,8 +238,25 @@ public interface ClouddriverService {
       @QueryMap Map<String, String> additionalFilters);
 
   @Headers("Accept: application/json")
+  @GET("/{provider}/charts/find")
+  Call<List<Map>> findChartImages(
+      @Path("provider") String provider,
+      @Query("q") String query,
+      @Query("region") String region,
+      @Query("account") String account,
+      @Query("count") Integer count,
+      @QueryMap Map<String, String> additionalFilters);
+
+  @Headers("Accept: application/json")
   @GET("/{provider}/images/tags")
   Call<List<String>> findTags(
+      @Path("provider") String provider,
+      @Query("account") String account,
+      @Query("repository") String repository);
+
+  @Headers("Accept: application/json")
+  @GET("/{provider}/charts/tags")
+  Call<List<String>> findChartTags(
       @Path("provider") String provider,
       @Query("account") String account,
       @Query("repository") String repository);
