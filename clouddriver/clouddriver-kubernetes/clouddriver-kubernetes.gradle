@@ -137,8 +137,8 @@ task integrationTest(type: Test) {
   testlogger {
     theme 'standard'
     showStandardStreams true
-    showPassedStandardStreams false
+    showPassedStandardStreams true
     showFailedStandardStreams true
-    showPassed false
+    showPassed true
   }
 }
