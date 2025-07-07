@@ -40,3 +40,36 @@ export class DockerImageReader {
       .catch((): string[] => []);
   }
 }
+
+export class DockerChartImageReader {
+  public static getImage(imageName: string, region: string, credentials: string): PromiseLike<IDockerImage> {
+    return REST('/charts')
+      .path(credentials, region, imageName)
+      .query({ provider: 'docker' })
+      .get()
+      .then((results: IDockerImage[]) => (results && results.length ? results[0] : null))
+      .catch((): IDockerImage => null);
+  }
+
+  public static findImages(params: IFindImageParams): PromiseLike<IDockerImage[]> {
+    return RetryService.buildRetrySequence<IDockerImage[]>(
+      () => REST('/charts/find').query(params).get(),
+      (results: IDockerImage[]) => results.length > 0,
+      10,
+      1000,
+    )
+      .then((results: IDockerImage[]) => results)
+      .catch((): IDockerImage[] => []);
+  }
+
+  public static findTags(params: IFindTagsParams): PromiseLike<string[]> {
+    return RetryService.buildRetrySequence<string[]>(
+      () => REST('/charts/tags').query(params).get(),
+      (results: string[]) => results.length > 0,
+      10,
+      1000,
+    )
+      .then((results: string[]) => results)
+      .catch((): string[] => []);
+  }
+}
