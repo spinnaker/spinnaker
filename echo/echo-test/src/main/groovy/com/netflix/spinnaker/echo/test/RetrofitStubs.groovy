@@ -44,6 +44,8 @@ trait RetrofitStubs {
 
   final Trigger enabledDockerTrigger = Trigger.builder().enabled(true).type('docker').account('account').repository('repository').tag('tag').build()
   final Trigger disabledDockerTrigger = Trigger.builder().enabled(false).type('docker').account('account').repository('repository').tag('tag').build()
+  final Trigger enabledHelmOciTrigger = Trigger.builder().enabled(true).type('helm/oci').account('account').repository('repository').tag('tag').build()
+  final Trigger disabledHelmOciTrigger = Trigger.builder().enabled(false).type('helm/oci').account('account').repository('repository').tag('tag').build()
   final Trigger enabledWebhookTrigger = Trigger.builder().enabled(true).type('webhook').build()
   final Trigger disabledWebhookTrigger = Trigger.builder().enabled(false).type('webhook').build()
   final Trigger nonWebhookTrigger = Trigger.builder().enabled(true).type('not webhook').build()
@@ -99,8 +101,27 @@ trait RetrofitStubs {
       digest = inDigest
     }
     def res = new DockerEvent()
-    res.content = new DockerEvent.Content("account", "registry", "repository", tag, digest)
+    res.content = new AbstractOCIRegistryEvent.Content("account", "registry", "repository", tag, digest)
     res.details = new Metadata([type: DockerEvent.TYPE, source: "spock"])
+    return res
+  }
+
+  HelmOciEvent createHelmOciEvent(String inTag) {
+    return createHelmOciEvent(inTag, null)
+  }
+
+  HelmOciEvent createHelmOciEvent(String inTag, String inDigest) {
+    def tag = "tag"
+    if (inTag) {
+      tag = inTag
+    }
+    def digest = "sha"
+    if (inDigest) {
+      digest = inDigest
+    }
+    def res = new HelmOciEvent()
+    res.content = new AbstractOCIRegistryEvent.Content("account", "registry", "repository", tag, digest)
+    res.details = new Metadata([type: HelmOciEvent.TYPE, source: "spock"])
     return res
   }
 
