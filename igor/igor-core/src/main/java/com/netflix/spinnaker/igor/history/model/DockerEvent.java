@@ -29,10 +29,25 @@ public class DockerEvent extends Event {
   private Content content;
   private GenericArtifact artifact;
 
+  public static final String DEFAULT_TYPE = "docker";
+
   public DockerEvent() {
     details = new HashMap<>(2);
-    details.put("type", "docker");
+    details.put("type", DEFAULT_TYPE);
     details.put("source", "igor");
+  }
+
+  /**
+   * Sets the type of this event
+   *
+   * @param type the event type (e.g., "docker", "helm/oci")
+   */
+  public void setType(String type) {
+    if (details == null) {
+      details = new HashMap<>(2);
+      details.put("source", "igor");
+    }
+    details.put("type", type);
   }
 
   @Data
