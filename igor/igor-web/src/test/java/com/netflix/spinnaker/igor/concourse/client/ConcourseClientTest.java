@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.net.UnknownHostException;
-import okhttp3.logging.HttpLoggingInterceptor;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class ConcourseClientTest {
@@ -30,16 +30,11 @@ class ConcourseClientTest {
     assertThatThrownBy(
             () ->
                 new ConcourseClient(
-                    "http://test",
+                    "http://test-url",
                     "test",
                     "test",
                     new OkHttp3ClientConfiguration(
-                        new OkHttpClientConfigurationProperties(),
-                        null,
-                        HttpLoggingInterceptor.Level.BASIC,
-                        null,
-                        null,
-                        null)))
+                        new OkHttpClientConfigurationProperties(), List.of(), List.of(), null)))
         .hasRootCauseInstanceOf(UnknownHostException.class);
   }
 }

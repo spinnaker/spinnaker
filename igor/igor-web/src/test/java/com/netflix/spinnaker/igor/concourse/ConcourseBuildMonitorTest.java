@@ -31,8 +31,8 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,12 +72,7 @@ class ConcourseBuildMonitorTest {
                 host,
                 Optional.of(artifactDecorator),
                 new OkHttp3ClientConfiguration(
-                    new OkHttpClientConfigurationProperties(),
-                    null,
-                    HttpLoggingInterceptor.Level.BASIC,
-                    null,
-                    null,
-                    null))));
+                    new OkHttpClientConfigurationProperties(), List.of(), List.of(), null))));
 
     this.monitor =
         new ConcourseBuildMonitor(
