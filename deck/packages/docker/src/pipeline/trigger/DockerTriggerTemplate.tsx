@@ -10,6 +10,7 @@ import type { IDockerTrigger, IPipelineCommand, ITriggerTemplateComponentProps }
 import { HelpField, Spinner, TetheredSelect } from '@spinnaker/core';
 
 import type { IDockerLookupType } from '../../image';
+import { DockerChartImageReader } from '../../image';
 import { DockerImageReader } from '../../image';
 
 const lookupTypeOptions = [
@@ -51,13 +52,23 @@ export class DockerTriggerTemplate extends React.Component<
 
   private handleQuery = () => {
     const trigger = this.props.command.trigger as IDockerTrigger;
-    return observableFrom(
-      DockerImageReader.findTags({
-        provider: 'dockerRegistry',
-        account: trigger.account,
-        repository: trigger.repository,
-      }),
-    );
+    if (trigger.type === 'helm/oci') {
+      return observableFrom(
+        DockerChartImageReader.findTags({
+          provider: 'dockerRegistry', // Use helmOci provider for Helm OCI triggers
+          account: trigger.account,
+          repository: trigger.repository,
+        }),
+      );
+    } else {
+      return observableFrom(
+        DockerImageReader.findTags({
+          provider: 'dockerRegistry',
+          account: trigger.account,
+          repository: trigger.repository,
+        }),
+      );
+    }
   };
 
   private lookupTypeChanged = (o: Option<IDockerLookupType>) => {
@@ -82,10 +93,12 @@ export class DockerTriggerTemplate extends React.Component<
       } else {
         imageReference = `${imageName}:${tagOrDigest}`;
       }
+      // Use 'helm/image' artifact type for helm/oci triggers, otherwise use 'docker/image'
+      const artifactType = trigger.type === 'docker' ? 'docker/image' : 'helm/image';
 
       this.props.updateCommand('extraFields.artifacts', [
         {
-          type: 'docker/image',
+          type: artifactType,
           name: imageName,
           version: tagOrDigest,
           reference: imageReference,
@@ -142,7 +155,7 @@ export class DockerTriggerTemplate extends React.Component<
     }
 
     // cancel search stream if trigger has changed to some other type
-    if (command.trigger.type !== 'docker') {
+    if (command.trigger.type !== 'docker' && command.trigger.type !== 'helm/oci') {
       return;
     }
 
