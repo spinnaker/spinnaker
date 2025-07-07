@@ -9,10 +9,12 @@ on:
       - release-*
     paths:
       - 'clouddriver/**'
+      - '.github/workflows/clouddriver-integration-tests-kubernetes.yml'
 
   pull_request:
     paths:
       - 'clouddriver/**'
+      - '.github/workflows/clouddriver-integration-tests-kubernetes.yml'
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx12g -Xms12g
