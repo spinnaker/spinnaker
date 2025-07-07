@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.integration
 
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.Interceptor
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 // TODO: this doesn't really need to be an integration test except that it's painful to configure
 //       the retrofit client without Spring
 @SpringBootTest(
-  classes = [KeelApplication::class, TestConfiguration::class],
+  classes = [KeelApplication::class, Retrofit2ServiceFactoryAutoConfiguration::class, TestConfiguration::class],
   webEnvironment = NONE
 )
 internal class SchedulingResilienceTests
@@ -74,7 +75,7 @@ private class TestConfiguration {
     Retrofit
       .Builder()
       .baseUrl(server.url("/"))
-      .client(retrofitClient)
+      .client(retrofitClient.newBuilder().addInterceptor(bedShittingInterceptor()).build())
       .build()
       .create(DummyRetrofitService::class.java)
 }

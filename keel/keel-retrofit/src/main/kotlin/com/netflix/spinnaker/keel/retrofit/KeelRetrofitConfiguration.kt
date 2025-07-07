@@ -19,6 +19,7 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import okhttp3.logging.HttpLoggingInterceptor
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -47,12 +48,14 @@ class KeelRetrofitConfiguration {
    */
   @Bean
   @ConditionalOnMissingBean
+  @Qualifier("retrofit2")
   @Order(Ordered.HIGHEST_PRECEDENCE)
   fun spinnakerHeadersInterceptor() =
     SpinnakerHeadersInterceptor()
 
   @Bean
   @ConditionalOnMissingBean
+  @Qualifier("retrofit2")
   fun userAgentInterceptor(keelRetrofitProperties: KeelRetrofitProperties) =
     UserAgentInterceptor(keelRetrofitProperties)
 }
