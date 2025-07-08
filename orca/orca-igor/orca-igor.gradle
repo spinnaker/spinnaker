@@ -33,7 +33,10 @@ dependencies {
   testImplementation("org.springframework:spring-test")
   testImplementation("io.spinnaker.fiat:fiat-core")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
+  implementation("io.zipkin.brave:brave-instrumentation-okhttp3")
 }
 
 sourceSets {
