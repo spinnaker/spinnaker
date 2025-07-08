@@ -5,18 +5,16 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.github.GithubService
-import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig
-import com.netflix.spinnaker.echo.test.config.Retrofit2HeadersLogTestConfig
-import com.netflix.spinnaker.echo.test.config.Retrofit2NoneLogTestConfig
-import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import spock.lang.Specification
 
 @SpringBootTest(
-  classes = [Retrofit2TestConfig, Retrofit2BasicLogTestConfig],
-  properties = ["github-status.enabled=true"],
+  classes = [Retrofit2ServiceFactoryAutoConfiguration, OkHttpClientProvider, OkHttp3ClientConfiguration],
+  properties = ["github-status.enabled=true", "retrofit2.log-level=BASIC"],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class GithubConfigLogLevelBasicSpec extends Specification {
 
@@ -77,8 +75,8 @@ class GithubConfigLogLevelBasicSpec extends Specification {
 }
 
 @SpringBootTest(
-  classes = [Retrofit2TestConfig, Retrofit2NoneLogTestConfig],
-  properties = ["github-status.enabled=true"],
+  classes = [Retrofit2ServiceFactoryAutoConfiguration, OkHttpClientProvider, OkHttp3ClientConfiguration],
+  properties = ["github-status.enabled=true", "retrofit2.log-level=NONE"],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class GithubConfigLogLevelNoneSpec extends Specification {
 
@@ -123,8 +121,8 @@ class GithubConfigLogLevelNoneSpec extends Specification {
 }
 
 @SpringBootTest(
-  classes = [Retrofit2TestConfig, Retrofit2HeadersLogTestConfig],
-  properties = ["github-status.enabled=true"],
+  classes = [Retrofit2ServiceFactoryAutoConfiguration, OkHttpClientProvider, OkHttp3ClientConfiguration],
+  properties = ["github-status.enabled=true", "retrofit2.log-level=HEADERS"],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class GithubConfigLogLevelHeadersSpec extends Specification {
 

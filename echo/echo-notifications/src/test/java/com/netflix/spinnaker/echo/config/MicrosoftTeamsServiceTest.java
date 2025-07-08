@@ -18,9 +18,10 @@ package com.netflix.spinnaker.echo.config;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService;
-import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig;
-import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,8 +29,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(
     classes = {
       MicrosoftTeamsConfig.class,
-      Retrofit2TestConfig.class,
-      Retrofit2BasicLogTestConfig.class
+      OkHttp3ClientConfiguration.class,
+      Retrofit2ServiceFactoryAutoConfiguration.class,
+      OkHttpClientProvider.class
     },
     properties = "microsoftteams.enabled=true")
 public class MicrosoftTeamsServiceTest {
