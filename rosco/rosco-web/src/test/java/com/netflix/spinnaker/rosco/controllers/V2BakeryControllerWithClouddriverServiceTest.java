@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration;
 import com.netflix.spinnaker.rosco.Main;
 import com.netflix.spinnaker.rosco.api.BakeStatus;
 import com.netflix.spinnaker.rosco.executor.BakePoller;
@@ -58,7 +59,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
-@SpringBootTest(classes = Main.class)
+@SpringBootTest(classes = {Main.class, Retrofit2ServiceFactoryAutoConfiguration.class})
 @TestPropertySource(properties = "spring.application.name = rosco")
 class V2BakeryControllerWithClouddriverServiceTest {
 
