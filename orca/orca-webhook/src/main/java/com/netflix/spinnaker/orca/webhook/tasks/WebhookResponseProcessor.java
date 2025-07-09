@@ -82,7 +82,7 @@ public class WebhookResponseProcessor {
   private TaskResult processReceivedHttpStatusException(HttpStatusCodeException e) {
     var webhookOutput = new WebhookStage.WebhookResponseStageData();
 
-    webhookOutput.setStatusCode(e.getStatusCode());
+    webhookOutput.setStatusCode(HttpStatus.valueOf(e.getStatusCode().value()));
     webhookOutput.setStatusCodeValue(e.getStatusCode().value());
     if (e.getResponseHeaders() != null) {
       webhookOutput.setHeaders(e.getResponseHeaders().toSingleValueMap());
@@ -90,7 +90,9 @@ public class WebhookResponseProcessor {
     if (!StringUtils.isEmpty(e.getResponseBodyAsString())) {
       webhookOutput.setBody(processResponseBodyAsJson(e.getResponseBodyAsString()));
     }
-    TaskResult result = processReceivedFailureStatusCode(e.getStatusCode(), webhookOutput);
+    TaskResult result =
+        processReceivedFailureStatusCode(
+            HttpStatus.valueOf(e.getStatusCode().value()), webhookOutput);
     log.warn(webhookOutput.getError(), e);
     return result;
   }
@@ -162,7 +164,7 @@ public class WebhookResponseProcessor {
     Map<String, Object> stageOutput = new HashMap<>();
     var webhookOutput = new WebhookStage.WebhookResponseStageData();
     stageOutput.put("webhook", webhookOutput);
-    webhookOutput.setStatusCode(response.getStatusCode());
+    webhookOutput.setStatusCode(HttpStatus.valueOf(response.getStatusCode().value()));
     webhookOutput.setStatusCodeValue(response.getStatusCode().value());
 
     if (response.getBody() != null) {
@@ -171,7 +173,7 @@ public class WebhookResponseProcessor {
     if (!response.getHeaders().isEmpty()) {
       webhookOutput.setHeaders(response.getHeaders().toSingleValueMap());
     }
-    HttpStatus status = response.getStatusCode();
+    HttpStatus status = HttpStatus.valueOf(response.getStatusCode().value());
 
     if (status.is2xxSuccessful() || status.is3xxRedirection()) {
 

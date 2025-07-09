@@ -14,6 +14,7 @@ dependencies {
   api("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
   api("org.apache.commons:commons-lang3")
   api("com.github.ben-manes.caffeine:caffeine")
+  api("io.github.resilience4j:resilience4j-vavr")
 
   implementation("org.springframework:spring-tx")
   implementation("org.springframework:spring-web")

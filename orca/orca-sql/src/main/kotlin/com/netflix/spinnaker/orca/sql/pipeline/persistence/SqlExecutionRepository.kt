@@ -77,7 +77,7 @@ import org.jooq.impl.DSL.timestampSub
 import org.jooq.impl.DSL.value
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 import java.io.ByteArrayOutputStream
 import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets
@@ -409,7 +409,7 @@ class SqlExecutionRepository(
       ?: throw ExecutionNotFoundException("No $type found for $id")
 
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> =
-    Observable.from(
+    Observable.fromIterable(
       fetchExecutions { pageSize, cursor ->
         selectExecutions(type, pageSize, cursor)
       }
@@ -444,13 +444,13 @@ class SqlExecutionRepository(
         }
       )
 
-      return Observable.from(select.fetchExecutions())
+      return Observable.fromIterable(select.fetchExecutions())
     }
   }
 
   override fun retrievePipelinesForApplication(application: String): Observable<PipelineExecution> =
     withPool(readPoolName) {
-      Observable.from(
+      Observable.fromIterable(
         fetchExecutions { pageSize, cursor ->
           selectExecutions(PIPELINE, pageSize, cursor) {
             it.where(field("application").eq(application))
@@ -644,7 +644,7 @@ class SqlExecutionRepository(
         )
       }
 
-      return Observable.from(select.fetchExecutions())
+      return Observable.fromIterable(select.fetchExecutions())
     }
   }
 
@@ -652,7 +652,7 @@ class SqlExecutionRepository(
     application: String,
     criteria: ExecutionCriteria
   ): Observable<PipelineExecution> {
-    return Observable.from(retrieveOrchestrationsForApplication(application, criteria, NATURAL_ASC))
+    return Observable.fromIterable(retrieveOrchestrationsForApplication(application, criteria, NATURAL_ASC))
   }
 
   override fun retrieveOrchestrationsForApplication(
@@ -769,10 +769,10 @@ class SqlExecutionRepository(
       .setPageSize(100)
       .setStatuses(BUFFERED)
       .let { criteria ->
-        rx.Observable.merge(
+        Observable.merge(
           retrieve(ORCHESTRATION, criteria, partitionName),
           retrieve(PIPELINE, criteria, partitionName)
-        ).toList().toBlocking().single()
+        ).toList().blockingGet()
       }
 
   override fun retrieveAllApplicationNames(type: ExecutionType?): List<String> {

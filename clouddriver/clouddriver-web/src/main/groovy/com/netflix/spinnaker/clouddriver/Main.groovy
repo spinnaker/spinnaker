@@ -24,10 +24,10 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigura
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap
-import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchRestHealthContributorAutoConfiguration
+import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticsearchRestHealthContributorAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -59,7 +59,7 @@ import java.security.Security
   GsonAutoConfiguration,
   DataSourceAutoConfiguration,
   ElasticsearchDataAutoConfiguration,
-  ElasticSearchRestHealthContributorAutoConfiguration
+  ElasticsearchRestHealthContributorAutoConfiguration
 ])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {

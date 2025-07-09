@@ -48,7 +48,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import rx.schedulers.Schedulers
+import io.reactivex.rxjava3.schedulers.Schedulers
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Subject

@@ -47,12 +47,12 @@ import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import com.netflix.spinnaker.front50.model.tag.DefaultEntityTagsDAO;
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.concurrent.Executors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import rx.schedulers.Schedulers;
 
 @Configuration
 @ConditionalOnProperty(

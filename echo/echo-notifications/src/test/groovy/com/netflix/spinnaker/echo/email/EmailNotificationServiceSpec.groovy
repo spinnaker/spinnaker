@@ -28,8 +28,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import javax.mail.Message
-import javax.mail.internet.MimeMessage
+import jakarta.mail.Message
+import jakarta.mail.internet.MimeMessage
 
 class EmailNotificationServiceSpec extends Specification {
   def notificationTemplateEngine = Mock(NotificationTemplateEngine)

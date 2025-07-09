@@ -48,7 +48,7 @@ dependencies {
       force = true					   // Unpin it after adoption of spring-boot-starter-graphql
    }
 
-  implementation "org.springdoc:springdoc-openapi-ui:1.8.0"
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0"
 
   implementation "io.cloudevents:cloudevents-spring:2.5.0"
   implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
