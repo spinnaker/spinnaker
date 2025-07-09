@@ -27,6 +27,7 @@ dependencies {
   implementation("io.spinnaker.fiat:fiat-core")
   implementation("org.apache.groovy:groovy-datetime")
   implementation("io.spinnaker.kork:kork-retrofit")
+  implementation("io.spinnaker.kork:kork-retrofit2")
 
   api("io.spinnaker.kork:kork-web")
 
@@ -43,7 +44,6 @@ dependencies {
   testImplementation("com.squareup.retrofit2:converter-jackson")
   testImplementation("org.springframework:spring-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
-  testImplementation("io.spinnaker.kork:kork-retrofit2")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
   testRuntimeOnly("org.spockframework:spock-spring")
 
