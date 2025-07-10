@@ -98,8 +98,7 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Test
   public void testWithoutEncodingCorrection() throws IOException {
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, true /* skipEncodeCorrection */);
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     Retrofit2Service service = getRetrofit2Service(endpoint.getBaseUrl(), okHttpClient);
     service.getRequest(PATH_VAL, QUERY_PARAM1, QUERY_PARAM2, QUERY_PARAM3).execute();
     LoggedRequest requestReceived = wireMock.getAllServeEvents().get(0).getRequest();
@@ -124,8 +123,7 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Test
   public void testWithEncodingCorrection() throws IOException {
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     Retrofit2Service service = getRetrofit2Service(endpoint.getBaseUrl(), okHttpClient);
     service.getRequest(PATH_VAL, QUERY_PARAM1, QUERY_PARAM2, QUERY_PARAM3).execute();
     wireMock.verify(getRequestedFor(urlEqualTo(EXPECTED_URL)));
@@ -168,8 +166,7 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
         get(expectedUrl)
             .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
 
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     QueryParamTestService service =
         new Retrofit.Builder()
             .baseUrl(endpoint.getBaseUrl())
@@ -215,8 +212,7 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
         get(expectedUrl)
             .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
 
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     QueryParamTestService service =
         new Retrofit.Builder()
             .baseUrl(endpoint.getBaseUrl())

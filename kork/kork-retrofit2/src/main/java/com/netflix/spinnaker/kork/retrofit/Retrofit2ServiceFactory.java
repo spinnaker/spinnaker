@@ -51,7 +51,7 @@ public class Retrofit2ServiceFactory implements ServiceClientFactory {
       ServiceEndpoint serviceEndpoint,
       ObjectMapper objectMapper,
       List<Interceptor> interceptors) {
-    OkHttpClient okHttpClient = clientProvider.getClient(serviceEndpoint, interceptors);
+    OkHttpClient okHttpClient = clientProvider.getClient(serviceEndpoint);
 
     return new Retrofit.Builder()
         .baseUrl(Objects.requireNonNull(HttpUrl.parse(serviceEndpoint.getBaseUrl())))
