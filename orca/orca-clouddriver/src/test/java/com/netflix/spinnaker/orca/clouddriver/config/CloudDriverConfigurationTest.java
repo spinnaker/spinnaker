@@ -78,7 +78,7 @@ public class CloudDriverConfigurationTest extends YamlFileApplicationContextInit
     ObjectMapper objectMapper = new ObjectMapper();
     DefaultServiceClientProvider serviceClientProvider =
         new DefaultServiceClientProvider(
-            List.of(new Retrofit2ServiceFactory(okHttpClientProvider)), objectMapper);
+            List.of(new Retrofit2ServiceFactory(okHttpClientProvider, List.of())), objectMapper);
 
     this.clouddriverRetrofitBuilder =
         new CloudDriverConfiguration.ClouddriverRetrofitBuilder(

@@ -261,7 +261,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
     OkHttpClientProvider okHttpClientProvider =
         new OkHttpClientProvider(List.of(okHttpClientBuilderProvider));
     Retrofit2ServiceFactory retrofit2ServiceFactory =
-        new Retrofit2ServiceFactory(okHttpClientProvider);
+        new Retrofit2ServiceFactory(okHttpClientProvider, List.of());
     return new DefaultServiceClientProvider(List.of(retrofit2ServiceFactory), new ObjectMapper());
   }
 }

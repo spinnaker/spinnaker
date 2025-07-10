@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.client.ServiceClientFactory;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -35,9 +36,12 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 public class Retrofit2ServiceFactory implements ServiceClientFactory {
 
   private final OkHttpClientProvider clientProvider;
+  private final List<Interceptor> interceptors;
 
-  public Retrofit2ServiceFactory(OkHttpClientProvider clientProvider) {
+  public Retrofit2ServiceFactory(
+      OkHttpClientProvider clientProvider, List<Interceptor> interceptors) {
     this.clientProvider = clientProvider;
+    this.interceptors = interceptors;
   }
 
   @Override
@@ -52,10 +56,14 @@ public class Retrofit2ServiceFactory implements ServiceClientFactory {
       ObjectMapper objectMapper,
       List<Interceptor> interceptors) {
     OkHttpClient okHttpClient = clientProvider.getClient(serviceEndpoint);
+    OkHttpClient.Builder builder =
+        addInterceptors(
+            okHttpClient,
+            Stream.concat(interceptors.stream(), this.interceptors.stream()).toList());
 
     return new Retrofit.Builder()
         .baseUrl(Objects.requireNonNull(HttpUrl.parse(serviceEndpoint.getBaseUrl())))
-        .client(okHttpClient)
+        .client(builder.build())
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
@@ -68,5 +76,12 @@ public class Retrofit2ServiceFactory implements ServiceClientFactory {
       ServiceEndpoint serviceEndpoint,
       ServiceClientProvider.RetrofitVersion version) {
     return version.equals(ServiceClientProvider.RetrofitVersion.RETROFIT2);
+  }
+
+  private OkHttpClient.Builder addInterceptors(
+      OkHttpClient client, List<Interceptor> interceptors) {
+    OkHttpClient.Builder builder = client.newBuilder();
+    interceptors.forEach(builder::addInterceptor);
+    return builder;
   }
 }

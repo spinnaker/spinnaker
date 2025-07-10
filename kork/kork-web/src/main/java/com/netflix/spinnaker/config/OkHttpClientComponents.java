@@ -28,10 +28,7 @@ import com.netflix.spinnaker.kork.crypto.X509Identity;
 import com.netflix.spinnaker.kork.crypto.X509IdentitySource;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
-import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
 import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,7 +50,6 @@ import okhttp3.ConnectionPool;
 import okhttp3.ConnectionSpec;
 import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -72,28 +68,15 @@ import org.springframework.util.CollectionUtils;
   OkHttpClientConfigurationProperties.class,
   OkHttpMetricsInterceptorProperties.class,
   RetrofitConfigurationProperties.class,
-  Retrofit2ConfigurationProperties.class
 })
 public class OkHttpClientComponents {
   private final Provider<Registry> registryProvider;
   private final OkHttpClientConfigurationProperties clientProperties;
   private final OkHttpMetricsInterceptorProperties metricsProperties;
-  private final Retrofit2ConfigurationProperties retrofit2Properties;
 
   @Bean
   public SpinnakerRequestInterceptor spinnakerRequestInterceptor() {
     return new SpinnakerRequestInterceptor(clientProperties.getPropagateSpinnakerHeaders());
-  }
-
-  @Bean
-  public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
-    return new SpinnakerRequestHeaderInterceptor(clientProperties.getPropagateSpinnakerHeaders());
-  }
-
-  @Bean
-  public Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor() {
-    return new Retrofit2EncodeCorrectionInterceptor(
-        clientProperties.getSkipRetrofit2EncodeCorrection());
   }
 
   @Bean
@@ -106,12 +89,6 @@ public class OkHttpClientComponents {
   public OkHttpClientCustomizer metricsInterceptorCustomizer(
       OkHttp3MetricsInterceptor metricsInterceptor) {
     return builder -> builder.addInterceptor(metricsInterceptor);
-  }
-
-  @Bean
-  public OkHttpClientCustomizer requestHeaderInterceptorCustomizer(
-      SpinnakerRequestHeaderInterceptor headerInterceptor) {
-    return builder -> builder.addInterceptor(headerInterceptor);
   }
 
   /**
@@ -252,13 +229,6 @@ public class OkHttpClientComponents {
             .connectTimeout(connectTimeout)
             .readTimeout(readTimeout)
             .retryOnConnectionFailure(retryOnConnectionFailure);
-  }
-
-  @Bean
-  public OkHttpClientCustomizer httpLoggingCustomizer() {
-    return builder ->
-        builder.addInterceptor(
-            new HttpLoggingInterceptor().setLevel(retrofit2Properties.getLogLevel()));
   }
 
   /**
