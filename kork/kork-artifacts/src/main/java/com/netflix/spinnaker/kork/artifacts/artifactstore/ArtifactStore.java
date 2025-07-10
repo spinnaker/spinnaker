@@ -15,7 +15,11 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
+import com.netflix.spinnaker.kork.artifacts.artifactstore.filters.ApplicationStorageFilter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
@@ -28,20 +32,44 @@ public class ArtifactStore implements ArtifactStoreGetter, ArtifactStoreStorer {
 
   private final ArtifactStoreStorer artifactStoreStorer;
 
+  private final Map<String, List<ApplicationStorageFilter>> exclude;
+
   public ArtifactStore(
-      ArtifactStoreGetter artifactStoreGetter, ArtifactStoreStorer artifactStoreStorer) {
+      ArtifactStoreGetter artifactStoreGetter,
+      ArtifactStoreStorer artifactStoreStorer,
+      Map<String, List<ApplicationStorageFilter>> exclude) {
     this.artifactStoreGetter = artifactStoreGetter;
     this.artifactStoreStorer = artifactStoreStorer;
+    this.exclude = exclude;
+  }
+
+  public boolean shouldExclude(String type, String application) {
+    return application == null
+        || this.exclude.containsKey(type)
+            && this.exclude.get(type).stream().anyMatch((filter) -> filter.filter(application));
   }
 
   /** Store an artifact in the artifact store */
-  public Artifact store(Artifact artifact) {
-    return artifactStoreStorer.store(artifact);
+  public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
+    String application = AuthenticatedRequest.getSpinnakerApplication().orElse(null);
+    if (application == null) {
+      log.warn("failed to retrieve application from request artifact={}", artifact.getName());
+      return artifact;
+    }
+
+    String type = artifact.getType();
+    if (this.exclude.containsKey(type)
+        && this.exclude.get(type).stream().anyMatch((filter) -> filter.filter(application))) {
+      log.debug(
+          "filtering artifact type for application type={} application={}", type, application);
+      return artifact;
+    }
+    return artifactStoreStorer.store(artifact, decorators);
   }
 
   /**
    * get is used to return an artifact with some id, while also decorating that artifact with any
-   * necessary fields needed which should be then be returned by the artifact store.
+   * necessary fields needed that should then be returned by the artifact store.
    */
   public Artifact get(ArtifactReferenceURI uri, ArtifactDecorator... decorators) {
     return artifactStoreGetter.get(uri, decorators);
