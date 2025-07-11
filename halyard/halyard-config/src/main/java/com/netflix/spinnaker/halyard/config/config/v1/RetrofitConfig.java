@@ -18,7 +18,6 @@ package com.netflix.spinnaker.halyard.config.config.v1;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpClientComponents;
-import com.netflix.spinnaker.config.RetrofitConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,11 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({
-  OkHttp3ClientConfiguration.class,
-  OkHttpClientComponents.class,
-  RetrofitConfiguration.class
-})
+@Import({OkHttp3ClientConfiguration.class, OkHttpClientComponents.class})
 class RetrofitConfig {
   @Autowired OkHttp3ClientConfiguration okHttpClientConfig;
 

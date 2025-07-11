@@ -20,8 +20,13 @@ package com.netflix.spinnaker.kork.retrofit;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
+import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -31,6 +36,10 @@ import retrofit.RestAdapter;
 
 @Configuration
 @ConditionalOnProperty(value = "retrofit.enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties({
+  RetrofitConfigurationProperties.class,
+  OkHttpClientConfigurationProperties.class
+})
 public class RetrofitServiceFactoryAutoConfiguration {
 
   /**
@@ -43,11 +52,24 @@ public class RetrofitServiceFactoryAutoConfiguration {
   }
 
   @Bean
+  RestAdapter.LogLevel retrofitLogLevel(
+      RetrofitConfigurationProperties retrofitConfigurationProperties) {
+    return retrofitConfigurationProperties.getLogLevel();
+  }
+
+  @Bean
+  @Qualifier("retrofit1")
+  public SpinnakerRequestInterceptor spinnakerRequestInterceptor(
+      OkHttpClientConfigurationProperties clientProperties) {
+    return new SpinnakerRequestInterceptor(clientProperties.getPropagateSpinnakerHeaders());
+  }
+
+  @Bean
   @Order(Ordered.LOWEST_PRECEDENCE)
   ServiceClientFactory serviceClientFactory(
       RestAdapter.LogLevel retrofitLogLevel,
       OkHttpClientProvider clientProvider,
-      RequestInterceptor spinnakerRequestInterceptor) {
+      @Qualifier("retrofit1") RequestInterceptor spinnakerRequestInterceptor) {
     return new RetrofitServiceFactory(
         retrofitLogLevel, clientProvider, spinnakerRequestInterceptor);
   }

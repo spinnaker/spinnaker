@@ -28,8 +28,6 @@ import com.netflix.spinnaker.kork.crypto.X509Identity;
 import com.netflix.spinnaker.kork.crypto.X509IdentitySource;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
-import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -67,17 +65,11 @@ import org.springframework.util.CollectionUtils;
 @EnableConfigurationProperties({
   OkHttpClientConfigurationProperties.class,
   OkHttpMetricsInterceptorProperties.class,
-  RetrofitConfigurationProperties.class,
 })
 public class OkHttpClientComponents {
   private final Provider<Registry> registryProvider;
   private final OkHttpClientConfigurationProperties clientProperties;
   private final OkHttpMetricsInterceptorProperties metricsProperties;
-
-  @Bean
-  public SpinnakerRequestInterceptor spinnakerRequestInterceptor() {
-    return new SpinnakerRequestInterceptor(clientProperties.getPropagateSpinnakerHeaders());
-  }
 
   @Bean
   public OkHttp3MetricsInterceptor okHttp3MetricsInterceptor() {
