@@ -388,7 +388,8 @@ class PipelineController {
 
   @Operation(summary = "Evaluate variables same as Evaluate Variables stage using the provided execution as context")
   @PostMapping(value = "{id}/evaluateVariables", consumes = "application/json")
-  Map evaluateVariables(@Parameter(description = "Execution id to run against", required = true)
+  Map evaluateVariables(@PathVariable("id") String id,
+                        @Parameter(description = "Execution id to run against", required = true)
                         @RequestParam("executionId") String executionId,
                         @Parameter(description = "Comma separated list of requisite stage IDs for the evaluation stage", required = false)
                         @RequestParam(value = "requisiteStageRefIds", defaultValue = "") String requisiteStageRefIds,
