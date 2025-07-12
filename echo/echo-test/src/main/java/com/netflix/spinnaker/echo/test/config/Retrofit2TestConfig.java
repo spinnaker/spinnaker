@@ -24,6 +24,7 @@ import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
+import java.util.List;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.springframework.beans.factory.ObjectFactory;
@@ -76,10 +77,8 @@ public class Retrofit2TestConfig {
       Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor) {
     return new OkHttp3ClientConfiguration(
         okHttpClientConfigurationProperties,
-        okHttp3MetricsInterceptor,
-        retrofit2LogLevel,
-        spinnakerRequestHeaderInterceptor,
-        retrofit2EncodeCorrectionInterceptor,
+        List.of(okHttp3MetricsInterceptor),
+        List.of(spinnakerRequestHeaderInterceptor, retrofit2EncodeCorrectionInterceptor),
         httpClientBuilderFactory);
   }
 }

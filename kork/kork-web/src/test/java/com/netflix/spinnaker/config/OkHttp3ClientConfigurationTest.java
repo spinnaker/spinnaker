@@ -21,9 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
-import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -54,9 +51,6 @@ public class OkHttp3ClientConfigurationTest {
     runner.run(
         ctx -> {
           assertThat(ctx).hasSingleBean(OkHttpClientConfigurationProperties.class);
-          assertThat(ctx).hasSingleBean(HttpLoggingInterceptor.Level.class);
-          assertThat(ctx).hasSingleBean(SpinnakerRequestHeaderInterceptor.class);
-          assertThat(ctx).hasSingleBean(Retrofit2EncodeCorrectionInterceptor.class);
           assertThat(ctx).hasSingleBean(OkHttp3MetricsInterceptor.class);
         });
   }
