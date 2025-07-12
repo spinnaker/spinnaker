@@ -9,10 +9,8 @@ import com.github.tomakehurst.wiremock.http.Response
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
-import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig
-import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -20,7 +18,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.util.concurrent.BlockingVariable
 
-@SpringBootTest(classes = [Retrofit2TestConfig, Retrofit2BasicLogTestConfig],
+@SpringBootTest(classes = [OkHttp3ClientConfiguration, OkHttpClientConfigurationProperties],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class RestConfigSpec extends Specification {
 
@@ -36,7 +34,7 @@ class RestConfigSpec extends Specification {
 
   RestUrls configureRestServices(RestProperties.RestEndpointConfiguration endpoint, RestConfig.HeadersFromFile headersFromFile) {
     RestProperties restProperties =  new RestProperties(endpoints: [endpoint])
-    return config.restServices(restProperties, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())], new Retrofit2EncodeCorrectionInterceptor()), okHttpClientConfig, headersFromFile)
+    return config.restServices(restProperties, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]), okHttpClientConfig, headersFromFile)
   }
 
   def setup() {

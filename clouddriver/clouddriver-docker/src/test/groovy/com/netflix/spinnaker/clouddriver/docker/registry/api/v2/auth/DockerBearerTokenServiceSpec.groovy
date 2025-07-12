@@ -35,8 +35,7 @@ import spock.lang.Specification
 
 
 @SpringBootTest(
-  classes = [OkHttpClientConfigurationProperties, Retrofit2ServiceFactory, ServiceClientProvider, OkHttpClientProvider,
-    Retrofit2EncodeCorrectionInterceptor, OkHttpClient, DefaultServiceClientProvider,  DefaultOkHttpClientBuilderProvider,
+  classes = [OkHttpClientProvider, OkHttpClient, DefaultServiceClientProvider,  DefaultOkHttpClientBuilderProvider,
     Retrofit2ServiceFactoryAutoConfiguration, ObjectMapper],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class DockerBearerTokenServiceSpec extends Specification {

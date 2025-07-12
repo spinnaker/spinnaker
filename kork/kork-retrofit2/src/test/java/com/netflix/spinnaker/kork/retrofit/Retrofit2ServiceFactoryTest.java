@@ -41,7 +41,6 @@ import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
-import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +62,6 @@ import retrofit2.http.GET;
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
     classes = {
       OkHttpClient.class,
-      OkHttpClientConfigurationProperties.class,
       OkHttpClientProvider.class,
       Retrofit2ServiceFactoryAutoConfiguration.class,
       Retrofit2ServiceFactoryTest.Retrofit2TestConfig.class,

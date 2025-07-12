@@ -24,6 +24,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
   implementation "io.spinnaker.kork:kork-web"
   implementation "commons-codec:commons-codec"
   implementation "org.springframework.boot:spring-boot-starter-mail"

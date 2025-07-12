@@ -9,16 +9,26 @@ import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.Interceptor
 import org.springframework.beans.factory.BeanCreationException
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import retrofit2.Retrofit
 
 @Configuration
+@Import(Retrofit2ServiceFactoryAutoConfiguration::class)
 class IgorConfiguration {
+  @Autowired
+  @Qualifier("retrofit2")
+  lateinit var interceptors: List<Interceptor>
+
   @Bean
   fun igorEndpoint(@Value("\${igor.base-url}") igorBaseUrl: String): HttpUrl =
     igorBaseUrl.toHttpUrlOrNull()
@@ -59,7 +69,12 @@ class IgorConfiguration {
   ): T = Retrofit.Builder()
     .addConverterFactory(InstrumentedJacksonConverter.Factory("Igor", objectMapper))
     .baseUrl(igorEndpoint)
-    .client(clientProvider.getClient(DefaultServiceEndpoint("igor", igorEndpoint.toString())))
+    .client(
+      clientProvider
+        .getClient(DefaultServiceEndpoint("igor", igorEndpoint.toString()))
+        .newBuilder().apply {
+          interceptors.forEach { addInterceptor(it) }
+        }.build())
     .build()
     .create(T::class.java)
 }
