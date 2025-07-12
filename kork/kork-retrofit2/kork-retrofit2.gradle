@@ -17,6 +17,6 @@ dependencies {
 
   testImplementation "com.squareup.okhttp3:mockwebserver"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
-  testImplementation "com.github.tomakehurst:wiremock-jre8"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 
 }

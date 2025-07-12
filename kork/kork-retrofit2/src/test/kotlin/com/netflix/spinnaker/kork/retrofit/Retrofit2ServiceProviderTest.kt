@@ -17,29 +17,22 @@
 
 package com.netflix.spinnaker.kork.retrofit
 
-import brave.Tracing
-import brave.http.HttpTracing
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.DefaultServiceClientProvider
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
-import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory
-import com.netflix.spinnaker.config.DefaultServiceClientProvider
+import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientConfiguration
 import com.netflix.spinnaker.kork.client.ServiceClientFactory
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
-import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import okhttp3.OkHttpClient
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import retrofit2.Call
-import retrofit2.http.Headers
 import retrofit2.http.GET
+import retrofit2.http.Headers
 import strikt.api.expect
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -52,7 +45,11 @@ class Retrofit2ServiceProviderTest : JUnit5Minutests {
         ApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(
             Retrofit2ServiceFactoryAutoConfiguration::class.java,
-            TestConfiguration::class.java
+            RawOkHttpClientConfiguration::class.java,
+            OkHttpClientProvider::class.java,
+            DefaultOkHttpClientBuilderProvider::class.java,
+            DefaultServiceClientProvider::class.java,
+            ObjectMapper::class.java
           ))
       }
 
@@ -83,35 +80,6 @@ class Retrofit2ServiceProviderTest : JUnit5Minutests {
 
 }
 
-@Configuration
-private open class TestConfiguration {
-
-  @Bean
-  open fun httpTracing(): HttpTracing =
-    HttpTracing.create(Tracing.newBuilder().build())
-
-  @Bean
-  open fun okHttpClient(httpTracing: HttpTracing): OkHttpClient {
-    return RawOkHttpClientFactory().create(OkHttpClientConfigurationProperties(), emptyList(), httpTracing)
-  }
-
-  @Bean
-  open fun okHttpClientProvider(okHttpClient: OkHttpClient): OkHttpClientProvider {
-    return OkHttpClientProvider(listOf(DefaultOkHttpClientBuilderProvider(okHttpClient,  OkHttpClientConfigurationProperties())))
-  }
-
-  @Bean
-  open fun objectMapper(): ObjectMapper {
-    return  ObjectMapper()
-  }
-
-  @Bean
-  open fun serviceClientProvider(
-    serviceClientFactories: List<ServiceClientFactory?>, objectMapper: ObjectMapper): DefaultServiceClientProvider {
-    return DefaultServiceClientProvider(serviceClientFactories, objectMapper)
-  }
-
-}
 interface Retrofit2Service {
 
   @Headers("Accept: application/json")

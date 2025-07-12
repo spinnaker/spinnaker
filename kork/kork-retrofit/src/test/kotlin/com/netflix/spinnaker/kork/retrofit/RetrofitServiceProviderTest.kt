@@ -87,7 +87,7 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
                 .getClient(DefaultServiceEndpoint("retrofit1", "https://www.test.com"))
                 .interceptors
                 .count { it is Retrofit2EncodeCorrectionInterceptor }
-            ).isEqualTo(1) //FIXME: should be 0
+            ).isEqualTo(0)
           }
         }
       }

@@ -49,6 +49,7 @@ import okhttp3.ConnectionSpec;
 import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -72,6 +73,7 @@ public class OkHttpClientComponents {
   private final OkHttpMetricsInterceptorProperties metricsProperties;
 
   @Bean
+  @Qualifier("retrofit-common")
   public OkHttp3MetricsInterceptor okHttp3MetricsInterceptor() {
     return new OkHttp3MetricsInterceptor(registryProvider, metricsProperties);
   }

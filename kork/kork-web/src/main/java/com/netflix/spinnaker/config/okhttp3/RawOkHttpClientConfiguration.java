@@ -22,17 +22,16 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties(OkHttpClientConfigurationProperties.class)
-class RawOkHttpClientConfiguration {
+public class RawOkHttpClientConfiguration {
 
   @Bean
-  @ConditionalOnMissingBean
   public HttpTracing httpTracing() {
     return HttpTracing.newBuilder(Tracing.newBuilder().build()).build();
   }
@@ -41,10 +40,9 @@ class RawOkHttpClientConfiguration {
    * Default {@link OkHttpClient} that is correctly configured for service-to-service communication.
    */
   @Bean
-  @ConditionalOnMissingBean
   OkHttpClient okhttp3Client(
       OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
-      List<Interceptor> interceptors,
+      @Qualifier("retrofit-common") List<Interceptor> interceptors,
       HttpTracing httpTracing) {
     return new RawOkHttpClientFactory()
         .create(okHttpClientConfigurationProperties, interceptors, httpTracing);

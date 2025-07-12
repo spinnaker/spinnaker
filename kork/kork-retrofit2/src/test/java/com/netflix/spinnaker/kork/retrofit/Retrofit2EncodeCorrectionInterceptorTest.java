@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.okhttp;
+package com.netflix.spinnaker.kork.retrofit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -27,10 +27,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientConfiguration;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -41,10 +44,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import retrofit2.Call;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -52,11 +55,14 @@ import retrofit2.http.Query;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
     classes = {
-      OkHttpClient.class,
-      OkHttpClientConfigurationProperties.class,
       OkHttpClientProvider.class,
+      DefaultServiceClientProvider.class,
       DefaultOkHttpClientBuilderProvider.class,
-      Retrofit2EncodeCorrectionInterceptor.class
+      RawOkHttpClientConfiguration.class,
+      ObjectMapper.class,
+      Retrofit2ServiceFactoryAutoConfiguration.class,
+      NoopRegistry.class,
+      TaskExecutorBuilder.class
     })
 public class Retrofit2EncodeCorrectionInterceptorTest {
 
@@ -90,16 +96,21 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Autowired OkHttpClientProvider okHttpClientProvider;
 
+  @Autowired DefaultServiceClientProvider serviceClientProvider;
+
+  @Autowired ObjectMapper objectMapper;
+
   @BeforeAll
   public static void setup() {
-    wireMock.stubFor(get(EXPECTED_URL).willReturn(ok()));
     endpoint = new DefaultServiceEndpoint("test", wireMock.baseUrl());
   }
 
   @Test
   public void testWithoutEncodingCorrection() throws IOException {
+    wireMock.stubFor(get(EXPECTED_URL).willReturn(ok()));
     OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     Retrofit2Service service = getRetrofit2Service(endpoint.getBaseUrl(), okHttpClient);
+
     service.getRequest(PATH_VAL, QUERY_PARAM1, QUERY_PARAM2, QUERY_PARAM3).execute();
     LoggedRequest requestReceived = wireMock.getAllServeEvents().get(0).getRequest();
     // note the partial encoding done by Retrofit2
@@ -123,8 +134,8 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Test
   public void testWithEncodingCorrection() throws IOException {
-    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
-    Retrofit2Service service = getRetrofit2Service(endpoint.getBaseUrl(), okHttpClient);
+    wireMock.stubFor(get(EXPECTED_URL).willReturn(ok()));
+    Retrofit2Service service = serviceClientProvider.getService(Retrofit2Service.class, endpoint);
     service.getRequest(PATH_VAL, QUERY_PARAM1, QUERY_PARAM2, QUERY_PARAM3).execute();
     wireMock.verify(getRequestedFor(urlEqualTo(EXPECTED_URL)));
     LoggedRequest requestReceived = wireMock.getAllServeEvents().get(0).getRequest();
@@ -166,14 +177,8 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
         get(expectedUrl)
             .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
 
-    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     QueryParamTestService service =
-        new Retrofit.Builder()
-            .baseUrl(endpoint.getBaseUrl())
-            .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create())
-            .build()
-            .create(QueryParamTestService.class);
+        serviceClientProvider.getService(QueryParamTestService.class, endpoint);
 
     List<String> result =
         service.getQueryParamTestRequest(qry1List, qry2, qry3List).execute().body();
@@ -212,14 +217,8 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
         get(expectedUrl)
             .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
 
-    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     QueryParamTestService service =
-        new Retrofit.Builder()
-            .baseUrl(endpoint.getBaseUrl())
-            .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create())
-            .build()
-            .create(QueryParamTestService.class);
+        serviceClientProvider.getService(QueryParamTestService.class, endpoint);
 
     List<String> result = service.getQueryParamTestRequest2().execute().body();
 
