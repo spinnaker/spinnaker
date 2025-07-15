@@ -47,6 +47,9 @@ dependencies {
   // in front50-test to front50-common, but front50-test seems like a better place.
   testImplementation project(":front50-test")
   testImplementation "io.spinnaker.kork:kork-sql-test"
+  testImplementation "io.spinnaker.kork:kork-retrofit2"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "io.zipkin.brave:brave-instrumentation-okhttp3"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 
 }
