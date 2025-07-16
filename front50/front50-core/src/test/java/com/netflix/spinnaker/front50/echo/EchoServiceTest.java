@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.config;
+package com.netflix.spinnaker.front50.echo;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -31,7 +31,8 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.config.RetrofitConfiguration;
 import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory;
-import com.netflix.spinnaker.front50.echo.EchoService;
+import com.netflix.spinnaker.front50.config.EchoConfiguration;
+import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.front50.model.plugins.PluginEvent;
 import com.netflix.spinnaker.front50.model.plugins.PluginEventType;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
