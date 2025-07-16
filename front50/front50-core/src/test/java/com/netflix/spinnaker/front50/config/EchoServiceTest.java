@@ -19,8 +19,7 @@ package com.netflix.spinnaker.front50.config;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import brave.Tracing;
 import brave.http.HttpTracing;
@@ -28,10 +27,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spinnaker.config.DefaultServiceClientProvider;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.config.RetrofitConfiguration;
-import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory;
 import com.netflix.spinnaker.front50.echo.EchoService;
 import com.netflix.spinnaker.front50.model.plugins.PluginEvent;
@@ -65,7 +63,6 @@ import retrofit.RequestInterceptor;
     classes = {
       EchoServiceTest.EchoServiceTestConfig.class,
       EchoConfiguration.class,
-      DefaultServiceClientProvider.class,
       DynamicConfigService.NoopDynamicConfig.class,
       StorageServiceConfigurationProperties.class,
       NoopRegistry.class,
@@ -73,13 +70,13 @@ import retrofit.RequestInterceptor;
       Retrofit2ServiceFactoryAutoConfiguration.class,
       RetrofitConfiguration.class,
       Retrofit2ConfigurationProperties.class,
-      DefaultOkHttpClientBuilderProvider.class,
       OkHttp3MetricsInterceptor.class,
       RawOkHttpClientFactory.class,
       RetrofitConfigurationProperties.class,
       OkHttpClientConfigurationProperties.class,
       OkHttpMetricsInterceptorProperties.class,
-      ObjectMapper.class
+      ObjectMapper.class,
+      OkHttp3ClientConfiguration.class
     })
 @TestPropertySource(properties = {"services.echo.enabled=true"})
 public class EchoServiceTest {
@@ -107,14 +104,7 @@ public class EchoServiceTest {
                     .withStatus(200)
                     .withBody("{}")));
 
-    // FIXME: Now test fails because the default JacksonConverterFactory fails to serialize
-    // PluginEvent to RequestBody.
-    Throwable thrown = catchThrowable(() -> echoService.postEvent(buildPluginEvent()));
-    assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
-    assertThat(thrown.getMessage())
-        .contains(
-            "Unable to convert PluginEvent(content=PluginEvent.Content(pluginId=null, description=null, provider=null, version=null, releaseDate=null, requires=null, parsedRequires=[], binaryUrl=null, sha512sum=null, preferred=false, lastModified=null), details={type=plugin, source=front50, attributes={pluginEventType=PUBLISHED}}) to RequestBody (parameter #1)\n"
-                + "    for method EchoService.postEvent");
+    assertDoesNotThrow(() -> echoService.postEvent(buildPluginEvent()));
   }
 
   private static PluginEvent buildPluginEvent() {
@@ -145,7 +135,7 @@ public class EchoServiceTest {
     }
 
     @Bean
-    public Interceptor spinnakerRequestHeaderInterceptor() {
+    public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
       return new SpinnakerRequestHeaderInterceptor(false);
     }
 
