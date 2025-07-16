@@ -107,12 +107,14 @@ public class EchoServiceTest {
                     .withStatus(200)
                     .withBody("{}")));
 
-    // FIXME: Calling any method on EchoService fails with IllegalArgumentException:
-    // HTTP method annotation is required (e.g., @GET, @POST, etc.)
+    // FIXME: Now test fails because the default JacksonConverterFactory fails to serialize
+    // PluginEvent to RequestBody.
     Throwable thrown = catchThrowable(() -> echoService.postEvent(buildPluginEvent()));
     assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
     assertThat(thrown.getMessage())
-        .contains("HTTP method annotation is required (e.g., @GET, @POST, etc.).");
+        .contains(
+            "Unable to convert PluginEvent(content=PluginEvent.Content(pluginId=null, description=null, provider=null, version=null, releaseDate=null, requires=null, parsedRequires=[], binaryUrl=null, sha512sum=null, preferred=false, lastModified=null), details={type=plugin, source=front50, attributes={pluginEventType=PUBLISHED}}) to RequestBody (parameter #1)\n"
+                + "    for method EchoService.postEvent");
   }
 
   private static PluginEvent buildPluginEvent() {

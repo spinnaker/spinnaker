@@ -24,6 +24,7 @@ dependencies {
   implementation "org.springframework.security:spring-security-web"
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-retrofit2"
   implementation "io.reactivex:rxjava"
   implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   implementation "com.squareup.retrofit:converter-jackson"
@@ -47,7 +48,6 @@ dependencies {
   // in front50-test to front50-common, but front50-test seems like a better place.
   testImplementation project(":front50-test")
   testImplementation "io.spinnaker.kork:kork-sql-test"
-  testImplementation "io.spinnaker.kork:kork-retrofit2"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "io.zipkin.brave:brave-instrumentation-okhttp3"
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
