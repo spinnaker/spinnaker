@@ -129,6 +129,10 @@ public class EchoServiceTest {
           .create(okHttpClientConfigurationProperties, interceptors, httpTracing);
     }
 
+    // SpinnakerRequestInterceptor is not needed for retrofit2 client but due to the way retrofit1
+    // and retrofit2
+    // specific beans are mixed up in kork, this is needed for now. Once the beans are separated
+    // this can be removed
     @Bean
     public RequestInterceptor spinnakerRequestInterceptor() {
       return new SpinnakerRequestInterceptor(false);
