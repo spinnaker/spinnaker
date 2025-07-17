@@ -18,7 +18,7 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
-import com.netflix.spinnaker.igor.history.EchoConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
@@ -47,7 +47,7 @@ class EchoConfig {
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(address))
             .client(okHttpClientConfig.createForRetrofit2().build())
-            .addConverterFactory(EchoConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(EchoService)
