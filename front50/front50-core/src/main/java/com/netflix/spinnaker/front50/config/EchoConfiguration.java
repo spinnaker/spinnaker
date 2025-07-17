@@ -16,14 +16,16 @@
 
 package com.netflix.spinnaker.front50.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.front50.echo.EchoService;
-import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import retrofit2.Retrofit;
 
 /** echo service configuration */
 @Configuration
@@ -31,10 +33,14 @@ import org.springframework.context.annotation.Configuration;
 public class EchoConfiguration {
   @Bean
   EchoService echoService(
-      ServiceClientProvider serviceClientProvider,
+      OkHttp3ClientConfiguration okHttpClientConfig,
       @Value("${services.echo.base-url}") String baseUrl) {
-    ObjectMapper objectMapper = new ObjectMapper();
-    return serviceClientProvider.getService(
-        EchoService.class, new DefaultServiceEndpoint("echo", baseUrl), objectMapper);
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(baseUrl))
+        .client(okHttpClientConfig.createForRetrofit2().build())
+        .addConverterFactory(CustomConverterFactory.create())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .build()
+        .create(EchoService.class);
   }
 }
