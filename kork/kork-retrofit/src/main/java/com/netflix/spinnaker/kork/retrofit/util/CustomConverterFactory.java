@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.history;
+package com.netflix.spinnaker.kork.retrofit.util;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.util.IOUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import okhttp3.MediaType;
@@ -27,25 +28,27 @@ import retrofit2.Converter;
 import retrofit2.Retrofit;
 
 /**
- * A custom Converter.Factory for the Echo postEvent API.
+ * This Factory handles the conversion of concrete objects of an abstract class to the RequestBody.
+ * And converts the ResponseBody to an object of the specified type. An example is the Event class
+ * in the Echo API. The Event parameter is annotated with @Body and is an abstract class, which
+ * caused the default Retrofit2 Jackson converter Factory to fail.
  *
- * <p>This Factory is specifically designed to handle the conversion of Event objects for the Echo
- * API's postEvent method. The Event parameter is annotated with @Body and is an abstract class,
- * which caused the default Retrofit2 Jackson converter Factory to fail.
- *
- * <p>This Factory uses a custom ObjectMapper to serialize and deserialize Event objects, ensuring
- * compatibility with the Echo API.
+ * <p>This Factory uses a custom ObjectMapper to serialize and deserialize the objects.
  */
-public class EchoConverterFactory extends Converter.Factory {
+public class CustomConverterFactory extends Converter.Factory {
   private final ObjectMapper mapper;
   private static final MediaType DEFAULT_MEDIA_TYPE =
       MediaType.get("application/json; charset=UTF-8");
 
-  public static EchoConverterFactory create() {
-    return new EchoConverterFactory(new ObjectMapper());
+  public static CustomConverterFactory create() {
+    return new CustomConverterFactory(new ObjectMapper());
   }
 
-  private EchoConverterFactory(ObjectMapper mapper) {
+  public static CustomConverterFactory create(ObjectMapper mapper) {
+    return new CustomConverterFactory(mapper);
+  }
+
+  private CustomConverterFactory(ObjectMapper mapper) {
     this.mapper = mapper;
   }
 
@@ -60,6 +63,8 @@ public class EchoConverterFactory extends Converter.Factory {
    *
    * <p>If the type parameter is Void.class, the Converter simply closes the ResponseBody and
    * returns null.
+   *
+   * <p>If the type parameter is String, the Converter converts the ResponseBody into a String
    *
    * <p>Otherwise, the Converter uses the ObjectMapper to deserialize the response body into an
    * object of the specified type. This case doesn't arise but is included for completeness.
@@ -80,6 +85,9 @@ public class EchoConverterFactory extends Converter.Factory {
             value.close();
             return null;
           };
+    }
+    if (type == String.class) {
+      return (Converter<ResponseBody, String>) value -> IOUtils.toString(value.byteStream());
     }
     return (Converter<ResponseBody, Object>)
         value -> {
