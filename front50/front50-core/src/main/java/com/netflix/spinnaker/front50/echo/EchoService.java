@@ -17,17 +17,17 @@
 
 package com.netflix.spinnaker.front50.echo;
 
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.Headers;
-import retrofit.http.POST;
+import okhttp3.ResponseBody;
+import retrofit2.http.Body;
+import retrofit2.http.Headers;
+import retrofit2.http.POST;
 
 public interface EchoService {
   @Headers("Content-type: application/json")
-  @POST("/")
-  String postEvent(@Body Event event);
+  @POST(".")
+  Void postEvent(@Body Event event);
 
   @Headers("Content-type: application/json")
-  @POST("/notifications")
-  Response postNotification(@Body Notification notification);
+  @POST("notifications")
+  ResponseBody postNotification(@Body Notification notification);
 }
