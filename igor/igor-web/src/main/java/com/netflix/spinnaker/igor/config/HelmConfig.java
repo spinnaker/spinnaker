@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.igor.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccounts;
 import com.netflix.spinnaker.igor.helm.accounts.HelmAccountsService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -48,12 +51,14 @@ public class HelmConfig {
       log.warn(
           "No Clouddriver URL is configured - Igor will be unable to fetch Helm charts and repository indexes");
     }
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     return new Retrofit.Builder()
         .baseUrl(RetrofitUtils.getBaseUrl(address))
         .client(okHttp3ClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(new HelmConverterFactory())
+        .addConverterFactory(CustomConverterFactory.create(objectMapper))
         .build()
         .create(HelmAccountsService.class);
   }
