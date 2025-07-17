@@ -49,5 +49,7 @@ dependencies {
   testImplementation project(":front50-test")
   testImplementation "io.spinnaker.kork:kork-sql-test"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "io.zipkin.brave:brave-instrumentation-okhttp3"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 
 }
