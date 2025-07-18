@@ -31,9 +31,9 @@ ext {
     springBoot       : "2.7.18",
     springCloud      : "2021.0.8",
     swagger          : "2.2.22",
-    // 2.7.18 brings in 9.0.83, which fixes all CVEs to date (20-feb-24). Continue to pin.
+    // 9.0.107, which fixes all CVEs to date (18-jul-25). Continue to pin.
     // See https://tomcat.apache.org/security-9.html for latest security fixes.
-    tomcat           : "9.0.83"
+    tomcat           : "9.0.107"
   ]
 }
 
