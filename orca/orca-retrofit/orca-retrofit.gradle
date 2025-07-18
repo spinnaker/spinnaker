@@ -27,6 +27,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation("io.reactivex:rxjava")
   implementation("io.spinnaker.kork:kork-retrofit")
+  implementation("io.spinnaker.kork:kork-retrofit2")
   implementation "com.google.guava:guava"
 
   testImplementation("com.squareup.retrofit:retrofit-mock")

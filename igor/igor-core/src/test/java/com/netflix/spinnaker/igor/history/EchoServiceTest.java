@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,7 @@ public class EchoServiceTest {
             .baseUrl(wmEcho.baseUrl())
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(EchoConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(EchoService.class);
   }

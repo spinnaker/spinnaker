@@ -317,6 +317,7 @@ window.spinnakerSettings = {
     'travis',
     'webhook',
     'wercker',
+    'helm/oci',
   ],
   useClassicFirewallLabels: useClassicFirewallLabels,
 };
