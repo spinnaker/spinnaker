@@ -19,8 +19,7 @@ package com.netflix.spinnaker.rosco.services;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -33,7 +32,6 @@ import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
@@ -77,9 +75,7 @@ public class ClouddriverServiceTest {
 
   static String WM_CORRECT_ENDPOINT =
       "/api/artifacts/fetch/"; // since the baseUrl has /api/ at the end.
-  static String WM_INCORRECT_ENDPOINT = "/artifacts/fetch/";
   static String WM_CORRECT_URL;
-  static String WM_INCORRECT_URL;
 
   @DynamicPropertySource
   static void registerUrls(DynamicPropertyRegistry registry) {
@@ -91,26 +87,15 @@ public class ClouddriverServiceTest {
   @Test
   void testBaseUrlWithMultipleSlashes() {
     WM_CORRECT_URL = wmClouddriver.baseUrl() + WM_CORRECT_ENDPOINT;
-    WM_INCORRECT_URL = wmClouddriver.baseUrl() + WM_INCORRECT_ENDPOINT;
     wmClouddriver.stubFor(
         WireMock.put(urlEqualTo(WM_CORRECT_ENDPOINT))
             .willReturn(aResponse().withStatus(200).withBody("{\"message\": \"success\"}")));
 
-    wmClouddriver.stubFor(
-        WireMock.put(urlEqualTo(WM_INCORRECT_ENDPOINT))
-            .willReturn(aResponse().withStatus(400).withBody("bad request")));
     Artifact artifact = Artifact.builder().build();
 
-    // FIXME: Fix this issue occurring when base url has multiple slashes like http://.../api/
-    // instead of single slash at the end.
-    Throwable thrown =
-        catchThrowable(() -> Retrofit2SyncCall.execute(clouddriverService.fetchArtifact(artifact)));
-    assertThat(thrown).isInstanceOf(SpinnakerHttpException.class);
-    assertThat(thrown.getMessage())
-        .contains("Status: 400, Method: PUT, URL: " + WM_INCORRECT_URL + ", Message: Bad Request");
+    assertDoesNotThrow(() -> Retrofit2SyncCall.execute(clouddriverService.fetchArtifact(artifact)));
 
-    wmClouddriver.verify(0, WireMock.putRequestedFor(urlEqualTo(WM_CORRECT_ENDPOINT)));
-    wmClouddriver.verify(1, WireMock.putRequestedFor(urlEqualTo(WM_INCORRECT_ENDPOINT)));
+    wmClouddriver.verify(1, WireMock.putRequestedFor(urlEqualTo(WM_CORRECT_ENDPOINT)));
   }
 
   @Configuration
