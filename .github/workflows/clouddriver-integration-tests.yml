@@ -9,10 +9,14 @@ on:
       - release-*
     paths:
       - 'clouddriver/**'
+      - 'fiat/**'
+      - 'kork/**'
 
   pull_request:
     paths:
       - 'clouddriver/**'
+      - 'fiat/**'
+      - 'kork/**'
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx10g -Xms10g
