@@ -51,6 +51,6 @@ class TestUtils {
   }
 
   static OkHttp3ClientConfiguration makeOkHttpClientConfig(){
-    new OkHttp3ClientConfiguration(new OkHttpClientConfigurationProperties(), null, HttpLoggingInterceptor.Level.BASIC, null, null, null)
+    new OkHttp3ClientConfiguration(new OkHttpClientConfigurationProperties(), List.of(), List.of(), null)
   }
 }

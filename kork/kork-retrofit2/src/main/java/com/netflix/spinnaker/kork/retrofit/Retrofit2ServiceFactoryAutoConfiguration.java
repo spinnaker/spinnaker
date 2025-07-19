@@ -19,8 +19,13 @@ package com.netflix.spinnaker.kork.retrofit;
 
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
+import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
+import java.util.List;
+import okhttp3.Interceptor;
 import okhttp3.logging.HttpLoggingInterceptor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -30,21 +35,43 @@ import org.springframework.core.annotation.Order;
 
 @Configuration
 @ConditionalOnProperty(value = "retrofit2.enabled", havingValue = "true", matchIfMissing = true)
-@EnableConfigurationProperties(Retrofit2ConfigurationProperties.class)
+@EnableConfigurationProperties({
+  Retrofit2ConfigurationProperties.class,
+  OkHttpClientConfigurationProperties.class
+})
 public class Retrofit2ServiceFactoryAutoConfiguration {
 
   @Bean
   @Order(Ordered.LOWEST_PRECEDENCE - 1)
-  ServiceClientFactory serviceClientFactory2(OkHttpClientProvider clientProvider) {
-    return new Retrofit2ServiceFactory(clientProvider);
+  ServiceClientFactory serviceClientFactory2(
+      OkHttpClientProvider clientProvider, @Qualifier("retrofit2") List<Interceptor> interceptors) {
+    return new Retrofit2ServiceFactory(clientProvider, interceptors);
   }
 
   @Bean
-  @ConditionalOnMissingBean
-  HttpLoggingInterceptor httpLoggingInterceptor(
+  HttpLoggingInterceptor.Level retrofit2LogLevel(
       Retrofit2ConfigurationProperties retrofit2ConfigurationProperties) {
+    return retrofit2ConfigurationProperties.getLogLevel();
+  }
+
+  @Bean
+  @Qualifier("retrofit2")
+  public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor(
+      OkHttpClientConfigurationProperties clientProperties) {
+    return new SpinnakerRequestHeaderInterceptor(clientProperties.getPropagateSpinnakerHeaders());
+  }
+
+  @Bean
+  @Qualifier("retrofit2")
+  public Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor() {
+    return new Retrofit2EncodeCorrectionInterceptor();
+  }
+
+  @Bean
+  @Qualifier("retrofit2")
+  HttpLoggingInterceptor httpLoggingInterceptor(HttpLoggingInterceptor.Level retrofit2LogLevel) {
     HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
-    httpLoggingInterceptor.setLevel(retrofit2ConfigurationProperties.getLogLevel());
+    httpLoggingInterceptor.setLevel(retrofit2LogLevel);
     return httpLoggingInterceptor;
   }
 }

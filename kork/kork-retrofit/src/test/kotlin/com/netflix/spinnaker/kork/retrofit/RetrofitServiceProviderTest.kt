@@ -21,7 +21,6 @@ import brave.Tracing
 import brave.http.HttpTracing
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.RetrofitConfiguration
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration
@@ -58,7 +58,6 @@ class RetrofitServiceProviderTest  : JUnit5Minutests {
             TaskExecutionAutoConfiguration::class.java,
             DefaultOkHttpClientBuilderProvider::class.java,
             OkHttpClientComponents::class.java,
-            RetrofitConfiguration::class.java,
             TestConfiguration::class.java
           ))
       }
@@ -106,8 +105,8 @@ private open class TestConfiguration {
     HttpTracing.newBuilder(Tracing.newBuilder().build()).build()
 
   @Bean
-  open fun okHttpClient(httpTracing: HttpTracing): OkHttpClient {
-    return RawOkHttpClientFactory().create(OkHttpClientConfigurationProperties(), emptyList(), httpTracing)
+  open fun okHttpClient(httpTracing: HttpTracing, interceptors: List<Interceptor>): OkHttpClient {
+    return RawOkHttpClientFactory().create(OkHttpClientConfigurationProperties(), interceptors, httpTracing)
   }
 
   @Bean

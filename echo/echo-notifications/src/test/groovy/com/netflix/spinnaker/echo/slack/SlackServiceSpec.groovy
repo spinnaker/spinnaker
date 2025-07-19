@@ -5,12 +5,12 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.RequestListener
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.echo.api.Notification
-import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig
-import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig
 import com.netflix.spinnaker.echo.config.SlackAppProperties
 import com.netflix.spinnaker.echo.config.SlackConfig
 import com.netflix.spinnaker.echo.config.SlackLegacyProperties
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import groovy.json.JsonSlurper
 
@@ -26,7 +26,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.util.concurrent.BlockingVariable
 
-@SpringBootTest(classes = [Retrofit2TestConfig, Retrofit2BasicLogTestConfig],
+@SpringBootTest(classes = [Retrofit2ServiceFactoryAutoConfiguration, OkHttpClientProvider, OkHttp3ClientConfiguration],
   properties = ["slack.enabled=true"],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class SlackServiceSpec extends Specification {

@@ -22,6 +22,7 @@ dependencies {
   runtimeOnly "io.spinnaker.kork:kork-runtime"
 
   testImplementation "io.spinnaker.kork:kork-retrofit"
+  testImplementation "io.spinnaker.kork:kork-retrofit2"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.objenesis:objenesis"

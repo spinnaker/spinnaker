@@ -19,8 +19,8 @@ package com.netflix.spinnaker.echo.config;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
-import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig;
-import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,8 +28,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
     classes = {
-      Retrofit2TestConfig.class,
-      Retrofit2BasicLogTestConfig.class,
+      OkHttp3ClientConfiguration.class,
+      OkHttpClientProvider.class,
+      Retrofit2ServiceFactoryAutoConfiguration.class
     })
 public class SlackConfigTest {
 

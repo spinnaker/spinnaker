@@ -25,7 +25,10 @@ import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.Interceptor
 import org.springframework.beans.factory.BeanCreationException
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -38,6 +41,10 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 @Configuration
 @ConditionalOnProperty("clouddriver.enabled")
 class ClouddriverConfiguration {
+
+  @Autowired
+  @Qualifier("retrofit2")
+  lateinit var interceptors: List<Interceptor>
 
   @Bean
   fun clouddriverEndpoint(@Value("\${clouddriver.base-url}") clouddriverBaseUrl: String): HttpUrl =
@@ -55,7 +62,12 @@ class ClouddriverConfiguration {
       Retrofit.Builder()
         .addConverterFactory(InstrumentedJacksonConverter.Factory("CloudDriver", objectMapper))
         .baseUrl(clouddriverEndpoint)
-        .client(clientProvider.getClient(DefaultServiceEndpoint("clouddriver", clouddriverEndpoint.toString())))
+        .client(
+          clientProvider
+            .getClient(DefaultServiceEndpoint("clouddriver", clouddriverEndpoint.toString()))
+            .newBuilder().apply {
+              interceptors.forEach { addInterceptor(it) }
+            }.build())
         .build()
         .create(CloudDriverService::class.java)
 
