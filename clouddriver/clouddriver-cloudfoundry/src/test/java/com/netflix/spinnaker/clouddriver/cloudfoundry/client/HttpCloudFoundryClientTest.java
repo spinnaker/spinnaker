@@ -74,10 +74,11 @@ class HttpCloudFoundryClientTest {
         assertThrows(
             CloudFoundryApiException.class,
             () -> cloudFoundryClient.getOrganizations().findByName("randomName"),
-            "Expected thrown 'Cloud Foundry API returned with error(s): 504 error', but it didn't");
+            "Expected thrown 'Cloud Foundry API returned with error(s): Status: 504', but it didn't");
 
     // 504 means it was retried after 502 and 503
-    assertTrue(thrown.getMessage().contains("Cloud Foundry API returned with error(s): 504 error"));
+    assertTrue(
+        thrown.getMessage().contains("Cloud Foundry API returned with error(s): Status: 504"));
   }
 
   @Test
