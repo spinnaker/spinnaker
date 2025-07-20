@@ -28,21 +28,21 @@ import retrofit2.http.*;
 public interface RouteService {
   // Mapping to CF API style query params -
   // https://apidocs.cloudfoundry.org/1.34.0/routes/list_all_routes.html
-  @GET("/v2/routes?results-per-page=100")
+  @GET("v2/routes?results-per-page=100")
   Call<Page<Route>> all(
       @Query("page") Integer page,
       @Query("per_page") Integer perPage,
       @Query("q") List<String> queryParams);
 
-  @GET("/v2/routes/{guid}")
+  @GET("v2/routes/{guid}")
   Call<Resource<Route>> findById(@Path("guid") String guid);
 
-  @GET("/v2/routes/{guid}/route_mappings")
+  @GET("v2/routes/{guid}/route_mappings")
   Call<Page<RouteMapping>> routeMappings(@Path("guid") String guid, @Query("page") Integer page);
 
-  @POST("/v2/routes")
+  @POST("v2/routes")
   Call<Resource<Route>> createRoute(@Body Route route);
 
-  @DELETE("/v2/routes/{guid}?recursive=true")
+  @DELETE("v2/routes/{guid}?recursive=true")
   Call<ResponseBody> deleteRoute(@Path("guid") String guid);
 }
