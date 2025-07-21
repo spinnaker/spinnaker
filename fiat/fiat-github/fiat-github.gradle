@@ -9,6 +9,12 @@ dependencies {
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "jakarta.validation:jakarta.validation-api"
+  implementation "io.jsonwebtoken:jjwt-api:0.11.5"
+  implementation "io.jsonwebtoken:jjwt-impl:0.11.5"
+  implementation "io.jsonwebtoken:jjwt-jackson:0.11.5"
 
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "org.junit.jupiter:junit-jupiter"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.mockito:mockito-junit-jupiter"
 }

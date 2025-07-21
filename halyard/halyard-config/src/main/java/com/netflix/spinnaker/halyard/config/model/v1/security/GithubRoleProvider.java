@@ -29,6 +29,22 @@ public class GithubRoleProvider extends RoleProvider {
   private final String nodeName = "github";
 
   private String baseUrl;
-  @Secret private String accessToken;
   private String organization;
+
+  // Authentication method control
+  private AuthMethod authMethod = AuthMethod.AUTO;
+
+  // Personal Access Token authentication (legacy)
+  @Secret private String accessToken;
+
+  // GitHub App authentication (preferred)
+  private String appId;
+  @Secret private String privateKeyPath;
+  private String installationId;
+
+  public enum AuthMethod {
+    AUTO, // GitHub App if available, otherwise PAT (default)
+    GITHUB_APP, // Force GitHub App (fail if not configured)
+    PAT // Force PAT (fail if not configured)
+  }
 }
