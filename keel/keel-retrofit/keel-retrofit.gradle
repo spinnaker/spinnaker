@@ -4,6 +4,7 @@ dependencies {
   api("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
   api("io.spinnaker.kork:kork-web")
+  api("io.spinnaker.kork:kork-retrofit")
   implementation("io.spinnaker.kork:kork-security")
   implementation("com.squareup.okhttp3:logging-interceptor")
   implementation("io.spinnaker.fiat:fiat-api")

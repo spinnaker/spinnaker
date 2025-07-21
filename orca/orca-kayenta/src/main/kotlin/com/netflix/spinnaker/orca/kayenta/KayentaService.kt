@@ -30,7 +30,7 @@ import java.time.Instant
 
 interface KayentaService {
 
-  @POST("/canary/{canaryConfigId}")
+  @POST("canary/{canaryConfigId}")
   fun create(
     @Path("canaryConfigId") canaryConfigId: String,
     @Query("application") application: String,
@@ -41,22 +41,22 @@ interface KayentaService {
     @Body canaryExecutionRequest: CanaryExecutionRequest
   ): Call<Map<String, String>>
 
-  @GET("/canary/{canaryExecutionId}")
+  @GET("canary/{canaryExecutionId}")
   fun getCanaryResults(
     @Path("canaryExecutionId") canaryExecutionId: String,
     @Query("storageAccountName") storageAccountName: String?
     ): Call<CanaryResults>
 
-  @PUT("/pipelines/{executionId}/cancel")
+  @PUT("pipelines/{executionId}/cancel")
   fun cancelPipelineExecution(
     @Path("executionId") executionId: String,
     @Body ignored: String
   ): Call<Void>
 
-  @GET("/credentials")
+  @GET("credentials")
   fun getCredentials(): Call<List<KayentaCredential>>
 
-  @GET("/canaryConfig")
+  @GET("canaryConfig")
   fun getAllCanaryConfigs(): Call<List<KayentaCanaryConfig>>
 }
 

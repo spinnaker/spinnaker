@@ -32,13 +32,13 @@ interface Front50Service {
   /**
    * Get [SpinnakerPluginInfo] by the plugin ID.
    */
-  @GET("/pluginInfo/{id}")
+  @GET("pluginInfo/{id}")
   fun getById(@Path("id") id: String): Call<SpinnakerPluginInfo>
 
   /**
    * List all registered [SpinnakerPluginInfo] from front50.
    */
-  @GET("/pluginInfo")
+  @GET("pluginInfo")
   fun listAll(): Call<Collection<SpinnakerPluginInfo>>
 
   /**
@@ -46,7 +46,7 @@ interface Front50Service {
    *
    * This ensures that, even through instance replacement, a server group's installed plugins will remain homogenous.
    */
-  @PUT("/pluginVersions/{serverGroupName}")
+  @PUT("pluginVersions/{serverGroupName}")
   fun pinVersions(
     @Path("serverGroupName") serverGroupName: String,
     @Query("serviceName") serviceName: String,

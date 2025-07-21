@@ -31,19 +31,19 @@ import retrofit2.http.Query
  */
 interface BakeryService {
 
-  @POST("/api/v2/manifest/bake/{type}")
+  @POST("api/v2/manifest/bake/{type}")
   Call<Artifact> bakeManifest(@Path("type") String type, @Body BakeManifestRequest bake)
 
-  @POST("/api/v1/{region}/bake")
+  @POST("api/v1/{region}/bake")
   Call<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake)
 
-  @GET("/api/v1/{region}/status/{statusId}")
+  @GET("api/v1/{region}/status/{statusId}")
   Call<BakeStatus> lookupStatus(@Path("region") String region, @Path("statusId") String statusId)
 
-  @GET("/api/v1/{region}/bake/{bakeId}")
+  @GET("api/v1/{region}/bake/{bakeId}")
   Call<Bake> lookupBake(@Path("region") String region, @Path("bakeId") String bakeId)
 
-  @POST("/api/v1/bakes/delete-requests")
+  @POST("api/v1/bakes/delete-requests")
   Call<Void> createDeleteBakesRequest(@Body DeleteBakesRequest deleteBakesRequest)
 
   //
@@ -51,7 +51,7 @@ interface BakeryService {
   // iff bakery.roscoApisEnabled is true.
   //
 
-  @GET("/bakeOptions/{cloudProvider}/baseImages/{imageId}")
+  @GET("bakeOptions/{cloudProvider}/baseImages/{imageId}")
   Call<BaseImage> getBaseImage(@Path("cloudProvider") String cloudProvider,
                                      @Path("imageId") String imageId)
 }

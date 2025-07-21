@@ -27,19 +27,19 @@ import retrofit2.http.*;
 
 public interface ProcessesService {
 
-  @GET("/v3/processes")
+  @GET("v3/processes")
   Call<Pagination<Process>> getProcesses(
       @Query("page") Integer page, @Query("app_guids") String appGuids);
 
-  @POST("/v3/processes/{guid}/actions/scale")
+  @POST("v3/processes/{guid}/actions/scale")
   Call<ResponseBody> scaleProcess(@Path("guid") String guid, @Body ScaleProcess scaleProcess);
 
-  @PATCH("/v3/processes/{guid}")
+  @PATCH("v3/processes/{guid}")
   Call<Process> updateProcess(@Path("guid") String guid, @Body UpdateProcess updateProcess);
 
-  @GET("/v3/processes/{guid}")
+  @GET("v3/processes/{guid}")
   Call<Process> findProcessById(@Path("guid") String guid);
 
-  @GET("/v3/processes/{guid}/stats")
+  @GET("v3/processes/{guid}/stats")
   Call<ProcessResources> findProcessStatsById(@Path("guid") String guid);
 }
