@@ -33,18 +33,17 @@ import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 
 public interface OortService {
-  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}")
+  @GET("applications/{app}/clusters/{account}/{cluster}/{cloudProvider}")
   Call<ResponseBody> getCluster(
       @Path("app") String app,
       @Path("account") String account,
       @Path("cluster") String cluster,
       @Path("cloudProvider") String cloudProvider);
 
-  @GET("/applications/{app}/serverGroups")
+  @GET("applications/{app}/serverGroups")
   Call<List<ServerGroup>> getServerGroups(@Path("app") String app);
 
-  @GET(
-      "/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
+  @GET("applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
   Call<ResponseBody> getServerGroupFromCluster(
       @Path("app") String app,
       @Path("account") String account,
@@ -53,8 +52,7 @@ public interface OortService {
       @Query("region") String region,
       @Path("cloudProvider") String cloudProvider);
 
-  @GET(
-      "/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
+  @GET("applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
   Call<List<ServerGroup>> getServerGroupsFromClusterTyped(
       @Path("app") String app,
       @Path("account") String account,
@@ -62,20 +60,20 @@ public interface OortService {
       @Path("serverGroup") String serverGroup,
       @Path("cloudProvider") String cloudProvider);
 
-  @GET("/manifests/{account}/_/{manifest}")
+  @GET("manifests/{account}/_/{manifest}")
   Call<Manifest> getManifest(
       @Path("account") String account,
       @Path("manifest") String manifest,
       @Query("includeEvents") boolean includeEvents);
 
-  @GET("/manifests/{account}/{location}/{manifest}")
+  @GET("manifests/{account}/{location}/{manifest}")
   Call<Manifest> getManifest(
       @Path("account") String account,
       @Path("location") String location,
       @Path("manifest") String manifest,
       @Query("includeEvents") boolean includeEvents);
 
-  @GET("/manifests/{account}/{location}/{kind}/cluster/{app}/{clusterName}/dynamic/{criteria}")
+  @GET("manifests/{account}/{location}/{kind}/cluster/{app}/{clusterName}/dynamic/{criteria}")
   Call<ManifestCoordinates> getDynamicManifest(
       @Path("account") String account,
       @Path("location") String location,
@@ -84,7 +82,7 @@ public interface OortService {
       @Path("clusterName") String clusterName,
       @Path("criteria") String criteria);
 
-  @GET("/manifests/{account}/{location}/{kind}/cluster/{app}/{clusterName}")
+  @GET("manifests/{account}/{location}/{kind}/cluster/{app}/{clusterName}")
   Call<List<ManifestCoordinates>> getClusterManifests(
       @Path("account") String account,
       @Path("location") String location,
@@ -93,21 +91,21 @@ public interface OortService {
       @Path("clusterName") String clusterName);
 
   @Deprecated
-  @GET("/applications/{app}/serverGroups/{account}/{region}/{serverGroup}")
+  @GET("applications/{app}/serverGroups/{account}/{region}/{serverGroup}")
   Call<ResponseBody> getServerGroup(
       @Path("app") String app,
       @Path("account") String account,
       @Path("region") String region,
       @Path("serverGroup") String serverGroup);
 
-  @GET("/serverGroups/{account}/{region}/{serverGroup}")
+  @GET("serverGroups/{account}/{region}/{serverGroup}")
   Call<ResponseBody> getServerGroup(
       @Path("account") String account,
       @Path("region") String region,
       @Path("serverGroup") String serverGroup);
 
   @GET(
-      "/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}")
+      "applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}")
   Call<ServerGroup> getTargetServerGroup(
       @Path("app") String app,
       @Path("account") String account,
@@ -117,7 +115,7 @@ public interface OortService {
       @Path("target") String target);
 
   @GET(
-      "/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}/{summaryType}")
+      "applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}/{summaryType}")
   Call<Map<String, Object>> getServerGroupSummary(
       @Path("app") String app,
       @Path("account") String account,
@@ -128,39 +126,39 @@ public interface OortService {
       @Path("summaryType") String summaryType,
       @Query("onlyEnabled") String onlyEnabled);
 
-  @GET("/search")
+  @GET("search")
   Call<ResponseBody> getSearchResults(
       @Query("q") String searchTerm,
       @Query("type") String type,
       @Query("cloudProvider") String cloudProvider);
 
-  @GET("/applications/{app}")
+  @GET("applications/{app}")
   Call<ResponseBody> getApplication(@Path("app") String app);
 
-  @GET("/instances/{account}/{region}/{instanceId}")
+  @GET("instances/{account}/{region}/{instanceId}")
   Call<ResponseBody> getInstance(
       @Path("account") String account,
       @Path("region") String region,
       @Path("instanceId") String instanceId);
 
-  @PUT("/artifacts/fetch/")
+  @PUT("artifacts/fetch/")
   Call<ResponseBody> fetchArtifact(@Body Artifact artifact);
 
-  @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
+  @GET("{provider}/loadBalancers/{account}/{region}/{name}")
   Call<List<Map>> getLoadBalancerDetails(
       @Path("provider") String provider,
       @Path("account") String account,
       @Path("region") String region,
       @Path("name") String name);
 
-  @GET("/{type}/images/{account}/{region}/{imageId}")
+  @GET("{type}/images/{account}/{region}/{imageId}")
   Call<List<Ami>> getByAmiId(
       @Path("type") String type,
       @Path("account") String account,
       @Path("region") String region,
       @Path("imageId") Object imageId);
 
-  @GET("/{cloudProvider}/images/find")
+  @GET("{cloudProvider}/images/find")
   Call<List<Map>> findImage(
       @Path("cloudProvider") String cloudProvider,
       @Query("q") String query,
@@ -168,7 +166,7 @@ public interface OortService {
       @Query("region") String region,
       @QueryMap Map<String, String> additionalFilters);
 
-  @GET("/tags")
+  @GET("tags")
   Call<List<Map<String, Object>>> getEntityTags(
       @Query("cloudProvider") String cloudProvider,
       @Query("entityType") String entityType,
@@ -176,19 +174,19 @@ public interface OortService {
       @Query("account") String account,
       @Query("region") String region);
 
-  @GET("/tags")
+  @GET("tags")
   Call<List<Map>> getEntityTags(@QueryMap Map parameters);
 
-  @GET("/aws/cloudFormation/stacks/{stackId}")
+  @GET("aws/cloudFormation/stacks/{stackId}")
   Call<Map> getCloudFormationStack(@Path(value = "stackId", encoded = true) String stackId);
 
-  @GET("/servicebroker/{account}/serviceInstance")
+  @GET("servicebroker/{account}/serviceInstance")
   Call<Map<String, Object>> getServiceInstance(
       @Path("account") String account,
       @Query("cloudProvider") String cloudProvider,
       @Query("region") String region,
       @Query("serviceInstanceName") String serviceInstanceName);
 
-  @GET("/credentials")
+  @GET("credentials")
   Call<List<Map<String, Object>>> getCredentials(@Query("expand") boolean expand);
 }
