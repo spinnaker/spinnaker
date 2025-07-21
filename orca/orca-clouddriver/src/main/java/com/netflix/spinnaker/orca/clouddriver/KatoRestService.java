@@ -23,50 +23,50 @@ import retrofit2.http.Query;
 public interface KatoRestService {
   /** @deprecated Use {@code /{cloudProvider}/ops} instead */
   @Deprecated
-  @POST("/ops")
+  @POST("ops")
   Call<TaskId> requestOperations(
       @Query("clientRequestId") String clientRequestId,
       @Body Collection<Map<String, Map>> operations);
 
-  @POST("/{cloudProvider}/ops")
+  @POST("{cloudProvider}/ops")
   Call<TaskId> requestOperations(
       @Query("clientRequestId") String clientRequestId,
       @Path("cloudProvider") String cloudProvider,
       @Body Collection<Map<String, Map>> operations);
 
-  @POST("/{cloudProvider}/ops/{operationName}")
+  @POST("{cloudProvider}/ops/{operationName}")
   Call<ResponseBody> submitOperation(
       @Query("clientRequestId") String clientRequestId,
       @Path("cloudProvider") String cloudProvider,
       @Path("operationName") String operationName,
       @Body OperationContext operation);
 
-  @PATCH("/{cloudProvider}/task/{id}")
+  @PATCH("{cloudProvider}/task/{id}")
   Call<TaskId> updateTask(
       @Path("cloudProvider") String cloudProvider, @Path("id") String id, @Body Map details);
 
-  @POST("/{cloudProvider}/task/{id}/restart")
+  @POST("{cloudProvider}/task/{id}/restart")
   @Retry(name = "katoRetrofitServiceWriter")
   Call<TaskId> restartTaskViaOperations(
       @Path("cloudProvider") String cloudProvider,
       @Path("id") String id,
       @Body Collection<Map<String, Map>> operations);
 
-  @GET("/applications/{app}/jobs/{account}/{region}/{id}")
+  @GET("applications/{app}/jobs/{account}/{region}/{id}")
   Call<ResponseBody> collectJob(
       @Path("app") String app,
       @Path("account") String account,
       @Path("region") String region,
       @Path("id") String id);
 
-  @DELETE("/applications/{app}/jobs/{account}/{location}/{id}")
+  @DELETE("applications/{app}/jobs/{account}/{location}/{id}")
   Call<ResponseBody> cancelJob(
       @Path("app") String app,
       @Path("account") String account,
       @Path("location") String region,
       @Path("id") String id);
 
-  @GET("/applications/{app}/jobs/{account}/{region}/{id}/{fileName}")
+  @GET("applications/{app}/jobs/{account}/{region}/{id}/{fileName}")
   Call<Map<String, Object>> getFileContents(
       @Path("app") String app,
       @Path("account") String account,
@@ -74,7 +74,7 @@ public interface KatoRestService {
       @Path("id") String id,
       @Path("fileName") String fileName);
 
-  @GET("/applications/{app}/kubernetes/pods/{account}/{namespace}/{podName}/{fileName}")
+  @GET("applications/{app}/kubernetes/pods/{account}/{namespace}/{podName}/{fileName}")
   Call<Map<String, Object>> getFileContentsFromKubernetesPod(
       @Path("app") String app,
       @Path("account") String account,
@@ -86,10 +86,10 @@ public interface KatoRestService {
    * This should _only_ be called if there is a problem retrieving the Task from
    * CloudDriverTaskStatusService (ie. a clouddriver replica).
    */
-  @GET("/task/{id}")
+  @GET("task/{id}")
   Call<Task> lookupTask(@Path("id") String id);
 
-  @POST("/task/{id}:resume")
+  @POST("task/{id}:resume")
   @Retry(name = "katoRetrofitServiceWriter")
   Call<TaskId> resumeTask(@Path("id") String id);
 }
