@@ -33,6 +33,8 @@ import com.netflix.spinnaker.kork.plugins.update.internal.PluginOkHttpClientProv
 import com.netflix.spinnaker.kork.plugins.update.release.source.Front50PluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.release.source.PluginInfoReleaseSource;
 import com.netflix.spinnaker.kork.plugins.update.repository.Front50UpdateRepository;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.net.URL;
 import java.util.Map;
@@ -106,8 +108,9 @@ public class Front50PluginsConfiguration {
 
     return new Retrofit.Builder()
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-        .baseUrl(front50Url)
+        .baseUrl(RetrofitUtils.getBaseUrl(front50Url.toString()))
         .client(pluginsOkHttpClientProvider.getOkHttpClient())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(Front50Service.class);
   }

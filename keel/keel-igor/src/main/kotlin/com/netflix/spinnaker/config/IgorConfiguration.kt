@@ -9,6 +9,8 @@ import com.netflix.spinnaker.keel.igor.DeliveryConfigImporter
 import com.netflix.spinnaker.keel.igor.ScmService
 import com.netflix.spinnaker.keel.igor.artifact.ArtifactService
 import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.springframework.beans.factory.BeanCreationException
@@ -58,8 +60,9 @@ class IgorConfiguration {
     clientProvider: OkHttpClientProvider
   ): T = Retrofit.Builder()
     .addConverterFactory(InstrumentedJacksonConverter.Factory("Igor", objectMapper))
-    .baseUrl(igorEndpoint)
+    .baseUrl(RetrofitUtils.getBaseUrl(igorEndpoint.toString()))
     .client(clientProvider.getClient(DefaultServiceEndpoint("igor", igorEndpoint.toString())))
+    .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
     .build()
     .create(T::class.java)
 }
