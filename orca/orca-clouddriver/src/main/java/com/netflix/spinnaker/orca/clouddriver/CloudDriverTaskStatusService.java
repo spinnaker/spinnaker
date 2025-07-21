@@ -22,9 +22,18 @@ import retrofit.http.GET;
 import retrofit.http.Path;
 
 public interface CloudDriverTaskStatusService {
+<<<<<<< HEAD
   @GET("/task/{id}")
   Task lookupTask(@Path("id") String id);
 
   @GET("/{cloudProvider}/task/{id}/owner")
   TaskOwner lookupTaskOwner(@Path("cloudProvider") String cloudProvider, @Path("id") String id);
+=======
+  @GET("task/{id}")
+  Call<Task> lookupTask(@Path("id") String id);
+
+  @GET("{cloudProvider}/task/{id}/owner")
+  Call<TaskOwner> lookupTaskOwner(
+      @Path("cloudProvider") String cloudProvider, @Path("id") String id);
+>>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
 }

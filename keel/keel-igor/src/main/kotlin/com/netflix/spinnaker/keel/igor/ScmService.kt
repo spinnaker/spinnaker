@@ -34,7 +34,7 @@ interface ScmService: ScmInfo {
    * @param ref The git reference at which to retrieve to file (e.g. a commit hash, or a reference like "refs/heads/mybranch").
    * @param raw returns the config as string if true, otherwise parses and converts the string to a map
    */
-  @GET("/delivery-config/manifest")
+  @GET("delivery-config/manifest")
   suspend fun getDeliveryConfigManifest(
     @Query("scmType") repoType: String,
     @Query("project") projectKey: String,
@@ -47,20 +47,20 @@ interface ScmService: ScmInfo {
   /**
    * Retrieves all SCM base links, as defined in Igor
    */
-  @GET("/scm/masters")
+  @GET("scm/masters")
   override suspend fun getScmInfo(): Map<String, String?>
 
   /**
    * Returns the default [Branch] for the specified repo.
    */
-  @GET("/scm/repos/{scmType}/{projectKey}/{repoSlug}/branches/default")
+  @GET("scm/repos/{scmType}/{projectKey}/{repoSlug}/branches/default")
   suspend fun getDefaultBranch(
     @Path("scmType") scmType: String,
     @Path("projectKey") projectKey: String,
     @Path("repoSlug") repoSlug: String
   ): Branch
 
-  @POST("/scm/repos/{scmType}/{projectKey}/{repoSlug}/pull-requests/{pullRequestId}/comments")
+  @POST("scm/repos/{scmType}/{projectKey}/{repoSlug}/pull-requests/{pullRequestId}/comments")
   suspend fun commentOnPullRequest(
     @Path("scmType") scmType: String,
     @Path("projectKey") projectKey: String,
@@ -69,7 +69,7 @@ interface ScmService: ScmInfo {
     @Body comment: Comment
   )
 
-  @POST("/scm/build-results/{scmType}/{commitHash}")
+  @POST("scm/build-results/{scmType}/{commitHash}")
   suspend fun postBuildResultToCommit(
     @Path("scmType") scmType: String,
     @Path("commitHash") commitHash: String,

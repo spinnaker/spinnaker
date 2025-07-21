@@ -9,16 +9,16 @@ import retrofit2.http.Headers;
 import retrofit2.http.Path;
 
 public interface RoscoService {
-  @GET("/bakeOptions")
+  @GET("bakeOptions")
   Call<List> bakeOptions();
 
-  @GET("/bakeOptions/{cloudProvider}")
+  @GET("bakeOptions/{cloudProvider}")
   Call<Map> bakeOptions(@Path("cloudProvider") String cloudProvider);
 
   @Headers("Accept: application/json")
-  @GET("/api/v1/{region}/logs/{statusId}")
+  @GET("api/v1/{region}/logs/{statusId}")
   Call<Map> lookupLogs(@Path("region") String region, @Path("statusId") String statusId);
 
-  @GET("/installedPlugins")
+  @GET("installedPlugins")
   Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 }

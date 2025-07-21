@@ -21,8 +21,13 @@ import retrofit.http.GET;
 
 public interface FeaturesRestService {
 
+<<<<<<< HEAD
   @GET("/features/stages")
   List<AvailableStage> getStages();
+=======
+  @GET("features/stages")
+  Call<List<AvailableStage>> getStages();
+>>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
 
   public static class AvailableStage {
     public String name;

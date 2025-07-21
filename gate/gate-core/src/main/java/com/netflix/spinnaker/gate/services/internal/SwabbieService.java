@@ -29,31 +29,31 @@ import retrofit2.http.Query;
 
 public interface SwabbieService {
   @Headers("Accept: application/json")
-  @PUT("/resources/state/{namespace}/{resourceId}/optOut")
+  @PUT("resources/state/{namespace}/{resourceId}/optOut")
   Call<Map> optOut(
       @Path("namespace") String namespace,
       @Path("resourceId") String resourceId,
       @Body String ignored);
 
   @Headers("Accept: application/json")
-  @PUT("/resources/state/{namespace}/{resourceId}/restore")
+  @PUT("resources/state/{namespace}/{resourceId}/restore")
   Call<Void> restore(
       @Path("namespace") String namespace,
       @Path("resourceId") String resourceId,
       @Body String ignored);
 
   @Headers("Accept: application/json")
-  @GET("/resources/marked/{namespace}/{resourceId}")
+  @GET("resources/marked/{namespace}/{resourceId}")
   Call<Map> get(@Path("namespace") String namespace, @Path("resourceId") String resourceId);
 
   @Headers("Accept: application/json")
-  @GET("/resources/marked")
+  @GET("resources/marked")
   Call<List> getMarkedList(@Query("list") Boolean list);
 
   @Headers("Accept: application/json")
-  @GET("/resources/deleted")
+  @GET("resources/deleted")
   Call<List> getDeletedList();
 
-  @GET("/installedPlugins")
+  @GET("installedPlugins")
   Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 }

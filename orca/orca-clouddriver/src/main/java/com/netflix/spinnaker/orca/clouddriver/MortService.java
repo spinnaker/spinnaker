@@ -33,21 +33,32 @@ import retrofit.http.Path;
 import retrofit.http.Query;
 
 public interface MortService {
+<<<<<<< HEAD
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
   SecurityGroup getSecurityGroup(
+=======
+  @GET("securityGroups/{account}/{type}/{region}/{securityGroupName}")
+  Call<SecurityGroup> getSecurityGroup(
+>>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
       @Path("account") String account,
       @Path("type") String type,
       @Path("securityGroupName") String securityGroupName,
       @Path("region") String region);
 
+<<<<<<< HEAD
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
   SecurityGroup getSecurityGroup(
+=======
+  @GET("securityGroups/{account}/{type}/{region}/{securityGroupName}")
+  Call<SecurityGroup> getSecurityGroup(
+>>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
       @Path("account") String account,
       @Path("type") String type,
       @Path("securityGroupName") String securityGroupName,
       @Path("region") String region,
       @Query("vpcId") String vpcId);
 
+<<<<<<< HEAD
   @GET("/vpcs")
   Collection<VPC> getVPCs();
 
@@ -56,6 +67,17 @@ public interface MortService {
 
   @GET("/credentials/{account}")
   Map getAccountDetails(@Path("account") String account);
+=======
+  @GET("vpcs")
+  Call<Collection<VPC>> getVPCs();
+
+  @GET("search")
+  Call<List<SearchResult>> getSearchResults(
+      @Query("q") String searchTerm, @Query("type") String type);
+
+  @GET("credentials/{account}")
+  Call<Map> getAccountDetails(@Path("account") String account);
+>>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
 
   class SearchResult {
     int totalMatches;

@@ -26,6 +26,7 @@ import retrofit.http.*
  */
 interface BakeryService {
 
+<<<<<<< HEAD
   @POST("/api/v2/manifest/bake/{type}")
   Artifact bakeManifest(@Path("type") String type, @Body BakeManifestRequest bake)
 
@@ -40,13 +41,34 @@ interface BakeryService {
 
   @POST("/api/v1/bakes/delete-requests")
   Void createDeleteBakesRequest(@Body DeleteBakesRequest deleteBakesRequest)
+=======
+  @POST("api/v2/manifest/bake/{type}")
+  Call<Artifact> bakeManifest(@Path("type") String type, @Body BakeManifestRequest bake)
+
+  @POST("api/v1/{region}/bake")
+  Call<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake)
+
+  @GET("api/v1/{region}/status/{statusId}")
+  Call<BakeStatus> lookupStatus(@Path("region") String region, @Path("statusId") String statusId)
+
+  @GET("api/v1/{region}/bake/{bakeId}")
+  Call<Bake> lookupBake(@Path("region") String region, @Path("bakeId") String bakeId)
+
+  @POST("api/v1/bakes/delete-requests")
+  Call<Void> createDeleteBakesRequest(@Body DeleteBakesRequest deleteBakesRequest)
+>>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
 
   //
   // Methods below this line are not supported by the Netflix Bakery, and are only available
   // iff bakery.roscoApisEnabled is true.
   //
 
+<<<<<<< HEAD
   @GET("/bakeOptions/{cloudProvider}/baseImages/{imageId}")
   BaseImage getBaseImage(@Path("cloudProvider") String cloudProvider,
+=======
+  @GET("bakeOptions/{cloudProvider}/baseImages/{imageId}")
+  Call<BaseImage> getBaseImage(@Path("cloudProvider") String cloudProvider,
+>>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
                                      @Path("imageId") String imageId)
 }
