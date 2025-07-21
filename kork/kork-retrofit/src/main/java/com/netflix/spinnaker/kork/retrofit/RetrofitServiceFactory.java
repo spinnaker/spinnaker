@@ -27,9 +27,11 @@ import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import java.util.List;
 import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 import retrofit.Endpoint;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
@@ -54,12 +56,14 @@ class RetrofitServiceFactory implements ServiceClientFactory {
   @Override
   public <T> T create(Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper) {
     Endpoint endpoint = newFixedEndpoint(serviceEndpoint.getBaseUrl());
+    OkHttpClient client =
+        RetrofitUtils.getClientForRetrofit1(clientProvider.getClient(serviceEndpoint));
     return new RestAdapter.Builder()
         .setRequestInterceptor(spinnakerRequestInterceptor)
         .setConverter(new JacksonConverter(objectMapper))
         .setEndpoint(endpoint)
         .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-        .setClient(new Ok3Client(clientProvider.getClient(serviceEndpoint)))
+        .setClient(new Ok3Client(client))
         .setLogLevel(retrofitLogLevel)
         .setLog(new Slf4jRetrofitLogger(type))
         .build()
