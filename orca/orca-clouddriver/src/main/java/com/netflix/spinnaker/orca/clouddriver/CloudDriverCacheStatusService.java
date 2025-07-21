@@ -22,12 +22,7 @@ import retrofit.http.GET;
 import retrofit.http.Path;
 
 public interface CloudDriverCacheStatusService {
-<<<<<<< HEAD
   @GET("/cache/{cloudProvider}/{type}")
   Collection<Map> pendingForceCacheUpdates(
-=======
-  @GET("cache/{cloudProvider}/{type}")
-  Call<Collection<Map>> pendingForceCacheUpdates(
->>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
       @Path("cloudProvider") String cloudProvider, @Path("type") String type);
 }

@@ -29,7 +29,7 @@ import retrofit.http.Query
 
 interface KayentaService {
 
-  @POST("canary/{canaryConfigId}")
+  @POST("/canary/{canaryConfigId}")
   fun create(
     @Path("canaryConfigId") canaryConfigId: String,
     @Query("application") application: String,
@@ -40,31 +40,23 @@ interface KayentaService {
     @Body canaryExecutionRequest: CanaryExecutionRequest
   ): Map<*, *>
 
-  @GET("canary/{canaryExecutionId}")
+  @GET("/canary/{canaryExecutionId}")
   fun getCanaryResults(
     @Query("storageAccountName") storageAccountName: String?,
     @Path("canaryExecutionId") canaryExecutionId: String
   ): CanaryResults
 
-  @PUT("pipelines/{executionId}/cancel")
+  @PUT("/pipelines/{executionId}/cancel")
   fun cancelPipelineExecution(
     @Path("executionId") executionId: String,
     @Body ignored: String
   ): Map<*, *>
 
-<<<<<<< HEAD
   @GET("/credentials")
   fun getCredentials(): List<KayentaCredential>
 
   @GET("/canaryConfig")
   fun getAllCanaryConfigs(): List<KayentaCanaryConfig>
-=======
-  @GET("credentials")
-  fun getCredentials(): Call<List<KayentaCredential>>
-
-  @GET("canaryConfig")
-  fun getAllCanaryConfigs(): Call<List<KayentaCanaryConfig>>
->>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
 }
 
 data class CanaryExecutionRequest(
