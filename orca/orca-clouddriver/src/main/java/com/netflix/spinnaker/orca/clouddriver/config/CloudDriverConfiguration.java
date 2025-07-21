@@ -25,6 +25,7 @@ import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -201,12 +203,13 @@ public class CloudDriverConfiguration {
     }
 
     public <T> T buildService(Class<T> type, String url) {
+      OkHttpClient client =
+          RetrofitUtils.getClientForRetrofit1(
+              clientProvider.getClient(new DefaultServiceEndpoint("clouddriver", url), true));
       return new RestAdapter.Builder()
           .setRequestInterceptor(spinnakerRequestInterceptor)
           .setEndpoint(newFixedEndpoint(url))
-          .setClient(
-              new Ok3Client(
-                  clientProvider.getClient(new DefaultServiceEndpoint("clouddriver", url), true)))
+          .setClient(new Ok3Client(client))
           .setLogLevel(retrofitLogLevel)
           .setLog(new RetrofitSlf4jLog(type))
           .setConverter(new JacksonConverter(objectMapper))
