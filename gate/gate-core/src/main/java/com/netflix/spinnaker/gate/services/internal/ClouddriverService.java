@@ -207,19 +207,7 @@ public interface ClouddriverService {
       @Path("imageId") String imageId);
 
   @Headers("Accept: application/json")
-<<<<<<< HEAD
-  @GET("/projects/{project}/clusters")
-=======
-  @GET("{provider}/charts/{account}/{region}/{imageId}")
-  Call<List<Map>> getChartImageDetails(
-      @Path("provider") String provider,
-      @Path("account") String account,
-      @Path("region") String region,
-      @Path("imageId") String imageId);
-
-  @Headers("Accept: application/json")
   @GET("projects/{project}/clusters")
->>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
   Call<List<Map>> getProjectClusters(@Path("project") String project);
 
   @Headers("Accept: application/json")
@@ -242,39 +230,14 @@ public interface ClouddriverService {
       @QueryMap Map<String, String> additionalFilters);
 
   @Headers("Accept: application/json")
-<<<<<<< HEAD
-  @GET("/{provider}/images/tags")
-=======
-  @GET("{provider}/charts/find")
-  Call<List<Map>> findChartImages(
-      @Path("provider") String provider,
-      @Query("q") String query,
-      @Query("region") String region,
-      @Query("account") String account,
-      @Query("count") Integer count,
-      @QueryMap Map<String, String> additionalFilters);
-
-  @Headers("Accept: application/json")
   @GET("{provider}/images/tags")
->>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
   Call<List<String>> findTags(
       @Path("provider") String provider,
       @Query("account") String account,
       @Query("repository") String repository);
 
   @Headers("Accept: application/json")
-<<<<<<< HEAD
-  @GET("/search")
-=======
-  @GET("{provider}/charts/tags")
-  Call<List<String>> findChartTags(
-      @Path("provider") String provider,
-      @Query("account") String account,
-      @Query("repository") String repository);
-
-  @Headers("Accept: application/json")
   @GET("search")
->>>>>>> b2f2742ba0 (fix(retrofit2): remove leading slashes from all the retrofit2 api interfaces (#7159))
   Call<List<Map>> search(
       @Query("q") String query,
       @Query("type") String type,
