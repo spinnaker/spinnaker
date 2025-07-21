@@ -35,14 +35,14 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface MortService {
-  @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
+  @GET("securityGroups/{account}/{type}/{region}/{securityGroupName}")
   Call<SecurityGroup> getSecurityGroup(
       @Path("account") String account,
       @Path("type") String type,
       @Path("securityGroupName") String securityGroupName,
       @Path("region") String region);
 
-  @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
+  @GET("securityGroups/{account}/{type}/{region}/{securityGroupName}")
   Call<SecurityGroup> getSecurityGroup(
       @Path("account") String account,
       @Path("type") String type,
@@ -50,14 +50,14 @@ public interface MortService {
       @Path("region") String region,
       @Query("vpcId") String vpcId);
 
-  @GET("/vpcs")
+  @GET("vpcs")
   Call<Collection<VPC>> getVPCs();
 
-  @GET("/search")
+  @GET("search")
   Call<List<SearchResult>> getSearchResults(
       @Query("q") String searchTerm, @Query("type") String type);
 
-  @GET("/credentials/{account}")
+  @GET("credentials/{account}")
   Call<Map> getAccountDetails(@Path("account") String account);
 
   class SearchResult {

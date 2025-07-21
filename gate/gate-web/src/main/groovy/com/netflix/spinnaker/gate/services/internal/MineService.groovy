@@ -27,35 +27,35 @@ import retrofit2.http.Query
 
 public interface MineService {
 
-  @GET("/canaries/{id}")
+  @GET("canaries/{id}")
   Call<Map> showCanary(@Path("id") String canaryId)
 
-  @POST("/canaries/{id}/generateCanaryResult")
+  @POST("canaries/{id}/generateCanaryResult")
   Call<ResponseBody> generateCanaryResult(@Path("id") String id,
                                           @Query("duration") int duration,
                                           @Query("durationUnit") String durationUnit,
                                           @Body String ignored)
 
-  @PUT("/canaries/{id}/overrideCanaryResult/{result}")
+  @PUT("canaries/{id}/overrideCanaryResult/{result}")
   Call<Map> overrideCanaryResult(@Path("id") String canaryId,
                            @Path("result") String result,
                            @Query("reason") String reason,
                            @Body String ignored)
 
-  @PUT("/canaries/{id}/end")
+  @PUT("canaries/{id}/end")
   Call<Map> endCanary(@Path("id") String canaryId,
                 @Query("result") String result,
                 @Query("reason") String reason,
                 @Body String ignored)
 
-  @GET("/canaryDeployments/{id}/canaryAnalysisHistory")
+  @GET("canaryDeployments/{id}/canaryAnalysisHistory")
   Call<List<Map>> getCanaryAnalysisHistory(@Path("id") String canaryDeploymentId)
 
-  @GET("/canaryConfig/names")
+  @GET("canaryConfig/names")
   Call<List<String>> getCanaryConfigNames(@Query("application") String application)
 
 
-  @GET("/canaryConfigs")
+  @GET("canaryConfigs")
   Call<List<Map>> canaryConfigsForApplication(@Query("application") String application)
 
 }

@@ -25,9 +25,9 @@ import retrofit2.http.Path;
 
 public interface ExtendedFiatService {
 
-  @GET("/authorize/{userId}/serviceAccounts?expand=true")
+  @GET("authorize/{userId}/serviceAccounts?expand=true")
   Call<List<UserPermission.View>> getUserServiceAccounts(@Path("userId") String userId);
 
-  @GET("/installedPlugins")
+  @GET("installedPlugins")
   Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 }

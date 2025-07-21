@@ -29,56 +29,56 @@ import retrofit2.http.Query
 import retrofit2.http.QueryMap
 
 interface Front50Service {
-  @GET("/credentials")
+  @GET("credentials")
   Call<List<Map>> getCredentials()
 
-  @GET('/v2/applications')
+  @GET('v2/applications')
   Call<List<Map<String, Object>>> searchByName(@Query("name") String applicationName,
                                          @Query("pageSize") Integer pageSize,
                                          @QueryMap Map<String, String> filters)
 
-  @GET('/v2/applications/{applicationName}')
+  @GET('v2/applications/{applicationName}')
   Call<Map> getApplication(@Path('applicationName') String applicationName)
 
-  @GET('/v2/applications?restricted=false')
+  @GET('v2/applications?restricted=false')
   Call<Set<Front50Application>> getAllApplicationsUnrestricted()
 
-  @GET('/v2/projects/{project}')
+  @GET('v2/projects/{project}')
   Call<Map> getProject(@Path('project') String project)
 
-  @GET('/v2/projects')
+  @GET('v2/projects')
   Call<List<Map<String, Object>>> searchForProjects(@QueryMap Map<String, String> params, @Query("pageSize") Integer pageSize)
 
-  @POST('/snapshots')
+  @POST('snapshots')
   Call<ResponseBody> saveSnapshot(@Body Map snapshot)
 
-  @GET('/snapshots/{id}/{timestamp}')
+  @GET('snapshots/{id}/{timestamp}')
   Call<Map> getSnapshotVersion(@Path('id') String id, @Path('timestamp') String timestamp)
 
-  @POST('/v2/tags')
+  @POST('v2/tags')
   Call<EntityTags> saveEntityTags(@Body EntityTags entityTags)
 
-  @POST('/v2/tags/batchUpdate')
+  @POST('v2/tags/batchUpdate')
   Call<Collection<EntityTags>> batchUpdate(@Body Collection<EntityTags> entityTags)
 
-  @GET('/v2/tags/{id}')
+  @GET('v2/tags/{id}')
   Call<EntityTags> getEntityTags(@Path('id') String id)
 
-  @GET('/v2/tags')
+  @GET('v2/tags')
   Call<List<EntityTags>> getAllEntityTagsById(@Query("ids") List<String> entityIds)
 
-  @GET('/v2/tags?prefix=')
+  @GET('v2/tags?prefix=')
   Call<Collection<EntityTags>> getAllEntityTags(@Query("refresh") boolean refresh)
 
-  @DELETE('/v2/tags/{id}')
+  @DELETE('v2/tags/{id}')
   Call<ResponseBody> deleteEntityTags(@Path('id') String id)
 
   // v2 MPT APIs
-  @GET('/v2/pipelineTemplates/{pipelineTemplateId}')
+  @GET('v2/pipelineTemplates/{pipelineTemplateId}')
   Call<Map> getV2PipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId,
                             @Query("tag") String version,
                             @Query("digest") String digest)
 
-  @GET('/v2/pipelineTemplates')
+  @GET('v2/pipelineTemplates')
   Call<List<Map>> listV2PipelineTemplates(@Query("scopes") List<String> scopes)
 }

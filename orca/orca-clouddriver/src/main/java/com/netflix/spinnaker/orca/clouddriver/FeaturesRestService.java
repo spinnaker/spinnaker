@@ -22,7 +22,7 @@ import retrofit2.http.GET;
 
 public interface FeaturesRestService {
 
-  @GET("/features/stages")
+  @GET("features/stages")
   Call<List<AvailableStage>> getStages();
 
   public static class AvailableStage {
