@@ -16,7 +16,11 @@
 
 package com.netflix.spinnaker.kork.retrofit.util;
 
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
+import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 
 public class RetrofitUtils {
 
@@ -38,5 +42,23 @@ public class RetrofitUtils {
       baseUrl += "/";
     }
     return baseUrl;
+  }
+
+  /**
+   * Creates a new client with the retrofit2 specific Interceptors
+   * (SpinnakerRequestHeaderInterceptor and Retrofit2EncodeCorrectionInterceptor) removed.
+   *
+   * @return a new ok client with the correct interceptors
+   */
+  public static OkHttpClient getClientForRetrofit1(OkHttpClient client) {
+    OkHttpClient.Builder clientBuilder = client.newBuilder();
+    clientBuilder.interceptors().clear();
+    for (Interceptor interceptor : client.interceptors()) {
+      if (!(interceptor instanceof SpinnakerRequestHeaderInterceptor)
+          && !(interceptor instanceof Retrofit2EncodeCorrectionInterceptor)) {
+        clientBuilder.addInterceptor(interceptor);
+      }
+    }
+    return clientBuilder.build();
   }
 }

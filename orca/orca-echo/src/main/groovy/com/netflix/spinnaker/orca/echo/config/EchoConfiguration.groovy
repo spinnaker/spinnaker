@@ -22,6 +22,7 @@ import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener
@@ -34,6 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
+import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -66,9 +68,14 @@ class EchoConfiguration {
 
   @Bean
   EchoService echoService(Endpoint echoEndpoint) {
+    OkHttpClient client =
+        RetrofitUtils.getClientForRetrofit1(
+            clientProvider.getClient(
+                new DefaultServiceEndpoint("echo", echoEndpoint.url),
+                true))
     new RestAdapter.Builder()
       .setEndpoint(echoEndpoint)
-      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("echo", echoEndpoint.url), true)))
+      .setClient(new Ok3Client(client))
       .setLogLevel(retrofitLogLevel)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setLog(new RetrofitSlf4jLog(EchoService))
