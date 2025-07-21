@@ -7,6 +7,7 @@ dependencies {
 
   implementation project(":kork-plugins")
   implementation project(":kork-plugins-api")
+  implementation project(":kork-web")
   implementation "org.pf4j:pf4j"
 
   //Test framework dependencies

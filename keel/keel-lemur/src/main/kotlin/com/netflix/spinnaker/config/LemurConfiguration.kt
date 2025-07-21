@@ -7,6 +7,9 @@ import com.netflix.spinnaker.keel.lemur.LemurCertificateResponse
 import com.netflix.spinnaker.keel.lemur.LemurService
 import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import kotlinx.coroutines.future.await
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -49,8 +52,9 @@ class LemurConfiguration {
       .build()
     return Retrofit.Builder()
       .addConverterFactory(InstrumentedJacksonConverter.Factory("Lemur", objectMapper))
-      .baseUrl(lemurEndpoint)
+      .baseUrl(RetrofitUtils.getBaseUrl(lemurEndpoint.toString()))
       .client(client)
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
       .build()
       .create(LemurService::class.java)
   }

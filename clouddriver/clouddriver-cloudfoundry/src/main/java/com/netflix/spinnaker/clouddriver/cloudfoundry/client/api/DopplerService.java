@@ -23,6 +23,6 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 
 public interface DopplerService {
-  @GET("/apps/{guid}/recentlogs")
+  @GET("apps/{guid}/recentlogs")
   Call<List<Envelope>> recentLogs(@Path("guid") String appGuid);
 }

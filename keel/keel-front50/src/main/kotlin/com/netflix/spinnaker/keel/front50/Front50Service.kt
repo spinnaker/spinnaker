@@ -13,44 +13,44 @@ import retrofit2.http.Query
 import retrofit2.http.QueryMap
 
 interface Front50Service {
-  @GET("/v2/applications/{name}")
+  @GET("v2/applications/{name}")
   suspend fun applicationByName(
     @Path("name") name: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Application
 
-  @GET("/v2/applications")
+  @GET("v2/applications")
   suspend fun allApplications(
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<Application>
 
-  @GET("/v2/applications")
+  @GET("v2/applications")
   suspend fun searchApplications(
     @QueryMap searchParams: Map<String, String>,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<Application>
 
-  @GET("/pipelines/{application}")
+  @GET("pipelines/{application}")
   suspend fun pipelinesByApplication(
     @Path("application") application: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<Pipeline>
 
-  @GET("/pipelines/{id}/history")
+  @GET("pipelines/{id}/history")
   suspend fun pipelineHistory(
     @Path("id") id: String,
     @Query("limit") limit: Int = 50,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<Pipeline>
 
-  @PATCH("/v2/applications/{name}")
+  @PATCH("v2/applications/{name}")
   suspend fun updateApplication(
     @Path("name") name: String,
     @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT,
     @Body app: Application,
   ): Application
 
-  @PUT("/pipelines/{id}")
+  @PUT("pipelines/{id}")
   suspend fun updatePipeline(
     @Path("id") id: String,
     @Body pipeline: Pipeline,

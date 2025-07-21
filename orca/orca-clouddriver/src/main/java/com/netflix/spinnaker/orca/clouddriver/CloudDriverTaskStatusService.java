@@ -23,10 +23,10 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 
 public interface CloudDriverTaskStatusService {
-  @GET("/task/{id}")
+  @GET("task/{id}")
   Call<Task> lookupTask(@Path("id") String id);
 
-  @GET("/{cloudProvider}/task/{id}/owner")
+  @GET("{cloudProvider}/task/{id}/owner")
   Call<TaskOwner> lookupTaskOwner(
       @Path("cloudProvider") String cloudProvider, @Path("id") String id);
 }

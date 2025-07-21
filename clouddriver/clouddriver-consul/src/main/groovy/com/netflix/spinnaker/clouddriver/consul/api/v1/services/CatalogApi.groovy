@@ -22,12 +22,12 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface CatalogApi {
-  @GET("/v1/catalog/datacenters")
+  @GET("v1/catalog/datacenters")
   Call<List<String>> datacenters()
 
-  @GET("/v1/catalog/nodes")
+  @GET("v1/catalog/nodes")
   Call<List<NodeDefinition>> nodes(@Query("dc") String dc)
 
-  @GET("/v1/catalog/services")
+  @GET("v1/catalog/services")
   Call<Map<String, List<String>>> services(@Query("dc") String dc)
 }
