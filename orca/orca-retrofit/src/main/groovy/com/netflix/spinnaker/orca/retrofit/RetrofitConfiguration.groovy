@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.retrofit
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.retrofit.exceptions.SpinnakerServerExceptionHandler
 import groovy.transform.CompileStatic
 import okhttp3.Interceptor
@@ -62,8 +63,8 @@ class RetrofitConfiguration {
         builder.addInterceptor(interceptor);
       }
     }
-
-    new Ok3Client(builder.build())
+    OkHttpClient client = RetrofitUtils.getClientForRetrofit1(builder.build())
+    new Ok3Client(client)
   }
 
   @Bean

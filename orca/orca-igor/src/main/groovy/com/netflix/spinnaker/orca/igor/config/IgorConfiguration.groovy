@@ -21,10 +21,12 @@ import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
+import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -57,9 +59,14 @@ class IgorConfiguration {
 
   @Bean
   IgorService igorService(Endpoint igorEndpoint, ObjectMapper mapper, RequestInterceptor spinnakerRequestInterceptor) {
+    OkHttpClient client =
+        RetrofitUtils.getClientForRetrofit1(
+            clientProvider.getClient(
+                new DefaultServiceEndpoint("igor", igorEndpoint.url),
+                true))
     new RestAdapter.Builder()
       .setEndpoint(igorEndpoint)
-      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("igor", igorEndpoint.url), true)))
+      .setClient(new Ok3Client(client))
       .setLogLevel(retrofitLogLevel)
       .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .setRequestInterceptor(spinnakerRequestInterceptor)
