@@ -27,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenA
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenInterceptor;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.tokens.AccessTokenProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -98,9 +100,12 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     this.uaaService =
         new Retrofit.Builder()
             .baseUrl(
-                (useHttps ? "https://" : "http://") + this.apiHost.replaceAll("^api\\.", "login."))
+                RetrofitUtils.getBaseUrl(
+                    (useHttps ? "https://" : "http://")
+                        + this.apiHost.replaceAll("^api\\.", "login.")))
             .client(okHttpClient)
             .addConverterFactory(JacksonConverterFactory.create(mapper))
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(AuthenticationService.class);
 
@@ -119,8 +124,9 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     Retrofit retrofit =
         new Retrofit.Builder()
             .client(okHttpClient)
-            .baseUrl((useHttps ? "https://" : "http://") + this.apiHost)
+            .baseUrl(RetrofitUtils.getBaseUrl((useHttps ? "https://" : "http://") + this.apiHost))
             .addConverterFactory(JacksonConverterFactory.create(mapper))
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build();
 
     this.organizations = new Organizations(retrofit.create(OrganizationService.class));

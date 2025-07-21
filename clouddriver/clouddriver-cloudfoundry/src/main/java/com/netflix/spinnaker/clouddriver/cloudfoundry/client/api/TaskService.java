@@ -26,12 +26,12 @@ import retrofit2.http.Path;
 
 public interface TaskService {
 
-  @POST("/v3/apps/{guid}/tasks")
+  @POST("v3/apps/{guid}/tasks")
   Call<Task> createTask(@Path("guid") String guid, @Body CreateTask body);
 
-  @GET("/v3/tasks/{guid}")
+  @GET("v3/tasks/{guid}")
   Call<Task> getTask(@Path("guid") String guid);
 
-  @POST("/v3/tasks/{guid}/actions/cancel")
+  @POST("v3/tasks/{guid}/actions/cancel")
   Call<Task> cancelTask(@Path("guid") String guid, @Body Object emptyBody);
 }

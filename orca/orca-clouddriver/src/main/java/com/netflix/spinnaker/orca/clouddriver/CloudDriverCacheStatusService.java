@@ -23,7 +23,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 
 public interface CloudDriverCacheStatusService {
-  @GET("/cache/{cloudProvider}/{type}")
+  @GET("cache/{cloudProvider}/{type}")
   Call<Collection<Map>> pendingForceCacheUpdates(
       @Path("cloudProvider") String cloudProvider, @Path("type") String type);
 }

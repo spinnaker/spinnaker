@@ -24,9 +24,9 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface OrganizationService {
-  @GET("/v3/organizations")
+  @GET("v3/organizations")
   Call<Pagination<Organization>> all(@Query("page") Integer page, @Query("names") String orgNames);
 
-  @GET("/v3/organizations/{guid}")
+  @GET("v3/organizations/{guid}")
   Call<Organization> findById(@Path("guid") String guid);
 }

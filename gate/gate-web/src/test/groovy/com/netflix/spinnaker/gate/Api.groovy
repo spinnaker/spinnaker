@@ -26,15 +26,15 @@ import retrofit2.http.Query
 
 interface Api {
 
-  @GET("/applications")
+  @GET("applications")
   Call<List> getApplications()
 
-  @GET("/applications/{name}")
+  @GET("applications/{name}")
   Call<Map> getApplication(@Path("name") String name)
 
-  @GET("/applications/{name}/tasks")
+  @GET("applications/{name}/tasks")
   Call<List> getTasks(@Path("name") String name, @Query("page") Integer page, @Query("limit") Integer limit, @Query("statuses") String statuses)
 
-  @POST("/applications/{name}/tasks")
+  @POST("applications/{name}/tasks")
   Call<Map> createTask(@Path("name") String name, @Body Map body)
 }

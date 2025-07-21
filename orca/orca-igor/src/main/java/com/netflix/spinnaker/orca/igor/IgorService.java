@@ -35,14 +35,14 @@ import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 
 public interface IgorService {
-  @PUT("/masters/{name}/jobs/{jobName}")
+  @PUT("masters/{name}/jobs/{jobName}")
   Call<ResponseBody> build(
       @Path("name") String master,
       @Path(encoded = true, value = "jobName") String jobName,
       @QueryMap Map<String, String> queryParams,
       @Body String startTime);
 
-  @PUT("/masters/{name}/jobs/{jobName}/stop/{queuedBuild}/{buildNumber}")
+  @PUT("masters/{name}/jobs/{jobName}/stop/{queuedBuild}/{buildNumber}")
   Call<String> stop(
       @Path("name") String master,
       @Path(encoded = true, value = "jobName") String jobName,
@@ -50,7 +50,7 @@ public interface IgorService {
       @Path(encoded = true, value = "buildNumber") Long buildNumber,
       @Body String ignored);
 
-  @PUT("/masters/{name}/jobs/stop/{queuedBuild}/{buildNumber}")
+  @PUT("masters/{name}/jobs/stop/{queuedBuild}/{buildNumber}")
   Call<String> stopWithJobNameAsQueryParameter(
       @Path("name") String master,
       @Query(value = "jobName") String jobName,
@@ -58,102 +58,102 @@ public interface IgorService {
       @Path(encoded = true, value = "buildNumber") Long buildNumber,
       @Body String ignored);
 
-  @PATCH("/masters/{name}/jobs/{jobName}/update/{buildNumber}")
+  @PATCH("masters/{name}/jobs/{jobName}/update/{buildNumber}")
   Call<ResponseBody> update(
       @Path("name") String master,
       @Path(encoded = true, value = "jobName") String jobName,
       @Path(encoded = true, value = "buildNumber") Long buildNumber,
       @Body UpdatedBuild updatedBuild);
 
-  @GET("/builds/queue/{master}/{item}")
+  @GET("builds/queue/{master}/{item}")
   Call<Map> queuedBuild(@Path("master") String master, @Path("item") String item);
 
-  @GET("/builds/status/{buildNumber}/{master}/{job}")
+  @GET("builds/status/{buildNumber}/{master}/{job}")
   Call<Map<String, Object>> getBuild(
       @Path("buildNumber") Long buildNumber,
       @Path("master") String master,
       @Path(encoded = true, value = "job") String job);
 
-  @GET("/builds/status/{buildNumber}/{master}")
+  @GET("builds/status/{buildNumber}/{master}")
   Call<Map<String, Object>> getBuildWithJobAsQueryParam(
       @Path("buildNumber") Long buildNumber,
       @Path("master") String master,
       @Query(encoded = true, value = "job") String job);
 
-  @GET("/builds/properties/{buildNumber}/{fileName}/{master}/{job}")
+  @GET("builds/properties/{buildNumber}/{fileName}/{master}/{job}")
   Call<Map<String, Object>> getPropertyFile(
       @Path("buildNumber") Long buildNumber,
       @Path("fileName") String fileName,
       @Path("master") String master,
       @Path(encoded = true, value = "job") String job);
 
-  @GET("/builds/properties/{buildNumber}/{fileName}/{master}")
+  @GET("builds/properties/{buildNumber}/{fileName}/{master}")
   Call<Map<String, Object>> getPropertyFileWithJobAsQueryParam(
       @Path("buildNumber") Long buildNumber,
       @Path("fileName") String fileName,
       @Path("master") String master,
       @Query(encoded = true, value = "job") String job);
 
-  @GET("/{repoType}/{projectKey}/{repositorySlug}/compareCommits")
+  @GET("{repoType}/{projectKey}/{repositorySlug}/compareCommits")
   Call<List> compareCommits(
       @Path("repoType") String repoType,
       @Path("projectKey") String projectKey,
       @Path("repositorySlug") String repositorySlug,
       @QueryMap Map<String, String> requestParams);
 
-  @GET("/builds/artifacts/{buildNumber}/{master}/{job}")
+  @GET("builds/artifacts/{buildNumber}/{master}/{job}")
   Call<List<Artifact>> getArtifacts(
       @Path("buildNumber") Long buildNumber,
       @Path("master") String master,
       @Path(value = "job", encoded = true) String job,
       @Query("propertyFile") String propertyFile);
 
-  @GET("/builds/artifacts/{buildNumber}/{master}")
+  @GET("builds/artifacts/{buildNumber}/{master}")
   Call<List<Artifact>> getArtifactsWithJobAsQueryParam(
       @Path("buildNumber") Long buildNumber,
       @Path("master") String master,
       @Query(value = "job", encoded = true) String job,
       @Query("propertyFile") String propertyFile);
 
-  @POST("/gcb/builds/create/{account}")
+  @POST("gcb/builds/create/{account}")
   Call<GoogleCloudBuild> createGoogleCloudBuild(
       @Path("account") String account, @Body Map<String, Object> job);
 
-  @POST("/gcb/builds/stop/{account}/{buildId}")
+  @POST("gcb/builds/stop/{account}/{buildId}")
   Call<GoogleCloudBuild> stopGoogleCloudBuild(
       @Path("account") String account, @Path("buildId") String buildId);
 
-  @GET("/gcb/builds/{account}/{buildId}")
+  @GET("gcb/builds/{account}/{buildId}")
   Call<GoogleCloudBuild> getGoogleCloudBuild(
       @Path("account") String account, @Path("buildId") String buildId);
 
-  @GET("/gcb/builds/{account}/{buildId}/artifacts")
+  @GET("gcb/builds/{account}/{buildId}/artifacts")
   Call<List<Artifact>> getGoogleCloudBuildArtifacts(
       @Path("account") String account, @Path("buildId") String buildId);
 
-  @POST("/gcb/triggers/{account}/{triggerId}/run")
+  @POST("gcb/triggers/{account}/{triggerId}/run")
   Call<GoogleCloudBuild> runGoogleCloudBuildTrigger(
       @Path("account") String account,
       @Path("triggerId") String triggerId,
       @Body GoogleCloudBuildRepoSource repoSource);
 
-  @POST("/codebuild/builds/start/{account}")
+  @POST("codebuild/builds/start/{account}")
   Call<AwsCodeBuildExecution> startAwsCodeBuild(
       @Path("account") String account, @Body Map<String, Object> requestInput);
 
-  @GET("/codebuild/builds/{account}/{buildId}")
+  @GET("codebuild/builds/{account}/{buildId}")
   Call<AwsCodeBuildExecution> getAwsCodeBuildExecution(
       @Path("account") String account, @Path("buildId") String buildId);
 
-  @GET("/codebuild/builds/artifacts/{account}/{buildId}")
+  @GET("codebuild/builds/artifacts/{account}/{buildId}")
   Call<List<Artifact>> getAwsCodeBuildArtifacts(
       @Path("account") String account, @Path("buildId") String buildId);
 
-  @POST("/codebuild/builds/stop/{account}/{buildId}")
+  @POST("codebuild/builds/stop/{account}/{buildId}")
   Call<AwsCodeBuildExecution> stopAwsCodeBuild(
       @Path("account") String account, @Path("buildId") String buildId);
 
-  @GET("/delivery-config/manifest")
+  @GET("delivery-config/manifest")
   Call<Map<String, Object>> getDeliveryConfigManifest(
       @Query("scmType") String repoType,
       @Query("project") String projectKey,
