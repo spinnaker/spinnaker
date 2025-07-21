@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.testconfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.netflix.spinnaker.config.OkHttpClientComponents;
+import com.netflix.spinnaker.config.RetrofitConfiguration;
 import com.netflix.spinnaker.config.SqlConfiguration;
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil;
 import javax.sql.DataSource;
@@ -66,7 +68,11 @@ class SqlConfigurationTest {
               "sql.connectionPools.default.jdbcUrl=" + SqlTestUtil.tcJdbcUrl,
               "sql.migration.jdbcUrl=" + SqlTestUtil.tcJdbcUrl)
           .withAllowBeanDefinitionOverriding(true)
-          .withConfiguration(UserConfigurations.of(SqlConfiguration.class));
+          .withConfiguration(
+              UserConfigurations.of(
+                  SqlConfiguration.class,
+                  RetrofitConfiguration.class,
+                  OkHttpClientComponents.class));
 
   @BeforeEach
   void init(TestInfo testInfo) {
