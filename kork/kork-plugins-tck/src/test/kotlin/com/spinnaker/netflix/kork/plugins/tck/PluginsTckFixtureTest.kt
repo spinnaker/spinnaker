@@ -16,6 +16,7 @@
 
 package com.spinnaker.netflix.kork.plugins.tck
 
+import com.netflix.spinnaker.config.OkHttpClientComponents
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
 import com.netflix.spinnaker.kork.plugins.internal.PluginJar
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.kork.plugins.tck.PluginsTckFixture
 import com.netflix.spinnaker.kork.plugins.tck.serviceFixture
 import com.spinnaker.netflix.kork.plugins.SomeFeatureExtension
 import com.spinnaker.netflix.kork.plugins.TestPlugin
+import com.netflix.spinnaker.config.RetrofitConfiguration
 import dev.minutest.rootContext
 import java.io.File
 import org.springframework.beans.factory.annotation.Autowired
@@ -89,5 +91,5 @@ class PluginsTckFixtureImpl : PluginsTckFixture {
 }
 
 @SpringBootApplication
-@Import(PluginsAutoConfiguration::class)
+@Import(PluginsAutoConfiguration::class, RetrofitConfiguration::class, OkHttpClientComponents::class)
 internal class StartupTestApp

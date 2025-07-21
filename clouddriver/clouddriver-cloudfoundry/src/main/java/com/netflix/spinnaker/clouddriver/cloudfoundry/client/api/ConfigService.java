@@ -22,6 +22,6 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 public interface ConfigService {
-  @GET("/v2/config/feature_flags")
+  @GET("v2/config/feature_flags")
   Call<Set<ConfigFeatureFlag>> getConfigFeatureFlags();
 }

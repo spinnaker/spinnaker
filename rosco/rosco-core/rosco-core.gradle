@@ -21,5 +21,6 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation project(":rosco-web")
 }

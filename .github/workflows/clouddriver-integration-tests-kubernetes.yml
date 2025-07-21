@@ -9,11 +9,15 @@ on:
       - release-*
     paths:
       - 'clouddriver/**'
+      - 'fiat/**'
+      - 'kork/**'
       - '.github/workflows/clouddriver-integration-tests-kubernetes.yml'
 
   pull_request:
     paths:
       - 'clouddriver/**'
+      - 'fiat/**'
+      - 'kork/**'
       - '.github/workflows/clouddriver-integration-tests-kubernetes.yml'
 
 env:

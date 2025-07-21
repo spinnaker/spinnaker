@@ -8,14 +8,14 @@ import retrofit2.http.Query
 
 interface ArtifactService {
 
-  @GET("/artifacts/rocket/{packageName}/{version}")
+  @GET("artifacts/rocket/{packageName}/{version}")
   suspend fun getArtifact(
     @Path("packageName", encoded = true) packageName: String,
     @Path("version") version: String,
     @Query("type") artifactType: String
   ): PublishedArtifact
 
-  @GET("/artifacts/rocket/{packageName}")
+  @GET("artifacts/rocket/{packageName}")
   suspend fun getVersions(
     @Path("packageName", encoded = true) packageName: String,
     @Query("releaseStatus") releaseStatus: List<String> = enumValues<ArtifactStatus>().toList().map { it.toString() },
