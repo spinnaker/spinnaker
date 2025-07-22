@@ -47,7 +47,8 @@ class GoogleChatNotificationService implements NotificationService {
     for (String addr : addressSet) {
       // In Chat, users can only copy the whole link easily. We just extract the information from
       // the whole link.
-      // Example: https://chat.googleapis.com/v1/spaces/{partialWebhookUrl}
+      // Example: https://chat.googleapis.com/v1/spaces/SPACE_ID/messages?key=KEY&token=TOKEN
+      // or   https://chat.googleapis.com/v1/spaces/{partialWebhookUrl}
       String baseUrl = "https://chat.googleapis.com/v1/spaces/";
       String completeLink = addr;
       String partialWebhookURL = completeLink.substring(baseUrl.length());
