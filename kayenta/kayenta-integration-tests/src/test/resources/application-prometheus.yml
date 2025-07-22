@@ -3,6 +3,7 @@ kayenta:
     enabled: true
     health:
       enabled: true
+      initial-delay: PT15S
     accounts:
       - name: prometheus-account
         endpoint:

@@ -37,6 +37,8 @@ public class EmbeddedGraphiteBootstrapConfiguration {
   private static final int PICKLE_RECEIVER_PORT = 2004;
   private static final int HTTP_PORT = 80;
 
+  private GenericContainer container;
+
   @Bean(name = "graphiteWaitStrategy")
   public WaitStrategy graphiteWaitStrategy() {
     return new HostPortWaitStrategy();
@@ -46,7 +48,7 @@ public class EmbeddedGraphiteBootstrapConfiguration {
   public GenericContainer graphite(
       ConfigurableEnvironment environment, WaitStrategy graphiteWaitStrategy) {
 
-    GenericContainer container =
+    container =
         new GenericContainer("graphiteapp/graphite-statsd:1.1.5-12")
             .withLogConsumer(containerLogsConsumer(log))
             .withExposedPorts(PICKLE_RECEIVER_PORT, HTTP_PORT)
@@ -71,5 +73,11 @@ public class EmbeddedGraphiteBootstrapConfiguration {
     map.put("embedded.graphite.httpPort", container.getMappedPort(HTTP_PORT));
     EnvironmentUtils.registerPropertySource("embeddedGraphiteInfo", environment, map);
     return map;
+  }
+
+  public void stopGraphite() {
+    log.info("Stopping Graphite server...");
+    container.stop();
+    log.info("Graphite server stopped.");
   }
 }
