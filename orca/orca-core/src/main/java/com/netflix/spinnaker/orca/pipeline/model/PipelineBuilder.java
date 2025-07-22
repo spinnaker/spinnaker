@@ -44,6 +44,17 @@ public class PipelineBuilder {
     return this;
   }
 
+  /**
+   * If the rootId is present, use it. Otherwise assume this is a top-level pipeline, so the rootId
+   * is the pipeline's own id. Yes, this logic only works if pipeline's id is correct. It gets a
+   * dynamically generated id at construction time, but if there is a call to withId, it needs to
+   * happen before withRootId.
+   */
+  public PipelineBuilder withRootId(String rootId) {
+    pipeline.setRootId(Strings.isNullOrEmpty(rootId) ? pipeline.getId() : rootId);
+    return this;
+  }
+
   public PipelineBuilder withTrigger(Trigger trigger) {
     if (trigger != null) {
       pipeline.setTrigger(trigger);
