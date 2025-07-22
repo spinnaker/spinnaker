@@ -26,6 +26,7 @@ import static java.util.Collections.emptyMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.exceptions.UserException;
@@ -87,8 +88,19 @@ public class ExecutionLauncher {
     this.executionConfigurationProperties = executionConfigurationProperties;
   }
 
+  /** Start executing a top-level pipeline */
   public PipelineExecution start(ExecutionType type, Map<String, Object> config) {
-    final PipelineExecution execution = parse(type, config);
+    return start(type, config, null /* rootId */);
+  }
+
+  /**
+   * Start executing a pipeline
+   *
+   * @param rootId for child pipelines, the execution id of the root / top-most parent. Null for
+   *     top-level pipelines.
+   */
+  public PipelineExecution start(ExecutionType type, Map<String, Object> config, String rootId) {
+    final PipelineExecution execution = parse(type, config, rootId);
     final PipelineExecution existingExecution = checkForCorrelatedExecution(execution);
     if (existingExecution != null) {
       return existingExecution;
@@ -108,14 +120,22 @@ public class ExecutionLauncher {
     return execution;
   }
 
+  /** Log that an execution of a top-level pipeline failed. */
+  public PipelineExecution fail(ExecutionType type, Map<String, Object> config, Exception e) {
+    return fail(type, config, null /* rootId */, e);
+  }
+
   /**
    * Log that an execution failed; useful if a pipeline failed validation and we want to persist the
    * failure to the execution history but don't actually want to attempt to run the execution.
    *
+   * @param rootId for child pipelines, the execution id of the root / top-most parent. Null for
+   *     top-level pipelines.
    * @param e the exception that was thrown during pipeline validation
    */
-  public PipelineExecution fail(ExecutionType type, Map<String, Object> config, Exception e) {
-    final PipelineExecution execution = parse(type, config);
+  public PipelineExecution fail(
+      ExecutionType type, Map<String, Object> config, String rootId, Exception e) {
+    final PipelineExecution execution = parse(type, config, rootId);
 
     persistExecution(execution);
 
@@ -197,10 +217,10 @@ public class ExecutionLauncher {
     executionRepository.cancel(execution.getType(), execution.getId(), canceledBy, reason);
   }
 
-  private PipelineExecution parse(ExecutionType type, Map<String, Object> config) {
+  private PipelineExecution parse(ExecutionType type, Map<String, Object> config, String rootId) {
     switch (type) {
       case PIPELINE:
-        return parsePipeline(config);
+        return parsePipeline(config, rootId);
       case ORCHESTRATION:
         return parseOrchestration(config);
       default:
@@ -208,10 +228,12 @@ public class ExecutionLauncher {
     }
   }
 
-  private PipelineExecution parsePipeline(Map<String, Object> config) {
+  @VisibleForTesting
+  PipelineExecution parsePipeline(Map<String, Object> config, String rootId) {
     // TODO: can we not just annotate the class properly to avoid all this?
     return new PipelineBuilder(getString(config, "application"))
         .withId(getString(config, "executionId"))
+        .withRootId(rootId)
         .withName(getString(config, "name"))
         .withPipelineConfigId(getString(config, "id"))
         .withTrigger(objectMapper.convertValue(config.get("trigger"), Trigger.class))
@@ -237,6 +259,7 @@ public class ExecutionLauncher {
   private PipelineExecution parseOrchestration(Map<String, Object> config) {
     PipelineExecution orchestration =
         PipelineExecutionImpl.newOrchestration(getString(config, "application"));
+
     if (config.containsKey("name")) {
       orchestration.setDescription(getString(config, "name"));
     }
