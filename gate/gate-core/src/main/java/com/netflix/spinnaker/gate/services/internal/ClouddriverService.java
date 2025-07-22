@@ -25,61 +25,61 @@ import retrofit2.http.QueryMap;
 import retrofit2.http.Streaming;
 
 public interface ClouddriverService {
-  @GET("/credentials")
+  @GET("credentials")
   Call<List<Account>> getAccounts();
 
-  @GET("/credentials?expand=true")
+  @GET("credentials?expand=true")
   Call<List<AccountDetails>> getAccountDetails();
 
-  @GET("/credentials/{account}")
+  @GET("credentials/{account}")
   Call<AccountDetails> getAccount(@Path("account") String account);
 
-  @GET("/credentials/type/{type}")
+  @GET("credentials/type/{type}")
   Call<List<AccountDefinition>> getAccountDefinitionsByType(
       @Path("type") String type,
       @Query("limit") Integer limit,
       @Query("startingAccountName") String startingAccountName);
 
-  @POST("/credentials")
+  @POST("credentials")
   Call<AccountDefinition> createAccountDefinition(@Body AccountDefinition accountDefinition);
 
-  @PUT("/credentials")
+  @PUT("credentials")
   Call<AccountDefinition> updateAccountDefinition(@Body AccountDefinition accountDefinition);
 
-  @DELETE("/credentials/{account}")
+  @DELETE("credentials/{account}")
   Call<ResponseBody> deleteAccountDefinition(@Path("account") String account);
 
-  @GET("/task/{taskDetailsId}")
+  @GET("task/{taskDetailsId}")
   Call<Map> getTaskDetails(@Path("taskDetailsId") String taskDetailsId);
 
   @Headers("Accept: application/json")
-  @GET("/applications")
+  @GET("applications")
   Call<List> getApplications(@Query("expand") boolean expand);
 
   @Headers("Accept: application/json")
-  @GET("/applications?restricted=false")
+  @GET("applications?restricted=false")
   Call<List> getAllApplicationsUnrestricted(@Query("expand") boolean expand);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}")
+  @GET("applications/{name}")
   Call<Map> getApplication(@Path("name") String name);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/clusters")
+  @GET("applications/{name}/clusters")
   Call<Map> getClusters(@Path("name") String name);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/clusters/{account}")
+  @GET("applications/{name}/clusters/{account}")
   Call<List> getClustersForAccount(@Path("name") String name, @Path("account") String account);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/clusters/{account}/{cluster}")
+  @GET("applications/{name}/clusters/{account}/{cluster}")
   Call<List> getCluster(
       @Path("name") String name, @Path("account") String account, @Path("cluster") String cluster);
 
   @Headers("Accept: application/json")
   @GET(
-      "/applications/{application}/clusters/{account}/{cluster}/{provider}/serverGroups/{serverGroupName}/scalingActivities")
+      "applications/{application}/clusters/{account}/{cluster}/{provider}/serverGroups/{serverGroupName}/scalingActivities")
   Call<List> getScalingActivities(
       @Path("application") String application,
       @Path("account") String account,
@@ -89,7 +89,7 @@ public interface ClouddriverService {
       @Query("region") String region);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/clusters/{account}/{cluster}/{type}")
+  @GET("applications/{name}/clusters/{account}/{cluster}/{type}")
   Call<Map> getClusterByType(
       @Path("name") String name,
       @Path("account") String account,
@@ -97,7 +97,7 @@ public interface ClouddriverService {
       @Path("type") String type);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/clusters/{account}/{cluster}/{type}/serverGroups/{serverGroupName}")
+  @GET("applications/{name}/clusters/{account}/{cluster}/{type}/serverGroups/{serverGroupName}")
   Call<List> getServerGroup(
       @Path("name") String name,
       @Path("account") String account,
@@ -107,7 +107,7 @@ public interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET(
-      "/applications/{name}/clusters/{account}/{cluster}/{type}/{scope}/serverGroups/target/{target}")
+      "applications/{name}/clusters/{account}/{cluster}/{type}/{scope}/serverGroups/target/{target}")
   Call<Map> getTargetServerGroup(
       @Path("name") String application,
       @Path("account") String account,
@@ -119,11 +119,11 @@ public interface ClouddriverService {
       @Query("validateOldest") Boolean validateOldest);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/rawResources")
+  @GET("applications/{name}/rawResources")
   Call<List<Map<String, Object>>> getApplicationRawResources(@Path("name") String appName);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/serverGroups")
+  @GET("applications/{name}/serverGroups")
   Call<List> getServerGroups(
       @Path("name") String name,
       @Query("expand") String expand,
@@ -131,14 +131,14 @@ public interface ClouddriverService {
       @Query("clusters") String clusters);
 
   @Headers("Accept: application/json")
-  @GET("/serverGroups")
+  @GET("serverGroups")
   Call<List> getServerGroups(
       @Query("applications") List applications,
       @Query("ids") List ids,
       @Query("cloudProvider") String cloudProvider);
 
   @Headers("Accept: application/json")
-  @POST("/applications/{name}/jobs/{account}/{region}/{jobName}")
+  @POST("applications/{name}/jobs/{account}/{region}/{jobName}")
   Call<Map> getJobDetails(
       @Path("name") String name,
       @Path("account") String account,
@@ -147,7 +147,7 @@ public interface ClouddriverService {
       @Body String emptyStringForRetrofit);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/serverGroups/{account}/{region}/{serverGroupName}")
+  @GET("applications/{name}/serverGroups/{account}/{region}/{serverGroupName}")
   Call<Map> getServerGroupDetails(
       @Path("name") String appName,
       @Path("account") String account,
@@ -156,7 +156,7 @@ public interface ClouddriverService {
       @Query("includeDetails") String includeDetails);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/clusters/{account}/{cluster}/{type}/loadBalancers")
+  @GET("applications/{name}/clusters/{account}/{cluster}/{type}/loadBalancers")
   Call<List> getClusterLoadBalancers(
       @Path("name") String appName,
       @Path("account") String account,
@@ -164,19 +164,19 @@ public interface ClouddriverService {
       @Path("type") String type);
 
   @Headers("Accept: application/json")
-  @GET("/{provider}/loadBalancers")
+  @GET("{provider}/loadBalancers")
   Call<List<Map>> getLoadBalancers(@Path("provider") String provider);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{name}/loadBalancers")
+  @GET("applications/{name}/loadBalancers")
   Call<List<Map>> getApplicationLoadBalancers(@Path("name") String appName);
 
   @Headers("Accept: application/json")
-  @GET("/{provider}/loadBalancers/{name}")
+  @GET("{provider}/loadBalancers/{name}")
   Call<Map> getLoadBalancer(@Path("provider") String provider, @Path("name") String name);
 
   @Headers("Accept: application/json")
-  @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
+  @GET("{provider}/loadBalancers/{account}/{region}/{name}")
   Call<List<Map>> getLoadBalancerDetails(
       @Path("provider") String provider,
       @Path("account") String account,
@@ -184,14 +184,14 @@ public interface ClouddriverService {
       @Path("name") String name);
 
   @Headers("Accept: application/json")
-  @GET("/instances/{account}/{region}/{instanceId}")
+  @GET("instances/{account}/{region}/{instanceId}")
   Call<Map> getInstanceDetails(
       @Path("account") String account,
       @Path("region") String region,
       @Path("instanceId") String instanceId);
 
   @Headers("Accept: application/json")
-  @GET("/instances/{account}/{region}/{instanceId}/console")
+  @GET("instances/{account}/{region}/{instanceId}/console")
   Call<Map> getConsoleOutput(
       @Path("account") String account,
       @Path("region") String region,
@@ -199,7 +199,7 @@ public interface ClouddriverService {
       @Query("provider") String provider);
 
   @Headers("Accept: application/json")
-  @GET("/{provider}/images/{account}/{region}/{imageId}")
+  @GET("{provider}/images/{account}/{region}/{imageId}")
   Call<List<Map>> getImageDetails(
       @Path("provider") String provider,
       @Path("account") String account,
@@ -207,20 +207,20 @@ public interface ClouddriverService {
       @Path("imageId") String imageId);
 
   @Headers("Accept: application/json")
-  @GET("/projects/{project}/clusters")
+  @GET("projects/{project}/clusters")
   Call<List<Map>> getProjectClusters(@Path("project") String project);
 
   @Headers("Accept: application/json")
-  @GET("/reports/reservation")
+  @GET("reports/reservation")
   Call<List<Map>> getReservationReports(@QueryMap Map<String, String> filters);
 
   @Headers("Accept: application/json")
-  @GET("/reports/reservation/{name}")
+  @GET("reports/reservation/{name}")
   Call<List<Map>> getReservationReports(
       @Path("name") String name, @QueryMap Map<String, String> filters);
 
   @Headers("Accept: application/json")
-  @GET("/{provider}/images/find")
+  @GET("{provider}/images/find")
   Call<List<Map>> findImages(
       @Path("provider") String provider,
       @Query("q") String query,
@@ -230,14 +230,14 @@ public interface ClouddriverService {
       @QueryMap Map<String, String> additionalFilters);
 
   @Headers("Accept: application/json")
-  @GET("/{provider}/images/tags")
+  @GET("{provider}/images/tags")
   Call<List<String>> findTags(
       @Path("provider") String provider,
       @Query("account") String account,
       @Query("repository") String repository);
 
   @Headers("Accept: application/json")
-  @GET("/search")
+  @GET("search")
   Call<List<Map>> search(
       @Query("q") String query,
       @Query("type") String type,
@@ -246,17 +246,17 @@ public interface ClouddriverService {
       @Query("page") Integer offset,
       @QueryMap Map<String, String> filters);
 
-  @GET("/securityGroups")
+  @GET("securityGroups")
   Call<Map> getSecurityGroups();
 
-  @GET("/securityGroups/{account}/{type}")
+  @GET("securityGroups/{account}/{type}")
   Call<Map> getSecurityGroups(@Path("account") String account, @Path("type") String type);
 
-  @GET("/securityGroups/{account}/{type}")
+  @GET("securityGroups/{account}/{type}")
   Call<List> getSecurityGroupsForRegion(
       @Path("account") String account, @Path("type") String type, @Query("region") String region);
 
-  @GET("/securityGroups/{account}/{type}/{region}/{name}")
+  @GET("securityGroups/{account}/{type}/{region}/{name}")
   Call<Map> getSecurityGroup(
       @Path("account") String account,
       @Path("type") String type,
@@ -264,35 +264,35 @@ public interface ClouddriverService {
       @Path("region") String region,
       @Query("vpcId") String vpcId);
 
-  @GET("/applications/{application}/serverGroupManagers")
+  @GET("applications/{application}/serverGroupManagers")
   Call<List<Map>> getServerGroupManagersForApplication(@Path("application") String application);
 
-  @GET("/instanceTypes")
+  @GET("instanceTypes")
   Call<List<Map>> getInstanceTypes();
 
-  @GET("/keyPairs")
+  @GET("keyPairs")
   Call<List<Map>> getKeyPairs();
 
-  @GET("/subnets")
+  @GET("subnets")
   Call<List<Map>> getSubnets();
 
-  @GET("/subnets/{cloudProvider}")
+  @GET("subnets/{cloudProvider}")
   Call<List<Map>> getSubnets(@Path("cloudProvider") String cloudProvider);
 
-  @GET("/networks")
+  @GET("networks")
   Call<Map> getNetworks();
 
-  @GET("/networks/{cloudProvider}")
+  @GET("networks/{cloudProvider}")
   Call<List<Map>> getNetworks(@Path("cloudProvider") String cloudProvider);
 
-  @GET("/cloudMetrics/{cloudProvider}/{account}/{region}")
+  @GET("cloudMetrics/{cloudProvider}/{account}/{region}")
   Call<List<Map>> findAllCloudMetrics(
       @Path("cloudProvider") String cloudProvider,
       @Path("account") String account,
       @Path("region") String region,
       @QueryMap Map<String, String> filters);
 
-  @GET("/cloudMetrics/{cloudProvider}/{account}/{region}/{metricName}/statistics")
+  @GET("cloudMetrics/{cloudProvider}/{account}/{region}/{metricName}/statistics")
   Call<Map> getCloudMetricStatistics(
       @Path("cloudProvider") String cloudProvider,
       @Path("account") String account,
@@ -302,75 +302,75 @@ public interface ClouddriverService {
       @Query("endTime") Long endTime,
       @QueryMap Map<String, String> filters);
 
-  @GET("/tags")
+  @GET("tags")
   Call<List<Map>> listEntityTags(@QueryMap Map<String, Object> allParameters);
 
-  @GET("/tags/{id}")
+  @GET("tags/{id}")
   Call<Map> getEntityTags(@Path("id") String id);
 
-  @GET("/certificates")
+  @GET("certificates")
   Call<List<Map>> getCertificates();
 
-  @GET("/certificates/{cloudProvider}")
+  @GET("certificates/{cloudProvider}")
   Call<List<Map>> getCertificates(@Path("cloudProvider") String cloudProvider);
 
   @Streaming
-  @GET("/v1/data/static/{id}")
+  @GET("v1/data/static/{id}")
   Call<ResponseBody> getStaticData(@Path("id") String id, @QueryMap Map<String, String> filters);
 
   @Streaming
-  @GET("/v1/data/adhoc/{groupId}/{bucketId}/{objectId}")
+  @GET("v1/data/adhoc/{groupId}/{bucketId}/{objectId}")
   Call<ResponseBody> getAdhocData(
       @Path(value = "groupId", encoded = true) String groupId,
       @Path(value = "bucketId", encoded = true) String bucketId,
       @Path(value = "objectId", encoded = true) String objectId);
 
-  @GET("/storage")
+  @GET("storage")
   Call<List<String>> getStorageAccounts();
 
-  @GET("/artifacts/credentials")
+  @GET("artifacts/credentials")
   Call<List<Map>> getArtifactCredentials();
 
   @Streaming
-  @PUT("/artifacts/fetch")
+  @PUT("artifacts/fetch")
   Call<ResponseBody> getArtifactContent(@Body Map artifact);
 
-  @GET("/artifacts/account/{accountName}/names")
+  @GET("artifacts/account/{accountName}/names")
   Call<List<String>> getArtifactNames(
       @Path("accountName") String accountName, @Query("type") String type);
 
-  @GET("/artifacts/account/{accountName}/versions")
+  @GET("artifacts/account/{accountName}/versions")
   Call<List<String>> getArtifactVersions(
       @Path("accountName") String accountName,
       @Query("type") String type,
       @Query("artifactName") String artifactName);
 
-  @GET("/roles/{cloudProvider}")
+  @GET("roles/{cloudProvider}")
   Call<List<Map>> getRoles(@Path("cloudProvider") String cloudProvider);
 
-  @GET("/ecs/ecsClusters")
+  @GET("ecs/ecsClusters")
   Call<List<Map>> getAllEcsClusters();
 
-  @GET("/ecs/cloudMetrics/alarms")
+  @GET("ecs/cloudMetrics/alarms")
   Call<List<Map>> getEcsAllMetricAlarms();
 
-  @GET("/ecs/secrets")
+  @GET("ecs/secrets")
   Call<List<Map>> getAllEcsSecrets();
 
-  @GET("/ecs/ecsClusterDescriptions/{account}/{region}")
+  @GET("ecs/ecsClusterDescriptions/{account}/{region}")
   Call<List<Map>> getEcsClusterDescriptions(
       @Path(value = "account") String account, @Path(value = "region") String region);
 
-  @GET("/ecs/serviceDiscoveryRegistries")
+  @GET("ecs/serviceDiscoveryRegistries")
   Call<List<Map>> getAllEcsServiceDiscoveryRegistries();
 
-  @GET("/manifests/{account}/{location}/{name}")
+  @GET("manifests/{account}/{location}/{name}")
   Call<Map> getManifest(
       @Path(value = "account") String account,
       @Path(value = "location") String location,
       @Path(value = "name") String name);
 
-  @GET("/applications/{application}/serverGroups/{account}/{serverGroupName}/events")
+  @GET("applications/{application}/serverGroups/{account}/{serverGroupName}/events")
   Call<List<Map>> getServerGroupEvents(
       @Path(value = "application") String application,
       @Path(value = "account") String account,
@@ -378,32 +378,32 @@ public interface ClouddriverService {
       @Query("region") String region,
       @Query("provider") String provider);
 
-  @GET("/servicebroker/{account}/services")
+  @GET("servicebroker/{account}/services")
   Call<List<Map>> listServices(
       @Path(value = "account") String account,
       @Query(value = "cloudProvider") String cloudProvider,
       @Query(value = "region") String region);
 
-  @GET("/servicebroker/{account}/serviceInstance")
+  @GET("servicebroker/{account}/serviceInstance")
   Call<Map> getServiceInstance(
       @Path(value = "account") String account,
       @Query(value = "cloudProvider") String cloudProvider,
       @Query(value = "region") String region,
       @Query(value = "serviceInstanceName") String serviceInstanceName);
 
-  @GET(value = "/functions")
+  @GET("functions")
   Call<List<Map>> getFunctions(
       @Query(value = "functionName") String functionName,
       @Query(value = "region") String region,
       @Query(value = "account") String account);
 
-  @GET("/applications/{name}/functions")
+  @GET("applications/{name}/functions")
   Call<List<Map>> getApplicationFunctions(@Path("name") String appName);
 
-  @GET("/installedPlugins")
+  @GET("installedPlugins")
   Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 
-  @GET("/artifacts/content-address/{application}/{hash}")
+  @GET("artifacts/content-address/{application}/{hash}")
   Call<Artifact.StoredView> getStoredArtifact(
       @Path("application") String application, @Path("hash") String hash);
 

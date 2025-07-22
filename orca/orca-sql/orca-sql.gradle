@@ -44,6 +44,7 @@ dependencies {
   testImplementation(project(":orca-core-tck"))
   testImplementation(project(":orca-test-groovy"))
   testImplementation("io.spinnaker.kork:kork-sql-test")
+  testImplementation("io.spinnaker.kork:kork-web")
   testImplementation("io.strikt:strikt-core")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
