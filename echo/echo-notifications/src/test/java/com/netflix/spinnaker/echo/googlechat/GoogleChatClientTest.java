@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.echo.googlechat;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -29,7 +28,6 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpClientComponents;
 import com.netflix.spinnaker.config.RetrofitConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,35 +65,16 @@ public class GoogleChatClientTest {
 
   @Test
   public void testSendGoogleChatMessage() {
-    String incorrectly_encoded_endpoint =
-        "/v1/spaces/RANDOM/messages%3Fkey%3DXYZ-321%26token%3Dtesttoken123";
     String expected_endpoint = "/v1/spaces/RANDOM/messages?key=XYZ-321&token=testtoken123";
-
-    wmGoogleChat.stubFor(
-        WireMock.post(urlEqualTo(incorrectly_encoded_endpoint))
-            .willReturn(
-                aResponse().withHeader("Content-Type", "application/json").withStatus(404)));
-
     wmGoogleChat.stubFor(
         WireMock.post(urlEqualTo(expected_endpoint))
             .willReturn(
                 aResponse().withHeader("Content-Type", "application/json").withStatus(200)));
 
-    // FIXME: retrofit2 is incorrectly encoding the characters ?(to %3F) and &(to %26) related to
-    // query params as
-    // if they are part of the path variable.
-    Throwable thrown =
-        catchThrowable(
-            () ->
-                googleChatService.sendMessage(
-                    "RANDOM/messages?key=XYZ-321&token=testtoken123",
-                    new GoogleChatMessage("test message")));
-    assertThat(thrown).isInstanceOf(SpinnakerHttpException.class);
-    assertThat(thrown.getMessage())
-        .contains(
-            "Status: 404, Method: POST, URL: "
-                + wmGoogleChat.baseUrl()
-                + "/v1/spaces/RANDOM/messages%3Fkey%3DXYZ-321%26token%3Dtesttoken123, Message: Not Found");
+    googleChatService.sendMessage(
+        "RANDOM/messages?key=XYZ-321&token=testtoken123", new GoogleChatMessage("test message"));
+
+    wmGoogleChat.verify(1, postRequestedFor(urlEqualTo(expected_endpoint)));
   }
 
   private GoogleChatClient getGoogleChatClient(String baseUrl) {
