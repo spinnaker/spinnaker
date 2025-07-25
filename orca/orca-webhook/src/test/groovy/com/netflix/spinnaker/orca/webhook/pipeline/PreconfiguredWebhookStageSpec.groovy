@@ -34,8 +34,10 @@ class PreconfiguredWebhookStageSpec extends Specification {
   def builder = new TaskNode.Builder()
   MonitorWebhookTask monitorWebhookTask = Mock(MonitorWebhookTask)
 
+  WebhookProperties webhookProperties = new WebhookProperties()
+
   @Subject
-  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, null, monitorWebhookTask)
+  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, null, monitorWebhookTask, webhookProperties)
 
   def "Context should be taken from PreconfiguredWebhookProperties"() {
     given:
