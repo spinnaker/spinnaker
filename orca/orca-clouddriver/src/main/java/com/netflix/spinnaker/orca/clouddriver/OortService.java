@@ -189,4 +189,8 @@ public interface OortService {
 
   @GET("credentials")
   Call<List<Map<String, Object>>> getCredentials(@Query("expand") boolean expand);
+
+  @GET("/credentials/{account}/authorized")
+  Call<Map<String, Object>> getCredentialsAuthorized(
+      @Path("account") String account, @Query("expand") boolean expand);
 }
