@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.crypto.StandardCrypto;
 import com.netflix.spinnaker.kork.crypto.StaticX509Identity;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -90,6 +91,8 @@ class MtlsConfigurationTestBase {
     }
 
     @MockBean FiatService fiatService;
+
+    @MockBean OortService oortService;
   }
 
   @SneakyThrows
