@@ -24,7 +24,8 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import rx.schedulers.Schedulers
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.core.Observable
 
 @RestController
 class ProjectController {
@@ -63,9 +64,9 @@ class ProjectController {
       statuses: (statuses.split(",") as Collection)
     )
 
-    def allPipelines = rx.Observable.merge(pipelineConfigIds.collect {
+    def allPipelines = Observable.merge(pipelineConfigIds.collect {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
-    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+    }).subscribeOn(Schedulers.io()).toList().blockingGet().sort(startTimeOrId)
 
     return allPipelines
   }

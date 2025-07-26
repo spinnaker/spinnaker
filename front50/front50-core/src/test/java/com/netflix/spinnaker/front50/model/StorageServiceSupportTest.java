@@ -27,13 +27,13 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.reactivex.rxjava3.core.Scheduler;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import rx.Scheduler;
 
 class StorageServiceSupportTest {
 

@@ -36,8 +36,8 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode
 import org.jetbrains.spek.subject.SubjectSpek
-import rx.Observable
-import rx.schedulers.Schedulers
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 object ZombieExecutionServiceTest : SubjectSpek<ZombieExecutionService>({
 
@@ -50,7 +50,7 @@ object ZombieExecutionServiceTest : SubjectSpek<ZombieExecutionService>({
       repository,
       queue,
       clock,
-      Optional.of(Schedulers.immediate())
+      Optional.of(Schedulers.trampoline())
     )
   }
 
@@ -68,6 +68,7 @@ object ZombieExecutionServiceTest : SubjectSpek<ZombieExecutionService>({
 
       beforeGroup {
         whenever(repository.retrieve(ExecutionType.PIPELINE, criteria)) doReturn Observable.just(pipeline)
+        whenever(repository.retrieve(ExecutionType.ORCHESTRATION, criteria)) doReturn Observable.empty()
         whenever(queue.containsMessage(any())) doReturn true
       }
 
@@ -90,6 +91,7 @@ object ZombieExecutionServiceTest : SubjectSpek<ZombieExecutionService>({
 
       beforeGroup {
         whenever(repository.retrieve(pipeline.type, criteria)) doReturn Observable.just(pipeline)
+        whenever(repository.retrieve(ExecutionType.ORCHESTRATION, criteria)) doReturn Observable.empty()
         whenever(queue.containsMessage(any())) doReturn true
       }
 
@@ -112,6 +114,7 @@ object ZombieExecutionServiceTest : SubjectSpek<ZombieExecutionService>({
 
       beforeGroup {
         whenever(repository.retrieve(ExecutionType.PIPELINE, criteria)) doReturn Observable.just(pipeline)
+        whenever(repository.retrieve(ExecutionType.ORCHESTRATION, criteria)) doReturn Observable.empty()
         whenever(queue.containsMessage(any())) doReturn false
       }
 

@@ -21,7 +21,7 @@ import com.netflix.kayenta.canary.providers.metrics.GraphiteCanaryMetricSetQuery
 import com.netflix.kayenta.graphite.service.GraphiteRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

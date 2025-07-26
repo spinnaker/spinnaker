@@ -22,11 +22,11 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import io.reactivex.rxjava3.core.Observable;
 import java.time.Instant;
 import java.util.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import rx.Observable;
 
 public interface ExecutionRepository {
   void store(@Nonnull PipelineExecution execution);

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -43,7 +44,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 @Slf4j
 @Component
@@ -164,12 +164,12 @@ public class KubernetesV2Utils {
   }
 
   public String prettify(String input) {
-    Yaml yaml = new Yaml(new SafeConstructor());
+    Yaml yaml = YamlHelper.newYamlSafeConstructor();
     return yaml.dump(yaml.load(input));
   }
 
   public Map<String, Object> parseManifest(String input) {
-    Yaml yaml = new Yaml(new SafeConstructor());
+    Yaml yaml = YamlHelper.newYamlSafeConstructor();
     return mapper.convertValue(yaml.load(input), new TypeReference<Map<String, Object>>() {});
   }
 

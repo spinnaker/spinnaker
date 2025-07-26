@@ -34,7 +34,7 @@ dependencies {
     implementation "org.apache.commons:commons-lang3"
 
     implementation "com.hubspot.jinjava:jinjava"
-    implementation "io.reactivex:rxjava"
+    implementation "io.reactivex.rxjava3:rxjava"
     implementation "org.springframework:spring-context"
 
     implementation 'commons-io:commons-io'
@@ -42,5 +42,5 @@ dependencies {
     testImplementation "org.spockframework:spock-spring"
     testImplementation "org.springframework:spring-test"
     testImplementation "org.apache.groovy:groovy-json"
-    testImplementation "com.github.tomakehurst:wiremock-jre8"
+    testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 }
