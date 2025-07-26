@@ -95,8 +95,7 @@ class CompositeStorageContainerSqlToProgressTest {
             .dependsOn(mysql)
             .dependsOn(postgres)
             .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(90)))
-            .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
-            .withEnv("SPRING_PROFILES_ACTIVE", "noauth-test");
+            .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson());
 
     Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(logger);
     front50Container.start();
