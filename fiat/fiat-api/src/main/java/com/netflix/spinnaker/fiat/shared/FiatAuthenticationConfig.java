@@ -34,6 +34,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -94,19 +95,20 @@ public class FiatAuthenticationConfig {
   }
 
   @Bean
-  public SecurityFilterChain configure(
+  public SecurityFilterChain fiatSecurityFilterChain(
       HttpSecurity http, FiatStatus fiatStatus, AuthenticationConverter authenticationConverter)
       throws Exception {
-    return http.servletApi()
-        .and()
-        .exceptionHandling()
-        .and()
-        .anonymous()
-        .and()
+
+    http.servletApi(Customizer.withDefaults())
+        .exceptionHandling(Customizer.withDefaults())
+        .anonymous(Customizer.withDefaults())
         .addFilterBefore(
             new FiatAuthenticationFilter(fiatStatus, authenticationConverter),
             AnonymousAuthenticationFilter.class)
-        .build();
+        .csrf()
+        .disable();
+
+    return http.build();
   }
 
   @Bean
