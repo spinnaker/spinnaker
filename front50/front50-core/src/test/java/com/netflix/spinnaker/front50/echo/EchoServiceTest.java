@@ -30,6 +30,8 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.config.RetrofitConfiguration;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory;
 import com.netflix.spinnaker.front50.config.EchoConfiguration;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
@@ -38,7 +40,6 @@ import com.netflix.spinnaker.front50.model.plugins.PluginEventType;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration;
-import com.netflix.spinnaker.kork.retrofit.RetrofitServiceFactoryAutoConfiguration;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
@@ -67,7 +68,6 @@ import retrofit.RequestInterceptor;
       DynamicConfigService.NoopDynamicConfig.class,
       StorageServiceConfigurationProperties.class,
       NoopRegistry.class,
-      RetrofitServiceFactoryAutoConfiguration.class,
       Retrofit2ServiceFactoryAutoConfiguration.class,
       RetrofitConfiguration.class,
       Retrofit2ConfigurationProperties.class,
@@ -147,6 +147,11 @@ public class EchoServiceTest {
     @Bean
     public Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor() {
       return new Retrofit2EncodeCorrectionInterceptor();
+    }
+
+    @Bean
+    public OkHttpClientProvider okHttpClientProvider(List<OkHttpClientBuilderProvider> providers) {
+      return new OkHttpClientProvider(providers);
     }
   }
 }
