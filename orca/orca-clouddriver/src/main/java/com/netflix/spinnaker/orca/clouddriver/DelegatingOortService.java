@@ -191,4 +191,9 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   public Call<List<Map<String, Object>>> getCredentials(boolean expand) {
     return getService().getCredentials(expand);
   }
+
+  @Override
+  public Call<Map<String, Object>> getCredentialsAuthorized(String account, boolean expand) {
+    return getService().getCredentialsAuthorized(account, expand);
+  }
 }

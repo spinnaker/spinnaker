@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import java.lang.reflect.Field;
 import okhttp3.OkHttpClient;
@@ -179,6 +180,11 @@ class WebhookConfigurationTest {
     @Bean
     FiatService fiatService() {
       return mock(FiatService.class);
+    }
+
+    @Bean
+    OortService oortService() {
+      return mock(OortService.class);
     }
   }
 }
