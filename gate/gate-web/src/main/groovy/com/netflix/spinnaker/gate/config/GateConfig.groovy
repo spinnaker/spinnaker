@@ -240,7 +240,6 @@ class GateConfig {
       def noSslCustomizationProps = props.clone()
       noSslCustomizationProps.keyStore = null
       noSslCustomizationProps.trustStore = null
-      def okHttpClient = new OkHttp3ClientConfiguration(noSslCustomizationProps, interceptor).create().build()
       createClient "kayenta", KayentaService
     } else {
       createClient "kayenta", KayentaService
