@@ -30,9 +30,9 @@ import org.springframework.core.task.AsyncTaskExecutor;
  * <p>The typical pattern is:
  *
  * <p>AuthenticatedRequestFilter: copies X-SPINNAKER-* incoming request headers into the MDC
- * SpinnakerRequestInterceptor: copies X-SPINNAKER-* from the MDC into outgoing request headers
+ * SpinnakerRequestHeaderInterceptor: copies X-SPINNAKER-* from the MDC into outgoing request headers
  *
- * <p>MdcCopyingAsyncTaskExecutor makes it so SpinnakerRequestInterceptor has something to copy for
+ * <p>MdcCopyingAsyncTaskExecutor makes it so SpinnakerRequestHeaderInterceptor has something to copy for
  * async methods. It also makes it so log messages include X-SPINNAKER-*, specifically
  * X-SPINNAKER-REQUEST-ID and X-SPINNAKER-REQUEST-ID to faciliate troubleshooting.
  */

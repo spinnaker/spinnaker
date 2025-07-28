@@ -30,7 +30,6 @@ import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
 import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import java.io.File;
@@ -79,11 +78,6 @@ public class OkHttpClientComponents {
   private final OkHttpClientConfigurationProperties clientProperties;
   private final OkHttpMetricsInterceptorProperties metricsProperties;
   private final Retrofit2ConfigurationProperties retrofit2Properties;
-
-  @Bean
-  public SpinnakerRequestInterceptor spinnakerRequestInterceptor() {
-    return new SpinnakerRequestInterceptor(clientProperties.getPropagateSpinnakerHeaders());
-  }
 
   @Bean
   public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
