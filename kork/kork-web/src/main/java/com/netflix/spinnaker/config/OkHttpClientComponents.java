@@ -102,6 +102,13 @@ public class OkHttpClientComponents {
     return builder -> builder.addInterceptor(metricsInterceptor);
   }
 
+  /** Adds an encode correction interceptor to clients. */
+  @Bean
+  public OkHttpClientCustomizer encodeCorrectionInterceptorCustomizer(
+      Retrofit2EncodeCorrectionInterceptor encodeCorrectionInterceptor) {
+    return builder -> builder.addInterceptor(encodeCorrectionInterceptor);
+  }
+
   @Bean
   public OkHttpClientCustomizer requestHeaderInterceptorCustomizer(
       SpinnakerRequestHeaderInterceptor headerInterceptor) {
