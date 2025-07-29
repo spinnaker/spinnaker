@@ -37,7 +37,6 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
-import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +57,6 @@ import org.springframework.test.context.DynamicPropertySource;
       Retrofit2ConfigurationProperties.class,
       OkHttp3MetricsInterceptor.class,
       RawOkHttpClientFactory.class,
-      RetrofitConfigurationProperties.class,
       OkHttpClientConfigurationProperties.class,
       OkHttpMetricsInterceptorProperties.class,
       ObjectMapper.class,

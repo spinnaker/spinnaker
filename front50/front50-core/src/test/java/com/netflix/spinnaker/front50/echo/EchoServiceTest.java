@@ -45,7 +45,6 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
-import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -71,7 +70,6 @@ import org.springframework.test.context.TestPropertySource;
       Retrofit2ConfigurationProperties.class,
       OkHttp3MetricsInterceptor.class,
       RawOkHttpClientFactory.class,
-      RetrofitConfigurationProperties.class,
       OkHttpClientConfigurationProperties.class,
       OkHttpMetricsInterceptorProperties.class,
       ObjectMapper.class,
