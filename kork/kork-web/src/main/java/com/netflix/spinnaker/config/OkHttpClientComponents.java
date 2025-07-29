@@ -31,7 +31,6 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
-import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -70,7 +69,6 @@ import org.springframework.util.CollectionUtils;
 @EnableConfigurationProperties({
   OkHttpClientConfigurationProperties.class,
   OkHttpMetricsInterceptorProperties.class,
-  RetrofitConfigurationProperties.class,
   Retrofit2ConfigurationProperties.class
 })
 public class OkHttpClientComponents {
