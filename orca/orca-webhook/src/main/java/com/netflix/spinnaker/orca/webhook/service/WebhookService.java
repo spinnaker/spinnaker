@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.orca.webhook.service;
 
+import static com.netflix.spinnaker.orca.webhook.config.WebhookProperties.MatchStrategy.PATTERN_MATCHES;
+
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -28,6 +30,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -67,6 +70,12 @@ public class WebhookService {
 
   private final Optional<WebhookAccountProcessor> webhookAccountProcessor;
 
+  /**
+   * Keys are urlPattern properties from the allow list. Each value is the corresponding compiled
+   * Pattern.
+   */
+  private final Map<String, Pattern> urlPatterns;
+
   @Autowired
   public WebhookService(
       List<RestTemplateProvider> restTemplateProviders,
@@ -79,6 +88,41 @@ public class WebhookService {
     this.webhookProperties = webhookProperties;
     this.oortService = oortService;
     this.webhookAccountProcessor = webhookAccountProcessor;
+
+    // If it's enabled, validate the allow list and compile regexes.
+    if (webhookProperties.isAllowedRequestsEnabled()) {
+      webhookProperties.getAllowedRequests().forEach(this::validateAllowedRequest);
+      this.urlPatterns =
+          webhookProperties.getAllowedRequests().stream()
+              .filter(allowedRequest -> allowedRequest.getMatchStrategy() == PATTERN_MATCHES)
+              .collect(
+                  Collectors.toUnmodifiableMap(
+                      WebhookProperties.AllowedRequest::getUrlPattern,
+                      allowedRequest -> Pattern.compile(allowedRequest.getUrlPattern())));
+    } else {
+      this.urlPatterns = Map.of();
+    }
+  }
+
+  /** Validate an allowed request. Throw an exception if it's invalid. */
+  private void validateAllowedRequest(WebhookProperties.AllowedRequest allowedRequest) {
+    switch (allowedRequest.getMatchStrategy()) {
+      case STARTS_WITH:
+        if (allowedRequest.getUrlPrefix() == null) {
+          throw new IllegalArgumentException(
+              "urlPrefix must not be null with STARTS_WITH strategy");
+        }
+        break;
+      case PATTERN_MATCHES:
+        if (allowedRequest.getUrlPattern() == null) {
+          throw new IllegalArgumentException(
+              "urlPattern must not be null with PATTERN_MATCHES strategy");
+        }
+        break;
+      default:
+        throw new IllegalArgumentException(
+            "unknown match strategy " + allowedRequest.getMatchStrategy());
+    }
   }
 
   public ResponseEntity<Object> callWebhook(StageExecution stageExecution) {
@@ -229,7 +273,44 @@ public class WebhookService {
         .anyMatch(
             allowedRequest ->
                 allowedRequest.getHttpMethods().contains(httpMethod.toString())
-                    && uri.toString().startsWith(allowedRequest.getUrlPrefix()));
+                    && uriMatches(allowedRequest, uri));
+  }
+
+  /**
+   * Determine if an AllowedRequest allows a given uri
+   *
+   * @param allowedRequest the AllowRequest to use
+   * @param uri the URI to consider
+   * @return true if the uri is allowed, false otherwise
+   */
+  private boolean uriMatches(WebhookProperties.AllowedRequest allowedRequest, URI uri) {
+    switch (allowedRequest.getMatchStrategy()) {
+      case STARTS_WITH:
+        String urlPrefix = allowedRequest.getUrlPrefix();
+        boolean startsWithRetval = uri.toString().startsWith(urlPrefix);
+        log.debug(
+            "uri '{}' {} '{}'",
+            uri.toString(),
+            startsWithRetval ? "starts with" : "does not start with",
+            urlPrefix);
+        return startsWithRetval;
+      case PATTERN_MATCHES:
+        String patternString = allowedRequest.getUrlPattern();
+        Pattern pattern = urlPatterns.get(patternString);
+        if (pattern == null) {
+          throw new IllegalStateException("no compiled Pattern for '" + patternString + "'");
+        }
+        boolean patternMatchesRetval = pattern.matcher(uri.toString()).matches();
+        log.debug(
+            "uri '{}' {} pattern '{}'",
+            uri.toString(),
+            patternMatchesRetval ? "matches" : "does not match",
+            pattern.toString());
+        return patternMatchesRetval;
+      default:
+        throw new IllegalArgumentException(
+            "unknown match strategy " + allowedRequest.getMatchStrategy());
+    }
   }
 
   private static HttpHeaders buildHttpHeaders(Map<String, Object> customHeaders) {
