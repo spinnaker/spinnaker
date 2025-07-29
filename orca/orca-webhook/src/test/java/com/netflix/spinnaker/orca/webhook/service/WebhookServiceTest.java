@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.PatternSyntaxException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -88,9 +89,7 @@ class WebhookServiceTest {
           .withAllowedHostnamesRegex(".*")
           .build();
 
-  private WebhookService webhookService;
-
-  private WebhookService webhookServiceWithAccountProcessor;
+  private RestTemplateProvider restTemplateProvider;
 
   private OortService oortService = mock(OortService.class);
 
@@ -107,29 +106,21 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties);
 
-    RestTemplateProvider restTemplateProvider =
+    restTemplateProvider =
         new DefaultRestTemplateProvider(webhookConfiguration.restTemplate(requestFactory));
+  }
 
-    webhookService =
+  @Test
+  void testAllowedRequestsEnabledTrueEmptyList() {
+    webhookProperties.setAllowedRequestsEnabled(true);
+
+    WebhookService webhookService =
         new WebhookService(
             List.of(restTemplateProvider),
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
             Optional.empty());
-
-    webhookServiceWithAccountProcessor =
-        new WebhookService(
-            List.of(restTemplateProvider),
-            userConfiguredUrlRestrictions,
-            webhookProperties,
-            oortService,
-            Optional.of(webhookAccountProcessor));
-  }
-
-  @Test
-  void testAllowedRequestsEnabledTrueEmptyList() {
-    webhookProperties.setAllowedRequestsEnabled(true);
 
     String url = "https://localhost"; // arbitrary, but needs to include a resolvable hostname
 
@@ -149,14 +140,220 @@ class WebhookServiceTest {
   }
 
   @Test
-  void testAllowedRequestsMatchingMethodAndUrl() throws Exception {
+  void testAllowedRequestsMatchingMethodAndUrlStartsWith() throws Exception {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
     allowedRequest.setUrlPrefix("http://localhost:" + apiProvider.getPort() + "/path/to/an/");
     webhookProperties.setAllowedRequests(List.of(allowedRequest));
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    String bodyStr = "{ \"foo\": \"bar\" }";
+    apiProvider.stubFor(
+        post(urlMatching(path))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(bodyStr)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    ResponseEntity<Object> result = webhookService.callWebhook(stage);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    var body = mapper.readValue(result.getBody().toString(), Map.class);
+    assertThat(body.get("foo")).isEqualTo("bar");
+
+    apiProvider.verify(postRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testAllowedRequestsNullUrlPrefix() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
+    assertThat(allowedRequest.getUrlPrefix()).isNull();
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    Throwable thrown =
+        catchThrowable(
+            () ->
+                new WebhookService(
+                    List.of(restTemplateProvider),
+                    userConfiguredUrlRestrictions,
+                    webhookProperties,
+                    oortService,
+                    Optional.empty()));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("urlPrefix must not be null with STARTS_WITH strategy");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsEmptyUrlPrefix() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
+    allowedRequest.setUrlPrefix("");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    String bodyStr = "{ \"foo\": \"bar\" }";
+    apiProvider.stubFor(
+        post(urlMatching(path))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(bodyStr)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    ResponseEntity<Object> result = webhookService.callWebhook(stage);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    var body = mapper.readValue(result.getBody().toString(), Map.class);
+    assertThat(body.get("foo")).isEqualTo("bar");
+
+    apiProvider.verify(postRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testAllowedRequestsEmptyUrlPattern() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    allowedRequest.setUrlPattern("");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("uri: '" + url + "' not allowed");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsNullUrlPattern() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    assertThat(allowedRequest.getUrlPattern()).isNull();
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    Throwable thrown =
+        catchThrowable(
+            () ->
+                new WebhookService(
+                    List.of(restTemplateProvider),
+                    userConfiguredUrlRestrictions,
+                    webhookProperties,
+                    oortService,
+                    Optional.empty()));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("urlPattern must not be null with PATTERN_MATCHES strategy");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsInvalidUrlPattern() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    String invalidPattern = "[ is not a valid pattern";
+    allowedRequest.setUrlPattern(invalidPattern);
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    Throwable thrown =
+        catchThrowable(
+            () ->
+                new WebhookService(
+                    List.of(restTemplateProvider),
+                    userConfiguredUrlRestrictions,
+                    webhookProperties,
+                    oortService,
+                    Optional.empty()));
+
+    assertThat(thrown)
+        .isInstanceOf(PatternSyntaxException.class)
+        .hasMessageContaining(invalidPattern);
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsMatchingMethodAndUrlPatternMatches() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    allowedRequest.setUrlPattern(
+        "http://localhost:" + apiProvider.getPort() + "/[a-zA-Z]+-[a-z0-9]+/to/.*");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    String path = "/abcABC-def123/to/an/endpoint";
     String url = apiProvider.baseUrl() + path;
 
     String bodyStr = "{ \"foo\": \"bar\" }";
@@ -185,8 +382,17 @@ class WebhookServiceTest {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
     allowedRequest.setUrlPrefix("http://localhost:" + apiProvider.getPort() + "/path/to/an/");
     webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String path = "/path/to/an/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -212,12 +418,21 @@ class WebhookServiceTest {
   }
 
   @Test
-  void testAllowedRequestsMethodlMatchesButNotUrl() throws Exception {
+  void testAllowedRequestsMethodMatchesButNotUrl() throws Exception {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
     allowedRequest.setUrlPrefix("http://localhost:" + apiProvider.getPort() + "/path/to/an/");
     webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String path = "/path/to/another/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -247,6 +462,14 @@ class WebhookServiceTest {
     // Even with an empty body, even one request header (e.g. Content-Length: 0) is too big.
     webhookProperties.setMaxRequestBytes(1L);
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String url = apiProvider.baseUrl();
 
     // The StageExecutionImpl constructor mutates the map, so use a mutable map.
@@ -268,6 +491,14 @@ class WebhookServiceTest {
   void testRequestHeadersAndBodyTooBig() throws Exception {
     // Empirically, this is bigger than the headers in this test, and smaller than headers + body.
     webhookProperties.setMaxRequestBytes(235L);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String url = apiProvider.baseUrl();
 
@@ -295,6 +526,14 @@ class WebhookServiceTest {
     // Empirically, this is bigger than the headers in this test, and bigger
     // than headers + body.
     webhookProperties.setMaxRequestBytes(500L);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String path = "/path/to/some/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -327,6 +566,14 @@ class WebhookServiceTest {
     // Even with an empty body, even one response header (e.g. Matched-Stub-Id) is too big.
     webhookProperties.setMaxResponseBytes(1L);
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
@@ -353,6 +600,14 @@ class WebhookServiceTest {
   void testResponseHeadersAndBodyTooBig() throws Exception {
     // Empirically, this is bigger than the headers in this test, and smaller than headers + body.
     webhookProperties.setMaxResponseBytes(150L);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -386,6 +641,14 @@ class WebhookServiceTest {
     // than headers + body.
     webhookProperties.setMaxResponseBytes(500L);
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
@@ -414,6 +677,14 @@ class WebhookServiceTest {
   void testDontFollowRedirects() throws Exception {
     webhookProperties.setFollowRedirects(false);
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
@@ -438,6 +709,22 @@ class WebhookServiceTest {
   @Test
   void testValidateAccountWithNoAccountProperty() throws Exception {
     webhookProperties.setValidateAccount(true);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    WebhookService webhookServiceWithAccountProcessor =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.of(webhookAccountProcessor));
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -510,6 +797,22 @@ class WebhookServiceTest {
   @ValueSource(strings = {"", " "})
   void testValidateAccountWithMissingAccount(String account) throws Exception {
     webhookProperties.setValidateAccount(true);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    WebhookService webhookServiceWithAccountProcessor =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.of(webhookAccountProcessor));
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -587,6 +890,22 @@ class WebhookServiceTest {
   void testValidateAccountWithAccountAndNoAccountProcessor(boolean validAccount) throws Exception {
     webhookProperties.setValidateAccount(true);
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    WebhookService webhookServiceWithAccountProcessor =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.of(webhookAccountProcessor));
+
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
@@ -658,6 +977,22 @@ class WebhookServiceTest {
   @ValueSource(booleans = {false, true})
   void testValidateAccountWithAccountAndAccountProcessor(boolean validAccount) throws Exception {
     webhookProperties.setValidateAccount(true);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    WebhookService webhookServiceWithAccountProcessor =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.of(webhookAccountProcessor));
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
