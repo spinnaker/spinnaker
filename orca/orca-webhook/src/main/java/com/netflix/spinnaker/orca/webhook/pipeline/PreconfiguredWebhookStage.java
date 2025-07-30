@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties.PreconfiguredWebhook;
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookNotFoundException;
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookUnauthorizedException;
@@ -53,8 +54,9 @@ public class PreconfiguredWebhookStage extends WebhookStage {
   PreconfiguredWebhookStage(
       WebhookService webhookService,
       FiatService fiatService,
-      MonitorWebhookTask monitorWebhookTask) {
-    super(monitorWebhookTask);
+      MonitorWebhookTask monitorWebhookTask,
+      WebhookProperties webhookProperties) {
+    super(monitorWebhookTask, webhookProperties);
 
     this.webhookService = webhookService;
     this.fiatService = fiatService;
