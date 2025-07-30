@@ -1,0 +1,78 @@
+{
+  "account": "k8s-local",
+  "name": "service backend",
+  "location": "dev",
+  "moniker": {
+    "app": "kubernetesapp",
+    "cluster": "service backend"
+  },
+  "manifest": {
+    "metadata": {
+      "annotations": {
+        "artifact.spinnaker.io/location": "dev",
+        "artifact.spinnaker.io/name": "backend",
+        "artifact.spinnaker.io/type": "kubernetes/service",
+        "artifact.spinnaker.io/version": "",
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"dev\",\"artifact.spinnaker.io/name\":\"backend\",\"artifact.spinnaker.io/type\":\"kubernetes/service\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"service backend\"},\"labels\":{\"app\":\"backend\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\"},\"name\":\"backend\",\"namespace\":\"dev\"},\"spec\":{\"ports\":[{\"port\":80,\"protocol\":\"TCP\",\"targetPort\":80}],\"selector\":{\"app\":\"backend\"}}}\n",
+        "moniker.spinnaker.io/application": "kubernetesapp",
+        "moniker.spinnaker.io/cluster": "service backend"
+      },
+      "creationTimestamp": "2025-07-28T21:38:13Z",
+      "labels": {
+        "app": "backend",
+        "app.kubernetes.io/managed-by": "spinnaker",
+        "app.kubernetes.io/name": "kubernetesapp"
+      },
+      "name": "backend",
+      "namespace": "dev",
+      "resourceVersion": "246169",
+      "uid": "6d740a43-c6fc-439f-ba74-7b9372359e9a"
+    },
+    "apiVersion": "v1",
+    "kind": "Service",
+    "spec": {
+      "clusterIP": "10.96.17.52",
+      "clusterIPs": [
+        "10.96.17.52"
+      ],
+      "internalTrafficPolicy": "Cluster",
+      "ipFamilies": [
+        "IPv4"
+      ],
+      "ipFamilyPolicy": "SingleStack",
+      "ports": [
+        {
+          "port": 80,
+          "protocol": "TCP",
+          "targetPort": 80
+        }
+      ],
+      "selector": {
+        "app": "backend"
+      },
+      "sessionAffinity": "None",
+      "type": "ClusterIP"
+    },
+    "status": {
+      "loadBalancer": {}
+    }
+  },
+  "status": {
+    "stable": {
+      "state": true
+    },
+    "paused": {
+      "state": false
+    },
+    "available": {
+      "state": true
+    },
+    "failed": {
+      "state": false
+    }
+  },
+  "artifacts": [],
+  "events": [],
+  "warnings": [],
+  "metrics": []
+}

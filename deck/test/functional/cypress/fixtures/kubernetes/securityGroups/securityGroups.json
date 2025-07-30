@@ -1,0 +1,13 @@
+{
+  "k8s-local": {
+    "kubernetes": {
+      "dev": [
+        {
+          "name": "networkPolicy backend-security-policy",
+          "id": "networkPolicy backend-security-policy",
+          "moniker": {}
+        }
+      ]
+    }
+  }
+}

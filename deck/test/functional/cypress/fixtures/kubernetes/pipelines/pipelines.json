@@ -1,0 +1,258 @@
+[
+  {
+    "type": "PIPELINE",
+    "id": "01JSDR7PB82Y46WGY0KYHSPQ9B",
+    "application": "kubernetesapp",
+    "name": "bake_and_deploy_manifest",
+    "buildTime": 1745292089721,
+    "canceled": false,
+    "limitConcurrent": true,
+    "maxConcurrentExecutions": 0,
+    "keepWaitingPipelines": false,
+    "stages": [
+      {
+        "id": "01JSDR7PBS3SGJW8F9Q2A1X64K",
+        "refId": "1",
+        "type": "deleteManifest",
+        "name": "Delete (Manifest)",
+        "startTime": 1745292089804,
+        "endTime": 1745292090565,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": []
+      },
+      {
+        "id": "01JSDR7PBSC0R3DN9DS4DKCDF8",
+        "refId": "2",
+        "type": "bakeManifest",
+        "name": "Bake (Manifest)",
+        "startTime": 1745292090632,
+        "endTime": 1745292092776,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": [
+          "1"
+        ]
+      },
+      {
+        "id": "01JSDR7PBSSS3G7BM1JN5BA7WJ",
+        "refId": "3",
+        "type": "deployManifest",
+        "name": "Deploy (Manifest)",
+        "startTime": 1745292092832,
+        "endTime": 1745292109955,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": [
+          "2"
+        ]
+      },
+      {
+        "id": "01JSDR7PBS2TTXKPBQBPAHFDEM",
+        "refId": "4",
+        "type": "rollingRestartManifest",
+        "name": "Rollout Restart (Manifest)",
+        "startTime": 1745292110019,
+        "endTime": 1745292110432,
+        "status": "TERMINAL",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": [
+          "3"
+        ]
+      },
+      {
+        "id": "01JSDR7PBSZJ0VEA788YHY9M33",
+        "refId": "5",
+        "type": "scaleManifest",
+        "name": "Scale (Manifest)",
+        "status": "NOT_STARTED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": [
+          "4"
+        ]
+      }
+    ],
+    "startTime": 1745292089751,
+    "endTime": 1745292110492,
+    "status": "TERMINAL",
+    "authentication": {
+      "user": "anonymous",
+      "allowedAccounts": [
+        "hubble-qa-local",
+        "spinnaker-ci-dev-us-west-2a",
+        "radar",
+        "docker-registry-orca",
+        "radar5",
+        "local-kind",
+        "kubernetes-local",
+        "radar2",
+        "local-kind-2",
+        "docker-registry-spinnaker",
+        "docker-registry-clouddriver",
+        "docker-registry-echo"
+      ]
+    },
+    "origin": "api",
+    "trigger": {
+      "type": "manual",
+      "user": "anonymous",
+      "parameters": {},
+      "artifacts": [],
+      "notifications": [],
+      "rebake": false,
+      "dryRun": false,
+      "strategy": false,
+      "resolvedExpectedArtifacts": [],
+      "expectedArtifacts": [],
+      "executionId": "01JSDR7PB82Y46WGY0KYHSPQ9B",
+      "eventId": "9c8bfea5-0e8c-47d4-99d6-c166a8f61f95",
+      "enabled": false,
+      "preferred": false
+    },
+    "pipelineConfigId": "da637be2-8219-4fb4-a118-aa685837ebdd",
+    "notifications": [],
+    "initialConfig": {},
+    "systemNotifications": [],
+    "spelEvaluator": "v4",
+    "templateVariables": {}
+  },
+  {
+    "type": "PIPELINE",
+    "id": "01JSDR9Q2VBK2PTRZWKG0F5452",
+    "application": "kubernetesapp",
+    "name": "bake_and_deploy_manifest",
+    "buildTime": 1745292156035,
+    "canceled": false,
+    "limitConcurrent": true,
+    "maxConcurrentExecutions": 0,
+    "keepWaitingPipelines": false,
+    "stages": [
+      {
+        "id": "01JSDR9Q4349JK2KW1DYG4MJWQ",
+        "refId": "1",
+        "type": "deleteManifest",
+        "name": "Delete (Manifest)",
+        "startTime": 1745292156154,
+        "endTime": 1745292156926,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": []
+      },
+      {
+        "id": "01JSDR9Q43TWDBZAZH1WA4FPWP",
+        "refId": "2",
+        "type": "bakeManifest",
+        "name": "Bake (Manifest)",
+        "startTime": 1745292156982,
+        "endTime": 1745292158913,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": [
+          "1"
+        ]
+      },
+      {
+        "id": "01JSDR9Q436W0720W7JPYFW4DA",
+        "refId": "3",
+        "type": "deployManifest",
+        "name": "Deploy (Manifest)",
+        "startTime": 1745292158977,
+        "endTime": 1745292165825,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": [
+          "2"
+        ]
+      },
+      {
+        "id": "01JSDR9Q43ST18YAFREXR83TWB",
+        "refId": "4",
+        "type": "rollingRestartManifest",
+        "name": "Rollout Restart (Manifest)",
+        "startTime": 1745292165888,
+        "endTime": 1745292166477,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": [
+          "3"
+        ]
+      },
+      {
+        "id": "01JSDR9Q43QX9QS8XX4SPK0FFA",
+        "refId": "5",
+        "type": "scaleManifest",
+        "name": "Scale (Manifest)",
+        "startTime": 1745292166535,
+        "endTime": 1745292172450,
+        "status": "SUCCEEDED",
+        "context": {},
+        "outputs": {},
+        "tasks": [],
+        "requisiteStageRefIds": [
+          "4"
+        ]
+      }
+    ],
+    "startTime": 1745292156092,
+    "endTime": 1745292172510,
+    "status": "SUCCEEDED",
+    "authentication": {
+      "user": "anonymous",
+      "allowedAccounts": [
+        "hubble-qa-local",
+        "spinnaker-ci-dev-us-west-2a",
+        "radar",
+        "docker-registry-orca",
+        "radar5",
+        "local-kind",
+        "kubernetes-local",
+        "radar2",
+        "local-kind-2",
+        "docker-registry-spinnaker",
+        "docker-registry-clouddriver",
+        "docker-registry-echo"
+      ]
+    },
+    "origin": "api",
+    "trigger": {
+      "type": "manual",
+      "user": "anonymous",
+      "parameters": {},
+      "artifacts": [],
+      "notifications": [],
+      "rebake": false,
+      "dryRun": false,
+      "strategy": false,
+      "resolvedExpectedArtifacts": [],
+      "expectedArtifacts": [],
+      "executionId": "01JSDR9Q2VBK2PTRZWKG0F5452",
+      "eventId": "bb21aac4-892a-4a87-b100-ada3f0c32236",
+      "enabled": false,
+      "preferred": false
+    },
+    "pipelineConfigId": "da637be2-8219-4fb4-a118-aa685837ebdd",
+    "notifications": [],
+    "initialConfig": {},
+    "systemNotifications": [],
+    "spelEvaluator": "v4",
+    "templateVariables": {}
+  }
+]

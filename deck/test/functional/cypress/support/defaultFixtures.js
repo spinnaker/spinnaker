@@ -21,6 +21,8 @@ export const registerDefaultFixtures = () => {
   cy.intercept('/applications/compute?*', { fixture: 'default/application.compute.json' });
   cy.intercept('/applications/ecsapp?*', { fixture: 'default/application.ecsapp.json' });
   cy.intercept('/applications/cloudfoundryapp?*', { fixture: 'default/application.cfapp.json' });
+  cy.intercept('/applications/kubernetesapp?*', { fixture: 'default/application.kubernetesapp.json' });
+  cy.intercept('/artifacts/credentials', { fixture: 'default/artifacts.credentials.json' });
   cy.intercept('/auth/user', { fixture: 'default/auth.user.anonymous.json' });
   cy.intercept('/credentials?expand=true', { fixture: 'default/credentials.expand.json' });
   cy.intercept('/jobs/preconfigured', []);

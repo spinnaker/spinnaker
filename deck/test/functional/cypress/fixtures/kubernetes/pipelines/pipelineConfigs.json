@@ -1,0 +1,131 @@
+[
+  {
+    "id": "da637be2-8219-4fb4-a118-aa685837ebdd",
+    "name": "bake_and_deploy_manifest",
+    "application": "kubernetesapp",
+    "schema": "1",
+    "triggers": [],
+    "index": 0,
+    "updateTs": "1745292152002",
+    "lastModifiedBy": "anonymous",
+    "stages": [
+      {
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "deleteManifest",
+        "name": "Delete (Manifest)",
+        "mode": "static",
+        "app": "kubernetesapp",
+        "cloudProvider": "kubernetes",
+        "options": {
+          "cascading": true
+        },
+        "account": "k8s-local",
+        "manifestName": "service dev-p01-nginx",
+        "location": "spinnaker-dev"
+      },
+      {
+        "refId": "2",
+        "requisiteStageRefIds": [
+          "1"
+        ],
+        "type": "bakeManifest",
+        "name": "Bake (Manifest)",
+        "inputArtifacts": [
+          {
+            "artifact": {
+              "id": "858c307c-2b99-4dae-8538-6f3a118e7bcc",
+              "artifactAccount": "helm-apple",
+              "type": "helm/chart",
+              "name": "nginx",
+              "version": "0.2.4"
+            },
+            "account": "helm-apple"
+          }
+        ],
+        "overrides": {
+          "environment": "dev",
+          "image.repository": "index.docker.io/library",
+          "nameOverride": "nginx",
+          "namespace": "spinnaker-dev"
+        },
+        "expectedArtifacts": [
+          {
+            "id": "504af956-b5e0-4f76-95dc-2de45af4c26e",
+            "usePriorArtifact": false,
+            "useDefaultArtifact": false,
+            "matchArtifact": {
+              "id": "55f282d1-e3c6-4655-b25d-d07ae735473f",
+              "customKind": false,
+              "type": "embedded/base64",
+              "artifactAccount": "embedded-artifact",
+              "name": "nginx"
+            },
+            "defaultArtifact": {
+              "id": "75d4bd7b-d49e-451d-a354-74aab195366f",
+              "customKind": true
+            },
+            "displayName": "baked manifest"
+          }
+        ],
+        "templateRenderer": "HELM2",
+        "outputName": "nginx",
+        "namespace": "spinnaker-dev"
+      },
+      {
+        "refId": "3",
+        "requisiteStageRefIds": [
+          "2"
+        ],
+        "type": "deployManifest",
+        "name": "Deploy (Manifest)",
+        "source": "artifact",
+        "skipExpressionEvaluation": false,
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "services": [],
+            "enableTraffic": false
+          }
+        },
+        "cloudProvider": "kubernetes",
+        "moniker": {},
+        "account": "k8s-local",
+        "namespaceOverride": "spinnaker-dev",
+        "manifestArtifactId": "504af956-b5e0-4f76-95dc-2de45af4c26e"
+      },
+      {
+        "refId": "4",
+        "requisiteStageRefIds": [
+          "3"
+        ],
+        "type": "rollingRestartManifest",
+        "name": "Rollout Restart (Manifest)",
+        "mode": "static",
+        "app": "kubernetesapp",
+        "cloudProvider": "kubernetes",
+        "account": "k8s-local",
+        "location": "spinnaker-dev",
+        "manifestName": "deployment dev-p01-nginx"
+      },
+      {
+        "refId": "5",
+        "requisiteStageRefIds": [
+          "4"
+        ],
+        "type": "scaleManifest",
+        "name": "Scale (Manifest)",
+        "app": "kubernetesapp",
+        "cloudProvider": "kubernetes",
+        "replicas": 5,
+        "mode": "static",
+        "account": "k8s-local",
+        "location": "spinnaker-dev",
+        "manifestName": "deployment dev-p01-nginx"
+      }
+    ],
+    "keepWaitingPipelines": false,
+    "limitConcurrent": true,
+    "spelEvaluator": "v4"
+  }
+]
