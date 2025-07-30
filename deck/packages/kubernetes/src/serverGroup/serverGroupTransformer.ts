@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import type { Application } from '@spinnaker/core';
 import type { IKubernetesServerGroup, IKubernetesServerGroupManager } from '../interfaces';
 
@@ -26,9 +25,3 @@ export class KubernetesV2ServerGroupTransformer {
       });
   }
 }
-
-export const KUBERNETES_SERVER_GROUP_TRANSFORMER = 'spinnaker.kubernetes.serverGroup.transformer.service';
-module(KUBERNETES_SERVER_GROUP_TRANSFORMER, []).service(
-  'kubernetesV2ServerGroupTransformer',
-  KubernetesV2ServerGroupTransformer,
-);
