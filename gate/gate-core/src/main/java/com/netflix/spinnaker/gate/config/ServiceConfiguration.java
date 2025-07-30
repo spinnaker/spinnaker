@@ -29,8 +29,6 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import retrofit.Endpoint;
-import retrofit.Endpoints;
 
 @Getter
 @Setter
@@ -62,19 +60,18 @@ public class ServiceConfiguration {
   }
 
   @Nonnull
-  public Endpoint getServiceEndpoint(@Nonnull String serviceName) {
+  public String getServiceEndpoint(@Nonnull String serviceName) {
     return getServiceEndpoint(serviceName, null);
   }
 
   @Nonnull
-  public Endpoint getServiceEndpoint(@Nonnull String serviceName, @Nullable String dynamicName) {
+  public String getServiceEndpoint(@Nonnull String serviceName, @Nullable String dynamicName) {
     Service service = getService(serviceName);
     if (service == null) {
       throw new IllegalArgumentException("Unknown service " + serviceName);
     }
     if (dynamicName == null) {
-      String serviceBaseUrl = service.getBaseUrl();
-      return Endpoints.newFixedEndpoint(serviceBaseUrl);
+      return service.getBaseUrl();
     }
     Map<String, Object> config = service.getConfig();
     if (!config.containsKey(DYNAMIC_ENDPOINTS)) {
@@ -83,7 +80,6 @@ public class ServiceConfiguration {
     }
     @SuppressWarnings("unchecked")
     Map<String, String> dynamicEndpoints = (Map<String, String>) config.get(DYNAMIC_ENDPOINTS);
-    String dynamicEndpoint = dynamicEndpoints.get(dynamicName);
-    return Endpoints.newFixedEndpoint(dynamicEndpoint);
+    return dynamicEndpoints.get(dynamicName);
   }
 }
