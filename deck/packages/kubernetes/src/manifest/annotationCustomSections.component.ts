@@ -90,7 +90,7 @@ class KubernetesAnnotationCustomSections implements IController {
   }
 }
 
-const kubernetesAnnotationCustomSectionsComponent: IComponentOptions = {
+export const kubernetesAnnotationCustomSectionsComponent: IComponentOptions = {
   bindings: { manifest: '<', resource: '<' },
   controller: ['$sce', '$interpolate', KubernetesAnnotationCustomSections],
   controllerAs: 'ctrl',
