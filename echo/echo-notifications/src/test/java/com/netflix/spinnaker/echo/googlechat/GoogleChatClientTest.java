@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -71,8 +73,14 @@ public class GoogleChatClientTest {
             .willReturn(
                 aResponse().withHeader("Content-Type", "application/json").withStatus(200)));
 
-    googleChatService.sendMessage(
-        "RANDOM/messages?key=XYZ-321&token=testtoken123", new GoogleChatMessage("test message"));
+    Object response =
+        googleChatService.sendMessage(
+            "RANDOM/messages?key=XYZ-321&token=testtoken123",
+            new GoogleChatMessage("test message"));
+    // FIXME: In GoogleChatNotificationAgent, the the response from sendMessage() is assigned to a
+    // Response variable
+    // instead of ResponseBody
+    assertThat(response).isNotInstanceOf(Response.class);
 
     wmGoogleChat.verify(1, postRequestedFor(urlEqualTo(expected_endpoint)));
   }
