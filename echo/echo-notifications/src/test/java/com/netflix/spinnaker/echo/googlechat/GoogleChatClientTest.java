@@ -30,13 +30,14 @@ import com.netflix.spinnaker.config.OkHttpClientComponents;
 import com.netflix.spinnaker.config.RetrofitConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
+import java.io.IOException;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -66,21 +67,22 @@ public class GoogleChatClientTest {
   }
 
   @Test
-  public void testSendGoogleChatMessage() {
+  public void testSendGoogleChatMessage() throws IOException {
     String expected_endpoint = "/v1/spaces/RANDOM/messages?key=XYZ-321&token=testtoken123";
     wmGoogleChat.stubFor(
         WireMock.post(urlEqualTo(expected_endpoint))
             .willReturn(
-                aResponse().withHeader("Content-Type", "application/json").withStatus(200)));
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withStatus(200)
+                    .withBody("{\"message\":\"success\"}")));
 
-    Object response =
+    ResponseBody responseBody =
         googleChatService.sendMessage(
             "RANDOM/messages?key=XYZ-321&token=testtoken123",
             new GoogleChatMessage("test message"));
-    // FIXME: In GoogleChatNotificationAgent, the the response from sendMessage() is assigned to a
-    // Response variable
-    // instead of ResponseBody
-    assertThat(response).isNotInstanceOf(Response.class);
+
+    assertThat(responseBody.string()).isEqualTo("{\"message\":\"success\"}");
 
     wmGoogleChat.verify(1, postRequestedFor(urlEqualTo(expected_endpoint)));
   }
