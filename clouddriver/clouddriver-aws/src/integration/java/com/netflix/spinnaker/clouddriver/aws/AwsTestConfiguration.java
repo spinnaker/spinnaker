@@ -33,6 +33,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.TestPropertySource;
 
 @TestConfiguration
@@ -66,5 +68,11 @@ public class AwsTestConfiguration {
                   return TestCredential.named(account.getName());
                 });
     return parser;
+  }
+
+  @Bean
+  public SecurityFilterChain noSecurityFilterChain(HttpSecurity http) throws Exception {
+    http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll()).csrf().disable();
+    return http.build();
   }
 }

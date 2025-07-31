@@ -19,7 +19,7 @@ import com.netflix.spinnaker.echo.api.events.EventListener
 import com.netflix.spinnaker.echo.api.events.Event
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.ObjectProvider
-import rx.schedulers.Schedulers
+import io.reactivex.rxjava3.schedulers.Schedulers
 import spock.lang.Specification
 
 /**
@@ -32,7 +32,7 @@ class EventPropagationSpec extends Specification {
         given:
         EventListener l1 = Mock(EventListener)
         EventListener l2 = Mock(EventListener)
-        EventPropagator propagator = new EventPropagator(new StaticObjectProvider([l1, l2]), null, Schedulers.immediate())
+        EventPropagator propagator = new EventPropagator(new StaticObjectProvider([l1, l2]), null, Schedulers.trampoline())
 
         when:
         propagator.processEvent(new Event())

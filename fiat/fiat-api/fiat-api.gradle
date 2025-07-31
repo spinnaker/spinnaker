@@ -33,7 +33,7 @@ dependencies {
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "org.apache.commons:commons-lang3"
 
-  compileOnly "javax.servlet:javax.servlet-api"
+  compileOnly "jakarta.servlet:jakarta.servlet-api"
 
   implementation "com.github.ben-manes.caffeine:caffeine"
 

@@ -36,19 +36,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UriComponentsBuilder;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -153,10 +154,12 @@ class SpinnakerRetrofitExceptionHandlersTest {
   @EnableAutoConfiguration
   static class TestControllerConfiguration {
     @EnableWebSecurity
-    class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-      @Override
-      protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().headers().disable().authorizeRequests().anyRequest().permitAll();
+    class WebSecurityConfig implements WebMvcConfigurer {
+      @Bean
+      protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+        http.csrf().disable().headers().disable();
+        http.authorizeRequests().anyRequest().permitAll();
+        return http.build();
       }
     }
 

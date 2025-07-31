@@ -38,7 +38,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import spock.lang.Specification
 
-import javax.servlet.http.Cookie
+import jakarta.servlet.http.Cookie
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*
@@ -91,7 +91,7 @@ class LdapAuthSpec extends Specification {
                                                  .cookie(sessionCookie))
            .andDo(print())
            .andExpect(status().is(302))
-           .andExpect(redirectedUrl("http://localhost/credentials"))
+           .andExpect(redirectedUrl("http://localhost/credentials?continue"))
            .andDo(extractSession)
 
     def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))
