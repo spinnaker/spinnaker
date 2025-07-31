@@ -19,18 +19,22 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigura
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreGetter;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreStorer;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURIBuilder;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.EntityStoreConfiguration;
 import com.netflix.spinnaker.security.UserPermissionEvaluator;
 import java.net.URI;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -38,6 +42,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 @Configuration
+@Import(EntityStoreConfiguration.class)
 @Log4j2
 @ConditionalOnProperty(name = "artifact-store.type", havingValue = "s3")
 public class S3ArtifactStoreConfiguration {
@@ -72,20 +77,25 @@ public class S3ArtifactStoreConfiguration {
   }
 
   @Bean
-  public S3Client artifactS3Client(ArtifactStoreConfigurationProperties properties) {
-    S3ClientBuilder builder = S3Client.builder();
+  public S3Client artifactS3Client(
+      ArtifactStoreConfigurationProperties properties,
+      @Nullable AwsCredentialsProvider awsCredentialsProvider) {
     ArtifactStoreConfigurationProperties.S3ClientConfig config = properties.getS3();
+
+    // If we do not have a magic bean AwsCredentialsProvider, use the built-in logic
+    if (awsCredentialsProvider == null) {
+      awsCredentialsProvider = getCredentialsProvider(config);
+    }
+
+    S3ClientBuilder builder =
+        S3Client.builder()
+            .credentialsProvider(awsCredentialsProvider)
+            .forcePathStyle(config.isForcePathStyle());
 
     // Overwriting the URL is primarily used for S3 compatible object stores
     // like seaweedfs
     if (config.getUrl() != null) {
-      builder =
-          builder
-              .credentialsProvider(getCredentialsProvider(config))
-              .forcePathStyle(config.isForcePathStyle())
-              .endpointOverride(URI.create(config.getUrl()));
-    } else if (config.getProfile() != null) {
-      builder = builder.credentialsProvider(ProfileCredentialsProvider.create(config.getProfile()));
+      builder = builder.endpointOverride(URI.create(config.getUrl()));
     }
 
     if (config.getRegion() != null) {
@@ -100,8 +110,12 @@ public class S3ArtifactStoreConfiguration {
     if (config.getAccessKey() != null) {
       return StaticCredentialsProvider.create(
           AwsBasicCredentials.create(config.getAccessKey(), config.getSecretKey()));
-    } else {
+    } else if (config.getProfile() != null) {
+      return ProfileCredentialsProvider.create(config.getProfile());
+    } else if (config.getUrl() != null) {
       return AnonymousCredentialsProvider.create();
     }
+
+    return DefaultCredentialsProvider.create();
   }
 }
