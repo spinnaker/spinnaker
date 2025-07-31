@@ -1,0 +1,358 @@
+{
+  "account": "k8s-local",
+  "name": "pod backend-65b97dd546-vb8qf",
+  "location": "dev",
+  "moniker": {
+    "app": "kubernetesapp",
+    "cluster": "deployment backend"
+  },
+  "manifest": {
+    "metadata": {
+      "annotations": {
+        "artifact.spinnaker.io/location": "dev",
+        "artifact.spinnaker.io/name": "backend",
+        "artifact.spinnaker.io/type": "kubernetes/deployment",
+        "artifact.spinnaker.io/version": "",
+        "moniker.spinnaker.io/application": "kubernetesapp",
+        "moniker.spinnaker.io/cluster": "deployment backend"
+      },
+      "creationTimestamp": "2025-07-24T01:27:29Z",
+      "generateName": "backend-55f76f8479-",
+      "labels": {
+        "app": "backend",
+        "app.kubernetes.io/managed-by": "spinnaker",
+        "app.kubernetes.io/name": "kubernetes",
+        "custom-label": "custom-value",
+        "pod-template-hash": "55f76f8479"
+      },
+      "name": "backend-65b97dd546-vb8qf",
+      "namespace": "dev",
+      "ownerReferences": [
+        {
+          "apiVersion": "apps/v1",
+          "blockOwnerDeletion": true,
+          "controller": true,
+          "kind": "ReplicaSet",
+          "name": "backend-55f76f8479",
+          "uid": "e5c91ef9-8cbb-4699-b75c-cc6dc1a3c73c"
+        }
+      ],
+      "resourceVersion": "85952",
+      "uid": "13b19f7c-568e-4970-8c16-17de7111515a"
+    },
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "spec": {
+      "containers": [
+        {
+          "image": "nginx:1.27.3",
+          "imagePullPolicy": "IfNotPresent",
+          "name": "backend",
+          "ports": [
+            {
+              "containerPort": 80,
+              "protocol": "TCP"
+            }
+          ],
+          "resources": {},
+          "terminationMessagePath": "/dev/termination-log",
+          "terminationMessagePolicy": "File",
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-gfskv",
+              "readOnly": true
+            }
+          ]
+        }
+      ],
+      "dnsPolicy": "ClusterFirst",
+      "enableServiceLinks": true,
+      "nodeName": "dev-worker",
+      "preemptionPolicy": "PreemptLowerPriority",
+      "priority": 0,
+      "restartPolicy": "Always",
+      "schedulerName": "default-scheduler",
+      "securityContext": {},
+      "serviceAccount": "default",
+      "serviceAccountName": "default",
+      "terminationGracePeriodSeconds": 30,
+      "tolerations": [
+        {
+          "effect": "NoExecute",
+          "key": "node.kubernetes.io/not-ready",
+          "operator": "Exists",
+          "tolerationSeconds": 300
+        },
+        {
+          "effect": "NoExecute",
+          "key": "node.kubernetes.io/unreachable",
+          "operator": "Exists",
+          "tolerationSeconds": 300
+        }
+      ],
+      "volumes": [
+        {
+          "name": "kube-api-access-gfskv",
+          "projected": {
+            "defaultMode": 420,
+            "sources": [
+              {
+                "serviceAccountToken": {
+                  "expirationSeconds": 3607,
+                  "path": "token"
+                }
+              },
+              {
+                "configMap": {
+                  "items": [
+                    {
+                      "key": "ca.crt",
+                      "path": "ca.crt"
+                    }
+                  ],
+                  "name": "kube-root-ca.crt"
+                }
+              },
+              {
+                "downwardAPI": {
+                  "items": [
+                    {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "metadata.namespace"
+                      },
+                      "path": "namespace"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "status": {
+      "conditions": [
+        {
+          "lastTransitionTime": "2025-07-24T01:27:30Z",
+          "status": "True",
+          "type": "PodReadyToStartContainers"
+        },
+        {
+          "lastTransitionTime": "2025-07-24T01:27:29Z",
+          "status": "True",
+          "type": "Initialized"
+        },
+        {
+          "lastTransitionTime": "2025-07-24T01:27:30Z",
+          "status": "True",
+          "type": "Ready"
+        },
+        {
+          "lastTransitionTime": "2025-07-24T01:27:30Z",
+          "status": "True",
+          "type": "ContainersReady"
+        },
+        {
+          "lastTransitionTime": "2025-07-24T01:27:29Z",
+          "status": "True",
+          "type": "PodScheduled"
+        }
+      ],
+      "containerStatuses": [
+        {
+          "containerID": "containerd://f4f20d2a0a5bce5951fe021e51fa9433f2878cb42219a0ad73a9fd8c110a46af",
+          "image": "docker.io/library/nginx:1.27.3",
+          "imageID": "docker.io/library/nginx@sha256:bc2f6a7c8ddbccf55bdb19659ce3b0a92ca6559e86d42677a5a02ef6bda2fcef",
+          "lastState": {},
+          "name": "backend",
+          "ready": true,
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2025-07-24T01:27:29Z"
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-gfskv",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ],
+      "hostIP": "192.168.64.4",
+      "hostIPs": [
+        {
+          "ip": "192.168.64.4"
+        }
+      ],
+      "phase": "Running",
+      "podIP": "10.244.1.12",
+      "podIPs": [
+        {
+          "ip": "10.244.1.12"
+        }
+      ],
+      "qosClass": "BestEffort",
+      "startTime": "2025-07-24T01:27:29Z"
+    }
+  },
+  "status": {
+    "stable": {
+      "state": true
+    },
+    "paused": {
+      "state": false
+    },
+    "available": {
+      "state": true
+    },
+    "failed": {
+      "state": false
+    }
+  },
+  "artifacts": [
+    {
+      "type": "docker/image",
+      "customKind": false,
+      "name": "nginx:1.27.3",
+      "reference": "nginx:1.27.3",
+      "metadata": {}
+    }
+  ],
+  "events": [
+    {
+      "reason": "Scheduled",
+      "metadata": {
+        "creationTimestamp": "2025-07-27T23:40:46Z",
+        "name": "backend-65b97dd546-vb8qf.18564028512bebe2",
+        "namespace": "dev",
+        "resourceVersion": "188886",
+        "uid": "e1e600ed-116a-4e58-b45a-06e4fddc38fc"
+      },
+      "involvedObject": {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "name": "backend-65b97dd546-vb8qf",
+        "namespace": "dev",
+        "resourceVersion": "188882",
+        "uid": "17b9bdfc-af9f-4425-a2d1-30bbf64dd51b"
+      },
+      "reportingInstance": "",
+      "kind": "Event",
+      "count": 1,
+      "source": {
+        "component": "default-scheduler"
+      },
+      "message": "Successfully assigned dev/backend-65b97dd546-vb8qf to dev-worker",
+      "type": "Normal",
+      "reportingComponent": "default-scheduler",
+      "firstTimestamp": "2025-07-27T23:40:46Z",
+      "apiVersion": "v1",
+      "lastTimestamp": "2025-07-27T23:40:46Z"
+    },
+    {
+      "reason": "Pulled",
+      "metadata": {
+        "creationTimestamp": "2025-07-27T23:40:47Z",
+        "name": "backend-65b97dd546-vb8qf.1856402867cf5b65",
+        "namespace": "dev",
+        "resourceVersion": "188893",
+        "uid": "e9d16a1c-e4e3-4778-9d33-d99d0239d748"
+      },
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{backend}",
+        "kind": "Pod",
+        "name": "backend-65b97dd546-vb8qf",
+        "namespace": "dev",
+        "resourceVersion": "188883",
+        "uid": "17b9bdfc-af9f-4425-a2d1-30bbf64dd51b"
+      },
+      "reportingInstance": "dev-worker",
+      "kind": "Event",
+      "count": 1,
+      "source": {
+        "component": "kubelet",
+        "host": "dev-worker"
+      },
+      "message": "Container image \"nginx:1.27.3\" already present on machine",
+      "type": "Normal",
+      "reportingComponent": "kubelet",
+      "firstTimestamp": "2025-07-27T23:40:47Z",
+      "apiVersion": "v1",
+      "lastTimestamp": "2025-07-27T23:40:47Z"
+    },
+    {
+      "reason": "Created",
+      "metadata": {
+        "creationTimestamp": "2025-07-27T23:40:47Z",
+        "name": "backend-65b97dd546-vb8qf.1856402868bf56c7",
+        "namespace": "dev",
+        "resourceVersion": "188894",
+        "uid": "eb3fbe36-1f75-40eb-bc1c-b7bc513b8b0e"
+      },
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{backend}",
+        "kind": "Pod",
+        "name": "backend-65b97dd546-vb8qf",
+        "namespace": "dev",
+        "resourceVersion": "188883",
+        "uid": "17b9bdfc-af9f-4425-a2d1-30bbf64dd51b"
+      },
+      "reportingInstance": "dev-worker",
+      "kind": "Event",
+      "count": 1,
+      "source": {
+        "component": "kubelet",
+        "host": "dev-worker"
+      },
+      "message": "Created container: backend",
+      "type": "Normal",
+      "reportingComponent": "kubelet",
+      "firstTimestamp": "2025-07-27T23:40:47Z",
+      "apiVersion": "v1",
+      "lastTimestamp": "2025-07-27T23:40:47Z"
+    },
+    {
+      "reason": "Started",
+      "metadata": {
+        "creationTimestamp": "2025-07-27T23:40:47Z",
+        "name": "backend-65b97dd546-vb8qf.185640286be9bea5",
+        "namespace": "dev",
+        "resourceVersion": "188895",
+        "uid": "bd14bd0a-cc07-4bcb-a6e4-ef20c7cd8c6b"
+      },
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{backend}",
+        "kind": "Pod",
+        "name": "backend-65b97dd546-vb8qf",
+        "namespace": "dev",
+        "resourceVersion": "188883",
+        "uid": "17b9bdfc-af9f-4425-a2d1-30bbf64dd51b"
+      },
+      "reportingInstance": "dev-worker",
+      "kind": "Event",
+      "count": 1,
+      "source": {
+        "component": "kubelet",
+        "host": "dev-worker"
+      },
+      "message": "Started container backend",
+      "type": "Normal",
+      "reportingComponent": "kubelet",
+      "firstTimestamp": "2025-07-27T23:40:47Z",
+      "apiVersion": "v1",
+      "lastTimestamp": "2025-07-27T23:40:47Z"
+    }
+  ],
+  "warnings": [],
+  "metrics": []
+}
