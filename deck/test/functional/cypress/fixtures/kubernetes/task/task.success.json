@@ -1,0 +1,1581 @@
+{
+  "id": "01K17CHBN7Y358PSRE7GR04DC0",
+  "name": "Deploy manifest",
+  "application": "kubernetesapp",
+  "status": "SUCCEEDED",
+  "variables": [
+    {
+      "key": "deploy.account.name",
+      "value": "k8s-local"
+    },
+    {
+      "key": "outputs.createdArtifacts",
+      "value": [
+        {
+          "customKind": false,
+          "reference": "backend",
+          "metadata": {
+            "account": "k8s-local"
+          },
+          "name": "backend",
+          "location": "dev",
+          "type": "kubernetes/deployment",
+          "version": ""
+        }
+      ]
+    },
+    {
+      "key": "source",
+      "value": "text"
+    },
+    {
+      "key": "relationships",
+      "value": {
+        "loadBalancers": [],
+        "securityGroups": []
+      }
+    },
+    {
+      "key": "stableManifests",
+      "value": [
+        {
+          "manifestName": "deployment backend",
+          "location": "dev"
+        }
+      ]
+    },
+    {
+      "key": "cloudProvider",
+      "value": "kubernetes"
+    },
+    {
+      "key": "kato.result.expected",
+      "value": false
+    },
+    {
+      "key": "failureMessages",
+      "value": []
+    },
+    {
+      "key": "deploy.server.groups",
+      "value": {}
+    },
+    {
+      "key": "kato.last.task.id",
+      "value": {
+        "id": "01K17CHHW5YDSGDCEWK3MFRDF2"
+      }
+    },
+    {
+      "key": "requiredArtifacts",
+      "value": []
+    },
+    {
+      "key": "artifacts",
+      "value": [
+        {
+          "customKind": false,
+          "reference": "backend",
+          "metadata": {
+            "account": "k8s-local"
+          },
+          "name": "backend",
+          "location": "dev",
+          "type": "kubernetes/deployment",
+          "version": ""
+        }
+      ]
+    },
+    {
+      "key": "kato.task.terminalRetryCount",
+      "value": 0
+    },
+    {
+      "key": "moniker",
+      "value": {
+        "app": "kubernetesapp",
+        "cluster": "deployment backend"
+      }
+    },
+    {
+      "key": "kato.task.firstNotFoundRetry",
+      "value": -1
+    },
+    {
+      "key": "outputs.manifestNamesByNamespace",
+      "value": {
+        "dev": [
+          "deployment backend"
+        ]
+      }
+    },
+    {
+      "key": "optionalArtifacts",
+      "value": []
+    },
+    {
+      "key": "outputs.boundArtifacts",
+      "value": []
+    },
+    {
+      "key": "manifests",
+      "value": [
+        {
+          "metadata": {
+            "name": "backend",
+            "namespace": "dev",
+            "annotations": {
+              "artifact.spinnaker.io/version": "",
+              "artifact.spinnaker.io/name": "backend",
+              "artifact.spinnaker.io/location": "dev",
+              "artifact.spinnaker.io/type": "kubernetes/deployment",
+              "moniker.spinnaker.io/cluster": "deployment backend",
+              "moniker.spinnaker.io/application": "kubernetesapp"
+            },
+            "labels": {
+              "app": "backend",
+              "app.kubernetes.io/managed-by": "spinnaker",
+              "app.kubernetes.io/name": "kubernetes"
+            }
+          },
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "spec": {
+            "template": {
+              "metadata": {
+                "annotations": {
+                  "artifact.spinnaker.io/version": "",
+                  "artifact.spinnaker.io/name": "backend",
+                  "artifact.spinnaker.io/location": "dev",
+                  "artifact.spinnaker.io/type": "kubernetes/deployment",
+                  "moniker.spinnaker.io/cluster": "deployment backend",
+                  "moniker.spinnaker.io/application": "kubernetesapp"
+                },
+                "labels": {
+                  "app": "backend",
+                  "app.kubernetes.io/managed-by": "spinnaker",
+                  "app.kubernetes.io/name": "kubernetes",
+                  "custom-label": "custom-value-2"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "image": "nginx:1.27.3",
+                    "name": "backend",
+                    "ports": [
+                      {
+                        "containerPort": 80
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "replicas": 2,
+            "selector": {
+              "matchLabels": {
+                "app": "backend"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "key": "messages",
+      "value": [
+        "'deployment backend' in 'dev' for account k8s-local: waiting for manifest to stabilize"
+      ]
+    },
+    {
+      "key": "failedManifests",
+      "value": []
+    },
+    {
+      "key": "kato.tasks",
+      "value": [
+        {
+          "outputs": [],
+          "resultObjects": [
+            {
+              "createdArtifacts": [
+                {
+                  "customKind": false,
+                  "reference": "backend",
+                  "metadata": {
+                    "account": "k8s-local"
+                  },
+                  "name": "backend",
+                  "location": "dev",
+                  "type": "kubernetes/deployment",
+                  "version": ""
+                }
+              ],
+              "manifests": [
+                {
+                  "metadata": {
+                    "generation": 2,
+                    "uid": "22fd4b73-96cf-4d3f-8feb-d8b0c3589680",
+                    "resourceVersion": "199308",
+                    "creationTimestamp": "2025-07-24T01:27:29Z",
+                    "name": "backend",
+                    "namespace": "dev",
+                    "annotations": {
+                      "artifact.spinnaker.io/version": "",
+                      "artifact.spinnaker.io/name": "backend",
+                      "artifact.spinnaker.io/location": "dev",
+                      "deployment.kubernetes.io/revision": "1",
+                      "artifact.spinnaker.io/type": "kubernetes/deployment",
+                      "moniker.spinnaker.io/cluster": "deployment backend",
+                      "moniker.spinnaker.io/application": "kubernetesapp"
+                    },
+                    "labels": {
+                      "app": "backend",
+                      "app.kubernetes.io/managed-by": "spinnaker",
+                      "app.kubernetes.io/name": "kubernetes"
+                    }
+                  },
+                  "apiVersion": "apps/v1",
+                  "kind": "Deployment",
+                  "spec": {
+                    "template": {
+                      "metadata": {
+                        "annotations": {
+                          "artifact.spinnaker.io/version": "",
+                          "artifact.spinnaker.io/name": "backend",
+                          "artifact.spinnaker.io/location": "dev",
+                          "artifact.spinnaker.io/type": "kubernetes/deployment",
+                          "moniker.spinnaker.io/cluster": "deployment backend",
+                          "moniker.spinnaker.io/application": "kubernetesapp"
+                        },
+                        "labels": {
+                          "app": "backend",
+                          "app.kubernetes.io/managed-by": "spinnaker",
+                          "app.kubernetes.io/name": "kubernetes",
+                          "custom-label": "custom-value-2"
+                        }
+                      },
+                      "spec": {
+                        "dnsPolicy": "ClusterFirst",
+                        "terminationGracePeriodSeconds": 30,
+                        "containers": [
+                          {
+                            "image": "nginx:1.27.3",
+                            "imagePullPolicy": "IfNotPresent",
+                            "terminationMessagePolicy": "File",
+                            "terminationMessagePath": "/dev/termination-log",
+                            "name": "backend",
+                            "resources": {},
+                            "ports": [
+                              {
+                                "protocol": "TCP",
+                                "containerPort": 80
+                              }
+                            ]
+                          }
+                        ],
+                        "securityContext": {},
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler"
+                      }
+                    },
+                    "replicas": 2,
+                    "revisionHistoryLimit": 10,
+                    "selector": {
+                      "matchLabels": {
+                        "app": "backend"
+                      }
+                    },
+                    "strategy": {
+                      "type": "RollingUpdate",
+                      "rollingUpdate": {
+                        "maxSurge": "25%",
+                        "maxUnavailable": "25%"
+                      }
+                    },
+                    "progressDeadlineSeconds": 600
+                  },
+                  "status": {
+                    "replicas": 2,
+                    "readyReplicas": 2,
+                    "conditions": [
+                      {
+                        "reason": "NewReplicaSetAvailable",
+                        "lastTransitionTime": "2025-07-24T01:27:29Z",
+                        "message": "ReplicaSet \"backend-55f76f8479\" has successfully progressed.",
+                        "type": "Progressing",
+                        "lastUpdateTime": "2025-07-24T01:27:30Z",
+                        "status": "True"
+                      },
+                      {
+                        "reason": "MinimumReplicasAvailable",
+                        "lastTransitionTime": "2025-07-27T23:40:47Z",
+                        "message": "Deployment has minimum availability.",
+                        "type": "Available",
+                        "lastUpdateTime": "2025-07-27T23:40:47Z",
+                        "status": "True"
+                      }
+                    ],
+                    "updatedReplicas": 2,
+                    "availableReplicas": 2,
+                    "observedGeneration": 1
+                  }
+                }
+              ],
+              "failureMessages": [],
+              "manifestNamesByNamespace": {
+                "dev": [
+                  "deployment backend"
+                ]
+              },
+              "boundArtifacts": []
+            }
+          ],
+          "id": "01K17CHC3D77P1VD0QWYS31W72",
+          "history": [
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Initializing Orchestration Task"
+            },
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Processing op: KubernetesDeployManifestOperation"
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Beginning deployment of manifests in account k8s-local ..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Sorting manifests by priority..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Deploy order is: deployment backend"
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Binding artifacts in deployment backend..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Finding deployer for deployment..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Bound artifacts: []..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Finding deployer for deployment..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Annotating manifest deployment backend with artifact, relationships & moniker..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Checking if all requested artifacts were bound..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Finding deployer for deployment..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Submitting manifest deployment backend to kubernetes master..."
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Deploy manifest task completed successfully for manifest deployment backend in account k8s-local"
+            },
+            {
+              "phase": "DEPLOY_KUBERNETES_MANIFEST",
+              "status": "Deploy manifest task completed successfully for all manifests in account k8s-local"
+            },
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Orchestration completed."
+            },
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Orchestration completed."
+            }
+          ],
+          "status": {
+            "retryable": false,
+            "completed": true,
+            "failed": false
+          }
+        },
+        {
+          "outputs": [],
+          "resultObjects": [
+            {
+              "createdArtifacts": [],
+              "failureMessages": [],
+              "manifestNamesByNamespace": {},
+              "boundArtifacts": []
+            }
+          ],
+          "id": "01K17CHHW5YDSGDCEWK3MFRDF2",
+          "history": [
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Initializing Orchestration Task"
+            },
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Processing op: KubernetesCleanupArtifactsOperation"
+            },
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Orchestration completed."
+            },
+            {
+              "phase": "ORCHESTRATION",
+              "status": "Orchestration completed."
+            }
+          ],
+          "status": {
+            "retryable": false,
+            "completed": true,
+            "failed": false
+          }
+        }
+      ]
+    },
+    {
+      "key": "outputs.manifests",
+      "value": [
+        {
+          "metadata": {
+            "generation": 2,
+            "uid": "22fd4b73-96cf-4d3f-8feb-d8b0c3589680",
+            "resourceVersion": "199308",
+            "creationTimestamp": "2025-07-24T01:27:29Z",
+            "name": "backend",
+            "namespace": "dev",
+            "annotations": {
+              "artifact.spinnaker.io/version": "",
+              "artifact.spinnaker.io/name": "backend",
+              "artifact.spinnaker.io/location": "dev",
+              "deployment.kubernetes.io/revision": "1",
+              "artifact.spinnaker.io/type": "kubernetes/deployment",
+              "moniker.spinnaker.io/cluster": "deployment backend",
+              "moniker.spinnaker.io/application": "kubernetesapp"
+            },
+            "labels": {
+              "app": "backend",
+              "app.kubernetes.io/managed-by": "spinnaker",
+              "app.kubernetes.io/name": "kubernetes"
+            }
+          },
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "spec": {
+            "template": {
+              "metadata": {
+                "annotations": {
+                  "artifact.spinnaker.io/version": "",
+                  "artifact.spinnaker.io/name": "backend",
+                  "artifact.spinnaker.io/location": "dev",
+                  "artifact.spinnaker.io/type": "kubernetes/deployment",
+                  "moniker.spinnaker.io/cluster": "deployment backend",
+                  "moniker.spinnaker.io/application": "kubernetesapp"
+                },
+                "labels": {
+                  "app": "backend",
+                  "app.kubernetes.io/managed-by": "spinnaker",
+                  "app.kubernetes.io/name": "kubernetes",
+                  "custom-label": "custom-value-2"
+                }
+              },
+              "spec": {
+                "dnsPolicy": "ClusterFirst",
+                "terminationGracePeriodSeconds": 30,
+                "containers": [
+                  {
+                    "image": "nginx:1.27.3",
+                    "imagePullPolicy": "IfNotPresent",
+                    "terminationMessagePolicy": "File",
+                    "terminationMessagePath": "/dev/termination-log",
+                    "name": "backend",
+                    "resources": {},
+                    "ports": [
+                      {
+                        "protocol": "TCP",
+                        "containerPort": 80
+                      }
+                    ]
+                  }
+                ],
+                "securityContext": {},
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler"
+              }
+            },
+            "replicas": 2,
+            "revisionHistoryLimit": 10,
+            "selector": {
+              "matchLabels": {
+                "app": "backend"
+              }
+            },
+            "strategy": {
+              "type": "RollingUpdate",
+              "rollingUpdate": {
+                "maxSurge": "25%",
+                "maxUnavailable": "25%"
+              }
+            },
+            "progressDeadlineSeconds": 600
+          },
+          "status": {
+            "replicas": 2,
+            "readyReplicas": 2,
+            "conditions": [
+              {
+                "reason": "NewReplicaSetAvailable",
+                "lastTransitionTime": "2025-07-24T01:27:29Z",
+                "message": "ReplicaSet \"backend-55f76f8479\" has successfully progressed.",
+                "type": "Progressing",
+                "lastUpdateTime": "2025-07-24T01:27:30Z",
+                "status": "True"
+              },
+              {
+                "reason": "MinimumReplicasAvailable",
+                "lastTransitionTime": "2025-07-27T23:40:47Z",
+                "message": "Deployment has minimum availability.",
+                "type": "Available",
+                "lastUpdateTime": "2025-07-27T23:40:47Z",
+                "status": "True"
+              }
+            ],
+            "updatedReplicas": 2,
+            "availableReplicas": 2,
+            "observedGeneration": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "manifestArtifactAccount",
+      "value": "front50ArtifactCredentials"
+    },
+    {
+      "key": "kato.task.notFoundRetryCount",
+      "value": 0
+    },
+    {
+      "key": "user",
+      "value": "[anonymous]"
+    },
+    {
+      "key": "account",
+      "value": "k8s-local"
+    },
+    {
+      "key": "kato.task.lastStatus",
+      "value": "SUCCEEDED"
+    }
+  ],
+  "steps": [
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveDeploySourceManifestTask",
+      "name": "resolveDeploySourceManifest",
+      "startTime": 1753668431714,
+      "endTime": 1753668431834,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    },
+    {
+      "id": "2",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestTask",
+      "name": "deployManifest",
+      "startTime": 1753668431900,
+      "endTime": 1753668432019,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    },
+    {
+      "id": "3",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.MonitorDeployManifestTask",
+      "name": "monitorDeploy",
+      "startTime": 1753668432072,
+      "endTime": 1753668432187,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    },
+    {
+      "id": "4",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask",
+      "name": "promoteOutputs",
+      "startTime": 1753668432244,
+      "endTime": 1753668432359,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    },
+    {
+      "id": "5",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStableTask",
+      "name": "waitForManifestToStabilize",
+      "startTime": 1753668432416,
+      "endTime": 1753668437763,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    },
+    {
+      "id": "6",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.CleanupArtifactsTask",
+      "name": "cleanupArtifacts",
+      "startTime": 1753668437828,
+      "endTime": 1753668437938,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    },
+    {
+      "id": "7",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+      "name": "monitorCleanup",
+      "startTime": 1753668438003,
+      "endTime": 1753668438126,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    },
+    {
+      "id": "8",
+      "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask",
+      "name": "promoteOutputs",
+      "startTime": 1753668438192,
+      "endTime": 1753668438329,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": false,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    },
+    {
+      "id": "9",
+      "implementingClass": "com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask",
+      "name": "bindProducedArtifacts",
+      "startTime": 1753668438399,
+      "endTime": 1753668438523,
+      "status": "SUCCEEDED",
+      "stageStart": false,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    }
+  ],
+  "buildTime": 1753668431527,
+  "startTime": 1753668431587,
+  "endTime": 1753668438667,
+  "execution": {
+    "type": "ORCHESTRATION",
+    "id": "01K17CHBN7Y358PSRE7GR04DC0",
+    "application": "kubernetesapp",
+    "buildTime": 1753668431527,
+    "canceled": false,
+    "limitConcurrent": false,
+    "maxConcurrentExecutions": 0,
+    "keepWaitingPipelines": false,
+    "stages": [
+      {
+        "id": "01K17CHBN7F36KFJ3X5PEGDYM8",
+        "refId": "0",
+        "type": "deployManifest",
+        "name": "deployManifest",
+        "startTime": 1753668431649,
+        "endTime": 1753668438590,
+        "status": "SUCCEEDED",
+        "context": {
+          "deploy.account.name": "k8s-local",
+          "outputs.createdArtifacts": [
+            {
+              "customKind": false,
+              "reference": "backend",
+              "metadata": {
+                "account": "k8s-local"
+              },
+              "name": "backend",
+              "location": "dev",
+              "type": "kubernetes/deployment",
+              "version": ""
+            }
+          ],
+          "source": "text",
+          "relationships": {
+            "loadBalancers": [],
+            "securityGroups": []
+          },
+          "stableManifests": [
+            {
+              "manifestName": "deployment backend",
+              "location": "dev"
+            }
+          ],
+          "cloudProvider": "kubernetes",
+          "kato.result.expected": false,
+          "failureMessages": [],
+          "deploy.server.groups": {},
+          "kato.last.task.id": {
+            "id": "01K17CHHW5YDSGDCEWK3MFRDF2"
+          },
+          "requiredArtifacts": [],
+          "artifacts": [
+            {
+              "customKind": false,
+              "reference": "backend",
+              "metadata": {
+                "account": "k8s-local"
+              },
+              "name": "backend",
+              "location": "dev",
+              "type": "kubernetes/deployment",
+              "version": ""
+            }
+          ],
+          "kato.task.terminalRetryCount": 0,
+          "moniker": {
+            "app": "kubernetesapp",
+            "cluster": "deployment backend"
+          },
+          "kato.task.firstNotFoundRetry": -1,
+          "outputs.manifestNamesByNamespace": {
+            "dev": [
+              "deployment backend"
+            ]
+          },
+          "optionalArtifacts": [],
+          "outputs.boundArtifacts": [],
+          "manifests": [
+            {
+              "metadata": {
+                "name": "backend",
+                "namespace": "dev",
+                "annotations": {
+                  "artifact.spinnaker.io/version": "",
+                  "artifact.spinnaker.io/name": "backend",
+                  "artifact.spinnaker.io/location": "dev",
+                  "artifact.spinnaker.io/type": "kubernetes/deployment",
+                  "moniker.spinnaker.io/cluster": "deployment backend",
+                  "moniker.spinnaker.io/application": "kubernetesapp"
+                },
+                "labels": {
+                  "app": "backend",
+                  "app.kubernetes.io/managed-by": "spinnaker",
+                  "app.kubernetes.io/name": "kubernetes"
+                }
+              },
+              "apiVersion": "apps/v1",
+              "kind": "Deployment",
+              "spec": {
+                "template": {
+                  "metadata": {
+                    "annotations": {
+                      "artifact.spinnaker.io/version": "",
+                      "artifact.spinnaker.io/name": "backend",
+                      "artifact.spinnaker.io/location": "dev",
+                      "artifact.spinnaker.io/type": "kubernetes/deployment",
+                      "moniker.spinnaker.io/cluster": "deployment backend",
+                      "moniker.spinnaker.io/application": "kubernetesapp"
+                    },
+                    "labels": {
+                      "app": "backend",
+                      "app.kubernetes.io/managed-by": "spinnaker",
+                      "app.kubernetes.io/name": "kubernetes",
+                      "custom-label": "custom-value-2"
+                    }
+                  },
+                  "spec": {
+                    "containers": [
+                      {
+                        "image": "nginx:1.27.3",
+                        "name": "backend",
+                        "ports": [
+                          {
+                            "containerPort": 80
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "replicas": 2,
+                "selector": {
+                  "matchLabels": {
+                    "app": "backend"
+                  }
+                }
+              }
+            }
+          ],
+          "messages": [
+            "'deployment backend' in 'dev' for account k8s-local: waiting for manifest to stabilize"
+          ],
+          "failedManifests": [],
+          "kato.tasks": [
+            {
+              "outputs": [],
+              "resultObjects": [
+                {
+                  "createdArtifacts": [
+                    {
+                      "customKind": false,
+                      "reference": "backend",
+                      "metadata": {
+                        "account": "k8s-local"
+                      },
+                      "name": "backend",
+                      "location": "dev",
+                      "type": "kubernetes/deployment",
+                      "version": ""
+                    }
+                  ],
+                  "manifests": [
+                    {
+                      "metadata": {
+                        "generation": 2,
+                        "uid": "22fd4b73-96cf-4d3f-8feb-d8b0c3589680",
+                        "resourceVersion": "199308",
+                        "creationTimestamp": "2025-07-24T01:27:29Z",
+                        "name": "backend",
+                        "namespace": "dev",
+                        "annotations": {
+                          "artifact.spinnaker.io/version": "",
+                          "artifact.spinnaker.io/name": "backend",
+                          "artifact.spinnaker.io/location": "dev",
+                          "deployment.kubernetes.io/revision": "1",
+                          "artifact.spinnaker.io/type": "kubernetes/deployment",
+                          "moniker.spinnaker.io/cluster": "deployment backend",
+                          "moniker.spinnaker.io/application": "kubernetesapp"
+                        },
+                        "labels": {
+                          "app": "backend",
+                          "app.kubernetes.io/managed-by": "spinnaker",
+                          "app.kubernetes.io/name": "kubernetes"
+                        }
+                      },
+                      "apiVersion": "apps/v1",
+                      "kind": "Deployment",
+                      "spec": {
+                        "template": {
+                          "metadata": {
+                            "annotations": {
+                              "artifact.spinnaker.io/version": "",
+                              "artifact.spinnaker.io/name": "backend",
+                              "artifact.spinnaker.io/location": "dev",
+                              "artifact.spinnaker.io/type": "kubernetes/deployment",
+                              "moniker.spinnaker.io/cluster": "deployment backend",
+                              "moniker.spinnaker.io/application": "kubernetesapp"
+                            },
+                            "labels": {
+                              "app": "backend",
+                              "app.kubernetes.io/managed-by": "spinnaker",
+                              "app.kubernetes.io/name": "kubernetes",
+                              "custom-label": "custom-value-2"
+                            }
+                          },
+                          "spec": {
+                            "dnsPolicy": "ClusterFirst",
+                            "terminationGracePeriodSeconds": 30,
+                            "containers": [
+                              {
+                                "image": "nginx:1.27.3",
+                                "imagePullPolicy": "IfNotPresent",
+                                "terminationMessagePolicy": "File",
+                                "terminationMessagePath": "/dev/termination-log",
+                                "name": "backend",
+                                "resources": {},
+                                "ports": [
+                                  {
+                                    "protocol": "TCP",
+                                    "containerPort": 80
+                                  }
+                                ]
+                              }
+                            ],
+                            "securityContext": {},
+                            "restartPolicy": "Always",
+                            "schedulerName": "default-scheduler"
+                          }
+                        },
+                        "replicas": 2,
+                        "revisionHistoryLimit": 10,
+                        "selector": {
+                          "matchLabels": {
+                            "app": "backend"
+                          }
+                        },
+                        "strategy": {
+                          "type": "RollingUpdate",
+                          "rollingUpdate": {
+                            "maxSurge": "25%",
+                            "maxUnavailable": "25%"
+                          }
+                        },
+                        "progressDeadlineSeconds": 600
+                      },
+                      "status": {
+                        "replicas": 2,
+                        "readyReplicas": 2,
+                        "conditions": [
+                          {
+                            "reason": "NewReplicaSetAvailable",
+                            "lastTransitionTime": "2025-07-24T01:27:29Z",
+                            "message": "ReplicaSet \"backend-55f76f8479\" has successfully progressed.",
+                            "type": "Progressing",
+                            "lastUpdateTime": "2025-07-24T01:27:30Z",
+                            "status": "True"
+                          },
+                          {
+                            "reason": "MinimumReplicasAvailable",
+                            "lastTransitionTime": "2025-07-27T23:40:47Z",
+                            "message": "Deployment has minimum availability.",
+                            "type": "Available",
+                            "lastUpdateTime": "2025-07-27T23:40:47Z",
+                            "status": "True"
+                          }
+                        ],
+                        "updatedReplicas": 2,
+                        "availableReplicas": 2,
+                        "observedGeneration": 1
+                      }
+                    }
+                  ],
+                  "failureMessages": [],
+                  "manifestNamesByNamespace": {
+                    "dev": [
+                      "deployment backend"
+                    ]
+                  },
+                  "boundArtifacts": []
+                }
+              ],
+              "id": "01K17CHC3D77P1VD0QWYS31W72",
+              "history": [
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Initializing Orchestration Task"
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Processing op: KubernetesDeployManifestOperation"
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Beginning deployment of manifests in account k8s-local ..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Sorting manifests by priority..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Deploy order is: deployment backend"
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Binding artifacts in deployment backend..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Finding deployer for deployment..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Bound artifacts: []..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Finding deployer for deployment..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Annotating manifest deployment backend with artifact, relationships & moniker..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Checking if all requested artifacts were bound..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Finding deployer for deployment..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Submitting manifest deployment backend to kubernetes master..."
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Deploy manifest task completed successfully for manifest deployment backend in account k8s-local"
+                },
+                {
+                  "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                  "status": "Deploy manifest task completed successfully for all manifests in account k8s-local"
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Orchestration completed."
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Orchestration completed."
+                }
+              ],
+              "status": {
+                "retryable": false,
+                "completed": true,
+                "failed": false
+              }
+            },
+            {
+              "outputs": [],
+              "resultObjects": [
+                {
+                  "createdArtifacts": [],
+                  "failureMessages": [],
+                  "manifestNamesByNamespace": {},
+                  "boundArtifacts": []
+                }
+              ],
+              "id": "01K17CHHW5YDSGDCEWK3MFRDF2",
+              "history": [
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Initializing Orchestration Task"
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Processing op: KubernetesCleanupArtifactsOperation"
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Orchestration completed."
+                },
+                {
+                  "phase": "ORCHESTRATION",
+                  "status": "Orchestration completed."
+                }
+              ],
+              "status": {
+                "retryable": false,
+                "completed": true,
+                "failed": false
+              }
+            }
+          ],
+          "outputs.manifests": [
+            {
+              "metadata": {
+                "generation": 2,
+                "uid": "22fd4b73-96cf-4d3f-8feb-d8b0c3589680",
+                "resourceVersion": "199308",
+                "creationTimestamp": "2025-07-24T01:27:29Z",
+                "name": "backend",
+                "namespace": "dev",
+                "annotations": {
+                  "artifact.spinnaker.io/version": "",
+                  "artifact.spinnaker.io/name": "backend",
+                  "artifact.spinnaker.io/location": "dev",
+                  "deployment.kubernetes.io/revision": "1",
+                  "artifact.spinnaker.io/type": "kubernetes/deployment",
+                  "moniker.spinnaker.io/cluster": "deployment backend",
+                  "moniker.spinnaker.io/application": "kubernetesapp"
+                },
+                "labels": {
+                  "app": "backend",
+                  "app.kubernetes.io/managed-by": "spinnaker",
+                  "app.kubernetes.io/name": "kubernetes"
+                }
+              },
+              "apiVersion": "apps/v1",
+              "kind": "Deployment",
+              "spec": {
+                "template": {
+                  "metadata": {
+                    "annotations": {
+                      "artifact.spinnaker.io/version": "",
+                      "artifact.spinnaker.io/name": "backend",
+                      "artifact.spinnaker.io/location": "dev",
+                      "artifact.spinnaker.io/type": "kubernetes/deployment",
+                      "moniker.spinnaker.io/cluster": "deployment backend",
+                      "moniker.spinnaker.io/application": "kubernetesapp"
+                    },
+                    "labels": {
+                      "app": "backend",
+                      "app.kubernetes.io/managed-by": "spinnaker",
+                      "app.kubernetes.io/name": "kubernetes",
+                      "custom-label": "custom-value-2"
+                    }
+                  },
+                  "spec": {
+                    "dnsPolicy": "ClusterFirst",
+                    "terminationGracePeriodSeconds": 30,
+                    "containers": [
+                      {
+                        "image": "nginx:1.27.3",
+                        "imagePullPolicy": "IfNotPresent",
+                        "terminationMessagePolicy": "File",
+                        "terminationMessagePath": "/dev/termination-log",
+                        "name": "backend",
+                        "resources": {},
+                        "ports": [
+                          {
+                            "protocol": "TCP",
+                            "containerPort": 80
+                          }
+                        ]
+                      }
+                    ],
+                    "securityContext": {},
+                    "restartPolicy": "Always",
+                    "schedulerName": "default-scheduler"
+                  }
+                },
+                "replicas": 2,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                  "matchLabels": {
+                    "app": "backend"
+                  }
+                },
+                "strategy": {
+                  "type": "RollingUpdate",
+                  "rollingUpdate": {
+                    "maxSurge": "25%",
+                    "maxUnavailable": "25%"
+                  }
+                },
+                "progressDeadlineSeconds": 600
+              },
+              "status": {
+                "replicas": 2,
+                "readyReplicas": 2,
+                "conditions": [
+                  {
+                    "reason": "NewReplicaSetAvailable",
+                    "lastTransitionTime": "2025-07-24T01:27:29Z",
+                    "message": "ReplicaSet \"backend-55f76f8479\" has successfully progressed.",
+                    "type": "Progressing",
+                    "lastUpdateTime": "2025-07-24T01:27:30Z",
+                    "status": "True"
+                  },
+                  {
+                    "reason": "MinimumReplicasAvailable",
+                    "lastTransitionTime": "2025-07-27T23:40:47Z",
+                    "message": "Deployment has minimum availability.",
+                    "type": "Available",
+                    "lastUpdateTime": "2025-07-27T23:40:47Z",
+                    "status": "True"
+                  }
+                ],
+                "updatedReplicas": 2,
+                "availableReplicas": 2,
+                "observedGeneration": 1
+              }
+            }
+          ],
+          "manifestArtifactAccount": "front50ArtifactCredentials",
+          "kato.task.notFoundRetryCount": 0,
+          "user": "[anonymous]",
+          "account": "k8s-local",
+          "kato.task.lastStatus": "SUCCEEDED"
+        },
+        "outputs": {
+          "optionalArtifacts": [],
+          "manifests": [
+            {
+              "metadata": {
+                "name": "backend",
+                "namespace": "dev",
+                "annotations": {
+                  "artifact.spinnaker.io/version": "",
+                  "artifact.spinnaker.io/name": "backend",
+                  "artifact.spinnaker.io/location": "dev",
+                  "artifact.spinnaker.io/type": "kubernetes/deployment",
+                  "moniker.spinnaker.io/cluster": "deployment backend",
+                  "moniker.spinnaker.io/application": "kubernetesapp"
+                },
+                "labels": {
+                  "app": "backend",
+                  "app.kubernetes.io/managed-by": "spinnaker",
+                  "app.kubernetes.io/name": "kubernetes"
+                }
+              },
+              "apiVersion": "apps/v1",
+              "kind": "Deployment",
+              "spec": {
+                "template": {
+                  "metadata": {
+                    "annotations": {
+                      "artifact.spinnaker.io/version": "",
+                      "artifact.spinnaker.io/name": "backend",
+                      "artifact.spinnaker.io/location": "dev",
+                      "artifact.spinnaker.io/type": "kubernetes/deployment",
+                      "moniker.spinnaker.io/cluster": "deployment backend",
+                      "moniker.spinnaker.io/application": "kubernetesapp"
+                    },
+                    "labels": {
+                      "app": "backend",
+                      "app.kubernetes.io/managed-by": "spinnaker",
+                      "app.kubernetes.io/name": "kubernetes",
+                      "custom-label": "custom-value-2"
+                    }
+                  },
+                  "spec": {
+                    "containers": [
+                      {
+                        "image": "nginx:1.27.3",
+                        "name": "backend",
+                        "ports": [
+                          {
+                            "containerPort": 80
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "replicas": 2,
+                "selector": {
+                  "matchLabels": {
+                    "app": "backend"
+                  }
+                }
+              }
+            }
+          ],
+          "requiredArtifacts": [],
+          "outputs.createdArtifacts": [
+            {
+              "type": "kubernetes/deployment",
+              "customKind": false,
+              "name": "backend",
+              "version": "",
+              "location": "dev",
+              "reference": "backend",
+              "metadata": {
+                "account": "k8s-local"
+              }
+            }
+          ],
+          "outputs.manifestNamesByNamespace": {
+            "dev": [
+              "deployment backend"
+            ]
+          },
+          "outputs.boundArtifacts": [],
+          "outputs.manifests": [
+            {
+              "metadata": {
+                "generation": 2,
+                "uid": "22fd4b73-96cf-4d3f-8feb-d8b0c3589680",
+                "resourceVersion": "199308",
+                "creationTimestamp": "2025-07-24T01:27:29Z",
+                "name": "backend",
+                "namespace": "dev",
+                "annotations": {
+                  "artifact.spinnaker.io/version": "",
+                  "artifact.spinnaker.io/name": "backend",
+                  "artifact.spinnaker.io/location": "dev",
+                  "deployment.kubernetes.io/revision": "1",
+                  "artifact.spinnaker.io/type": "kubernetes/deployment",
+                  "moniker.spinnaker.io/cluster": "deployment backend",
+                  "moniker.spinnaker.io/application": "kubernetesapp"
+                },
+                "labels": {
+                  "app": "backend",
+                  "app.kubernetes.io/managed-by": "spinnaker",
+                  "app.kubernetes.io/name": "kubernetes"
+                }
+              },
+              "apiVersion": "apps/v1",
+              "kind": "Deployment",
+              "spec": {
+                "template": {
+                  "metadata": {
+                    "annotations": {
+                      "artifact.spinnaker.io/version": "",
+                      "artifact.spinnaker.io/name": "backend",
+                      "artifact.spinnaker.io/location": "dev",
+                      "artifact.spinnaker.io/type": "kubernetes/deployment",
+                      "moniker.spinnaker.io/cluster": "deployment backend",
+                      "moniker.spinnaker.io/application": "kubernetesapp"
+                    },
+                    "labels": {
+                      "app": "backend",
+                      "app.kubernetes.io/managed-by": "spinnaker",
+                      "app.kubernetes.io/name": "kubernetes",
+                      "custom-label": "custom-value-2"
+                    }
+                  },
+                  "spec": {
+                    "dnsPolicy": "ClusterFirst",
+                    "terminationGracePeriodSeconds": 30,
+                    "containers": [
+                      {
+                        "image": "nginx:1.27.3",
+                        "imagePullPolicy": "IfNotPresent",
+                        "terminationMessagePolicy": "File",
+                        "terminationMessagePath": "/dev/termination-log",
+                        "name": "backend",
+                        "resources": {},
+                        "ports": [
+                          {
+                            "protocol": "TCP",
+                            "containerPort": 80
+                          }
+                        ]
+                      }
+                    ],
+                    "securityContext": {},
+                    "restartPolicy": "Always",
+                    "schedulerName": "default-scheduler"
+                  }
+                },
+                "replicas": 2,
+                "revisionHistoryLimit": 10,
+                "selector": {
+                  "matchLabels": {
+                    "app": "backend"
+                  }
+                },
+                "strategy": {
+                  "type": "RollingUpdate",
+                  "rollingUpdate": {
+                    "maxSurge": "25%",
+                    "maxUnavailable": "25%"
+                  }
+                },
+                "progressDeadlineSeconds": 600
+              },
+              "status": {
+                "replicas": 2,
+                "readyReplicas": 2,
+                "conditions": [
+                  {
+                    "reason": "NewReplicaSetAvailable",
+                    "lastTransitionTime": "2025-07-24T01:27:29Z",
+                    "message": "ReplicaSet \"backend-55f76f8479\" has successfully progressed.",
+                    "type": "Progressing",
+                    "lastUpdateTime": "2025-07-24T01:27:30Z",
+                    "status": "True"
+                  },
+                  {
+                    "reason": "MinimumReplicasAvailable",
+                    "lastTransitionTime": "2025-07-27T23:40:47Z",
+                    "message": "Deployment has minimum availability.",
+                    "type": "Available",
+                    "lastUpdateTime": "2025-07-27T23:40:47Z",
+                    "status": "True"
+                  }
+                ],
+                "updatedReplicas": 2,
+                "availableReplicas": 2,
+                "observedGeneration": 1
+              }
+            }
+          ],
+          "artifacts": [
+            {
+              "type": "kubernetes/deployment",
+              "customKind": false,
+              "name": "backend",
+              "version": "",
+              "location": "dev",
+              "reference": "backend",
+              "metadata": {
+                "account": "k8s-local"
+              }
+            }
+          ]
+        },
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveDeploySourceManifestTask",
+            "name": "resolveDeploySourceManifest",
+            "startTime": 1753668431714,
+            "endTime": 1753668431834,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          },
+          {
+            "id": "2",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestTask",
+            "name": "deployManifest",
+            "startTime": 1753668431900,
+            "endTime": 1753668432019,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          },
+          {
+            "id": "3",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.MonitorDeployManifestTask",
+            "name": "monitorDeploy",
+            "startTime": 1753668432072,
+            "endTime": 1753668432187,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          },
+          {
+            "id": "4",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask",
+            "name": "promoteOutputs",
+            "startTime": 1753668432244,
+            "endTime": 1753668432359,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          },
+          {
+            "id": "5",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStableTask",
+            "name": "waitForManifestToStabilize",
+            "startTime": 1753668432416,
+            "endTime": 1753668437763,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          },
+          {
+            "id": "6",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.CleanupArtifactsTask",
+            "name": "cleanupArtifacts",
+            "startTime": 1753668437828,
+            "endTime": 1753668437938,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          },
+          {
+            "id": "7",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+            "name": "monitorCleanup",
+            "startTime": 1753668438003,
+            "endTime": 1753668438126,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          },
+          {
+            "id": "8",
+            "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask",
+            "name": "promoteOutputs",
+            "startTime": 1753668438192,
+            "endTime": 1753668438329,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": false,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          },
+          {
+            "id": "9",
+            "implementingClass": "com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask",
+            "name": "bindProducedArtifacts",
+            "startTime": 1753668438399,
+            "endTime": 1753668438523,
+            "status": "SUCCEEDED",
+            "stageStart": false,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          }
+        ],
+        "requisiteStageRefIds": []
+      }
+    ],
+    "startTime": 1753668431587,
+    "endTime": 1753668438667,
+    "status": "SUCCEEDED",
+    "authentication": {
+      "user": "[anonymous]",
+      "allowedAccounts": [
+        "docker-registry-orca",
+        "docker-registry-echo",
+        "hubble-qa-local",
+        "docker-registry-spinnaker",
+        "k8s-local",
+        "docker-registry-clouddriver"
+      ]
+    },
+    "origin": "deck",
+    "trigger": {
+      "type": "manual",
+      "user": "[anonymous]",
+      "parameters": {},
+      "artifacts": [],
+      "notifications": [],
+      "rebake": false,
+      "dryRun": false,
+      "strategy": false,
+      "resolvedExpectedArtifacts": [],
+      "expectedArtifacts": []
+    },
+    "description": "Deploy manifest",
+    "notifications": [],
+    "initialConfig": {},
+    "systemNotifications": []
+  }
+}
