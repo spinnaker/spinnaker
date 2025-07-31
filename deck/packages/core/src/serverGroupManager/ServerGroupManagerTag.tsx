@@ -59,7 +59,7 @@ export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTa
       accountId: serverGroupManager.account,
       region: serverGroupManager.region,
       provider: serverGroupManager.cloudProvider,
-      serverGroupManager: serverGroupManager.name,
+      name: serverGroupManager.name,
     };
   }
 }
