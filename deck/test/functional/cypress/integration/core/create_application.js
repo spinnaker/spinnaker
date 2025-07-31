@@ -14,9 +14,13 @@ describe('core: Create Application', () => {
   });
 
   it('takes the user to their application infrastructure on success', () => {
-    cy.route('POST', '/tasks', { ref: '/tasks/01D6G3SSZ54TVWM5CA4ZC8MDXH' });
-    cy.route('/tasks/01D6G3SSZ54TVWM5CA4ZC8MDXH', 'fixture:core/create_application/create_testapp1.success.json');
-    cy.route('/applications/testapp1?expand=false', 'fixture:core/create_application/testapp1.json');
+    cy.intercept('POST', '/tasks', { ref: '/tasks/01D6G3SSZ54TVWM5CA4ZC8MDXH' });
+    cy.intercept('/tasks/01D6G3SSZ54TVWM5CA4ZC8MDXH', {
+      fixture: 'core/create_application/create_testapp1.success.json',
+    });
+    cy.intercept('/applications/testapp1?expand=false', {
+      fixture: 'core/create_application/testapp1.json',
+    });
 
     cy.visit('#/applications');
     cy.get('a:contains("Create Application")').click();

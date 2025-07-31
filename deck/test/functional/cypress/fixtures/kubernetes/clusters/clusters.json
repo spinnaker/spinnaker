@@ -1,0 +1,5 @@
+{
+  "k8s-local": [
+    "deployment backend"
+  ]
+}
