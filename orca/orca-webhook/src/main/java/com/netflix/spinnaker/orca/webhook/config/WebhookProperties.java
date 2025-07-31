@@ -102,6 +102,15 @@ public class WebhookProperties {
   /** True to enable audit logging */
   private boolean auditLoggingEnabled = false;
 
+  /** True to enable logging via an okhttp EventListener */
+  private boolean eventLoggingEnabled = false;
+
+  /**
+   * Whether the okhttp EventListener is verbose or not. Only relevant if eventLoggingEnabled is
+   * true
+   */
+  private boolean eventLoggingVerbose = false;
+
   /** True to require an account property in webhook stage configurations */
   private boolean requireAccount = false;
 
