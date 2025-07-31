@@ -88,7 +88,7 @@ class KubernetesPreconfiguredJobSpec : JUnit5Minutests {
             .contains("\"ref\":\"/pipelines")
         }
 
-        verify(timeout = 2000) { katoRestService.requestOperations(any(), "kubernetes", match { it.toString().contains("alias=preconfiguredJob") }) }
+        verify(timeout = 2000) { katoRestService.requestOperations("kubernetes", any(), match { it.toString().contains("alias=preconfiguredJob") }) }
       }
     }
   }
