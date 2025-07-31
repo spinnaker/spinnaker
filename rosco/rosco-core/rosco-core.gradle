@@ -16,6 +16,7 @@ dependencies {
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "redis.clients:jedis"
+  implementation "com.google.code.gson:gson"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
