@@ -1,0 +1,53 @@
+{
+  "class": "com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesSecurityGroup",
+  "account": "k8s-local",
+  "id": "networkPolicy backend-security-policy",
+  "namespace": "dev",
+  "displayName": "backend-security-policy",
+  "apiVersion": "networking.k8s.io/v1",
+  "kind": "networkPolicy",
+  "labels": {
+    "app.kubernetes.io/managed-by": "spinnaker",
+    "app.kubernetes.io/name": "kubernetesapp"
+  },
+  "moniker": {
+    "app": "kubernetesapp",
+    "cluster": "networkPolicy backend-security-policy"
+  },
+  "createdTime": 1753738693000,
+  "inboundRules": [
+    {
+      "class": "com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesSecurityGroup$PortRule",
+      "portRanges": [
+        {
+          "startPort": 80,
+          "endPort": 80
+        }
+      ],
+      "protocol": "TCP"
+    }
+  ],
+  "outboundRules": [
+    {
+      "class": "com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model.KubernetesSecurityGroup$PortRule",
+      "portRanges": [
+        {
+          "startPort": 3306,
+          "endPort": 3306
+        }
+      ],
+      "protocol": "TCP"
+    }
+  ],
+  "name": "networkPolicy backend-security-policy",
+  "region": "dev",
+  "accountName": "k8s-local",
+  "cloudProvider": "kubernetes",
+  "summary": {
+    "name": "networkPolicy backend-security-policy",
+    "id": "networkPolicy backend-security-policy",
+    "moniker": {}
+  },
+  "type": "kubernetes",
+  "application": "kubernetesapp"
+}
