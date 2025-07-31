@@ -123,4 +123,30 @@ class KatoRestServiceSpec extends Specification {
       status.failed
     }
   }
+
+  def "can interpret the response from a cloudProvider operation request"() {
+    given:
+    def operation = [:]
+    def requestId = UUID.randomUUID().toString()
+    stubFor(
+        post(urlPathEqualTo("/aws/ops"))
+            .withQueryParam("clientRequestId", equalTo(requestId))
+            .willReturn(
+                aResponse()
+                    .withStatus(HTTP_ACCEPTED)
+                    .withBody(mapper.writeValueAsString([
+                        id          : taskId,
+                        resourceLink: "/task/$taskId"
+                    ]))
+            )
+    )
+
+    when:
+    Retrofit2SyncCall.execute(service.requestOperations(requestId, "aws", [operation]))
+
+    //FIXME: This exception shouldn't be thrown. Fix the order of @Path and @Query parameters in the service method.
+    then: "an IllegalArgumentException is thrown"
+    def e = thrown(IllegalArgumentException)
+    e.message.contains("@Path parameter must not come after a @Query")
+  }
 }
