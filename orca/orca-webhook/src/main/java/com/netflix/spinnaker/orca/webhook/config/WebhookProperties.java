@@ -159,6 +159,12 @@ public class WebhookProperties {
 
     /** The url must match this pattern to be considered valid */
     private String urlPattern;
+
+    /**
+     * Whether it's safe to retry requests to urls that match. GET requests are always considered
+     * safe, but this enables retries of other methods as well.
+     */
+    private boolean safeToRetry;
   }
 
   @Data
