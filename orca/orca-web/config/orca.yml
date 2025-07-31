@@ -59,7 +59,7 @@ resilience4j.retry:
     # katoRetrofitServiceWriter is any write operation to Clouddriver using Retrofit.
     katoRetrofitServiceWriter:
       retryExceptions:
-        - retrofit.RetrofitError
+        - com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 
 # This configuration lets you configure Webhook stages that will appear as native stages in the Deck UI.
 # Properties that are set here will not be displayed in the GUI
