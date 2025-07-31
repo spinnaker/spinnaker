@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.webhook.service;
 
 import static com.netflix.spinnaker.orca.webhook.config.WebhookProperties.MatchStrategy.PATTERN_MATCHES;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -125,8 +126,17 @@ public class WebhookService {
     }
   }
 
+  /**
+   * Only exists for testing. CreateWebhookTask has RestTemplateData, so it calls the overload of
+   * callWebhook that takes that.
+   */
+  @VisibleForTesting
   public ResponseEntity<Object> callWebhook(StageExecution stageExecution) {
     RestTemplateData restTemplateData = getRestTemplateData(WebhookTaskType.CREATE, stageExecution);
+    return callWebhook(restTemplateData);
+  }
+
+  public ResponseEntity<Object> callWebhook(RestTemplateData restTemplateData) {
     if (restTemplateData == null) {
       throw new SpinnakerException("Unable to determine rest template to call webhook");
     }
@@ -150,7 +160,7 @@ public class WebhookService {
       log.warn("Cannot determine rest template to cancel the webhook");
       return null;
     }
-    WebhookStage.StageData stageData = restTemplateData.stageData;
+    WebhookStage.StageData stageData = restTemplateData.getStageData();
     try {
       log.info("Sending best effort webhook cancellation to {}", stageData.cancelEndpoint);
       ResponseEntity<Object> response = restTemplateData.exchange();
@@ -173,7 +183,7 @@ public class WebhookService {
     return null;
   }
 
-  private RestTemplateData getRestTemplateData(
+  public RestTemplateData getRestTemplateData(
       WebhookTaskType taskType, StageExecution stageExecution) {
     String destinationUrl = null;
     for (RestTemplateProvider provider : restTemplateProviders) {
@@ -231,17 +241,22 @@ public class WebhookService {
             userConfiguredUrlRestrictions.validateURI(
                 provider.getTargetUrl(destinationUrl, stageData));
 
-        if (!isAllowedRequest(httpMethod, validatedUri)) {
-          String message =
-              String.format(
-                  "http method '%s', uri: '%s' not allowed",
-                  httpMethod.toString(), validatedUri.toString());
-          log.info(message);
-          throw new IllegalArgumentException(message);
+        Optional<WebhookProperties.AllowedRequest> allowedRequest =
+            getAllowedRequest(httpMethod, validatedUri);
+        if (webhookProperties.isAllowedRequestsEnabled()) {
+          if (allowedRequest.isEmpty()) {
+            String message =
+                String.format(
+                    "http method '%s', uri: '%s' not allowed",
+                    httpMethod.toString(), validatedUri.toString());
+            log.info(message);
+            throw new IllegalArgumentException(message);
+          }
         }
+
         RestTemplate restTemplate = provider.getRestTemplate(destinationUrl);
         return new RestTemplateData(
-            restTemplate, validatedUri, httpMethod, payloadEntity, stageData);
+            restTemplate, validatedUri, httpMethod, payloadEntity, stageData, allowedRequest);
       }
     }
 
@@ -261,19 +276,21 @@ public class WebhookService {
   }
 
   /**
-   * Return true if the allow list is disabled, or if the given httpMethod + uri are in the list of
-   * allowed requests, false otherwise.
+   * Return the allow list entry corresponding to the given httpMethod + uri, or empty if there's no
+   * corresponding entry. If the allowed requests is disabled altogether, return empty.
    */
-  private boolean isAllowedRequest(HttpMethod httpMethod, URI uri) {
+  private Optional<WebhookProperties.AllowedRequest> getAllowedRequest(
+      HttpMethod httpMethod, URI uri) {
     if (!webhookProperties.isAllowedRequestsEnabled()) {
-      return true;
+      return Optional.empty();
     }
 
     return webhookProperties.getAllowedRequests().stream()
-        .anyMatch(
+        .filter(
             allowedRequest ->
                 allowedRequest.getHttpMethods().contains(httpMethod.toString())
-                    && uriMatches(allowedRequest, uri));
+                    && uriMatches(allowedRequest, uri))
+        .findFirst();
   }
 
   /**
@@ -331,33 +348,7 @@ public class WebhookService {
     return headers;
   }
 
-  private static class RestTemplateData {
-
-    final RestTemplate restTemplate;
-    final URI validatedUri;
-    final HttpMethod httpMethod;
-    final HttpEntity<Object> payloadEntity;
-    final WebhookStage.StageData stageData;
-
-    RestTemplateData(
-        RestTemplate restTemplate,
-        URI validatedUri,
-        HttpMethod httpMethod,
-        HttpEntity<Object> payloadEntity,
-        WebhookStage.StageData stageData) {
-      this.restTemplate = restTemplate;
-      this.validatedUri = validatedUri;
-      this.httpMethod = httpMethod;
-      this.payloadEntity = payloadEntity;
-      this.stageData = stageData;
-    }
-
-    public ResponseEntity<Object> exchange() {
-      return this.restTemplate.exchange(validatedUri, httpMethod, payloadEntity, Object.class);
-    }
-  }
-
-  private enum WebhookTaskType {
+  public enum WebhookTaskType {
     CREATE,
     MONITOR,
     CANCEL

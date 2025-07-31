@@ -27,11 +27,13 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
+import com.netflix.spinnaker.orca.webhook.service.RestTemplateData;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
@@ -61,13 +63,16 @@ public class WebhookResponseProcessor {
     this.executionId = stageExecution.getExecution().getId();
   }
 
-  public TaskResult process(ResponseEntity<Object> response, Exception exceptionReceived) {
+  public TaskResult process(
+      RestTemplateData restTemplateData,
+      ResponseEntity<Object> response,
+      Exception exceptionReceived) {
     // Process exception if received.
     if (exceptionReceived != null) {
       if (exceptionReceived instanceof HttpStatusCodeException) {
         return processReceivedHttpStatusException((HttpStatusCodeException) exceptionReceived);
       } else {
-        return processClientException(exceptionReceived);
+        return processClientException(restTemplateData, exceptionReceived);
       }
     }
 
@@ -128,7 +133,7 @@ public class WebhookResponseProcessor {
     return TaskResult.builder(executionStatus).context(Map.of("webhook", webHookOutput)).build();
   }
 
-  private TaskResult processClientException(Exception e) {
+  private TaskResult processClientException(RestTemplateData restTemplateData, Exception e) {
     String errorMessage;
     ExecutionStatus executionStatus;
     if (e instanceof UnknownHostException || e.getCause() instanceof UnknownHostException) {
@@ -137,25 +142,39 @@ public class WebhookResponseProcessor {
               "Remote host resolution failure in webhook for pipeline %s to %s, will retry.",
               executionId, stageData.url);
       executionStatus = ExecutionStatus.RUNNING;
-    } else if (stageData.method == HttpMethod.GET
-        && (e instanceof SocketTimeoutException
-            || e.getCause() instanceof SocketTimeoutException)) {
+    } else if ((e instanceof SocketTimeoutException
+            || e.getCause() instanceof SocketTimeoutException)
+        && ((stageData.method == HttpMethod.GET) || safeToRetry(restTemplateData))) {
       errorMessage =
           format(
-              "Socket timeout in webhook on GET request for pipeline %s to %s, will retry.",
-              executionId, stageData.url);
+              "Socket timeout in webhook on %s request for pipeline %s to %s, will retry.",
+              stageData.method, executionId, stageData.url);
       executionStatus = ExecutionStatus.RUNNING;
     } else {
       errorMessage =
           format(
-              "An exception occurred for pipeline %s performing a request to %s. %s",
-              executionId, stageData.url, e.toString());
+              "An exception occurred for pipeline %s performing a %s request to %s. %s",
+              executionId, stageData.method, stageData.url, e.toString());
       executionStatus = ExecutionStatus.TERMINAL;
     }
     var webhookOutput = new WebhookStage.WebhookResponseStageData();
     webhookOutput.setError(errorMessage);
     log.warn(errorMessage, e);
     return TaskResult.builder(executionStatus).context(Map.of("webhook", webhookOutput)).build();
+  }
+
+  /**
+   * If there's an allow list entry, return its safe to retry attribute.
+   *
+   * <p>If there's no allow list entry, return false. Expect this to only happen if the allow list
+   * is disabled. If the allow list is enabled, we shouldn't have sent a request in the first place,
+   * much less be considering whether to retry.
+   */
+  private boolean safeToRetry(RestTemplateData restTemplateData) {
+    Optional<WebhookProperties.AllowedRequest> allowedRequest =
+        restTemplateData.getAllowedRequest();
+
+    return allowedRequest.map(WebhookProperties.AllowedRequest::isSafeToRetry).orElse(false);
   }
 
   private TaskResult processResponse(ResponseEntity response) {
