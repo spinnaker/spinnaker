@@ -1,0 +1,136 @@
+{
+  "disabled": false,
+  "instances": [
+    {
+      "health": [
+        {
+          "state": "Up",
+          "source": "Pod",
+          "type": "kubernetes/pod",
+          "platform": "platform"
+        },
+        {
+          "state": "Up",
+          "source": "Container backend",
+          "type": "kubernetes/container",
+          "platform": "platform"
+        }
+      ],
+      "account": "k8s-local",
+      "name": "6a3797eb-4fc2-4098-92af-6d3c13049fc5",
+      "humanReadableName": "pod backend-65b97dd546-kkw8d",
+      "namespace": "dev",
+      "displayName": "backend-65b97dd546-kkw8d",
+      "apiVersion": "v1",
+      "kind": "pod",
+      "labels": {
+        "app": "backend",
+        "app.kubernetes.io/managed-by": "spinnaker",
+        "app.kubernetes.io/name": "kubernetesapp",
+        "custom-label": "custom-value",
+        "pod-template-hash": "65b97dd546"
+      },
+      "moniker": {
+        "app": "kubernetesapp",
+        "cluster": "deployment backend"
+      },
+      "createdTime": 1753738694000,
+      "zone": "dev",
+      "cloudProvider": "kubernetes",
+      "healthState": "Up",
+      "providerType": "kubernetes"
+    },
+    {
+      "health": [
+        {
+          "state": "Up",
+          "source": "Pod",
+          "type": "kubernetes/pod",
+          "platform": "platform"
+        },
+        {
+          "state": "Up",
+          "source": "Container backend",
+          "type": "kubernetes/container",
+          "platform": "platform"
+        }
+      ],
+      "account": "k8s-local",
+      "name": "2fba55f3-cea2-4c4d-972d-4830844e2425",
+      "humanReadableName": "pod backend-65b97dd546-vb8qf",
+      "namespace": "dev",
+      "displayName": "backend-65b97dd546-vb8qf",
+      "apiVersion": "v1",
+      "kind": "pod",
+      "labels": {
+        "app": "backend",
+        "app.kubernetes.io/managed-by": "spinnaker",
+        "app.kubernetes.io/name": "kubernetesapp",
+        "custom-label": "custom-value",
+        "pod-template-hash": "65b97dd546"
+      },
+      "moniker": {
+        "app": "kubernetesapp",
+        "cluster": "deployment backend"
+      },
+      "createdTime": 1753738694000,
+      "zone": "dev",
+      "cloudProvider": "kubernetes",
+      "healthState": "Up",
+      "providerType": "kubernetes"
+    }
+  ],
+  "loadBalancers": [
+    "service backend"
+  ],
+  "serverGroupManagers": [
+    {
+      "name": "backend",
+      "location": "dev",
+      "account": "k8s-local"
+    }
+  ],
+  "capacity": {
+    "desired": 2,
+    "pinned": false
+  },
+  "account": "k8s-local",
+  "name": "replicaSet backend-65b97dd546",
+  "namespace": "dev",
+  "displayName": "backend-65b97dd546",
+  "apiVersion": "apps/v1",
+  "kind": "replicaSet",
+  "labels": {
+    "app": "backend",
+    "app.kubernetes.io/managed-by": "spinnaker",
+    "app.kubernetes.io/name": "kubernetesapp",
+    "custom-label": "custom-value",
+    "pod-template-hash": "65b97dd546"
+  },
+  "moniker": {
+    "app": "kubernetesapp",
+    "cluster": "deployment backend",
+    "sequence": 1
+  },
+  "createdTime": 1753738694000,
+  "buildInfo": {
+    "images": [
+      "nginx:1.27.3"
+    ]
+  },
+  "zones": [],
+  "securityGroups": [],
+  "launchConfig": {},
+  "region": "dev",
+  "cloudProvider": "kubernetes",
+  "instanceCounts": {
+    "total": 2,
+    "up": 2,
+    "down": 0,
+    "unknown": 0,
+    "outOfService": 0,
+    "starting": 0
+  },
+  "type": "kubernetes",
+  "insightActions": []
+}
