@@ -209,7 +209,7 @@ describe('kubernetes: Clusters', () => {
     cy.contains('dt', 'Account').next('dd').should('contain.text', 'k8s-local');
     cy.contains('dt', 'Namespace').next('dd').should('contain.text', 'dev');
     cy.contains('dt', 'Kind').next('dd').should('contain.text', 'replicaSet');
-    cy.contains('dt', 'Controller').next('dd').find('a')
+    cy.contains('dt', 'Controller').next('a')
       .should('contain.text', 'Deployment backend');
 
     cy.contains('.collapsible-section', 'deployment info')
@@ -238,7 +238,7 @@ describe('kubernetes: Clusters', () => {
     labels.forEach(label => {
       cy.get('.collapsible-section')
         .contains('Labels')
-        .parent()
+        .parents()
         .should('contain.text', label);
     });
 
