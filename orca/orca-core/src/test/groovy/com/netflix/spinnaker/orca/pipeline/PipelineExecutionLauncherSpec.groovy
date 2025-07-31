@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.config.ExecutionConfigurationProperties
 import com.netflix.spinnaker.orca.events.BeforeInitialExecutionPersist
@@ -40,6 +41,7 @@ class PipelineExecutionLauncherSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
   def pipelineValidator = Stub(PipelineValidator)
   def applicationEventPublisher = Mock(ApplicationEventPublisher)
+  def providedIdRequestFilterConfigurationProperties = new ProvidedIdRequestFilterConfigurationProperties()
 
   ExecutionLauncher create() {
     return new ExecutionLauncher(
@@ -50,7 +52,8 @@ class PipelineExecutionLauncherSpec extends Specification {
       applicationEventPublisher,
       Optional.of(pipelineValidator),
       Optional.<Registry> empty(),
-      new ExecutionConfigurationProperties()
+      new ExecutionConfigurationProperties(),
+      providedIdRequestFilterConfigurationProperties
     )
   }
 
@@ -99,6 +102,7 @@ class PipelineExecutionLauncherSpec extends Specification {
           }
         })
         registerSingleton("executionConfigurationProperties", new ExecutionConfigurationProperties())
+        registerSingleton("providedIdRequestFilterConfigurationProperties", new ProvidedIdRequestFilterConfigurationProperties())
       }
       register(ExecutionLauncher)
       refresh()

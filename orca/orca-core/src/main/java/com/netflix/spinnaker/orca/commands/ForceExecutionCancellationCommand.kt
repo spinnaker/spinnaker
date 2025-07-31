@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
  *
  * TODO(rz): Fix zombies.
  */
-class ForceExecutionCancellationCommand(
+open class ForceExecutionCancellationCommand(
   private val executionRepository: ExecutionRepository,
   private val clock: Clock
 ) {

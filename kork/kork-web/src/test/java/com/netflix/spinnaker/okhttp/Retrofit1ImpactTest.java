@@ -31,6 +31,7 @@ import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.jupiter.api.Test;
@@ -104,7 +105,7 @@ public class Retrofit1ImpactTest {
 
     @Bean
     public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
-      return new SpinnakerRequestHeaderInterceptor(true);
+      return new SpinnakerRequestHeaderInterceptor(true, Collections.emptyList());
     }
   }
 
