@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -29,6 +30,8 @@ import com.netflix.spinnaker.config.OkHttpClientComponents;
 import com.netflix.spinnaker.config.RetrofitConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
+import java.io.IOException;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -64,15 +67,22 @@ public class GoogleChatClientTest {
   }
 
   @Test
-  public void testSendGoogleChatMessage() {
+  public void testSendGoogleChatMessage() throws IOException {
     String expected_endpoint = "/v1/spaces/RANDOM/messages?key=XYZ-321&token=testtoken123";
     wmGoogleChat.stubFor(
         WireMock.post(urlEqualTo(expected_endpoint))
             .willReturn(
-                aResponse().withHeader("Content-Type", "application/json").withStatus(200)));
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withStatus(200)
+                    .withBody("{\"message\":\"success\"}")));
 
-    googleChatService.sendMessage(
-        "RANDOM/messages?key=XYZ-321&token=testtoken123", new GoogleChatMessage("test message"));
+    ResponseBody responseBody =
+        googleChatService.sendMessage(
+            "RANDOM/messages?key=XYZ-321&token=testtoken123",
+            new GoogleChatMessage("test message"));
+
+    assertThat(responseBody.string()).isEqualTo("{\"message\":\"success\"}");
 
     wmGoogleChat.verify(1, postRequestedFor(urlEqualTo(expected_endpoint)));
   }
