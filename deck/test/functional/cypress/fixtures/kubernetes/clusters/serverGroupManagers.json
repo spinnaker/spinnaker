@@ -1,0 +1,101 @@
+[
+  {
+    "account": "k8s-local",
+    "serverGroups": [
+      {
+        "name": "replicaSet frontend-5b94cfdd4c",
+        "account": "k8s-local",
+        "namespace": "dev",
+        "moniker": {
+          "app": "kubernetesapp",
+          "cluster": "deployment frontend",
+          "sequence": 1
+        },
+        "region": "dev"
+      }
+    ],
+    "name": "deployment frontend",
+    "namespace": "dev",
+    "displayName": "frontend",
+    "apiVersion": "apps/v1",
+    "kind": "deployment",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp",
+      "role": "frontend"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "deployment frontend"
+    },
+    "createdTime": 1753738694000,
+    "region": "dev",
+    "cloudProvider": "kubernetes"
+  },
+  {
+    "account": "k8s-local",
+    "serverGroups": [
+      {
+        "name": "replicaSet backend-65b97dd546",
+        "account": "k8s-local",
+        "namespace": "dev",
+        "moniker": {
+          "app": "kubernetesapp",
+          "cluster": "deployment backend",
+          "sequence": 1
+        },
+        "region": "dev"
+      }
+    ],
+    "name": "deployment backend",
+    "namespace": "dev",
+    "displayName": "backend",
+    "apiVersion": "apps/v1",
+    "kind": "deployment",
+    "labels": {
+      "app": "backend",
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "deployment backend"
+    },
+    "createdTime": 1753738694000,
+    "region": "dev",
+    "cloudProvider": "kubernetes"
+  },
+  {
+    "account": "k8s-local",
+    "serverGroups": [
+      {
+        "name": "replicaSet database-cb985c8d8",
+        "account": "k8s-local",
+        "namespace": "dev",
+        "moniker": {
+          "app": "kubernetesapp",
+          "cluster": "deployment database",
+          "sequence": 1
+        },
+        "region": "dev"
+      }
+    ],
+    "name": "deployment database",
+    "namespace": "dev",
+    "displayName": "database",
+    "apiVersion": "apps/v1",
+    "kind": "deployment",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp",
+      "role": "db"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "deployment database"
+    },
+    "createdTime": 1753738694000,
+    "region": "dev",
+    "cloudProvider": "kubernetes"
+  }
+]
