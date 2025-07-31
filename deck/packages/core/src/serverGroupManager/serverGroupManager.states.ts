@@ -9,7 +9,7 @@ export interface IServerGroupManagerStateParams {
   provider: string;
   accountId: string;
   region: string;
-  serverGroupManager: string;
+  name: string;
 }
 
 export const SERVER_GROUP_MANAGER_STATES = 'spinnaker.core.serverGroupManager.states';
@@ -18,7 +18,7 @@ module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER]).config([
   (applicationStateProvider: ApplicationStateProvider) => {
     const serverGroupManagerDetails: INestedState = {
       name: 'serverGroupManager',
-      url: '/serverGroupManagerDetails/:provider/:accountId/:region/:serverGroupManager',
+      url: '/serverGroupManagerDetails/:provider/:accountId/:region/:name',
       views: {
         'detail@../insight': {
           component: ServerGroupManagerDetails,
@@ -32,7 +32,7 @@ module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER]).config([
       data: {
         pageTitleDetails: {
           title: 'Server Group Manager Details',
-          nameParam: 'serverGroupManager',
+          nameParam: 'name',
           accountParam: 'accountId',
           regionParam: 'region',
         },
