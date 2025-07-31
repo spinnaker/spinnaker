@@ -36,7 +36,7 @@ class DefaultOkHttp3ClientFactory(
 
   override fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient {
     // TODO(rz): Add plugin ID to the metrics. Requires refactoring existing metrics interceptor.
-    return OkHttp3ClientConfiguration(convertToOkHttp(config), okHttpClientHttp3MetricsInterceptor).create()
+    return OkHttp3ClientConfiguration(convertToOkHttp(config), okHttpClientHttp3MetricsInterceptor).createForRetrofit2()
       .also {
         if (config.logging.level != LoggingLevel.NONE) {
           it.addInterceptor(

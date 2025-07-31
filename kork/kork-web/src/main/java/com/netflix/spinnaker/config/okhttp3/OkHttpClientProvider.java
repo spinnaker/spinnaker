@@ -20,9 +20,7 @@ import static java.lang.String.format;
 
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import java.util.List;
-import java.util.Optional;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,37 +31,9 @@ public class OkHttpClientProvider {
 
   private final List<OkHttpClientBuilderProvider> providers;
 
-  private final Optional<Retrofit2EncodeCorrectionInterceptor> retrofit2EncodeCorrectionInterceptor;
-
-  /**
-   * Constructor used for retrofit2 clients through Retrofit2ServiceFactory.
-   * Retrofit2EncodeCorrectionInterceptor is required for retrofit2 clients for correcting the
-   * partial encoding done by retrofit2
-   *
-   * @param providers list of {@link OkHttpClientBuilderProvider} that can build a client for the
-   *     given service config
-   * @param retrofit2EncodeCorrectionInterceptor interceptor that corrects the partial encoding done
-   *     by retrofit2
-   */
   @Autowired
-  public OkHttpClientProvider(
-      List<OkHttpClientBuilderProvider> providers,
-      Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor) {
-    this.providers = providers;
-    this.retrofit2EncodeCorrectionInterceptor = Optional.of(retrofit2EncodeCorrectionInterceptor);
-  }
-
-  /**
-   * Constructor used for retrofit1 clients through RetrofitServiceFactory.
-   * Retrofit2EncodeCorrectionInterceptor is not required for retrofit1 clients hence set to empty.
-   *
-   * @param providers list of {@link OkHttpClientBuilderProvider} that can build a client for the
-   *     given service config
-   */
   public OkHttpClientProvider(List<OkHttpClientBuilderProvider> providers) {
     this.providers = providers;
-    // to maintain backward compatibility with existing Retrofit1 clients
-    this.retrofit2EncodeCorrectionInterceptor = Optional.empty();
   }
 
   /**
@@ -77,26 +47,8 @@ public class OkHttpClientProvider {
     return getClient(service, List.of());
   }
 
-  public OkHttpClient getClient(ServiceEndpoint service, boolean skipEncodeCorrection) {
-    return getClient(service, List.of(), skipEncodeCorrection);
-  }
-
   public OkHttpClient getClient(ServiceEndpoint service, List<Interceptor> interceptors) {
-    // retrofit2 does partial encoding causing issues in some cases, so the default behaviour is
-    // kept to correct it by passing false for the third argument
-    return getClient(service, interceptors, false /* skipEncodeCorrection */);
-  }
-
-  public OkHttpClient getClient(
-      ServiceEndpoint service, List<Interceptor> interceptors, boolean skipEncodeCorrection) {
     OkHttpClient.Builder builder = findProvider(service).get(service);
-    if (!skipEncodeCorrection && retrofit2EncodeCorrectionInterceptor.isPresent()) {
-      boolean encodeCorrectionExist =
-          interceptors.stream().anyMatch(i -> i instanceof Retrofit2EncodeCorrectionInterceptor);
-      if (!encodeCorrectionExist) {
-        builder.addInterceptor(retrofit2EncodeCorrectionInterceptor.get());
-      }
-    }
     interceptors.forEach(builder::addInterceptor);
     return builder.build();
   }
