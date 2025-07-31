@@ -141,12 +141,9 @@ class KatoRestServiceSpec extends Specification {
             )
     )
 
-    when:
-    Retrofit2SyncCall.execute(service.requestOperations(requestId, "aws", [operation]))
-
-    //FIXME: This exception shouldn't be thrown. Fix the order of @Path and @Query parameters in the service method.
-    then: "an IllegalArgumentException is thrown"
-    def e = thrown(IllegalArgumentException)
-    e.message.contains("@Path parameter must not come after a @Query")
+    expect: "kato should return the details of the task it created"
+    with(Retrofit2SyncCall.execute(service.requestOperations(requestId, "aws", [operation]))) {
+      it.id == taskId
+    }
   }
 }
