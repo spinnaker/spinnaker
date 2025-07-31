@@ -24,7 +24,7 @@
     "start": "sh ./start.sh",
     "start-dev-server": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --config packages/app/webpack.config.js --mode=development",
     "dev:experimental": "cd packages/app && npm run dev:experimental",
-    "test": "karma start",
+    "test": "NODE_OPTIONS=--openssl-legacy-provider karma start",
     "modules": "./scripts/buildModules.js",
     "prettier": "prettier --write 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
     "prettier:check": "prettier --check 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
