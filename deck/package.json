@@ -11,18 +11,18 @@
     "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
   "engines": {
-    "node": ">=14.21.3",
-    "npm": ">=6.14.18",
+    "node": ">=20.19.4",
+    "npm": ">=10.8.2",
     "yarn": ">=1.21.1"
   },
   "private": true,
   "scripts": {
     "clean": "lerna run clean --parallel",
     "fixup": "scripts/monorepo_fixup.sh",
-    "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --mode=production --config packages/app/webpack.config.js",
+    "build": "NODE_OPTIONS='--max_old_space_size=8192 --openssl-legacy-provider' webpack --bail --mode=production --config packages/app/webpack.config.js",
     "lint": "eslint --max-warnings=0 --ext js,jsx,ts,tsx packages",
     "start": "sh ./start.sh",
-    "start-dev-server": "webpack-dev-server --config packages/app/webpack.config.js --mode=development",
+    "start-dev-server": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --config packages/app/webpack.config.js --mode=development",
     "dev:experimental": "cd packages/app && npm run dev:experimental",
     "test": "karma start",
     "modules": "./scripts/buildModules.js",
@@ -63,7 +63,7 @@
     "yargs": "^17.0.1"
   },
   "optionalDependencies": {
-    "fsevents": "1.2.11"
+    "fsevents": "2.3.2"
   },
   "resolutionsPurpose": "This temporarily chooses the right versions of these libs, which are specified in both deck AND deck-kayenta",
   "resolutions": {
