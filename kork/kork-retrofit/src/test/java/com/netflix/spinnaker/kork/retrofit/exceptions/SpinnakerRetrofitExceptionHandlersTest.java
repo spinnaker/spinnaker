@@ -44,7 +44,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,7 +59,6 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
       RetrofitErrorConfiguration.class,
       SpinnakerRetrofitExceptionHandlersTest.TestControllerConfiguration.class
     })
-@TestPropertySource(properties = {"retrofit.enabled = false"})
 class SpinnakerRetrofitExceptionHandlersTest {
 
   private static final String CUSTOM_MESSAGE = "custom message";
