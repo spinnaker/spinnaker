@@ -20,10 +20,6 @@ import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import static java.net.HttpURLConnection.*
 
 abstract class BaseRetrofitExceptionHandler implements ExceptionHandler {
-  boolean shouldRetry(Exception e, String kind, Integer responseCode) {
-    return shouldRetry(e, kind, null, responseCode)
-  }
-
   boolean shouldRetry(Exception e, String kind, String httpMethod, Integer responseCode) {
     if (isMalformedRequest(kind, e.getMessage())) {
       return false
