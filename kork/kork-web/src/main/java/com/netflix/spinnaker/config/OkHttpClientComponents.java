@@ -253,10 +253,14 @@ public class OkHttpClientComponents {
   }
 
   @Bean
-  public OkHttpClientCustomizer httpLoggingCustomizer() {
-    return builder ->
-        builder.addInterceptor(
-            new HttpLoggingInterceptor().setLevel(retrofit2Properties.getLogLevel()));
+  public HttpLoggingInterceptor httpLoggingInterceptor() {
+    return new HttpLoggingInterceptor().setLevel(retrofit2Properties.getLogLevel());
+  }
+
+  @Bean
+  public OkHttpClientCustomizer httpLoggingCustomizer(
+      HttpLoggingInterceptor httpLoggingInterceptor) {
+    return builder -> builder.addInterceptor(httpLoggingInterceptor);
   }
 
   /**
