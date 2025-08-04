@@ -19,12 +19,10 @@ package com.netflix.spinnaker.kork.retrofit;
 
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(Retrofit2ConfigurationProperties.class)
 public class Retrofit2ServiceFactoryAutoConfiguration {
 
   @Bean
