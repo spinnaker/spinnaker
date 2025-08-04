@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.azure.client
 
 import com.azure.core.credential.TokenCredential
+import com.azure.core.http.HttpClient
+import com.azure.core.http.netty.NettyAsyncHttpClientBuilder
 import com.azure.core.http.policy.HttpLogDetailLevel
 import com.azure.core.http.rest.Response
 import com.azure.core.management.AzureEnvironment
@@ -51,10 +53,19 @@ abstract class AzureBaseClient {
   }
 
   private AzureResourceManager initialize(TokenCredential credentials, String subscriptionId, AzureProfile azureProfile) {
+    // Create custom HTTP client with increased header size limit to handle large Azure responses
+    // Default Netty limit is 8192 bytes (8KB), increasing to 256KB to prevent TooLongHttpHeaderException
+    HttpClient httpClient = new NettyAsyncHttpClientBuilder(
+      reactor.netty.http.client.HttpClient.create()
+        .httpResponseDecoder(httpResponseDecoderSpec -> 
+          httpResponseDecoderSpec.maxHeaderSize(256 * 1024) // 256KB limit
+        )
+    ).build()
 
     AzureResourceManager
       .configure()
       .withLogLevel(HttpLogDetailLevel.NONE)
+      .withHttpClient(httpClient)
       .authenticate(credentials, azureProfile)
       .withSubscription(subscriptionId)
   }

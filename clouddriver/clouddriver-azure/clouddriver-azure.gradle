@@ -17,6 +17,7 @@ dependencies {
   implementation "com.azure:azure-identity:1.6.0"
   implementation "com.azure:azure-storage-blob:12.19.1"
   implementation "io.projectreactor:reactor-core"
+  implementation "io.projectreactor.netty:reactor-netty-http"
   implementation "com.google.guava:guava:31.1-jre"
 
   testImplementation "cglib:cglib-nodep"
