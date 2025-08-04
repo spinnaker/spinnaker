@@ -84,8 +84,7 @@ public class OkHttpClientComponents {
 
   @Bean
   public Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor() {
-    return new Retrofit2EncodeCorrectionInterceptor(
-        clientProperties.getSkipRetrofit2EncodeCorrection());
+    return new Retrofit2EncodeCorrectionInterceptor();
   }
 
   @Bean
