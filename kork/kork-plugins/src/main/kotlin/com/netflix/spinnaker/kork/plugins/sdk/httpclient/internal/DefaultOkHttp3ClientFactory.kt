@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientConfig.Loggin
 import com.netflix.spinnaker.kork.plugins.sdk.httpclient.OkHttp3ClientFactory
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 
@@ -29,14 +30,16 @@ import okhttp3.logging.HttpLoggingInterceptor
  * Configures a standard [OkHttpClient].
  */
 class DefaultOkHttp3ClientFactory(
-  private val okHttpClientHttp3MetricsInterceptor: OkHttp3MetricsInterceptor
+  private val okHttpClientHttp3MetricsInterceptor: OkHttp3MetricsInterceptor,
+  private val retrofit2LogLevel : HttpLoggingInterceptor.Level
 ) : OkHttp3ClientFactory {
   override fun supports(baseUrl: String): Boolean =
     baseUrl.startsWith("http://") || baseUrl.startsWith("https://")
 
   override fun create(baseUrl: String, config: HttpClientConfig): OkHttpClient {
     // TODO(rz): Add plugin ID to the metrics. Requires refactoring existing metrics interceptor.
-    return OkHttp3ClientConfiguration(convertToOkHttp(config), okHttpClientHttp3MetricsInterceptor).createForRetrofit2()
+    return OkHttp3ClientConfiguration(convertToOkHttp(config), okHttpClientHttp3MetricsInterceptor, retrofit2LogLevel)
+      .createForRetrofit2()
       .also {
         if (config.logging.level != LoggingLevel.NONE) {
           it.addInterceptor(
@@ -69,6 +72,8 @@ class DefaultOkHttp3ClientFactory(
       config.connection.readTimeout?.let {
         readTimeoutMs = it.toMillis()
       }
+      refreshableKeys.enabled = false
+
       retryOnConnectionFailure = config.connection.isRetryOnConnectionFailure
 
       if (config.security.keyStorePath != null && config.security.trustStorePath != null) {
