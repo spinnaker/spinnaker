@@ -28,7 +28,7 @@ import retrofit2.http.Path
 interface EchoService {
 
   @POST(".")
-  Call<ResponseBody> recordEvent(@Body Map<String, Object> notification)
+  Call<Void> recordEvent(@Body Map<String, Object> notification)
 
   @GET("events/recent/{type}/{since}/")
   Call<ResponseBody> getEvents(@Path("type") String type, @Path("since") Long since)
