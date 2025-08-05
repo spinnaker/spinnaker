@@ -19,8 +19,6 @@ package com.netflix.spinnaker.orca.echo;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -91,14 +89,10 @@ public class EchoServiceTest {
   public void testEchoService() {
     wmEcho50.stubFor(
         WireMock.post(urlMatching("/")).willReturn(aResponse().withStatus(HttpStatus.OK.value())));
-    // FIXME: Fix the wildcard type in the recordEvent method
-    Throwable thrown =
-        catchThrowable(
-            () -> Retrofit2SyncCall.execute(echoService.recordEvent(Map.of("type", "testEvent"))));
-    assertThat(thrown)
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining(
-            "Parameter type must not include a type variable or wildcard: java.util.Map<java.lang.String, ?> (parameter #1)");
+
+    Retrofit2SyncCall.execute(echoService.recordEvent(Map.of("type", "testEvent")));
+
+    wmEcho50.verify(1, WireMock.postRequestedFor(urlMatching("/")));
   }
 
   @Configuration
