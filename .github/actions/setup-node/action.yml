@@ -8,7 +8,7 @@ inputs:
     required: true
   node-version:
     description: Node version to set up
-    default: 14.21.3
+    default: 20.19.4
 
 runs:
   using: "composite"
