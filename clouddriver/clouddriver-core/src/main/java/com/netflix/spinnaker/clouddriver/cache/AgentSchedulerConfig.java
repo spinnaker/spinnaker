@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import java.net.URI;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -44,6 +45,7 @@ public class AgentSchedulerConfig {
       JedisPool jedisPool,
       AgentIntervalProvider agentIntervalProvider,
       NodeStatusProvider nodeStatusProvider,
+      HealthEndpoint healthEndpoint,
       DynamicConfigService dynamicConfigService,
       ShardingFilter shardingFilter) {
     if (redisConfigurationProperties.getScheduler().equalsIgnoreCase("default")) {
@@ -58,6 +60,7 @@ public class AgentSchedulerConfig {
           new DefaultNodeIdentity(redisHost, redisPort),
           agentIntervalProvider,
           nodeStatusProvider,
+          healthEndpoint,
           redisConfigurationProperties.getAgent().getEnabledPattern(),
           redisConfigurationProperties.getAgent().getAgentLockAcquisitionIntervalSeconds(),
           dynamicConfigService,

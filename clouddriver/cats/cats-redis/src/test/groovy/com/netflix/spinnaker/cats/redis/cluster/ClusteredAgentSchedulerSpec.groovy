@@ -29,6 +29,9 @@ import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import com.netflix.spinnaker.cats.test.TestAgent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import org.springframework.boot.actuate.health.HealthComponent
+import org.springframework.boot.actuate.health.HealthEndpoint
+import org.springframework.boot.actuate.health.Status
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.params.SetParams
@@ -46,10 +49,13 @@ class ClusteredAgentSchedulerSpec extends Specification {
     CachingAgent agent
     ManualRunnableScheduler lockPollingScheduler
     ManualRunnableScheduler agentExecutionScheduler
+    HealthEndpoint healthEndpoint
     AgentExecution exec = Mock(AgentExecution)
     ExecutionInstrumentation inst = Mock(ExecutionInstrumentation)
     DynamicConfigService dcs = Stub(DynamicConfigService) {
       getConfig(Integer, _ as String, 1000) >> 1000
+      getConfig(Boolean, _ as String, false) >> false
+      getConfig(Integer, _ as String, 75) >> 0
     }
 
     def setup() {
@@ -61,11 +67,19 @@ class ClusteredAgentSchedulerSpec extends Specification {
         }
         lockPollingScheduler = new ManualRunnableScheduler()
         agentExecutionScheduler = new ManualRunnableScheduler()
+
+        HealthComponent healthComponent = Stub(HealthComponent)
+        healthComponent.getStatus() >> Status.UP
+
+        healthEndpoint = Stub(HealthEndpoint)
+        healthEndpoint.health() >> healthComponent
+
         scheduler = new ClusteredAgentScheduler(
           new JedisClientDelegate(jedisPool),
           new DefaultNodeIdentity(),
           interval,
           new DefaultNodeStatusProvider(),
+          healthEndpoint,
           lockPollingScheduler,
           agentExecutionScheduler,
           ".*",
@@ -187,6 +201,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
       new DefaultNodeIdentity(),
       interval,
       new DefaultNodeStatusProvider(),
+      healthEndpoint,
       lockPollingScheduler,
       agentExecutionScheduler,
       ".*",
@@ -261,6 +276,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
         new DefaultNodeIdentity(),
         interval,
         new DefaultNodeStatusProvider(),
+        healthEndpoint,
         lockPollingScheduler,
         agentExecutionScheduler,
         ".*",
