@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.fiat.shared.FiatService;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
@@ -66,6 +67,7 @@ class WebhookConfigurationTest {
               UserConfigurations.of(
                   WebhookConfiguration.class,
                   OkHttpClientConfigurationProperties.class,
+                  ProvidedIdRequestFilterConfigurationProperties.class,
                   WebhookTestConfiguration.class));
 
   @BeforeEach

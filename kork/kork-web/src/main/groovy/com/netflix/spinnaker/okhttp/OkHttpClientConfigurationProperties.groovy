@@ -32,6 +32,10 @@ class OkHttpClientConfigurationProperties {
   int maxRequests = 100
   int maxRequestsPerHost = 100
 
+  /**
+   * Whether to propagate headers to outgoing HTTP requests.  If false, no
+   * headers are propagated.  Not X-SPINNAKER-*, not additionalHeaders.
+   */
   boolean propagateSpinnakerHeaders = true
 
   /**
@@ -39,6 +43,13 @@ class OkHttpClientConfigurationProperties {
    * Refer https://github.com/spinnaker/spinnaker/issues/7021 for more details
    */
   boolean skipRetrofit2EncodeCorrection = false
+
+  /**
+   * Headers to propagate from the MDC, in addition to the X-SPINNAKER-*
+   * headers.  Each element whose the value in the MDC is non-empty is included
+   * in outgoing HTTP requests.
+   */
+  List<String> additionalHeaders = []
 
   File keyStore
   String keyStoreType = 'PKCS12'
