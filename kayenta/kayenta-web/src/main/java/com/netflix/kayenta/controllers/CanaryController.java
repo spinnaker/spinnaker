@@ -222,8 +222,7 @@ public class CanaryController {
         executionRepository
             .retrievePipelinesForPipelineConfigId(canaryPipelineConfigId, executionCriteria)
             .toList()
-            .toBlocking()
-            .single();
+            .blockingGet();
 
     return executions.stream().map(executionMapper::fromExecution).collect(Collectors.toList());
   }

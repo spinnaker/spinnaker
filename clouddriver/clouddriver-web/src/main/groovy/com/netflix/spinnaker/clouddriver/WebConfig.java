@@ -24,8 +24,8 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.context.MdcCopyingAsyncTaskExecutor;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
+import jakarta.servlet.Filter;
 import java.util.List;
-import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -40,7 +40,7 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @ComponentScan({
@@ -50,7 +50,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
   "com.netflix.spinnaker.clouddriver.security",
 })
 @EnableConfigurationProperties({CredentialsConfiguration.class, RequestQueueConfiguration.class})
-public class WebConfig extends WebMvcConfigurerAdapter {
+public class WebConfig implements WebMvcConfigurer {
   private final Registry registry;
   private final AsyncTaskExecutor asyncTaskExecutor;
 

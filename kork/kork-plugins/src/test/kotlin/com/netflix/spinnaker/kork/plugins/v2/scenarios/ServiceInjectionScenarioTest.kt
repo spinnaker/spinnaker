@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Bean
 import strikt.api.expectCatching
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * Tests that service beans can inject beans provided by plugins.
