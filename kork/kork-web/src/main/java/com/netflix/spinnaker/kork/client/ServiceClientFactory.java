@@ -57,11 +57,9 @@ public interface ServiceClientFactory {
    *
    * @param type client type
    * @param serviceEndpoint endpoint configuration
-   * @param version the retrofit version
    * @return a client builder
    */
-  public boolean supports(
-      Class<?> type,
-      ServiceEndpoint serviceEndpoint,
-      ServiceClientProvider.RetrofitVersion version);
+  public default boolean supports(Class<?> type, ServiceEndpoint serviceEndpoint) {
+    return true;
+  }
 }

@@ -113,7 +113,6 @@ class FunctionalSpec extends Specification {
     System.setProperty('spring.session.store-type', 'NONE')
     System.setProperty("spring.main.allow-bean-definition-overriding", "true")
     System.setProperty("spring.profiles.active", "test")
-    System.setProperty("retrofit.enabled", "false")
     def spring = new SpringApplication()
     spring.setSources([FunctionalConfiguration, OkHttpClientProvider] as Set)
     ctx = spring.run()
