@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.security;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
+import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -39,7 +41,7 @@ public class GithubRoleProvider extends RoleProvider {
 
   // GitHub App authentication (preferred)
   private String appId;
-  @Secret private String privateKeyPath;
+  @LocalFile @SecretFile private String privateKeyPath;
   private String installationId;
 
   public enum AuthMethod {
