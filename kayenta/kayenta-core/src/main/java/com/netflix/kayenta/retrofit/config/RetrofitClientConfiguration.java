@@ -34,7 +34,7 @@ public class RetrofitClientConfiguration {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   OkHttpClient okHttpClient(OkHttp3ClientConfiguration okHttp3ClientConfig) {
-    return okHttp3ClientConfig.create().build();
+    return okHttp3ClientConfig.createForRetrofit2().build();
   }
 
   @Bean

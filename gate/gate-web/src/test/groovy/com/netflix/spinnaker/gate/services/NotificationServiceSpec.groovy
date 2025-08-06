@@ -37,8 +37,6 @@ import org.springframework.http.ResponseEntity
 import spock.lang.Subject
 import spock.lang.Specification
 
-import static retrofit.Endpoints.newFixedEndpoint
-
 class NotificationServiceSpec extends Specification {
   OkHttpClientProvider clientProvider = Mock()
   OkHttpClient okHttpClient = Mock()
@@ -50,8 +48,8 @@ class NotificationServiceSpec extends Specification {
   @Subject NotificationService notificationService
 
   void setup() {
-    serviceConfiguration.getServiceEndpoint("echo") >> newFixedEndpoint("https://echo")
-    serviceConfiguration.getServiceEndpoint("keel") >> newFixedEndpoint("https://keel")
+    serviceConfiguration.getServiceEndpoint("echo") >> "https://echo"
+    serviceConfiguration.getServiceEndpoint("keel") >> "https://keel"
     clientProvider.getClient(_) >> { DefaultServiceEndpoint serviceEndpoint ->
       serviceEndpoint.name == 'echo'
       serviceEndpoint.baseUrl == 'https://echo'

@@ -68,7 +68,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 /*
  *  @see com.netflix.spinnaker.orca.keel.ImportDeliveryConfigTaskTests.kt already covers up few tests related to @see ImportDeliveryConfigTask.
  * This new java class is Introduced to improvise the API testing with the help of wiremock.
- * Test using wiremock would help in smooth migration to retrofit2.x along with the addition of {@link SpinnakerRetrofitErrorHandler}.
+ * Test using wiremock would help in smooth migration to retrofit2.x.
  * */
 public class ImportDeliveryConfigTaskTest {
 
