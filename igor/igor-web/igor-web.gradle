@@ -43,7 +43,6 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit"
     implementation "com.squareup.retrofit2:converter-jackson"
     implementation "com.squareup.okhttp3:okhttp-sse"
-    implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
     implementation "io.spinnaker.fiat:fiat-api"
     implementation "io.spinnaker.fiat:fiat-core"
     implementation "org.springframework.security:spring-security-core"

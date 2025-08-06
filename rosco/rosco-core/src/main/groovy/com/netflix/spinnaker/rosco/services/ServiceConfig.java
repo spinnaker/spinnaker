@@ -48,7 +48,7 @@ public class ServiceConfig {
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     /*
-     * ErrorHandlingExecutorCallAdapterFactory handles exceptions globally in retrofit2, similar to SpinnakerRetrofitErrorHandler with retrofit.
+     * ErrorHandlingExecutorCallAdapterFactory handles exceptions globally in retrofit2
      * */
     return new Retrofit.Builder()
         .baseUrl(RetrofitUtils.getBaseUrl(clouddriverBaseUrl))
