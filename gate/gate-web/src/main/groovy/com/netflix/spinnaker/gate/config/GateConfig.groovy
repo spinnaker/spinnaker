@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -64,9 +63,6 @@ import org.springframework.http.converter.json.AbstractJackson2HttpMessageConver
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.util.CollectionUtils
 import org.springframework.web.client.RestTemplate
-import retrofit.Endpoint
-
-import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
 @Configuration
@@ -178,7 +174,7 @@ class GateConfig {
 
       List<ServiceSelector> selectors = []
       endpoints.each { sourceApp, url ->
-        def service = buildService("clouddriver",  ClouddriverService, newFixedEndpoint(url))
+        def service = buildService("clouddriver",  ClouddriverService, url)
         selectors << new ByUserOriginSelector(service, 2, ['origin': (Object) sourceApp])
       }
 
@@ -240,7 +236,6 @@ class GateConfig {
       def noSslCustomizationProps = props.clone()
       noSslCustomizationProps.keyStore = null
       noSslCustomizationProps.trustStore = null
-      def okHttpClient = new OkHttp3ClientConfiguration(noSslCustomizationProps, interceptor).create().build()
       createClient "kayenta", KayentaService
     } else {
       createClient "kayenta", KayentaService
@@ -266,18 +261,18 @@ class GateConfig {
       return null
     }
 
-    Endpoint endpoint = serviceConfiguration.getServiceEndpoint(serviceName, dynamicName)
+    String endpoint = serviceConfiguration.getServiceEndpoint(serviceName, dynamicName)
 
     buildService(serviceName, type, endpoint)
   }
 
-  private <T> T buildService(String serviceName, Class<T> type, Endpoint endpoint) {
+  private <T> T buildService(String serviceName, Class<T> type, String endpoint) {
     ObjectMapper objectMapper = objectMapperBuilder.build() as ObjectMapper
     if(serviceName.equals("echo")) {
       objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
       objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, false)
     }
-    serviceClientProvider.getService(type, new DefaultServiceEndpoint(serviceName, endpoint.url), objectMapper)
+    serviceClientProvider.getService(type, new DefaultServiceEndpoint(serviceName, endpoint), objectMapper)
   }
 
   private <T> SelectableService createClientSelector(String serviceName, Class<T> type) {
@@ -292,7 +287,7 @@ class GateConfig {
           buildService(
             serviceName,
             type,
-            newFixedEndpoint(it.baseUrl)),
+            it.baseUrl),
           it.priority,
           it.config)
 

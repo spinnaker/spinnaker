@@ -25,41 +25,8 @@ import okhttp3.Interceptor;
 
 @NonnullByDefault
 public interface ServiceClientProvider {
-
-  /**
-   * An enumeration of the supported retrofit versions.
-   *
-   * <p>The value passed here should match the annotations on the interface Class type passed in to
-   * getService() methods.
-   *
-   * <ul>
-   *   <li>{@link #RETROFIT1} corresponds to retrofit 1.x annotations like {@code retrofit.http.GET}
-   *       and {@code retrofit.http.PUT}.
-   *   <li>{@link #RETROFIT2} corresponds to retrofit 2.x annotations like {@code
-   *       retrofit2.http.GET} and {@code retrofit2.http.PUT}.
-   * </ul>
-   */
-  enum RetrofitVersion {
-    RETROFIT1,
-    RETROFIT2
-  }
-
   /**
    * Returns the concrete retrofit service client
-   *
-   * @param type retrofit interface type
-   * @param serviceEndpoint endpoint definition
-   * @param <T> type of client , usually an interface with all the remote method definitions.
-   * @param version the retrofit version
-   * @return the retrofit interface implementation
-   */
-  public <T> T getService(Class<T> type, ServiceEndpoint serviceEndpoint, RetrofitVersion version);
-
-  /**
-   * Returns the concrete retrofit service client
-   *
-   * <p>This method behaves the same as {@link #getService(Class, ServiceEndpoint, RetrofitVersion)}
-   * but the retrofit version will be inferred from the implementation.
    *
    * @param type retrofit interface type
    * @param serviceEndpoint endpoint definition
@@ -75,25 +42,6 @@ public interface ServiceClientProvider {
    * @param serviceEndpoint endpoint definition
    * @param objectMapper object mapper for conversion
    * @param <T> type of client , usually an interface with all the remote method definitions.
-   * @param version the retrofit version
-   * @return the retrofit interface implementation
-   */
-  public <T> T getService(
-      Class<T> type,
-      ServiceEndpoint serviceEndpoint,
-      ObjectMapper objectMapper,
-      RetrofitVersion version);
-
-  /**
-   * Returns the concrete retrofit service client
-   *
-   * <p>This method behaves the same as {@link #getService(Class, ServiceEndpoint, ObjectMapper,
-   * RetrofitVersion)} but the retrofit version will be inferred from the implementation.
-   *
-   * @param type retrofit interface type
-   * @param serviceEndpoint endpoint definition
-   * @param objectMapper object mapper for conversion
-   * @param <T> type of client , usually an interface with all the remote method definitions.
    * @return the retrofit interface implementation
    */
   public <T> T getService(
@@ -101,27 +49,6 @@ public interface ServiceClientProvider {
 
   /**
    * Returns the concrete retrofit service client
-   *
-   * @param type retrofit interface type
-   * @param serviceEndpoint endpoint definition
-   * @param objectMapper object mapper for conversion
-   * @param interceptors list of interceptors
-   * @param <T> type of client , usually an interface with all the remote method definitions.
-   * @param version the retrofit version
-   * @return the retrofit interface implementation
-   */
-  public <T> T getService(
-      Class<T> type,
-      ServiceEndpoint serviceEndpoint,
-      ObjectMapper objectMapper,
-      List<Interceptor> interceptors,
-      RetrofitVersion version);
-
-  /**
-   * Returns the concrete retrofit service client
-   *
-   * <p>This method behaves the same as {@link #getService(Class, ServiceEndpoint, ObjectMapper,
-   * List, RetrofitVersion)} but the retrofit version will be inferred from the implementation.
    *
    * @param type retrofit interface type
    * @param serviceEndpoint endpoint definition

@@ -108,12 +108,7 @@ public class SpinnakerServerExceptionHandler extends BaseRetrofitExceptionHandle
     }
 
     responseDetails.put("kind", kind);
-
-    // http method may be null if exception is created from RetrofitError
-    // so only include in responseDetails when value is valid
-    if (httpMethod != null) {
-      responseDetails.put("method", httpMethod);
-    }
+    responseDetails.put("method", httpMethod);
 
     // Although Spinnaker*Exception has a retryable property that other parts of
     // spinnaker use, ignore it here because that would retry (most) POST
