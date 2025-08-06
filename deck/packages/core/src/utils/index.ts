@@ -13,6 +13,7 @@ export * from './json/traverseObject';
 export * from './noop';
 export * from './q';
 export * from './renderIfFeature.component';
+export * from './feature';
 export * from './scrollTo/scrollTo.service';
 export * from './timeFormatters';
 export * from './unicodeBase64';
