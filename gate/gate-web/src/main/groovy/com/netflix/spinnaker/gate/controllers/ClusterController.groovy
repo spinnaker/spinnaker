@@ -61,12 +61,12 @@ class ClusterController {
 
   @Operation(summary = "Retrieve a cluster's loadbalancers")
   @RequestMapping(value = "/{account}/{clusterName}/{type}/loadBalancers", method = RequestMethod.GET)
-  List getClusterLoadBalancers(@PathVariable String applicationName,
+  List getClusterLoadBalancers(@PathVariable String application,
                                @PathVariable String account,
                                @PathVariable String clusterName,
                                @PathVariable String type,
                                @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
-    loadBalancerService.getClusterLoadBalancers(applicationName, account, type, clusterName, sourceApp)
+    loadBalancerService.getClusterLoadBalancers(application, account, type, clusterName, sourceApp)
   }
 
   @Operation(summary = "Retrieve a list of server groups for a cluster")
