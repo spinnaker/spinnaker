@@ -35,10 +35,6 @@ import okhttp3.Response;
  * URL encoding for certain characters. This interceptor addresses this by decoding and re-encoding
  * the path segments and query parameters.
  *
- * <p>The behavior of this interceptor can be controlled via the {@code skipEncodingCorrection}
- * flag. When this flag is set to {@code true}, the interceptor will bypass the encoding correction
- * process and simply forward the request as-is.
- *
  * <p>Refer <a
  * href="https://github.com/spinnaker/spinnaker/issues/7021">spinnaker/spinnaker/issues/7021</a> and
  * <a href="https://github.com/square/retrofit/issues/4312">square/retrofit/issues/4312</a> for more
@@ -46,21 +42,8 @@ import okhttp3.Response;
  */
 public class Retrofit2EncodeCorrectionInterceptor implements Interceptor {
 
-  private final boolean skipEncodingCorrection;
-
-  public Retrofit2EncodeCorrectionInterceptor() {
-    this.skipEncodingCorrection = false;
-  }
-
-  public Retrofit2EncodeCorrectionInterceptor(boolean skipEncodingCorrection) {
-    this.skipEncodingCorrection = skipEncodingCorrection;
-  }
-
   @Override
   public Response intercept(Interceptor.Chain chain) throws IOException {
-    if (skipEncodingCorrection) {
-      return chain.proceed(chain.request());
-    }
 
     Request originalRequest = chain.request();
     HttpUrl originalUrl = originalRequest.url();

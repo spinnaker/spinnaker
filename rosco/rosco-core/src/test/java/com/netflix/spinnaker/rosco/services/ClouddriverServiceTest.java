@@ -36,9 +36,7 @@ import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
-import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +45,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import retrofit.RequestInterceptor;
 
 @SpringBootTest(
     classes = {
@@ -60,7 +57,6 @@ import retrofit.RequestInterceptor;
       Retrofit2ConfigurationProperties.class,
       OkHttp3MetricsInterceptor.class,
       RawOkHttpClientFactory.class,
-      RetrofitConfigurationProperties.class,
       OkHttpClientConfigurationProperties.class,
       OkHttpMetricsInterceptorProperties.class,
       ObjectMapper.class,
@@ -103,13 +99,6 @@ public class ClouddriverServiceTest {
     @Bean
     public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
       return new SpinnakerRequestHeaderInterceptor(false);
-    }
-    // SpinnakerRequestInterceptor is not needed for retrofit2 client but due to the way retrofit1
-    // and retrofit2 specific beans are mixed up in kork, this is needed for now. Once the beans
-    // are separated this can be removed
-    @Bean
-    public RequestInterceptor spinnakerRequestInterceptor() {
-      return new SpinnakerRequestInterceptor(false);
     }
   }
 }
