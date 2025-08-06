@@ -27,10 +27,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.OkHttpClientComponents;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientConfiguration;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +44,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import retrofit2.Call;
 import retrofit2.Retrofit;
@@ -52,11 +56,13 @@ import retrofit2.http.Query;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
     classes = {
-      OkHttpClient.class,
-      OkHttpClientConfigurationProperties.class,
+      OkHttpClientComponents.class,
+      RawOkHttpClientConfiguration.class,
       OkHttpClientProvider.class,
       DefaultOkHttpClientBuilderProvider.class,
-      Retrofit2EncodeCorrectionInterceptor.class
+      Retrofit2EncodeCorrectionInterceptor.class,
+      TaskExecutorBuilder.class,
+      NoopRegistry.class
     })
 public class Retrofit2EncodeCorrectionInterceptorTest {
 
@@ -99,7 +105,8 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
   @Test
   public void testWithoutEncodingCorrection() throws IOException {
     OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, true /* skipEncodeCorrection */);
+        removeEncodeCorrectionInterceptor(okHttpClientProvider.getClient(endpoint));
+
     Retrofit2Service service = getRetrofit2Service(endpoint.getBaseUrl(), okHttpClient);
     service.getRequest(PATH_VAL, QUERY_PARAM1, QUERY_PARAM2, QUERY_PARAM3).execute();
     LoggedRequest requestReceived = wireMock.getAllServeEvents().get(0).getRequest();
@@ -124,8 +131,7 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Test
   public void testWithEncodingCorrection() throws IOException {
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     Retrofit2Service service = getRetrofit2Service(endpoint.getBaseUrl(), okHttpClient);
     service.getRequest(PATH_VAL, QUERY_PARAM1, QUERY_PARAM2, QUERY_PARAM3).execute();
     wireMock.verify(getRequestedFor(urlEqualTo(EXPECTED_URL)));
@@ -168,8 +174,7 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
         get(expectedUrl)
             .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
 
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     QueryParamTestService service =
         new Retrofit.Builder()
             .baseUrl(endpoint.getBaseUrl())
@@ -215,8 +220,7 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
         get(expectedUrl)
             .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
 
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     QueryParamTestService service =
         new Retrofit.Builder()
             .baseUrl(endpoint.getBaseUrl())
@@ -257,6 +261,17 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
     params[1] = url.substring(url.indexOf("qry2=") + 5, url.indexOf("&qry3="));
     params[2] = url.substring(url.indexOf("qry3=") + 5);
     return params;
+  }
+
+  private OkHttpClient removeEncodeCorrectionInterceptor(OkHttpClient okHttpClient) {
+    OkHttpClient.Builder builder = okHttpClient.newBuilder();
+    builder.interceptors().clear();
+
+    okHttpClient.interceptors().stream()
+        .filter(interceptor -> !(interceptor instanceof Retrofit2EncodeCorrectionInterceptor))
+        .forEach(builder::addInterceptor);
+
+    return builder.build();
   }
 
   interface Retrofit2Service {

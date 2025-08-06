@@ -93,7 +93,7 @@ final class ArtifactDownloaderImplTest {
 
   @Test
   public void artifactNotFound() throws IOException {
-    // When clouddriver responds with a 404, SpinnakerRetrofitErrorHandler
+    // When clouddriver responds with a 404, ErrorHandlingExecutorCallAdapterFactory
     // generates a SpinnakerHttpException, so test that case.
     ArtifactDownloaderImpl artifactDownloader = new ArtifactDownloaderImpl(clouddriverService);
     SpinnakerHttpException spinnakerHttpException = makeSpinnakerHttpException(404);
