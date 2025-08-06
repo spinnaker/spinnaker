@@ -1,12 +1,26 @@
+/*
+ * Copyright 2025 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.spinnaker.fiat.roles.github.client;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
-import okhttp3.Interceptor;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,16 +31,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class GitHubAppRequestInterceptorTest {
 
   @Mock private GitHubAppAuthService mockAuthService;
-  @Mock private Interceptor.Chain mockChain;
-  @Mock private Request mockRequest;
-  @Mock private Request.Builder mockRequestBuilder;
-  @Mock private Response mockResponse;
 
   private GitHubAppRequestInterceptor interceptor;
+  private Request testRequest;
 
   @BeforeEach
   void setUp() {
     interceptor = new GitHubAppRequestInterceptor(mockAuthService);
+    testRequest = new Request.Builder().url("https://api.github.com/test").build();
   }
 
   @Test
@@ -34,22 +46,19 @@ class GitHubAppRequestInterceptorTest {
     // Given
     String testToken = "ghs_test_installation_token";
     when(mockAuthService.getInstallationToken()).thenReturn(testToken);
-    when(mockChain.request()).thenReturn(mockRequest);
-    when(mockRequest.newBuilder()).thenReturn(mockRequestBuilder);
-    when(mockRequestBuilder.addHeader(anyString(), anyString())).thenReturn(mockRequestBuilder);
-    when(mockRequestBuilder.build()).thenReturn(mockRequest);
-    when(mockChain.proceed(mockRequest)).thenReturn(mockResponse);
+
+    TestChain chain = new TestChain(testRequest);
 
     // When
-    Response response = interceptor.intercept(mockChain);
+    interceptor.intercept(chain);
 
     // Then
-    assertEquals(mockResponse, response);
+    Request modifiedRequest = chain.getCapturedRequest();
+    assertNotNull(modifiedRequest);
+    assertEquals("Bearer " + testToken, modifiedRequest.header("Authorization"));
+    assertEquals("application/vnd.github.v3+json", modifiedRequest.header("Accept"));
+    assertEquals("Spinnaker-Fiat", modifiedRequest.header("User-Agent"));
     verify(mockAuthService).getInstallationToken();
-    verify(mockRequestBuilder).addHeader("Authorization", "Bearer " + testToken);
-    verify(mockRequestBuilder).addHeader("Accept", "application/vnd.github.v3+json");
-    verify(mockRequestBuilder).addHeader("User-Agent", "Spinnaker-Fiat");
-    verify(mockChain).proceed(mockRequest);
   }
 
   @Test
@@ -57,20 +66,21 @@ class GitHubAppRequestInterceptorTest {
     // Given
     IOException authException = new IOException("Failed to get installation token");
     when(mockAuthService.getInstallationToken()).thenThrow(authException);
-    when(mockChain.request()).thenReturn(mockRequest);
+
+    TestChain chain = new TestChain(testRequest);
 
     // When & Then
     IOException exception =
         assertThrows(
             IOException.class,
             () -> {
-              interceptor.intercept(mockChain);
+              interceptor.intercept(chain);
             });
 
     assertEquals("GitHub App authentication failed", exception.getMessage());
     assertEquals(authException, exception.getCause());
     verify(mockAuthService).getInstallationToken();
-    verify(mockChain, never()).proceed(any());
+    assertFalse(chain.wasProceededCalled());
   }
 
   @Test
@@ -78,20 +88,21 @@ class GitHubAppRequestInterceptorTest {
     // Given
     RuntimeException authException = new RuntimeException("Configuration error");
     when(mockAuthService.getInstallationToken()).thenThrow(authException);
-    when(mockChain.request()).thenReturn(mockRequest);
+
+    TestChain chain = new TestChain(testRequest);
 
     // When & Then
     IOException exception =
         assertThrows(
             IOException.class,
             () -> {
-              interceptor.intercept(mockChain);
+              interceptor.intercept(chain);
             });
 
     assertEquals("GitHub App authentication failed", exception.getMessage());
     assertEquals(authException, exception.getCause());
     verify(mockAuthService).getInstallationToken();
-    verify(mockChain, never()).proceed(any());
+    assertFalse(chain.wasProceededCalled());
   }
 
   @Test
@@ -99,24 +110,20 @@ class GitHubAppRequestInterceptorTest {
     // Given
     String testToken = "ghs_another_token";
     when(mockAuthService.getInstallationToken()).thenReturn(testToken);
-    when(mockChain.request()).thenReturn(mockRequest);
-    when(mockRequest.newBuilder()).thenReturn(mockRequestBuilder);
-    when(mockRequestBuilder.addHeader(anyString(), anyString())).thenReturn(mockRequestBuilder);
-    when(mockRequestBuilder.build()).thenReturn(mockRequest);
-    when(mockChain.proceed(mockRequest)).thenReturn(mockResponse);
+
+    TestChain chain = new TestChain(testRequest);
 
     // When
-    Response response = interceptor.intercept(mockChain);
+    interceptor.intercept(chain);
 
     // Then
-    assertEquals(mockResponse, response);
+    Request modifiedRequest = chain.getCapturedRequest();
+    assertTrue(chain.wasProceededCalled());
 
     // Verify the request was modified with all required headers
-    verify(mockRequestBuilder).addHeader("Authorization", "Bearer " + testToken);
-    verify(mockRequestBuilder).addHeader("Accept", "application/vnd.github.v3+json");
-    verify(mockRequestBuilder).addHeader("User-Agent", "Spinnaker-Fiat");
-    verify(mockRequestBuilder).build();
-    verify(mockChain).proceed(mockRequest);
+    assertEquals("Bearer " + testToken, modifiedRequest.header("Authorization"));
+    assertEquals("application/vnd.github.v3+json", modifiedRequest.header("Accept"));
+    assertEquals("Spinnaker-Fiat", modifiedRequest.header("User-Agent"));
   }
 
   @Test
@@ -124,16 +131,91 @@ class GitHubAppRequestInterceptorTest {
     // Given
     String testToken = "ghs_single_call_token";
     when(mockAuthService.getInstallationToken()).thenReturn(testToken);
-    when(mockChain.request()).thenReturn(mockRequest);
-    when(mockRequest.newBuilder()).thenReturn(mockRequestBuilder);
-    when(mockRequestBuilder.addHeader(anyString(), anyString())).thenReturn(mockRequestBuilder);
-    when(mockRequestBuilder.build()).thenReturn(mockRequest);
-    when(mockChain.proceed(mockRequest)).thenReturn(mockResponse);
+
+    TestChain chain = new TestChain(testRequest);
 
     // When
-    interceptor.intercept(mockChain);
+    interceptor.intercept(chain);
 
     // Then
     verify(mockAuthService, times(1)).getInstallationToken();
+  }
+
+  /** Test helper class to capture intercepted requests without mocking final classes */
+  private static class TestChain implements Interceptor.Chain {
+    private final Request originalRequest;
+    private Request capturedRequest;
+    private boolean proceededCalled = false;
+
+    TestChain(Request request) {
+      this.originalRequest = request;
+    }
+
+    @Override
+    public Request request() {
+      return originalRequest;
+    }
+
+    @Override
+    public Response proceed(Request request) {
+      this.capturedRequest = request;
+      this.proceededCalled = true;
+      // Return a minimal response
+      return new Response.Builder()
+          .request(request)
+          .protocol(Protocol.HTTP_1_1)
+          .code(200)
+          .message("OK")
+          .body(ResponseBody.create("", MediaType.get("application/json")))
+          .build();
+    }
+
+    @Override
+    public Connection connection() {
+      return null;
+    }
+
+    @Override
+    public Call call() {
+      return null;
+    }
+
+    @Override
+    public int connectTimeoutMillis() {
+      return 0;
+    }
+
+    @Override
+    public Interceptor.Chain withConnectTimeout(int timeout, java.util.concurrent.TimeUnit unit) {
+      return this;
+    }
+
+    @Override
+    public int readTimeoutMillis() {
+      return 0;
+    }
+
+    @Override
+    public Interceptor.Chain withReadTimeout(int timeout, java.util.concurrent.TimeUnit unit) {
+      return this;
+    }
+
+    @Override
+    public int writeTimeoutMillis() {
+      return 0;
+    }
+
+    @Override
+    public Interceptor.Chain withWriteTimeout(int timeout, java.util.concurrent.TimeUnit unit) {
+      return this;
+    }
+
+    Request getCapturedRequest() {
+      return capturedRequest;
+    }
+
+    boolean wasProceededCalled() {
+      return proceededCalled;
+    }
   }
 }

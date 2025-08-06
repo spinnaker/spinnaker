@@ -22,7 +22,11 @@ public class GitHubProperties {
   // Authentication method control
   private AuthMethod authMethod = AuthMethod.AUTO;
 
-  // Personal Access Token authentication (legacy)
+  /**
+   * Personal Access Token authentication (legacy). Not required if GitHub App authentication is
+   * configured. Validation is performed in validateAuthConfiguration() to allow for flexible auth
+   * configuration.
+   */
   private String accessToken;
 
   // GitHub App authentication (preferred)
