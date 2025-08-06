@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.web.config
 
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.SerializerHookRegistry
 import groovy.util.logging.Slf4j
 
 import javax.servlet.Filter
