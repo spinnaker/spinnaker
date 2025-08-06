@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @SpringBootTest(classes = Main)
 @ActiveProfiles('alloworigincors')
-@TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml", "retrofit.enabled=true"])
+@TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml"])
 class GateCorsAllowedOriginConfigSpec extends Specification {
 
   @Autowired

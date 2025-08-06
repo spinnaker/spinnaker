@@ -1,9 +1,6 @@
 redis:
   connection: redis://localhost:${redis.port}
 
-#retrofit:
-#  logLevel: FULL
-
 kayenta:
   atlas:
     enabled: false

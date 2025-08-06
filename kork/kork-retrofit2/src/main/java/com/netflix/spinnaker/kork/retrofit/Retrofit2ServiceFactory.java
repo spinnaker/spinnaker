@@ -22,7 +22,6 @@ import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.client.ServiceClientFactory;
-import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.util.List;
 import okhttp3.Interceptor;
@@ -59,13 +58,5 @@ public class Retrofit2ServiceFactory implements ServiceClientFactory {
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(type);
-  }
-
-  @Override
-  public boolean supports(
-      Class<?> type,
-      ServiceEndpoint serviceEndpoint,
-      ServiceClientProvider.RetrofitVersion version) {
-    return version.equals(ServiceClientProvider.RetrofitVersion.RETROFIT2);
   }
 }
