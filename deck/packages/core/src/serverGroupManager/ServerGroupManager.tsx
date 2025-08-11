@@ -25,6 +25,7 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
       region: serverGroups[0].region,
       provider: serverGroups[0].cloudProvider,
       serverGroupManager: manager,
+      name: manager,
     };
     return ReactInjector.$state.includes('**.serverGroupManager', params);
   };
@@ -42,6 +43,7 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
       region: serverGroups[0].region,
       provider: serverGroups[0].cloudProvider,
       serverGroupManager: manager,
+      name: manager,
     });
   };
 
