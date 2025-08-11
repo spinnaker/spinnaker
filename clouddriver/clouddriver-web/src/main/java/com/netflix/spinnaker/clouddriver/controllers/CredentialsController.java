@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -80,6 +81,18 @@ public class CredentialsController {
       throw new NotFoundException(String.format("Account does not exist (name: %s)", accountName));
     }
     return accountDetail;
+  }
+
+  /**
+   * Return account details only when the caller has write permissions for the account
+   *
+   * @param accountName the account name for which to retrieve details
+   * @return a map of account details
+   */
+  @GetMapping("/{accountName}/authorized")
+  @PreAuthorize("hasPermission(#accountName, 'ACCOUNT', 'WRITE')")
+  public Map<String, Object> getAccountCredentialsWithAuth(@PathVariable String accountName) {
+    return getAccountCredentialsDetails(accountName);
   }
 
   @CheckForNull

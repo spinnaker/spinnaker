@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.docker.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.exceptions.DockerRegistryAuthenticationException;
 import com.netflix.spinnaker.kork.docker.exceptions.DockerRegistryOperationException;
@@ -594,7 +593,7 @@ public class DockerRegistryClient {
       log.info("Using catalog list at {}", catalogFile);
       try {
         String userDefinedCatalog = new String(Files.readAllBytes(new File(catalogFile).toPath()));
-        return new Gson().fromJson(userDefinedCatalog, DockerRegistryCatalog.class);
+        return getObjectMapper().readValue(userDefinedCatalog, DockerRegistryCatalog.class);
       } catch (Exception e) {
         throw new DockerRegistryOperationException(
             "Unable to read catalog file " + catalogFile + ": " + e.getMessage(), e);
@@ -720,13 +719,13 @@ public class DockerRegistryClient {
       }
       Object v1CompatibilityObj = ((java.util.List<?>) historyObj).get(0);
       if (!(v1CompatibilityObj instanceof Map)) {
-        v1CompatibilityObj = new Gson().fromJson(v1CompatibilityObj.toString(), Map.class);
+        v1CompatibilityObj = getObjectMapper().readValue(v1CompatibilityObj.toString(), Map.class);
       }
       String v1CompatibilityJson =
           ((Map<?, ?>) v1CompatibilityObj).get("v1Compatibility").toString();
 
       // Parse v1Compatibility JSON for 'created' field
-      Map<?, ?> v1CompatibilityMap = new Gson().fromJson(v1CompatibilityJson, Map.class);
+      Map<?, ?> v1CompatibilityMap = getObjectMapper().readValue(v1CompatibilityJson, Map.class);
       String created = (String) v1CompatibilityMap.get("created");
       Instant dateCreated = Instant.parse(created);
 

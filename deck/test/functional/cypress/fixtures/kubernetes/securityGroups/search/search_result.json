@@ -1,0 +1,19 @@
+[{
+  "totalMatches": 1,
+  "pageNumber": 1,
+  "pageSize": 500,
+  "platform": "kubernetes",
+  "query": "kubernetesapp",
+  "results": [{
+    "provider": "kubernetes",
+    "kubernetesKind": "networkPolicy",
+    "account": "k8s-local",
+    "namespace": "dev",
+    "name": "networkPolicy backend-security-policy",
+    "group": "networkPolicy",
+    "region": "dev",
+    "id": "networkPolicy backend-security-policy",
+    "type": "securityGroups",
+    "application": "kubernetesapp"
+  }]
+}]

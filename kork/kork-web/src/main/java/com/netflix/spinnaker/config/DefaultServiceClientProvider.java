@@ -44,29 +44,13 @@ public class DefaultServiceClientProvider implements ServiceClientProvider {
 
   @Override
   public <T> T getService(Class<T> type, ServiceEndpoint serviceEndpoint) {
-    return getService(type, serviceEndpoint, RetrofitVersion.RETROFIT2);
-  }
-
-  @Override
-  public <T> T getService(Class<T> type, ServiceEndpoint serviceEndpoint, RetrofitVersion version) {
-    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint, version);
-    return serviceClientFactory.create(type, serviceEndpoint, objectMapper);
+    return getService(type, serviceEndpoint, objectMapper);
   }
 
   @Override
   public <T> T getService(
       Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper) {
-    return getService(type, serviceEndpoint, objectMapper, RetrofitVersion.RETROFIT2);
-  }
-
-  @Override
-  public <T> T getService(
-      Class<T> type,
-      ServiceEndpoint serviceEndpoint,
-      ObjectMapper objectMapper,
-      RetrofitVersion version) {
-    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint, version);
-    return serviceClientFactory.create(type, serviceEndpoint, objectMapper);
+    return getService(type, serviceEndpoint, objectMapper, List.of());
   }
 
   @Override
@@ -75,24 +59,13 @@ public class DefaultServiceClientProvider implements ServiceClientProvider {
       ServiceEndpoint serviceEndpoint,
       ObjectMapper objectMapper,
       List<Interceptor> interceptors) {
-    return getService(type, serviceEndpoint, objectMapper, interceptors, RetrofitVersion.RETROFIT2);
-  }
-
-  @Override
-  public <T> T getService(
-      Class<T> type,
-      ServiceEndpoint serviceEndpoint,
-      ObjectMapper objectMapper,
-      List<Interceptor> interceptors,
-      RetrofitVersion version) {
-    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint, version);
+    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint);
     return serviceClientFactory.create(type, serviceEndpoint, objectMapper, interceptors);
   }
 
-  private ServiceClientFactory findProvider(
-      Class<?> type, ServiceEndpoint service, RetrofitVersion version) {
+  private ServiceClientFactory findProvider(Class<?> type, ServiceEndpoint service) {
     return serviceClientFactories.stream()
-        .filter(provider -> provider.supports(type, service, version))
+        .filter(provider -> provider.supports(type, service))
         .findFirst()
         .orElseThrow(
             () ->

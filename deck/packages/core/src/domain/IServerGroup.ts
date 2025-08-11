@@ -16,6 +16,7 @@ export interface IAsg {
 }
 
 export interface IServerGroup extends IManagedResource {
+  [key: string]: any;
   account: string;
   app?: string;
   asg?: IAsg;

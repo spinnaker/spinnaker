@@ -1,6 +1,7 @@
 import type {
   IInstance,
   ILoadBalancer,
+  IManifest,
   IMoniker,
   ISecurityGroupDetail,
   IServerGroup,
@@ -30,6 +31,10 @@ export interface IKubernetesSecurityGroup extends ISecurityGroupDetail, IKuberne
 
 export interface IKubernetesServerGroup extends IServerGroup, IKubernetesResource {
   disabled: boolean;
+}
+
+export interface IKubernetesServerGroupView extends IKubernetesServerGroup {
+  manifest: IManifest;
 }
 
 export interface IKubernetesServerGroupManager extends IServerGroupManager, IKubernetesResource {}

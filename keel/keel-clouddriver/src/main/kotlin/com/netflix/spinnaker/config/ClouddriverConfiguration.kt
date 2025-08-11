@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import java.util.concurrent.Executors
 
 @Configuration
 @ConditionalOnProperty("clouddriver.enabled")
@@ -58,7 +58,7 @@ class ClouddriverConfiguration {
         .addConverterFactory(InstrumentedJacksonConverter.Factory("CloudDriver", objectMapper))
         .baseUrl(RetrofitUtils.getBaseUrl(clouddriverEndpoint.toString()))
         .client(clientProvider.getClient(DefaultServiceEndpoint("clouddriver", clouddriverEndpoint.toString())))
-        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance(Executors.newCachedThreadPool()))
         .build()
         .create(CloudDriverService::class.java)
 
