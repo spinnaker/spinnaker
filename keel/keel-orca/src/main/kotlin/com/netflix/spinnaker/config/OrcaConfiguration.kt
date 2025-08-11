@@ -31,7 +31,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
+import java.util.concurrent.Executors
 
 @Configuration
 @ConditionalOnProperty("orca.enabled")
@@ -55,7 +55,7 @@ class OrcaConfiguration {
         .baseUrl(RetrofitUtils.getBaseUrl(orcaEndpoint.toString()))
         .client(clientProvider.getClient(DefaultServiceEndpoint("orca", orcaEndpoint.toString())))
         .addConverterFactory(InstrumentedJacksonConverter.Factory("Orca", objectMapper))
-        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance(Executors.newCachedThreadPool()))
         .build()
         .create(OrcaService::class.java)
     )
