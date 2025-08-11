@@ -20,10 +20,11 @@ import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
 /**
@@ -33,13 +34,13 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 @ConditionalOnProperty("header.enabled")
 @SpinnakerAuthConfig
 @EnableWebSecurity
-public class HeaderAuthConfigurerAdapter extends WebSecurityConfigurerAdapter {
+public class HeaderAuthConfigurerAdapter {
   @Autowired AuthConfig authConfig;
 
   @Autowired RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
+  @Bean
+  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     authConfig.configure(http);
     http.addFilter(requestHeaderAuthenticationFilter);
 
@@ -56,5 +57,6 @@ public class HeaderAuthConfigurerAdapter extends WebSecurityConfigurerAdapter {
     // invalidates the cache for the user.
     http.sessionManagement(
         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+    return http.build();
   }
 }
