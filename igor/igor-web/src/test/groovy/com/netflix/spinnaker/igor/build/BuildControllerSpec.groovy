@@ -21,11 +21,7 @@ import com.netflix.spinnaker.igor.PendingOperationsCache
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.UpdatedBuild
 import com.netflix.spinnaker.igor.config.JenkinsConfig
-import com.netflix.spinnaker.igor.jenkins.client.model.Build
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
-import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
-import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
-import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
+import com.netflix.spinnaker.igor.jenkins.client.model.*
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
@@ -34,32 +30,25 @@ import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import okhttp3.Protocol
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.mockwebserver.MockWebServer
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import spock.lang.Shared
-import retrofit.client.Header
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.igor.build.BuildController.InvalidJobParameterException
 import static com.netflix.spinnaker.igor.build.BuildController.validateJobParameters
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-
 /**
  * Tests for BuildController
  */
