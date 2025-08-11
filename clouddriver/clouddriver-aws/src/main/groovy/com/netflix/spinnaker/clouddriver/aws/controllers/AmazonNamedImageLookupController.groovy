@@ -19,10 +19,13 @@ package com.netflix.spinnaker.clouddriver.aws.controllers
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Sets
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.Immutable
@@ -43,7 +46,8 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NA
 @RequestMapping("/aws/images")
 class AmazonNamedImageLookupController {
   // TODO-AJ This will be replaced with an appropriate v2 API allowing a user-supplied limit and indication of totalNumberOfResults vs. returnedResults
-  private static final int MAX_SEARCH_RESULTS = 1000
+  @VisibleForTesting
+  public static final int MAX_SEARCH_RESULTS = 1000
 
   private static final int MIN_NAME_FILTER = 3
   private static final String EXCEPTION_REASON = 'Minimum of ' + MIN_NAME_FILTER + ' characters required to filter namedImages'
@@ -52,9 +56,16 @@ class AmazonNamedImageLookupController {
 
   private final Cache cacheView
 
+  private final Registry registry
+
+  private final Counter discardedImagesCounter;
+
   @Autowired
-  AmazonNamedImageLookupController(Cache cacheView) {
+  AmazonNamedImageLookupController(Cache cacheView,
+                                   Registry registry) {
     this.cacheView = cacheView
+    this.registry = registry
+    this.discardedImagesCounter = registry.counter("aws.discardedImages")
   }
 
   @RequestMapping(value = '/{account}/{region}/{imageId:.+}', method = RequestMethod.GET)
@@ -95,6 +106,11 @@ class AmazonNamedImageLookupController {
 
     List<NamedImage> allFilteredImages = render(matchesByName, matchesByImageId, tagFilters, lookupOptions.q, lookupOptions.region)
 
+    if (MAX_SEARCH_RESULTS < allFilteredImages.size()) {
+      int discardedImages = allFilteredImages.size() - MAX_SEARCH_RESULTS
+      log.warn("discarding {} image(s)", discardedImages)
+      discardedImagesCounter.add(discardedImages)
+    }
     return allFilteredImages.subList(0, Math.min(MAX_SEARCH_RESULTS, allFilteredImages.size()))
   }
 
