@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.artifacts;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.*;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -31,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ArtifactMatcher {
 
-  private static final Gson gson = new Gson();
+  private static final ObjectMapper mapper = new ObjectMapper();
   private static final Configuration conf =
       Configuration.defaultConfiguration().setOptions(Option.SUPPRESS_EXCEPTIONS);
 
@@ -108,7 +109,12 @@ public class ArtifactMatcher {
    *     represented in the payload.
    */
   public static boolean isJsonPathConstraintInPayload(final Map constraints, final Map payload) {
-    String json = gson.toJson(payload);
+    String json;
+    try {
+      json = mapper.writeValueAsString(payload);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
     DocumentContext documentContext = JsonPath.using(conf).parse(json);
 
     for (Object key : constraints.keySet()) {

@@ -97,7 +97,7 @@ private open class TestConfiguration {
 
   @Bean
   open fun okHttpClientProvider(okHttpClient: OkHttpClient): OkHttpClientProvider {
-    return OkHttpClientProvider(listOf(DefaultOkHttpClientBuilderProvider(okHttpClient,  OkHttpClientConfigurationProperties())), Retrofit2EncodeCorrectionInterceptor())
+    return OkHttpClientProvider(listOf(DefaultOkHttpClientBuilderProvider(okHttpClient,  OkHttpClientConfigurationProperties())))
   }
 
   @Bean

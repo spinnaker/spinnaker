@@ -30,15 +30,15 @@ public interface KatoRestService {
 
   @POST("{cloudProvider}/ops")
   Call<TaskId> requestOperations(
-      @Query("clientRequestId") String clientRequestId,
       @Path("cloudProvider") String cloudProvider,
+      @Query("clientRequestId") String clientRequestId,
       @Body Collection<Map<String, Map>> operations);
 
   @POST("{cloudProvider}/ops/{operationName}")
   Call<ResponseBody> submitOperation(
-      @Query("clientRequestId") String clientRequestId,
       @Path("cloudProvider") String cloudProvider,
       @Path("operationName") String operationName,
+      @Query("clientRequestId") String clientRequestId,
       @Body OperationContext operation);
 
   @PATCH("{cloudProvider}/task/{id}")

@@ -39,7 +39,7 @@ class Ok3HttpClientRegistry(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val internalServicesClient = okHttp3ClientConfiguration.create().build()
+  private val internalServicesClient = okHttp3ClientConfiguration.createForRetrofit2().build()
   internal val okClients: MutableMap<HttpClientConfig, OkHttpClient> = ConcurrentHashMap()
   internal val clients: MutableMap<String, Ok3HttpClient> = ConcurrentHashMap()
 

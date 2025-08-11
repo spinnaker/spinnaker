@@ -1,0 +1,2204 @@
+{
+  "type": "PIPELINE",
+  "id": "01JSDR9Q2VBK2PTRZWKG0F5452",
+  "application": "kubernetesapp",
+  "name": "bake_and_deploy_manifest",
+  "buildTime": 1745292156035,
+  "canceled": false,
+  "limitConcurrent": true,
+  "maxConcurrentExecutions": 0,
+  "keepWaitingPipelines": false,
+  "stages": [
+    {
+      "id": "01JSDR9Q4349JK2KW1DYG4MJWQ",
+      "refId": "1",
+      "type": "deleteManifest",
+      "name": "Delete (Manifest)",
+      "startTime": 1745292156154,
+      "endTime": 1745292156926,
+      "status": "SUCCEEDED",
+      "context": {
+        "app": "kubernetesapp",
+        "deploy.account.name": "k8s-local",
+        "outputs.createdArtifacts": [],
+        "manifestName": "service dev-p01-nginx",
+        "kato.task.terminalRetryCount": 0,
+        "kato.task.firstNotFoundRetry": -1,
+        "mode": "static",
+        "outputs.manifestNamesByNamespace": {
+          "spinnaker-dev": [
+            "service dev-p01-nginx"
+          ]
+        },
+        "outputs.boundArtifacts": [],
+        "cloudProvider": "kubernetes",
+        "kato.result.expected": true,
+        "options": {
+          "cascading": true
+        },
+        "failureMessages": [],
+        "deploy.server.groups": {},
+        "location": "spinnaker-dev",
+        "kato.tasks": [
+          {
+            "outputs": [],
+            "resultObjects": [
+              {
+                "createdArtifacts": [],
+                "manifests": [],
+                "failureMessages": [],
+                "manifestNamesByNamespace": {
+                  "spinnaker-dev": [
+                    "service dev-p01-nginx"
+                  ]
+                },
+                "boundArtifacts": []
+              }
+            ],
+            "id": "01JSDR9QJ8WJJ259GGFZJ7ZXG1",
+            "history": [
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Initializing Orchestration Task"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Processing op: KubernetesDeleteManifestOperation"
+              },
+              {
+                "phase": "DELETE_KUBERNETES_MANIFEST",
+                "status": "Starting delete operation in account k8s-local..."
+              },
+              {
+                "phase": "DELETE_KUBERNETES_MANIFEST",
+                "status": "Looking up resource properties for service..."
+              },
+              {
+                "phase": "DELETE_KUBERNETES_MANIFEST",
+                "status": "Calling delete operation for resourceKubernetesCoordinates(kind=service, namespace=spinnaker-dev, name=dev-p01-nginx)..."
+              },
+              {
+                "phase": "DELETE_KUBERNETES_MANIFEST",
+                "status": " delete operation completed successfully for dev-p01-nginx"
+              },
+              {
+                "phase": "DELETE_KUBERNETES_MANIFEST",
+                "status": " delete operation completed successfully for all applicable resources"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              }
+            ],
+            "status": {
+              "retryable": false,
+              "completed": true,
+              "failed": false
+            }
+          }
+        ],
+        "outputs.manifests": [],
+        "kato.last.task.id": {
+          "id": "01JSDR9QJ8WJJ259GGFZJ7ZXG1"
+        },
+        "kato.task.notFoundRetryCount": 0,
+        "account": "k8s-local",
+        "kato.task.lastStatus": "SUCCEEDED",
+        "artifacts": []
+      },
+      "outputs": {
+        "outputs.createdArtifacts": [],
+        "outputs.manifestNamesByNamespace": {
+          "spinnaker-dev": [
+            "service dev-p01-nginx"
+          ]
+        },
+        "outputs.boundArtifacts": [],
+        "outputs.manifests": [],
+        "artifacts": []
+      },
+      "tasks": [
+        {
+          "id": "1",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveTargetManifestTask",
+          "name": "resolveTargetManifest",
+          "startTime": 1745292156216,
+          "endTime": 1745292156337,
+          "status": "SUCCEEDED",
+          "stageStart": true,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "2",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeleteManifestTask",
+          "name": "deleteManifest",
+          "startTime": 1745292156396,
+          "endTime": 1745292156515,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "3",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+          "name": "monitorDelete",
+          "startTime": 1745292156570,
+          "endTime": 1745292156687,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "4",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask",
+          "name": "promoteOutputs",
+          "startTime": 1745292156745,
+          "endTime": 1745292156863,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": true,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        }
+      ],
+      "requisiteStageRefIds": []
+    },
+    {
+      "id": "01JSDR9Q43TWDBZAZH1WA4FPWP",
+      "refId": "2",
+      "type": "bakeManifest",
+      "name": "Bake (Manifest)",
+      "startTime": 1745292156982,
+      "endTime": 1745292158913,
+      "status": "SUCCEEDED",
+      "context": {
+        "expectedArtifacts": [
+          {
+            "usePriorArtifact": false,
+            "displayName": "baked manifest",
+            "useDefaultArtifact": false,
+            "defaultArtifact": {
+              "customKind": true,
+              "id": "75d4bd7b-d49e-451d-a354-74aab195366f"
+            },
+            "id": "504af956-b5e0-4f76-95dc-2de45af4c26e",
+            "matchArtifact": {
+              "customKind": false,
+              "name": "nginx",
+              "artifactAccount": "embedded-artifact",
+              "id": "55f282d1-e3c6-4655-b25d-d07ae735473f",
+              "type": "embedded/base64"
+            }
+          }
+        ],
+        "outputName": "nginx",
+        "cloudProvider": "kubernetes",
+        "resolvedExpectedArtifacts": [
+          {
+            "usePriorArtifact": false,
+            "useDefaultArtifact": false,
+            "defaultArtifact": {
+              "customKind": true,
+              "metadata": {
+                "id": "75d4bd7b-d49e-451d-a354-74aab195366f"
+              }
+            },
+            "id": "504af956-b5e0-4f76-95dc-2de45af4c26e",
+            "boundArtifact": {
+              "customKind": false,
+              "reference": "ref://kubernetesapp/b323f5f973e9393855b3af136a9989677d2ea51e64d871f4b50d66a1a92adc7c",
+              "metadata": {},
+              "name": "nginx",
+              "type": "remote/base64"
+            },
+            "matchArtifact": {
+              "customKind": false,
+              "metadata": {
+                "id": "55f282d1-e3c6-4655-b25d-d07ae735473f"
+              },
+              "name": "nginx",
+              "artifactAccount": "embedded-artifact",
+              "type": "embedded/base64"
+            }
+          }
+        ],
+        "namespace": "spinnaker-dev",
+        "templateRenderer": "HELM2",
+        "overrides": {
+          "environment": "dev",
+          "nameOverride": "nginx",
+          "namespace": "spinnaker-dev",
+          "image.repository": "index.docker.io/library"
+        },
+        "inputArtifacts": [
+          {
+            "artifact": {
+              "name": "nginx",
+              "artifactAccount": "helm-apple",
+              "id": "858c307c-2b99-4dae-8538-6f3a118e7bcc",
+              "type": "helm/chart",
+              "version": "0.2.4"
+            },
+            "account": "helm-apple"
+          }
+        ],
+        "artifacts": [
+          {
+            "customKind": false,
+            "reference": "ref://kubernetesapp/b323f5f973e9393855b3af136a9989677d2ea51e64d871f4b50d66a1a92adc7c",
+            "metadata": {},
+            "name": "nginx",
+            "type": "remote/base64"
+          }
+        ]
+      },
+      "outputs": {
+        "cloudProvider": "kubernetes",
+        "artifacts": [
+          {
+            "type": "remote/base64",
+            "customKind": false,
+            "name": "nginx",
+            "reference": "ref://kubernetesapp/b323f5f973e9393855b3af136a9989677d2ea51e64d871f4b50d66a1a92adc7c",
+            "metadata": {}
+          }
+        ],
+        "resolvedExpectedArtifacts": [
+          {
+            "matchArtifact": {
+              "type": "embedded/base64",
+              "customKind": false,
+              "name": "nginx",
+              "metadata": {
+                "id": "55f282d1-e3c6-4655-b25d-d07ae735473f"
+              },
+              "artifactAccount": "embedded-artifact"
+            },
+            "usePriorArtifact": false,
+            "useDefaultArtifact": false,
+            "defaultArtifact": {
+              "customKind": true,
+              "metadata": {
+                "id": "75d4bd7b-d49e-451d-a354-74aab195366f"
+              }
+            },
+            "id": "504af956-b5e0-4f76-95dc-2de45af4c26e",
+            "boundArtifact": {
+              "type": "remote/base64",
+              "customKind": false,
+              "name": "nginx",
+              "reference": "ref://kubernetesapp/b323f5f973e9393855b3af136a9989677d2ea51e64d871f4b50d66a1a92adc7c",
+              "metadata": {}
+            }
+          }
+        ]
+      },
+      "tasks": [
+        {
+          "id": "1",
+          "implementingClass": "com.netflix.spinnaker.orca.bakery.tasks.manifests.CreateBakeManifestTask",
+          "name": "createBake",
+          "startTime": 1745292157054,
+          "endTime": 1745292158663,
+          "status": "SUCCEEDED",
+          "stageStart": true,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "2",
+          "implementingClass": "com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask",
+          "name": "bindProducedArtifacts",
+          "startTime": 1745292158722,
+          "endTime": 1745292158849,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": true,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        }
+      ],
+      "requisiteStageRefIds": [
+        "1"
+      ]
+    },
+    {
+      "id": "01JSDR9Q436W0720W7JPYFW4DA",
+      "refId": "3",
+      "type": "deployManifest",
+      "name": "Deploy (Manifest)",
+      "startTime": 1745292158977,
+      "endTime": 1745292165825,
+      "status": "SUCCEEDED",
+      "context": {
+        "deploy.account.name": "k8s-local",
+        "outputs.createdArtifacts": [
+          {
+            "customKind": false,
+            "reference": "dev-p01-nginx",
+            "metadata": {
+              "account": "k8s-local"
+            },
+            "name": "dev-p01-nginx",
+            "location": "spinnaker-dev",
+            "type": "kubernetes/service",
+            "version": ""
+          },
+          {
+            "customKind": false,
+            "reference": "dev-p01-nginx",
+            "metadata": {
+              "account": "k8s-local"
+            },
+            "name": "dev-p01-nginx",
+            "location": "spinnaker-dev",
+            "type": "kubernetes/deployment",
+            "version": ""
+          },
+          {
+            "customKind": false,
+            "reference": "dev-p01-nginx-v000",
+            "metadata": {
+              "account": "k8s-local"
+            },
+            "name": "dev-p01-nginx",
+            "location": "spinnaker-dev",
+            "type": "kubernetes/configMap",
+            "version": "v000"
+          }
+        ],
+        "namespaceOverride": "spinnaker-dev",
+        "source": "artifact",
+        "manifestArtifactId": "504af956-b5e0-4f76-95dc-2de45af4c26e",
+        "stableManifests": [
+          {
+            "manifestName": "deployment dev-p01-nginx",
+            "location": "spinnaker-dev"
+          },
+          {
+            "manifestName": "configMap dev-p01-nginx-v000",
+            "location": "spinnaker-dev"
+          },
+          {
+            "manifestName": "service dev-p01-nginx",
+            "location": "spinnaker-dev"
+          }
+        ],
+        "cloudProvider": "kubernetes",
+        "kato.result.expected": false,
+        "failureMessages": [],
+        "trafficManagement": {
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          },
+          "enabled": false
+        },
+        "deploy.server.groups": {},
+        "kato.last.task.id": {
+          "id": "01JSDRA027WV9243E10DMWDSGJ"
+        },
+        "requiredArtifacts": [],
+        "artifacts": [
+          {
+            "customKind": false,
+            "reference": "dev-p01-nginx",
+            "metadata": {
+              "account": "k8s-local"
+            },
+            "name": "dev-p01-nginx",
+            "location": "spinnaker-dev",
+            "type": "kubernetes/service",
+            "version": ""
+          },
+          {
+            "customKind": false,
+            "reference": "dev-p01-nginx",
+            "metadata": {
+              "account": "k8s-local"
+            },
+            "name": "dev-p01-nginx",
+            "location": "spinnaker-dev",
+            "type": "kubernetes/deployment",
+            "version": ""
+          },
+          {
+            "customKind": false,
+            "reference": "dev-p01-nginx-v000",
+            "metadata": {
+              "account": "k8s-local"
+            },
+            "name": "dev-p01-nginx",
+            "location": "spinnaker-dev",
+            "type": "kubernetes/configMap",
+            "version": "v000"
+          }
+        ],
+        "kato.task.terminalRetryCount": 0,
+        "moniker": {},
+        "kato.task.firstNotFoundRetry": -1,
+        "outputs.manifestNamesByNamespace": {
+          "spinnaker-dev": [
+            "deployment dev-p01-nginx",
+            "configMap dev-p01-nginx-v000",
+            "service dev-p01-nginx"
+          ]
+        },
+        "optionalArtifacts": [
+          {
+            "customKind": false,
+            "reference": "ref://kubernetesapp/b323f5f973e9393855b3af136a9989677d2ea51e64d871f4b50d66a1a92adc7c",
+            "metadata": {},
+            "name": "nginx",
+            "type": "remote/base64"
+          }
+        ],
+        "outputs.boundArtifacts": [
+          {
+            "customKind": false,
+            "reference": "dev-p01-nginx-v000",
+            "metadata": {
+              "account": "k8s-local"
+            },
+            "name": "dev-p01-nginx",
+            "location": "spinnaker-dev",
+            "type": "kubernetes/configMap",
+            "version": "v000"
+          }
+        ],
+        "manifests": [
+          {
+            "metadata": {
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "labels": {
+                "app": "dev-p01-nginx",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "v1",
+            "data": {
+              "test.txt": "test",
+              "index.html": "<h1>Hello</h1> <p>This is a test here</p>"
+            },
+            "kind": "ConfigMap"
+          },
+          {
+            "metadata": {
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "labels": {
+                "app": "dev-p01-nginx",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "v1",
+            "kind": "Service",
+            "spec": {
+              "selector": {
+                "app": "dev-p01-nginx",
+                "release": "nginx"
+              },
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "protocol": "TCP",
+                  "port": 8888,
+                  "name": "http",
+                  "targetPort": "http"
+                }
+              ],
+              "clusterIP": ""
+            }
+          },
+          {
+            "metadata": {
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "labels": {
+                "app": "dev-p01-nginx",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "spec": {
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "dev-p01-nginx",
+                    "release": "nginx"
+                  }
+                },
+                "spec": {
+                  "volumes": [
+                    {
+                      "configMap": {
+                        "name": "dev-p01-nginx"
+                      },
+                      "name": "wwwdata-volume"
+                    }
+                  ],
+                  "containers": [
+                    {
+                      "image": "index.docker.io/library/nginx:latest",
+                      "imagePullPolicy": "IfNotPresent",
+                      "name": "dev-p01-nginx",
+                      "resources": {},
+                      "ports": [
+                        {
+                          "protocol": "TCP",
+                          "name": "http",
+                          "containerPort": 80
+                        }
+                      ],
+                      "volumeMounts": [
+                        {
+                          "mountPath": "/usr/share/nginx/html",
+                          "name": "wwwdata-volume"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "replicas": 1,
+              "selector": {
+                "matchLabels": {
+                  "app": "dev-p01-nginx"
+                }
+              }
+            }
+          }
+        ],
+        "messages": [],
+        "failedManifests": [],
+        "kato.tasks": [
+          {
+            "outputs": [],
+            "resultObjects": [
+              {
+                "createdArtifacts": [
+                  {
+                    "customKind": false,
+                    "reference": "dev-p01-nginx",
+                    "metadata": {
+                      "account": "k8s-local"
+                    },
+                    "name": "dev-p01-nginx",
+                    "location": "spinnaker-dev",
+                    "type": "kubernetes/service",
+                    "version": ""
+                  },
+                  {
+                    "customKind": false,
+                    "reference": "dev-p01-nginx",
+                    "metadata": {
+                      "account": "k8s-local"
+                    },
+                    "name": "dev-p01-nginx",
+                    "location": "spinnaker-dev",
+                    "type": "kubernetes/deployment",
+                    "version": ""
+                  },
+                  {
+                    "customKind": false,
+                    "reference": "dev-p01-nginx-v000",
+                    "metadata": {
+                      "account": "k8s-local"
+                    },
+                    "name": "dev-p01-nginx",
+                    "location": "spinnaker-dev",
+                    "type": "kubernetes/configMap",
+                    "version": "v000"
+                  }
+                ],
+                "manifests": [
+                  {
+                    "metadata": {
+                      "uid": "c23e7594-6ba0-408d-abb6-de8375d01ebf",
+                      "resourceVersion": "4720",
+                      "creationTimestamp": "2025-04-22T03:22:39Z",
+                      "name": "dev-p01-nginx",
+                      "namespace": "spinnaker-dev",
+                      "annotations": {
+                        "artifact.spinnaker.io/version": "",
+                        "artifact.spinnaker.io/name": "dev-p01-nginx",
+                        "artifact.spinnaker.io/location": "spinnaker-dev",
+                        "artifact.spinnaker.io/type": "kubernetes/service",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/service\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"service dev-p01-nginx\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"chart\":\"nginx-0.2.4\",\"heritage\":\"Tiller\",\"release\":\"nginx\"},\"name\":\"dev-p01-nginx\",\"namespace\":\"spinnaker-dev\"},\"spec\":{\"clusterIP\":\"\",\"ports\":[{\"name\":\"http\",\"port\":8888,\"protocol\":\"TCP\",\"targetPort\":\"http\"}],\"selector\":{\"app\":\"dev-p01-nginx\",\"release\":\"nginx\"},\"type\":\"ClusterIP\"}}\n",
+                        "moniker.spinnaker.io/cluster": "service dev-p01-nginx",
+                        "moniker.spinnaker.io/application": "kubernetesapp"
+                      },
+                      "labels": {
+                        "app": "dev-p01-nginx",
+                        "app.kubernetes.io/managed-by": "spinnaker",
+                        "app.kubernetes.io/name": "kubernetesapp",
+                        "release": "nginx",
+                        "heritage": "Tiller",
+                        "chart": "nginx-0.2.4"
+                      }
+                    },
+                    "apiVersion": "v1",
+                    "kind": "Service",
+                    "spec": {
+                      "clusterIPs": [
+                        "10.96.150.226"
+                      ],
+                      "ipFamilies": [
+                        "IPv4"
+                      ],
+                      "ipFamilyPolicy": "SingleStack",
+                      "sessionAffinity": "None",
+                      "selector": {
+                        "app": "dev-p01-nginx",
+                        "release": "nginx"
+                      },
+                      "ports": [
+                        {
+                          "protocol": "TCP",
+                          "port": 8888.0,
+                          "name": "http",
+                          "targetPort": "http"
+                        }
+                      ],
+                      "type": "ClusterIP",
+                      "internalTrafficPolicy": "Cluster",
+                      "clusterIP": "10.96.150.226"
+                    },
+                    "status": {
+                      "loadBalancer": {}
+                    }
+                  },
+                  {
+                    "metadata": {
+                      "uid": "43560353-2984-472c-b0f2-e49a355dd236",
+                      "resourceVersion": "4596",
+                      "creationTimestamp": "2025-04-22T03:21:33Z",
+                      "name": "dev-p01-nginx-v000",
+                      "namespace": "spinnaker-dev",
+                      "annotations": {
+                        "artifact.spinnaker.io/version": "v000",
+                        "artifact.spinnaker.io/name": "dev-p01-nginx",
+                        "artifact.spinnaker.io/location": "spinnaker-dev",
+                        "artifact.spinnaker.io/type": "kubernetes/configMap",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"index.html\":\"\\u003ch1\\u003eHello\\u003c/h1\\u003e \\u003cp\\u003eThis is a test here\\u003c/p\\u003e\",\"test.txt\":\"test\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/configMap\",\"artifact.spinnaker.io/version\":\"v000\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"configMap dev-p01-nginx\",\"moniker.spinnaker.io/sequence\":\"0\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"chart\":\"nginx-0.2.4\",\"heritage\":\"Tiller\",\"moniker.spinnaker.io/sequence\":\"0\",\"release\":\"nginx\"},\"name\":\"dev-p01-nginx-v000\",\"namespace\":\"spinnaker-dev\"}}\n",
+                        "moniker.spinnaker.io/cluster": "configMap dev-p01-nginx",
+                        "moniker.spinnaker.io/sequence": "0",
+                        "moniker.spinnaker.io/application": "kubernetesapp"
+                      },
+                      "labels": {
+                        "app": "dev-p01-nginx",
+                        "app.kubernetes.io/managed-by": "spinnaker",
+                        "app.kubernetes.io/name": "kubernetesapp",
+                        "release": "nginx",
+                        "heritage": "Tiller",
+                        "chart": "nginx-0.2.4",
+                        "moniker.spinnaker.io/sequence": "0"
+                      }
+                    },
+                    "apiVersion": "v1",
+                    "data": {
+                      "test.txt": "test",
+                      "index.html": "<h1>Hello</h1> <p>This is a test here</p>"
+                    },
+                    "kind": "ConfigMap"
+                  },
+                  {
+                    "metadata": {
+                      "generation": 1.0,
+                      "uid": "300953e6-a536-4f03-88b5-4be14e0d32bf",
+                      "resourceVersion": "4638",
+                      "creationTimestamp": "2025-04-22T03:21:33Z",
+                      "name": "dev-p01-nginx",
+                      "namespace": "spinnaker-dev",
+                      "annotations": {
+                        "artifact.spinnaker.io/version": "",
+                        "artifact.spinnaker.io/name": "dev-p01-nginx",
+                        "artifact.spinnaker.io/location": "spinnaker-dev",
+                        "deployment.kubernetes.io/revision": "1",
+                        "artifact.spinnaker.io/type": "kubernetes/deployment",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"deployment dev-p01-nginx\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"chart\":\"nginx-0.2.4\",\"heritage\":\"Tiller\",\"release\":\"nginx\"},\"name\":\"dev-p01-nginx\",\"namespace\":\"spinnaker-dev\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"dev-p01-nginx\"}},\"template\":{\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"deployment dev-p01-nginx\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"release\":\"nginx\"}},\"spec\":{\"containers\":[{\"image\":\"index.docker.io/library/nginx:latest\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"dev-p01-nginx\",\"ports\":[{\"containerPort\":80,\"name\":\"http\",\"protocol\":\"TCP\"}],\"resources\":{},\"volumeMounts\":[{\"mountPath\":\"/usr/share/nginx/html\",\"name\":\"wwwdata-volume\"}]}],\"volumes\":[{\"configMap\":{\"name\":\"dev-p01-nginx-v000\"},\"name\":\"wwwdata-volume\"}]}}}}\n",
+                        "moniker.spinnaker.io/cluster": "deployment dev-p01-nginx",
+                        "moniker.spinnaker.io/application": "kubernetesapp"
+                      },
+                      "labels": {
+                        "app": "dev-p01-nginx",
+                        "app.kubernetes.io/managed-by": "spinnaker",
+                        "app.kubernetes.io/name": "kubernetesapp",
+                        "release": "nginx",
+                        "heritage": "Tiller",
+                        "chart": "nginx-0.2.4"
+                      }
+                    },
+                    "apiVersion": "apps/v1",
+                    "kind": "Deployment",
+                    "spec": {
+                      "template": {
+                        "metadata": {
+                          "annotations": {
+                            "artifact.spinnaker.io/version": "",
+                            "artifact.spinnaker.io/name": "dev-p01-nginx",
+                            "artifact.spinnaker.io/location": "spinnaker-dev",
+                            "artifact.spinnaker.io/type": "kubernetes/deployment",
+                            "moniker.spinnaker.io/cluster": "deployment dev-p01-nginx",
+                            "moniker.spinnaker.io/application": "kubernetesapp"
+                          },
+                          "labels": {
+                            "app": "dev-p01-nginx",
+                            "app.kubernetes.io/managed-by": "spinnaker",
+                            "app.kubernetes.io/name": "kubernetesapp",
+                            "release": "nginx"
+                          }
+                        },
+                        "spec": {
+                          "dnsPolicy": "ClusterFirst",
+                          "terminationGracePeriodSeconds": 30.0,
+                          "volumes": [
+                            {
+                              "configMap": {
+                                "defaultMode": 420.0,
+                                "name": "dev-p01-nginx-v000"
+                              },
+                              "name": "wwwdata-volume"
+                            }
+                          ],
+                          "containers": [
+                            {
+                              "image": "index.docker.io/library/nginx:latest",
+                              "imagePullPolicy": "IfNotPresent",
+                              "terminationMessagePolicy": "File",
+                              "terminationMessagePath": "/dev/termination-log",
+                              "name": "dev-p01-nginx",
+                              "resources": {},
+                              "ports": [
+                                {
+                                  "protocol": "TCP",
+                                  "name": "http",
+                                  "containerPort": 80.0
+                                }
+                              ],
+                              "volumeMounts": [
+                                {
+                                  "mountPath": "/usr/share/nginx/html",
+                                  "name": "wwwdata-volume"
+                                }
+                              ]
+                            }
+                          ],
+                          "securityContext": {},
+                          "restartPolicy": "Always",
+                          "schedulerName": "default-scheduler"
+                        }
+                      },
+                      "replicas": 1.0,
+                      "revisionHistoryLimit": 10.0,
+                      "selector": {
+                        "matchLabels": {
+                          "app": "dev-p01-nginx"
+                        }
+                      },
+                      "strategy": {
+                        "type": "RollingUpdate",
+                        "rollingUpdate": {
+                          "maxSurge": "25%",
+                          "maxUnavailable": "25%"
+                        }
+                      },
+                      "progressDeadlineSeconds": 600.0
+                    },
+                    "status": {
+                      "replicas": 1.0,
+                      "readyReplicas": 1.0,
+                      "conditions": [
+                        {
+                          "reason": "MinimumReplicasAvailable",
+                          "lastTransitionTime": "2025-04-22T03:21:44Z",
+                          "message": "Deployment has minimum availability.",
+                          "type": "Available",
+                          "lastUpdateTime": "2025-04-22T03:21:44Z",
+                          "status": "True"
+                        },
+                        {
+                          "reason": "NewReplicaSetAvailable",
+                          "lastTransitionTime": "2025-04-22T03:21:33Z",
+                          "message": "ReplicaSet \"dev-p01-nginx-7c75d9f5c8\" has successfully progressed.",
+                          "type": "Progressing",
+                          "lastUpdateTime": "2025-04-22T03:21:44Z",
+                          "status": "True"
+                        }
+                      ],
+                      "updatedReplicas": 1.0,
+                      "availableReplicas": 1.0,
+                      "observedGeneration": 1.0
+                    }
+                  }
+                ],
+                "failureMessages": [],
+                "manifestNamesByNamespace": {
+                  "spinnaker-dev": [
+                    "deployment dev-p01-nginx",
+                    "configMap dev-p01-nginx-v000",
+                    "service dev-p01-nginx"
+                  ]
+                },
+                "boundArtifacts": [
+                  {
+                    "customKind": false,
+                    "reference": "dev-p01-nginx-v000",
+                    "metadata": {
+                      "account": "k8s-local"
+                    },
+                    "name": "dev-p01-nginx",
+                    "location": "spinnaker-dev",
+                    "type": "kubernetes/configMap",
+                    "version": "v000"
+                  }
+                ]
+              }
+            ],
+            "id": "01JSDR9T9WWKE17EBR7S210RXC",
+            "history": [
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Initializing Orchestration Task"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Processing op: KubernetesDeployManifestOperation"
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Beginning deployment of manifests in account k8s-local ..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Sorting manifests by priority..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for service..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for configMap..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for deployment..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for service..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Deploy order is: configMap dev-p01-nginx, service dev-p01-nginx, deployment dev-p01-nginx"
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Binding artifacts in configMap dev-p01-nginx..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for configMap..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Bound artifacts: []..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for configMap..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Annotating manifest configMap dev-p01-nginx with artifact, relationships & moniker..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Binding artifacts in service dev-p01-nginx..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for service..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Bound artifacts: []..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for service..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Annotating manifest service dev-p01-nginx with artifact, relationships & moniker..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Binding artifacts in deployment dev-p01-nginx..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for deployment..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Bound artifacts: [Artifact(type=kubernetes/configMap, customKind=false, name=dev-p01-nginx, version=v000, location=spinnaker-dev, reference=dev-p01-nginx-v000, metadata={account=k8s-local}, artifactAccount=null, provenance=null, uuid=null)]..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for deployment..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Annotating manifest deployment dev-p01-nginx with artifact, relationships & moniker..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Checking if all requested artifacts were bound..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for configMap..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Submitting manifest configMap dev-p01-nginx-v000 to kubernetes master..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Deploy manifest task completed successfully for manifest configMap dev-p01-nginx-v000 in account k8s-local"
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for service..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Submitting manifest service dev-p01-nginx to kubernetes master..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Deploy manifest task completed successfully for manifest service dev-p01-nginx in account k8s-local"
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Finding deployer for deployment..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Submitting manifest deployment dev-p01-nginx to kubernetes master..."
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Deploy manifest task completed successfully for manifest deployment dev-p01-nginx in account k8s-local"
+              },
+              {
+                "phase": "DEPLOY_KUBERNETES_MANIFEST",
+                "status": "Deploy manifest task completed successfully for all manifests in account k8s-local"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              }
+            ],
+            "status": {
+              "retryable": false,
+              "completed": true,
+              "failed": false
+            }
+          },
+          {
+            "outputs": [],
+            "resultObjects": [
+              {
+                "createdArtifacts": [],
+                "failureMessages": [],
+                "manifestNamesByNamespace": {},
+                "boundArtifacts": []
+              }
+            ],
+            "id": "01JSDRA027WV9243E10DMWDSGJ",
+            "history": [
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Initializing Orchestration Task"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Processing op: KubernetesCleanupArtifactsOperation"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              }
+            ],
+            "status": {
+              "retryable": false,
+              "completed": true,
+              "failed": false
+            }
+          }
+        ],
+        "outputs.manifests": [
+          {
+            "metadata": {
+              "uid": "c23e7594-6ba0-408d-abb6-de8375d01ebf",
+              "resourceVersion": "4720",
+              "creationTimestamp": "2025-04-22T03:22:39Z",
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "annotations": {
+                "artifact.spinnaker.io/version": "",
+                "artifact.spinnaker.io/name": "dev-p01-nginx",
+                "artifact.spinnaker.io/location": "spinnaker-dev",
+                "artifact.spinnaker.io/type": "kubernetes/service",
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/service\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"service dev-p01-nginx\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"chart\":\"nginx-0.2.4\",\"heritage\":\"Tiller\",\"release\":\"nginx\"},\"name\":\"dev-p01-nginx\",\"namespace\":\"spinnaker-dev\"},\"spec\":{\"clusterIP\":\"\",\"ports\":[{\"name\":\"http\",\"port\":8888,\"protocol\":\"TCP\",\"targetPort\":\"http\"}],\"selector\":{\"app\":\"dev-p01-nginx\",\"release\":\"nginx\"},\"type\":\"ClusterIP\"}}\n",
+                "moniker.spinnaker.io/cluster": "service dev-p01-nginx",
+                "moniker.spinnaker.io/application": "kubernetesapp"
+              },
+              "labels": {
+                "app": "dev-p01-nginx",
+                "app.kubernetes.io/managed-by": "spinnaker",
+                "app.kubernetes.io/name": "kubernetesapp",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "v1",
+            "kind": "Service",
+            "spec": {
+              "clusterIPs": [
+                "10.96.150.226"
+              ],
+              "ipFamilies": [
+                "IPv4"
+              ],
+              "ipFamilyPolicy": "SingleStack",
+              "sessionAffinity": "None",
+              "selector": {
+                "app": "dev-p01-nginx",
+                "release": "nginx"
+              },
+              "ports": [
+                {
+                  "protocol": "TCP",
+                  "port": 8888.0,
+                  "name": "http",
+                  "targetPort": "http"
+                }
+              ],
+              "type": "ClusterIP",
+              "internalTrafficPolicy": "Cluster",
+              "clusterIP": "10.96.150.226"
+            },
+            "status": {
+              "loadBalancer": {}
+            }
+          },
+          {
+            "metadata": {
+              "uid": "43560353-2984-472c-b0f2-e49a355dd236",
+              "resourceVersion": "4596",
+              "creationTimestamp": "2025-04-22T03:21:33Z",
+              "name": "dev-p01-nginx-v000",
+              "namespace": "spinnaker-dev",
+              "annotations": {
+                "artifact.spinnaker.io/version": "v000",
+                "artifact.spinnaker.io/name": "dev-p01-nginx",
+                "artifact.spinnaker.io/location": "spinnaker-dev",
+                "artifact.spinnaker.io/type": "kubernetes/configMap",
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"index.html\":\"\\u003ch1\\u003eHello\\u003c/h1\\u003e \\u003cp\\u003eThis is a test here\\u003c/p\\u003e\",\"test.txt\":\"test\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/configMap\",\"artifact.spinnaker.io/version\":\"v000\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"configMap dev-p01-nginx\",\"moniker.spinnaker.io/sequence\":\"0\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"chart\":\"nginx-0.2.4\",\"heritage\":\"Tiller\",\"moniker.spinnaker.io/sequence\":\"0\",\"release\":\"nginx\"},\"name\":\"dev-p01-nginx-v000\",\"namespace\":\"spinnaker-dev\"}}\n",
+                "moniker.spinnaker.io/cluster": "configMap dev-p01-nginx",
+                "moniker.spinnaker.io/sequence": "0",
+                "moniker.spinnaker.io/application": "kubernetesapp"
+              },
+              "labels": {
+                "app": "dev-p01-nginx",
+                "app.kubernetes.io/managed-by": "spinnaker",
+                "app.kubernetes.io/name": "kubernetesapp",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4",
+                "moniker.spinnaker.io/sequence": "0"
+              }
+            },
+            "apiVersion": "v1",
+            "data": {
+              "test.txt": "test",
+              "index.html": "<h1>Hello</h1> <p>This is a test here</p>"
+            },
+            "kind": "ConfigMap"
+          },
+          {
+            "metadata": {
+              "generation": 1.0,
+              "uid": "300953e6-a536-4f03-88b5-4be14e0d32bf",
+              "resourceVersion": "4638",
+              "creationTimestamp": "2025-04-22T03:21:33Z",
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "annotations": {
+                "artifact.spinnaker.io/version": "",
+                "artifact.spinnaker.io/name": "dev-p01-nginx",
+                "artifact.spinnaker.io/location": "spinnaker-dev",
+                "deployment.kubernetes.io/revision": "1",
+                "artifact.spinnaker.io/type": "kubernetes/deployment",
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"deployment dev-p01-nginx\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"chart\":\"nginx-0.2.4\",\"heritage\":\"Tiller\",\"release\":\"nginx\"},\"name\":\"dev-p01-nginx\",\"namespace\":\"spinnaker-dev\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"dev-p01-nginx\"}},\"template\":{\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"deployment dev-p01-nginx\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"release\":\"nginx\"}},\"spec\":{\"containers\":[{\"image\":\"index.docker.io/library/nginx:latest\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"dev-p01-nginx\",\"ports\":[{\"containerPort\":80,\"name\":\"http\",\"protocol\":\"TCP\"}],\"resources\":{},\"volumeMounts\":[{\"mountPath\":\"/usr/share/nginx/html\",\"name\":\"wwwdata-volume\"}]}],\"volumes\":[{\"configMap\":{\"name\":\"dev-p01-nginx-v000\"},\"name\":\"wwwdata-volume\"}]}}}}\n",
+                "moniker.spinnaker.io/cluster": "deployment dev-p01-nginx",
+                "moniker.spinnaker.io/application": "kubernetesapp"
+              },
+              "labels": {
+                "app": "dev-p01-nginx",
+                "app.kubernetes.io/managed-by": "spinnaker",
+                "app.kubernetes.io/name": "kubernetesapp",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "spec": {
+              "template": {
+                "metadata": {
+                  "annotations": {
+                    "artifact.spinnaker.io/version": "",
+                    "artifact.spinnaker.io/name": "dev-p01-nginx",
+                    "artifact.spinnaker.io/location": "spinnaker-dev",
+                    "artifact.spinnaker.io/type": "kubernetes/deployment",
+                    "moniker.spinnaker.io/cluster": "deployment dev-p01-nginx",
+                    "moniker.spinnaker.io/application": "kubernetesapp"
+                  },
+                  "labels": {
+                    "app": "dev-p01-nginx",
+                    "app.kubernetes.io/managed-by": "spinnaker",
+                    "app.kubernetes.io/name": "kubernetesapp",
+                    "release": "nginx"
+                  }
+                },
+                "spec": {
+                  "dnsPolicy": "ClusterFirst",
+                  "terminationGracePeriodSeconds": 30.0,
+                  "volumes": [
+                    {
+                      "configMap": {
+                        "defaultMode": 420.0,
+                        "name": "dev-p01-nginx-v000"
+                      },
+                      "name": "wwwdata-volume"
+                    }
+                  ],
+                  "containers": [
+                    {
+                      "image": "index.docker.io/library/nginx:latest",
+                      "imagePullPolicy": "IfNotPresent",
+                      "terminationMessagePolicy": "File",
+                      "terminationMessagePath": "/dev/termination-log",
+                      "name": "dev-p01-nginx",
+                      "resources": {},
+                      "ports": [
+                        {
+                          "protocol": "TCP",
+                          "name": "http",
+                          "containerPort": 80.0
+                        }
+                      ],
+                      "volumeMounts": [
+                        {
+                          "mountPath": "/usr/share/nginx/html",
+                          "name": "wwwdata-volume"
+                        }
+                      ]
+                    }
+                  ],
+                  "securityContext": {},
+                  "restartPolicy": "Always",
+                  "schedulerName": "default-scheduler"
+                }
+              },
+              "replicas": 1.0,
+              "revisionHistoryLimit": 10.0,
+              "selector": {
+                "matchLabels": {
+                  "app": "dev-p01-nginx"
+                }
+              },
+              "strategy": {
+                "type": "RollingUpdate",
+                "rollingUpdate": {
+                  "maxSurge": "25%",
+                  "maxUnavailable": "25%"
+                }
+              },
+              "progressDeadlineSeconds": 600.0
+            },
+            "status": {
+              "replicas": 1.0,
+              "readyReplicas": 1.0,
+              "conditions": [
+                {
+                  "reason": "MinimumReplicasAvailable",
+                  "lastTransitionTime": "2025-04-22T03:21:44Z",
+                  "message": "Deployment has minimum availability.",
+                  "type": "Available",
+                  "lastUpdateTime": "2025-04-22T03:21:44Z",
+                  "status": "True"
+                },
+                {
+                  "reason": "NewReplicaSetAvailable",
+                  "lastTransitionTime": "2025-04-22T03:21:33Z",
+                  "message": "ReplicaSet \"dev-p01-nginx-7c75d9f5c8\" has successfully progressed.",
+                  "type": "Progressing",
+                  "lastUpdateTime": "2025-04-22T03:21:44Z",
+                  "status": "True"
+                }
+              ],
+              "updatedReplicas": 1.0,
+              "availableReplicas": 1.0,
+              "observedGeneration": 1.0
+            }
+          }
+        ],
+        "kato.task.notFoundRetryCount": 0,
+        "skipExpressionEvaluation": false,
+        "account": "k8s-local",
+        "kato.task.lastStatus": "SUCCEEDED"
+      },
+      "outputs": {
+        "optionalArtifacts": [
+          {
+            "type": "remote/base64",
+            "customKind": false,
+            "name": "nginx",
+            "reference": "ref://kubernetesapp/b323f5f973e9393855b3af136a9989677d2ea51e64d871f4b50d66a1a92adc7c",
+            "metadata": {}
+          }
+        ],
+        "manifests": [
+          {
+            "metadata": {
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "labels": {
+                "app": "dev-p01-nginx",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "v1",
+            "data": {
+              "test.txt": "test",
+              "index.html": "<h1>Hello</h1> <p>This is a test here</p>"
+            },
+            "kind": "ConfigMap"
+          },
+          {
+            "metadata": {
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "labels": {
+                "app": "dev-p01-nginx",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "v1",
+            "kind": "Service",
+            "spec": {
+              "selector": {
+                "app": "dev-p01-nginx",
+                "release": "nginx"
+              },
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "protocol": "TCP",
+                  "port": 8888,
+                  "name": "http",
+                  "targetPort": "http"
+                }
+              ],
+              "clusterIP": ""
+            }
+          },
+          {
+            "metadata": {
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "labels": {
+                "app": "dev-p01-nginx",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "spec": {
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "dev-p01-nginx",
+                    "release": "nginx"
+                  }
+                },
+                "spec": {
+                  "volumes": [
+                    {
+                      "configMap": {
+                        "name": "dev-p01-nginx"
+                      },
+                      "name": "wwwdata-volume"
+                    }
+                  ],
+                  "containers": [
+                    {
+                      "image": "index.docker.io/library/nginx:latest",
+                      "imagePullPolicy": "IfNotPresent",
+                      "name": "dev-p01-nginx",
+                      "resources": {},
+                      "ports": [
+                        {
+                          "protocol": "TCP",
+                          "name": "http",
+                          "containerPort": 80
+                        }
+                      ],
+                      "volumeMounts": [
+                        {
+                          "mountPath": "/usr/share/nginx/html",
+                          "name": "wwwdata-volume"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "replicas": 1,
+              "selector": {
+                "matchLabels": {
+                  "app": "dev-p01-nginx"
+                }
+              }
+            }
+          }
+        ],
+        "requiredArtifacts": [],
+        "outputs.createdArtifacts": [
+          {
+            "type": "kubernetes/service",
+            "customKind": false,
+            "name": "dev-p01-nginx",
+            "version": "",
+            "location": "spinnaker-dev",
+            "reference": "dev-p01-nginx",
+            "metadata": {
+              "account": "k8s-local"
+            }
+          },
+          {
+            "type": "kubernetes/deployment",
+            "customKind": false,
+            "name": "dev-p01-nginx",
+            "version": "",
+            "location": "spinnaker-dev",
+            "reference": "dev-p01-nginx",
+            "metadata": {
+              "account": "k8s-local"
+            }
+          },
+          {
+            "type": "kubernetes/configMap",
+            "customKind": false,
+            "name": "dev-p01-nginx",
+            "version": "v000",
+            "location": "spinnaker-dev",
+            "reference": "dev-p01-nginx-v000",
+            "metadata": {
+              "account": "k8s-local"
+            }
+          }
+        ],
+        "outputs.manifestNamesByNamespace": {
+          "spinnaker-dev": [
+            "deployment dev-p01-nginx",
+            "configMap dev-p01-nginx-v000",
+            "service dev-p01-nginx"
+          ]
+        },
+        "outputs.boundArtifacts": [
+          {
+            "type": "kubernetes/configMap",
+            "customKind": false,
+            "name": "dev-p01-nginx",
+            "version": "v000",
+            "location": "spinnaker-dev",
+            "reference": "dev-p01-nginx-v000",
+            "metadata": {
+              "account": "k8s-local"
+            }
+          }
+        ],
+        "outputs.manifests": [
+          {
+            "metadata": {
+              "uid": "c23e7594-6ba0-408d-abb6-de8375d01ebf",
+              "resourceVersion": "4720",
+              "creationTimestamp": "2025-04-22T03:22:39Z",
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "annotations": {
+                "artifact.spinnaker.io/version": "",
+                "artifact.spinnaker.io/name": "dev-p01-nginx",
+                "artifact.spinnaker.io/location": "spinnaker-dev",
+                "artifact.spinnaker.io/type": "kubernetes/service",
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/service\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"service dev-p01-nginx\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"chart\":\"nginx-0.2.4\",\"heritage\":\"Tiller\",\"release\":\"nginx\"},\"name\":\"dev-p01-nginx\",\"namespace\":\"spinnaker-dev\"},\"spec\":{\"clusterIP\":\"\",\"ports\":[{\"name\":\"http\",\"port\":8888,\"protocol\":\"TCP\",\"targetPort\":\"http\"}],\"selector\":{\"app\":\"dev-p01-nginx\",\"release\":\"nginx\"},\"type\":\"ClusterIP\"}}\n",
+                "moniker.spinnaker.io/cluster": "service dev-p01-nginx",
+                "moniker.spinnaker.io/application": "kubernetesapp"
+              },
+              "labels": {
+                "app": "dev-p01-nginx",
+                "app.kubernetes.io/managed-by": "spinnaker",
+                "app.kubernetes.io/name": "kubernetesapp",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "v1",
+            "kind": "Service",
+            "spec": {
+              "clusterIPs": [
+                "10.96.150.226"
+              ],
+              "ipFamilies": [
+                "IPv4"
+              ],
+              "ipFamilyPolicy": "SingleStack",
+              "sessionAffinity": "None",
+              "selector": {
+                "app": "dev-p01-nginx",
+                "release": "nginx"
+              },
+              "ports": [
+                {
+                  "protocol": "TCP",
+                  "port": 8888.0,
+                  "name": "http",
+                  "targetPort": "http"
+                }
+              ],
+              "type": "ClusterIP",
+              "internalTrafficPolicy": "Cluster",
+              "clusterIP": "10.96.150.226"
+            },
+            "status": {
+              "loadBalancer": {}
+            }
+          },
+          {
+            "metadata": {
+              "uid": "43560353-2984-472c-b0f2-e49a355dd236",
+              "resourceVersion": "4596",
+              "creationTimestamp": "2025-04-22T03:21:33Z",
+              "name": "dev-p01-nginx-v000",
+              "namespace": "spinnaker-dev",
+              "annotations": {
+                "artifact.spinnaker.io/version": "v000",
+                "artifact.spinnaker.io/name": "dev-p01-nginx",
+                "artifact.spinnaker.io/location": "spinnaker-dev",
+                "artifact.spinnaker.io/type": "kubernetes/configMap",
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"index.html\":\"\\u003ch1\\u003eHello\\u003c/h1\\u003e \\u003cp\\u003eThis is a test here\\u003c/p\\u003e\",\"test.txt\":\"test\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/configMap\",\"artifact.spinnaker.io/version\":\"v000\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"configMap dev-p01-nginx\",\"moniker.spinnaker.io/sequence\":\"0\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"chart\":\"nginx-0.2.4\",\"heritage\":\"Tiller\",\"moniker.spinnaker.io/sequence\":\"0\",\"release\":\"nginx\"},\"name\":\"dev-p01-nginx-v000\",\"namespace\":\"spinnaker-dev\"}}\n",
+                "moniker.spinnaker.io/cluster": "configMap dev-p01-nginx",
+                "moniker.spinnaker.io/sequence": "0",
+                "moniker.spinnaker.io/application": "kubernetesapp"
+              },
+              "labels": {
+                "app": "dev-p01-nginx",
+                "app.kubernetes.io/managed-by": "spinnaker",
+                "app.kubernetes.io/name": "kubernetesapp",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4",
+                "moniker.spinnaker.io/sequence": "0"
+              }
+            },
+            "apiVersion": "v1",
+            "data": {
+              "test.txt": "test",
+              "index.html": "<h1>Hello</h1> <p>This is a test here</p>"
+            },
+            "kind": "ConfigMap"
+          },
+          {
+            "metadata": {
+              "generation": 1.0,
+              "uid": "300953e6-a536-4f03-88b5-4be14e0d32bf",
+              "resourceVersion": "4638",
+              "creationTimestamp": "2025-04-22T03:21:33Z",
+              "name": "dev-p01-nginx",
+              "namespace": "spinnaker-dev",
+              "annotations": {
+                "artifact.spinnaker.io/version": "",
+                "artifact.spinnaker.io/name": "dev-p01-nginx",
+                "artifact.spinnaker.io/location": "spinnaker-dev",
+                "deployment.kubernetes.io/revision": "1",
+                "artifact.spinnaker.io/type": "kubernetes/deployment",
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"deployment dev-p01-nginx\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"chart\":\"nginx-0.2.4\",\"heritage\":\"Tiller\",\"release\":\"nginx\"},\"name\":\"dev-p01-nginx\",\"namespace\":\"spinnaker-dev\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"dev-p01-nginx\"}},\"template\":{\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"spinnaker-dev\",\"artifact.spinnaker.io/name\":\"dev-p01-nginx\",\"artifact.spinnaker.io/type\":\"kubernetes/deployment\",\"artifact.spinnaker.io/version\":\"\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"deployment dev-p01-nginx\"},\"labels\":{\"app\":\"dev-p01-nginx\",\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\",\"release\":\"nginx\"}},\"spec\":{\"containers\":[{\"image\":\"index.docker.io/library/nginx:latest\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"dev-p01-nginx\",\"ports\":[{\"containerPort\":80,\"name\":\"http\",\"protocol\":\"TCP\"}],\"resources\":{},\"volumeMounts\":[{\"mountPath\":\"/usr/share/nginx/html\",\"name\":\"wwwdata-volume\"}]}],\"volumes\":[{\"configMap\":{\"name\":\"dev-p01-nginx-v000\"},\"name\":\"wwwdata-volume\"}]}}}}\n",
+                "moniker.spinnaker.io/cluster": "deployment dev-p01-nginx",
+                "moniker.spinnaker.io/application": "kubernetesapp"
+              },
+              "labels": {
+                "app": "dev-p01-nginx",
+                "app.kubernetes.io/managed-by": "spinnaker",
+                "app.kubernetes.io/name": "kubernetesapp",
+                "release": "nginx",
+                "heritage": "Tiller",
+                "chart": "nginx-0.2.4"
+              }
+            },
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "spec": {
+              "template": {
+                "metadata": {
+                  "annotations": {
+                    "artifact.spinnaker.io/version": "",
+                    "artifact.spinnaker.io/name": "dev-p01-nginx",
+                    "artifact.spinnaker.io/location": "spinnaker-dev",
+                    "artifact.spinnaker.io/type": "kubernetes/deployment",
+                    "moniker.spinnaker.io/cluster": "deployment dev-p01-nginx",
+                    "moniker.spinnaker.io/application": "kubernetesapp"
+                  },
+                  "labels": {
+                    "app": "dev-p01-nginx",
+                    "app.kubernetes.io/managed-by": "spinnaker",
+                    "app.kubernetes.io/name": "kubernetesapp",
+                    "release": "nginx"
+                  }
+                },
+                "spec": {
+                  "dnsPolicy": "ClusterFirst",
+                  "terminationGracePeriodSeconds": 30.0,
+                  "volumes": [
+                    {
+                      "configMap": {
+                        "defaultMode": 420.0,
+                        "name": "dev-p01-nginx-v000"
+                      },
+                      "name": "wwwdata-volume"
+                    }
+                  ],
+                  "containers": [
+                    {
+                      "image": "index.docker.io/library/nginx:latest",
+                      "imagePullPolicy": "IfNotPresent",
+                      "terminationMessagePolicy": "File",
+                      "terminationMessagePath": "/dev/termination-log",
+                      "name": "dev-p01-nginx",
+                      "resources": {},
+                      "ports": [
+                        {
+                          "protocol": "TCP",
+                          "name": "http",
+                          "containerPort": 80.0
+                        }
+                      ],
+                      "volumeMounts": [
+                        {
+                          "mountPath": "/usr/share/nginx/html",
+                          "name": "wwwdata-volume"
+                        }
+                      ]
+                    }
+                  ],
+                  "securityContext": {},
+                  "restartPolicy": "Always",
+                  "schedulerName": "default-scheduler"
+                }
+              },
+              "replicas": 1.0,
+              "revisionHistoryLimit": 10.0,
+              "selector": {
+                "matchLabels": {
+                  "app": "dev-p01-nginx"
+                }
+              },
+              "strategy": {
+                "type": "RollingUpdate",
+                "rollingUpdate": {
+                  "maxSurge": "25%",
+                  "maxUnavailable": "25%"
+                }
+              },
+              "progressDeadlineSeconds": 600.0
+            },
+            "status": {
+              "replicas": 1.0,
+              "readyReplicas": 1.0,
+              "conditions": [
+                {
+                  "reason": "MinimumReplicasAvailable",
+                  "lastTransitionTime": "2025-04-22T03:21:44Z",
+                  "message": "Deployment has minimum availability.",
+                  "type": "Available",
+                  "lastUpdateTime": "2025-04-22T03:21:44Z",
+                  "status": "True"
+                },
+                {
+                  "reason": "NewReplicaSetAvailable",
+                  "lastTransitionTime": "2025-04-22T03:21:33Z",
+                  "message": "ReplicaSet \"dev-p01-nginx-7c75d9f5c8\" has successfully progressed.",
+                  "type": "Progressing",
+                  "lastUpdateTime": "2025-04-22T03:21:44Z",
+                  "status": "True"
+                }
+              ],
+              "updatedReplicas": 1.0,
+              "availableReplicas": 1.0,
+              "observedGeneration": 1.0
+            }
+          }
+        ],
+        "artifacts": [
+          {
+            "type": "kubernetes/service",
+            "customKind": false,
+            "name": "dev-p01-nginx",
+            "version": "",
+            "location": "spinnaker-dev",
+            "reference": "dev-p01-nginx",
+            "metadata": {
+              "account": "k8s-local"
+            }
+          },
+          {
+            "type": "kubernetes/deployment",
+            "customKind": false,
+            "name": "dev-p01-nginx",
+            "version": "",
+            "location": "spinnaker-dev",
+            "reference": "dev-p01-nginx",
+            "metadata": {
+              "account": "k8s-local"
+            }
+          },
+          {
+            "type": "kubernetes/configMap",
+            "customKind": false,
+            "name": "dev-p01-nginx",
+            "version": "v000",
+            "location": "spinnaker-dev",
+            "reference": "dev-p01-nginx-v000",
+            "metadata": {
+              "account": "k8s-local"
+            }
+          }
+        ]
+      },
+      "tasks": [
+        {
+          "id": "1",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveDeploySourceManifestTask",
+          "name": "resolveDeploySourceManifest",
+          "startTime": 1745292159038,
+          "endTime": 1745292159160,
+          "status": "SUCCEEDED",
+          "stageStart": true,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "2",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DeployManifestTask",
+          "name": "deployManifest",
+          "startTime": 1745292159218,
+          "endTime": 1745292159333,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "3",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.MonitorDeployManifestTask",
+          "name": "monitorDeploy",
+          "startTime": 1745292159387,
+          "endTime": 1745292164530,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "4",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask",
+          "name": "promoteOutputs",
+          "startTime": 1745292164590,
+          "endTime": 1745292164721,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "5",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStableTask",
+          "name": "waitForManifestToStabilize",
+          "startTime": 1745292164778,
+          "endTime": 1745292165061,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "6",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.CleanupArtifactsTask",
+          "name": "cleanupArtifacts",
+          "startTime": 1745292165119,
+          "endTime": 1745292165232,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "7",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+          "name": "monitorCleanup",
+          "startTime": 1745292165290,
+          "endTime": 1745292165401,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "8",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask",
+          "name": "promoteOutputs",
+          "startTime": 1745292165458,
+          "endTime": 1745292165582,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "9",
+          "implementingClass": "com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask",
+          "name": "bindProducedArtifacts",
+          "startTime": 1745292165640,
+          "endTime": 1745292165763,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": true,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        }
+      ],
+      "requisiteStageRefIds": [
+        "2"
+      ]
+    },
+    {
+      "id": "01JSDR9Q43ST18YAFREXR83TWB",
+      "refId": "4",
+      "type": "rollingRestartManifest",
+      "name": "Rollout Restart (Manifest)",
+      "startTime": 1745292165888,
+      "endTime": 1745292166477,
+      "status": "SUCCEEDED",
+      "context": {
+        "app": "kubernetesapp",
+        "outputs.createdArtifacts": [],
+        "manifest.account.name": "k8s-local",
+        "manifestName": "deployment dev-p01-nginx",
+        "kato.task.terminalRetryCount": 0,
+        "kato.task.firstNotFoundRetry": -1,
+        "mode": "static",
+        "outputs.manifestNamesByNamespace": {
+          "spinnaker-dev": [
+            "deployment dev-p01-nginx"
+          ]
+        },
+        "manifest.location": "spinnaker-dev",
+        "outputs.boundArtifacts": [],
+        "cloudProvider": "kubernetes",
+        "kato.result.expected": false,
+        "failureMessages": [],
+        "manifest.name": "deployment dev-p01-nginx",
+        "deploy.server.groups": {},
+        "location": "spinnaker-dev",
+        "kato.tasks": [
+          {
+            "outputs": [],
+            "resultObjects": [
+              {
+                "createdArtifacts": [],
+                "manifests": [],
+                "failureMessages": [],
+                "manifestNamesByNamespace": {
+                  "spinnaker-dev": [
+                    "deployment dev-p01-nginx"
+                  ]
+                },
+                "boundArtifacts": []
+              }
+            ],
+            "id": "01JSDRA0WH9CSQV9W7K7G5J6DV",
+            "history": [
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Initializing Orchestration Task"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Processing op: KubernetesRollingRestartManifestOperation"
+              },
+              {
+                "phase": "ROLLING_RESTART_KUBERNETES_MANIFEST",
+                "status": "Starting rolling restart operation in account k8s-local..."
+              },
+              {
+                "phase": "ROLLING_RESTART_KUBERNETES_MANIFEST",
+                "status": "Looking up resource properties..."
+              },
+              {
+                "phase": "ROLLING_RESTART_KUBERNETES_MANIFEST",
+                "status": "Calling rolling restart operation fordev-p01-nginx in namespace dev-p01-nginx..."
+              },
+              {
+                "phase": "ROLLING_RESTART_KUBERNETES_MANIFEST",
+                "status": "Rolling rollout operation completed successfully"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              }
+            ],
+            "status": {
+              "retryable": false,
+              "completed": true,
+              "failed": false
+            }
+          }
+        ],
+        "outputs.manifests": [],
+        "kato.last.task.id": {
+          "id": "01JSDRA0WH9CSQV9W7K7G5J6DV"
+        },
+        "kato.task.notFoundRetryCount": 0,
+        "account": "k8s-local",
+        "kato.task.lastStatus": "SUCCEEDED",
+        "artifacts": []
+      },
+      "outputs": {
+        "outputs.createdArtifacts": [],
+        "outputs.manifestNamesByNamespace": {
+          "spinnaker-dev": [
+            "deployment dev-p01-nginx"
+          ]
+        },
+        "outputs.boundArtifacts": [],
+        "outputs.manifests": [],
+        "artifacts": []
+      },
+      "tasks": [
+        {
+          "id": "1",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.RollingRestartManifestTask",
+          "name": "rollingRestartManifest",
+          "startTime": 1745292165951,
+          "endTime": 1745292166077,
+          "status": "SUCCEEDED",
+          "stageStart": true,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "2",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+          "name": "monitorRollingRestart",
+          "startTime": 1745292166132,
+          "endTime": 1745292166244,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "3",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask",
+          "name": "promoteManifestKatoOutputs",
+          "startTime": 1745292166303,
+          "endTime": 1745292166421,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": true,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        }
+      ],
+      "requisiteStageRefIds": [
+        "3"
+      ]
+    },
+    {
+      "id": "01JSDR9Q43QX9QS8XX4SPK0FFA",
+      "refId": "5",
+      "type": "scaleManifest",
+      "name": "Scale (Manifest)",
+      "startTime": 1745292166535,
+      "endTime": 1745292172450,
+      "status": "SUCCEEDED",
+      "context": {
+        "app": "kubernetesapp",
+        "replicas": 5,
+        "manifest.account.name": "k8s-local",
+        "manifestName": "deployment dev-p01-nginx",
+        "kato.task.terminalRetryCount": 0,
+        "kato.task.firstNotFoundRetry": -1,
+        "mode": "static",
+        "outputs.manifestNamesByNamespace": {
+          "spinnaker-dev": [
+            "deployment dev-p01-nginx"
+          ]
+        },
+        "stableManifests": [
+          {
+            "manifestName": "deployment dev-p01-nginx",
+            "location": "spinnaker-dev"
+          }
+        ],
+        "manifest.location": "spinnaker-dev",
+        "cloudProvider": "kubernetes",
+        "kato.result.expected": false,
+        "manifest.name": "deployment dev-p01-nginx",
+        "deploy.server.groups": {},
+        "messages": [
+          "'deployment dev-p01-nginx' in 'spinnaker-dev' for account k8s-local: waiting for manifest to stabilize"
+        ],
+        "failedManifests": [],
+        "location": "spinnaker-dev",
+        "kato.tasks": [
+          {
+            "outputs": [],
+            "resultObjects": [],
+            "id": "01JSDRA1NBCFSQQXF10RZ19PA0",
+            "history": [
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Initializing Orchestration Task"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Processing op: KubernetesScaleManifestOperation"
+              },
+              {
+                "phase": "SCALE_KUBERNETES_MANIFEST",
+                "status": "Starting scale operation in account k8s-local..."
+              },
+              {
+                "phase": "SCALE_KUBERNETES_MANIFEST",
+                "status": "Looking up resource properties..."
+              },
+              {
+                "phase": "SCALE_KUBERNETES_MANIFEST",
+                "status": "Calling scale operation for dev-p01-nginx in namespace dev-p01-nginx with replicas 5..."
+              },
+              {
+                "phase": "SCALE_KUBERNETES_MANIFEST",
+                "status": "Scale operation completed successfully"
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              },
+              {
+                "phase": "ORCHESTRATION",
+                "status": "Orchestration completed."
+              }
+            ],
+            "status": {
+              "retryable": false,
+              "completed": true,
+              "failed": false
+            }
+          }
+        ],
+        "kato.last.task.id": {
+          "id": "01JSDRA1NBCFSQQXF10RZ19PA0"
+        },
+        "kato.task.notFoundRetryCount": 0,
+        "account": "k8s-local",
+        "kato.task.lastStatus": "SUCCEEDED"
+      },
+      "outputs": {},
+      "tasks": [
+        {
+          "id": "1",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveTargetManifestTask",
+          "name": "resolveTargetManifest",
+          "startTime": 1745292166592,
+          "endTime": 1745292166702,
+          "status": "SUCCEEDED",
+          "stageStart": true,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "2",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ScaleManifestTask",
+          "name": "scaleManifest",
+          "startTime": 1745292166761,
+          "endTime": 1745292166871,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "3",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask",
+          "name": "monitorScale",
+          "startTime": 1745292166929,
+          "endTime": 1745292167045,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": false,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        },
+        {
+          "id": "4",
+          "implementingClass": "com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStableTask",
+          "name": "waitForManifestToStabilize",
+          "startTime": 1745292167103,
+          "endTime": 1745292172391,
+          "status": "SUCCEEDED",
+          "stageStart": false,
+          "stageEnd": true,
+          "loopStart": false,
+          "loopEnd": false,
+          "taskExceptionDetails": {}
+        }
+      ],
+      "requisiteStageRefIds": [
+        "4"
+      ]
+    }
+  ],
+  "startTime": 1745292156092,
+  "endTime": 1745292172510,
+  "status": "SUCCEEDED",
+  "authentication": {
+    "user": "anonymous",
+    "allowedAccounts": [
+      "hubble-qa-local",
+      "spinnaker-ci-dev-us-west-2a",
+      "radar",
+      "docker-registry-orca",
+      "radar5",
+      "local-kind",
+      "kubernetes-local",
+      "radar2",
+      "local-kind-2",
+      "docker-registry-spinnaker",
+      "docker-registry-clouddriver",
+      "docker-registry-echo"
+    ]
+  },
+  "origin": "api",
+  "trigger": {
+    "type": "manual",
+    "user": "anonymous",
+    "parameters": {},
+    "artifacts": [],
+    "notifications": [],
+    "rebake": false,
+    "dryRun": false,
+    "strategy": false,
+    "resolvedExpectedArtifacts": [],
+    "expectedArtifacts": [],
+    "executionId": "01JSDR9Q2VBK2PTRZWKG0F5452",
+    "eventId": "bb21aac4-892a-4a87-b100-ada3f0c32236",
+    "enabled": false,
+    "preferred": false
+  },
+  "pipelineConfigId": "da637be2-8219-4fb4-a118-aa685837ebdd",
+  "notifications": [],
+  "initialConfig": {},
+  "systemNotifications": [],
+  "spelEvaluator": "v4",
+  "templateVariables": {}
+}

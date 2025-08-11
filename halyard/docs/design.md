@@ -309,9 +309,6 @@ deployment-configuration:
 
 ```yaml
 # ~/.hal/spinnaker-api-team/clouddriver-local.yaml
-retrofit:
-  loglevel: FULL
-
 redis:
   scheduler: sort
 ```
@@ -343,9 +340,6 @@ With the contents of `clouddriver-local.yaml`:
 
 ```yaml
 # ~/.spinnaker/clouddriver-local.yaml
-retrofit:
-  loglevel: FULL
-
 redis:
   scheduler: sort
 ```

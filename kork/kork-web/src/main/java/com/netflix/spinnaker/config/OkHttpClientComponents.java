@@ -30,9 +30,7 @@ import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
-import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -71,7 +69,6 @@ import org.springframework.util.CollectionUtils;
 @EnableConfigurationProperties({
   OkHttpClientConfigurationProperties.class,
   OkHttpMetricsInterceptorProperties.class,
-  RetrofitConfigurationProperties.class,
   Retrofit2ConfigurationProperties.class
 })
 public class OkHttpClientComponents {
@@ -81,19 +78,13 @@ public class OkHttpClientComponents {
   private final Retrofit2ConfigurationProperties retrofit2Properties;
 
   @Bean
-  public SpinnakerRequestInterceptor spinnakerRequestInterceptor() {
-    return new SpinnakerRequestInterceptor(clientProperties.getPropagateSpinnakerHeaders());
-  }
-
-  @Bean
   public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
     return new SpinnakerRequestHeaderInterceptor(clientProperties.getPropagateSpinnakerHeaders());
   }
 
   @Bean
   public Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor() {
-    return new Retrofit2EncodeCorrectionInterceptor(
-        clientProperties.getSkipRetrofit2EncodeCorrection());
+    return new Retrofit2EncodeCorrectionInterceptor();
   }
 
   @Bean
@@ -106,6 +97,13 @@ public class OkHttpClientComponents {
   public OkHttpClientCustomizer metricsInterceptorCustomizer(
       OkHttp3MetricsInterceptor metricsInterceptor) {
     return builder -> builder.addInterceptor(metricsInterceptor);
+  }
+
+  /** Adds an encode correction interceptor to clients. */
+  @Bean
+  public OkHttpClientCustomizer encodeCorrectionInterceptorCustomizer(
+      Retrofit2EncodeCorrectionInterceptor encodeCorrectionInterceptor) {
+    return builder -> builder.addInterceptor(encodeCorrectionInterceptor);
   }
 
   @Bean
@@ -255,10 +253,14 @@ public class OkHttpClientComponents {
   }
 
   @Bean
-  public OkHttpClientCustomizer httpLoggingCustomizer() {
-    return builder ->
-        builder.addInterceptor(
-            new HttpLoggingInterceptor().setLevel(retrofit2Properties.getLogLevel()));
+  public HttpLoggingInterceptor httpLoggingInterceptor() {
+    return new HttpLoggingInterceptor().setLevel(retrofit2Properties.getLogLevel());
+  }
+
+  @Bean
+  public OkHttpClientCustomizer httpLoggingCustomizer(
+      HttpLoggingInterceptor httpLoggingInterceptor) {
+    return builder -> builder.addInterceptor(httpLoggingInterceptor);
   }
 
   /**

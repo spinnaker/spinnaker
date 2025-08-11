@@ -128,7 +128,7 @@ class Ok3HttpClientRegistryTest : JUnit5Minutests {
     init {
       val builder: OkHttpClient.Builder = mockk(relaxed = true)
       every { builder.build() } returns internalServicesClient
-      every { okHttp3ClientConfiguration.create() } returns builder
+      every { okHttp3ClientConfiguration.createForRetrofit2() } returns builder
     }
   }
 }

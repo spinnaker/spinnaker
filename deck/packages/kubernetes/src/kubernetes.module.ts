@@ -35,14 +35,25 @@ import { KUBERNETES_DISABLE_MANIFEST_STAGE } from './pipelines/stages/traffic/di
 import { KUBERNETES_ENABLE_MANIFEST_STAGE } from './pipelines/stages/traffic/enableManifest.stage';
 import './pipelines/validation/manifestSelector.validator';
 import { KUBERNETS_RAW_RESOURCE_MODULE } from './rawResource';
+import { KUBERNETES_REACT_MODULE } from './reactShims/kubernetes.react.module';
 import { KUBERNETES_RESOURCE_STATES } from './resources/resources.state';
 import { KUBERNETES_SECURITY_GROUP_DETAILS_CTRL } from './securityGroup/details/details.controller';
 import { KubernetesSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { KUBERNETES_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transformer';
-import { KUBERNETES_SERVER_GROUP_DETAILS_CTRL } from './serverGroup/details/details.controller';
-import { KUBERNETES_SERVER_GROUP_RESIZE_CTRL } from './serverGroup/details/resize/resize.controller';
-import { KUBERNETES_SERVER_GROUP_COMMAND_BUILDER } from './serverGroup/serverGroupCommandBuilder.service';
-import { KUBERNETES_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroupTransformer.service';
+import { KubernetesServerGroupActions } from './serverGroup/details/KubernetesServerGroupActions';
+import { kubernetesServerGroupDetailsGetter } from './serverGroup/details/kubernetesServerGroupDetailsGetter';
+import {
+  ServerGroupAnnotationCustomSection,
+  ServerGroupEventsSection,
+  ServerGroupHealthSection,
+  ServerGroupImagesSection,
+  ServerGroupInformationSection,
+  ServerGroupLabelsSection,
+  ServerGroupManifestStatusSection,
+  ServerGroupSizeSection,
+} from './serverGroup/details/sections';
+import { KubernetesV2ServerGroupCommandBuilder } from './serverGroup/serverGroupCommandBuilder';
+import { KubernetesV2ServerGroupTransformer } from './serverGroup/serverGroupTransformer';
 import { KUBERNETES_SERVER_GROUP_MANAGER_DETAILS_CTRL } from './serverGroupManager/details/details.controller';
 import './validation/applicationName.validator';
 
@@ -51,14 +62,11 @@ import './logo/kubernetes.logo.less';
 export const KUBERNETES_MODULE = 'spinnaker.kubernetes';
 
 const requires = [
+  KUBERNETES_REACT_MODULE,
   KUBERNETES_INSTANCE_DETAILS_CTRL,
   KUBERNETES_LOAD_BALANCER_DETAILS_CTRL,
   KUBERNETES_SECURITY_GROUP_DETAILS_CTRL,
-  KUBERNETES_SERVER_GROUP_COMMAND_BUILDER,
-  KUBERNETES_SERVER_GROUP_DETAILS_CTRL,
-  KUBERNETES_SERVER_GROUP_TRANSFORMER,
   KUBERNETES_SERVER_GROUP_MANAGER_DETAILS_CTRL,
-  KUBERNETES_SERVER_GROUP_RESIZE_CTRL,
   KUBERNETES_SERVER_GROUP_MANAGER_DETAILS_CTRL,
   KUBERNETES_MANIFEST_DELETE_CTRL,
   KUBERNETES_MANIFEST_SCALE_CTRL,
@@ -99,10 +107,20 @@ module(KUBERNETES_MODULE, requires).config(() => {
     },
     serverGroup: {
       CloneServerGroupModal: ManifestWizard,
-      commandBuilder: 'kubernetesV2ServerGroupCommandBuilder',
-      detailsController: 'kubernetesV2ServerGroupDetailsCtrl',
-      detailsTemplateUrl: require('./serverGroup/details/details.html'),
-      transformer: 'kubernetesV2ServerGroupTransformer',
+      detailsActions: KubernetesServerGroupActions,
+      detailsGetter: kubernetesServerGroupDetailsGetter,
+      detailsSections: [
+        ServerGroupManifestStatusSection,
+        ServerGroupInformationSection,
+        ServerGroupAnnotationCustomSection,
+        ServerGroupImagesSection,
+        ServerGroupEventsSection,
+        ServerGroupLabelsSection,
+        ServerGroupSizeSection,
+        ServerGroupHealthSection,
+      ],
+      commandBuilder: KubernetesV2ServerGroupCommandBuilder,
+      transformer: KubernetesV2ServerGroupTransformer,
     },
     serverGroupManager: {
       detailsTemplateUrl: require('./serverGroupManager/details/details.html'),

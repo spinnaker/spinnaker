@@ -57,7 +57,7 @@ public class KatoService {
         () ->
             Retrofit2SyncCall.execute(
                 katoRestService.requestOperations(
-                    requestId(operations), cloudProvider, operations)),
+                    cloudProvider, requestId(operations), operations)),
         3,
         Duration.ofSeconds(1),
         false);
@@ -69,7 +69,7 @@ public class KatoService {
     try (ResponseBody responseBody =
         Retrofit2SyncCall.execute(
             katoRestService.submitOperation(
-                requestId(operation), cloudProvider, operation.getOperationType(), operation))) {
+                cloudProvider, operation.getOperationType(), requestId(operation), operation))) {
 
       taskId = objectMapper.readValue(responseBody.byteStream(), TaskId.class);
     } catch (Exception e) {

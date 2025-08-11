@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties(OkHttpClientConfigurationProperties.class)
-class RawOkHttpClientConfiguration {
+public class RawOkHttpClientConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
