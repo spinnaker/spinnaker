@@ -306,17 +306,17 @@ describe('kubernetes: Clusters', () => {
     cy.contains('dt', 'Kind').next('dd').should('contain.text', 'deployment');
     cy.contains('dt', 'Managing').next('dd')
       .find('a')
-      .should('contain.text', 'replicaSet backend-65b97dd546');
+      .should('contain.text', 'ReplicaSet backend-65b97dd546');
 
     cy.contains('h4', 'Status').should('be.visible');
     cy.get('.collapsible-section')
-      .contains('Status')
-      .parent()
+      .contains('h4', 'Status')
+      .parents('.collapsible-section')
       .within(() => {
-        cy.contains('Available').should('exist');
-        cy.contains('Deployment has minimum availability.').should('exist');
-        cy.contains('Progressing').should('exist');
-        cy.contains('ReplicaSet "backend-65b97dd546" has successfully progressed.').should('exist');
+        cy.contains('span', 'Available').should('exist');
+        cy.contains('div', 'Deployment has minimum availability.').should('exist');
+        cy.contains('span', 'Progressing').should('exist');
+        cy.contains('div', 'ReplicaSet "backend-65b97dd546" has successfully progressed.').should('exist');
       });
 
     cy.contains('.collapsible-section', 'deployment info')
@@ -330,7 +330,7 @@ describe('kubernetes: Clusters', () => {
     cy.contains('h4', 'Events').scrollIntoView().should('be.visible');
     cy.get('.collapsible-section')
       .contains('Events')
-      .parent()
+      .parents('.collapsible-section')
       .should('contain.text', 'No recent events found');
 
     const labels = [
@@ -342,14 +342,14 @@ describe('kubernetes: Clusters', () => {
     labels.forEach(label => {
       cy.get('.collapsible-section')
         .contains('Labels')
-        .parent()
+        .parents('.collapsible-section')
         .should('contain.text', label);
     });
 
     cy.contains('h4', 'Artifacts').scrollIntoView().should('be.visible');
     cy.get('.collapsible-section')
       .contains('Artifacts')
-      .parent()
+      .parents('.collapsible-section')
       .within(() => {
         cy.contains('docker/image').should('exist');
         cy.contains('nginx:1.27.3').should('exist');
