@@ -21,7 +21,7 @@ import com.netflix.kayenta.canary.providers.metrics.InfluxdbCanaryMetricSetQuery
 import com.netflix.kayenta.influxdb.service.InfluxDbRemoteService;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

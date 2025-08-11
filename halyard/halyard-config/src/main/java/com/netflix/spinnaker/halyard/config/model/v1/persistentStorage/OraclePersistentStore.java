@@ -14,8 +14,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Secret;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SecretFile;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

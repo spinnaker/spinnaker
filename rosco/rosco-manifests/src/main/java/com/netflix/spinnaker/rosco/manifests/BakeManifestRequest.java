@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.rosco.manifests;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import jakarta.annotation.Nullable;
 import java.util.Map;
-import javax.annotation.Nullable;
 import lombok.Data;
 
 @Data

@@ -31,7 +31,7 @@ dependencies {
   implementation project(':halyard-backup')
 
   testImplementation 'org.spockframework:spock-core'
-  testImplementation 'org.springframework:spring-test'
+  implementation 'org.springframework:spring-test'
   testRuntimeOnly 'net.bytebuddy:byte-buddy'
   testRuntimeOnly 'org.objenesis:objenesis'
 }
