@@ -9,7 +9,6 @@ import com.netflix.spinnaker.keel.retrofit.InstrumentedJacksonConverter
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import kotlinx.coroutines.future.await
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -22,6 +21,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import retrofit2.Retrofit
+import java.util.concurrent.Executors
 
 @Configuration
 @ConditionalOnProperty("lemur.base-url")
@@ -54,7 +54,7 @@ class LemurConfiguration {
       .addConverterFactory(InstrumentedJacksonConverter.Factory("Lemur", objectMapper))
       .baseUrl(RetrofitUtils.getBaseUrl(lemurEndpoint.toString()))
       .client(client)
-      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance(Executors.newCachedThreadPool()))
       .build()
       .create(LemurService::class.java)
   }
