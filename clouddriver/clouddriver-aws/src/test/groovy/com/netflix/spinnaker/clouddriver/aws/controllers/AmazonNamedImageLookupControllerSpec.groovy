@@ -17,6 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.aws.controllers
 
+import com.google.common.collect.Iterables
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Gauge
+import com.netflix.spectator.api.Measurement
+
+import java.util.function.Supplier
+
+import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -27,11 +36,15 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.servlet.http.HttpServletRequest
+import java.util.stream.Collectors
+import java.util.stream.IntStream
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
 
 class AmazonNamedImageLookupControllerSpec extends Specification {
+
+  Registry registry = new DefaultRegistry();
 
   void "should extract tags from query parameters"() {
     given:
@@ -44,7 +57,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   @Unroll
   void "should prevent searches on bad ami-like query: #query"() {
     given:
-    def controller = new AmazonNamedImageLookupController(null)
+    def controller = new AmazonNamedImageLookupController(null, registry)
 
     when:
     controller.validateLookupOptions(new LookupOptions(q: query))
@@ -59,7 +72,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   @Unroll
   void "should not throw exception when performing acceptable ami-like query: #query"() {
     given:
-    def controller = new AmazonNamedImageLookupController(Stub(Cache))
+    def controller = new AmazonNamedImageLookupController(Stub(Cache), registry)
 
     when:
     controller.validateLookupOptions(new LookupOptions(q: query))
@@ -75,7 +88,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     given:
     def httpServletRequest = httpServletRequest([:])
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiId = 'ami-12345678'
     def amiName = 'myAmi'
     def account = 'account'
@@ -136,7 +149,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     given:
     def httpServletRequest = httpServletRequest([:])
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiId = 'ami-12345678'
     def amiName = 'myAmi'
     def account = 'account'
@@ -197,12 +210,103 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
       // currently populate tags, only tagsByImageId, as tags is deprecated.
       tags == [:]
     }
+
+    // Since we're only talking about one image, make sure there's no activity
+    // on the discarded images metric
+    Counter counter = registry.counters().findFirst().orElseThrow(AssertionError.metaClass.&invokeConstructor as Supplier);
+    counter.id().name() == 'aws.discardedImages'
+    counter.actualCount() == 0
+  }
+
+  void "find reports a metric when discarding results"() {
+    given:
+    def httpServletRequest = httpServletRequest([:])
+    Cache cacheView = Mock(Cache)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
+    def baseAmiId = 'ami-12345678'
+    def baseAmiName = 'myAmi'
+    def account = 'account'
+    def region = 'region'
+    def imageTags = [att1: 'value1', att2: 'value2']
+    def query = baseAmiName
+    def tagsAsAttributes = imageTags.collect { key, value -> [key: key, value: value] }
+
+    int extraImages = 3 // arbitrary positive number, though making it bigger than one improves the test
+    int numImages = AmazonNamedImageLookupController.MAX_SEARCH_RESULTS + extraImages
+
+    List<CacheData> imageCacheData = IntStream.range(0, numImages)
+      .mapToObj { imageNum ->
+        def amiId = "${baseAmiId}${imageNum}"
+        def amiName = "${baseAmiName}${imageNum}"
+        new DefaultCacheData(Keys.getImageKey(amiId, account, region),
+                             [name: amiName,
+                              tags: tagsAsAttributes,
+                              imageId: amiId],
+                             [(NAMED_IMAGES.ns): [Keys.getNamedImageKey(account, amiName)]])
+      }
+      .collect(Collectors.toList())
+
+    List<CacheData> namedImageCacheData = IntStream.range(0, numImages)
+      .mapToObj{imageNum ->
+        def amiId = "${baseAmiId}${imageNum}"
+        def amiName = "${baseAmiName}${imageNum}"
+        def namedImageId = Keys.getNamedImageKey(account, amiName)
+        def namedImageCacheAttributes = [name: amiName,
+                                         virtualizationType: 'hvm', // arbitrary
+                                         architecture: 'architecture', // arbitrary
+                                         creationDate: '2021-08-03T22:27:50.000Z'] // arbitrary
+        new DefaultCacheData(namedImageId,
+                             namedImageCacheAttributes,
+                             [(IMAGES.ns): [Keys.getImageKey(amiId, account, region)]]) }
+      .collect(Collectors.toList())
+
+    // Provide identifiers to use when looking up by name.  The value here is
+    // arbitrary, as long as we pass it to the mock of
+    // cacheView.getAll(NAMED_IMAGES.ns).  May as well make it realistic though.
+    List<String> namedImageIdentifiers = IntStream.range(0, numImages)
+      .mapToObj { imageNum -> "${baseAmiName}${imageNum}" }
+      .collect(Collectors.toList())
+
+    // Provide identifiers to use when looking up by id.
+    List<String> imageIdentifiers = IntStream.range(0, numImages)
+      .mapToObj { imageNum ->
+        def amiId = "${baseAmiId}${imageNum}"
+        Keys.getImageKey(amiId, account, region) }
+      .collect(Collectors.toList())
+
+    when:
+    List<AmazonNamedImageLookupController.NamedImage> results = controller.list(new LookupOptions(q: query), httpServletRequest)
+
+    then:
+    // Expect an identifier lookup by name
+    1 * cacheView.filterIdentifiers(NAMED_IMAGES.ns, _) >> namedImageIdentifiers
+
+    // Expect no image identifiers since the identifier lookup by name returned
+    // something
+    0 * cacheView.filterIdentifiers(IMAGES.ns, _)
+
+    // Expect a lookup by name, with the given identifiers
+    1 * cacheView.getAll(NAMED_IMAGES.ns, namedImageIdentifiers, _) >> namedImageCacheData
+
+    // Expect a lookup by image, but with no items to look in since the
+    // identifier lookup by name returned something
+    1 * cacheView.getAll(IMAGES.ns, []) >> []
+
+    // And then in render, expect another image lookup, this time with our image
+    // ids because our named images are each related to a "real" image.
+    1 * cacheView.getAll(IMAGES.ns, imageIdentifiers) >> imageCacheData
+
+    and:
+    results.size() == AmazonNamedImageLookupController.MAX_SEARCH_RESULTS
+    Counter counter = registry.counters().findFirst().orElseThrow(AssertionError.metaClass.&invokeConstructor as Supplier);
+    counter.id().name() == 'aws.discardedImages'
+    counter.actualCount() == extraImages
   }
 
   void "find by - name and tags - two amis - same account - same region - same name - different ids - only one has tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiIdOne = 'ami-12345678'
     def amiIdTwo = 'ami-5678abcd'
     def amiName = 'myAmi'
@@ -288,7 +392,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     given:
     def httpServletRequest = httpServletRequest([:])
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiIdOne = 'ami-12345678'
     def amiIdTwo = 'ami-5678abcd'
     def amiName = 'myAmi'
@@ -364,7 +468,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - name and tags - two amis - different accounts - same name - different ids - only one has tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiIdOne = 'ami-12345678'
     def amiIdTwo = 'ami-5678abcd'
     def amiName = 'myAmi'
@@ -451,7 +555,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - name and tags - two amis - different accounts - same name - same id - only one has tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiId = 'ami-12345678'
     def amiName = 'myAmi'
     def accountOne = 'accountOne'
@@ -538,7 +642,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - id and tags - two amis - different accounts - same name - same id - only one has tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiId = 'ami-12345678'
     def amiName = 'myAmi'
     def accountOne = 'accountOne'
@@ -628,7 +732,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - name - two amis - different accounts - same name - same id - different tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiId = 'ami-12345678'
     def amiName = 'myAmi'
     def accountOne = 'accountOne'
@@ -723,7 +827,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - id - two amis - different accounts - same name - same id - only one has tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiId = 'ami-12345678'
     def amiName = 'myAmi'
     def accountOne = 'accountOne'
@@ -816,7 +920,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - name and tags - two amis - different accounts - same name - different ids - same tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiIdOne = 'ami-12345678'
     def amiIdTwo = 'ami-5678abcd'
     def amiName = 'myAmi'
@@ -904,7 +1008,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - name and tags - two amis - different accounts - same name - different ids - no tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiIdOne = 'ami-12345678'
     def amiIdTwo = 'ami-5678abcd'
     def amiName = 'myAmi'
@@ -980,7 +1084,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - name - two amis - different accounts - same name - same id - only one has tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiId = 'ami-12345678'
     def amiName = 'myAmi'
     def accountOne = 'accountOne'
@@ -1067,7 +1171,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - name - two amis - different accounts - same name - different ids - only one has tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiIdOne = 'ami-12345678'
     def amiIdTwo = 'ami-5678abcd'
     def amiName = 'myAmi'
@@ -1155,7 +1259,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - name - two amis - different accounts - same name - same id - no tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiId = 'ami-12345678'
     def amiName = 'myAmi'
     def accountOne = 'accountOne'
@@ -1243,7 +1347,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
   void "find by - name - two amis - different accounts - same name - different ids - no tags"() {
     given:
     Cache cacheView = Mock(Cache)
-    def controller = new AmazonNamedImageLookupController(cacheView)
+    def controller = new AmazonNamedImageLookupController(cacheView, registry)
     def amiIdOne = 'ami-12345678'
     def amiIdTwo = 'ami-5678abcd'
     def amiName = 'myAmi'
