@@ -1,6 +1,6 @@
-import type { IKubernetesServerGroup } from '../interfaces';
+import type { IKubernetesResource } from '../interfaces';
 
 export interface IAnnotationCustomSectionsProps {
   manifest: any;
-  resource: IKubernetesServerGroup;
+  resource: IKubernetesResource;
 }
