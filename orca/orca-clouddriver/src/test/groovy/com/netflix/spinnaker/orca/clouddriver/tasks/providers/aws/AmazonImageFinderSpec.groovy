@@ -58,7 +58,9 @@ class AmazonImageFinderSpec extends Specification {
     def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"], [])
 
     then:
-    1 * oortService.findImage("aws", "mypackage", null, null, ["tag:engine": "spinnaker"]) >> Calls.response(
+    // Having a null region here verifies that we don't provide a region when
+    // there's more than one in the stage
+    1 * oortService.findImage("aws", "mypackage", null /* account */, null /* region */, ["tag:engine": "spinnaker"]) >> Calls.response(
       [
         [
           imageName    : "image-0",
@@ -199,7 +201,7 @@ class AmazonImageFinderSpec extends Specification {
     def imageDetails = amazonImageFinder.byTags(stage, "mypackage", ["engine": "spinnaker"], [])
 
     then:
-    1 * oortService.findImage("aws", "mypackage", null, null, ["tag:engine": "spinnaker"]) >> Calls.response(
+    1 * oortService.findImage("aws", "mypackage", null /* account */, "us-west-2", ["tag:engine": "spinnaker"]) >> Calls.response(
       [
         [
           imageName    : "image-0",
@@ -270,7 +272,23 @@ class AmazonImageFinderSpec extends Specification {
     amazonImageFinder.byTags(stage, 'mypackage', [:], [])
 
     then:
-    1 * oortService.findImage('aws', 'mypackage', myAccount, null, _) >> Calls.response([])
+    1 * oortService.findImage('aws', 'mypackage', myAccount, "us-west-1", _) >> Calls.response([])
+    0 * _
+  }
+
+  def 'passes no region to clouddriver when none are specified'() {
+    given: 'a stage with an empty list of regions specified'
+    String myAccount = 'my-account'
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
+      imageOwnerAccount: myAccount,
+      regions: []
+    ])
+
+    when:
+    amazonImageFinder.byTags(stage, 'mypackage', [:], [])
+
+    then:
+    1 * oortService.findImage('aws', 'mypackage', myAccount, null /* region */, _) >> Calls.response([])
     0 * _
   }
 
