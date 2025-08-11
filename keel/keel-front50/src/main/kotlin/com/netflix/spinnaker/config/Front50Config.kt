@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
+import java.util.concurrent.Executors
 
 @Configuration
 @ConditionalOnProperty("front50.enabled")
@@ -33,7 +34,7 @@ class Front50Config {
       .addConverterFactory(InstrumentedJacksonConverter.Factory("Front50", objectMapper))
       .baseUrl(RetrofitUtils.getBaseUrl(front50Endpoint.toString()))
       .client(clientProvider.getClient(DefaultServiceEndpoint("front50", front50Endpoint.toString())))
-      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance(Executors.newCachedThreadPool()))
       .build()
       .create(Front50Service::class.java)
 }
