@@ -74,6 +74,7 @@ public class AccountsConfiguration {
     @Include private String externalId;
     @Include private List<CredentialsConfig.LifecycleHook> lifecycleHooks;
     @Include private boolean allowPrivateThirdPartyImages;
+    @Include private String managingAccountProfile;
 
     public String getName() {
       return name;
@@ -279,6 +280,14 @@ public class AccountsConfiguration {
 
     public void setLambdaEnabled(Boolean lambdaEnabled) {
       this.lambdaEnabled = lambdaEnabled;
+    }
+
+    public String getManagingAccountProfile() {
+      return managingAccountProfile;
+    }
+
+    public void setManagingAccountProfile(String managingAccountProfile) {
+      this.managingAccountProfile = managingAccountProfile;
     }
   }
 

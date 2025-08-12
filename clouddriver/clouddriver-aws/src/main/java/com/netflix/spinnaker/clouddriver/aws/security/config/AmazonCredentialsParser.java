@@ -21,8 +21,14 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.netflix.spinnaker.clouddriver.aws.security.*;
+import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup;
+import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory;
+import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory;
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account;
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
@@ -47,8 +53,23 @@ public class AmazonCredentialsParser<
         U extends AccountsConfiguration.Account, V extends NetflixAmazonCredentials>
     implements CredentialsParser<U, V> {
 
+  private final AmazonClientProvider amazonClientProvider;
+
   private final AWSCredentialsProvider credentialsProvider;
   private final AWSAccountInfoLookup awsAccountInfoLookup;
+
+  /** Used with multiple managing accounts to lookup aws account info */
+  private final AWSAccountInfoLookupFactory awsAccountInfoLookupFactory;
+
+  /** Used with multiple managing accounts to provide aws account credentials */
+  private final AWSCredentialsProviderFactory awsCredentialsProviderFactory;
+
+  /** The key is a profile name, and the value is the provider for that profile */
+  private final Map<String, AWSCredentialsProvider> credentialsProviderMap;
+
+  /** The key is a profile name, and the value is account info lookup object for that profile. */
+  private final Map<String, AWSAccountInfoLookup> awsAccountInfoLookupMap;
+
   private final Map<String, String> templateValues;
   private final CredentialTranslator<V> credentialTranslator;
   private final ObjectMapper objectMapper;
@@ -67,29 +88,29 @@ public class AmazonCredentialsParser<
   public AmazonCredentialsParser(
       AWSCredentialsProvider credentialsProvider,
       AmazonClientProvider amazonClientProvider,
-      Class<V> credentialsType,
-      CredentialsConfig credentialsConfig,
-      AccountsConfiguration accountsConfig) {
-    this(
-        credentialsProvider,
-        new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider),
-        credentialsType,
-        credentialsConfig,
-        accountsConfig);
-  }
-
-  public AmazonCredentialsParser(
-      AWSCredentialsProvider credentialsProvider,
       AWSAccountInfoLookup awsAccountInfoLookup,
+      AWSAccountInfoLookupFactory awsAccountInfoLookupFactory,
+      AWSCredentialsProviderFactory awsCredentialsProviderFactory,
       Class<V> credentialsType,
       CredentialsConfig credentialsConfig,
       AccountsConfiguration accountsConfig) {
+    this.amazonClientProvider =
+        Objects.requireNonNull(amazonClientProvider, "amazonClientProvider");
     this.credentialsProvider = Objects.requireNonNull(credentialsProvider, "credentialsProvider");
     this.awsAccountInfoLookup = awsAccountInfoLookup;
+    this.awsAccountInfoLookupFactory =
+        Objects.requireNonNull(awsAccountInfoLookupFactory, "awsAccountInfoLookupFactory");
+    this.awsCredentialsProviderFactory =
+        Objects.requireNonNull(awsCredentialsProviderFactory, "awsCredentialsProviderFactory");
     this.templateValues = Collections.emptyMap();
     this.objectMapper = new ObjectMapper();
     this.credentialTranslator = findTranslator(credentialsType, this.objectMapper);
     this.credentialsConfig = credentialsConfig;
+
+    // Only used when CredentialsConfig.getLoadAccounts().isUseManagingAccountProfile() is true
+    this.credentialsProviderMap = Maps.newConcurrentMap();
+    this.awsAccountInfoLookupMap = Maps.newConcurrentMap();
+
     this.accountsConfig = accountsConfig;
     this.regionCache = Maps.newConcurrentMap();
     this.defaultRegionNames = new ArrayList<>();
@@ -98,6 +119,19 @@ public class AmazonCredentialsParser<
 
     // look in the credentials config to find default region names
     if (!CollectionUtils.isNullOrEmpty(credentialsConfig.getDefaultRegions())) {
+      // With multiple managing accounts, is there more than one list of default
+      // regions?  It's possible to add another property to add profile-specific
+      // defaults, like:
+      //
+      // private Map<String, Region> defaultRegionsPerProfile;
+      //
+      // but until then assume defaultRegions in the config only applies to
+      // accounts that don't specify a managing account profile.
+      //
+      // If managing account profiles are enabled, and every account specifies a
+      // managing account profile, we potentially don't need to do this, but leave
+      // it in for simplicity and since the region cache is shared, so there may
+      // be a benefit to populating it here.
       this.defaultRegionNames =
           credentialsConfig.getDefaultRegions().stream()
               .map(Region::getName)
@@ -113,14 +147,14 @@ public class AmazonCredentialsParser<
    * <p>- An account's region does not have availability zones defined and that region doesn't exist
    * in the region cache.
    */
-  private List<Region> initRegions(List<Region> toInit) {
+  private List<Region> initRegions(AWSAccountInfoLookup awsAccountInfoLookup, List<Region> toInit) {
     // initialize regions cache if it hasn't been done already. We do this here and not in
     // toInit.isNullOrEmpty() because we need the default region values if a region in toInit list
     // has no availability zones specified.
     initializeRegionsCacheWithDefaultRegions();
 
     if (CollectionUtils.isNullOrEmpty(toInit)) {
-      return getRegionsFromCache(this.defaultRegionNames);
+      return getRegionsFromCache(awsAccountInfoLookup, this.defaultRegionNames);
     }
 
     Map<String, Region> toInitByName =
@@ -145,7 +179,7 @@ public class AmazonCredentialsParser<
 
     // toLookup now contains the list of regions that we need to fetch from the cache and/or AWS API
     if (!toLookup.isEmpty()) {
-      List<Region> resolved = getRegionsFromCache(toLookup);
+      List<Region> resolved = getRegionsFromCache(awsAccountInfoLookup, toLookup);
       for (Region region : resolved) {
         Region src = find(toInit, region.getName());
         if (src != null) {
@@ -190,7 +224,7 @@ public class AmazonCredentialsParser<
         if (defaultRegionNames.isEmpty()) {
           log.info("No default regions specified in the configuration. Retrieving all the regions");
           // save all the newly found regions in the cache
-          toRegion(awsAccountInfoLookup.listRegions())
+          toRegion(this.awsAccountInfoLookup.listRegions())
               .forEach(
                   region -> {
                     log.info("adding region: {} to regions cache", region.getName());
@@ -245,7 +279,8 @@ public class AmazonCredentialsParser<
     return null;
   }
 
-  private List<Region> getRegionsFromCache(final List<String> regionNames) {
+  private List<Region> getRegionsFromCache(
+      AWSAccountInfoLookup awsAccountInfoLookup, final List<String> regionNames) {
     // if no region names are provided, return everything from the cache except the
     // DEFAULT_REGIONS_PROCESSED_KEY
     if (regionNames.isEmpty()) {
@@ -332,7 +367,8 @@ public class AmazonCredentialsParser<
       }
 
       account.setAccountId(
-          Retry.decorateSupplier(retry, awsAccountInfoLookup::findAccountId).get());
+          Retry.decorateSupplier(retry, getAwsAccountInfoLookup(config, account)::findAccountId)
+              .get());
     }
 
     if (account.getEnvironment() == null) {
@@ -344,8 +380,12 @@ public class AmazonCredentialsParser<
     }
 
     log.info("Setting regions for aws account: {}", account.getName());
+
+    AWSAccountInfoLookup awsAccountInfoLookupToUse = getAwsAccountInfoLookup(config, account);
     account.setRegions(
-        Retry.decorateSupplier(retry, () -> initRegions(account.getRegions())).get());
+        Retry.decorateSupplier(
+                retry, () -> initRegions(awsAccountInfoLookupToUse, account.getRegions()))
+            .get());
 
     account.setDefaultSecurityGroups(
         account.getDefaultSecurityGroups() != null
@@ -402,7 +442,96 @@ public class AmazonCredentialsParser<
                 config.getDefaultLifecycleHookNotificationTargetARNTemplate()));
       }
     }
-    return credentialTranslator.translate(credentialsProvider, account);
+    return credentialTranslator.translate(getCredentialsProvider(config, account), account);
+  }
+
+  /**
+   * Accessor for the AWSAccountInfoLookup object for a particular account
+   *
+   * @param credentialsConfig standalone credentials configuration
+   * @param account access the credentials provider for this account
+   * @return the AWSAccountInfoLookup object for account
+   */
+  private AWSAccountInfoLookup getAwsAccountInfoLookup(
+      CredentialsConfig credentialsConfig, Account account) {
+    // If the useManagingAccountProfile feature is disabled, return the standalone object.
+    if (!credentialsConfig.getLoadAccounts().isUseManagingAccountProfile()) {
+      log.debug("useManagingAccountProfile is disabled, using standalone AWSAccountInfoLookup");
+      return awsAccountInfoLookup;
+    }
+
+    // If the useManagingAccountProfile feature is enabled, but the account
+    // doesn't specify a managing account profile to use, return the standalone
+    // object.
+    if (Strings.isNullOrEmpty(account.getManagingAccountProfile())) {
+      log.debug(
+          "useManagingAccountProfile is enabled but account {} doesn't specify a managing "
+              + "account profile, using standalone AWSAccountInfoLookup",
+          account.getName());
+      return awsAccountInfoLookup;
+    }
+
+    // If the account does specify a managing account profile, construct a
+    // account info lookup object if we haven't already and use it.
+    log.debug(
+        "getAwsAccountInfoLookup: account {} specifies a managing account profile: '{}'",
+        account.getName(),
+        account.getManagingAccountProfile());
+    return awsAccountInfoLookupMap.computeIfAbsent(
+        account.getManagingAccountProfile(),
+        k -> {
+          log.info(
+              "constructing AWSAccountInfoLookup for profile '{}'",
+              account.getManagingAccountProfile());
+          return awsAccountInfoLookupFactory.makeAWSAccountInfoLookup(
+              account.getManagingAccountProfile(),
+              getCredentialsProvider(credentialsConfig, account),
+              amazonClientProvider);
+        });
+  }
+
+  /**
+   * Accessor for the credentials provider for a particular account
+   *
+   * @param credentialsConfig standalone credentials configuration
+   * @param account access the credentials provider for this account
+   * @return the credentials provider for account
+   */
+  private AWSCredentialsProvider getCredentialsProvider(
+      CredentialsConfig credentialsConfig, Account account) {
+    // If the useManagingAccountProfile feature is disabled, return the standalone credentials
+    // provider.
+    if (!credentialsConfig.getLoadAccounts().isUseManagingAccountProfile()) {
+      log.debug("useManagingAccountProfile is disabled, using standalone credentials provider");
+      return credentialsProvider;
+    }
+
+    // If the useManagingAccountProfile feature is enabled, but the account
+    // doesn't specify a managing account profile to use, return the standalone
+    // credentials provider.
+    if (Strings.isNullOrEmpty(account.getManagingAccountProfile())) {
+      log.debug(
+          "useManagingAccountProfile is enabled but account {} doesn't specify a managing "
+              + "account profile, using standalone credentials provider",
+          account.getName());
+      return credentialsProvider;
+    }
+
+    // If the account does specify a managing account profile, construct a
+    // provider if we haven't already and use it.
+    log.debug(
+        "account {} specifies a managing account profile: '{}'",
+        account.getName(),
+        account.getManagingAccountProfile());
+    return credentialsProviderMap.computeIfAbsent(
+        account.getManagingAccountProfile(),
+        k -> {
+          log.info(
+              "constructing ProfileCredentialsProvider for profile '{}'",
+              account.getManagingAccountProfile());
+          return awsCredentialsProviderFactory.makeAWSCredentialsProvider(
+              account.getManagingAccountProfile());
+        });
   }
 
   /** Build a RetryRegistry object based on credentials configuration */
