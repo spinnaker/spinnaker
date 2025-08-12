@@ -132,8 +132,19 @@ class AmazonBasicCredentialsLoaderSpec extends Specification{
         .collect(Collectors.toList()))
 
     CredentialsDefinitionSource<Account> amazonCredentialsSource = { -> accountsConfig.getAccounts() } as CredentialsDefinitionSource
+    AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+    AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+    AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
     AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-      provider, lookup, NetflixAmazonCredentials.class, credentialsConfig, accountsConfig)
+      provider,
+      amazonClientProvider,
+      lookup,
+      lookupFactory,
+      credentialsProviderFactory,
+      NetflixAmazonCredentials.class,
+      credentialsConfig,
+      accountsConfig)
+
     def loader = new AmazonBasicCredentialsLoader<Account, NetflixAmazonCredentials>(
       amazonCredentialsSource, ci, credentialsRepository, credentialsConfig, accountsConfig, defaultAccountConfigurationProperties
     )
