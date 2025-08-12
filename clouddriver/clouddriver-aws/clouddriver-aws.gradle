@@ -58,12 +58,15 @@ dependencies {
   testImplementation "cglib:cglib-nodep"
   testImplementation "com.natpryce:hamkrest"
   testImplementation "com.google.guava:guava"
+  testImplementation "uk.org.webcompere:system-stubs-core:2.1.6"
+  testImplementation "uk.org.webcompere:system-stubs-jupiter:2.1.6"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework:spring-test"
+  testImplementation "org.testcontainers:testcontainers"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
 
   integrationImplementation project(":clouddriver-web")
