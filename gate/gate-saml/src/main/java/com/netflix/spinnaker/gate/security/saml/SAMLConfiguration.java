@@ -87,6 +87,13 @@ public class SAMLConfiguration {
       if (decryptionCredential != null) {
         builder.decryptionX509Credentials(credentials -> credentials.add(decryptionCredential));
       }
+      // This is used in some identity providers to sign the request.  NOT the response - response
+      // is handled via the certs in metadata or up above.  This is keycloak and some others
+      // TO USE THIS:  The certificate should be uploaded to the IDP to allow it to decrypt these
+      // requests
+      if (properties.isSignRequests()) {
+        builder.signingX509Credentials(c -> c.addAll(properties.getSigningCredentials()));
+      }
       RelyingPartyRegistration registration = builder.build();
       return new InMemoryRelyingPartyRegistrationRepository(registration);
     }
