@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,13 +54,11 @@ class OortServiceTest {
                     "/applications/spinnaker/clusters/myAccount/myCluster/aws/serverGroups/myServerGroup?region=us-west-2"))
             .willReturn(WireMock.aResponse().withStatus(HttpStatus.OK.value()).withBody("{}")));
 
-    // FIXME: fix parameter order
-    assertThatThrownBy(
-            () ->
-                oortService.getServerGroupFromCluster(
-                    "spinnaker", "myAccount", "myCluster", "myServerGroup", "aws", "us-west-2"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage(
-            "A @Path parameter must not come after a @Query. (parameter #6)\n    for method OortService.getServerGroupFromCluster");
+    ResponseBody responseBody =
+        Retrofit2SyncCall.execute(
+            oortService.getServerGroupFromCluster(
+                "spinnaker", "myAccount", "myCluster", "myServerGroup", "aws", "us-west-2"));
+
+    assertThat(responseBody).isNotNull();
   }
 }
