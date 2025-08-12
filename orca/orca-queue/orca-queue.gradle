@@ -44,4 +44,5 @@ dependencies {
   testImplementation(project(":orca-echo"))
   testImplementation("org.apache.groovy:groovy")
   testImplementation("org.assertj:assertj-core")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
 }

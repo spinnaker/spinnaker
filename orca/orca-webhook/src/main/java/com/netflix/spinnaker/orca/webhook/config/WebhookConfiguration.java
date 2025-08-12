@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.crypto.X509IdentitySource;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.util.UnionX509TrustManager;
+import com.netflix.spinnaker.orca.webhook.util.WebhookLoggingEventListener;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -162,6 +163,11 @@ public class WebhookConfiguration {
 
     if (webhookProperties.isInsecureSkipHostnameVerification()) {
       builder.hostnameVerifier((hostname, session) -> true);
+    }
+
+    if (webhookProperties.isEventLoggingEnabled()) {
+      builder.eventListenerFactory(
+          new WebhookLoggingEventListener.Factory(webhookProperties.isEventLoggingVerbose()));
     }
 
     var client = builder.build();

@@ -20,11 +20,11 @@ import com.netflix.spinnaker.echo.slack.SlackAttachment
 import com.netflix.spinnaker.echo.slack.CompactSlackMessage
 import com.netflix.spinnaker.echo.slack.SlackService
 import groovy.util.logging.Slf4j
+import okhttp3.ResponseBody
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
-import retrofit.client.Response
 
 import static net.logstash.logback.argument.StructuredArguments.*
 import static org.apache.commons.lang3.text.WordUtils.capitalize
@@ -101,15 +101,15 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
 
     String address = preference.address
 
-    Response response
+    ResponseBody responseBody
     if (sendCompactMessages) {
-      response = slackService.sendCompactMessage(new CompactSlackMessage(body, color), address, true)
+      responseBody = slackService.sendCompactMessage(new CompactSlackMessage(body, color), address, true)
     } else {
       String title = getNotificationTitle(config.type, application, status)
-      response = slackService.sendMessage(new SlackAttachment(title, body, color), address, true)
+      responseBody = slackService.sendMessage(new SlackAttachment(title, body, color), address, true)
     }
-    log.info("Received response from Slack: {} {} for execution id {}. {}",
-      response?.status, response?.reason, event.content?.execution?.id, response?.body)
+    log.info("Received success response from Slack: {} {} for execution id {}. {}",
+      event.content?.execution?.id, responseBody?.string())
   }
 
   /**
