@@ -49,15 +49,17 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
     const $state = this.props.transition.router.stateService;
     const title = 'Configure project';
 
-    ConfigureProjectModal.show({ title, projectConfiguration }).then((result) => {
-      if (result.action === 'delete') {
-        $state.go('home.infrastructure');
-      } else if (result.action === 'upsert') {
-        $state.go($state.current, { project: result.name }, { location: 'replace', reload: true });
-      }
-    }).catch((err) => {
-      console.error(err);
-    });
+    ConfigureProjectModal.show({ title, projectConfiguration })
+      .then((result) => {
+        if (result.action === 'delete') {
+          $state.go('home.infrastructure');
+        } else if (result.action === 'upsert') {
+          $state.go($state.current, { project: result.name }, { location: 'replace', reload: true });
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   public render() {
