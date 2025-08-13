@@ -33,8 +33,8 @@ import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.ID
 @Component("AmazonKeys")
 class Keys implements KeyParser {
 
-  private static final Map<String, String> NAMESPACE_MAPPING =
-    ImmutableMap.builder()
+  private static final ImmutableMap<String, String> NAMESPACE_MAPPING =
+    ImmutableMap.<String, String>builder()
       .put(Namespace.SERVER_GROUPS.ns, "serverGroup")
       .put(Namespace.INSTANCES.ns, "instanceId")
       .put(Namespace.LOAD_BALANCERS.ns, "loadBalancer")
@@ -44,8 +44,8 @@ class Keys implements KeyParser {
       .put(Namespace.STACKS.ns, "stacks")
       .build()
 
-  private static final Set<String> PARSEABLE_FIELDS =
-    ImmutableSet.builder()
+  private static final ImmutableSet<String> PARSEABLE_FIELDS =
+    ImmutableSet.<String>builder()
       .addAll(Namespace.SERVER_GROUPS.fields)
       .addAll(Namespace.LOAD_BALANCERS.fields)
       .build()
