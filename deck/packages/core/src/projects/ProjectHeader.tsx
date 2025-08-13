@@ -10,7 +10,6 @@ import { ConfigureProjectModal } from './configure/ConfigureProjectModal';
 import type { IProject } from '../domain';
 import { Overridable } from '../overrideRegistry';
 import { SpanDropdownTrigger } from '../presentation';
-import { ReactInjector } from '../reactShims';
 
 import './project.less';
 
@@ -47,7 +46,7 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
 
   private configureProject = () => {
     const { projectConfiguration } = this.props;
-    const { $state } = ReactInjector;
+    const $state = this.props.transition.router.stateService;
     const title = 'Configure project';
 
     ConfigureProjectModal.show({ title, projectConfiguration }).then((result) => {
@@ -56,6 +55,8 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
       } else if (result.action === 'upsert') {
         $state.go($state.current, { project: result.name }, { location: 'replace', reload: true });
       }
+    }).catch((err) => {
+      console.error(err);
     });
   };
 
