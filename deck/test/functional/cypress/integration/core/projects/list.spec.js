@@ -38,7 +38,7 @@ describe('core: Projects List', () => {
       cy.contains('th', 'Owner');
     });
 
-    cy.get('table[ng-if="projectsLoaded"]').should('exist');
+    cy.get('table.table-hover').should('exist');
 
     cy.get('tbody tr').should('have.length.at.least', 2);
 
@@ -63,9 +63,11 @@ describe('core: Projects List', () => {
       });
 
     cy.get('ul.pagination').within(() => {
-      cy.get('li.pagination-prev').should('have.class', 'disabled').and('contain.text', 'Previous');
-      cy.get('li.pagination-next').should('have.class', 'disabled').and('contain.text', 'Next');
-      cy.get('li.pagination-page.active').should('contain.text', '1');
+      cy.get('li').eq(0).should('have.class', 'disabled').find('a').should('have.text', '«');
+      cy.get('li').eq(1).should('have.class', 'disabled').find('a').should('have.text', '‹');
+      cy.get('li').eq(2).should('have.class', 'active').find('a').should('contain.text', '1');
+      cy.get('li').eq(3).should('have.class', 'disabled').find('a').should('have.text', '›');
+      cy.get('li').eq(4).should('have.class', 'disabled').find('a').should('have.text', '»');
     });
   });
 
@@ -157,34 +159,39 @@ describe('core: Projects List', () => {
 
     cy.visit('#/projects');
 
-    // Page 1: should show 12 rows, Next enabled, Prev disabled
-    cy.get('table[ng-if="projectsLoaded"]').should('exist');
+    // Page 1: should show 12 rows
+    cy.get('table.table-hover').should('exist');
     cy.get('tbody tr').should('have.length', 12);
 
+    // Pagination state on page 1: «, ‹ disabled; 1 active; 2 exists; ›, » enabled
     cy.get('ul.pagination').within(() => {
-      cy.get('li.pagination-prev').should('have.class', 'disabled').and('contain.text', 'Previous');
-      cy.get('li.pagination-next').should('not.have.class', 'disabled').and('contain.text', 'Next');
-      cy.get('li.pagination-page.active').should('contain.text', '1');
-      // we expect at least 2 pages for 14 items w/ 12 per page
-      cy.get('li.pagination-page').should('have.length.at.least', 2);
+      cy.get('li').eq(0).should('have.class', 'disabled').find('a').should('have.text', '«');
+      cy.get('li').eq(1).should('have.class', 'disabled').find('a').should('have.text', '‹');
+      cy.contains('li', '1').should('have.class', 'active');
+      cy.contains('li', '2').should('not.have.class', 'active');
+      cy.contains('li', '›').should('not.have.class', 'disabled');
+      cy.contains('li', '»').should('not.have.class', 'disabled');
     });
 
-    // Go to page 2 (click the "2" page button)
-    cy.get('ul.pagination li.pagination-page').contains('2').click();
+    // Go to page 2
+    cy.get('ul.pagination').contains('li a', '2').click();
 
-    // Page 2: 2 rows, Prev enabled, Next disabled, active=2
+    // Page 2: 2 rows
     cy.get('tbody tr').should('have.length', 2);
 
+    // Pagination state on page 2: «, ‹ enabled; 2 active; ›, » disabled
     cy.get('ul.pagination').within(() => {
-      cy.get('li.pagination-prev').should('not.have.class', 'disabled').and('contain.text', 'Previous');
-      cy.get('li.pagination-next').should('have.class', 'disabled').and('contain.text', 'Next');
-      cy.get('li.pagination-page.active').should('contain.text', '2');
+      cy.contains('li', '«').should('not.have.class', 'disabled');
+      cy.contains('li', '‹').should('not.have.class', 'disabled');
+      cy.contains('li', '2').should('have.class', 'active');
+      cy.contains('li', '›').should('have.class', 'disabled');
+      cy.contains('li', '»').should('have.class', 'disabled');
     });
 
-    // Go back to page 1 via "Previous" and re-assert 12 rows
-    cy.get('ul.pagination li.pagination-prev a').click();
+    // Back to page 1 via ‹
+    cy.get('ul.pagination').contains('li a', '‹').click();
     cy.get('tbody tr').should('have.length', 12);
-    cy.get('ul.pagination li.pagination-page.active').should('contain.text', '1');
+    cy.get('ul.pagination').contains('li', '1').should('have.class', 'active');
   });
 
 });
