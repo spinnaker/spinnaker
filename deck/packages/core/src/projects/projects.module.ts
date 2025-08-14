@@ -1,5 +1,3 @@
-'use strict';
-
 import { module } from 'angular';
 
 import './projectSearchResultType';
