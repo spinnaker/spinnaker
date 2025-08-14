@@ -31,7 +31,7 @@ public class DelegatingKatoRestService extends DelegatingClouddriverService<Kato
   @Override
   public Call<TaskId> requestOperations(
       String clientRequestId, String cloudProvider, Collection<Map<String, Map>> operations) {
-    return getService().requestOperations(clientRequestId, cloudProvider, operations);
+    return getService().requestOperations(cloudProvider, clientRequestId, operations);
   }
 
   @Override
@@ -40,7 +40,7 @@ public class DelegatingKatoRestService extends DelegatingClouddriverService<Kato
       String cloudProvider,
       String operationName,
       OperationContext operation) {
-    return getService().submitOperation(clientRequestId, cloudProvider, operationName, operation);
+    return getService().submitOperation(cloudProvider, operationName, clientRequestId, operation);
   }
 
   @Override

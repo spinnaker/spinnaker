@@ -16,17 +16,10 @@
 
 package com.netflix.spinnaker.orca.retrofit.exceptions
 
-import java.lang.annotation.Annotation
-import java.lang.reflect.Method
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
-import retrofit.http.RestMethod
 import static java.net.HttpURLConnection.*
 
 abstract class BaseRetrofitExceptionHandler implements ExceptionHandler {
-  boolean shouldRetry(Exception e, String kind, Integer responseCode) {
-    return shouldRetry(e, kind, null, responseCode)
-  }
-
   boolean shouldRetry(Exception e, String kind, String httpMethod, Integer responseCode) {
     if (isMalformedRequest(kind, e.getMessage())) {
       return false
@@ -35,10 +28,6 @@ abstract class BaseRetrofitExceptionHandler implements ExceptionHandler {
     // retry on 503 even for non-idempotent requests
     if ("HTTP".equals(kind) && responseCode == HTTP_UNAVAILABLE) {
       return true
-    }
-
-    if(httpMethod == null) {
-      httpMethod = findHttpMethodAnnotation(e)
     }
 
     return isIdempotentRequest(httpMethod) && (isNetworkError(kind) || isGatewayErrorCode(kind, responseCode) || isThrottle(kind, responseCode))
@@ -54,7 +43,7 @@ abstract class BaseRetrofitExceptionHandler implements ExceptionHandler {
     "HTTP".equals(kind) && responseCode == HTTP_TOO_MANY_REQUESTS
   }
 
-  private boolean isNetworkError(kind) {
+  private boolean isNetworkError(String kind) {
     "NETWORK".equals(kind)
   }
 
@@ -65,37 +54,5 @@ abstract class BaseRetrofitExceptionHandler implements ExceptionHandler {
 
   private static boolean isIdempotentRequest(String httpMethod) {
     httpMethod in ["GET", "HEAD", "DELETE", "PUT"]
-  }
-
-  private static String findHttpMethodAnnotation(Exception exception) {
-    exception.stackTrace.findResult { StackTraceElement frame ->
-      try {
-        Class.forName(frame.className)
-          .interfaces
-          .findResult { Class<?> iface ->
-          iface.declaredMethods.findAll { Method m ->
-            m.name == frame.methodName
-          }.findResult { Method m ->
-            m.declaredAnnotations.findResult { Annotation annotation ->
-              annotation
-                .annotationType()
-                .getAnnotation(RestMethod)?.value()
-            }
-          }
-        }
-      } catch (ClassNotFoundException e) {
-        // inner class or something non-accessible
-        return null
-      } catch (MissingMethodException e) {
-        // While testing with RunTaskHandler, there's some case where this code fails with
-        //
-        // groovy.lang.MissingMethodException: No signature of method:
-        // com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler$_findHttpMethodAnnotation_closure2$_closure3.doCall()
-        // is applicable for argument types: (Optional) values: [Optional.empty]
-        //
-        // so treat this as having no annotation
-        return null
-      }
-    }
   }
 }

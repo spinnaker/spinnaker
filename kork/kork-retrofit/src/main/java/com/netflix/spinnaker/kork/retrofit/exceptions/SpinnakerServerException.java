@@ -20,7 +20,6 @@ import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import lombok.Getter;
 import okhttp3.Request;
-import retrofit.RetrofitError;
 
 /** Represents an error while attempting to execute a retrofit http client request. */
 @NonnullByDefault
@@ -28,13 +27,6 @@ public class SpinnakerServerException extends SpinnakerException {
 
   @Getter private final String url;
   @Getter private final String httpMethod;
-
-  /** Construct a SpinnakerServerException corresponding to a RetrofitError. */
-  public SpinnakerServerException(RetrofitError e) {
-    super(e.getMessage(), e.getCause());
-    url = e.getUrl();
-    httpMethod = null;
-  }
 
   /**
    * Construct a SpinnakerServerException from retrofit2 with no cause (e.g. a non-200 http
