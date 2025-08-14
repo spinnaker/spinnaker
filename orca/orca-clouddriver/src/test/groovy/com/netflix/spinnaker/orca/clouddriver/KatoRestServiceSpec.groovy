@@ -123,4 +123,27 @@ class KatoRestServiceSpec extends Specification {
       status.failed
     }
   }
+
+  def "can interpret the response from a cloudProvider operation request"() {
+    given:
+    def operation = [:]
+    def requestId = UUID.randomUUID().toString()
+    stubFor(
+        post(urlPathEqualTo("/aws/ops"))
+            .withQueryParam("clientRequestId", equalTo(requestId))
+            .willReturn(
+                aResponse()
+                    .withStatus(HTTP_ACCEPTED)
+                    .withBody(mapper.writeValueAsString([
+                        id          : taskId,
+                        resourceLink: "/task/$taskId"
+                    ]))
+            )
+    )
+
+    expect: "kato should return the details of the task it created"
+    with(Retrofit2SyncCall.execute(service.requestOperations(requestId, "aws", [operation]))) {
+      it.id == taskId
+    }
+  }
 }

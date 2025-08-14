@@ -44,15 +44,13 @@ public class DefaultServiceClientProvider implements ServiceClientProvider {
 
   @Override
   public <T> T getService(Class<T> type, ServiceEndpoint serviceEndpoint) {
-    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint);
-    return serviceClientFactory.create(type, serviceEndpoint, objectMapper);
+    return getService(type, serviceEndpoint, objectMapper);
   }
 
   @Override
   public <T> T getService(
       Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper) {
-    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint);
-    return serviceClientFactory.create(type, serviceEndpoint, objectMapper);
+    return getService(type, serviceEndpoint, objectMapper, List.of());
   }
 
   @Override

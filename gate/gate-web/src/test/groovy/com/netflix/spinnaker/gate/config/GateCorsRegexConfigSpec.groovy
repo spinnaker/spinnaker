@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @SpringBootTest(classes = Main)
 @ActiveProfiles('regexcors')
-@TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml", "retrofit.enabled=true"])
+@TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml"])
 class GateCorsRegexConfigSpec extends Specification {
 
   @Autowired

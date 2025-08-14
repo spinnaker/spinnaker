@@ -144,7 +144,7 @@ class EchoNotifyingStageListener implements StageListener {
         MDC.put(Header.EXECUTION_ID.header, stage.execution.id)
         MDC.put(Header.USER.header, stage.execution?.authentication?.user ?: "anonymous")
         AuthenticatedRequest.allowAnonymous({
-          Retrofit2SyncCall.execute(echoService.recordEvent(event))
+          Retrofit2SyncCall.execute(echoService.recordEvent(event as Map))
         })
       } finally {
         MDC.remove(Header.EXECUTION_ID.header)

@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.webhook.service;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -26,13 +27,21 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.matching.MatchResult;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration;
@@ -40,16 +49,23 @@ import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.PatternSyntaxException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import retrofit2.mock.Calls;
 
 class WebhookServiceTest {
 
@@ -73,7 +89,11 @@ class WebhookServiceTest {
           .withAllowedHostnamesRegex(".*")
           .build();
 
-  private WebhookService webhookService;
+  private RestTemplateProvider restTemplateProvider;
+
+  private OortService oortService = mock(OortService.class);
+
+  private WebhookAccountProcessor webhookAccountProcessor = mock(WebhookAccountProcessor.class);
 
   @BeforeEach
   void init(TestInfo testInfo) throws Exception {
@@ -86,17 +106,21 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties);
 
-    RestTemplateProvider restTemplateProvider =
+    restTemplateProvider =
         new DefaultRestTemplateProvider(webhookConfiguration.restTemplate(requestFactory));
-
-    webhookService =
-        new WebhookService(
-            List.of(restTemplateProvider), userConfiguredUrlRestrictions, webhookProperties);
   }
 
   @Test
   void testAllowedRequestsEnabledTrueEmptyList() {
     webhookProperties.setAllowedRequestsEnabled(true);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String url = "https://localhost"; // arbitrary, but needs to include a resolvable hostname
 
@@ -116,14 +140,220 @@ class WebhookServiceTest {
   }
 
   @Test
-  void testAllowedRequestsMatchingMethodAndUrl() throws Exception {
+  void testAllowedRequestsMatchingMethodAndUrlStartsWith() throws Exception {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
     allowedRequest.setUrlPrefix("http://localhost:" + apiProvider.getPort() + "/path/to/an/");
     webhookProperties.setAllowedRequests(List.of(allowedRequest));
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    String bodyStr = "{ \"foo\": \"bar\" }";
+    apiProvider.stubFor(
+        post(urlMatching(path))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(bodyStr)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    ResponseEntity<Object> result = webhookService.callWebhook(stage);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    var body = mapper.readValue(result.getBody().toString(), Map.class);
+    assertThat(body.get("foo")).isEqualTo("bar");
+
+    apiProvider.verify(postRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testAllowedRequestsNullUrlPrefix() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
+    assertThat(allowedRequest.getUrlPrefix()).isNull();
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    Throwable thrown =
+        catchThrowable(
+            () ->
+                new WebhookService(
+                    List.of(restTemplateProvider),
+                    userConfiguredUrlRestrictions,
+                    webhookProperties,
+                    oortService,
+                    Optional.empty()));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("urlPrefix must not be null with STARTS_WITH strategy");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsEmptyUrlPrefix() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
+    allowedRequest.setUrlPrefix("");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    String bodyStr = "{ \"foo\": \"bar\" }";
+    apiProvider.stubFor(
+        post(urlMatching(path))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(bodyStr)));
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    ResponseEntity<Object> result = webhookService.callWebhook(stage);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+    var body = mapper.readValue(result.getBody().toString(), Map.class);
+    assertThat(body.get("foo")).isEqualTo("bar");
+
+    apiProvider.verify(postRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testAllowedRequestsEmptyUrlPattern() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    allowedRequest.setUrlPattern("");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    String path = "/path/to/an/endpoint";
+    String url = apiProvider.baseUrl() + path;
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.POST));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("uri: '" + url + "' not allowed");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsNullUrlPattern() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    assertThat(allowedRequest.getUrlPattern()).isNull();
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    Throwable thrown =
+        catchThrowable(
+            () ->
+                new WebhookService(
+                    List.of(restTemplateProvider),
+                    userConfiguredUrlRestrictions,
+                    webhookProperties,
+                    oortService,
+                    Optional.empty()));
+
+    assertThat(thrown)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("urlPattern must not be null with PATTERN_MATCHES strategy");
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsInvalidUrlPattern() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    String invalidPattern = "[ is not a valid pattern";
+    allowedRequest.setUrlPattern(invalidPattern);
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    Throwable thrown =
+        catchThrowable(
+            () ->
+                new WebhookService(
+                    List.of(restTemplateProvider),
+                    userConfiguredUrlRestrictions,
+                    webhookProperties,
+                    oortService,
+                    Optional.empty()));
+
+    assertThat(thrown)
+        .isInstanceOf(PatternSyntaxException.class)
+        .hasMessageContaining(invalidPattern);
+
+    apiProvider.verify(0, RequestPatternBuilder.allRequests());
+  }
+
+  @Test
+  void testAllowedRequestsMatchingMethodAndUrlPatternMatches() throws Exception {
+    webhookProperties.setAllowedRequestsEnabled(true);
+    WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
+    allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.PATTERN_MATCHES);
+    allowedRequest.setUrlPattern(
+        "http://localhost:" + apiProvider.getPort() + "/[a-zA-Z]+-[a-z0-9]+/to/.*");
+    webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    String path = "/abcABC-def123/to/an/endpoint";
     String url = apiProvider.baseUrl() + path;
 
     String bodyStr = "{ \"foo\": \"bar\" }";
@@ -152,8 +382,17 @@ class WebhookServiceTest {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
     allowedRequest.setUrlPrefix("http://localhost:" + apiProvider.getPort() + "/path/to/an/");
     webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String path = "/path/to/an/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -179,12 +418,21 @@ class WebhookServiceTest {
   }
 
   @Test
-  void testAllowedRequestsMethodlMatchesButNotUrl() throws Exception {
+  void testAllowedRequestsMethodMatchesButNotUrl() throws Exception {
     webhookProperties.setAllowedRequestsEnabled(true);
     WebhookProperties.AllowedRequest allowedRequest = new WebhookProperties.AllowedRequest();
     allowedRequest.setHttpMethods(List.of("POST"));
+    allowedRequest.setMatchStrategy(WebhookProperties.MatchStrategy.STARTS_WITH);
     allowedRequest.setUrlPrefix("http://localhost:" + apiProvider.getPort() + "/path/to/an/");
     webhookProperties.setAllowedRequests(List.of(allowedRequest));
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String path = "/path/to/another/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -214,6 +462,14 @@ class WebhookServiceTest {
     // Even with an empty body, even one request header (e.g. Content-Length: 0) is too big.
     webhookProperties.setMaxRequestBytes(1L);
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String url = apiProvider.baseUrl();
 
     // The StageExecutionImpl constructor mutates the map, so use a mutable map.
@@ -235,6 +491,14 @@ class WebhookServiceTest {
   void testRequestHeadersAndBodyTooBig() throws Exception {
     // Empirically, this is bigger than the headers in this test, and smaller than headers + body.
     webhookProperties.setMaxRequestBytes(235L);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String url = apiProvider.baseUrl();
 
@@ -262,6 +526,14 @@ class WebhookServiceTest {
     // Empirically, this is bigger than the headers in this test, and bigger
     // than headers + body.
     webhookProperties.setMaxRequestBytes(500L);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String path = "/path/to/some/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -294,6 +566,14 @@ class WebhookServiceTest {
     // Even with an empty body, even one response header (e.g. Matched-Stub-Id) is too big.
     webhookProperties.setMaxResponseBytes(1L);
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
@@ -320,6 +600,14 @@ class WebhookServiceTest {
   void testResponseHeadersAndBodyTooBig() throws Exception {
     // Empirically, this is bigger than the headers in this test, and smaller than headers + body.
     webhookProperties.setMaxResponseBytes(150L);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -353,6 +641,14 @@ class WebhookServiceTest {
     // than headers + body.
     webhookProperties.setMaxResponseBytes(500L);
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
@@ -381,6 +677,14 @@ class WebhookServiceTest {
   void testDontFollowRedirects() throws Exception {
     webhookProperties.setFollowRedirects(false);
 
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
 
@@ -400,5 +704,383 @@ class WebhookServiceTest {
         .hasMessageContaining("redirects disabled, not visiting " + redirectUrl);
 
     apiProvider.verify(getRequestedFor(urlPathEqualTo(path)));
+  }
+
+  @Test
+  void testValidateAccountWithNoAccountProperty() throws Exception {
+    webhookProperties.setValidateAccount(true);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    WebhookService webhookServiceWithAccountProcessor =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.of(webhookAccountProcessor));
+
+    String path = "/some/path";
+    String url = apiProvider.baseUrl() + path;
+
+    String headerName = "foo";
+    String headerValue = "bar";
+    Map<String, Object> customHeaders = Map.of(headerName, headerValue);
+
+    String accountProcessorHeaderName = "accountProcessorHeader";
+    String accountProcessorHeaderValue = "blah";
+    HttpHeaders accountProcessorHeaders = new HttpHeaders();
+    accountProcessorHeaders.add(accountProcessorHeaderName, accountProcessorHeaderValue);
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET, "customHeaders", customHeaders));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    String responseBodyString = "test response body";
+    apiProvider.stubFor(
+        get(urlMatching(path))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(responseBodyString)));
+
+    // Test without an account processor
+    webhookService.callWebhook(stage);
+
+    // Expect that clouddriver never gets called since there's no account to
+    // verify, and the webhook stage makes the http request.
+    verifyNoInteractions(oortService);
+
+    apiProvider.verify(
+        getRequestedFor(urlPathEqualTo(path))
+            .withoutHeader(accountProcessorHeaderName)
+            .withHeader(headerName, equalTo(headerValue))
+            .andMatching(
+                r -> MatchResult.of(r.getHeaders().getHeader(headerName).isSingleValued())));
+
+    // And with an account processor
+
+    // Mock an account processor that ignores the given headers and returns its own
+    when(webhookAccountProcessor.getHeaders(
+            eq(null) /* account */, eq(null) /* accountDetails */, eq(customHeaders)))
+        .thenReturn(new HttpHeaders(accountProcessorHeaders));
+
+    webhookServiceWithAccountProcessor.callWebhook(stage);
+
+    // Expect that clouddriver never gets called since there's no account to
+    // verify, and the webhook stage makes the http request.
+    verifyNoInteractions(oortService);
+
+    // Expect that the account processor gets called once
+    verify(webhookAccountProcessor)
+        .getHeaders(eq(null) /* account */, eq(null) /* accountDetails */, eq(customHeaders));
+    verifyNoMoreInteractions(webhookAccountProcessor);
+
+    apiProvider.verify(
+        getRequestedFor(urlPathEqualTo(path))
+            .withoutHeader(headerName)
+            .withHeader(accountProcessorHeaderName, equalTo(accountProcessorHeaderValue))
+            .andMatching(
+                r ->
+                    MatchResult.of(
+                        r.getHeaders().getHeader(accountProcessorHeaderName).isSingleValued())));
+  }
+
+  @ParameterizedTest(name = "{index} => testValidateAccountWithMissingAccount: account = ''{0}''")
+  @NullSource
+  @ValueSource(strings = {"", " "})
+  void testValidateAccountWithMissingAccount(String account) throws Exception {
+    webhookProperties.setValidateAccount(true);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    WebhookService webhookServiceWithAccountProcessor =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.of(webhookAccountProcessor));
+
+    String path = "/some/path";
+    String url = apiProvider.baseUrl() + path;
+
+    String headerName = "foo";
+    String headerValue = "bar";
+    Map<String, Object> customHeaders = Map.of(headerName, headerValue);
+
+    String accountProcessorHeaderName = "accountProcessorHeader";
+    String accountProcessorHeaderValue = "blah";
+    HttpHeaders accountProcessorHeaders = new HttpHeaders();
+    accountProcessorHeaders.add(accountProcessorHeaderName, accountProcessorHeaderValue);
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    // As well, Map.of requires non-null values, so build the HashMap this way.
+    Map<String, Object> webhookStageData = new HashMap<>();
+    webhookStageData.put("url", url);
+    webhookStageData.put("method", HttpMethod.GET);
+    webhookStageData.put("account", account);
+    webhookStageData.put("customHeaders", customHeaders);
+
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    String responseBodyString = "test response body";
+    apiProvider.stubFor(
+        get(urlMatching(path))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(responseBodyString)));
+
+    // Test without an account processor
+    webhookService.callWebhook(stage);
+
+    // Expect that clouddriver never gets called since there's no account to
+    // verify, and the webhook stage makes the http request.
+    verifyNoInteractions(oortService);
+
+    apiProvider.verify(
+        getRequestedFor(urlPathEqualTo(path))
+            .withoutHeader(accountProcessorHeaderName)
+            .withHeader(headerName, equalTo(headerValue))
+            .andMatching(
+                r -> MatchResult.of(r.getHeaders().getHeader(headerName).isSingleValued())));
+
+    // And with an account processor
+
+    // Mock an account processor that ignores the given headers and returns its own
+    when(webhookAccountProcessor.getHeaders(
+            eq(account), eq(null) /* accountDetails */, eq(customHeaders)))
+        .thenReturn(new HttpHeaders(accountProcessorHeaders));
+
+    webhookServiceWithAccountProcessor.callWebhook(stage);
+
+    // Expect that clouddriver never gets called since there's no account to
+    // verify, and the webhook stage makes the http request.
+    verifyNoInteractions(oortService);
+
+    // Expect that the account processor gets called once
+    verify(webhookAccountProcessor)
+        .getHeaders(eq(account), eq(null) /* accountDetails */, eq(customHeaders));
+    verifyNoMoreInteractions(webhookAccountProcessor);
+
+    apiProvider.verify(
+        getRequestedFor(urlPathEqualTo(path))
+            .withoutHeader(headerName)
+            .withHeader(accountProcessorHeaderName, equalTo(accountProcessorHeaderValue))
+            .andMatching(
+                r ->
+                    MatchResult.of(
+                        r.getHeaders().getHeader(accountProcessorHeaderName).isSingleValued())));
+  }
+
+  @ParameterizedTest(name = "{index} => testValidateAccountWithAccount: validAccount = {0}")
+  @ValueSource(booleans = {false, true})
+  void testValidateAccountWithAccountAndNoAccountProcessor(boolean validAccount) throws Exception {
+    webhookProperties.setValidateAccount(true);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    WebhookService webhookServiceWithAccountProcessor =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.of(webhookAccountProcessor));
+
+    String path = "/some/path";
+    String url = apiProvider.baseUrl() + path;
+
+    String headerName = "foo";
+    String headerValue = "bar";
+    Map<String, Object> customHeaders = Map.of(headerName, headerValue);
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    String account = "my-account";
+    Map<String, Object> webhookStageData =
+        new HashMap<>(
+            Map.of(
+                "url",
+                url,
+                "method",
+                HttpMethod.GET,
+                "account",
+                account,
+                "customHeaders",
+                customHeaders));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    String responseBodyString = "test response body";
+    apiProvider.stubFor(
+        get(urlMatching(path))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(responseBodyString)));
+
+    // If this is the valid account test, mock clouddriver to return something,
+    // otherwise throw an exception.  The return value isn't used because
+    // there's no account processor.
+    Exception exception = null;
+    if (validAccount) {
+      Map<String, Object> accountDetails = Map.of("accountDetailOne", "someValue");
+      when(oortService.getCredentialsAuthorized(account, true))
+          .thenReturn(Calls.response(accountDetails));
+    } else {
+      exception = new RuntimeException("arbitrary");
+      doThrow(exception).when(oortService).getCredentialsAuthorized(account, true);
+    }
+
+    Throwable thrown = catchThrowable(() -> webhookService.callWebhook(stage));
+
+    // Expect that clouddriver gets called to validate the account.  If the
+    // account is valid (i.e. the response from clouddriver doesn't cause orca
+    // to throw an exception), the webhook stage makes the http request.  If the
+    // account is invalid, expect that orca does throw an exception, and makes
+    // no http request.
+    verify(oortService).getCredentialsAuthorized(account, true);
+    verifyNoMoreInteractions(oortService);
+
+    if (validAccount) {
+      assertThat(thrown).isNull();
+      apiProvider.verify(
+          getRequestedFor(urlPathEqualTo(path))
+              .withHeader(headerName, equalTo(headerValue))
+              .andMatching(
+                  r -> MatchResult.of(r.getHeaders().getHeader(headerName).isSingleValued())));
+
+    } else {
+      assertThat(thrown).isNotNull();
+      assertThat(thrown).isEqualTo(exception);
+      apiProvider.verify(0, RequestPatternBuilder.allRequests());
+    }
+  }
+
+  @ParameterizedTest(name = "{index} => testValidateAccountWithAccount: validAccount = {0}")
+  @ValueSource(booleans = {false, true})
+  void testValidateAccountWithAccountAndAccountProcessor(boolean validAccount) throws Exception {
+    webhookProperties.setValidateAccount(true);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty());
+
+    WebhookService webhookServiceWithAccountProcessor =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.of(webhookAccountProcessor));
+
+    String path = "/some/path";
+    String url = apiProvider.baseUrl() + path;
+
+    String headerName = "foo";
+    String headerValue = "bar";
+    Map<String, Object> customHeaders = Map.of(headerName, headerValue);
+
+    String accountProcessorHeaderName = "accountProcessorHeader";
+    String accountProcessorHeaderValue = "blah";
+    HttpHeaders accountProcessorHeaders = new HttpHeaders();
+    accountProcessorHeaders.add(accountProcessorHeaderName, accountProcessorHeaderValue);
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    String account = "my-account";
+    Map<String, Object> webhookStageData =
+        new HashMap<>(
+            Map.of(
+                "url",
+                url,
+                "method",
+                HttpMethod.GET,
+                "account",
+                account,
+                "customHeaders",
+                customHeaders));
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    String responseBodyString = "test response body";
+    apiProvider.stubFor(
+        get(urlMatching(path))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(responseBodyString)));
+
+    // If this is the valid account test, mock clouddriver to return something,
+    // otherwise throw an exception.
+    Map<String, Object> accountDetails = Map.of("accountDetailOne", "someValue");
+    Exception exception = null;
+    if (validAccount) {
+      when(oortService.getCredentialsAuthorized(account, true))
+          .thenReturn(Calls.response(accountDetails));
+    } else {
+      exception = new RuntimeException("arbitrary");
+      doThrow(exception).when(oortService).getCredentialsAuthorized(account, true);
+    }
+
+    // Mock an account processor that ignores the given headers and returns its own
+    when(webhookAccountProcessor.getHeaders(eq(account), eq(accountDetails), eq(customHeaders)))
+        .thenReturn(new HttpHeaders(accountProcessorHeaders));
+
+    Throwable thrownWithAccountProcessor =
+        catchThrowable(() -> webhookServiceWithAccountProcessor.callWebhook(stage));
+
+    // Expect that clouddriver gets called to validate the account.  If the
+    // account is valid (i.e. the response from clouddriver doesn't cause orca
+    // to throw an exception), the webhook stage makes the http request.  If the
+    // account is invalid, expect that orca does throw an exception, and makes
+    // no http request.
+    verify(oortService).getCredentialsAuthorized(account, true);
+    verifyNoMoreInteractions(oortService);
+
+    if (validAccount) {
+      assertThat(thrownWithAccountProcessor).isNull();
+
+      // Expect that the account processor gets called once
+      verify(webhookAccountProcessor)
+          .getHeaders(eq(account), eq(accountDetails), eq(customHeaders));
+      verifyNoMoreInteractions(webhookAccountProcessor);
+
+      apiProvider.verify(
+          getRequestedFor(urlPathEqualTo(path))
+              .withoutHeader(headerName)
+              .withHeader(accountProcessorHeaderName, equalTo(accountProcessorHeaderValue))
+              .andMatching(
+                  r ->
+                      MatchResult.of(
+                          r.getHeaders().getHeader(accountProcessorHeaderName).isSingleValued())));
+
+    } else {
+      assertThat(thrownWithAccountProcessor).isNotNull();
+      assertThat(thrownWithAccountProcessor).isEqualTo(exception);
+
+      // Expect that the account processor never gets called
+      verifyNoInteractions(webhookAccountProcessor);
+
+      // And there's no http request
+      apiProvider.verify(0, RequestPatternBuilder.allRequests());
+    }
   }
 }

@@ -38,6 +38,10 @@ public interface PipelineExecution {
 
   void setId(String id);
 
+  String getRootId();
+
+  void setRootId(String rootId);
+
   String getApplication();
 
   void setApplication(String application);

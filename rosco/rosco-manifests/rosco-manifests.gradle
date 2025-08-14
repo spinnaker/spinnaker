@@ -19,5 +19,4 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "com.squareup.retrofit2:converter-jackson"
-  testCompileOnly "com.squareup.retrofit:retrofit"
 }

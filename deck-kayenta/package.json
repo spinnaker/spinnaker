@@ -9,8 +9,8 @@
   "module": "build/dist/index.js",
   "typings": "build/dist/index.d.ts",
   "engines": {
-    "node": ">=12.14.1",
-    "npm": ">=6.13.4",
+    "node": ">=20.19.4",
+    "npm": ">=10.8.2",
     "yarn": ">=1.21.1"
   },
   "scripts": {
@@ -158,6 +158,6 @@
     "utf-8-validate": "5.0.3"
   },
   "optionalDependencies": {
-    "fsevents": "1.2.11"
+    "fsevents": "2.3.3"
   }
 }

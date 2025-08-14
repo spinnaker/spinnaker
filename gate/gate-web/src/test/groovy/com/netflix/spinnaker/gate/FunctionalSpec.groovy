@@ -33,6 +33,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import org.springframework.boot.SpringApplication
@@ -112,14 +113,13 @@ class FunctionalSpec extends Specification {
     System.setProperty('spring.session.store-type', 'NONE')
     System.setProperty("spring.main.allow-bean-definition-overriding", "true")
     System.setProperty("spring.profiles.active", "test")
-    System.setProperty("retrofit.enabled", "false")
     def spring = new SpringApplication()
     spring.setSources([FunctionalConfiguration, OkHttpClientProvider] as Set)
     ctx = spring.run()
 
     def localPort = ctx.environment.getProperty("local.server.port")
     api = new Retrofit.Builder()
-        .baseUrl("http://localhost:${localPort}")
+        .baseUrl(RetrofitUtils.getBaseUrl("http://localhost:${localPort}"))
         .client(new OkHttpClient())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create())

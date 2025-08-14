@@ -25,7 +25,6 @@ import okhttp3.Interceptor;
 
 @NonnullByDefault
 public interface ServiceClientProvider {
-
   /**
    * Returns the concrete retrofit service client
    *

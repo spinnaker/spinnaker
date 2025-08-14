@@ -48,7 +48,7 @@ public class NetflixSTSAssumeRoleSessionCredentialsProvider
     this.roleArn = roleArn;
     this.sessionDurationSeconds = sessionDurationSeconds;
 
-    var chain = new SpinnakerAwsRegionProvider();
+    var chain = new SpinnakerAwsRegionProvider(longLivedCredentialsProvider);
     this.region = chain.getRegion();
 
     log.debug(

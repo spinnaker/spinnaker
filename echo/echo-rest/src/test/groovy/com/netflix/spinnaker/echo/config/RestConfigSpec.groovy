@@ -36,7 +36,7 @@ class RestConfigSpec extends Specification {
 
   RestUrls configureRestServices(RestProperties.RestEndpointConfiguration endpoint, RestConfig.HeadersFromFile headersFromFile) {
     RestProperties restProperties =  new RestProperties(endpoints: [endpoint])
-    return config.restServices(restProperties, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())], new Retrofit2EncodeCorrectionInterceptor()), okHttpClientConfig, headersFromFile)
+    return config.restServices(restProperties, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]), okHttpClientConfig, headersFromFile)
   }
 
   def setup() {

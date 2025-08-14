@@ -23,7 +23,6 @@ ext {
     okhttp3          : "4.9.3",
     openapi          : "1.8.0",
     restassured      : "5.2.1", // spring boot 2.7.18 brings rest-assured 4.5.1. It uses groovy 3. Keep until spring boot >=3.0.13
-    retrofit         : "1.9.0",
     retrofit2        : "2.8.1",
     spectator        : "1.0.6",
     spek             : "1.1.5",
@@ -31,9 +30,9 @@ ext {
     springBoot       : "2.7.18",
     springCloud      : "2021.0.8",
     swagger          : "2.2.22",
-    // 2.7.18 brings in 9.0.83, which fixes all CVEs to date (20-feb-24). Continue to pin.
+    // 9.0.107, which fixes all CVEs to date (18-jul-25). Continue to pin.
     // See https://tomcat.apache.org/security-9.html for latest security fixes.
-    tomcat           : "9.0.83"
+    tomcat           : "9.0.107"
   ]
 }
 
@@ -58,6 +57,7 @@ dependencies {
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform(libs.kotlin.bom))
+  api(platform("org.junit:junit-bom:5.9.0")) // until spring boot >= 3.0.0
   api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
   api(platform("org.apache.groovy:groovy-bom:${versions.groovy}")) // until upgrade of spring boot >= 3.0.13
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}")) {
@@ -111,7 +111,6 @@ dependencies {
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:33.0.0-jre")
     api("com.hubspot.jinjava:jinjava:2.7.1")
-    api("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
     api("com.jayway.jsonpath:json-path:2.9.0") // until spring boot >= 3.1.9 or 3.2.3
     api("com.jcraft:jsch:${versions.jsch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
@@ -143,10 +142,6 @@ dependencies {
     api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit-mock:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit:${versions.retrofit2}")
-    api("com.squareup.retrofit:converter-jackson:${versions.retrofit}")
-    api("com.squareup.retrofit:converter-simplexml:${versions.retrofit}")
-    api("com.squareup.retrofit:retrofit-mock:${versions.retrofit}")
-    api("com.squareup.retrofit:retrofit:${versions.retrofit}")
     api("com.sun.xml.bind:jaxb-core:2.3.0.1")
     api("com.sun.xml.bind:jaxb-impl:2.3.2")
     api("com.vdurmont:semver4j:3.1.0")
