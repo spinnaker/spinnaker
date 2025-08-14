@@ -1,17 +1,16 @@
-import * as React from 'react';
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-
 import type { UIRouterReact } from '@uirouter/react';
 import { mock } from 'angular';
-import { REACT_MODULE } from '../reactShims';
-import { OVERRIDE_REGISTRY } from '../overrideRegistry';
+import type { ReactWrapper } from 'enzyme';
+import * as React from 'react';
+import { act } from 'react-dom/test-utils';
 
 import { Projects } from './Projects';
-import * as ProjectReaderModule from './service/ProjectReader';
-import { mountAndFlush } from '../utils/testUtils';
 import { ViewStateCache } from '../cache';
+import { OVERRIDE_REGISTRY } from '../overrideRegistry';
+import { REACT_MODULE } from '../reactShims';
+import * as ProjectReaderModule from './service/ProjectReader';
 import { timestamp } from '../utils';
+import { mountAndFlush } from '../utils/testUtils';
 
 type TestProject = ReturnType<typeof makeProject>;
 
@@ -79,7 +78,7 @@ describe('Projects', () => {
 
       // Filter by email
       await act(async () => {
-        input.prop('onChange')!({ target: { value: 'a@netflix.com' } } as any);
+        input.prop('onChange')?.({ target: { value: 'a@netflix.com' } } as any);
       });
       wrapper.update();
       let rows = wrapper.find('tbody tr');
@@ -88,7 +87,7 @@ describe('Projects', () => {
 
       // Filter by substring 'ort'
       await act(async () => {
-        input.prop('onChange')!({ target: { value: 'ort' } } as any);
+        input.prop('onChange')?.({ target: { value: 'ort' } } as any);
       });
       wrapper.update();
       rows = wrapper.find('tbody tr');
@@ -96,7 +95,7 @@ describe('Projects', () => {
 
       // Clear
       await act(async () => {
-        input.prop('onChange')!({ target: { value: '' } } as any);
+        input.prop('onChange')?.({ target: { value: '' } } as any);
       });
       wrapper.update();
       expect(wrapper.find('tbody tr').length).toBe(3);
@@ -133,7 +132,7 @@ describe('Projects', () => {
       // Add filter ("ort") while sorted by createTs
       const input = wrapper.find('input[placeholder="Search projects"]');
       await act(async () => {
-        input.prop('onChange')!({ target: { value: 'ort' } } as any);
+        input.prop('onChange')?.({ target: { value: 'ort' } } as any);
       });
       wrapper.update();
       expect(getRenderedNames(wrapper)).toEqual(['mort', 'oort']);
