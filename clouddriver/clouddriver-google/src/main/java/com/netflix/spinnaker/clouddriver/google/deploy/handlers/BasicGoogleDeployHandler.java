@@ -1112,21 +1112,29 @@ public class BasicGoogleDeployHandler
                             TAG_SCOPE,
                             SCOPE_GLOBAL),
                         registry);
+            if (backendServiceOperation != null) {
+              task.updateStatus(
+                  BASE_PHASE,
+                  String.format(
+                      "Waiting for backend service %s update to complete...",
+                      backendService.getName()));
+
+              // Wait for the global backend service update to complete
+              googleOperationPoller.waitForGlobalOperation(
+                  description.getCredentials().getCompute(),
+                  description.getCredentials().getProject(),
+                  backendServiceOperation.getName(),
+                  null,
+                  task,
+                  "backend service " + backendService.getName(),
+                  BASE_PHASE);
+            }
+
             task.updateStatus(
                 BASE_PHASE,
                 String.format(
                     "Done associating server group %s with backend service %s.",
                     serverGroupName, backendService.getName()));
-
-            // Wait for the global backend service update to complete
-            googleOperationPoller.waitForGlobalOperation(
-                description.getCredentials().getCompute(),
-                description.getCredentials().getProject(),
-                backendServiceOperation.getName(),
-                null,
-                task,
-                "backend service " + backendService.getName(),
-                BASE_PHASE);
           });
     }
   }
@@ -1168,22 +1176,30 @@ public class BasicGoogleDeployHandler
                             TAG_REGION,
                             region),
                         registry);
+            if (backendServiceOperation != null) {
+              task.updateStatus(
+                  BASE_PHASE,
+                  String.format(
+                      "Waiting for regional backend service %s update to complete...",
+                      backendService.getName()));
+
+              // Wait for the regional backend service update to complete
+              googleOperationPoller.waitForRegionalOperation(
+                  description.getCredentials().getCompute(),
+                  description.getCredentials().getProject(),
+                  region,
+                  backendServiceOperation.getName(),
+                  null,
+                  task,
+                  "backend service " + backendService.getName(),
+                  BASE_PHASE);
+            }
+
             task.updateStatus(
                 BASE_PHASE,
                 String.format(
                     "Done associating server group %s with backend service %s.",
                     serverGroupName, backendService.getName()));
-
-            // Wait for the regional backend service update to complete
-            googleOperationPoller.waitForRegionalOperation(
-                description.getCredentials().getCompute(),
-                description.getCredentials().getProject(),
-                region,
-                backendServiceOperation.getName(),
-                null,
-                task,
-                "backend service " + backendService.getName(),
-                BASE_PHASE);
           });
     }
   }
