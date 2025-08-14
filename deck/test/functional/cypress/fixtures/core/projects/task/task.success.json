@@ -1,0 +1,128 @@
+{
+  "id": "01K2EKHP4S2W1V9J61W2QR8PQ3",
+  "name": "Create project: newproject",
+  "application": "spinnaker",
+  "status": "SUCCEEDED",
+  "variables": [
+    {
+      "key": "notification.type",
+      "value": "upsertproject"
+    },
+    {
+      "key": "project",
+      "value": {
+        "name": "newproject",
+        "config": {
+          "clusters": [],
+          "pipelineConfigs": [],
+          "applications": []
+        },
+        "email": "team@example.com"
+      }
+    },
+    {
+      "key": "user",
+      "value": "[anonymous]"
+    }
+  ],
+  "steps": [
+    {
+      "id": "1",
+      "implementingClass": "com.netflix.spinnaker.orca.applications.pipelines.UpsertProjectStage.UpsertProjectTask",
+      "name": "upsertProject",
+      "startTime": 1754984405330,
+      "endTime": 1754984405457,
+      "status": "SUCCEEDED",
+      "stageStart": true,
+      "stageEnd": true,
+      "loopStart": false,
+      "loopEnd": false,
+      "taskExceptionDetails": {}
+    }
+  ],
+  "buildTime": 1754984405145,
+  "startTime": 1754984405206,
+  "endTime": 1754984405574,
+  "execution": {
+    "type": "ORCHESTRATION",
+    "id": "01K2EKHP4S2W1V9J61W2QR8PQ3",
+    "application": "spinnaker",
+    "buildTime": 1754984405145,
+    "canceled": false,
+    "limitConcurrent": false,
+    "maxConcurrentExecutions": 0,
+    "keepWaitingPipelines": false,
+    "stages": [
+      {
+        "id": "01K2EKHP4SPARYER667ZK5WMD9",
+        "refId": "0",
+        "type": "upsertProject",
+        "name": "upsertProject",
+        "startTime": 1754984405268,
+        "endTime": 1754984405528,
+        "status": "SUCCEEDED",
+        "context": {
+          "notification.type": "upsertproject",
+          "project": {
+            "name": "newproject",
+            "config": {
+              "clusters": [],
+              "pipelineConfigs": [],
+              "applications": []
+            },
+            "email": "team@example.com"
+          },
+          "user": "[anonymous]"
+        },
+        "outputs": {},
+        "tasks": [
+          {
+            "id": "1",
+            "implementingClass": "com.netflix.spinnaker.orca.applications.pipelines.UpsertProjectStage.UpsertProjectTask",
+            "name": "upsertProject",
+            "startTime": 1754984405330,
+            "endTime": 1754984405457,
+            "status": "SUCCEEDED",
+            "stageStart": true,
+            "stageEnd": true,
+            "loopStart": false,
+            "loopEnd": false,
+            "taskExceptionDetails": {}
+          }
+        ],
+        "requisiteStageRefIds": []
+      }
+    ],
+    "startTime": 1754984405206,
+    "endTime": 1754984405574,
+    "status": "SUCCEEDED",
+    "authentication": {
+      "user": "[anonymous]",
+      "allowedAccounts": [
+        "hubble-qa-local",
+        "docker-registry-spinnaker",
+        "k8s-local",
+        "docker-registry-clouddriver",
+        "docker-registry-orca",
+        "docker-registry-echo"
+      ]
+    },
+    "origin": "deck",
+    "trigger": {
+      "type": "manual",
+      "user": "[anonymous]",
+      "parameters": {},
+      "artifacts": [],
+      "notifications": [],
+      "rebake": false,
+      "dryRun": false,
+      "strategy": false,
+      "resolvedExpectedArtifacts": [],
+      "expectedArtifacts": []
+    },
+    "description": "Create project: newproject",
+    "notifications": [],
+    "initialConfig": {},
+    "systemNotifications": []
+  }
+}
