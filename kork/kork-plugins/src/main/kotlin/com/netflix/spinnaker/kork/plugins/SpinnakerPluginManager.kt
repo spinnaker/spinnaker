@@ -118,6 +118,7 @@ open class SpinnakerPluginManager(
 
   override fun loadPluginFromPath(pluginPath: Path): PluginWrapper? {
     val extractedPath = pluginBundleExtractor.extractService(pluginPath, serviceName) ?: return null
+    log.info("loading plugin from path {}", extractedPath)
     return super.loadPluginFromPath(extractedPath)
   }
 
