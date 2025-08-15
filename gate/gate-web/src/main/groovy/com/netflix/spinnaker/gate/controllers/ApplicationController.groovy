@@ -130,7 +130,8 @@ class ApplicationController {
   @Deprecated
   @Operation(summary = "Cancel pipeline")
   @RequestMapping(value = "/{application}/pipelines/{id}/cancel", method = RequestMethod.PUT)
-  void cancelPipeline(@PathVariable("id") String id,
+  void cancelPipeline(@PathVariable("application") String application,
+                     @PathVariable("id") String id,
                      @RequestParam(required = false) String reason) {
     taskService.cancelPipeline(id, reason)
   }
@@ -195,7 +196,7 @@ class ApplicationController {
   @Deprecated
   @Operation(summary = "Get task")
   @RequestMapping(value = "/{application}/tasks/{id}", method = RequestMethod.GET)
-  Map getTask(@PathVariable("id") String id) {
+  Map getTask(@PathVariable("id") String application, @PathVariable("application") String id) {
     taskService.getTask(id)
   }
 
@@ -205,7 +206,9 @@ class ApplicationController {
   @Deprecated
   @Operation(summary = "Cancel task")
   @RequestMapping(value = "/{application}/tasks/{id}/cancel", method = RequestMethod.PUT)
-  Map cancelTask(@PathVariable("id") String id) {
+  Map cancelTask(@PathVariable("id") String id,
+                @PathVariable("application") String application
+  ) {
     taskService.cancelTask(id)
   }
 
@@ -217,6 +220,7 @@ class ApplicationController {
   @RequestMapping(value = "/{application}/tasks/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
   Map getTaskDetails(@PathVariable("id") String id,
                      @PathVariable("taskDetailsId") String taskDetailsId,
+                     @PathVariable("application") String application,
                      @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     taskService.getTaskDetails(taskDetailsId, sourceApp)
   }
