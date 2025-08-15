@@ -29,6 +29,7 @@ dependencies {
   implementation("io.spinnaker.fiat:fiat-core")
   implementation("io.spinnaker.fiat:fiat-api")
   implementation("io.spinnaker.kork:kork-retrofit")
+  implementation("io.spinnaker.kork:kork-retrofit2")
 
   testImplementation("io.spinnaker.kork:kork-retrofit2")
   testImplementation("org.springframework.boot:spring-boot-starter-test")

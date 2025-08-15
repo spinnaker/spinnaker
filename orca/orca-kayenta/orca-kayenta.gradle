@@ -29,6 +29,7 @@ dependencies {
   implementation("io.spinnaker.kork:kork-moniker")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("io.spinnaker.kork:kork-retrofit")
+  implementation("io.spinnaker.kork:kork-retrofit2")
 
   testImplementation(project(":orca-test"))
   testImplementation(project(":orca-test-kotlin"))
