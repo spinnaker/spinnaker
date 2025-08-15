@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.filters;
+package com.netflix.spinnaker.kork.web.filters;
 
 import com.netflix.spinnaker.kork.common.Header;
 import java.util.List;
@@ -23,6 +23,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "provided-id-request-filter")
 public class ProvidedIdRequestFilterConfigurationProperties {
+
+  private boolean enabled;
 
   /** The headers to include in the MDC. */
   private List<String> headers =

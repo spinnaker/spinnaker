@@ -22,6 +22,7 @@ import static com.netflix.spinnaker.orca.webhook.config.WebhookProperties.MatchS
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
@@ -31,10 +32,14 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -71,6 +76,9 @@ public class WebhookService {
 
   private final Optional<WebhookAccountProcessor> webhookAccountProcessor;
 
+  private final ProvidedIdRequestFilterConfigurationProperties
+      providedIdRequestFilterConfigurationProperties;
+
   /**
    * Keys are urlPattern properties from the allow list. Each value is the corresponding compiled
    * Pattern.
@@ -83,12 +91,16 @@ public class WebhookService {
       UserConfiguredUrlRestrictions userConfiguredUrlRestrictions,
       WebhookProperties webhookProperties,
       OortService oortService,
-      Optional<WebhookAccountProcessor> webhookAccountProcessor) {
+      Optional<WebhookAccountProcessor> webhookAccountProcessor,
+      ProvidedIdRequestFilterConfigurationProperties
+          providedIdRequestFilterConfigurationProperties) {
     this.restTemplateProviders = restTemplateProviders;
     this.userConfiguredUrlRestrictions = userConfiguredUrlRestrictions;
     this.webhookProperties = webhookProperties;
     this.oortService = oortService;
     this.webhookAccountProcessor = webhookAccountProcessor;
+    this.providedIdRequestFilterConfigurationProperties =
+        providedIdRequestFilterConfigurationProperties;
 
     // If it's enabled, validate the allow list and compile regexes.
     if (webhookProperties.isAllowedRequestsEnabled()) {
@@ -200,13 +212,16 @@ public class WebhookService {
                 oortService.getCredentialsAuthorized(stageData.account, true /* expand */));
       }
 
+      Map<String, Object> headersMap =
+          webhookProperties.isIncludeAdditionalHeaders()
+              ? combineProvidedAdditionalHeaders(stageData.customHeaders)
+              : stageData.customHeaders;
+
       if (webhookAccountProcessor.isPresent()) {
         headers =
-            webhookAccountProcessor
-                .get()
-                .getHeaders(stageData.account, accountDetails, stageData.customHeaders);
+            webhookAccountProcessor.get().getHeaders(stageData.account, accountDetails, headersMap);
       } else {
-        headers = buildHttpHeaders(stageData.customHeaders);
+        headers = buildHttpHeaders(headersMap);
       }
       HttpMethod httpMethod = HttpMethod.GET;
       HttpEntity<Object> payloadEntity = null;
@@ -330,10 +345,47 @@ public class WebhookService {
     }
   }
 
-  private static HttpHeaders buildHttpHeaders(Map<String, Object> customHeaders) {
+  /**
+   * Combine additional headers that ProvidedIdRequestFilter put in the MDC with custom headers.
+   * Note that headers from the MDC take precedence, in a strict way. In other words, headers
+   * specified as additional ONLY come from the MDC. If they're present in customHeaders, they're
+   * ignored. This way receivers of http requests from Webhook stages can trust the values of those
+   * headers.
+   *
+   * <p>This is a no-op if the ProvidedIdRequestFilter is disabled. In other words, the return value
+   * is the customHeaders argument.
+   */
+  private Map<String, Object> combineProvidedAdditionalHeaders(Map<String, Object> customHeaders) {
+    if (!providedIdRequestFilterConfigurationProperties.isEnabled()) {
+      return customHeaders;
+    }
+
+    // Start with the headers from ProvidedIdRequestFilter
+    Map<String, Object> combinedHeaders =
+        providedIdRequestFilterConfigurationProperties.getAdditionalHeaders().stream()
+            .filter(additionalHeader -> StringUtils.isNotBlank(MDC.get(additionalHeader)))
+            .collect(Collectors.toMap(Function.identity(), MDC::get));
+
+    if (customHeaders == null) {
+      return combinedHeaders;
+    }
+
+    Set<String> additionalHeaderNames =
+        Set.copyOf(providedIdRequestFilterConfigurationProperties.getAdditionalHeaders());
+
+    customHeaders.keySet().stream()
+        .filter(Predicate.not(additionalHeaderNames::contains))
+        .forEach(
+            customHeaderName ->
+                combinedHeaders.put(customHeaderName, customHeaders.get(customHeaderName)));
+
+    return combinedHeaders;
+  }
+
+  private static HttpHeaders buildHttpHeaders(Map<String, Object> headersMap) {
     HttpHeaders headers = new HttpHeaders();
-    if (customHeaders != null) {
-      customHeaders.forEach(
+    if (headersMap != null) {
+      headersMap.forEach(
           (key, value) -> {
             if (headerDenyList.contains(key.toUpperCase())) {
               return;
