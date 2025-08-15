@@ -72,10 +72,10 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
       String account,
       String cluster,
       String serverGroup,
-      String region,
-      String cloudProvider) {
+      String cloudProvider,
+      String region) {
     return getService()
-        .getServerGroupFromCluster(app, account, cluster, serverGroup, region, cloudProvider);
+        .getServerGroupFromCluster(app, account, cluster, serverGroup, cloudProvider, region);
   }
 
   @Override

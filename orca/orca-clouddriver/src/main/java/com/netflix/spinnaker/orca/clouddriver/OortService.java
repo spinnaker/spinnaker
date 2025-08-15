@@ -49,8 +49,8 @@ public interface OortService {
       @Path("account") String account,
       @Path("cluster") String cluster,
       @Path("serverGroup") String serverGroup,
-      @Query("region") String region,
-      @Path("cloudProvider") String cloudProvider);
+      @Path("cloudProvider") String cloudProvider,
+      @Query("region") String region);
 
   @GET("applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
   Call<List<ServerGroup>> getServerGroupsFromClusterTyped(

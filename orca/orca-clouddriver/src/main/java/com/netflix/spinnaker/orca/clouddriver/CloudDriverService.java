@@ -80,7 +80,7 @@ public class CloudDriverService {
     ResponseBody responseBody =
         Retrofit2SyncCall.execute(
             oortService.getServerGroupFromCluster(
-                app, account, cluster, serverGroup, region, cloudProvider));
+                app, account, cluster, serverGroup, cloudProvider, region));
     return readBody(responseBody, ServerGroup.class);
   }
 
