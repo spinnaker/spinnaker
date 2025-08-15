@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.matching.MatchResult;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
@@ -51,13 +52,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.MDC;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -95,6 +100,10 @@ class WebhookServiceTest {
 
   private WebhookAccountProcessor webhookAccountProcessor = mock(WebhookAccountProcessor.class);
 
+  private ProvidedIdRequestFilterConfigurationProperties
+      providedIdRequestFilterConfigurationProperties =
+          new ProvidedIdRequestFilterConfigurationProperties();
+
   @BeforeEach
   void init(TestInfo testInfo) throws Exception {
     System.out.println("--------------- Test " + testInfo.getDisplayName());
@@ -120,7 +129,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String url = "https://localhost"; // arbitrary, but needs to include a resolvable hostname
 
@@ -154,7 +164,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/path/to/an/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -197,7 +208,8 @@ class WebhookServiceTest {
                     userConfiguredUrlRestrictions,
                     webhookProperties,
                     oortService,
-                    Optional.empty()));
+                    Optional.empty(),
+                    providedIdRequestFilterConfigurationProperties));
 
     assertThat(thrown)
         .isInstanceOf(IllegalArgumentException.class)
@@ -221,7 +233,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/path/to/an/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -262,7 +275,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/path/to/an/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -299,7 +313,8 @@ class WebhookServiceTest {
                     userConfiguredUrlRestrictions,
                     webhookProperties,
                     oortService,
-                    Optional.empty()));
+                    Optional.empty(),
+                    providedIdRequestFilterConfigurationProperties));
 
     assertThat(thrown)
         .isInstanceOf(IllegalArgumentException.class)
@@ -326,7 +341,8 @@ class WebhookServiceTest {
                     userConfiguredUrlRestrictions,
                     webhookProperties,
                     oortService,
-                    Optional.empty()));
+                    Optional.empty(),
+                    providedIdRequestFilterConfigurationProperties));
 
     assertThat(thrown)
         .isInstanceOf(PatternSyntaxException.class)
@@ -351,7 +367,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/abcABC-def123/to/an/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -392,7 +409,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/path/to/an/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -432,7 +450,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/path/to/another/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -468,7 +487,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String url = apiProvider.baseUrl();
 
@@ -498,7 +518,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String url = apiProvider.baseUrl();
 
@@ -533,7 +554,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/path/to/some/endpoint";
     String url = apiProvider.baseUrl() + path;
@@ -572,7 +594,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -607,7 +630,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -647,7 +671,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -683,7 +708,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -716,7 +742,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     WebhookService webhookServiceWithAccountProcessor =
         new WebhookService(
@@ -724,7 +751,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.of(webhookAccountProcessor));
+            Optional.of(webhookAccountProcessor),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -804,7 +832,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     WebhookService webhookServiceWithAccountProcessor =
         new WebhookService(
@@ -812,7 +841,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.of(webhookAccountProcessor));
+            Optional.of(webhookAccountProcessor),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -896,7 +926,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     WebhookService webhookServiceWithAccountProcessor =
         new WebhookService(
@@ -904,7 +935,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.of(webhookAccountProcessor));
+            Optional.of(webhookAccountProcessor),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -984,7 +1016,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.empty());
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
 
     WebhookService webhookServiceWithAccountProcessor =
         new WebhookService(
@@ -992,7 +1025,8 @@ class WebhookServiceTest {
             userConfiguredUrlRestrictions,
             webhookProperties,
             oortService,
-            Optional.of(webhookAccountProcessor));
+            Optional.of(webhookAccountProcessor),
+            providedIdRequestFilterConfigurationProperties);
 
     String path = "/some/path";
     String url = apiProvider.baseUrl() + path;
@@ -1082,5 +1116,108 @@ class WebhookServiceTest {
       // And there's no http request
       apiProvider.verify(0, RequestPatternBuilder.allRequests());
     }
+  }
+
+  @ParameterizedTest(
+      name =
+          "{index} => testIncludeAdditionalHeaders: enableProvidedIdRequestFilter = {0}, includeAdditionalHeaders = {2}, mdcValues = {3}, customHeaders = {4}")
+  @MethodSource("additionalHeadersTests")
+  // Ideally I'd cover some more dimensions here...no values present in the MDC,
+  // some values present in the MDC, all values present in the MDC, + null
+  // custom headers
+  void testIncludeAdditionalHeaders(
+      boolean enableProvidedIdRequestFilter,
+      List<String> additionalHeaderNames,
+      boolean includeAdditionalHeaders,
+      Map<String, String> mdcValues,
+      Map<String, String> customHeaders,
+      Map<String, String> expectedHeaders) {
+    // Put the specifed values in the MDC
+    mdcValues.forEach(MDC::put);
+
+    providedIdRequestFilterConfigurationProperties.setEnabled(enableProvidedIdRequestFilter);
+    providedIdRequestFilterConfigurationProperties.setAdditionalHeaders(additionalHeaderNames);
+
+    webhookProperties.setIncludeAdditionalHeaders(includeAdditionalHeaders);
+
+    WebhookService webhookService =
+        new WebhookService(
+            List.of(restTemplateProvider),
+            userConfiguredUrlRestrictions,
+            webhookProperties,
+            oortService,
+            Optional.empty(),
+            providedIdRequestFilterConfigurationProperties);
+
+    String path = "/some/path";
+    String url = apiProvider.baseUrl() + path;
+
+    // The StageExecutionImpl constructor mutates the map, so use a mutable map.
+    String account = "my-account";
+    Map<String, Object> webhookStageData =
+        new HashMap<>(Map.of("url", url, "method", HttpMethod.GET, "account", account));
+    if (customHeaders != null) {
+      webhookStageData.put("customHeaders", customHeaders);
+    }
+
+    StageExecution stage =
+        new StageExecutionImpl(null, "webhook", "test-webhook-stage", webhookStageData);
+
+    String responseBodyString = "test response body";
+    apiProvider.stubFor(
+        get(urlMatching(path))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(responseBodyString)));
+
+    // when
+    ResponseEntity<Object> result = webhookService.callWebhook(stage);
+
+    // then
+    RequestPatternBuilder builder = getRequestedFor(urlPathEqualTo(path));
+    expectedHeaders.forEach(
+        (String expectedHeader, String expectedValue) -> {
+          builder.withHeader(expectedHeader, equalTo(expectedValue));
+          builder.andMatching(
+              r -> MatchResult.of(r.getHeaders().getHeader(expectedHeader).isSingleValued()));
+        });
+    apiProvider.verify(builder);
+  }
+
+  private static Stream<Arguments> additionalHeadersTests() {
+    List<String> additionalHeaderNames = List.of("X-foo", "X-bar");
+    Map<String, String> additionalHeaders = Map.of("X-foo", "foo-value", "X-bar", "bar-value");
+    Map<String, String> customHeaders =
+        Map.of("X-foo", "custom-foo-value", "X-custom-header", "custom-header-value");
+
+    // With the feature disabled, expect custom headers
+
+    // With all the additional headers in the MDC, and all the custom headers,
+    // expect this combination
+    Map<String, String> expectedHeaders =
+        Map.of(
+            "X-foo", "foo-value", "X-bar", "bar-value", "X-custom-header", "custom-header-value");
+
+    // With customHeaders null or empty, expect the info from the MDC.
+
+    // With only partial info in the MDC, still expect that the values for
+    // additional header names from customHeaders are dropped.
+    Map<String, String> partialMdc = Map.of("X-bar", "bar-value");
+    Map<String, String> partialExpectedHeaders =
+        Map.of("X-bar", "bar-value", "X-custom-header", "custom-header-value");
+
+    return Stream.of(
+        Arguments.of(
+            false, additionalHeaderNames, false, additionalHeaders, customHeaders, customHeaders),
+        Arguments.of(
+            false, additionalHeaderNames, true, additionalHeaders, customHeaders, customHeaders),
+        Arguments.of(
+            true, additionalHeaderNames, false, additionalHeaders, customHeaders, customHeaders),
+        Arguments.of(
+            true, additionalHeaderNames, true, additionalHeaders, customHeaders, expectedHeaders),
+        Arguments.of(true, additionalHeaderNames, true, additionalHeaders, null, additionalHeaders),
+        Arguments.of(
+            true, additionalHeaderNames, true, additionalHeaders, Map.of(), additionalHeaders),
+        Arguments.of(
+            true, additionalHeaderNames, true, partialMdc, customHeaders, partialExpectedHeaders));
   }
 }

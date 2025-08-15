@@ -29,6 +29,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.util.Collections;
 import java.util.Map;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterEach;
@@ -38,6 +39,7 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.MDC;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.http.GET;
@@ -88,7 +90,7 @@ class SpinnakerRequestHeaderInterceptorTest {
   @ValueSource(booleans = {false, true})
   void propagateSpinnakerHeaders(boolean propagateSpinnakerHeaders) throws Exception {
     SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor =
-        new SpinnakerRequestHeaderInterceptor(propagateSpinnakerHeaders);
+        new SpinnakerRequestHeaderInterceptor(propagateSpinnakerHeaders, Collections.emptyList());
 
     RetrofitService retrofitService =
         makeRetrofitService(wireMock.baseUrl(), spinnakerRequestHeaderInterceptor);
@@ -117,7 +119,9 @@ class SpinnakerRequestHeaderInterceptorTest {
   void skipAccountHeaders() throws Exception {
     SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor =
         new SpinnakerRequestHeaderInterceptor(
-            true /* propagateSpinnakerHeaders */, true /* skipAccountsHeader */);
+            true /* propagateSpinnakerHeaders */,
+            true /* skipAccountsHeader */,
+            Collections.emptyList() /* additionalHeaders */);
 
     RetrofitService retrofitService =
         makeRetrofitService(wireMock.baseUrl(), spinnakerRequestHeaderInterceptor);
@@ -138,6 +142,38 @@ class SpinnakerRequestHeaderInterceptorTest {
             requestPatternBuilder.withoutHeader(header.getHeader());
           } else {
             requestPatternBuilder.withHeader(header.getHeader(), equalTo(value));
+          }
+          wireMock.verify(requestPatternBuilder);
+        });
+  }
+
+  @ParameterizedTest(name = "additionalHeaders: propagateSpinnakerHeaders = {0}")
+  @ValueSource(booleans = {false, true})
+  void additionalHeaders(boolean propagateSpinnakerHeaders) throws Exception {
+    Map<String, String> additionalHeaders = Map.of("X-foo", "foo-value", "X-bar", "bar-value");
+
+    SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor =
+        new SpinnakerRequestHeaderInterceptor(
+            propagateSpinnakerHeaders, additionalHeaders.keySet().stream().toList());
+
+    RetrofitService retrofitService =
+        makeRetrofitService(wireMock.baseUrl(), spinnakerRequestHeaderInterceptor);
+
+    // Add additional info to the MDC
+    additionalHeaders.forEach(MDC::put);
+
+    // Make a request
+    retrofitService.getRequest().execute();
+
+    // Verify that wiremock did/didn't receive the additional headers as appropriate
+    additionalHeaders.forEach(
+        (String headerName, String value) -> {
+          RequestPatternBuilder requestPatternBuilder =
+              getRequestedFor(urlPathEqualTo(REQUEST_PATH));
+          if (propagateSpinnakerHeaders) {
+            requestPatternBuilder.withHeader(headerName, equalTo(value));
+          } else {
+            requestPatternBuilder.withoutHeader(headerName);
           }
           wireMock.verify(requestPatternBuilder);
         });
