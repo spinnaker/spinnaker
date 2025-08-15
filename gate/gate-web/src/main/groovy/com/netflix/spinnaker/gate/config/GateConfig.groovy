@@ -30,8 +30,6 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
-import com.netflix.spinnaker.gate.filters.ProvidedIdRequestFilter
-import com.netflix.spinnaker.gate.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
 import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
 import com.netflix.spinnaker.gate.filters.ResetAuthenticatedRequestFilter
@@ -42,6 +40,8 @@ import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilter
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector

@@ -156,6 +156,14 @@ public interface PipelineExecution {
    */
   Optional<Long> getTotalSize();
 
+  /**
+   * If provided-id-request-filter.enabled is true, this contains the additional headers that have
+   * non-empty values from the http request that initiated the pipeline execution.
+   */
+  Map<String, String> getAdditionalHeaders();
+
+  void setAdditionalHeaders(Map<String, String> additionalHeaders);
+
   // -------
 
   StageExecution namedStage(String type);

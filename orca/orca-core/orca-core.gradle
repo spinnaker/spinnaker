@@ -43,6 +43,7 @@ dependencies {
   implementation("com.netflix.frigga:frigga")
   implementation("com.netflix.spectator:spectator-api")
   implementation("io.spinnaker.kork:kork-core")
+  implementation("io.spinnaker.kork:kork-web")
   implementation("net.logstash.logback:logstash-logback-encoder")
   implementation("org.springframework.security:spring-security-web")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
