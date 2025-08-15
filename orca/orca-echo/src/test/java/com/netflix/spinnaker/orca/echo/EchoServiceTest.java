@@ -39,6 +39,7 @@ import com.netflix.spinnaker.orca.echo.config.EchoConfiguration;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.persistence.InMemoryExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import java.util.Collections;
 import java.util.Map;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
@@ -102,7 +103,8 @@ public class EchoServiceTest {
 
     @Bean
     SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
-      return new SpinnakerRequestHeaderInterceptor(false);
+      return new SpinnakerRequestHeaderInterceptor(
+          false /* propagateSpinnakerHeaders */, Collections.emptyList() /* additionalHeaders */);
     }
   }
 }

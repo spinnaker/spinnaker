@@ -23,4 +23,4 @@ fi
 
 echo "Launching deck using node $(node -v)..."
 
-npm run start-dev-server
+yarn start-dev-server

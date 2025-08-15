@@ -193,5 +193,11 @@ public class PipelineBuilder {
     return this;
   }
 
+  public PipelineBuilder withAdditionalHeaders(Map<String, String> additionalHeaders) {
+    pipeline.setAdditionalHeaders(additionalHeaders);
+
+    return this;
+  }
+
   private final PipelineExecution pipeline;
 }
