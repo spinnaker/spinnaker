@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.filters;
+package com.netflix.spinnaker.kork.web.filters;
 
 import static com.netflix.spinnaker.kork.common.Header.EXECUTION_ID;
 import static com.netflix.spinnaker.kork.common.Header.REQUEST_ID;
 import static com.netflix.spinnaker.kork.common.Header.USER;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import ch.qos.logback.classic.Level;
-import com.netflix.spinnaker.gate.Main;
-import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -40,16 +36,16 @@ import org.junit.jupiter.api.TestInfo;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.WebApplicationContext;
-import retrofit2.mock.Calls;
 
 public class ProvidedIdRequestFilterTest {
 
@@ -58,6 +54,17 @@ public class ProvidedIdRequestFilterTest {
   private static final String TEST_REQUEST_ID = "test-request-id";
   private static final String TEST_EXECUTION_ID = "test-execution-id";
   private static final String TEST_USER_ID = "test-user-id";
+
+  @EnableConfigurationProperties(ProvidedIdRequestFilterConfigurationProperties.class)
+  static class TestConfig {
+    @Bean
+    FilterRegistrationBean<ProvidedIdRequestFilter> providedIdRequestFilter(
+        ProvidedIdRequestFilterConfigurationProperties
+            providedIdRequestFilterConfigurationProperties) {
+      return new FilterRegistrationBean<>(
+          new ProvidedIdRequestFilter(providedIdRequestFilterConfigurationProperties));
+    }
+  }
 
   @RestController
   @RequestMapping(value = API_BASE)
@@ -80,22 +87,15 @@ public class ProvidedIdRequestFilterTest {
   }
 
   @Nested
-  @SpringBootTest(classes = {Main.class, ProvidedIdRequestFilterTest.TestController.class})
-  @TestPropertySource(
-      properties = {
-        "spring.config.location=classpath:gate-test.yml",
-        "services.front50.applicationRefreshInitialDelayMs=3600000",
-        "provided-id-request-filter.enabled=true"
+  @SpringBootTest(
+      classes = {
+        ProvidedIdRequestFilterTest.TestConfig.class,
+        ProvidedIdRequestFilterTest.TestController.class
       })
   class DefaultBehaviorTest {
     @Autowired private WebApplicationContext webApplicationContext;
 
     @Autowired FilterRegistrationBean<ProvidedIdRequestFilter> providedIdRequestFilter;
-
-    @MockBean ClouddriverService clouddriverService;
-
-    /** To prevent periodic calls to service's /health endpoints */
-    @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
     @BeforeEach
     void setup() {
@@ -103,9 +103,6 @@ public class ProvidedIdRequestFilterTest {
           webAppContextSetup(webApplicationContext)
               .addFilters(providedIdRequestFilter.getFilter())
               .build();
-
-      // To keep DefaultProviderLookupService.loadAccounts happy
-      when(clouddriverService.getAccountDetails()).thenReturn(Calls.response(List.of()));
     }
 
     @Test
@@ -137,11 +134,13 @@ public class ProvidedIdRequestFilterTest {
   }
 
   @Nested
-  @SpringBootTest(classes = {Main.class, ProvidedIdRequestFilterTest.TestController.class})
+  @SpringBootTest(
+      classes = {
+        ProvidedIdRequestFilterTest.TestConfig.class,
+        ProvidedIdRequestFilterTest.TestController.class
+      })
   @TestPropertySource(
       properties = {
-        "spring.config.location=classpath:gate-test.yml",
-        "services.front50.applicationRefreshInitialDelayMs=3600000",
         "provided-id-request-filter.enabled=true",
         "provided-id-request-filter.headers=X-SPINNAKER-REQUEST-ID", // arbitrary, different than
         // the default
@@ -152,20 +151,12 @@ public class ProvidedIdRequestFilterTest {
 
     @Autowired FilterRegistrationBean<ProvidedIdRequestFilter> providedIdRequestFilter;
 
-    @MockBean ClouddriverService clouddriverService;
-
-    /** To prevent periodic calls to service's /health endpoints */
-    @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
-
     @BeforeEach
     void setup() {
       mockMvc =
           webAppContextSetup(webApplicationContext)
               .addFilters(providedIdRequestFilter.getFilter())
               .build();
-
-      // To keep DefaultProviderLookupService.loadAccounts happy
-      when(clouddriverService.getAccountDetails()).thenReturn(Calls.response(List.of()));
     }
 
     @Test

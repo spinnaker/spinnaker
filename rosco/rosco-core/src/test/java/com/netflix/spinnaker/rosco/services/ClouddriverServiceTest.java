@@ -37,6 +37,7 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +99,8 @@ public class ClouddriverServiceTest {
   static class TestConfig {
     @Bean
     public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
-      return new SpinnakerRequestHeaderInterceptor(false);
+      return new SpinnakerRequestHeaderInterceptor(
+          false /* propagateSpinnakerHeaders */, Collections.emptyList() /* additionalHeaders */);
     }
   }
 }
