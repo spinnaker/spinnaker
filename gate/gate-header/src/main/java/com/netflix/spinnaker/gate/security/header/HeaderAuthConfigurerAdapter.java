@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -34,6 +35,7 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 @ConditionalOnProperty("header.enabled")
 @SpinnakerAuthConfig
 @EnableWebSecurity
+@Configuration
 public class HeaderAuthConfigurerAdapter {
   @Autowired AuthConfig authConfig;
 

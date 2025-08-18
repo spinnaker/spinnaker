@@ -31,6 +31,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 /**
  * In combination with HeaderAuthConfigurerAdapter, authenticate the X-SPINNAKER-USER header using
@@ -81,6 +82,11 @@ public class HeaderAuthConfig {
     // HeaderAuthenticationDetailsSource takes care of this.
     requestHeaderAuthenticationFilter.setAuthenticationDetailsSource(
         new HeaderAuthenticationDetailsSource());
+
+    HttpSessionSecurityContextRepository securityContextRepository =
+        new HttpSessionSecurityContextRepository();
+    securityContextRepository.setAllowSessionCreation(false);
+    requestHeaderAuthenticationFilter.setSecurityContextRepository(securityContextRepository);
     return requestHeaderAuthenticationFilter;
   }
 
