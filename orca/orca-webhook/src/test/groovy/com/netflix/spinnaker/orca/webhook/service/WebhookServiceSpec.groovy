@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook.service
 
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -70,11 +71,14 @@ class WebhookServiceSpec extends Specification {
 
   def oortService = Mock(OortService)
 
+  def providedIdRequestFilterConfigurationProperties = new ProvidedIdRequestFilterConfigurationProperties()
+
   @Subject
   def webhookService = new WebhookService(List.of(restTemplateProvider),
                                           userConfiguredUrlRestrictions,
                                           preconfiguredWebhookProperties,
-                                          oortService, Optional.empty())
+                                          oortService, Optional.empty(),
+                                          providedIdRequestFilterConfigurationProperties)
 
   @Unroll
   def "Webhook is being called with correct parameters"() {

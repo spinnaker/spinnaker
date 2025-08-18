@@ -120,6 +120,12 @@ public class WebhookProperties {
    */
   private boolean validateAccount = false;
 
+  /**
+   * True to include additional headers that ProvidedIdRequestFilter puts in the MDC in outgoing
+   * http requests. Only relevant if ProvidedIdRequestFilter is enabled.
+   */
+  private boolean includeAdditionalHeaders = false;
+
   @Data
   @NoArgsConstructor
   public static class TrustSettings {
