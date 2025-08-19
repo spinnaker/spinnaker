@@ -142,7 +142,7 @@ class KatoRestServiceSpec extends Specification {
     )
 
     expect: "kato should return the details of the task it created"
-    with(Retrofit2SyncCall.execute(service.requestOperations(requestId, "aws", [operation]))) {
+    with(Retrofit2SyncCall.execute(service.requestOperations("aws", requestId, [operation]))) {
       it.id == taskId
     }
   }
