@@ -149,6 +149,14 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
                 "compute.httpsHealthChecks.get",
                 TAG_SCOPE, SCOPE_GLOBAL) }
         break
+      case "http2HealthChecks":
+        operationName = "copmute.http2HealthChecks.get"
+        healthCheckGet = {
+            timeExecute(
+                compute.http2HealthChecks().get(project, healthCheckName),
+                "compute.http2HealthChecks.get",
+                TAG_SCOPE, SCOPE_GLOBAL) }
+        break
       case "healthChecks":
         operationName = "compute.healthChecks.get"
         healthCheckGet = {

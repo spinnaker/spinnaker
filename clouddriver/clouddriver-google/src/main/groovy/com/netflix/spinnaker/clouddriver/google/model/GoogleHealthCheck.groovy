@@ -75,6 +75,16 @@ class GoogleHealthCheck {
         return this.port ?
           "HTTPS:${this.port}${this.requestPath ?: '/'}" :
           null
+      case HealthCheckType.HTTP2:
+        break
+        return this.port ?
+          "HTTP2:${this.port}${this.requestPath ?: '/'}" :
+          null
+      case HealthCheckType.GRPC:
+        break
+        return this.port ?
+          "GRPC:${this.port}${this.requestPath ?: '/'}" :
+          null
       case HealthCheckType.SSL:
         return this.port ?
           "SSL:${this.port}" :
@@ -131,6 +141,8 @@ class GoogleHealthCheck {
   static enum HealthCheckType {
     HTTP,
     HTTPS,
+    GRPC,
+    HTTP2,
     SSL,
     TCP,
     UDP

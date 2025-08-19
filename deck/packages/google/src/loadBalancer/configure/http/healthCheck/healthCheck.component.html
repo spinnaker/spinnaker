@@ -23,7 +23,7 @@
           class="form-control input-sm"
           ng-change="$ctrl.onProtocolChange()"
           ng-model="$ctrl.healthCheckType"
-          ng-options="protocol as protocol for protocol in ['HTTP', 'HTTPS', 'TCP', 'SSL']"
+          ng-options="protocol as protocol for protocol in ['HTTP', 'HTTPS', 'TCP', 'SSL', 'HTTP/2', 'GRPC']"
         ></select>
       </div>
       <div class="col-md-2">

@@ -57,7 +57,10 @@ class GceLoadBalancingPolicySelectorController implements IController {
 
       const hasSsl = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'SSL');
       const hasTcp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'TCP');
-      const hasHttp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP');
+      const hasHttp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP')
+                        || selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP/2')
+        || selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'GRPC')
+        ;
 
       if ((hasSsl || hasTcp) && hasHttp) {
         balancingModes = ['UTILIZATION'];
@@ -105,6 +108,8 @@ class GceLoadBalancingPolicySelectorController implements IController {
       switch (get(index[loadBalancer], 'loadBalancerType')) {
         case 'SSL':
         case 'TCP':
+        case 'GRPC':
+        case 'HTTP/2':
         case 'HTTP': {
           const lbBackendServices: string[] = get(index[loadBalancer], 'backendServices');
           const filteredBackendServices = globalBackendServices.filter((service: IGceBackendService) =>
