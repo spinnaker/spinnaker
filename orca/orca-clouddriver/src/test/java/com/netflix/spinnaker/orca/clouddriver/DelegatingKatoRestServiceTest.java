@@ -56,10 +56,7 @@ class DelegatingKatoRestServiceTest {
     delegatingKatoRestService.requestOperations(cloudProvider, clientRequestId, operations);
 
     // then
-    // FIXME: KatoRestService.requestOperations expects cloudProvider as the first argument, then
-    // clientRequestId
-    // verify(katoRestService).requestOperations(cloudProvider, clientRequestId, operations);
-    verify(katoRestService).requestOperations(clientRequestId, cloudProvider, operations);
+    verify(katoRestService).requestOperations(cloudProvider, clientRequestId, operations);
     verifyNoMoreInteractions(katoRestService);
   }
 }
