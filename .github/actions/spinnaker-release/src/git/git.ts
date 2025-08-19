@@ -76,25 +76,37 @@ function isAutoIncrementTag(tag: string) {
   return split.length == 3 && !isNaN(parseInt(split.slice(-1)[0], 10));
 }
 
-// Tag of the form <service>-<release_version>
-function isReleaseTag(tag: string) {
+// Tag of the form <service>-<release_version> or spinnaker-release-<release_version>
+function isReleaseTag(tag: string, versionIndex: number) {
   const split = tag.split('-');
-  return split.length == 2 && !isNaN(parseInt(split.slice(-1)[0], 10));
+
+  // If the tag is of the form spinnaker-release-<release_version>, then
+  // the versionIndex will be 2, so the expected length of the split array is 3 (due to zero-indexing).
+  // If the tag is of the form <service>-<release_version>, then the versionIndex will be 1, so
+  // the expected length of the split array is 2 (due to zero-indexing).
+  return (
+    split.length == versionIndex + 1 && !isNaN(parseInt(split.slice(-1)[0], 10))
+  );
 }
 
 export function findTag(prefix: string) {
+  // This method is used for both service tags (e.g. clouddriver-2025.0.2) and release tags
+  // (e.g. spinnaker-release-2025.0.2). The versionIndex is used to determine which array
+  // index to use when parsing the version.
+  const versionIndex = prefix.startsWith('spinnaker-release') ? 2 : 1;
+
   const tags = gitCmdMulti(`git tag`)
     ?.filter((it) => it.startsWith(prefix))
     ?.filter((it) => {
       // Ensure this matches standard tag format - all other tags should be disregarded
       // A release tag looks like: <service>-<release_version> e.g. clouddriver-2025.0.2
-      return isReleaseTag(it);
+      return isReleaseTag(it, versionIndex);
     })
     ?.map((it) => {
       // Parse the version portion of the release tag
       return {
         name: it,
-        version: Version.parse(it.split('-')[1]),
+        version: Version.parse(it.split('-')[versionIndex]),
       };
     })
     // Filter out anything that didn't parse
@@ -103,7 +115,7 @@ export function findTag(prefix: string) {
     // Sort all the entries by version descending
     ?.sort((a, b) => Version.compare(a.version!, b.version!) * -1);
 
-  if (!tags || !tags.length) {
+  if (!tags?.length) {
     core.warning(`No tags found for prefix ${prefix}`);
     return undefined;
   }
