@@ -72,10 +72,58 @@ class RestConfigSpec extends Specification {
     RestUrls restUrls = configureRestServices(endpoint, EmptyHeadersFile)
 
     when:
-    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent([:]))
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(wireMockServer.baseUrl(), [:]))
 
     then:
     headers.get().get("Authorization") == "Basic dGVzdHVzZXI6dGVzdHBhc3N3b3Jk"
+  }
+  /*
+          rest:
+          enabled: true
+          endpoints:
+          - headers:
+              Authorization: Splunk 1BD1BBDF-F7C2-4205-9113-427724465EDB
+            template: '{"event":{{event}} }'
+            url: https://splunk.mcintosh.farm/hec/services/collector/event?
+            wrap: true
+          insecure: false
+   */
+
+  void "Work with simple splunk url example"() {
+    given:
+    wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+    wireMockServer.addMockServiceRequestListener(new RequestListener() {
+
+      @Override
+      void requestReceived(Request request, Response response) {
+        headers.set(request.getHeaders().all().collectEntries { header ->
+          [(header.key()): header.values().join(',')]})
+      }
+    });
+
+    wireMockServer.start();
+
+    wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/hec/services/collector/event"))
+      .willReturn(WireMock.aResponse()
+        .withStatus(200)))
+    wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/hec/services/collector/event/"))
+      .willReturn(WireMock.aResponse()
+        .withStatus(400)))
+    RestProperties.RestEndpointConfiguration endpoint = new RestProperties.RestEndpointConfiguration(
+      //This URL can't add / at the end, as that breaks the URL for splunk.
+      url: wireMockServer.baseUrl() + "/hec/services/collector/event",
+      headers: ["Authorization": "Splunk 1BD1BBDF-F7C2-4205-9113-427724465EDB"],
+      wrap: true,
+      template: '{"event":{{event}} }'
+    )
+
+    RestUrls restUrls = configureRestServices(endpoint, EmptyHeadersFile)
+
+    when:
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(endpoint.getUrl(),[:]))
+
+    then:
+    headers.get().get("Authorization") == "Splunk 1BD1BBDF-F7C2-4205-9113-427724465EDB"
   }
 
   void "'Authorization' header over generated basic auth header"() {
@@ -88,7 +136,7 @@ class RestConfigSpec extends Specification {
     RestUrls restUrls = configureRestServices(endpoint, EmptyHeadersFile)
 
     when:
-    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent([:]))
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(wireMockServer.baseUrl(),[:]))
 
     then:
     headers.get().get("Authorization") == "FromConfig"
@@ -113,7 +161,7 @@ class RestConfigSpec extends Specification {
     RestUrls restUrls = configureRestServices(endpoint, headersFromFile)
 
     when:
-    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent([:]))
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(wireMockServer.baseUrl(), [:]))
 
     then:
     headers.get().get("Authorization") == "FromFile"
