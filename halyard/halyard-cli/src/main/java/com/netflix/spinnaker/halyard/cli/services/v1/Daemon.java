@@ -43,6 +43,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -1232,7 +1233,12 @@ public class Daemon {
   }
 
   static <C, T> DaemonTask<C, T> getTask(String uuid) {
-    return getService().getTask(uuid);
+    try {
+      return objectMapper.readValue(
+          getService().getTask(uuid).string(), new TypeReference<DaemonTask<C, T>>() {});
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to parse response for the task with UUID: " + uuid, e);
+    }
   }
 
   public static void interruptTask(String uuid) {
