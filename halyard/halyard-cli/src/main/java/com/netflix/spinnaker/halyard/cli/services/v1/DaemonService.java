@@ -33,6 +33,7 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import java.util.List;
 import java.util.Map;
+import okhttp3.ResponseBody;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
@@ -55,7 +56,7 @@ public interface DaemonService {
   Void interruptTask(@Path("uuid") String uuid, @Body String _ignore);
 
   @GET("v1/tasks/{uuid}/")
-  <C, T> DaemonTask<C, T> getTask(@Path("uuid") String uuid);
+  ResponseBody getTask(@Path("uuid") String uuid);
 
   @PUT("v1/backup/create")
   DaemonTask<Halconfig, Object> createBackup(@Body String _ignore);
