@@ -60,7 +60,7 @@ public class RestEventServiceTest {
     port = wireMockServer.port();
     WireMock.configureFor("localhost", port);
 
-    stubFor(post(urlEqualTo("/api/")).willReturn(aResponse().withStatus(200)));
+    stubFor(post(urlEqualTo("/api")).willReturn(aResponse().withStatus(200)));
 
     baseUrl = baseUrl.replaceFirst("PORT", String.valueOf(port));
 
@@ -109,7 +109,7 @@ public class RestEventServiceTest {
 
   @Test
   void testSendEvent() {
-    restEventService.sendEvent(null, eventMap, service);
-    verify(1, postRequestedFor(urlEqualTo("/api/")));
+    restEventService.sendEvent(baseUrl, eventMap, service);
+    verify(1, postRequestedFor(urlEqualTo("/api")));
   }
 }
