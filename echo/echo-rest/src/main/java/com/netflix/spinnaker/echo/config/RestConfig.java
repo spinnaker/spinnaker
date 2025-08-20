@@ -116,6 +116,8 @@ public class RestConfig {
 
       Retrofit.Builder retrofitBuilder =
           new Retrofit.Builder()
+              // This has to be set, but is actually ignored on the API calls since they override
+              // the URL via the argument
               .baseUrl("https://example.com/")
               .client(okHttpClient)
               .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())

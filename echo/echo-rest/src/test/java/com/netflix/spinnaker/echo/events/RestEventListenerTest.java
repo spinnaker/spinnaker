@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.events;
 
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,6 +93,7 @@ class RestEventListenerTest {
         new RestProperties.RestEndpointConfiguration();
     config.setTemplate("{\"myCustomEventField\":{{event}} }");
     config.setWrap(true);
+    config.setUrl("http://localhost:8080");
 
     RestUrls.Service service =
         RestUrls.Service.builder().client(restService).config(config).build();
@@ -108,7 +111,7 @@ class RestEventListenerTest {
 
     Mockito.verify(restService, Mockito.times(1))
         .recordEvent(
-            Mockito.anyString(),
+            anyString(),
             Mockito.argThat(
                 it -> {
                   Map<String, Object> expected = new HashMap<>();
@@ -139,7 +142,7 @@ class RestEventListenerTest {
 
     Mockito.verify(restService, Mockito.times(1))
         .recordEvent(
-            Mockito.anyString(),
+            eq(config.getUrl()),
             Mockito.argThat(
                 it -> {
                   Map<String, Object> expected = new HashMap<>();
@@ -173,7 +176,7 @@ class RestEventListenerTest {
 
     Mockito.verify(restService, Mockito.times(1))
         .recordEvent(
-            Mockito.anyString(),
+            eq(config.getUrl()),
             Mockito.argThat(
                 it -> {
                   Map<String, Object> expected = new HashMap<>();
@@ -203,7 +206,7 @@ class RestEventListenerTest {
 
     listener.processEvent(event);
 
-    Mockito.verify(restService, Mockito.times(1)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(1)).recordEvent(config.getUrl(), expectedEvent);
   }
 
   @Test
@@ -212,6 +215,7 @@ class RestEventListenerTest {
 
     RestProperties.RestEndpointConfiguration config =
         new RestProperties.RestEndpointConfiguration();
+    config.setUrl("http://localhost:8080");
     config.setWrap(false);
 
     RestUrls.Service service1 =
@@ -235,8 +239,8 @@ class RestEventListenerTest {
 
     listener.processEvent(event);
 
-    Mockito.verify(restService, Mockito.times(1)).recordEvent(anyString(), expectedEvent);
-    Mockito.verify(restService2, Mockito.times(1)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(1)).recordEvent(config.getUrl(), expectedEvent);
+    Mockito.verify(restService2, Mockito.times(1)).recordEvent(config.getUrl(), expectedEvent);
   }
 
   @Test()
@@ -258,17 +262,17 @@ class RestEventListenerTest {
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
-    Mockito.when(restService.recordEvent(anyString(), expectedEvent))
+    Mockito.when(restService.recordEvent(null, expectedEvent))
         .thenThrow(new RuntimeException("test exception"));
-    Mockito.when(restService2.recordEvent(anyString(), expectedEvent))
+    Mockito.when(restService2.recordEvent(config.getUrl(), expectedEvent))
         .thenReturn(Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
 
     listener.processEvent(event);
 
-    Mockito.verify(restService, Mockito.times(3)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(3)).recordEvent(config.getUrl(), expectedEvent);
     Assertions.assertThrows(
         RuntimeException.class, () -> restService.recordEvent(anyString(), expectedEvent));
-    Mockito.verify(restService2, Mockito.times(1)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService2, Mockito.times(1)).recordEvent(config.getUrl(), expectedEvent);
   }
 
   @Test
@@ -292,7 +296,7 @@ class RestEventListenerTest {
 
     listener.processEvent(event);
 
-    Mockito.verify(restService, Mockito.times(1)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(1)).recordEvent(config.getUrl(), expectedEvent);
   }
 
   /**
@@ -323,7 +327,7 @@ class RestEventListenerTest {
 
     Assertions.assertEquals(
         "sendEvent", restEventService.getCircuitBreakerInstance(service).getName());
-    Mockito.verify(restService, Mockito.times(1)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(1)).recordEvent(config.getUrl(), expectedEvent);
   }
 
   @Test
@@ -361,7 +365,7 @@ class RestEventListenerTest {
     listener.processEvent(event);
 
     Mockito.verify(objectMapper, Mockito.times(0)).convertValue(event, Map.class);
-    Mockito.verify(restService, Mockito.times(0)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(0)).recordEvent(config.getUrl(), expectedEvent);
     Assertions.assertThrows(
         CallNotPermittedException.class, mockedCircuitBreaker::acquirePermission);
   }
@@ -380,12 +384,12 @@ class RestEventListenerTest {
 
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
-    Mockito.when(restService.recordEvent(anyString(), expectedEvent))
+    Mockito.when(restService.recordEvent(config.getUrl(), expectedEvent))
         .thenThrow(new RuntimeException("test exception"));
 
     listener.processEvent(event);
 
-    Mockito.verify(restService, Mockito.times(1)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(1)).recordEvent(config.getUrl(), expectedEvent);
     Assertions.assertEquals(
         CircuitBreaker.State.OPEN,
         circuitBreakerRegistry.circuitBreaker("circuitBreakerTest").getState());
@@ -400,7 +404,7 @@ class RestEventListenerTest {
     Map<String, Object> newExpectedEvent = listener.getMapper().convertValue(newEvent, Map.class);
 
     listener.processEvent(newEvent); // process new event
-    Mockito.verify(restService, Mockito.times(0)).recordEvent(anyString(), newExpectedEvent);
+    Mockito.verify(restService, Mockito.times(0)).recordEvent(config.getUrl(), newExpectedEvent);
   }
 
   @Test
@@ -426,7 +430,7 @@ class RestEventListenerTest {
 
     // RestEventListener.transformEventToMap() threw exception and returned null map
     // It shouldn't try to send an empty event
-    Mockito.verify(restService, Mockito.times(0)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(0)).recordEvent(config.getUrl(), expectedEvent);
     Assertions.assertThrows(
         IllegalArgumentException.class, () -> objectMapper.convertValue(event, Map.class));
   }
@@ -456,7 +460,7 @@ class RestEventListenerTest {
 
     // RestEventListener.transformEventToMap() threw exception and returned null map
     // It shouldn't try to send an empty event
-    Mockito.verify(restService, Mockito.times(0)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(0)).recordEvent(config.getUrl(), expectedEvent);
     Assertions.assertEquals(
         CircuitBreaker.State.CLOSED,
         circuitBreakerRegistry.circuitBreaker("circuitBreakerTest").getState());
@@ -471,6 +475,7 @@ class RestEventListenerTest {
     config.setWrap(false);
     config.setEventName("circuitBreakerTest"); // map eventName to circuit breaker instance name
     config.setCircuitBreakerEnabled(true);
+    config.setUrl(RandomStringUtils.randomAlphabetic(10));
     RestUrls.Service service1 =
         RestUrls.Service.builder().client(restService).config(config).build();
 
@@ -480,6 +485,7 @@ class RestEventListenerTest {
     config2.setWrap(false);
     config2.setEventName("secondService");
     config2.setCircuitBreakerEnabled(false); // second service does not enable circuit breaker
+    config2.setUrl(RandomStringUtils.randomAlphabetic(10));
     RestUrls.Service service2 =
         RestUrls.Service.builder().client(restService2).config(config2).build();
 
@@ -489,9 +495,9 @@ class RestEventListenerTest {
     Map<String, Object> expectedEvent = listener.getMapper().convertValue(event, Map.class);
 
     // first service throws Exception when recording event
-    Mockito.when(restService.recordEvent(anyString(), expectedEvent))
+    Mockito.when(restService.recordEvent(config.getEventName(), expectedEvent))
         .thenThrow(new RuntimeException("test exception"));
-    Mockito.when(restService2.recordEvent(anyString(), anyMap()))
+    Mockito.when(restService2.recordEvent(eq(config2.getUrl()), anyMap()))
         .thenAnswer(
             invoke ->
                 Calls.response(ResponseBody.create(MediaType.parse("application/json"), "{}")));
@@ -499,10 +505,10 @@ class RestEventListenerTest {
     listener.processEvent(event);
 
     // verify it tried to recordEvent for both services
-    Mockito.verify(restService, Mockito.times(1)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService, Mockito.times(1)).recordEvent(config.getUrl(), expectedEvent);
     Assertions.assertThrows(
         RuntimeException.class, () -> restService.recordEvent(anyString(), expectedEvent));
-    Mockito.verify(restService2, Mockito.times(1)).recordEvent(anyString(), expectedEvent);
+    Mockito.verify(restService2, Mockito.times(1)).recordEvent(config2.getUrl(), expectedEvent);
 
     // circuitBreakerTest should be open
     Assertions.assertEquals(
@@ -526,7 +532,7 @@ class RestEventListenerTest {
     listener.processEvent(newEvent); // process new event
 
     // first service cannot record event because of OPEN circuit breaker
-    Mockito.verify(restService, Mockito.times(0)).recordEvent(anyString(), newExpectedEvent);
-    Mockito.verify(restService2, Mockito.times(1)).recordEvent(anyString(), newExpectedEvent);
+    Mockito.verify(restService, Mockito.times(0)).recordEvent(config.getUrl(), newExpectedEvent);
+    Mockito.verify(restService2, Mockito.times(1)).recordEvent(config2.getUrl(), newExpectedEvent);
   }
 }
