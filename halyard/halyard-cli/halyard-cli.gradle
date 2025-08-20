@@ -33,6 +33,7 @@ dependencies {
   testImplementation 'org.spockframework:spock-core'
   testImplementation 'org.springframework:spring-test'
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 }
 
 apply plugin: 'application'
