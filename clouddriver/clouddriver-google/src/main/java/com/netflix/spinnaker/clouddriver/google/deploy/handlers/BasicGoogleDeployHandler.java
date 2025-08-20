@@ -87,6 +87,7 @@ import groovy.lang.Closure;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -1119,15 +1120,17 @@ public class BasicGoogleDeployHandler
                       "Waiting for backend service %s update to complete...",
                       backendService.getName()));
 
-              // Wait for the global backend service update to complete
-              googleOperationPoller.waitForGlobalOperation(
-                  description.getCredentials().getCompute(),
-                  description.getCredentials().getProject(),
-                  backendServiceOperation.getName(),
-                  null,
-                  task,
-                  "backend service " + backendService.getName(),
-                  BASE_PHASE);
+              if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+                // Wait for the global backend service update to complete
+                googleOperationPoller.waitForGlobalOperation(
+                    description.getCredentials().getCompute(),
+                    description.getCredentials().getProject(),
+                    backendServiceOperation.getName(),
+                    null,
+                    task,
+                    "backend service " + backendService.getName(),
+                    BASE_PHASE);
+              }
             }
 
             task.updateStatus(
@@ -1183,16 +1186,18 @@ public class BasicGoogleDeployHandler
                       "Waiting for regional backend service %s update to complete...",
                       backendService.getName()));
 
-              // Wait for the regional backend service update to complete
-              googleOperationPoller.waitForRegionalOperation(
-                  description.getCredentials().getCompute(),
-                  description.getCredentials().getProject(),
-                  region,
-                  backendServiceOperation.getName(),
-                  null,
-                  task,
-                  "backend service " + backendService.getName(),
-                  BASE_PHASE);
+              if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+                // Wait for the regional backend service update to complete
+                googleOperationPoller.waitForRegionalOperation(
+                    description.getCredentials().getCompute(),
+                    description.getCredentials().getProject(),
+                    region,
+                    backendServiceOperation.getName(),
+                    null,
+                    task,
+                    "backend service " + backendService.getName(),
+                    BASE_PHASE);
+              }
             }
 
             task.updateStatus(
@@ -1325,16 +1330,18 @@ public class BasicGoogleDeployHandler
               TAG_REGION,
               region);
 
-      // Wait for regional autoscaler creation to complete before proceeding with deployment
-      googleOperationPoller.waitForRegionalOperation(
-          description.getCredentials().getCompute(),
-          description.getCredentials().getProject(),
-          region,
-          autoscalerOperation.getName(),
-          null,
-          task,
-          "regional autoscaler " + serverGroupName,
-          BASE_PHASE);
+      if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+        // Wait for regional autoscaler creation to complete before proceeding with deployment
+        googleOperationPoller.waitForRegionalOperation(
+            description.getCredentials().getCompute(),
+            description.getCredentials().getProject(),
+            region,
+            autoscalerOperation.getName(),
+            null,
+            task,
+            "regional autoscaler " + serverGroupName,
+            BASE_PHASE);
+      }
     }
   }
 
@@ -1410,16 +1417,18 @@ public class BasicGoogleDeployHandler
               TAG_ZONE,
               description.getZone());
 
-      // Wait for zonal autoscaler creation to complete before proceeding with deployment
-      googleOperationPoller.waitForZonalOperation(
-          description.getCredentials().getCompute(),
-          description.getCredentials().getProject(),
-          description.getZone(),
-          autoscalerOperation.getName(),
-          null,
-          task,
-          "autoscaler " + serverGroupName,
-          BASE_PHASE);
+      if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+        // Wait for zonal autoscaler creation to complete before proceeding with deployment
+        googleOperationPoller.waitForZonalOperation(
+            description.getCredentials().getCompute(),
+            description.getCredentials().getProject(),
+            description.getZone(),
+            autoscalerOperation.getName(),
+            null,
+            task,
+            "autoscaler " + serverGroupName,
+            BASE_PHASE);
+      }
     }
   }
 
@@ -1598,6 +1607,15 @@ public class BasicGoogleDeployHandler
     @Override
     public Map<String, String> getLabels() {
       return labels;
+    }
+  }
+
+  @PostConstruct
+  void logEnableAsyncOperationWaitWarning() {
+    if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+      log.warn(
+          "[enableAsyncOperationWait]: If you see unjustified long waits or other issues caused by this flag, "
+              + "please drop a note in Spinnaker Slack or open a GitHub Issue with the related details.");
     }
   }
 }
