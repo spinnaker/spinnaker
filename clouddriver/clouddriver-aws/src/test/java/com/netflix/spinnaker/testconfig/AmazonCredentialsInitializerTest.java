@@ -25,10 +25,9 @@ import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactor
 import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer;
+import com.netflix.spinnaker.credentials.definition.CredentialsParser;
 import com.netflix.spinnaker.kork.aws.AwsComponents;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -48,18 +47,7 @@ public class AmazonCredentialsInitializerTest {
   void testAmazonCredentialsInitializerBasicFunctionality() {
     runner.run(
         ctx -> {
-          // FIXME: expect the context to start with a CredentialsParser bean
-          //
-          // assertThat(ctx).hasSingleBean(CredentialsParser.class);
-          Throwable thrown = ctx.getStartupFailure();
-          assertThat(thrown).isInstanceOf(UnsatisfiedDependencyException.class);
-          assertThat(thrown)
-              .hasMessage(
-                  "Error creating bean with name 'amazonCredentialsLoader' defined in class path resource [com/netflix/spinnaker/clouddriver/aws/security/AmazonCredentialsInitializer.class]: Unsatisfied dependency expressed through method 'amazonCredentialsLoader' parameter 0; nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type 'com.netflix.spinnaker.credentials.definition.CredentialsParser<com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration$Account, com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials>' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}");
-          assertThat(thrown).hasRootCauseInstanceOf(NoSuchBeanDefinitionException.class);
-          assertThat(thrown)
-              .hasRootCauseMessage(
-                  "No qualifying bean of type 'com.netflix.spinnaker.credentials.definition.CredentialsParser<com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration$Account, com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials>' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}");
+          assertThat(ctx).hasSingleBean(CredentialsParser.class);
         });
   }
 
