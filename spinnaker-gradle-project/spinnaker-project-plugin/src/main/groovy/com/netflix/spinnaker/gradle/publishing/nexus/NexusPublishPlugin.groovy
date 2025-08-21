@@ -46,13 +46,13 @@ class NexusPublishPlugin implements Plugin<Project> {
       configureBaseNexusPlugin(project, nexusExtension)
     }
 
-    project.plugins.withType(JavaLibraryPlugin) {
+    project.plugins.withType(JavaLibraryPlugin).configureEach {
       project.plugins.apply(MavenPublishPlugin)
       project.plugins.apply(SigningPlugin)
 
       configureSpinnakerPublicationForNexus(project, nexusExtension)
     }
-    project.plugins.withType(JavaPlatformPlugin) {
+    project.plugins.withType(JavaPlatformPlugin).configureEach {
       project.plugins.apply(MavenPublishPlugin)
       project.plugins.apply(SigningPlugin)
 

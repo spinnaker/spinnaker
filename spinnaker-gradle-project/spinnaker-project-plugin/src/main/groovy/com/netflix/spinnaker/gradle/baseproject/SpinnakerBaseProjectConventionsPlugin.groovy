@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.gradle.baseproject
 
-import com.netflix.spinnaker.gradle.Flags
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
@@ -9,7 +8,7 @@ import org.gradle.api.java.archives.Manifest
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaLibraryPlugin
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.javadoc.Javadoc
@@ -19,20 +18,20 @@ import org.gradle.jvm.tasks.Jar
 class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-      def javaVersion = Flags.targetJava17(project) ? JavaVersion.VERSION_17 : JavaVersion.VERSION_11
       project.repositories.mavenCentral()
       project.plugins.withType(JavaBasePlugin) {
+        project.extensions.getByType(JavaPluginExtension).with {
+          it.setSourceCompatibility(JavaVersion.VERSION_17)
+          it.setTargetCompatibility(JavaVersion.VERSION_17)
+        }
         project.plugins.apply(MavenPublishPlugin)
-        JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-        convention.sourceCompatibility = javaVersion
-        convention.targetCompatibility = javaVersion
       }
-      project.plugins.withType(JavaLibraryPlugin) {
-        JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
+      project.plugins.withType(JavaLibraryPlugin).configureEach {
+        JavaPluginExtension extension = project.extensions.getByType(JavaPluginExtension)
         def sourceJar = project.tasks.create("sourceJar", Jar)
         sourceJar.dependsOn("classes")
         sourceJar.archiveClassifier.set('sources')
-        sourceJar.from(convention.sourceSets.getByName('main').allSource)
+        sourceJar.from(extension.sourceSets.getByName('main').allSource)
         project.artifacts.add('archives', sourceJar)
       }
       // Nebula insists on building Javadoc, but we don't do anything with it

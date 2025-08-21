@@ -120,6 +120,7 @@ public class WebhookStage implements StageDefinitionBuilder {
     public List<Integer> webhookRetryStatusCodes;
 
     public int waitBeforeMonitor;
+
     /**
      * Retry configuration for specific status codes. Retries are cumulative and do not reset if a
      * different status code is returned in between.
@@ -157,6 +158,7 @@ public class WebhookStage implements StageDefinitionBuilder {
     private String progressMessage;
     private Number percentComplete;
     private Object resolvedValue;
+
     /**
      * A list of status codes that previously resulted in a retry being triggered. Ordered from
      * oldest to newest.

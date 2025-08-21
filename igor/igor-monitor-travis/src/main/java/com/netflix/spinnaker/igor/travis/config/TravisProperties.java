@@ -37,6 +37,7 @@ public class TravisProperties implements BuildServerProperties<TravisProperties.
   private int cachedJobTTLDays = 60;
   @Valid private List<TravisHost> masters;
   @Valid private List<String> regexes;
+
   /**
    * Lets you customize the build message used when Spinnaker triggers builds in Travis. If you set
    * a custom parameter in the Travis stage in Spinnaker with the value of this property as the key
@@ -60,8 +61,10 @@ public class TravisProperties implements BuildServerProperties<TravisProperties.
     @NotEmpty private String address;
     @NotEmpty private String githubToken;
     @Deprecated private int numberOfRepositories;
+
     /** Defines how many jobs Igor should retrieve per polling cycle. Defaults to 100. */
     private int numberOfJobs = 100;
+
     /**
      * Defines how many builds Igor should return when querying for builds for a specific repo. This
      * affects for instance how many builds that will be displayed in the drop down when starting a
@@ -74,6 +77,7 @@ public class TravisProperties implements BuildServerProperties<TravisProperties.
 
     private Integer itemUpperThreshold;
     private Permissions.Builder permissions = new Permissions.Builder();
+
     /**
      * The Travis Builds and Jobs API supports an attribute called <code>log_complete</code> that is
      * supposed to tell us if the log is ready to be downloaded. Igor has been using this attribute

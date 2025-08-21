@@ -39,7 +39,9 @@ public interface CredentialsRepository<T extends Credentials> extends SpinnakerE
    */
   boolean has(String name);
 
-  /** @return A new set containing all known credentials */
+  /**
+   * @return A new set containing all known credentials
+   */
   Set<T> getAll();
 
   /**
@@ -58,6 +60,8 @@ public interface CredentialsRepository<T extends Credentials> extends SpinnakerE
    */
   void delete(String name);
 
-  /** @return Type of credentials this repository can store */
+  /**
+   * @return Type of credentials this repository can store
+   */
   String getType();
 }
