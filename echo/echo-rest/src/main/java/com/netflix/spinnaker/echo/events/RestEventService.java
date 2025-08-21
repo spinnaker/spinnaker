@@ -45,8 +45,7 @@ public class RestEventService {
    */
   public void sendEventWithCircuitBreaker(
       Map<String, Object> eventMap, RestUrls.Service service, CircuitBreaker circuitBreaker) {
-    circuitBreaker.executeRunnable(
-        () -> sendEvent(service.getConfig().getUrl(), eventMap, service));
+    circuitBreaker.executeRunnable(() -> sendEvent(eventMap, service));
   }
 
   /**
@@ -55,7 +54,7 @@ public class RestEventService {
    * @param event The event data to be sent.
    * @param service The REST service to which the event should be sent.
    */
-  public void sendEvent(String url, Map<String, Object> event, RestUrls.Service service) {
+  public void sendEvent(Map<String, Object> event, RestUrls.Service service) {
     retrySupport.retry(
         () ->
             Retrofit2SyncCall.execute(

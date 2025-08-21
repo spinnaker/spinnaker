@@ -108,7 +108,7 @@ public class RestEventServiceTest {
 
   @Test
   void testSendEvent() {
-    restEventService.sendEvent(service.getConfig().getUrl(), eventMap, service);
+    restEventService.sendEvent(eventMap, service);
     verify(1, postRequestedFor(urlEqualTo("/api")));
   }
 }
