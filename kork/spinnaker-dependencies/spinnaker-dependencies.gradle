@@ -9,7 +9,7 @@ ext {
     arrow            : "0.13.2",
     aws              : "1.12.261",
     awsv2            : "2.23.7",
-    bouncycastle     : "1.77",
+    bouncycastle     : "1.78", // fixes CVE-2024-34447
     brave            : "5.12.3",
     gcp              : "26.34.0",
     groovy           : "4.0.15",
