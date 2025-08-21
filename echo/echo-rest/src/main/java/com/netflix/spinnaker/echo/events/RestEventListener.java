@@ -91,7 +91,7 @@ class RestEventListener implements EventListener {
                   processEventWithCircuitBreaker(event, service);
                 } else {
                   Map<String, Object> eventMap = transformEventToMap(event, service);
-                  restEventService.sendEvent(eventMap, service);
+                  restEventService.sendEvent(service.getConfig().getUrl(), eventMap, service);
                 }
               } catch (Exception e) {
                 handleError(event, service, e);

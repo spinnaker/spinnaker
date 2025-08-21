@@ -39,6 +39,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
+import retrofit2.http.Url;
 
 public class RestServiceTest {
   WireMockServer wireMockServer;
@@ -53,7 +54,7 @@ public class RestServiceTest {
     port = wireMockServer.port();
     WireMock.configureFor("localhost", port);
 
-    stubFor(post(urlEqualTo("/api/")).willReturn(aResponse().withStatus(200)));
+    stubFor(post(urlEqualTo("/api")).willReturn(aResponse().withStatus(200)));
 
     stubFor(post(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
 
@@ -88,13 +89,13 @@ public class RestServiceTest {
   @Test
   void testRestService_withPostMappingDot() {
 
-    Retrofit2SyncCall.execute(restService.recordEvent2(Map.of()));
+    Retrofit2SyncCall.execute(restService.recordEvent2(baseUrl, Map.of()));
 
-    // FIXME: the configuration specifies http://localhost:<port>/api (with no
-    // trailing slash), so it's not correct to use a trailing slash in the
-    // request, as servers may interpret that differently.
-    verify(1, postRequestedFor(urlEqualTo("/api/")));
-    verify(0, postRequestedFor(urlEqualTo("/api")));
+    // The configuration specifies http://localhost:<port>/api (with no trailing
+    // slash), so verify that the request used that URL, and not one with a
+    // trailing slash.
+    verify(0, postRequestedFor(urlEqualTo("/api/")));
+    verify(1, postRequestedFor(urlEqualTo("/api")));
     verify(0, postRequestedFor(urlEqualTo("/")));
   }
 
@@ -102,7 +103,7 @@ public class RestServiceTest {
     @POST("/")
     Call<Void> recordEvent(@Body Map<String, Object> event);
 
-    @POST(".")
-    Call<Void> recordEvent2(@Body Map<String, Object> event);
+    @POST
+    Call<Void> recordEvent2(@Url String url, @Body Map<String, Object> event);
   }
 }
