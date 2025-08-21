@@ -75,7 +75,7 @@ public class RestServiceTest {
   }
 
   @Test
-  void testRetService_withPostMappingSingleSlash() {
+  void testRestService_withPostMappingSingleSlash() {
 
     Retrofit2SyncCall.execute(restService.recordEvent(Map.of()));
 
@@ -86,12 +86,15 @@ public class RestServiceTest {
   }
 
   @Test
-  void testRetService_withPostMappingDot() {
+  void testRestService_withPostMappingDot() {
 
     Retrofit2SyncCall.execute(restService.recordEvent2(Map.of()));
 
-    // @POST(".") rightly results in calling "http://localhost:<port>/api/"
+    // FIXME: the configuration specifies http://localhost:<port>/api (with no
+    // trailing slash), so it's not correct to use a trailing slash in the
+    // request, as servers may interpret that differently.
     verify(1, postRequestedFor(urlEqualTo("/api/")));
+    verify(0, postRequestedFor(urlEqualTo("/api")));
     verify(0, postRequestedFor(urlEqualTo("/")));
   }
 
