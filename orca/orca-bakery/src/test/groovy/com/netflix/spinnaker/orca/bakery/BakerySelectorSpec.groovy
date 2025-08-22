@@ -129,7 +129,7 @@ class BakerySelectorSpec extends Specification {
     }
 
     @Override
-    Call<Artifact> bakeManifest(@Path("type") String type, @Body BakeManifestRequest bakeRequest) {
+    Call<Artifact> bakeManifest(@Path("type") String type, @Body Object bakeRequest) {
       return null
     }
 
