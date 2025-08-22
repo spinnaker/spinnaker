@@ -94,8 +94,8 @@ public abstract class GateService extends SpringService<GateService.Gate> {
    * Retrieves the appropriate GateProfileFactory based on the given deployment's Gate version.
    *
    * <p>- If version is less than 0.7.0, returns {@code boot128ProfileFactory}. - If version is
-   * between 0.7.0 and 6.68.0, returns {@code boot154ProfileFactory}. - If version is greater than
-   * 6.67.0 or invalid, defaults to {@code springSecurity5OAuth2ProfileFactory}.
+   * between 0.7.0 and 2025.2.0, returns {@code boot154ProfileFactory}. - If version is greater than
+   * or equals to 2025.2.0 or invalid, defaults to {@code springSecurity5OAuth2ProfileFactory}.
    *
    * @param deploymentName Name of the deployment.
    * @return The appropriate {@link GateProfileFactory} instance.
@@ -106,11 +106,11 @@ public abstract class GateService extends SpringService<GateService.Gate> {
     log.info("the current spinnaker version is: " + version);
     try {
 
-      // For Gate versions 2025.1.0 and above, a different set of properties is required to enable
+      // For Gate versions 2025.2.0 and above, a different set of properties is required to enable
       // OAuth2.
       // Therefore, boot154ProfileFactory is not used, and springSecurity5OAuth2ProfileFactory is
       // chosen instead.
-      if (Versions.greaterThanEqual(version, "2025.1.0")) {
+      if (Versions.greaterThanEqual(version, "2025.2.0")) {
         return springSecurity5OAuth2ProfileFactory;
       }
 
