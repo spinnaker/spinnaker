@@ -32,7 +32,7 @@ import retrofit2.http.Query
 interface BakeryService {
 
   @POST("api/v2/manifest/bake/{type}")
-  Call<Artifact> bakeManifest(@Path("type") String type, @Body BakeManifestRequest bake)
+  Call<Artifact> bakeManifest(@Path("type") String type, @Body Object bake)
 
   @POST("api/v1/{region}/bake")
   Call<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake)
