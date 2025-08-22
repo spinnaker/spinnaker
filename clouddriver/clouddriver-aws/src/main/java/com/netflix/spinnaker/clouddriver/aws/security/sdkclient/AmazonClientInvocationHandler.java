@@ -378,6 +378,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
     return new DescribeTargetGroupsResult()
         .withTargetGroups(describe(request, "names", "targetGroups", TargetGroup.class));
   }
+
   ////////////////////////////////////
 
   private <T> List<T> describe(

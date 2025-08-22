@@ -45,7 +45,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
   @Override
   public void validate(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
     switch (account.getProviderVersion()) {
-        // TODO(mneterval): remove all V1-only validators after 1.23 is released
+      // TODO(mneterval): remove all V1-only validators after 1.23 is released
       case V1:
         addV1RemovalWarning(psBuilder, account);
         validateV1KindConfig(psBuilder, account);

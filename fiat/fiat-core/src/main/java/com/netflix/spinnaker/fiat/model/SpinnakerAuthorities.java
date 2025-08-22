@@ -26,10 +26,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 public class SpinnakerAuthorities {
   public static final String ADMIN = "SPINNAKER_ADMIN";
+
   /** Granted authority for Spinnaker administrators. */
   public static final GrantedAuthority ADMIN_AUTHORITY = new SimpleGrantedAuthority(ADMIN);
 
   public static final String ACCOUNT_MANAGER = "SPINNAKER_ACCOUNT_MANAGER";
+
   /** Granted authority for Spinnaker account managers. */
   public static final GrantedAuthority ACCOUNT_MANAGER_AUTHORITY =
       new SimpleGrantedAuthority(ACCOUNT_MANAGER);

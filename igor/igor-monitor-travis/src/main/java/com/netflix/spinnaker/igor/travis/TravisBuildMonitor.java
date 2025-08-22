@@ -239,7 +239,7 @@ public class TravisBuildMonitor
         if (sendEvents) {
           sendEventForBuild(item, build.branchedRepoSlug(), master);
         }
-        // Fall through
+      // Fall through
       case failed:
       case errored:
       case canceled:

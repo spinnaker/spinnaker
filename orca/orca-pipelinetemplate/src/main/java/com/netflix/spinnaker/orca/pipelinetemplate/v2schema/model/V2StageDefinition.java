@@ -27,6 +27,7 @@ public class V2StageDefinition {
   private String refId;
   private String name;
   private StageDefinition.InjectionRule inject;
+
   /** List of refIds for parent stages this stage depends on. */
   private Set<String> requisiteStageRefIds = new LinkedHashSet<>();
 

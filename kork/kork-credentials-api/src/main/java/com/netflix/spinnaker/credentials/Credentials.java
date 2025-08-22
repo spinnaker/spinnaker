@@ -26,6 +26,8 @@ public interface Credentials {
    */
   String getName();
 
-  /** @return Credentials type */
+  /**
+   * @return Credentials type
+   */
   String getType();
 }

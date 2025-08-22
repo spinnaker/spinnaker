@@ -71,7 +71,9 @@ public interface Instance {
    */
   List<Map<String, Object>> getHealth();
 
-  /** @deprecated use #getCloudProvider */
+  /**
+   * @deprecated use #getCloudProvider
+   */
   default String getProviderType() {
     return getCloudProvider();
   }

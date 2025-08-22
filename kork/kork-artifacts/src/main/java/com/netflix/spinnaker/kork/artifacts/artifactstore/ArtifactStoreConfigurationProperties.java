@@ -32,6 +32,7 @@ public class ArtifactStoreConfigurationProperties {
     private boolean enabled = false;
     private String profile = null;
     private String region = null;
+
     /**
      * Url may be used to override the contact URL to an s3 compatible object store. This is useful
      * for testing utilizing things like seaweedfs.
