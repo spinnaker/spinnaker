@@ -24,8 +24,8 @@ import org.springframework.stereotype.Component;
  * Factory class for creating Gate configuration profiles for versions 2025.2.0 and above.
  *
  * <p>This class extends {@link GateProfileFactory} and provides specific configurations required
- * for Gate versions 2025.2.0 and later. In these versions, a different set of properties is needed to
- * enable OAuth2 authentication.
+ * for Gate versions 2025.2.0 and later. In these versions, a different set of properties is needed
+ * to enable OAuth2 authentication.
  *
  * <p>The factory determines the appropriate security configuration (OAuth2, SAML, LDAP, IAP, X509)
  * based on the provided {@link Security} settings and constructs the {@link GateConfig}

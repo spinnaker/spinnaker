@@ -63,7 +63,7 @@ class GateServiceTest {
   @Test
   void testGetGateProfileFactoryVersionGreaterThan070() {
     when(mockArtifactService.getArtifactVersion("test-deployment", SpinnakerArtifact.GATE))
-        .thenReturn("6.67.0");
+        .thenReturn("2025.1.0");
 
     GateProfileFactory result = gateService.getGateProfileFactory("test-deployment");
     assertEquals(mockBoot154ProfileFactory, result);
@@ -72,13 +72,13 @@ class GateServiceTest {
   @Test
   void testGetGateProfileFactoryVersionGreaterThanOrEqual202510() {
     when(mockArtifactService.getArtifactVersion("test-deployment", SpinnakerArtifact.GATE))
-        .thenReturn("2025.1.0");
+        .thenReturn("2025.2.0");
 
     GateProfileFactory result = gateService.getGateProfileFactory("test-deployment");
     assertEquals(mockSpringSecurity5OAuth2ProfileFactory, result);
 
     when(mockArtifactService.getArtifactVersion("test-deployment", SpinnakerArtifact.GATE))
-        .thenReturn("2025.1.1");
+        .thenReturn("2025.2.1");
 
     result = gateService.getGateProfileFactory("test-deployment");
     assertEquals(mockSpringSecurity5OAuth2ProfileFactory, result);
