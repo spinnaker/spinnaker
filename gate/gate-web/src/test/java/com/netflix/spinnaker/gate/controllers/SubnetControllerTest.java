@@ -16,9 +16,10 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +29,6 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import java.util.List;
 import java.util.Map;
-import org.codehaus.groovy.runtime.typehandling.GroovyCastException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -84,15 +84,10 @@ class SubnetControllerTest {
                     .withBody(objectMapper.writeValueAsString(expectedSubnets))));
 
     // then
+    List<Map> actualSubnets = subnetController.allByCloudProvider(cloudProvider);
 
-    // FIXME: this is supposed to work, perhaps something like:
-    //
-    // List<Map> actualSubnets = subnetController.allByCloudProvider(cloudProvider);
-    //
-    // assertThat(actualSubnets).isEqualTo(expectedSubnets);
-    // wmClouddriver.verify(getRequestedFor(urlPathEqualTo("/subnets/" + cloudProvider)));
-    assertThatThrownBy(() -> subnetController.allByCloudProvider(cloudProvider))
-        .isInstanceOf(GroovyCastException.class)
-        .hasMessageContaining("with class 'retrofit2.OkHttpCall' to class 'java.util.List'");
+    // when
+    assertThat(actualSubnets).isEqualTo(expectedSubnets);
+    wmClouddriver.verify(getRequestedFor(urlPathEqualTo("/subnets/" + cloudProvider)));
   }
 }
