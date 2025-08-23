@@ -24,6 +24,10 @@ export interface IKubernetesInstance extends IInstance, IKubernetesResource {
 
 export interface IKubernetesLoadBalancer extends ILoadBalancer, IKubernetesResource {}
 
+export interface IKubernetesLoadBalancerView extends IKubernetesLoadBalancer {
+  manifest: IManifest;
+}
+
 export interface IKubernetesSecurityGroup extends ISecurityGroupDetail, IKubernetesResource {
   account: string;
   moniker: IMoniker;
