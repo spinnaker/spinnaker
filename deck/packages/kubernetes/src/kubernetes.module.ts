@@ -25,6 +25,7 @@ import { KUBERNETES_MANIFEST_RESOURCES } from './manifest/manifestResources.comp
 import { KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL } from './manifest/rollout/pause.controller';
 import { KUBERNETES_MANIFEST_RESUME_ROLLOUT_CTRL } from './manifest/rollout/resume.controller';
 import { KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL } from './manifest/rollout/undo.controller';
+import { KUBERNETES_SCALE } from './manifest/scale/Scale';
 import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controller';
 import { KUBERNETES_MANIFEST_SELECTOR } from './manifest/selector/selector.component';
 import { KUBERNETES_MANIFEST_CONDITION } from './manifest/status/condition.component';
@@ -63,6 +64,7 @@ export const KUBERNETES_MODULE = 'spinnaker.kubernetes';
 
 const requires = [
   KUBERNETES_DELETE,
+  KUBERNETES_SCALE,
   KUBERNETES_REACT_MODULE,
   KUBERNETES_INSTANCE_DETAILS_CTRL,
   KUBERNETES_LOAD_BALANCER_DETAILS_CTRL,
