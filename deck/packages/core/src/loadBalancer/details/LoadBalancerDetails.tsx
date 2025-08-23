@@ -5,7 +5,7 @@ import type { ILoadBalancerDetailsProps } from './LoadBalancerDetailsWrapper';
 import { CloudProviderLogo } from '../../cloudProvider';
 import { EntityNotifications } from '../../entityTag/notifications/EntityNotifications';
 import { Details } from '../../presentation';
-import {IfFeatureEnabled} from "../../utils";
+import { IfFeatureEnabled } from '../../utils';
 
 export function LoadBalancerDetailsContent({
   app,
