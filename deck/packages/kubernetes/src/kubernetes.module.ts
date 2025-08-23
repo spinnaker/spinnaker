@@ -13,6 +13,8 @@ import { KUBERNETES_LOAD_BALANCER_DETAILS_CTRL } from './loadBalancer/details/de
 import { KUBERNETES_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/transformer';
 import kubernetesLogo from './logo/kubernetes.logo.svg';
 import { KUBERNETES_ANNOTATION_CUSTOM_SECTIONS } from './manifest/annotationCustomSections.component';
+import { KUBERNETES_MANIFEST_ARTIFACT } from './manifest/artifact/artifact.component';
+import { KUBERNETES_DELETE } from './manifest/delete/Delete';
 import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.controller';
 import { JSON_EDITOR_COMPONENT } from './manifest/editor/json/jsonEditor.component';
 import { KUBERNETES_MANIFEST_EVENTS } from './manifest/manifestEvents.component';
@@ -60,6 +62,7 @@ import './logo/kubernetes.logo.less';
 export const KUBERNETES_MODULE = 'spinnaker.kubernetes';
 
 const requires = [
+  KUBERNETES_DELETE,
   KUBERNETES_REACT_MODULE,
   KUBERNETES_INSTANCE_DETAILS_CTRL,
   KUBERNETES_LOAD_BALANCER_DETAILS_CTRL,
