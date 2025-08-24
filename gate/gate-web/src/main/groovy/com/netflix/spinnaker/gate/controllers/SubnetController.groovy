@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -31,6 +32,6 @@ class SubnetController {
   @Operation(summary = "Retrieve a list of subnets for a given cloud provider")
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
   List<Map> allByCloudProvider(@PathVariable String cloudProvider) {
-    clouddriverServiceSelector.select().getSubnets(cloudProvider)
+    Retrofit2SyncCall.execute(clouddriverServiceSelector.select().getSubnets(cloudProvider))
   }
 }
