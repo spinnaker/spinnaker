@@ -24,6 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -42,6 +43,8 @@ public class OAuth2SsoConfig {
   @Autowired private DefaultCookieSerializer defaultCookieSerializer;
 
   @Bean
+  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
+  @Order(2)
   SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
     defaultCookieSerializer.setSameSite(null);
     authConfig.configure(httpSecurity);
