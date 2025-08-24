@@ -38,13 +38,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -74,10 +72,6 @@ public class OAuthUserInfoServiceHelper {
   private final Registry registry;
 
   private SpinnakerProviderTokenServices providerTokenServices;
-
-  @Autowired(required = false)
-  @Qualifier("spinnaker-oauth2-group-extractor")
-  private BiFunction<String, Map<String, Object>, List<String>> groupExtractor;
 
   private final RetrySupport retrySupport = new RetrySupport();
 
@@ -126,11 +120,7 @@ public class OAuthUserInfoServiceHelper {
     }
 
     final String username = Objects.toString(details.get(userInfoMapping.getUsername()), null);
-    List<String> roles =
-        Optional.ofNullable(groupExtractor)
-            .map(extractor -> extractor.apply(accessToken, details))
-            .orElseGet(
-                () -> Optional.ofNullable(getRoles(details)).orElse(Collections.emptyList()));
+    List<String> roles = Optional.ofNullable(getRoles(details)).orElse(Collections.emptyList());
     // Service accounts are already logged in.
     if (!isServiceAccount) {
       var id = registry.createId("fiat.login").withTag("type", "oauth2");
