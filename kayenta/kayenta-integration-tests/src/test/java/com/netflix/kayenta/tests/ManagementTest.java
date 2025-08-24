@@ -19,21 +19,19 @@ import static com.netflix.kayenta.utils.AwaitilityUtils.awaitThirtySecondsUntil;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 
+@Slf4j
 public class ManagementTest extends BaseIntegrationTest {
-
-  @Value("${embedded.prometheus.port}")
-  int prometheusPort;
 
   @Test
   public void prometheusTargetsAreAllReportingUp() {
     awaitThirtySecondsUntil(
         () ->
             given()
-                .port(prometheusPort)
+                .port(getPrometheusPort())
                 .get("/api/v1/targets")
                 .prettyPeek()
                 .then()
@@ -48,7 +46,7 @@ public class ManagementTest extends BaseIntegrationTest {
     awaitThirtySecondsUntil(
         () ->
             given()
-                .port(managementPort)
+                .port(getManagementPort())
                 .get("/health")
                 .prettyPeek()
                 .then()
