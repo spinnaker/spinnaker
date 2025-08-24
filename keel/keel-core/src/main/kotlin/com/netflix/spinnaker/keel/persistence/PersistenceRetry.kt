@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.config.BasePersistenceRetryConfig
 import com.netflix.spinnaker.config.PersistenceRetryConfig
 import com.netflix.spinnaker.keel.persistence.RetryCategory.READ
 import com.netflix.spinnaker.keel.persistence.RetryCategory.WRITE

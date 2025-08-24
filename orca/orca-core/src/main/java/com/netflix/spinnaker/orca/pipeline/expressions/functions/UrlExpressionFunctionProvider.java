@@ -21,6 +21,7 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.util.HttpClientUtils;
@@ -32,8 +33,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 @SuppressWarnings("unused")
 @Component
@@ -135,7 +134,7 @@ public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider
    */
   public static Object readYaml(String text) {
     try {
-      return new Yaml(new SafeConstructor()).load(text);
+      return YamlHelper.newYamlSafeConstructor().load(text);
     } catch (Exception e) {
       throw new SpelHelperFunctionException(format("#readYaml(%s) failed", text), e);
     }
@@ -151,7 +150,7 @@ public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider
   public static Object readAllYaml(String text) {
     try {
       List<Object> yamlDocs = new ArrayList<>();
-      Iterable<Object> iterable = new Yaml(new SafeConstructor()).loadAll(text);
+      Iterable<Object> iterable = YamlHelper.newYamlSafeConstructor().loadAll(text);
       for (Object o : iterable) {
         yamlDocs.add(o);
       }

@@ -44,7 +44,7 @@ import java.time.Instant
 import kotlin.reflect.full.memberProperties
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 
 /**
  * Hydrates (best attempt) the queue from current ExecutionRepository state.
@@ -71,13 +71,11 @@ class HydrateQueueCommand(
         .retrieveRunning()
         .filter(pInTimeWindow)
         .toList()
-        .toBlocking()
-        .first()
+        .blockingGet()
     } else {
       executionRepository.retrieveSingleRunning(p1.executionId)
         .toList()
-        .toBlocking()
-        .first()
+        .blockingGet()
     }
 
     val output = HydrateQueueOutput(
@@ -245,7 +243,7 @@ class HydrateQueueCommand(
       ?: true
 
   private fun ExecutionRepository.retrieveRunning(): Observable<PipelineExecution> =
-    rx.Observable.merge(
+    Observable.merge(
       retrieve(ExecutionType.ORCHESTRATION, ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING)),
       retrieve(ExecutionType.PIPELINE, ExecutionRepository.ExecutionCriteria().setStatuses(RUNNING))
     )
@@ -262,9 +260,9 @@ class HydrateQueueCommand(
       }
     }
     return if (execution == null || execution.status != RUNNING) {
-      rx.Observable.empty<PipelineExecution>()
+      Observable.empty<PipelineExecution>()
     } else {
-      rx.Observable.just(execution)
+      Observable.just(execution)
     }
   }
 
