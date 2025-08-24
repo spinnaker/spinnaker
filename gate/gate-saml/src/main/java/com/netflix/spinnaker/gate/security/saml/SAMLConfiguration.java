@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.saml2.core.Saml2X509Credential;
@@ -106,8 +105,7 @@ public class SAMLConfiguration {
       authConfig.configure(http);
       var authenticationProvider = new OpenSaml4AuthenticationProvider();
       authenticationProvider.setResponseAuthenticationConverter(responseAuthenticationConverter());
-      return http.rememberMe(Customizer.withDefaults())
-          .saml2Login(
+      return http.saml2Login(
               saml ->
                   saml.authenticationManager(new ProviderManager(authenticationProvider))
                       .loginProcessingUrl(properties.getLoginProcessingUrl())
