@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -41,6 +42,8 @@ public class HeaderAuthConfigurerAdapter {
   @Autowired RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
 
   @Bean
+  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
+  @Order(2)
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     authConfig.configure(http);
     http.addFilter(requestHeaderAuthenticationFilter);
