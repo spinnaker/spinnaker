@@ -77,6 +77,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.config.GoogleConfiguration;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -110,7 +111,7 @@ public class BasicGoogleDeployHandlerTest {
   @Mock private GoogleNetworkProvider googleNetworkProvider;
   @Mock private GoogleSubnetProvider googleSubnetProvider;
   @Mock private Cache cacheView;
-  @Mock private ObjectMapper objectMapper;
+  private ObjectMapper objectMapper = new ObjectMapper();
   @Mock private SafeRetry safeRetry;
   @Mock private Registry registry;
 
@@ -124,7 +125,7 @@ public class BasicGoogleDeployHandlerTest {
   private MockedStatic<Utils> mockedUtils;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
     mockDescription = mock(BasicGoogleDeployDescription.class);
     mockCredentials = mock(GoogleNamedAccountCredentials.class);
@@ -132,6 +133,11 @@ public class BasicGoogleDeployHandlerTest {
     mockedGCEUtil = mockStatic(GCEUtil.class);
     mockedUtils = mockStatic(Utils.class);
     mockAutoscalingPolicy = mock(GoogleAutoscalingPolicy.class);
+
+    // Manually inject the real ObjectMapper using reflection
+    Field objectMapperField = BasicGoogleDeployHandler.class.getDeclaredField("objectMapper");
+    objectMapperField.setAccessible(true);
+    objectMapperField.set(basicGoogleDeployHandler, objectMapper);
   }
 
   @AfterEach
@@ -870,14 +876,13 @@ public class BasicGoogleDeployHandlerTest {
     instanceMetadata.put("load-balancing-policy", policyJson);
     when(mockDescription.getInstanceMetadata()).thenReturn(instanceMetadata);
 
-    GoogleHttpLoadBalancingPolicy deserializedPolicyMock =
-        mock(GoogleHttpLoadBalancingPolicy.class);
-    when(objectMapper.readValue(policyJson, GoogleHttpLoadBalancingPolicy.class))
-        .thenReturn(deserializedPolicyMock);
-
     GoogleHttpLoadBalancingPolicy result =
         basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(mockDescription);
-    assertEquals(deserializedPolicyMock, result);
+
+    // Verify the JSON was parsed correctly
+    assertNotNull(result);
+    assertEquals(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION, result.getBalancingMode());
+    assertEquals(0.75f, result.getMaxUtilization());
   }
 
   @Test
@@ -902,7 +907,7 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
-  void testGetBackendServiceToUpdate_NoBackendService() {
+  void testGetBackendServiceToUpdate_NoBackendService() throws IOException {
     BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
         mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
     doReturn(false)
@@ -963,7 +968,7 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
-  void testGetRegionBackendServicesToUpdateWithNoLoadBalancers() {
+  void testGetRegionBackendServicesToUpdateWithNoLoadBalancers() throws IOException {
     GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
     BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
         mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
@@ -2111,5 +2116,71 @@ public class BasicGoogleDeployHandlerTest {
     GoogleLoadBalancerView mockLB = mock(GoogleLoadBalancerView.class);
     when(mockLB.getLoadBalancerType()).thenReturn(loadBalancerType);
     return mockLB;
+  }
+
+  @Test
+  void testBuildLoadBalancerPolicyFromInput_WithValidInputPolicy() throws Exception {
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    GoogleHttpLoadBalancingPolicy inputPolicy = new GoogleHttpLoadBalancingPolicy();
+    inputPolicy.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
+    inputPolicy.setMaxUtilization(0.8f);
+    inputPolicy.setCapacityScaler(1.0f);
+    description.setLoadBalancingPolicy(inputPolicy);
+    description.setInstanceMetadata(new HashMap<>());
+
+    GoogleHttpLoadBalancingPolicy result =
+        basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(description);
+
+    assertNotNull(result);
+    assertEquals(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION, result.getBalancingMode());
+    assertEquals(0.8f, result.getMaxUtilization());
+    assertEquals(1.0f, result.getCapacityScaler());
+  }
+
+  @Test
+  void testBuildLoadBalancerPolicyFromInput_WithJsonMetadata() throws Exception {
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    Map<String, String> metadata = new HashMap<>();
+    metadata.put(
+        "load-balancing-policy", "{\"balancingMode\":\"UTILIZATION\",\"maxUtilization\":0.9}");
+    description.setInstanceMetadata(metadata);
+
+    GoogleHttpLoadBalancingPolicy result =
+        basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(description);
+
+    assertNotNull(result);
+    assertEquals(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION, result.getBalancingMode());
+    assertEquals(0.9f, result.getMaxUtilization());
+  }
+
+  @Test
+  void testBuildLoadBalancerPolicyFromInput_WithInvalidJson() throws Exception {
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    Map<String, String> metadata = new HashMap<>();
+    metadata.put("load-balancing-policy", "invalid-json{");
+    description.setInstanceMetadata(metadata);
+
+    // Should throw JsonProcessingException for invalid JSON
+    assertThrows(
+        com.fasterxml.jackson.core.JsonProcessingException.class,
+        () -> {
+          basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(description);
+        });
+  }
+
+  @Test
+  void testBuildLoadBalancerPolicyFromInput_FallsBackToDefaultPolicy() throws Exception {
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setInstanceMetadata(new HashMap<>());
+
+    GoogleHttpLoadBalancingPolicy result =
+        basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(description);
+
+    assertNotNull(result);
+    assertEquals(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION, result.getBalancingMode());
+    assertEquals(0.8f, result.getMaxUtilization());
+    assertEquals(1.0f, result.getCapacityScaler());
+    assertNotNull(result.getNamedPorts());
+    assertEquals(1, result.getNamedPorts().size());
   }
 }

@@ -87,6 +87,7 @@ import groovy.lang.Closure;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -178,7 +179,12 @@ public class BasicGoogleDeployHandler
       Image bootImage = buildBootImage(description, task);
       List<AttachedDisk> attachedDisks = buildAttachedDisks(description, task, bootImage);
       NetworkInterface networkInterface = buildNetworkInterface(description, network, subnet);
-      GoogleHttpLoadBalancingPolicy lbPolicy = null;
+
+      // Initialize load balancing policy from deployment description or defaults.
+      // This policy contains configuration such as balancing mode, capacity scaler, and max
+      // utilization that will be applied to backend services when the server group is added to load
+      // balancers.
+      GoogleHttpLoadBalancingPolicy lbPolicy = buildLoadBalancerPolicyFromInput(description);
       List<BackendService> backendServicesToUpdate =
           getBackendServiceToUpdate(description, nextServerGroupName, lbToUpdate, lbPolicy, region);
       List<BackendService> regionBackendServicesToUpdate =
@@ -458,9 +464,15 @@ public class BasicGoogleDeployHandler
   protected boolean hasBackedServiceFromInput(
       BasicGoogleDeployDescription description, LoadBalancerInfo loadBalancerInfo) {
     Map<String, String> instanceMetadata = description.getInstanceMetadata();
-    return (!instanceMetadata.isEmpty() && instanceMetadata.containsKey(BACKEND_SERVICE_NAMES))
+    // We must wait for the managed-instance-group (MIG) creation whenever any
+    // backend-service mapping will be updated later in the handler.
+    return (!instanceMetadata.isEmpty()
+            && (instanceMetadata.containsKey(BACKEND_SERVICE_NAMES)
+                || instanceMetadata.containsKey(REGION_BACKEND_SERVICE_NAMES)))
         || !loadBalancerInfo.getSslLoadBalancers().isEmpty()
-        || !loadBalancerInfo.getTcpLoadBalancers().isEmpty();
+        || !loadBalancerInfo.getTcpLoadBalancers().isEmpty()
+        || !loadBalancerInfo.getInternalLoadBalancers().isEmpty()
+        || !loadBalancerInfo.getInternalHttpLoadBalancers().isEmpty();
   }
 
   protected GoogleHttpLoadBalancingPolicy buildLoadBalancerPolicyFromInput(
@@ -534,6 +546,8 @@ public class BasicGoogleDeployHandler
               this));
       instanceMetadata.put(GLOBAL_LOAD_BALANCER_NAMES, String.join(",", globalLbNames));
 
+      // Retrieve and configure each backend service that this server group should be added to.
+      // Backend services define how traffic is distributed to instance groups for load balancers.
       backendServices.forEach(
           backendServiceName -> {
             try {
@@ -618,12 +632,14 @@ public class BasicGoogleDeployHandler
               .map(GoogleBackendService::getName)
               .collect(Collectors.toList());
 
+      // Process each regional backend service for internal load balancers.
+      // Regional backend services handle traffic within a specific GCP region.
       ilbServices.forEach(
           backendServiceName -> {
             try {
               BackendService backendService =
                   getRegionBackendServiceFromProvider(
-                      description.getCredentials(), region, serverGroupName);
+                      description.getCredentials(), region, backendServiceName);
               Backend backendToAdd;
               if (internalHttpLbBackendServices.contains(backendServiceName)) {
                 backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy);
@@ -866,23 +882,60 @@ public class BasicGoogleDeployHandler
     }
   }
 
+  /**
+   * Build auto healing policy from the deployment description input.
+   *
+   * <p>This method queries the health check specified in the deployment description and constructs
+   * the appropriate auto healing policy for the instance group manager.
+   *
+   * <p>Note: GCEUtil.queryHealthCheck() may return a LinkedHashMap when data comes from cache, so
+   * we need to handle both typed objects and raw maps properly.
+   *
+   * @param description The deployment description containing auto healing configuration
+   * @param task The task for status updates
+   * @return List of auto healing policies, or null if not configured
+   */
   protected List<InstanceGroupManagerAutoHealingPolicy> buildAutoHealingPolicyFromInput(
       BasicGoogleDeployDescription description, Task task) {
     GoogleHealthCheck autoHealingHealthCheck = null;
     if (description.getAutoHealingPolicy() != null
         && StringUtils.isNotBlank(description.getAutoHealingPolicy().getHealthCheck())) {
-      autoHealingHealthCheck =
-          (GoogleHealthCheck)
-              GCEUtil.queryHealthCheck(
-                  description.getCredentials().getProject(),
-                  description.getAccountName(),
-                  description.getAutoHealingPolicy().getHealthCheck(),
-                  description.getAutoHealingPolicy().getHealthCheckKind(),
-                  description.getCredentials().getCompute(),
-                  cacheView,
-                  task,
-                  BASE_PHASE,
-                  this);
+      Object healthCheckResult =
+          GCEUtil.queryHealthCheck(
+              description.getCredentials().getProject(),
+              description.getAccountName(),
+              description.getAutoHealingPolicy().getHealthCheck(),
+              description.getAutoHealingPolicy().getHealthCheckKind(),
+              description.getCredentials().getCompute(),
+              cacheView,
+              task,
+              BASE_PHASE,
+              this);
+
+      // Handle both typed GoogleHealthCheck objects and LinkedHashMap from cache
+      if (healthCheckResult != null) {
+        if (healthCheckResult instanceof GoogleHealthCheck) {
+          autoHealingHealthCheck = (GoogleHealthCheck) healthCheckResult;
+        } else if (healthCheckResult instanceof Map) {
+          try {
+            // Convert LinkedHashMap to GoogleHealthCheck using ObjectMapper
+            autoHealingHealthCheck =
+                objectMapper.convertValue(healthCheckResult, GoogleHealthCheck.class);
+          } catch (Exception e) {
+            log.warn(
+                "Failed to convert health check data to GoogleHealthCheck: {}", e.getMessage());
+            task.updateStatus(
+                BASE_PHASE, "Warning: Failed to parse health check data - " + e.getMessage());
+          }
+        } else {
+          log.warn(
+              "Unexpected health check result type: {}", healthCheckResult.getClass().getName());
+          task.updateStatus(
+              BASE_PHASE,
+              "Warning: Unexpected health check data type - "
+                  + healthCheckResult.getClass().getName());
+        }
+      }
     }
     List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicy = null;
     if (autoHealingHealthCheck != null) {
@@ -1038,26 +1091,48 @@ public class BasicGoogleDeployHandler
     if (!description.getDisableTraffic() && hasBackedServiceFromInput(description, lbInfo)) {
       backendServicesToUpdate.forEach(
           backendService -> {
-            safeRetry.doRetry(
-                updateBackendServices(
+            Operation backendServiceOperation =
+                (Operation)
+                    safeRetry.doRetry(
+                        updateBackendServices(
+                            description.getCredentials().getCompute(),
+                            description.getCredentials().getProject(),
+                            backendService.getName(),
+                            backendService),
+                        "Load balancer backend service",
+                        task,
+                        List.of(400, 412),
+                        Collections.emptyList(),
+                        Map.of(
+                            "action",
+                            "update",
+                            "phase",
+                            BASE_PHASE,
+                            "operation",
+                            "updateBackendServices",
+                            TAG_SCOPE,
+                            SCOPE_GLOBAL),
+                        registry);
+            if (backendServiceOperation != null) {
+              task.updateStatus(
+                  BASE_PHASE,
+                  String.format(
+                      "Waiting for backend service %s update to complete...",
+                      backendService.getName()));
+
+              if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+                // Wait for the global backend service update to complete
+                googleOperationPoller.waitForGlobalOperation(
                     description.getCredentials().getCompute(),
                     description.getCredentials().getProject(),
-                    backendService.getName(),
-                    backendService),
-                "Load balancer backend service",
-                task,
-                List.of(400, 412),
-                Collections.emptyList(),
-                Map.of(
-                    "action",
-                    "update",
-                    "phase",
-                    BASE_PHASE,
-                    "operation",
-                    "updateBackendServices",
-                    TAG_SCOPE,
-                    SCOPE_GLOBAL),
-                registry);
+                    backendServiceOperation.getName(),
+                    null,
+                    task,
+                    "backend service " + backendService.getName(),
+                    BASE_PHASE);
+              }
+            }
+
             task.updateStatus(
                 BASE_PHASE,
                 String.format(
@@ -1079,29 +1154,52 @@ public class BasicGoogleDeployHandler
             || !lbInfo.internalHttpLoadBalancers.isEmpty())) {
       regionBackendServicesToUpdate.forEach(
           backendService -> {
-            safeRetry.doRetry(
-                updateBackendServices(
+            Operation backendServiceOperation =
+                (Operation)
+                    safeRetry.doRetry(
+                        updateBackendServices(
+                            description.getCredentials().getCompute(),
+                            description.getCredentials().getProject(),
+                            backendService.getName(),
+                            backendService,
+                            region),
+                        "Internal load balancer backend service",
+                        task,
+                        List.of(400, 412),
+                        Collections.emptyList(),
+                        Map.of(
+                            "action",
+                            "update",
+                            "phase",
+                            BASE_PHASE,
+                            "operation",
+                            "updateRegionBackendServices",
+                            TAG_SCOPE,
+                            SCOPE_REGIONAL,
+                            TAG_REGION,
+                            region),
+                        registry);
+            if (backendServiceOperation != null) {
+              task.updateStatus(
+                  BASE_PHASE,
+                  String.format(
+                      "Waiting for regional backend service %s update to complete...",
+                      backendService.getName()));
+
+              if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+                // Wait for the regional backend service update to complete
+                googleOperationPoller.waitForRegionalOperation(
                     description.getCredentials().getCompute(),
                     description.getCredentials().getProject(),
-                    backendService.getName(),
-                    backendService,
-                    region),
-                "Internal load balancer backend service",
-                task,
-                List.of(400, 412),
-                Collections.emptyList(),
-                Map.of(
-                    "action",
-                    "update",
-                    "phase",
-                    BASE_PHASE,
-                    "operation",
-                    "updateRegionBackendServices",
-                    TAG_SCOPE,
-                    SCOPE_REGIONAL,
-                    TAG_REGION,
-                    region),
-                registry);
+                    region,
+                    backendServiceOperation.getName(),
+                    null,
+                    task,
+                    "backend service " + backendService.getName(),
+                    BASE_PHASE);
+              }
+            }
+
             task.updateStatus(
                 BASE_PHASE,
                 String.format(
@@ -1214,20 +1312,36 @@ public class BasicGoogleDeployHandler
       task.updateStatus(
           BASE_PHASE, String.format("Creating regional autoscaler for %s...", serverGroupName));
 
+      // Build autoscaler configuration from the deployment description
+      // The autoscaler will manage the instance group created above (targetLink)
       Autoscaler autoscaler =
           GCEUtil.buildAutoscaler(serverGroupName, targetLink, description.getAutoscalingPolicy());
 
-      timeExecute(
-          description
-              .getCredentials()
-              .getCompute()
-              .regionAutoscalers()
-              .insert(description.getCredentials().getProject(), region, autoscaler),
-          "compute.regionAutoscalers.insert",
-          TAG_SCOPE,
-          SCOPE_REGIONAL,
-          TAG_REGION,
-          region);
+      Operation autoscalerOperation =
+          timeExecute(
+              description
+                  .getCredentials()
+                  .getCompute()
+                  .regionAutoscalers()
+                  .insert(description.getCredentials().getProject(), region, autoscaler),
+              "compute.regionAutoscalers.insert",
+              TAG_SCOPE,
+              SCOPE_REGIONAL,
+              TAG_REGION,
+              region);
+
+      if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+        // Wait for regional autoscaler creation to complete before proceeding with deployment
+        googleOperationPoller.waitForRegionalOperation(
+            description.getCredentials().getCompute(),
+            description.getCredentials().getProject(),
+            region,
+            autoscalerOperation.getName(),
+            null,
+            task,
+            "regional autoscaler " + serverGroupName,
+            BASE_PHASE);
+      }
     }
   }
 
@@ -1284,23 +1398,59 @@ public class BasicGoogleDeployHandler
       task.updateStatus(
           BASE_PHASE, String.format("Creating zonal autoscaler for %s...", serverGroupName));
 
+      // Build autoscaler configuration from the deployment description
+      // The autoscaler will manage the instance group created above (targetLink)
       Autoscaler autoscaler =
           GCEUtil.buildAutoscaler(serverGroupName, targetLink, description.getAutoscalingPolicy());
 
-      timeExecute(
-          description
-              .getCredentials()
-              .getCompute()
-              .autoscalers()
-              .insert(description.getCredentials().getProject(), description.getZone(), autoscaler),
-          "compute.autoscalers.insert",
-          TAG_SCOPE,
-          SCOPE_ZONAL,
-          TAG_ZONE,
-          description.getZone());
+      Operation autoscalerOperation =
+          timeExecute(
+              description
+                  .getCredentials()
+                  .getCompute()
+                  .autoscalers()
+                  .insert(
+                      description.getCredentials().getProject(), description.getZone(), autoscaler),
+              "compute.autoscalers.insert",
+              TAG_SCOPE,
+              SCOPE_ZONAL,
+              TAG_ZONE,
+              description.getZone());
+
+      if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+        // Wait for zonal autoscaler creation to complete before proceeding with deployment
+        googleOperationPoller.waitForZonalOperation(
+            description.getCredentials().getCompute(),
+            description.getCredentials().getProject(),
+            description.getZone(),
+            autoscalerOperation.getName(),
+            null,
+            task,
+            "autoscaler " + serverGroupName,
+            BASE_PHASE);
+      }
     }
   }
 
+  /**
+   * Creates a closure to update global backend services with new instance groups.
+   *
+   * <p>Per Google Cloud documentation: "Backend service operations are asynchronous and return an
+   * Operation resource. You can use an operation resource to manage asynchronous API requests.
+   * Operations can be global, regional or zonal. For global operations, use the globalOperations
+   * resource."
+   *
+   * <p>The returned Operation object must be polled until completion to ensure the backend service
+   * update has been fully applied before proceeding with subsequent deployment steps. This prevents
+   * race conditions where health checks or traffic routing occurs before the backend service knows
+   * about the new instance group.
+   *
+   * @param compute GCP Compute API client
+   * @param project GCP project ID
+   * @param backendServiceName Name of the backend service to update
+   * @param backendService Backend service configuration with new backends to add
+   * @return Closure that returns an Operation object for the update request
+   */
   private Closure updateBackendServices(
       Compute compute, String project, String backendServiceName, BackendService backendService) {
     return new Closure<>(this, this) {
@@ -1315,31 +1465,56 @@ public class BasicGoogleDeployHandler
                   TAG_SCOPE,
                   SCOPE_GLOBAL);
         } catch (IOException e) {
-          log.error(e.getMessage());
+          log.error(
+              "Failed to retrieve backend service {}: {}", backendServiceName, e.getMessage());
         }
         if (serviceToUpdate.getBackends() == null) {
           serviceToUpdate.setBackends(new ArrayList<>());
         }
+
+        // Add the new backend (instance group) to the existing backend service configuration.
+        // This allows the load balancer to route traffic to instances in the new server group.
         BackendService finalServiceToUpdate = serviceToUpdate;
         backendService.getBackends().forEach(it -> finalServiceToUpdate.getBackends().add(it));
+
+        // Deduplicate backends by group URL to avoid adding the same instance group multiple times.
         Set<String> seenGroup = new HashSet<>();
-        serviceToUpdate.getBackends().stream()
-            .filter(backend -> seenGroup.add(backend.getGroup()))
-            .collect(Collectors.toList());
+        List<Backend> uniqueBackends =
+            serviceToUpdate.getBackends().stream()
+                .filter(backend -> seenGroup.add(backend.getGroup()))
+                .collect(Collectors.toList());
+        serviceToUpdate.setBackends(uniqueBackends);
+
+        // Execute the backend service update and return the Operation for async polling.
+        // The caller can use this Operation to wait until the update is fully applied.
         try {
-          timeExecute(
+          return timeExecute(
               compute.backendServices().update(project, backendServiceName, serviceToUpdate),
               "compute.backendServices.update",
               TAG_SCOPE,
               SCOPE_GLOBAL);
         } catch (IOException e) {
-          log.error(e.getMessage());
+          log.error("Failed to update backend service {}: {}", backendServiceName, e.getMessage());
         }
         return null;
       }
     };
   }
 
+  /**
+   * Creates a closure to update regional backend services with new instance groups.
+   *
+   * <p>Regional backend services are used for Internal Load Balancers and Internal HTTP(S) Load
+   * Balancers. The returned Operation object must be polled until completion to ensure the backend
+   * service update has been fully applied before proceeding with subsequent deployment steps.
+   *
+   * @param compute GCP Compute API client
+   * @param project GCP project ID
+   * @param backendServiceName Name of the regional backend service to update
+   * @param backendService Backend service configuration with new backends to add
+   * @param region GCP region where the backend service is located
+   * @return Closure that returns an Operation object for the update request
+   */
   private Closure updateBackendServices(
       Compute compute,
       String project,
@@ -1353,30 +1528,54 @@ public class BasicGoogleDeployHandler
         try {
           serviceToUpdate =
               timeExecute(
-                  compute.backendServices().get(project, backendServiceName),
+                  compute.regionBackendServices().get(project, region, backendServiceName),
                   "compute.regionBackendServices.get",
                   TAG_SCOPE,
-                  SCOPE_GLOBAL);
+                  SCOPE_REGIONAL,
+                  TAG_REGION,
+                  region);
         } catch (IOException e) {
-          log.error(e.getMessage());
+          log.error(
+              "Failed to retrieve regional backend service {}: {}",
+              backendServiceName,
+              e.getMessage());
         }
         if (serviceToUpdate.getBackends() == null) {
           serviceToUpdate.setBackends(new ArrayList<>());
         }
+
+        // Add the new backend (instance group) to the existing regional backend service
+        // configuration.
+        // Regional backend services handle internal load balancer traffic within the specified
+        // region.
         BackendService finalServiceToUpdate = serviceToUpdate;
         backendService.getBackends().forEach(it -> finalServiceToUpdate.getBackends().add(it));
+
+        // Deduplicate backends by group URL to ensure each instance group is only added once.
         Set<String> seenGroup = new HashSet<>();
-        serviceToUpdate.getBackends().stream()
-            .filter(backend -> seenGroup.add(backend.getGroup()))
-            .collect(Collectors.toList());
+        List<Backend> uniqueBackends =
+            serviceToUpdate.getBackends().stream()
+                .filter(backend -> seenGroup.add(backend.getGroup()))
+                .collect(Collectors.toList());
+        serviceToUpdate.setBackends(uniqueBackends);
+
+        // Execute the regional backend service update and return the Operation for async polling.
+        // The Operation allows the caller to wait for the update to complete before proceeding.
         try {
-          timeExecute(
-              compute.backendServices().update(project, backendServiceName, serviceToUpdate),
+          return timeExecute(
+              compute
+                  .regionBackendServices()
+                  .update(project, region, backendServiceName, serviceToUpdate),
               "compute.regionBackendServices.update",
               TAG_SCOPE,
-              SCOPE_GLOBAL);
+              SCOPE_REGIONAL,
+              TAG_REGION,
+              region);
         } catch (IOException e) {
-          log.error(e.getMessage());
+          log.error(
+              "Failed to update regional backend service {}: {}",
+              backendServiceName,
+              e.getMessage());
         }
         return null;
       }
@@ -1408,6 +1607,15 @@ public class BasicGoogleDeployHandler
     @Override
     public Map<String, String> getLabels() {
       return labels;
+    }
+  }
+
+  @PostConstruct
+  void logEnableAsyncOperationWaitWarning() {
+    if (googleDeployDefaults.getEnableAsyncOperationWait()) {
+      log.warn(
+          "[enableAsyncOperationWait]: If you see unjustified long waits or other issues caused by this flag, "
+              + "please drop a note in Spinnaker Slack or open a GitHub Issue with the related details.");
     }
   }
 }

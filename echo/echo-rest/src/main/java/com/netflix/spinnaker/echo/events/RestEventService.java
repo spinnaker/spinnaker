@@ -56,7 +56,9 @@ public class RestEventService {
    */
   public void sendEvent(Map<String, Object> event, RestUrls.Service service) {
     retrySupport.retry(
-        () -> Retrofit2SyncCall.execute(service.getClient().recordEvent(event)),
+        () ->
+            Retrofit2SyncCall.execute(
+                service.getClient().recordEvent(service.getConfig().getUrl(), event)),
         service.getConfig().getRetryCount(),
         Duration.ofMillis(200),
         false);

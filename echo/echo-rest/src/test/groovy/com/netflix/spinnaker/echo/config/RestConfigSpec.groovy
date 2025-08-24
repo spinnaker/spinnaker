@@ -72,7 +72,7 @@ class RestConfigSpec extends Specification {
     RestUrls restUrls = configureRestServices(endpoint, EmptyHeadersFile)
 
     when:
-    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent([:]))
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(wireMockServer.baseUrl(), [:]))
 
     then:
     headers.get().get("Authorization") == "Basic dGVzdHVzZXI6dGVzdHBhc3N3b3Jk"
@@ -88,7 +88,7 @@ class RestConfigSpec extends Specification {
     RestUrls restUrls = configureRestServices(endpoint, EmptyHeadersFile)
 
     when:
-    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent([:]))
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(wireMockServer.baseUrl(), [:]))
 
     then:
     headers.get().get("Authorization") == "FromConfig"
@@ -113,7 +113,7 @@ class RestConfigSpec extends Specification {
     RestUrls restUrls = configureRestServices(endpoint, headersFromFile)
 
     when:
-    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent([:]))
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(wireMockServer.baseUrl(), [:]))
 
     then:
     headers.get().get("Authorization") == "FromFile"
