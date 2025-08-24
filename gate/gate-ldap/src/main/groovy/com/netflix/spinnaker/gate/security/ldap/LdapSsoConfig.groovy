@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
@@ -88,6 +89,8 @@ class LdapSsoConfig {
   }
 
   @Bean
+  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
+  @Order(2)
   SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfiguration) throws Exception {
     def authenticationManager = authConfiguration.getAuthenticationManager()
     defaultCookieSerializer.setSameSite(null)

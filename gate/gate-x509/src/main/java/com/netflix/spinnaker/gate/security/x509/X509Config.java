@@ -55,7 +55,9 @@ public class X509Config {
   private String subjectPrincipalRegex;
 
   @Bean
-  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
+  @Order(2)
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     authConfig.configure(http);
     return http.securityContext(
             context -> context.securityContextRepository(new NullSecurityContextRepository()))

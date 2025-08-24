@@ -28,8 +28,10 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 @Order(HIGHEST_PRECEDENCE + 23)
 public class ManagedDeliverySchemaEndpointConfiguration {
+
   @Bean
-  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  @Order(1)
+  public SecurityFilterChain schemaSecurityFilterChain(HttpSecurity http) throws Exception {
     return http.securityMatcher(new AntPathRequestMatcher("/managed/delivery-configs/schema"))
         .authorizeRequests()
         .anyRequest()

@@ -29,6 +29,7 @@ import org.springframework.boot.autoconfigure.session.DefaultCookieSerializerCus
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -99,7 +100,9 @@ public class SAMLConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
+    @Order(2)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       authConfig.configure(http);
       var authenticationProvider = new OpenSaml4AuthenticationProvider();
       authenticationProvider.setResponseAuthenticationConverter(responseAuthenticationConverter());
