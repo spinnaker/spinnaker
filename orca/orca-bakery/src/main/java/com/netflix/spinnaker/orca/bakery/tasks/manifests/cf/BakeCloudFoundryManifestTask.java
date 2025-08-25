@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks.manifests.cf;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -67,7 +68,7 @@ public class BakeCloudFoundryManifestTask implements RetryableTask {
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull StageExecution stage) {
-
+    ObjectMapper mapper = new ObjectMapper();
     if (bakery == null) {
       throw new IllegalStateException(
           "A BakeryService must be configured in order to run a Bake Manifest task.");
@@ -118,7 +119,9 @@ public class BakeCloudFoundryManifestTask implements RetryableTask {
             outputArtifactName);
 
     Artifact result =
-        Retrofit2SyncCall.execute(bakery.bakeManifest(request.getTemplateRenderer(), request));
+        Retrofit2SyncCall.execute(
+            bakery.bakeManifest(
+                request.getTemplateRenderer(), mapper.convertValue(request, Map.class)));
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("artifacts", Collections.singleton(result));

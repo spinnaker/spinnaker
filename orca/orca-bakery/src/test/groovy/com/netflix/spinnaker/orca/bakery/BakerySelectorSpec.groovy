@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.bakery.api.DeleteBakesRequest
 import com.netflix.spinnaker.orca.bakery.api.BaseImage
-import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfigurationProperties
 
 import retrofit2.Call
@@ -129,7 +128,7 @@ class BakerySelectorSpec extends Specification {
     }
 
     @Override
-    Call<Artifact> bakeManifest(@Path("type") String type, @Body BakeManifestRequest bakeRequest) {
+    Call<Artifact> bakeManifest(@Path("type") String type, @Body Map bakeRequest) {
       return null
     }
 
