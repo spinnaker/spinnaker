@@ -38,3 +38,10 @@ export interface IKubernetesServerGroupView extends IKubernetesServerGroup {
 }
 
 export interface IKubernetesServerGroupManager extends IServerGroupManager, IKubernetesResource {}
+
+export type IAnyKubernetesResource =
+  | IKubernetesServerGroup
+  | IKubernetesInstance
+  | IKubernetesLoadBalancer
+  | IKubernetesSecurityGroup
+  | IKubernetesServerGroupManager;
