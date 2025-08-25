@@ -164,13 +164,14 @@ class BakeryServiceSpec extends Specification {
     )
 
     when:
-    Retrofit2SyncCall.execute(bakery.bakeManifest(type, kustomizeBakeManifestRequest))
+    Retrofit2SyncCall.execute(bakery.bakeManifest(type, mapper.convertValue(kustomizeBakeManifestRequest, Map)))
     def actualRequest = mapper.readValue(actualPayload.get(), Map)
 
     then:
     with(actualRequest) {
-      //FIXME: inputArtifact is not supposed to be null. Fix @Body param in BakeryService.bakeManifest
-      inputArtifact == null
+      inputArtifact.name == inputArtifactPassed.name
+      inputArtifact.type == inputArtifactPassed.type
+      inputArtifact.reference == inputArtifactPassed.reference
       outputName == context.outputName
       outputArtifactName == outputArtifactNamePassed
       templateRenderer == "KUSTOMIZE"
