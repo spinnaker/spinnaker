@@ -93,7 +93,7 @@ describe('kubernetes: Raw Resource', () => {
     cy.get('.details-panel .header h3').should('contain.text', 'backend');
   });
 
-  it('should group by Kind and render contiguous buckets, then reset to None', () => {
+  it('should group by', () => {
     cy.visit('#/applications/kubernetesapp/kubernetes');
 
     const selectGroupBy = (label) => {

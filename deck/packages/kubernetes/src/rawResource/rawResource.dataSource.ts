@@ -1,4 +1,3 @@
-import type { IQService } from 'angular';
 import { module } from 'angular';
 
 import type { Application } from '@spinnaker/core';
@@ -13,12 +12,11 @@ type ApiK8sResource = any;
 const fetchK8sResources = (application: Application): PromiseLike<ApiK8sResource> =>
   REST('applications').path(application.name, 'rawResources').get();
 
-const formatK8sResources = ($q: IQService) => (_: Application, result: ApiK8sResource): PromiseLike<ApiK8sResource> =>
-  $q.resolve(result);
+const formatK8sResources = (_: Application, result: ApiK8sResource): PromiseLike<ApiK8sResource> =>
+  Promise.resolve(result);
 
-module(KUBERNETS_RAW_RESOURCE_DATA_SOURCE, []).run([
-  '$q',
-  ($q: IQService) => {
+module(KUBERNETS_RAW_RESOURCE_DATA_SOURCE, [])
+  .run(() => {
     ApplicationDataSourceRegistry.registerDataSource({
       key: KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY,
       label: 'Kubernetes',
@@ -28,12 +26,11 @@ module(KUBERNETS_RAW_RESOURCE_DATA_SOURCE, []).run([
       icon: 'fas fa-xs fa-fw fa-th-large',
       iconName: 'spMenuK8s',
       loader: fetchK8sResources,
-      onLoad: formatK8sResources($q),
+      onLoad: formatK8sResources,
       providerField: 'cloudProvider',
       credentialsField: 'account',
       regionField: 'region',
       description: 'Collections of kubernetes resources',
       defaultData: [],
     });
-  },
-]);
+  });
