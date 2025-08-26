@@ -17,10 +17,6 @@
 package com.netflix.spinnaker.orca.bakery.api
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import com.github.tomakehurst.wiremock.http.Request
-import com.github.tomakehurst.wiremock.http.RequestListener
-import com.github.tomakehurst.wiremock.http.Response
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
@@ -35,7 +31,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.util.concurrent.BlockingVariable
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static com.google.common.net.HttpHeaders.LOCATION
@@ -52,10 +47,6 @@ class BakeryServiceSpec extends Specification {
 
   @Subject
   BakeryService bakery
-  @Subject
-  BlockingVariable<String> actualUrl
-  @Subject
-  BlockingVariable<String> actualPayload
 
   @Autowired
   ApplicationContext applicationContext
@@ -75,25 +66,16 @@ class BakeryServiceSpec extends Specification {
 
   def mapper = OrcaObjectMapper.newInstance()
 
-  def setup() {
-    actualUrl = new BlockingVariable<String>(5)
-    actualPayload = new BlockingVariable<String>(5)
-    wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
-    wireMockServer.addMockServiceRequestListener(new RequestListener() {
-
-      @Override
-      void requestReceived(Request request, Response response) {
-        actualUrl.set(request.absoluteUrl)
-        actualPayload.set(request.bodyAsString)
-      }
-    })
+  def setupSpec() {
     wireMockServer.start()
     configureFor(wireMockServer.port())
     bakeURI = wireMockServer.url(bakePath)
     statusURI = wireMockServer.url(statusPath)
+  }
 
+  def setup() {
     bakery = new BakeryConfiguration()
-      .buildService(wireMockServer.url("/"), serviceClientProvider)
+        .buildService(wireMockServer.url("/"), serviceClientProvider)
   }
 
   def cleanupSpec() {
@@ -165,16 +147,11 @@ class BakeryServiceSpec extends Specification {
 
     when:
     Retrofit2SyncCall.execute(bakery.bakeManifest(type, kustomizeBakeManifestRequest))
-    def actualRequest = mapper.readValue(actualPayload.get(), Map)
 
     then:
-    with(actualRequest) {
-      //FIXME: inputArtifact is not supposed to be null
-      inputArtifact == null
-      outputName == context.outputName
-      outputArtifactName == outputArtifactNamePassed
-      templateRenderer == "KUSTOMIZE"
-    }
+    verify(
+        postRequestedFor(urlPathEqualTo(bakeManifestPath))
+            .withRequestBody(equalTo(mapper.writeValueAsString(kustomizeBakeManifestRequest))))
   }
 
   def "can lookup a bake status"() {
