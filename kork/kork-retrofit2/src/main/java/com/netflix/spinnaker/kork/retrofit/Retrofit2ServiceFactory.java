@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -55,6 +56,20 @@ public class Retrofit2ServiceFactory implements ServiceClientFactory {
         .baseUrl(RetrofitUtils.getBaseUrl(serviceEndpoint.getBaseUrl()))
         .client(okHttpClient)
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .build()
+        .create(type);
+  }
+
+  @Override
+  public <T> T create(
+      Class<T> type, ServiceEndpoint serviceEndpoint, Converter.Factory converterFactory) {
+    OkHttpClient okHttpClient = clientProvider.getClient(serviceEndpoint);
+
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(serviceEndpoint.getBaseUrl()))
+        .client(okHttpClient)
+        .addConverterFactory(converterFactory)
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .build()
         .create(type);
