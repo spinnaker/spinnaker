@@ -169,7 +169,7 @@ class BakeryServiceSpec extends Specification {
 
     then:
     with(actualRequest) {
-      //FIXME: inputArtifact is not supposed to be null. Fix @Body param in BakeryService.bakeManifest
+      //FIXME: inputArtifact is not supposed to be null
       inputArtifact == null
       outputName == context.outputName
       outputArtifactName == outputArtifactNamePassed
