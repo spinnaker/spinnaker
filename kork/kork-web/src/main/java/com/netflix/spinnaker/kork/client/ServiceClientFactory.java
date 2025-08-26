@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import java.util.List;
 import okhttp3.Interceptor;
+import retrofit2.Converter;
 
 /** Factory to build a client for a service. */
 public interface ServiceClientFactory {
@@ -51,6 +52,18 @@ public interface ServiceClientFactory {
       ServiceEndpoint serviceEndpoint,
       ObjectMapper objectMapper,
       List<Interceptor> interceptors);
+
+  /**
+   * Builds a concrete client capable of making HTTP calls.
+   *
+   * @param type client type
+   * @param serviceEndpoint endpoint configuration
+   * @param converterFactory custom converter factory for conversion
+   * @param <T> type of client , usually an interface with all the remote method definitions.
+   * @return an implementation of the type of client given.
+   */
+  public <T> T create(
+      Class<T> type, ServiceEndpoint serviceEndpoint, Converter.Factory converterFactory);
 
   /**
    * Decide if this factory can support the endpoint provided.
