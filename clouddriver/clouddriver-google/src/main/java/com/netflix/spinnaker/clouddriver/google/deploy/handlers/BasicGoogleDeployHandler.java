@@ -81,6 +81,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvid
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.config.GoogleConfiguration;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
 import groovy.lang.Closure;
@@ -93,6 +94,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 @Component
 @Log4j2
@@ -293,36 +295,20 @@ public class BasicGoogleDeployHandler
 
   protected String getMachineTypeNameFromInput(
       BasicGoogleDeployDescription description, Task task, String location) {
-    if (description.getInstanceType().contains("custom-")) {
+    if (description.getInstanceType() != null
+        && description.getInstanceType().contains("custom-")) {
       return description.getInstanceType();
     } else {
-      List<String> queryZone =
-          description.getRegional()
-              ? (Optional.ofNullable(description.getSelectZones()).orElse(false)
-                  ? Optional.ofNullable(description.getDistributionPolicy().getZones())
-                      .orElse(Collections.singletonList(location))
-                  : Collections.singletonList(location))
-              : Collections.singletonList(location);
+      List<String> queryZone = Collections.singletonList(location);
+      if (Boolean.TRUE.equals(description.getRegional())
+          && Boolean.TRUE.equals(description.getSelectZones())
+          && description.getDistributionPolicy() != null
+          && description.getDistributionPolicy().getZones() != null) {
+        queryZone = description.getDistributionPolicy().getZones();
+      }
+
       String machineTypeName = "";
       for (String zoneOrLocation : queryZone) {
-        String msg =
-            description.getRegional()
-                ? (description.getSelectZones()
-                    ? "Machine type "
-                        + description.getInstanceType()
-                        + " not found in zone "
-                        + zoneOrLocation
-                        + ". When using selectZones, the machine type must be available in all selected zones."
-                    : "Machine type "
-                        + description.getInstanceType()
-                        + " not found in zone "
-                        + zoneOrLocation
-                        + ". When using Regional distribution without explicit selection of Zones, the machine type must be available in all zones of the region.")
-                : "Machine type "
-                    + description.getInstanceType()
-                    + " not found in region "
-                    + zoneOrLocation
-                    + ".";
         try {
           machineTypeName =
               GCEUtil.queryMachineType(
@@ -332,6 +318,31 @@ public class BasicGoogleDeployHandler
                   task,
                   BASE_PHASE);
         } catch (GoogleOperationException e) {
+          String msg;
+          if (Boolean.TRUE.equals(description.getRegional())) {
+            if (Boolean.TRUE.equals(description.getSelectZones())) {
+              msg =
+                  "Machine type "
+                      + description.getInstanceType()
+                      + " not found in zone "
+                      + zoneOrLocation
+                      + ". When using selectZones, the machine type must be available in all selected zones.";
+            } else {
+              msg =
+                  "Machine type "
+                      + description.getInstanceType()
+                      + " not found in zone "
+                      + zoneOrLocation
+                      + ". When using Regional distribution without explicit selection of Zones, the machine type must be available in all zones of the region.";
+            }
+          } else {
+            msg =
+                "Machine type "
+                    + description.getInstanceType()
+                    + " not found in region "
+                    + zoneOrLocation
+                    + ".";
+          }
           throw new GoogleOperationException(msg);
         }
       }
@@ -365,7 +376,9 @@ public class BasicGoogleDeployHandler
     // If no subnet is passed and the network is both an xpn host network and an auto-subnet
     // network, then we need to set the subnet ourselves here.
     // This shouldn't be required, but GCE complains otherwise.
-    if (subnet != null && network.getId().contains("/") && network.getAutoCreateSubnets()) {
+    if (subnet != null
+        && network.getId().contains("/")
+        && Boolean.TRUE.equals(network.getAutoCreateSubnets())) {
       // Auto-created subnets have the same name as the containing network.
       subnet =
           GCEUtil.querySubnet(
@@ -385,7 +398,7 @@ public class BasicGoogleDeployHandler
     // HTTP(S)
     // load balancers exist.
     LoadBalancerInfo info = new LoadBalancerInfo();
-    if (description.getLoadBalancers().isEmpty()) {
+    if (description.getLoadBalancers() == null || description.getLoadBalancers().isEmpty()) {
       return info;
     }
     // GCEUtil.queryAllLoadBalancers() will throw an exception if a referenced load balancer cannot
@@ -466,7 +479,8 @@ public class BasicGoogleDeployHandler
     Map<String, String> instanceMetadata = description.getInstanceMetadata();
     // We must wait for the managed-instance-group (MIG) creation whenever any
     // backend-service mapping will be updated later in the handler.
-    return (!instanceMetadata.isEmpty()
+    return (instanceMetadata != null
+            && !instanceMetadata.isEmpty()
             && (instanceMetadata.containsKey(BACKEND_SERVICE_NAMES)
                 || instanceMetadata.containsKey(REGION_BACKEND_SERVICE_NAMES)))
         || !loadBalancerInfo.getSslLoadBalancers().isEmpty()
@@ -555,7 +569,7 @@ public class BasicGoogleDeployHandler
                   getBackendServiceFromProvider(description.getCredentials(), backendServiceName);
               GCEUtil.updateMetadataWithLoadBalancingPolicy(policy, instanceMetadata, objectMapper);
               Backend backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy);
-              if (description.getRegional()) {
+              if (Boolean.TRUE.equals(description.getRegional())) {
                 backendToAdd.setGroup(
                     GCEUtil.buildRegionalServerGroupUrl(
                         description.getCredentials().getProject(), region, serverGroupName));
@@ -586,8 +600,8 @@ public class BasicGoogleDeployHandler
       LoadBalancerInfo lbInfo,
       GoogleHttpLoadBalancingPolicy policy,
       String region) {
-    if (!lbInfo.getInternalLoadBalancers().isEmpty()
-        || !lbInfo.getInternalHttpLoadBalancers().isEmpty()) {
+    if (!CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
+        || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())) {
       List<BackendService> regionBackendServicesToUpdate = new ArrayList<>();
       Map<String, String> instanceMetadata = description.getInstanceMetadata();
       List<String> existingRegionalLbs =
@@ -646,7 +660,7 @@ public class BasicGoogleDeployHandler
               } else {
                 backendToAdd = new Backend();
               }
-              if (description.getRegional()) {
+              if (Boolean.TRUE.equals(description.getRegional())) {
                 backendToAdd.setGroup(
                     GCEUtil.buildRegionalServerGroupUrl(
                         description.getCredentials().getProject(), region, serverGroupName));
@@ -677,9 +691,10 @@ public class BasicGoogleDeployHandler
       String serverGroupName,
       String instanceTemplateName,
       Task task) {
-    Map userDataMap = getUserData(description, serverGroupName, instanceTemplateName, task);
+    Map<String, String> userDataMap =
+        getUserData(description, serverGroupName, instanceTemplateName, task);
     Map<String, String> instanceMetadata = description.getInstanceMetadata();
-    if (!instanceMetadata.isEmpty()) {
+    if (!CollectionUtils.isEmpty(instanceMetadata)) {
       instanceMetadata.putAll(userDataMap);
     } else {
       instanceMetadata = userDataMap;
@@ -687,14 +702,14 @@ public class BasicGoogleDeployHandler
     description.setInstanceMetadata(instanceMetadata);
   }
 
-  protected Map getUserData(
+  protected Map<String, String> getUserData(
       BasicGoogleDeployDescription description,
       String serverGroupName,
       String instanceTemplateName,
       Task task) {
     String customUserData =
         StringUtils.isNotBlank(description.getUserData()) ? description.getUserData() : "";
-    Map userData =
+    Map<String, String> userData =
         googleUserDataProvider.getUserData(
             serverGroupName,
             instanceTemplateName,
@@ -706,8 +721,12 @@ public class BasicGoogleDeployHandler
   }
 
   protected void addSelectZonesToInstanceMetadata(BasicGoogleDeployDescription description) {
-    if (description.getRegional() && description.getSelectZones()) {
+    if (Boolean.TRUE.equals(description.getRegional())
+        && Boolean.TRUE.equals(description.getSelectZones())) {
       Map<String, String> instanceMetadata = description.getInstanceMetadata();
+      if (description.getInstanceMetadata() == null) {
+        instanceMetadata = new HashMap<>();
+      }
       instanceMetadata.put(SELECT_ZONES, "true");
       description.setInstanceMetadata(instanceMetadata);
     }
@@ -777,10 +796,12 @@ public class BasicGoogleDeployHandler
   protected void validateAcceleratorConfig(BasicGoogleDeployDescription description) {
     // Accelerators are supported for zonal server groups only.
     if (description.getAcceleratorConfigs() != null
-        && !description.getAcceleratorConfigs().isEmpty()
-        && (!description.getRegional() || description.getSelectZones())) {
-      throw new IllegalArgumentException(
-          "Accelerators are only supported with regional server groups if the zones are specified by the user.");
+        && !description.getAcceleratorConfigs().isEmpty()) {
+      if (Boolean.TRUE.equals(description.getSelectZones())
+          || Boolean.FALSE.equals(description.getRegional())) {
+        throw new IllegalArgumentException(
+            "Accelerators are only supported with regional server groups if the zones are specified by the user.");
+      }
     }
   }
 
@@ -941,11 +962,14 @@ public class BasicGoogleDeployHandler
     if (autoHealingHealthCheck != null) {
       InstanceGroupManagerAutoHealingPolicy policy = new InstanceGroupManagerAutoHealingPolicy();
       policy.setHealthCheck(autoHealingHealthCheck.getSelfLink());
-      policy.setInitialDelaySec(description.getAutoHealingPolicy().getInitialDelaySec());
+      if (description.getAutoHealingPolicy() != null) {
+        policy.setInitialDelaySec(description.getAutoHealingPolicy().getInitialDelaySec());
+      }
       autoHealingPolicy = List.of(policy);
     }
 
     if (autoHealingPolicy != null
+        && description.getAutoHealingPolicy() != null
         && description.getAutoHealingPolicy().getMaxUnavailable() != null) {
       FixedOrPercent maxUnavailable = new FixedOrPercent();
       maxUnavailable.setFixed(
@@ -976,8 +1000,9 @@ public class BasicGoogleDeployHandler
       BasicGoogleDeployDescription description,
       LoadBalancerInfo lbInfo,
       InstanceGroupManager instanceGroupManager) {
-    if ((hasBackedServiceFromInput(description, lbInfo)
-            || !lbInfo.internalHttpLoadBalancers.isEmpty())
+    if (description.getSource() != null
+        && (hasBackedServiceFromInput(description, lbInfo)
+            || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers()))
         && (description.getLoadBalancingPolicy() != null
             || (description.getSource() != null
                 && StringUtils.isNotBlank(description.getSource().getServerGroupName())))) {
@@ -1468,6 +1493,10 @@ public class BasicGoogleDeployHandler
           log.error(
               "Failed to retrieve backend service {}: {}", backendServiceName, e.getMessage());
         }
+        if (serviceToUpdate == null) {
+          throw new SpinnakerException(
+              "Unable to find a service to update LIKELY to retrieval of backend service information OR a mismatch between project/backend service name.  Check clouddriver logs look for errors, or check your configuration.");
+        }
         if (serviceToUpdate.getBackends() == null) {
           serviceToUpdate.setBackends(new ArrayList<>());
         }
@@ -1540,6 +1569,10 @@ public class BasicGoogleDeployHandler
               backendServiceName,
               e.getMessage());
         }
+        if (serviceToUpdate == null) {
+          throw new SpinnakerException(
+              "Failed to find a service to update.  This is likely due to a fialure to talk to GCP OR a mismatch on the configuration OR some other failure.  Check logs to see if there are errors from clouddriver");
+        }
         if (serviceToUpdate.getBackends() == null) {
           serviceToUpdate.setBackends(new ArrayList<>());
         }
@@ -1593,7 +1626,7 @@ public class BasicGoogleDeployHandler
   }
 
   @Data
-  class LoadBalancerInfo {
+  public static class LoadBalancerInfo {
     List<String> targetPools = new ArrayList<>();
     List<GoogleLoadBalancerView> internalLoadBalancers = new ArrayList<>();
     List<GoogleLoadBalancerView> internalHttpLoadBalancers = new ArrayList<>();
