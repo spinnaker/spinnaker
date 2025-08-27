@@ -1,0 +1,234 @@
+[
+  {
+    "account": "k8s-local",
+    "name": "service statefulset",
+    "namespace": "dev",
+    "displayName": "statefulset",
+    "apiVersion": "v1",
+    "kind": "service",
+    "labels": {
+      "app": "statefulset",
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "service statefulset"
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "deployment database",
+    "namespace": "dev",
+    "displayName": "database",
+    "apiVersion": "apps/v1",
+    "kind": "deployment",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp",
+      "role": "db"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "deployment database"
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "statefulSet statefulset",
+    "namespace": "dev",
+    "displayName": "statefulset",
+    "apiVersion": "apps/v1",
+    "kind": "statefulSet",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "statefulSet statefulset"
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "service backend",
+    "namespace": "dev",
+    "displayName": "backend",
+    "apiVersion": "v1",
+    "kind": "service",
+    "labels": {
+      "app": "backend",
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "service backend"
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "networkPolicy backend-security-policy",
+    "namespace": "dev",
+    "displayName": "backend-security-policy",
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "networkPolicy",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "networkPolicy backend-security-policy"
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "replicaSet backend-65b97dd546",
+    "namespace": "dev",
+    "displayName": "backend-65b97dd546",
+    "apiVersion": "apps/v1",
+    "kind": "replicaSet",
+    "labels": {
+      "app": "backend",
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp",
+      "custom-label": "custom-value",
+      "pod-template-hash": "65b97dd546"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "deployment backend",
+      "sequence": 1
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "replicaSet database-cb985c8d8",
+    "namespace": "dev",
+    "displayName": "database-cb985c8d8",
+    "apiVersion": "apps/v1",
+    "kind": "replicaSet",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp",
+      "pod-template-hash": "cb985c8d8",
+      "role": "db"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "deployment database",
+      "sequence": 1
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "ingress backend",
+    "namespace": "dev",
+    "displayName": "backend",
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "ingress",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "ingress backend"
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "deployment frontend",
+    "namespace": "dev",
+    "displayName": "frontend",
+    "apiVersion": "apps/v1",
+    "kind": "deployment",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp",
+      "role": "frontend"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "deployment frontend"
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "daemonSet daemonset",
+    "namespace": "dev",
+    "displayName": "daemonset",
+    "apiVersion": "apps/v1",
+    "kind": "daemonSet",
+    "labels": {
+      "app": "daemonset",
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "daemonSet daemonset"
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "replicaSet frontend-5b94cfdd4c",
+    "namespace": "dev",
+    "displayName": "frontend-5b94cfdd4c",
+    "apiVersion": "apps/v1",
+    "kind": "replicaSet",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp",
+      "pod-template-hash": "5b94cfdd4c",
+      "role": "frontend"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "deployment frontend",
+      "sequence": 1
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  },
+  {
+    "account": "k8s-local",
+    "name": "deployment backend",
+    "namespace": "dev",
+    "displayName": "backend",
+    "apiVersion": "apps/v1",
+    "kind": "deployment",
+    "labels": {
+      "app": "backend",
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "deployment backend"
+    },
+    "createdTime": 1756177644000,
+    "region": "dev"
+  }
+]
