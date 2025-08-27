@@ -1,5 +1,4 @@
 import { get, isEmpty } from 'lodash';
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Option } from 'react-select';
 import Select, { Creatable } from 'react-select';
@@ -247,7 +246,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
 
   private search = (kind: string, namespace: string, account: string): PromiseLike<string[]> => {
     if (this.isExpression(account)) {
-      return $q.resolve([]);
+      return Promise.resolve([]);
     }
     return ManifestKindSearchService.search(kind, namespace, account).then((results) =>
       results.map((result) => result.name).sort(),
