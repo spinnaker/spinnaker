@@ -8,6 +8,7 @@ module.exports = defineConfig({
     supportFile: 'cypress/support/index.js',
     scrollBehavior: 'center',
     experimentalStudio: true,
+    defaultCommandTimeout: 5000, // 5 seconds
     setupNodeEvents(on, config) {
       codeCoverageTask(on, config);
       return config;
