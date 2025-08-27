@@ -28,8 +28,8 @@
     "modules": "./scripts/buildModules.js",
     "prettier": "prettier --write 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
     "prettier:check": "prettier --check 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
-    "functional": "npm run build && cd test/functional && yarn && npm run test",
-    "functional:debug": "npm run build && cd test/functional && yarn && npm run open",
+    "functional": "cd test/functional && yarn && npm run build && npm run test",
+    "functional:debug": "cd test/functional && yarn && npm run build && npm run open",
     "storybook": "start-storybook -p 9001"
   },
   "devDependencies": {
