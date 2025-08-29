@@ -24,18 +24,20 @@ import com.netflix.spinnaker.security.User
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper
+import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import org.springframework.session.web.http.DefaultCookieSerializer
@@ -45,7 +47,7 @@ import org.springframework.stereotype.Component
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
-class LdapSsoConfig extends WebSecurityConfigurerAdapter {
+class LdapSsoConfig {
 
   @Autowired
   AuthConfig authConfig
@@ -57,24 +59,21 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
   LdapUserContextMapper ldapUserContextMapper
 
   @Autowired
-  SecurityProperties securityProperties
-
-  @Autowired
   DefaultCookieSerializer defaultCookieSerializer
 
-  @Override
+  @Autowired
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 
     def ldapConfigurer =
-        auth.ldapAuthentication()
-            .contextSource()
-              .url(ldapConfigProps.url)
-              .managerDn(ldapConfigProps.managerDn)
-              .managerPassword(ldapConfigProps.managerPassword)
-            .and()
-            .rolePrefix("")
-            .groupSearchBase(ldapConfigProps.groupSearchBase)
-            .userDetailsContextMapper(ldapUserContextMapper)
+      auth.ldapAuthentication()
+        .contextSource()
+        .url(ldapConfigProps.url)
+        .managerDn(ldapConfigProps.managerDn)
+        .managerPassword(ldapConfigProps.managerPassword)
+        .and()
+        .rolePrefix("")
+        .groupSearchBase(ldapConfigProps.groupSearchBase)
+        .userDetailsContextMapper(ldapUserContextMapper)
 
     if (ldapConfigProps.userDnPattern) {
       ldapConfigurer.userDnPatterns(ldapConfigProps.userDnPattern)
@@ -89,12 +88,16 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
     }
   }
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
+  @Bean
+  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
+  @Order(2)
+  SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfiguration) throws Exception {
+    def authenticationManager = authConfiguration.getAuthenticationManager()
     defaultCookieSerializer.setSameSite(null)
     http.formLogin()
     authConfig.configure(http)
-    http.addFilterBefore(new BasicAuthenticationFilter(authenticationManager()), UsernamePasswordAuthenticationFilter)
+    http.addFilterBefore(new BasicAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter)
+    return http.build() as SecurityFilterChain
   }
 
   @Component
@@ -112,9 +115,9 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
       permissionService.loginWithRoles(username, roles)
 
       return new User(username: username,
-                      email: ctx.getStringAttribute("mail"),
-                      roles: roles,
-                      allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
+        email: ctx.getStringAttribute("mail"),
+        roles: roles,
+        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
     }
 
     @Override

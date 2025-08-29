@@ -20,9 +20,9 @@ import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.DeleteImageTask;
+import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import javax.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -24,7 +24,7 @@ import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import java.time.Duration
 import java.time.Instant
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 

@@ -18,7 +18,7 @@ package com.netflix.kayenta.standalonecanaryanalysis.domain;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
