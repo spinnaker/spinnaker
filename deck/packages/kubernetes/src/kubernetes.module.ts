@@ -9,8 +9,16 @@ import {
 
 import './help/kubernetes.help';
 import { KUBERNETES_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
-import { KUBERNETES_LOAD_BALANCER_DETAILS_CTRL } from './loadBalancer/details/details.controller';
-import { KUBERNETES_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/transformer';
+import {
+  KubernetesLoadBalancerActions,
+  KubernetesLoadBalancerTransformer,
+  LoadBalancerAnnotationCustomSection,
+  LoadBalancerEventsSection,
+  LoadBalancerInformationSection,
+  LoadBalancerLabelsSection,
+  LoadBalancerStatusSection,
+  useKubernetesLoadBalancerDetails,
+} from './loadBalancer';
 import kubernetesLogo from './logo/kubernetes.logo.svg';
 import { KUBERNETES_ANNOTATION_CUSTOM_SECTIONS } from './manifest/annotationCustomSections.component';
 import { KUBERNETES_DELETE } from './manifest/delete/Delete';
@@ -72,7 +80,6 @@ const requires = [
   KUBERNETES_SCALE,
   KUBERNETES_REACT_MODULE,
   KUBERNETES_INSTANCE_DETAILS_CTRL,
-  KUBERNETES_LOAD_BALANCER_DETAILS_CTRL,
   KUBERNETES_SECURITY_GROUP_DETAILS_CTRL,
   KUBERNETES_MANIFEST_DELETE_CTRL,
   KUBERNETES_MANIFEST_SCALE_CTRL,
@@ -81,7 +88,6 @@ const requires = [
   KUBERNETES_MANIFEST_RESUME_ROLLOUT_CTRL,
   KUBERNETES_MANIFEST_STATUS,
   KUBERNETES_MANIFEST_CONDITION,
-  KUBERNETES_LOAD_BALANCER_TRANSFORMER,
   KUBERNETES_SECURITY_GROUP_TRANSFORMER,
   KUBERNETES_MANIFEST_SELECTOR,
   KUBERNETES_MANIFEST_LABELS,
@@ -131,9 +137,16 @@ module(KUBERNETES_MODULE, requires).config(() => {
     },
     loadBalancer: {
       CreateLoadBalancerModal: ManifestWizard,
-      detailsController: 'kubernetesV2LoadBalancerDetailsCtrl',
-      detailsTemplateUrl: require('./loadBalancer/details/details.html'),
-      transformer: 'kubernetesV2LoadBalancerTransformer',
+      useDetailsHook: useKubernetesLoadBalancerDetails,
+      detailsActions: KubernetesLoadBalancerActions,
+      detailsSections: [
+        LoadBalancerInformationSection,
+        LoadBalancerStatusSection,
+        LoadBalancerAnnotationCustomSection,
+        LoadBalancerEventsSection,
+        LoadBalancerLabelsSection,
+      ],
+      transformer: KubernetesLoadBalancerTransformer,
     },
     securityGroup: {
       reader: KubernetesSecurityGroupReader,
