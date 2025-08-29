@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -75,6 +76,15 @@ class GateSpringSecurity5OAuth2ProfileFactoryTest {
     assertNotNull(
         config.getSpring().getSecurity().getOAuth2().getClient().getRegistration().getGoogle());
 
+    assertNull(
+        config
+            .getSpring()
+            .getSecurity()
+            .getOAuth2()
+            .getClient()
+            .getRegistration()
+            .getGoogle()
+            .get("redirect-uri"));
     // github
     oAuth2.setProvider(OAuth2.Provider.GITHUB);
     config = factory.getGateConfig(mockServiceSettings, mockSecurity);
