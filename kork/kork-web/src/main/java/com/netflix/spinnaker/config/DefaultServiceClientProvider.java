@@ -27,6 +27,7 @@ import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.util.List;
 import okhttp3.Interceptor;
 import org.springframework.stereotype.Component;
+import retrofit2.Converter;
 
 /** Provider that returns a suitable service client capable of making http calls. */
 @NonnullByDefault
@@ -61,6 +62,13 @@ public class DefaultServiceClientProvider implements ServiceClientProvider {
       List<Interceptor> interceptors) {
     ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint);
     return serviceClientFactory.create(type, serviceEndpoint, objectMapper, interceptors);
+  }
+
+  @Override
+  public <T> T getService(
+      Class<T> type, ServiceEndpoint serviceEndpoint, Converter.Factory converterFactory) {
+    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint);
+    return serviceClientFactory.create(type, serviceEndpoint, converterFactory);
   }
 
   private ServiceClientFactory findProvider(Class<?> type, ServiceEndpoint service) {

@@ -1,0 +1,13 @@
+{
+  "id": "68214acb-c4dd-4c24-a660-d1e1313b08d2",
+  "name": "newproject",
+  "email": "sbws@google.com",
+  "config": {
+    "pipelineConfigs": [],
+    "applications": [],
+    "clusters": []
+  },
+  "updateTs": 1754974367823,
+  "createTs": 1754951618057,
+  "lastModifiedBy": "anonymous"
+}

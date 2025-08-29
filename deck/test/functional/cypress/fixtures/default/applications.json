@@ -133,5 +133,16 @@
     "updateTs": "1537888241078",
     "user": "[anonymous]"
   },
-  { "accounts": "gae", "name": "20181101t094428" }
+  { "accounts": "gae", "name": "20181101t094428" },
+  {
+    "cloudProviders": "kubernetes",
+    "createTs": "1528463950711",
+    "email": "sbws@google.com",
+    "instancePort": 80,
+    "lastModifiedBy": "anonymous",
+    "name": "kubernetesapp",
+    "providerSettings": { "gce": { "associatePublicIpAddress": true } },
+    "updateTs": "1528463951018",
+    "user": "[anonymous]"
+  }
 ]

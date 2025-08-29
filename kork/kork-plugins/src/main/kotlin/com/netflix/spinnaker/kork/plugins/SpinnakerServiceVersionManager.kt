@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kork.plugins
 
+import com.github.zafarkhaja.semver.ParseException
 import com.github.zafarkhaja.semver.Version
 import org.pf4j.VersionManager
 import org.pf4j.util.StringUtils
@@ -37,14 +38,20 @@ class SpinnakerServiceVersionManager(
       log.warn("Loading plugin with empty Plugin-Requires attribute!")
       return true
     }
+    try {
+      log.info("Loading plugin version {} and requires {}", version, requires)
+      val requirements =
+        VersionRequirementsParser
+          .parseAll(requires)
+          .find { it.service.equals(serviceName, ignoreCase = true) }
 
-    val requirements =
-      VersionRequirementsParser
-        .parseAll(requires)
-        .find { it.service.equals(serviceName, ignoreCase = true) }
-
-    if (requirements != null) {
-      return StringUtils.isNullOrEmpty(requirements.constraint) || Version.valueOf(version).satisfies(requirements.constraint)
+      if (requirements != null) {
+        return StringUtils.isNullOrEmpty(requirements.constraint) || Version.valueOf(version)
+          .satisfies(requirements.constraint)
+      }
+    } catch (e: ParseException) {
+      log.error("Error parsing plugin required version of {}.  Check version and requirements.  Version found is {}.", requires,version,  e)
+      throw e
     }
 
     return false

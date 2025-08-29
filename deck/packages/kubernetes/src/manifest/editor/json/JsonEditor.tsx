@@ -1,6 +1,5 @@
 import 'brace/mode/json';
 import 'brace/theme/textmate';
-import { $log } from 'ngimport';
 import React from 'react';
 import AceEditor from 'react-ace';
 
@@ -17,12 +16,12 @@ export class JsonEditor extends React.Component<IJsonEditorProps> {
       const obj = JSON.parse(raw);
       this.props.onChange
         ? this.props.onChange(raw, obj)
-        : $log.warn('No `onChange` handler provided for JSON editor.');
+        : console.warn('No `onChange` handler provided for JSON editor.');
     } catch (e) {
       this.props.onChange
         ? this.props.onChange(raw, null)
-        : $log.warn('No `onChange` handler provided for JSON editor.');
-      $log.warn(`Error loading JSON from string ${raw}: `, e);
+        : console.warn('No `onChange` handler provided for JSON editor.');
+      console.warn(`Error loading JSON from string ${raw}: `, e);
     }
   };
 

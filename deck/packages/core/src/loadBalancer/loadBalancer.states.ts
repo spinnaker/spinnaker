@@ -1,13 +1,21 @@
 import type { StateParams } from '@uirouter/angularjs';
 import { module } from 'angular';
 
-import { LoadBalancerDetails } from './LoadBalancerDetails';
 import { LoadBalancers } from './LoadBalancers';
 import type { ApplicationStateProvider } from '../application';
 import { APPLICATION_STATE_PROVIDER } from '../application';
+import { LoadBalancerDetails } from './details';
 import { filterModelConfig } from './filter/LoadBalancerFilterModel';
 import { LoadBalancerFilters } from './filter/LoadBalancerFilters';
 import type { INestedState, StateConfigProvider } from '../navigation';
+
+export interface ILoadBalancerStateParams {
+  name: string;
+  accountId: string;
+  region: string;
+  vpcId: string;
+  provider: string;
+}
 
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
 module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
@@ -33,12 +41,13 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
         accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.accountId],
         loadBalancer: [
           '$stateParams',
-          ($stateParams: StateParams) => {
+          ($stateParams: StateParams): ILoadBalancerStateParams => {
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
               region: $stateParams.region,
               vpcId: $stateParams.vpcId,
+              provider: $stateParams.provider,
             };
           },
         ],

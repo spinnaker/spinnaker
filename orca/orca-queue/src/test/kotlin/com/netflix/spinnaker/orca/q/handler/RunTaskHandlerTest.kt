@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import ch.qos.logback.classic.Level
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.test.log.MemoryAppender
 import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.Task
@@ -77,7 +79,11 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     on { extensionClass } doReturn DummyTimeoutOverrideTask::class.java
     on { aliases() } doReturn emptyList<String>()
   }
+  val logMessageTask = LogMessageTask()
+
+  // tasks can only contain mocks
   val tasks = mutableListOf(task, cloudProviderAwareTask, timeoutOverrideTask)
+
   val exceptionHandler: ExceptionHandler = mock()
   // Stages store times as ms-since-epoch, and we do a lot of tests to make sure things run at the
   // appropriate time, so we need to make sure
@@ -98,7 +104,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       stageNavigator,
       DefaultStageDefinitionBuilderFactory(stageResolver),
       contextParameterProcessor,
-      TaskResolver(TasksProvider(mutableListOf(task, timeoutOverrideTask, cloudProviderAwareTask) as Collection<Task>)),
+      TaskResolver(TasksProvider(mutableListOf(task, timeoutOverrideTask, cloudProviderAwareTask, logMessageTask) as Collection<Task>)),
       clock,
       listOf(exceptionHandler),
       taskExecutionInterceptors,
@@ -1942,6 +1948,46 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         it("pushes original message back to queue for processing") {
           verify(queue).push(message)
         }
+      }
+    }
+  }
+
+  describe("an execution context with additional headers") {
+    val testAdditionalHeaders = mapOf("X-foo" to "foo", "X-bar" to "bar")
+    val pipeline = pipeline {
+      additionalHeaders = testAdditionalHeaders
+      stage {
+        type = "whatever"
+        task {
+          id = "1"
+          startTime = clock.instant().toEpochMilli()
+        }
+      }
+    }
+    val stage = pipeline.stages.first()
+    val taskResult = TaskResult.SUCCEEDED
+    val message = RunTask(pipeline.type, pipeline.id, "test-application", stage.id, "1", LogMessageTask::class.java)
+    val memoryAppender = MemoryAppender(LogMessageTask::class.java)
+
+    beforeGroup {
+      tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
+      taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(logMessageTask, stage)) doReturn stage }
+      taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(logMessageTask, stage, taskResult)) doReturn taskResult }
+      whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      setupRetriableLock(true, retriableLock)
+    }
+
+    afterGroup(::resetMocks)
+
+    action("the handler receives a message") {
+      subject.handle(message)
+    }
+
+    it("demonstrates that the additional headers are in the MDC") {
+      val logMessages = memoryAppender.search("MDC", Level.INFO)
+      assertThat(logMessages).hasSize(1)
+      testAdditionalHeaders.forEach { headerName, expectedValue ->
+        assertThat(logMessages.first()).contains("$headerName=$expectedValue")
       }
     }
   }
