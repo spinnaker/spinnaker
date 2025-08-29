@@ -46,7 +46,9 @@ public class EurekaAutoConfiguration {
     return new EventBusImpl();
   }
 
-  /** @deprecated use EurekaClient rather than DiscoveryClient */
+  /**
+   * @deprecated use EurekaClient rather than DiscoveryClient
+   */
   @Bean
   @Deprecated
   public DiscoveryClient discoveryClient(

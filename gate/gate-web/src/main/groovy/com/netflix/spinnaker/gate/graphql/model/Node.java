@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.gate.graphql.model;
 
-/** @link */
+/**
+ * @link
+ */
 public interface Node {
 
   String getId();

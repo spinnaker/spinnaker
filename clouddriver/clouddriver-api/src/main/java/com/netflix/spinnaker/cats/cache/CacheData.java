@@ -30,7 +30,9 @@ import java.util.Map;
 public interface CacheData {
   String getId();
 
-  /** @return The ttl (in seconds) for this CacheData */
+  /**
+   * @return The ttl (in seconds) for this CacheData
+   */
   int getTtlSeconds();
 
   Map<String, Object> getAttributes();

@@ -73,6 +73,7 @@ public class OrcaObjectMapper {
 
     return instance;
   }
+
   /**
    * Return an ObjectMapper instance that can be reused. Do not change the configuration of this
    * instance as it will be shared across the entire application, use {@link #newInstance()}

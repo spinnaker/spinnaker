@@ -125,7 +125,9 @@ public class CloudDriverService {
   }
 
   @Deprecated
-  /** @deprecated See {@link #getInstanceTyped(String, String, String)}.* */
+  /**
+   * @deprecated See {@link #getInstanceTyped(String, String, String)}.*
+   */
   public Map<String, Object> getInstance(String account, String region, String instanceId) {
     ResponseBody responseBody =
         Retrofit2SyncCall.execute(oortService.getInstance(account, region, instanceId));

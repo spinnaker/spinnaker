@@ -48,14 +48,18 @@ public class AuthenticatedRequest {
    * identity and allowed accounts.
    */
   public interface PrincipalExtractor {
-    /** @return the user principal in the current security scope. */
+    /**
+     * @return the user principal in the current security scope.
+     */
     default Object principal() {
       return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
           .map(Authentication::getPrincipal)
           .orElse(null);
     }
 
-    /** @return The comma separated list of accounts for the current principal. */
+    /**
+     * @return The comma separated list of accounts for the current principal.
+     */
     default Optional<String> getSpinnakerAccounts() {
       return getSpinnakerAccounts(principal());
     }
@@ -75,7 +79,9 @@ public class AuthenticatedRequest {
       return get(Header.ACCOUNTS);
     }
 
-    /** @return the user id of the current user */
+    /**
+     * @return the user id of the current user
+     */
     default Optional<String> getSpinnakerUser() {
       return getSpinnakerUser(principal());
     }
@@ -235,13 +241,17 @@ public class AuthenticatedRequest {
     return wrapCallableForPrincipal(closure, restoreOriginalContext, principal());
   }
 
-  /** @deprecated use runAs instead to switch to a different user */
+  /**
+   * @deprecated use runAs instead to switch to a different user
+   */
   @Deprecated
   public static <V> Callable<V> propagate(Callable<V> closure, Object principal) {
     return wrapCallableForPrincipal(closure, true, principal);
   }
 
-  /** @deprecated use runAs instead to switch to a different user */
+  /**
+   * @deprecated use runAs instead to switch to a different user
+   */
   @Deprecated
   public static <V> Callable<V> propagate(
       Callable<V> closure, boolean restoreOriginalContext, Object principal) {

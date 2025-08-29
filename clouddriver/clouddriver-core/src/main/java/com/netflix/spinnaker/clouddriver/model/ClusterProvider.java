@@ -111,7 +111,9 @@ public interface ClusterProvider<T extends Cluster> {
   @Nullable
   ServerGroup getServerGroup(String account, String region, String name);
 
-  /** @return the identifier of the backing cloud provider */
+  /**
+   * @return the identifier of the backing cloud provider
+   */
   String getCloudProviderId();
 
   /**

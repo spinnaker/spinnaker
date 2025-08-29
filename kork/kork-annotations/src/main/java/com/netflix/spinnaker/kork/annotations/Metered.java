@@ -34,9 +34,13 @@ public @interface Metered {
    */
   String metricName() default "";
 
-  /** @return If set to true, the associated method will not be metered. */
+  /**
+   * @return If set to true, the associated method will not be metered.
+   */
   boolean ignore() default false;
 
-  /** @return Sequence of alternating key/value tag pairs. Expects key as first element. */
+  /**
+   * @return Sequence of alternating key/value tag pairs. Expects key as first element.
+   */
   String[] tags() default {};
 }

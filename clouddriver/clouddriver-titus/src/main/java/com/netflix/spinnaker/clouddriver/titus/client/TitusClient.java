@@ -65,26 +65,40 @@ public interface TitusClient {
    */
   public Task getTask(String taskId);
 
-  /** @param jobDisruptionBudgetUpdateRequest */
+  /**
+   * @param jobDisruptionBudgetUpdateRequest
+   */
   public void updateDisruptionBudget(
       JobDisruptionBudgetUpdateRequest jobDisruptionBudgetUpdateRequest);
 
-  /** @param serviceJobProcessesRequest */
+  /**
+   * @param serviceJobProcessesRequest
+   */
   public void updateScalingProcesses(ServiceJobProcessesRequest serviceJobProcessesRequest);
 
-  /** @param resizeJobRequest */
+  /**
+   * @param resizeJobRequest
+   */
   public void resizeJob(ResizeJobRequest resizeJobRequest);
 
-  /** @param activateJobRequest */
+  /**
+   * @param activateJobRequest
+   */
   public void activateJob(ActivateJobRequest activateJobRequest);
 
-  /** @param shouldEnable */
+  /**
+   * @param shouldEnable
+   */
   public void setAutoscaleEnabled(String jobId, boolean shouldEnable);
 
-  /** @param terminateJobRequest */
+  /**
+   * @param terminateJobRequest
+   */
   public void terminateJob(TerminateJobRequest terminateJobRequest);
 
-  /** @param terminateTasksAndShrinkJob */
+  /**
+   * @param terminateTasksAndShrinkJob
+   */
   public void terminateTasksAndShrink(TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob);
 
   /**
@@ -93,7 +107,9 @@ public interface TitusClient {
    */
   public Map logsDownload(String taskId);
 
-  /** @return */
+  /**
+   * @return
+   */
   public TitusHealth getHealth();
 
   /**

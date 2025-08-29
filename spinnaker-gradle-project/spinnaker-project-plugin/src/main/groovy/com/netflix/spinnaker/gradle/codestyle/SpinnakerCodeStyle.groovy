@@ -17,5 +17,4 @@ package com.netflix.spinnaker.gradle.codestyle
 
 class SpinnakerCodeStyle {
   boolean enabled = true
-  List<String> disabledProjects = []
 }

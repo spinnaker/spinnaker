@@ -43,6 +43,7 @@ public class Config {
 
   @JsonProperty("merge_mode")
   private String mergeMode = "deep_merge";
+
   // This is an object because we inject it like env: matrix: "values", but we get env: "values"
   // back from the api:
   private Object env;

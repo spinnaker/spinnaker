@@ -172,6 +172,7 @@ public class KubernetesJobStatus implements JobStatus {
   public static class PodStatus {
     private String name;
     private V1PodStatus status;
+
     /**
      * containerExecutionDetails contains information about all the containers in the pod.
      *

@@ -36,7 +36,7 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
       project.logger.warn("${project.name} has disabled codestyle enforcement!")
       return
     }
-
+  //TODO:  This is supported DIRECTLY by the latest spotless plugin.
     project.gradle.parent.rootProject.file(".git/hooks").mkdirs()
     project.gradle.parent.rootProject.file(".git/hooks/pre-commit").write(getClass().getResource("/pre-commit").text)
     project.gradle.parent.rootProject.file(".git/hooks/pre-commit").executable = true
@@ -62,7 +62,7 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
         void execute(JavaExtension javaExtension) {
           javaExtension.target("src/**/*.java")
           javaExtension.targetExclude("src/generated/**/*")
-          javaExtension.googleJavaFormat("1.11.0")
+          javaExtension.googleJavaFormat("1.28.0")
           javaExtension.removeUnusedImports()
           javaExtension.trimTrailingWhitespace()
           javaExtension.endWithNewline()
@@ -107,7 +107,7 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
           void execute(FormatExtension formatExtension) {
             formatExtension.target('**/.gitignore', 'src/**/*.json', 'src/**/*.yml', 'src/**/*.yaml', 'config/*.yml', 'halconfig/*.yml', '**/*.gradle')
             formatExtension.trimTrailingWhitespace()
-            formatExtension.indentWithSpaces(2)
+            formatExtension.leadingTabsToSpaces(2)
             formatExtension.endWithNewline()
           }
         }

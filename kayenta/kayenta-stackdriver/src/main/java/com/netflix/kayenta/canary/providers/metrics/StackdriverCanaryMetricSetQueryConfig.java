@@ -42,7 +42,9 @@ public class StackdriverCanaryMetricSetQueryConfig implements CanaryMetricSetQue
 
   @NotNull @Getter private List<String> groupByFields;
 
-  /** @deprecated Use customInlineTemplate instead. */
+  /**
+   * @deprecated Use customInlineTemplate instead.
+   */
   @Deprecated @Getter private String customFilter;
 
   @Getter private String customInlineTemplate;

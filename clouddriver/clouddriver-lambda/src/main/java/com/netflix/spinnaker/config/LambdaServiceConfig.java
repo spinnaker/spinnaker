@@ -62,6 +62,7 @@ public class LambdaServiceConfig {
   public static class Retry {
     // SDK Default is 20 seconds.... this is a touch lower
     private int timeout = 15;
+
     // Default to the aws client max error retries if NOT set
     @Value("#{'${aws.lambda.retries:${aws.client.maxErrorRetry}}'}")
     private int retries = 3;

@@ -28,6 +28,8 @@ public interface TitusLoadBalancerClient {
 
   void removeLoadBalancer(String jobId, String loadBalancerId);
 
-  /** @return a map of jobId to list of loadbalancerIds */
+  /**
+   * @return a map of jobId to list of loadbalancerIds
+   */
   Map<String, List<String>> getAllLoadBalancers();
 }

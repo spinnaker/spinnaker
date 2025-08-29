@@ -21,7 +21,9 @@ import com.netflix.spinnaker.kork.annotations.Beta;
 
 @Beta
 public interface Agent {
-  /** @return the type of this agent. */
+  /**
+   * @return the type of this agent.
+   */
   String getAgentType();
 
   /**

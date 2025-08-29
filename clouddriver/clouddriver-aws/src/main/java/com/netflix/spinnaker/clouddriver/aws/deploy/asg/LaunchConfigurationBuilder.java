@@ -37,6 +37,7 @@ public interface LaunchConfigurationBuilder {
    */
   LaunchConfigurationSettings buildSettingsFromLaunchConfiguration(
       AccountCredentials<?> credentials, String region, String launchConfigurationName);
+
   /**
    * Constructs an LaunchConfiguration with the provided settings
    *
