@@ -37,6 +37,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.io.IOException;
 import java.util.Comparator;
@@ -46,7 +47,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class DaemonServiceTest {
   @RegisterExtension
@@ -63,7 +63,7 @@ public class DaemonServiceTest {
             .baseUrl(RetrofitUtils.getBaseUrl(wmDaemon.baseUrl()))
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .build()
             .create(DaemonService.class);
   }
@@ -112,12 +112,10 @@ public class DaemonServiceTest {
     String expectedBody =
         "{\"enabled\":true,\"client\":{\"clientId\":\"client-id\",\"clientSecret\":\"cf86e306218cf86e306218cf86e306218\",\"accessTokenUri\":\"https://github.com/login/oauth/access_token\",\"userAuthorizationUri\":\"https://github.com/login/oauth/authorize\",\"clientAuthenticationScheme\":null,\"scope\":\"user:email\",\"preEstablishedRedirectUri\":null,\"useCurrentUri\":null},\"userInfoRequirements\":null,\"resource\":{\"userInfoUri\":\"https://api.github.com/user\"},\"userInfoMapping\":{\"email\":\"email\",\"firstName\":\"\",\"lastName\":\"name\",\"username\":\"login\"},\"provider\":\"GITHUB\"}";
 
-    // FIXME: most of the data is missing in the actualBody when the object is serialized
-    String actualBody = "{\"enabled\":true}";
     wmDaemon.verify(
         putRequestedFor(
                 urlEqualTo("/v1/config/deployments/default/security/authn/oauth2/?validate=true"))
-            .withRequestBody(equalTo(actualBody)));
+            .withRequestBody(equalTo(expectedBody)));
   }
 
   private <C, T> DaemonTask<C, T> getTask(ResponseBody body) {
