@@ -13,6 +13,7 @@ export interface ILoadBalancerSourceData {
 }
 
 export interface ILoadBalancer extends ITaggedEntity, IManagedResource {
+  [key: string]: any;
   account?: string;
   cloudProvider?: string;
   detail?: string;
