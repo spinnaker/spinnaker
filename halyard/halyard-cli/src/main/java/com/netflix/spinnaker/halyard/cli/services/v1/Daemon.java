@@ -41,6 +41,7 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import java.io.IOException;
@@ -51,7 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 public class Daemon {
@@ -1487,7 +1487,7 @@ public class Daemon {
         .baseUrl(RetrofitUtils.getBaseUrl(GlobalOptions.getGlobalOptions().getDaemonEndpoint()))
         .client(okHttpClient)
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(getObjectMapper()))
+        .addConverterFactory(CustomConverterFactory.create(getObjectMapper()))
         .build()
         .create(DaemonService.class);
   }
