@@ -44,6 +44,48 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
  *          }
  *      }
  *  </code> This example will store the metadata field that is a map on any object.
+ *
+ * <p>For example, consider a JSON object like:
+ *
+ * <pre>
+ * {
+ *   "metadata": {
+ *     "key1": "value1",
+ *     "key2": "value2",
+ *     "nestedData": {
+ *       "nestedKey": "nestedValue"
+ *     }
+ *   },
+ *   "myInt": 42
+ * }
+ * </pre>
+ *
+ * <p>When this JSON is deserialized to a MyObject instance, the handler would intercept the
+ * "metadata" field. Instead of keeping the metadata directly in the object, it would:
+ *
+ * <p>1. Serialize the metadata map to bytes
+ *
+ * <p>2. Encode those bytes (e.g., using Base64)
+ *
+ * <p>3. Create an Artifact with that encoded data as its reference
+ *
+ * <p>4. Store the Artifact in the ArtifactStore
+ *
+ * <p>5. Replace the original metadata map with a reference map like:
+ *
+ * <pre>
+ * {
+ *   "metadata": {
+ *     "type": "remote/customtype/base64",
+ *     "reference": "artifact-id-123",
+ *     "name": "metadata-entity"
+ *   },
+ *   "myInt": 42
+ * }
+ * </pre>
+ *
+ * <p>This approach allows large or complex fields to be stored separately from the main object,
+ * potentially in a different storage system, while maintaining references to them.
  */
 public interface ArtifactStoragePropertyHandler extends ArtifactHandler {
   /** Called to check if this handler can handle a bean property. */

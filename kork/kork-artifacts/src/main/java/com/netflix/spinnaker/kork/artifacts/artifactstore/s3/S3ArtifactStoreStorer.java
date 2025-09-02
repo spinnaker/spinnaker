@@ -151,7 +151,7 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
         ListObjectsV2Request.builder().bucket(bucket).prefix(uri.paths()).maxKeys(1).build();
 
     ListObjectsV2Response resp = s3Client.listObjectsV2(request);
-    return resp.hasContents();
+    return !resp.isTruncated();
   }
 
   /**

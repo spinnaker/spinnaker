@@ -81,14 +81,22 @@ public enum ArtifactTypes {
 
   @Getter private final String mimeType;
 
-  public static boolean isEmbedded(ArtifactTypes t) {
-    return ArtifactTypes.isEmbedded(t.getMimeType());
-  }
-
+  /**
+   * Determines if the given type string represents an embedded artifact.
+   *
+   * @param t The type string to check
+   * @return true if the type string starts with the embedded prefix, false otherwise
+   */
   public static boolean isEmbedded(String t) {
     return t != null && t.startsWith(CommonAffixes.EMBEDDED.asString() + "/");
   }
 
+  /**
+   * Determines if the given type string represents a remote artifact.
+   *
+   * @param t The type string to check
+   * @return true if the type string starts with the remote prefix, false otherwise
+   */
   public static boolean isRemote(String t) {
     return t != null && t.startsWith(CommonAffixes.REMOTE.asString() + "/");
   }
