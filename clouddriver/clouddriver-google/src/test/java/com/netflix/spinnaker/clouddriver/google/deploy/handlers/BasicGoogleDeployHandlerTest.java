@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.handlers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -91,11 +92,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -127,7 +126,7 @@ public class BasicGoogleDeployHandlerTest {
   @BeforeEach
   void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    mockDescription = mock(BasicGoogleDeployDescription.class);
+    mockDescription = new BasicGoogleDeployDescription();
     mockCredentials = mock(GoogleNamedAccountCredentials.class);
     mockTask = mock(Task.class);
     mockedGCEUtil = mockStatic(GCEUtil.class);
@@ -148,16 +147,15 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void testGetRegionFromInput_WithNonBlankRegion() {
-    when(mockDescription.getRegion()).thenReturn("us-central1");
-    String result = basicGoogleDeployHandler.getRegionFromInput(mockDescription);
-    assertEquals("us-central1", result);
+    mockDescription.setRegion("us-central1");
+    assertEquals("us-central1", basicGoogleDeployHandler.getRegionFromInput(mockDescription));
   }
 
   @Test
   void testGetRegionFromInput_WithBlankRegion() {
-    when(mockDescription.getRegion()).thenReturn(""); // Blank region
-    when(mockDescription.getZone()).thenReturn("us-central1-a");
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
+    mockDescription.setRegion("");
+    mockDescription.setZone("us-central1-a");
+    mockDescription.setCredentials(mockCredentials);
     when(mockCredentials.regionFromZone("us-central1-a")).thenReturn("us-central1");
 
     String result = basicGoogleDeployHandler.getRegionFromInput(mockDescription);
@@ -166,9 +164,9 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void testGetRegionFromInput_WithNullRegion() {
-    when(mockDescription.getRegion()).thenReturn(null); // Null region
-    when(mockDescription.getZone()).thenReturn("us-central1-a");
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
+    mockDescription.setRegion(null);
+    mockDescription.setZone("us-central1-a");
+    mockDescription.setCredentials(mockCredentials);
     when(mockCredentials.regionFromZone("us-central1-a")).thenReturn("us-central1");
 
     String result = basicGoogleDeployHandler.getRegionFromInput(mockDescription);
@@ -178,30 +176,62 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void testGetLocationFromInput_RegionalTrue() {
     String region = "us-central1";
-    when(mockDescription.getRegional()).thenReturn(true);
-
-    String result = basicGoogleDeployHandler.getLocationFromInput(mockDescription, region);
-    assertEquals(region, result);
+    mockDescription.setRegion(region);
+    mockDescription.setRegional(true);
+    assertEquals(region, basicGoogleDeployHandler.getLocationFromInput(mockDescription, region));
   }
 
   @Test
   void testGetLocationFromInput_RegionalFalse() {
     String zone = "us-central1-a";
-    when(mockDescription.getRegional()).thenReturn(false);
-    when(mockDescription.getZone()).thenReturn(zone);
+    mockDescription.setRegional(false);
+    mockDescription.setZone(zone);
 
-    String result = basicGoogleDeployHandler.getLocationFromInput(mockDescription, "");
-    assertEquals(zone, result);
+    assertEquals(zone, basicGoogleDeployHandler.getLocationFromInput(mockDescription, ""));
   }
 
   @Test
   void testGetMachineTypeNameFromInput_WithCustomInstanceType() {
     String instanceType = "custom-4-16384";
-    when(mockDescription.getInstanceType()).thenReturn(instanceType);
+    mockDescription.setInstanceType(instanceType);
 
-    String result =
-        basicGoogleDeployHandler.getMachineTypeNameFromInput(mockDescription, mockTask, "location");
-    assertEquals(instanceType, result);
+    assertEquals(
+        instanceType,
+        basicGoogleDeployHandler.getMachineTypeNameFromInput(
+            mockDescription, mockTask, "location"));
+  }
+
+  @Test
+  void getMachineTypeNameFromInput_NullRegionalConfig() {
+    String instanceType = "custom-4-16384";
+    mockDescription.setInstanceType(instanceType);
+
+    assertEquals(
+        instanceType,
+        basicGoogleDeployHandler.getMachineTypeNameFromInput(
+            mockDescription, mockTask, "location"));
+  }
+
+  @Test
+  void getMachineTypeNameFromInput_NullSelectZone() {
+    String instanceType = "whatever-4-16384";
+    mockDescription.setInstanceType(instanceType);
+    mockDescription.setSelectZones(null);
+    mockDescription.setCredentials(mockCredentials);
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.queryMachineType(
+                    eq(instanceType),
+                    eq("location"),
+                    eq(mockCredentials),
+                    eq(mockTask),
+                    eq("DEPLOY")))
+        .thenReturn("some-machine");
+    assertEquals(
+        "some-machine",
+        basicGoogleDeployHandler.getMachineTypeNameFromInput(
+            mockDescription, mockTask, "location"));
   }
 
   @Test
@@ -210,8 +240,8 @@ public class BasicGoogleDeployHandlerTest {
     String location = "us-central1";
     String machineTypeName = "n1-standard-1-machine";
 
-    when(mockDescription.getInstanceType()).thenReturn(instanceType);
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
+    mockDescription.setInstanceType(instanceType);
+    mockDescription.setCredentials(mockCredentials);
 
     mockedGCEUtil
         .when(
@@ -224,10 +254,9 @@ public class BasicGoogleDeployHandlerTest {
                     eq("DEPLOY")))
         .thenReturn(machineTypeName);
 
-    String result =
-        basicGoogleDeployHandler.getMachineTypeNameFromInput(mockDescription, mockTask, location);
-
-    assertEquals(machineTypeName, result);
+    assertEquals(
+        machineTypeName,
+        basicGoogleDeployHandler.getMachineTypeNameFromInput(mockDescription, mockTask, location));
     mockedGCEUtil.verify(
         () -> GCEUtil.queryMachineType(instanceType, location, mockCredentials, mockTask, "DEPLOY"),
         times(1));
@@ -237,10 +266,9 @@ public class BasicGoogleDeployHandlerTest {
   void testGetMachineTypeNameFromInput_RegionalNotAvailableInAllZones() {
     String instanceType = "c4-highcpu-2";
     String location = "us-central1";
-
-    when(mockDescription.getInstanceType()).thenReturn(instanceType);
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
-    when(mockDescription.getRegional()).thenReturn(true);
+    mockDescription.setInstanceType(instanceType);
+    mockDescription.setRegional(true);
+    mockDescription.setCredentials(mockCredentials);
 
     mockedGCEUtil
         .when(
@@ -276,10 +304,9 @@ public class BasicGoogleDeployHandlerTest {
     String instanceType = "c4-highcpu-2";
     String location = "us-central1";
     String machineTypeName = "c4-highcpu-2-machine";
-
-    when(mockDescription.getInstanceType()).thenReturn(instanceType);
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
-    when(mockDescription.getRegional()).thenReturn(true);
+    mockDescription.setInstanceType(instanceType);
+    mockDescription.setRegional(true);
+    mockDescription.setCredentials(mockCredentials);
 
     mockedGCEUtil
         .when(
@@ -307,13 +334,12 @@ public class BasicGoogleDeployHandlerTest {
     String location = "us-central1";
     String machineTypeName = "c4-highcpu-2-machine";
 
-    when(mockDescription.getInstanceType()).thenReturn(instanceType);
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
-    when(mockDescription.getRegional()).thenReturn(true);
-    when(mockDescription.getSelectZones()).thenReturn(true);
-    when(mockDescription.getDistributionPolicy())
-        .thenReturn(
-            new GoogleDistributionPolicy(List.of("us-central1-a", "us-central1-f"), "EVEN"));
+    mockDescription.setInstanceType(instanceType);
+    mockDescription.setRegional(true);
+    mockDescription.setSelectZones(true);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setDistributionPolicy(
+        new GoogleDistributionPolicy(List.of("us-central1-a", "us-central1-f"), "EVEN"));
 
     mockedGCEUtil
         .when(
@@ -363,18 +389,46 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
-  void testGetMachineTypeNameFromInput_RegionalAvailableInAllSelectedZones() {
+  void testGetMachineTypeNameFromInput_NoDistributionPolicySetUseLocation() {
+
     String instanceType = "c4-highcpu-2";
     String location = "us-central1";
     String machineTypeName = "c4-highcpu-2-machine";
 
-    when(mockDescription.getInstanceType()).thenReturn(instanceType);
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
-    when(mockDescription.getRegional()).thenReturn(true);
-    when(mockDescription.getSelectZones()).thenReturn(true);
-    when(mockDescription.getDistributionPolicy())
-        .thenReturn(
-            new GoogleDistributionPolicy(List.of("us-central1-a", "us-central1-b"), "EVEN"));
+    mockDescription.setInstanceType(instanceType);
+    mockDescription.setRegional(true);
+    mockDescription.setSelectZones(true);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setDistributionPolicy(null);
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.queryMachineType(
+                    eq(instanceType),
+                    eq(location),
+                    eq(mockCredentials),
+                    eq(mockTask),
+                    eq("DEPLOY")))
+        .thenReturn(machineTypeName);
+
+    assertThat(
+            basicGoogleDeployHandler.getMachineTypeNameFromInput(
+                mockDescription, mockTask, location))
+        .isEqualTo(machineTypeName);
+  }
+
+  @Test
+  void testGetMachineTypeNameFromInput_RegionalAvailableInAllSelectedZones() {
+    String instanceType = "c4-highcpu-2";
+    String location = "us-central1";
+    String machineTypeName = "c4-highcpu-2-machine";
+    mockDescription.setInstanceType(instanceType);
+    mockDescription.setRegional(true);
+    mockDescription.setSelectZones(true);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setDistributionPolicy(
+        new GoogleDistributionPolicy(List.of("us-central1-a", "us-central1-b"), "EVEN"));
 
     mockedGCEUtil
         .when(
@@ -421,8 +475,8 @@ public class BasicGoogleDeployHandlerTest {
     GoogleNetwork mockGoogleNetwork = mock(GoogleNetwork.class);
 
     when(mockGoogleNetwork.getName()).thenReturn(networkName);
-    when(mockDescription.getNetwork()).thenReturn(networkName);
-    when(mockDescription.getAccountName()).thenReturn("test-account");
+    mockDescription.setNetwork(networkName);
+    mockDescription.setAccountName("test-account");
 
     mockedGCEUtil
         .when(
@@ -442,8 +496,8 @@ public class BasicGoogleDeployHandlerTest {
     String defaultNetworkName = "default";
     GoogleNetwork mockGoogleNetwork = mock(GoogleNetwork.class);
 
-    when(mockDescription.getNetwork()).thenReturn("");
-    when(mockDescription.getAccountName()).thenReturn("test-account");
+    mockDescription.setNetwork("");
+    mockDescription.setAccountName("test-account");
 
     mockedGCEUtil
         .when(
@@ -465,9 +519,8 @@ public class BasicGoogleDeployHandlerTest {
 
     GoogleNetwork mockNetwork = mock(GoogleNetwork.class);
     GoogleSubnet mockSubnet = mock(GoogleSubnet.class);
-
-    when(mockDescription.getSubnet()).thenReturn(subnetName);
-    when(mockDescription.getAccountName()).thenReturn("test-account");
+    mockDescription.setSubnet(subnetName);
+    mockDescription.setAccountName("test-account");
     when(mockNetwork.getId()).thenReturn(networkId);
 
     mockedGCEUtil
@@ -494,12 +547,12 @@ public class BasicGoogleDeployHandlerTest {
     String subnetName = "custom-subnet";
     String networkId = "projects/test-network";
 
-    when(mockDescription.getSubnet()).thenReturn(subnetName);
-    when(mockDescription.getAccountName()).thenReturn("test-account");
-    GoogleNetwork mockNetwork = mock(GoogleNetwork.class);
-    GoogleSubnet mockSubnet = mock(GoogleSubnet.class);
-    when(mockNetwork.getId()).thenReturn(networkId);
-    when(mockNetwork.getAutoCreateSubnets()).thenReturn(true);
+    mockDescription.setSubnet(subnetName);
+    mockDescription.setAccountName("test-account");
+    GoogleNetwork mockNetwork = new GoogleNetwork();
+    GoogleSubnet mockSubnet = new GoogleSubnet();
+    mockNetwork.setId(networkId);
+    mockNetwork.setAutoCreateSubnets(true);
 
     mockedGCEUtil
         .when(
@@ -533,11 +586,42 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testAutoCreateSubnetsNull() {
+    String region = "us-central1";
+    String subnetName = "custom-subnet";
+    String networkId = "projects/test-network";
+
+    mockDescription.setSubnet(subnetName);
+    mockDescription.setAccountName("test-account");
+    GoogleNetwork mockNetwork = new GoogleNetwork();
+    GoogleSubnet mockSubnet = new GoogleSubnet();
+    mockNetwork.setId(networkId);
+    mockNetwork.setAutoCreateSubnets(null);
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.querySubnet(
+                    eq("test-account"),
+                    eq(region),
+                    eq(subnetName),
+                    eq(mockTask),
+                    eq("DEPLOY"),
+                    any()))
+        .thenReturn(mockSubnet);
+
+    assertThat(
+            basicGoogleDeployHandler.buildSubnetFromInput(
+                mockDescription, mockTask, mockNetwork, region))
+        .isEqualTo(mockSubnet);
+  }
+
+  @Test
   void testBuildSubnetFromInput_WithBlankSubnetAndNoAutoCreateSubnets() {
     String region = "us-central1";
 
-    when(mockDescription.getSubnet()).thenReturn(""); // Blank subnet
-    GoogleNetwork mockNetwork = mock(GoogleNetwork.class);
+    mockDescription.setSubnet("");
+    GoogleNetwork mockNetwork = new GoogleNetwork();
 
     GoogleSubnet result =
         basicGoogleDeployHandler.buildSubnetFromInput(
@@ -547,8 +631,25 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testGetLoadBalancerToUpdateFromInput_WithNullLLB() {
+    mockDescription.setLoadBalancers(null);
+
+    BasicGoogleDeployHandler.LoadBalancerInfo result =
+        basicGoogleDeployHandler.getLoadBalancerToUpdateFromInput(mockDescription, mockTask);
+
+    assertNotNull(result);
+    assertTrue(result.internalLoadBalancers.isEmpty());
+    assertTrue(result.internalHttpLoadBalancers.isEmpty());
+    assertTrue(result.sslLoadBalancers.isEmpty());
+    assertTrue(result.tcpLoadBalancers.isEmpty());
+    assertTrue(result.targetPools.isEmpty());
+
+    mockedGCEUtil.verifyNoInteractions();
+  }
+
+  @Test
   void testGetLoadBalancerToUpdateFromInput_WithEmptyLoadBalancers() {
-    when(mockDescription.getLoadBalancers()).thenReturn(Collections.emptyList());
+    mockDescription.setLoadBalancers(Collections.emptyList());
 
     BasicGoogleDeployHandler.LoadBalancerInfo result =
         basicGoogleDeployHandler.getLoadBalancerToUpdateFromInput(mockDescription, mockTask);
@@ -566,8 +667,8 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void testGetLoadBalancerToUpdateFromInput_WithNonEmptyLoadBalancers_TrafficDisabled() {
     List<String> loadBalancerNames = Arrays.asList("lb1", "lb2");
-    when(mockDescription.getLoadBalancers()).thenReturn(loadBalancerNames);
-    when(mockDescription.getDisableTraffic()).thenReturn(true);
+    mockDescription.setLoadBalancers(loadBalancerNames);
+    mockDescription.setDisableTraffic(true);
 
     List<GoogleLoadBalancerView> foundLoadBalancers =
         Arrays.asList(
@@ -576,8 +677,6 @@ public class BasicGoogleDeployHandlerTest {
             mockLoadBalancer(GoogleLoadBalancerType.SSL),
             mockLoadBalancer(GoogleLoadBalancerType.TCP),
             mockLoadBalancer(GoogleLoadBalancerType.NETWORK));
-    GoogleLoadBalancerProvider mockGoogleLoadBalancerProvider =
-        mock(GoogleLoadBalancerProvider.class);
 
     mockedGCEUtil
         .when(
@@ -605,8 +704,8 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void testGetLoadBalancerToUpdateFromInput_WithNonEmptyLoadBalancers_TrafficEnabled() {
     List<String> loadBalancerNames = Arrays.asList("lb1", "lb2");
-    when(mockDescription.getLoadBalancers()).thenReturn(loadBalancerNames);
-    when(mockDescription.getDisableTraffic()).thenReturn(false);
+    mockDescription.setLoadBalancers(loadBalancerNames);
+    mockDescription.setDisableTraffic(false);
 
     GoogleNetworkLoadBalancer nlb = new GoogleNetworkLoadBalancer();
     nlb.setTargetPool("target-pool");
@@ -732,7 +831,7 @@ public class BasicGoogleDeployHandlerTest {
     GoogleSubnet subnetMock = mock(GoogleSubnet.class);
     NetworkInterface networkInterfaceMock = mock(NetworkInterface.class);
 
-    when(mockDescription.getAssociatePublicIpAddress()).thenReturn(null);
+    mockDescription.setAssociatePublicIpAddress(null);
 
     mockedGCEUtil
         .when(
@@ -766,7 +865,7 @@ public class BasicGoogleDeployHandlerTest {
     GoogleSubnet subnetMock = mock(GoogleSubnet.class);
     NetworkInterface networkInterfaceMock = mock(NetworkInterface.class);
 
-    when(mockDescription.getAssociatePublicIpAddress()).thenReturn(false);
+    mockDescription.setAssociatePublicIpAddress(false);
 
     mockedGCEUtil
         .when(
@@ -797,23 +896,30 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void testHasBackedServiceFromInput_WithBackendServiceInMetadata() {
     BasicGoogleDeployHandler.LoadBalancerInfo loadBalancerInfoMock =
-        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
 
-    Map<String, String> instanceMetadata = new HashMap<>();
-    instanceMetadata.put("backend-service-names", "some-backend-service");
-    when(mockDescription.getInstanceMetadata()).thenReturn(instanceMetadata);
+    mockDescription.setInstanceMetadata(Map.of("backend-service-names", "some-backend-service"));
 
-    boolean result =
-        basicGoogleDeployHandler.hasBackedServiceFromInput(mockDescription, loadBalancerInfoMock);
+    assertTrue(
+        basicGoogleDeployHandler.hasBackedServiceFromInput(mockDescription, loadBalancerInfoMock));
+  }
 
-    assertTrue(result);
+  @Test
+  void testHasBackedServiceFromInput_WithNullData() {
+    BasicGoogleDeployHandler.LoadBalancerInfo loadBalancerInfoMock =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+
+    mockDescription.setInstanceMetadata(null);
+
+    assertFalse(
+        basicGoogleDeployHandler.hasBackedServiceFromInput(mockDescription, loadBalancerInfoMock));
   }
 
   @Test
   void testHasBackedServiceFromInput_WithSslLoadBalancers() {
     BasicGoogleDeployHandler.LoadBalancerInfo loadBalancerInfoMock =
         mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
-    when(mockDescription.getInstanceMetadata()).thenReturn(Collections.emptyMap());
+    mockDescription.setInstanceMetadata(Collections.emptyMap());
 
     List<GoogleLoadBalancerView> sslLoadBalancers =
         Arrays.asList(new GoogleLoadBalancerView() {}, new GoogleLoadBalancerView() {});
@@ -829,7 +935,7 @@ public class BasicGoogleDeployHandlerTest {
     BasicGoogleDeployHandler.LoadBalancerInfo loadBalancerInfoMock =
         mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
 
-    when(mockDescription.getInstanceMetadata()).thenReturn(Collections.emptyMap());
+    mockDescription.setInstanceMetadata(Collections.emptyMap());
     when(loadBalancerInfoMock.getSslLoadBalancers()).thenReturn(Collections.emptyList());
     when(loadBalancerInfoMock.getTcpLoadBalancers()).thenReturn(Collections.emptyList());
 
@@ -843,7 +949,7 @@ public class BasicGoogleDeployHandlerTest {
     BasicGoogleDeployHandler.LoadBalancerInfo loadBalancerInfoMock =
         mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
 
-    when(mockDescription.getInstanceMetadata()).thenReturn(Collections.emptyMap());
+    mockDescription.setInstanceMetadata(Collections.emptyMap());
 
     List<GoogleLoadBalancerView> tcpLoadBalancers = Arrays.asList(new GoogleLoadBalancerView() {});
     when(loadBalancerInfoMock.getSslLoadBalancers()).thenReturn(Collections.emptyList());
@@ -856,25 +962,23 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void testBuildLoadBalancerPolicyFromInput_PolicyInDescription() throws Exception {
-    GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
-    when(mockDescription.getLoadBalancingPolicy()).thenReturn(policyMock);
-    when(policyMock.getBalancingMode())
-        .thenReturn(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
-    when(mockDescription.getInstanceMetadata()).thenReturn(Collections.emptyMap());
+    GoogleHttpLoadBalancingPolicy policyMock = new GoogleHttpLoadBalancingPolicy();
+    policyMock.setBalancingMode(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION);
+    mockDescription.setLoadBalancingPolicy(policyMock);
+    mockDescription.setInstanceMetadata(Collections.emptyMap());
 
-    GoogleHttpLoadBalancingPolicy result =
-        basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(mockDescription);
-    assertEquals(policyMock, result);
+    assertEquals(
+        policyMock, basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(mockDescription));
   }
 
   @Test
   void testBuildLoadBalancerPolicyFromInput_PolicyInMetadata() throws Exception {
-    when(mockDescription.getLoadBalancingPolicy()).thenReturn(null);
 
-    Map<String, String> instanceMetadata = new HashMap<>();
-    String policyJson = "{\"balancingMode\": \"UTILIZATION\", \"maxUtilization\": 0.75}";
-    instanceMetadata.put("load-balancing-policy", policyJson);
-    when(mockDescription.getInstanceMetadata()).thenReturn(instanceMetadata);
+    mockDescription.setLoadBalancingPolicy(null);
+    mockDescription.setInstanceMetadata(
+        Map.of(
+            "load-balancing-policy",
+            "{\"balancingMode\": \"UTILIZATION\", \"maxUtilization\": 0.75}"));
 
     GoogleHttpLoadBalancingPolicy result =
         basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(mockDescription);
@@ -887,8 +991,8 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void testBuildLoadBalancerPolicyFromInput_DefaultPolicy() throws Exception {
-    when(mockDescription.getLoadBalancingPolicy()).thenReturn(null);
-    when(mockDescription.getInstanceMetadata()).thenReturn(Collections.emptyMap());
+    mockDescription.setLoadBalancingPolicy(null);
+    mockDescription.setInstanceMetadata(Collections.emptyMap());
 
     GoogleHttpLoadBalancingPolicy result =
         basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(mockDescription);
@@ -907,9 +1011,9 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
-  void testGetBackendServiceToUpdate_NoBackendService() throws IOException {
+  void testGetBackendServiceToUpdate_NoBackendService() {
     BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
-        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
     doReturn(false)
         .when(basicGoogleDeployHandler)
         .hasBackedServiceFromInput(mockDescription, lbInfoMock);
@@ -922,25 +1026,24 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void testGetBackendServiceToUpdate_WithBackendService() throws Exception {
-    Map<String, String> instanceMetadata = new HashMap<>();
-    instanceMetadata.put("backend-service-names", "backend-service-1,backend-service-2");
-    when(mockDescription.getInstanceMetadata()).thenReturn(instanceMetadata);
-    when(mockDescription.getCredentials()).thenReturn(mock(GoogleNamedAccountCredentials.class));
-    when(mockDescription.getRegional()).thenReturn(true);
+    HashMap<String, String> instanceMetadata = new HashMap<>();
+    instanceMetadata.put("backend-service-names", "backend-service-1,backend-service2");
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setCredentials(mock(GoogleNamedAccountCredentials.class));
+    mockDescription.setRegional(true);
 
-    BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
-        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
-    GoogleBackendService backendServiceMock = mock(GoogleBackendService.class);
-    when(backendServiceMock.getName()).thenReturn("backend-service-ssl");
+    GoogleBackendService backendServiceMock = new GoogleBackendService();
+    backendServiceMock.setName("backend-service-ssl");
 
-    List<GoogleLoadBalancerView> sslLB = new ArrayList<>();
     GoogleSslLoadBalancer googleSslLB = new GoogleSslLoadBalancer();
     googleSslLB.setBackendService(backendServiceMock);
-    sslLB.add(googleSslLB.getView());
-    when(lbInfoMock.getSslLoadBalancers()).thenReturn(sslLB);
 
-    GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
-    Backend backendToAdd = mock(Backend.class);
+    List<GoogleLoadBalancerView> sslLB = new ArrayList<>();
+    sslLB.add(googleSslLB.getView());
+
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfoMock.setSslLoadBalancers(sslLB);
 
     mockedGCEUtil
         .when(
@@ -955,31 +1058,32 @@ public class BasicGoogleDeployHandlerTest {
         .then(Answers.RETURNS_SMART_NULLS);
     mockedGCEUtil
         .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
-        .thenReturn(backendToAdd);
+        .thenReturn(new Backend());
     doReturn(true)
         .when(basicGoogleDeployHandler)
         .hasBackedServiceFromInput(mockDescription, lbInfoMock);
 
     List<BackendService> result =
         basicGoogleDeployHandler.getBackendServiceToUpdate(
-            mockDescription, "serverGroupName", lbInfoMock, policyMock, "region");
+            mockDescription,
+            "serverGroupName",
+            lbInfoMock,
+            new GoogleHttpLoadBalancingPolicy(),
+            "region");
     assertNotNull(result);
     assertEquals(3, result.size());
   }
 
   @Test
-  void testGetRegionBackendServicesToUpdateWithNoLoadBalancers() throws IOException {
-    GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
-    BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
-        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
-    when(lbInfoMock.getInternalLoadBalancers()).thenReturn(Collections.emptyList());
-    when(lbInfoMock.getInternalHttpLoadBalancers()).thenReturn(Collections.emptyList());
-
+  void testGetRegionBackendServicesToUpdateWithNoLoadBalancers() {
     List<BackendService> result =
         basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
-            mockDescription, "server-group-name", lbInfoMock, policyMock, "region");
+            mockDescription,
+            "server-group-name",
+            new BasicGoogleDeployHandler.LoadBalancerInfo(),
+            new GoogleHttpLoadBalancingPolicy(),
+            "region");
 
-    assertNotNull(result);
     assertTrue(result.isEmpty());
   }
 
@@ -1007,9 +1111,9 @@ public class BasicGoogleDeployHandlerTest {
     Map<String, String> instanceMetadata = new HashMap<>();
     instanceMetadata.put("load-balancer-names", "load-balancer-1,load-balancer-2");
     instanceMetadata.put("region-backend-service-names", "us-central1-backend");
-    when(mockDescription.getInstanceMetadata()).thenReturn(instanceMetadata);
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
-    when(mockDescription.getZone()).thenReturn("us-central1-a");
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
 
     String region = "us-central1";
     doReturn(mock(BackendService.class))
@@ -1042,7 +1146,7 @@ public class BasicGoogleDeployHandlerTest {
     Map<String, String> userDataMap = new HashMap<>();
     userDataMap.put("key1", "value1");
 
-    when(mockDescription.getInstanceMetadata()).thenReturn(new HashMap<>());
+    mockDescription.setInstanceMetadata(new HashMap<>());
     doReturn(userDataMap)
         .when(basicGoogleDeployHandler)
         .getUserData(mockDescription, serverGroupName, instanceTemplateName, mockTask);
@@ -1053,11 +1157,8 @@ public class BasicGoogleDeployHandlerTest {
     verify(basicGoogleDeployHandler)
         .getUserData(mockDescription, serverGroupName, instanceTemplateName, mockTask);
 
-    ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
-    verify(mockDescription).setInstanceMetadata(captor.capture());
-    Map<String, String> updatedMetadata = captor.getValue();
-    assertEquals(1, updatedMetadata.size());
-    assertEquals("value1", updatedMetadata.get("key1"));
+    assertEquals(1, mockDescription.getInstanceMetadata().size());
+    assertEquals("value1", mockDescription.getInstanceMetadata().get("key1"));
   }
 
   @Test
@@ -1068,8 +1169,7 @@ public class BasicGoogleDeployHandlerTest {
     existingMetadata.put("existingKey", "existingValue");
     Map<String, String> userDataMap = new HashMap<>();
     userDataMap.put("key1", "value1");
-
-    when(mockDescription.getInstanceMetadata()).thenReturn(existingMetadata);
+    mockDescription.setInstanceMetadata(existingMetadata);
     doReturn(userDataMap)
         .when(basicGoogleDeployHandler)
         .getUserData(mockDescription, serverGroupName, instanceTemplateName, mockTask);
@@ -1079,13 +1179,10 @@ public class BasicGoogleDeployHandlerTest {
 
     verify(basicGoogleDeployHandler)
         .getUserData(mockDescription, serverGroupName, instanceTemplateName, mockTask);
-    ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
-    verify(mockDescription).setInstanceMetadata(captor.capture());
 
-    Map<String, String> updatedMetadata = captor.getValue();
-    assertEquals(2, updatedMetadata.size());
-    assertEquals("existingValue", updatedMetadata.get("existingKey"));
-    assertEquals("value1", updatedMetadata.get("key1"));
+    assertEquals(2, mockDescription.getInstanceMetadata().size());
+    assertEquals("existingValue", mockDescription.getInstanceMetadata().get("existingKey"));
+    assertEquals("value1", mockDescription.getInstanceMetadata().get("key1"));
   }
 
   @Test
@@ -1093,11 +1190,9 @@ public class BasicGoogleDeployHandlerTest {
     String serverGroupName = "test-server-group";
     String instanceTemplateName = "test-template";
     String customUserData = "custom-data";
+    mockDescription.setUserData(customUserData);
 
-    when(mockDescription.getUserData()).thenReturn(customUserData);
-
-    Map<String, String> mockUserData = new HashMap<>();
-    mockUserData.put("key", "value");
+    Map<String, String> mockUserData = Map.of("key", "value");
 
     when(googleUserDataProvider.getUserData(
             serverGroupName,
@@ -1107,7 +1202,7 @@ public class BasicGoogleDeployHandlerTest {
             customUserData))
         .thenReturn(mockUserData);
 
-    Map result =
+    Map<String, String> result =
         basicGoogleDeployHandler.getUserData(
             mockDescription, serverGroupName, instanceTemplateName, mockTask);
 
@@ -1127,11 +1222,9 @@ public class BasicGoogleDeployHandlerTest {
     String serverGroupName = "test-server-group";
     String instanceTemplateName = "test-template";
     String emptyUserData = "";
+    mockDescription.setUserData(null);
 
-    when(mockDescription.getUserData()).thenReturn(null);
-
-    Map<String, String> mockUserData = new HashMap<>();
-    mockUserData.put("key", "value");
+    Map<String, String> mockUserData = Map.of("key", "value");
 
     when(googleUserDataProvider.getUserData(
             serverGroupName,
@@ -1141,7 +1234,7 @@ public class BasicGoogleDeployHandlerTest {
             emptyUserData))
         .thenReturn(mockUserData);
 
-    Map result =
+    Map<String, String> result =
         basicGoogleDeployHandler.getUserData(
             mockDescription, serverGroupName, instanceTemplateName, mockTask);
 
@@ -1158,36 +1251,47 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void testAddSelectZonesToInstanceMetadata_RegionalAndSelectZonesTrue() {
-    when(mockDescription.getRegional()).thenReturn(true);
-    when(mockDescription.getSelectZones()).thenReturn(true);
+    mockDescription.setRegional(true);
+    mockDescription.setSelectZones(true);
 
-    Map<String, String> mockMetadata = new HashMap<>();
-    when(mockDescription.getInstanceMetadata()).thenReturn(mockMetadata);
+    mockDescription.setInstanceMetadata(new HashMap<>());
 
     basicGoogleDeployHandler.addSelectZonesToInstanceMetadata(mockDescription);
 
-    assertTrue(mockMetadata.containsKey("select-zones"));
-    assertEquals("true", mockMetadata.get("select-zones"));
-    verify(mockDescription).setInstanceMetadata(mockMetadata);
+    assertTrue(mockDescription.getInstanceMetadata().containsKey("select-zones"));
+    assertEquals("true", mockDescription.getInstanceMetadata().get("select-zones"));
   }
 
   @Test
   void testAddSelectZonesToInstanceMetadata_NonRegional() {
-    when(mockDescription.getRegional()).thenReturn(false);
-
+    mockDescription.setRegional(false);
     basicGoogleDeployHandler.addSelectZonesToInstanceMetadata(mockDescription);
+    assertNull(mockDescription.getInstanceMetadata());
+  }
 
-    verify(mockDescription, never()).setInstanceMetadata(any());
+  @Test
+  void testAddSelectZonesToInstanceMetadata_ZonesWasntSet() {
+    mockDescription.setRegional(true);
+    basicGoogleDeployHandler.addSelectZonesToInstanceMetadata(mockDescription);
+    assertNull(mockDescription.getInstanceMetadata());
   }
 
   @Test
   void testAddSelectZonesToInstanceMetadata_SelectZonesFalse() {
-    when(mockDescription.getRegional()).thenReturn(true);
-    when(mockDescription.getSelectZones()).thenReturn(false);
+    mockDescription.setRegional(true);
+    mockDescription.setSelectZones(false);
 
     basicGoogleDeployHandler.addSelectZonesToInstanceMetadata(mockDescription);
+    assertNull(mockDescription.getInstanceMetadata());
+  }
 
-    verify(mockDescription, never()).setInstanceMetadata(any());
+  @Test
+  void addZonesNoMetadataSet() {
+    mockDescription.setRegional(true);
+    mockDescription.setSelectZones(true);
+
+    basicGoogleDeployHandler.addSelectZonesToInstanceMetadata(mockDescription);
+    assertThat(mockDescription.getInstanceMetadata().get("select-zones")).isEqualTo("true");
   }
 
   @Test
@@ -1198,15 +1302,13 @@ public class BasicGoogleDeployHandlerTest {
 
     Metadata mockMetadata = new Metadata();
     mockMetadata.setItems(new ArrayList<>());
-
-    when(mockDescription.getInstanceMetadata()).thenReturn(mockInstanceMetadata);
+    mockDescription.setInstanceMetadata(mockInstanceMetadata);
     mockedGCEUtil
         .when(() -> GCEUtil.buildMetadataFromMap(mockInstanceMetadata))
         .thenReturn(mockMetadata);
 
-    Metadata result = basicGoogleDeployHandler.buildMetadataFromInstanceMetadata(mockDescription);
-
-    assertEquals(mockMetadata, result);
+    assertEquals(
+        mockMetadata, basicGoogleDeployHandler.buildMetadataFromInstanceMetadata(mockDescription));
   }
 
   @Test
@@ -1217,13 +1319,10 @@ public class BasicGoogleDeployHandlerTest {
 
     Tags mockTags = new Tags();
     mockTags.setItems(inputTags);
-
-    when(mockDescription.getTags()).thenReturn(inputTags);
+    mockDescription.setTags(inputTags);
     mockedGCEUtil.when(() -> GCEUtil.buildTagsFromList(inputTags)).thenReturn(mockTags);
 
-    Tags result = basicGoogleDeployHandler.buildTagsFromInput(mockDescription);
-
-    assertEquals(mockTags, result);
+    assertEquals(mockTags, basicGoogleDeployHandler.buildTagsFromInput(mockDescription));
   }
 
   @Test
@@ -1288,8 +1387,7 @@ public class BasicGoogleDeployHandlerTest {
   void testBuildLabelsFromInput_ExistingLabels() {
     Map<String, String> existingLabels = new HashMap<>();
     existingLabels.put("key1", "value1");
-
-    when(mockDescription.getLabels()).thenReturn(existingLabels);
+    mockDescription.setLabels(existingLabels);
 
     Map<String, String> labels =
         basicGoogleDeployHandler.buildLabelsFromInput(
@@ -1299,13 +1397,11 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals("us-central1", labels.get("spinnaker-region"));
     assertEquals("my-server-group", labels.get("spinnaker-server-group"));
     assertEquals("value1", labels.get("key1"));
-
-    verify(mockDescription).getLabels();
   }
 
   @Test
   void testBuildLabelsFromInput_NullLabels() {
-    when(mockDescription.getLabels()).thenReturn(null);
+    mockDescription.setLabels(null);
 
     Map<String, String> labels =
         basicGoogleDeployHandler.buildLabelsFromInput(
@@ -1314,14 +1410,12 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(2, labels.size());
     assertEquals("us-central1", labels.get("spinnaker-region"));
     assertEquals("my-server-group", labels.get("spinnaker-server-group"));
-
-    verify(mockDescription).getLabels();
   }
 
   @Test
   void validateAcceleratorConfig_throwsExceptionForInvalidConfig() {
-    when(mockDescription.getAcceleratorConfigs()).thenReturn(List.of(new AcceleratorConfig()));
-    when(mockDescription.getRegional()).thenReturn(false);
+    mockDescription.setAcceleratorConfigs(List.of(new AcceleratorConfig()));
+    mockDescription.setRegional(false);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -1337,22 +1431,22 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void validateAcceleratorConfig_noExceptionForValidConfig() {
-    when(mockDescription.getAcceleratorConfigs()).thenReturn(List.of());
+    mockDescription.setAcceleratorConfigs(List.of());
     assertDoesNotThrow(() -> basicGoogleDeployHandler.validateAcceleratorConfig(mockDescription));
   }
 
   @Test
   void validateAcceleratorConfig_noExceptionForNullConfig() {
-    when(mockDescription.getAcceleratorConfigs()).thenReturn(null);
+    mockDescription.setAcceleratorConfigs(null);
     assertDoesNotThrow(() -> basicGoogleDeployHandler.validateAcceleratorConfig(mockDescription));
   }
 
   @Test
   void validateAcceleratorConfig_validRegionalWithZones() {
-    BasicGoogleDeployDescription description = mock(BasicGoogleDeployDescription.class);
-    when(description.getAcceleratorConfigs()).thenReturn(List.of(new AcceleratorConfig()));
-    when(description.getRegional()).thenReturn(true);
-    when(description.getSelectZones()).thenReturn(false);
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setAcceleratorConfigs(List.of(new AcceleratorConfig()));
+    description.setRegional(true);
+    description.setSelectZones(false);
 
     assertDoesNotThrow(() -> basicGoogleDeployHandler.validateAcceleratorConfig(description));
   }
@@ -1363,21 +1457,17 @@ public class BasicGoogleDeployHandlerTest {
     List<AttachedDisk> attachedDisks = List.of(mock(AttachedDisk.class));
     NetworkInterface networkInterface = mock(NetworkInterface.class);
     Metadata metadata = mock(Metadata.class);
-    Tags tags = mock(Tags.class);
+    Tags tags = new Tags();
     List<ServiceAccount> serviceAccounts = List.of(mock(ServiceAccount.class));
     Scheduling scheduling = mock(Scheduling.class);
     Map<String, String> labels = Map.of("key1", "value1");
-
-    when(mockDescription.getAcceleratorConfigs())
-        .thenReturn(List.of(mock(AcceleratorConfig.class)));
-    when(mockDescription.getCanIpForward()).thenReturn(true);
-    when(mockDescription.getResourceManagerTags())
-        .thenReturn(Map.of("resource-tag-key", "resource-tag-value"));
-    when(mockDescription.getPartnerMetadata())
-        .thenReturn(
-            Map.of(
-                "partner-metadata-key",
-                new StructuredEntries().setEntries(Map.of("entries", new Object()))));
+    mockDescription.setAcceleratorConfigs(List.of(new AcceleratorConfig()));
+    mockDescription.setCanIpForward(true);
+    mockDescription.setResourceManagerTags(Map.of("resource-tag-key", "resource-tag-value"));
+    mockDescription.setPartnerMetadata(
+        Map.of(
+            "partner-metadata-key",
+            new StructuredEntries().setEntries(Map.of("entries", new Object()))));
 
     InstanceProperties result =
         basicGoogleDeployHandler.buildInstancePropertiesFromInput(
@@ -1411,16 +1501,16 @@ public class BasicGoogleDeployHandlerTest {
     String machineTypeName = "n1-standard-1";
     List<AttachedDisk> attachedDisks = List.of(mock(AttachedDisk.class));
     NetworkInterface networkInterface = mock(NetworkInterface.class);
-    Metadata metadata = mock(Metadata.class);
-    Tags tags = mock(Tags.class);
-    List<ServiceAccount> serviceAccounts = List.of(mock(ServiceAccount.class));
-    Scheduling scheduling = mock(Scheduling.class);
+    Metadata metadata = new Metadata();
+    Tags tags = new Tags();
+    List<ServiceAccount> serviceAccounts = List.of(new ServiceAccount());
+    Scheduling scheduling = new Scheduling();
     Map<String, String> labels = Map.of("key1", "value1");
 
-    when(mockDescription.getAcceleratorConfigs()).thenReturn(Collections.emptyList());
-    when(mockDescription.getCanIpForward()).thenReturn(false);
-    when(mockDescription.getResourceManagerTags()).thenReturn(Collections.emptyMap());
-    when(mockDescription.getPartnerMetadata()).thenReturn(Collections.emptyMap());
+    mockDescription.setAcceleratorConfigs(Collections.emptyList());
+    mockDescription.setCanIpForward(false);
+    mockDescription.setResourceManagerTags(Collections.emptyMap());
+    mockDescription.setPartnerMetadata(Collections.emptyMap());
 
     InstanceProperties result =
         basicGoogleDeployHandler.buildInstancePropertiesFromInput(
@@ -1460,10 +1550,10 @@ public class BasicGoogleDeployHandlerTest {
     Scheduling scheduling = mock(Scheduling.class);
     Map<String, String> labels = Map.of("key1", "value1");
 
-    when(mockDescription.getAcceleratorConfigs()).thenReturn(null);
-    when(mockDescription.getCanIpForward()).thenReturn(false);
-    when(mockDescription.getResourceManagerTags()).thenReturn(Collections.emptyMap());
-    when(mockDescription.getPartnerMetadata()).thenReturn(Collections.emptyMap());
+    mockDescription.setAcceleratorConfigs(null);
+    mockDescription.setCanIpForward(false);
+    mockDescription.setResourceManagerTags(Collections.emptyMap());
+    mockDescription.setPartnerMetadata(Collections.emptyMap());
 
     InstanceProperties result =
         basicGoogleDeployHandler.buildInstancePropertiesFromInput(
@@ -1495,8 +1585,8 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void addShieldedVmConfigToInstanceProperties_shieldedVmCompatible_configAdded() {
     InstanceProperties instanceProperties = new InstanceProperties();
-    Image bootImage = mock(Image.class);
-    ShieldedVmConfig shieldedVmConfig = mock(ShieldedVmConfig.class);
+    Image bootImage = new Image();
+    ShieldedVmConfig shieldedVmConfig = new ShieldedVmConfig();
 
     mockedGCEUtil.when(() -> GCEUtil.isShieldedVmCompatible(bootImage)).thenReturn(true);
     mockedGCEUtil
@@ -1511,7 +1601,7 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void addShieldedVmConfigToInstanceProperties_notShieldedVmCompatible_noConfigAdded() {
     InstanceProperties instanceProperties = new InstanceProperties();
-    Image bootImage = mock(Image.class);
+    Image bootImage = new Image();
 
     mockedGCEUtil.when(() -> GCEUtil.isShieldedVmCompatible(bootImage)).thenReturn(false);
 
@@ -1524,7 +1614,7 @@ public class BasicGoogleDeployHandlerTest {
   void addMinCpuPlatformToInstanceProperties_minCpuPlatformIsNotBlank_setMinCpuPlatform() {
     InstanceProperties instanceProperties = new InstanceProperties();
     String minCpuPlatform = "Intel Skylake";
-    when(mockDescription.getMinCpuPlatform()).thenReturn(minCpuPlatform);
+    mockDescription.setMinCpuPlatform(minCpuPlatform);
 
     basicGoogleDeployHandler.addMinCpuPlatformToInstanceProperties(
         mockDescription, instanceProperties);
@@ -1534,8 +1624,7 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void addMinCpuPlatformToInstanceProperties_minCpuPlatformIsBlank_doNotSetMinCpuPlatform() {
     InstanceProperties instanceProperties = new InstanceProperties();
-    String minCpuPlatform = "";
-    when(mockDescription.getMinCpuPlatform()).thenReturn(minCpuPlatform);
+    mockDescription.setMinCpuPlatform("");
 
     basicGoogleDeployHandler.addMinCpuPlatformToInstanceProperties(
         mockDescription, instanceProperties);
@@ -1560,18 +1649,17 @@ public class BasicGoogleDeployHandlerTest {
   void setCapacityFromInput_withValidCapacity_setsTargetSize() {
     BasicGoogleDeployDescription.Capacity capacity = new BasicGoogleDeployDescription.Capacity();
     capacity.setDesired(5);
-    Mockito.when(mockDescription.getCapacity()).thenReturn(capacity);
+    mockDescription.setCapacity(capacity);
 
     basicGoogleDeployHandler.setCapacityFromInput(mockDescription);
-
-    Mockito.verify(mockDescription).setTargetSize(5);
+    assertThat(mockDescription.getTargetSize()).isEqualTo(5);
   }
 
   @Test
   void setCapacityFromInput_withNullCapacity_doesNotSetTargetSize() {
-    Mockito.when(mockDescription.getCapacity()).thenReturn(null);
+    mockDescription.setCapacity(null);
     basicGoogleDeployHandler.setCapacityFromInput(mockDescription);
-    Mockito.verify(mockDescription, Mockito.never()).setTargetSize(Mockito.anyInt());
+    assertThat(mockDescription.getTargetSize()).isNull();
   }
 
   @Test
@@ -1579,18 +1667,14 @@ public class BasicGoogleDeployHandlerTest {
     BasicGoogleDeployDescription.Capacity capacity = new BasicGoogleDeployDescription.Capacity();
     capacity.setMin(2);
     capacity.setMax(10);
-
-    when(mockDescription.getCapacity()).thenReturn(capacity);
-    when(mockDescription.getAutoscalingPolicy()).thenReturn(mockAutoscalingPolicy);
-    when(mockDescription.getCapacity()).thenReturn(capacity);
+    mockDescription.setCapacity(capacity);
+    mockDescription.setAutoscalingPolicy(mockAutoscalingPolicy);
     doReturn(true).when(basicGoogleDeployHandler).autoscalerIsSpecified(mockDescription);
 
     basicGoogleDeployHandler.setAutoscalerCapacityFromInput(mockDescription);
 
     verify(mockAutoscalingPolicy).setMinNumReplicas(2);
     verify(mockAutoscalingPolicy).setMaxNumReplicas(10);
-    verify(mockDescription, times(2)).getAutoscalingPolicy();
-    verify(mockDescription, times(3)).getCapacity();
     mockedGCEUtil.verify(
         () -> GCEUtil.calibrateTargetSizeWithAutoscaler(mockDescription), times(1));
   }
@@ -1600,16 +1684,13 @@ public class BasicGoogleDeployHandlerTest {
     doReturn(false).when(basicGoogleDeployHandler).autoscalerIsSpecified(mockDescription);
 
     basicGoogleDeployHandler.setAutoscalerCapacityFromInput(mockDescription);
-
-    verify(mockDescription, never()).getAutoscalingPolicy();
-    verify(mockDescription, never()).getCapacity();
     mockedGCEUtil.verify(
         () -> GCEUtil.calibrateTargetSizeWithAutoscaler(mockDescription), times(0));
   }
 
   @Test
   void setAutoscalerCapacityFromInput_withNullCapacity_doesNotUpdateAutoscalingPolicy() {
-    when(mockDescription.getCapacity()).thenReturn(null);
+    mockDescription.setCapacity(null);
     doReturn(true).when(basicGoogleDeployHandler).autoscalerIsSpecified(mockDescription);
 
     basicGoogleDeployHandler.setAutoscalerCapacityFromInput(mockDescription);
@@ -1622,58 +1703,63 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void autoscalerIsSpecified_whenAutoscalingPolicyIsNull_returnsFalse() {
-    when(mockDescription.getAutoscalingPolicy()).thenReturn(null);
-    boolean result = basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription);
-    assertFalse(result, "Expected false when AutoscalingPolicy is null");
+    mockDescription.setAutoscalingPolicy(null);
+    assertFalse(
+        basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription),
+        "Expected false when AutoscalingPolicy is null");
   }
 
   @Test
   void autoscalerIsSpecified_whenAllUtilizationsAndSchedulesAreNull_returnsFalse() {
-    when(mockDescription.getAutoscalingPolicy()).thenReturn(mockAutoscalingPolicy);
     when(mockAutoscalingPolicy.getCpuUtilization()).thenReturn(null);
     when(mockAutoscalingPolicy.getLoadBalancingUtilization()).thenReturn(null);
     when(mockAutoscalingPolicy.getCustomMetricUtilizations()).thenReturn(null);
     when(mockAutoscalingPolicy.getScalingSchedules()).thenReturn(null);
+    mockDescription.setAutoscalingPolicy(mockAutoscalingPolicy);
 
-    boolean result = basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription);
-
-    assertFalse(result, "Expected false when all utilizations and schedules are null");
+    assertFalse(
+        basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription),
+        "Expected false when all utilization and schedules are null");
   }
 
   @Test
   void autoscalerIsSpecified_whenCpuUtilizationIsNotNull_returnsTrue() {
-    when(mockDescription.getAutoscalingPolicy()).thenReturn(mockAutoscalingPolicy);
     when(mockAutoscalingPolicy.getCpuUtilization())
         .thenReturn(new GoogleAutoscalingPolicy.CpuUtilization());
 
-    boolean result = basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription);
-    assertTrue(result, "Expected true when CpuUtilization is not null");
+    mockDescription.setAutoscalingPolicy(mockAutoscalingPolicy);
+    assertTrue(
+        basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription),
+        "Expected true when CpuUtilization is not null");
   }
 
   @Test
   void autoscalerIsSpecified_whenLoadBalancingUtilizationIsNotNull_returnsTrue() {
-    when(mockDescription.getAutoscalingPolicy()).thenReturn(mockAutoscalingPolicy);
     when(mockAutoscalingPolicy.getLoadBalancingUtilization())
         .thenReturn(new GoogleAutoscalingPolicy.LoadBalancingUtilization());
+    mockDescription.setAutoscalingPolicy(mockAutoscalingPolicy);
 
-    boolean result = basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription);
-    assertTrue(result, "Expected true when LoadBalancingUtilization is not null");
+    assertTrue(
+        basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription),
+        "Expected true when LoadBalancingUtilization is not null");
   }
 
   @Test
   void autoscalerIsSpecified_whenCustomMetricUtilizationsIsNotNull_returnsTrue() {
-    when(mockDescription.getAutoscalingPolicy()).thenReturn(mockAutoscalingPolicy);
     when(mockAutoscalingPolicy.getCustomMetricUtilizations()).thenReturn(new ArrayList<>());
+    mockDescription.setAutoscalingPolicy(mockAutoscalingPolicy);
 
-    boolean result = basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription);
-    assertTrue(result, "Expected true when CustomMetricUtilizations is not null");
+    assertTrue(
+        basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription),
+        "Expected true when CustomMetricUtilizations is not null");
   }
 
   @Test
   void autoscalerIsSpecified_whenScalingSchedulesIsNotNull_returnsTrue() {
-    when(mockDescription.getAutoscalingPolicy()).thenReturn(mockAutoscalingPolicy);
-    boolean result = basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription);
-    assertTrue(result, "Expected true when ScalingSchedules is not null");
+    mockDescription.setAutoscalingPolicy(mockAutoscalingPolicy);
+    assertTrue(
+        basicGoogleDeployHandler.autoscalerIsSpecified(mockDescription),
+        "Expected true when ScalingSchedules is not null");
   }
 
   @Test
@@ -1763,23 +1849,22 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void buildAutoHealingPolicyFromInput_whenHealthCheckIsValid_returnsPolicy() {
-    GoogleAutoHealingPolicy mockAutoHealingPolicy = mock(GoogleAutoHealingPolicy.class);
-    GoogleHealthCheck mockHealthCheck = mock(GoogleHealthCheck.class);
-    when(mockAutoHealingPolicy.getHealthCheck()).thenReturn("valid-health-check");
-    when(mockAutoHealingPolicy.getHealthCheckKind())
-        .thenReturn(GoogleHealthCheck.HealthCheckKind.healthCheck);
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
-    when(mockDescription.getAccountName()).thenReturn("account-name");
-    when(mockDescription.getAutoHealingPolicy()).thenReturn(mockAutoHealingPolicy);
+    GoogleAutoHealingPolicy mockAutoHealingPolicy = new GoogleAutoHealingPolicy();
+    mockAutoHealingPolicy.setHealthCheck("valid-health-check");
+    mockAutoHealingPolicy.setHealthCheckKind(GoogleHealthCheck.HealthCheckKind.healthCheck);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setAccountName("account-name");
+    mockDescription.setAutoHealingPolicy(mockAutoHealingPolicy);
+
+    GoogleHealthCheck mockHealthCheck = new GoogleHealthCheck();
+    mockHealthCheck.setSelfLink("health-check-link");
+    mockAutoHealingPolicy.setInitialDelaySec(300);
     mockedGCEUtil
         .when(
             () ->
                 GCEUtil.queryHealthCheck(
                     any(), any(), any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(mockHealthCheck);
-
-    when(mockHealthCheck.getSelfLink()).thenReturn("health-check-link");
-    when(mockAutoHealingPolicy.getInitialDelaySec()).thenReturn(300);
 
     List<InstanceGroupManagerAutoHealingPolicy> result =
         basicGoogleDeployHandler.buildAutoHealingPolicyFromInput(mockDescription, mockTask);
@@ -1792,36 +1877,33 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void buildAutoHealingPolicyFromInput_whenHealthCheckIsBlank_returnsNull() {
-    List<InstanceGroupManagerAutoHealingPolicy> result =
-        basicGoogleDeployHandler.buildAutoHealingPolicyFromInput(mockDescription, mockTask);
-    assertNull(result);
+    assertNull(basicGoogleDeployHandler.buildAutoHealingPolicyFromInput(mockDescription, mockTask));
   }
 
   @Test
   void buildAutoHealingPolicyFromInput_whenMaxUnavailableIsSet_updatesPolicy() {
-    GoogleAutoHealingPolicy mockAutoHealingPolicy = mock(GoogleAutoHealingPolicy.class);
-    GoogleHealthCheck mockHealthCheck = mock(GoogleHealthCheck.class);
-    when(mockAutoHealingPolicy.getHealthCheck()).thenReturn("valid-health-check");
-    when(mockAutoHealingPolicy.getHealthCheckKind())
-        .thenReturn(GoogleHealthCheck.HealthCheckKind.healthCheck);
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
-    when(mockDescription.getAccountName()).thenReturn("account-name");
-    when(mockDescription.getAutoHealingPolicy()).thenReturn(mockAutoHealingPolicy);
+    GoogleAutoHealingPolicy mockAutoHealingPolicy = new GoogleAutoHealingPolicy();
+    mockAutoHealingPolicy.setHealthCheck("valid-health-check");
+    mockAutoHealingPolicy.setHealthCheckKind(GoogleHealthCheck.HealthCheckKind.healthCheck);
+    mockAutoHealingPolicy.setInitialDelaySec(300);
+    GoogleAutoHealingPolicy.FixedOrPercent mockMaxUnavailable =
+        new GoogleAutoHealingPolicy.FixedOrPercent();
+    mockMaxUnavailable.setFixed(5.0);
+    mockMaxUnavailable.setPercent(10.0);
+    mockAutoHealingPolicy.setMaxUnavailable(mockMaxUnavailable);
+
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setAccountName("account-name");
+    mockDescription.setAutoHealingPolicy(mockAutoHealingPolicy);
+
+    GoogleHealthCheck mockHealthCheck = new GoogleHealthCheck();
+    mockHealthCheck.setSelfLink("health-check-link");
     mockedGCEUtil
         .when(
             () ->
                 GCEUtil.queryHealthCheck(
                     any(), any(), any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(mockHealthCheck);
-
-    when(mockHealthCheck.getSelfLink()).thenReturn("health-check-link");
-    when(mockAutoHealingPolicy.getInitialDelaySec()).thenReturn(300);
-
-    GoogleAutoHealingPolicy.FixedOrPercent mockMaxUnavailable =
-        new GoogleAutoHealingPolicy.FixedOrPercent();
-    mockMaxUnavailable.setFixed(5.0);
-    mockMaxUnavailable.setPercent(10.0);
-    when(mockAutoHealingPolicy.getMaxUnavailable()).thenReturn(mockMaxUnavailable);
 
     List<InstanceGroupManagerAutoHealingPolicy> result =
         basicGoogleDeployHandler.buildAutoHealingPolicyFromInput(mockDescription, mockTask);
@@ -1915,10 +1997,8 @@ public class BasicGoogleDeployHandlerTest {
     BasicGoogleDeployDescription.Source source = new BasicGoogleDeployDescription.Source();
     source.setServerGroupName("server-group");
     source.setRegion("us-central1");
-
-    when(mockDescription.getSource()).thenReturn(source);
-
-    when(mockDescription.getLoadBalancingPolicy()).thenReturn(loadBalancingPolicy);
+    mockDescription.setSource(source);
+    mockDescription.setLoadBalancingPolicy(loadBalancingPolicy);
     doReturn(true)
         .when(basicGoogleDeployHandler)
         .hasBackedServiceFromInput(mockDescription, mockLBInfo);
@@ -1942,8 +2022,8 @@ public class BasicGoogleDeployHandlerTest {
         mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
     InstanceGroupManager instanceGroupManager = mock(InstanceGroupManager.class);
 
-    when(mockDescription.getSource()).thenReturn(source);
-    when(mockDescription.getLoadBalancingPolicy()).thenReturn(null);
+    mockDescription.setSource(source);
+    mockDescription.setLoadBalancingPolicy(null);
     when(googleClusterProvider.getServerGroup(any(), anyString(), anyString()))
         .thenReturn(sourceServerGroup.getView());
     doReturn(true)
@@ -1966,15 +2046,15 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void testSetNamedPortsToInstanceGroup_withNoNamedPortsOrSourceSetsDefault() {
     BasicGoogleDeployHandler.LoadBalancerInfo mockLBInfo =
-        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
-    InstanceGroupManager instanceGroupManager = mock(InstanceGroupManager.class);
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
 
     BasicGoogleDeployDescription.Source source = new BasicGoogleDeployDescription.Source();
     source.setServerGroupName("source-server-group");
     source.setRegion("us-central1");
 
-    when(mockDescription.getLoadBalancingPolicy()).thenReturn(null);
-    when(mockDescription.getSource()).thenReturn(source);
+    mockDescription.setLoadBalancingPolicy(null);
+    mockDescription.setSource(source);
     doReturn(true)
         .when(basicGoogleDeployHandler)
         .hasBackedServiceFromInput(mockDescription, mockLBInfo);
@@ -1982,50 +2062,38 @@ public class BasicGoogleDeployHandlerTest {
     basicGoogleDeployHandler.setNamedPortsToInstanceGroup(
         mockDescription, mockLBInfo, instanceGroupManager);
 
-    verify(instanceGroupManager)
-        .setNamedPorts(
-            List.of(
-                new NamedPort()
-                    .setName(GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME)
-                    .setPort(GoogleHttpLoadBalancingPolicy.getHTTP_DEFAULT_PORT())));
+    assertThat(instanceGroupManager.getNamedPorts().get(0).getName())
+        .isEqualTo(GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME);
+    assertThat(instanceGroupManager.getNamedPorts().get(0).getPort())
+        .isEqualTo(GoogleHttpLoadBalancingPolicy.getHTTP_DEFAULT_PORT());
   }
 
   @Test
   void testSetNamedPortsToInstanceGroup_withLoadBalancingPolicyListeningPort() {
     BasicGoogleDeployHandler.LoadBalancerInfo mockLBInfo =
-        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
-    InstanceGroupManager instanceGroupManager = mock(InstanceGroupManager.class);
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
     GoogleHttpLoadBalancingPolicy loadBalancingPolicy = new GoogleHttpLoadBalancingPolicy();
     loadBalancingPolicy.setListeningPort(8080);
     BasicGoogleDeployDescription.Source source = new BasicGoogleDeployDescription.Source();
     source.setServerGroupName(""); // empty serverGroupName
+    mockDescription.setSource(source);
+    mockDescription.setLoadBalancingPolicy(loadBalancingPolicy);
 
-    when(mockDescription.getSource()).thenReturn(source);
-    when(mockDescription.getLoadBalancingPolicy()).thenReturn(loadBalancingPolicy);
     doReturn(true)
         .when(basicGoogleDeployHandler)
         .hasBackedServiceFromInput(mockDescription, mockLBInfo);
 
     basicGoogleDeployHandler.setNamedPortsToInstanceGroup(
         mockDescription, mockLBInfo, instanceGroupManager);
-
-    verify(instanceGroupManager)
-        .setNamedPorts(
-            List.of(
-                new NamedPort()
-                    .setName(GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME)
-                    .setPort(8080)));
+    assertThat(instanceGroupManager.getNamedPorts().get(0).getName())
+        .isEqualTo(GoogleHttpLoadBalancingPolicy.HTTP_DEFAULT_PORT_NAME);
+    assertThat(instanceGroupManager.getNamedPorts().get(0).getPort()).isEqualTo(8080);
   }
 
   @Test
   void testCreateInstanceGroupManagerFromInput_whenRegional() throws IOException {
-    BasicGoogleDeployHandler.LoadBalancerInfo mockLBInfo =
-        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
-    InstanceGroupManager instanceGroupManager = mock(InstanceGroupManager.class);
-
-    when(mockDescription.getRegional()).thenReturn(true);
-    String serverGroupName = "test-server-group";
-    String region = "us-central1";
+    mockDescription.setRegional(true);
 
     doNothing().when(basicGoogleDeployHandler).setDistributionPolicyToInstanceGroup(any(), any());
     doReturn("")
@@ -2036,7 +2104,12 @@ public class BasicGoogleDeployHandlerTest {
         .createRegionalAutoscaler(any(), any(), any(), any(), any());
 
     basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
-        mockDescription, instanceGroupManager, mockLBInfo, serverGroupName, region, mockTask);
+        mockDescription,
+        new InstanceGroupManager(),
+        new BasicGoogleDeployHandler.LoadBalancerInfo(),
+        "test-server-group",
+        "us-central1",
+        mockTask);
 
     verify(basicGoogleDeployHandler).setDistributionPolicyToInstanceGroup(any(), any());
     verify(basicGoogleDeployHandler)
@@ -2047,12 +2120,9 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void testCreateInstanceGroupManagerFromInput_whenNotRegional() throws IOException {
     BasicGoogleDeployHandler.LoadBalancerInfo mockLBInfo =
-        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
-    InstanceGroupManager instanceGroupManager = mock(InstanceGroupManager.class);
-
-    when(mockDescription.getRegional()).thenReturn(false);
-    String serverGroupName = "test-server-group";
-    String region = "us-central1";
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    mockDescription.setRegional(false);
 
     doReturn("")
         .when(basicGoogleDeployHandler)
@@ -2063,7 +2133,7 @@ public class BasicGoogleDeployHandlerTest {
         mockDescription,
         instanceGroupManager,
         mockLBInfo,
-        serverGroupName,
+        "test-server-group",
         "us-central1",
         mockTask);
 
@@ -2075,46 +2145,41 @@ public class BasicGoogleDeployHandlerTest {
 
   @Test
   void testNoDistributionPolicySet() {
-    InstanceGroupManager instanceGroupManager = mock(InstanceGroupManager.class);
-    when(mockDescription.getDistributionPolicy()).thenReturn(null);
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    mockDescription.setDistributionPolicy(null);
     basicGoogleDeployHandler.setDistributionPolicyToInstanceGroup(
         mockDescription, instanceGroupManager);
-    verify(instanceGroupManager, never()).setDistributionPolicy(any());
+    assertThat(instanceGroupManager.getDistributionPolicy()).isNull();
   }
 
   @Test
   void testSetDistributionPolicyWithZones() {
-    InstanceGroupManager instanceGroupManager = mock(InstanceGroupManager.class);
-    GoogleDistributionPolicy mockPolicy = mock(GoogleDistributionPolicy.class);
-    when(mockDescription.getDistributionPolicy()).thenReturn(mockPolicy);
-    when(mockDescription.getSelectZones()).thenReturn(true);
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    GoogleDistributionPolicy mockPolicy = new GoogleDistributionPolicy();
+    mockPolicy.setZones(List.of("zone-1", "zone-2"));
+    mockPolicy.setTargetShape("ANY_SHAPE");
 
-    List<String> zones = List.of("zone-1", "zone-2");
-    when(mockPolicy.getZones()).thenReturn(zones);
-
-    when(mockDescription.getCredentials()).thenReturn(mockCredentials);
+    mockDescription.setDistributionPolicy(mockPolicy);
+    mockDescription.setSelectZones(true);
+    mockDescription.setCredentials(mockCredentials);
     when(mockCredentials.getProject()).thenReturn("test-project");
-    when(mockPolicy.getTargetShape()).thenReturn("ANY_SHAPE");
     mockedGCEUtil.when(() -> GCEUtil.buildZoneUrl(any(), any())).thenReturn("static-zone");
 
     basicGoogleDeployHandler.setDistributionPolicyToInstanceGroup(
         mockDescription, instanceGroupManager);
-
-    verify(instanceGroupManager)
-        .setDistributionPolicy(
-            argThat(
-                policy -> {
-                  List<DistributionPolicyZoneConfiguration> zonesConfig = policy.getZones();
-                  return zonesConfig.size() == 2
-                      && zonesConfig.get(0).getZone().equals("static-zone")
-                      && zonesConfig.get(1).getZone().equals("static-zone")
-                      && "ANY_SHAPE".equals(policy.getTargetShape());
-                }));
+    assertThat(instanceGroupManager.getDistributionPolicy().getZones()).hasSize(2);
+    assertThat(instanceGroupManager.getDistributionPolicy().getZones().get(0).getZone())
+        .isEqualTo("static-zone");
+    assertThat(instanceGroupManager.getDistributionPolicy().getZones().get(1).getZone())
+        .isEqualTo("static-zone");
+    assertThat(instanceGroupManager.getDistributionPolicy().getTargetShape())
+        .isEqualTo("ANY_SHAPE");
   }
 
   private GoogleLoadBalancerView mockLoadBalancer(GoogleLoadBalancerType loadBalancerType) {
-    GoogleLoadBalancerView mockLB = mock(GoogleLoadBalancerView.class);
-    when(mockLB.getLoadBalancerType()).thenReturn(loadBalancerType);
+    GoogleLoadBalancerView mockLB = new GoogleLoadBalancerView() {};
+
+    mockLB.setLoadBalancerType(loadBalancerType);
     return mockLB;
   }
 
