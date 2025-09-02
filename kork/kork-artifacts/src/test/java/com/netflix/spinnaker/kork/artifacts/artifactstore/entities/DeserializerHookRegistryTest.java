@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.amazonaws.util.Base64;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -161,10 +160,9 @@ class DeserializerHookRegistryTest {
             Map.of("manifests", List.of(Map.of("hello", "world!")))));
   }
 
-  @SneakyThrows
   @ParameterizedTest
   @MethodSource("testExpansionArgs")
-  public void testExpansion(String json, Object expectedResult) {
+  public void testExpansion(String json, Object expectedResult) throws Exception {
     ArtifactStore store = Mockito.mock(ArtifactStore.class);
     Mockito.when(store.get(Mockito.any(), Mockito.any()))
         .thenReturn(

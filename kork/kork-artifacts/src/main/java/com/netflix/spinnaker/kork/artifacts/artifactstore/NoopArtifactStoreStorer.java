@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 /** A no-op ArtifactStoreStorer. In other words, don't actually store the artifact. */
 public class NoopArtifactStoreStorer implements ArtifactStoreStorer {
 
+  @Override
   public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
     return artifact;
   }

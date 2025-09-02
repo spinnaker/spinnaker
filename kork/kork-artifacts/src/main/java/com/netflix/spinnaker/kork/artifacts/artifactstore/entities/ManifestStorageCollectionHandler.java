@@ -32,23 +32,50 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * ManifestStorageHandler is used to convert manifest values into artifacts. This is done by
- * matching against a key within the execution context. Upon matching, we will convert the manifest
- * into an artifact and write the artifact in its place.
+ * Handles the storage of manifest collections (specifically Sets) as artifacts.
+ *
+ * <p>This handler specifically targets Set collections of manifests and converts each manifest in
+ * the Set to an artifact. Unlike {@link ManifestMapStorageHandler} which handles Lists of
+ * manifests, this handler processes Sets of manifests that appear as properties in beans.
  */
 public class ManifestStorageCollectionHandler implements ArtifactStoragePropertyHandler {
+  /** The property names that this handler will process */
   private List<String> keys = List.of("manifests");
+
+  /** Filter to determine which applications should be excluded from artifact storage */
   private final ApplicationFilter exclude;
 
+  /**
+   * Constructs a handler with the specified exclusion filters.
+   *
+   * @param exclude Map of artifact types to application filters that determine which applications
+   *     should be excluded from artifact storage
+   */
   public ManifestStorageCollectionHandler(Map<String, List<ApplicationStorageFilter>> exclude) {
     this.exclude =
         new ApplicationFilter(exclude.get(ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType()));
   }
 
+  /**
+   * Processes a map by converting it to an artifact and storing it.
+   *
+   * @param store The artifact store to use for storage
+   * @param v The map to convert and store
+   * @return The processed map, either as an artifact reference or the original if storage was
+   *     skipped
+   */
   private <K, V> Map<K, V> handleMap(ArtifactStore store, Map<K, V> v) {
     return this.convert(store, v);
   }
 
+  /**
+   * Converts an object to an artifact and stores it.
+   *
+   * @param store The artifact store to use for storage
+   * @param t The object to convert and store (must be a Map)
+   * @return The processed object, either as an artifact reference or the original if storage was
+   *     skipped
+   */
   private <T> T convert(ArtifactStore store, T t) {
     Map<?, ?> v = (Map<?, ?>) t;
     if (EntityHelper.alreadyStored(v)) {
@@ -64,6 +91,25 @@ public class ManifestStorageCollectionHandler implements ArtifactStorageProperty
     return (T) EntityHelper.toMap(stored);
   }
 
+  /**
+   * Determines if this handler can process the given property.
+   *
+   * <p>This method checks several conditions to determine if the property represents a valid
+   * manifest collection that should be stored as artifacts:
+   *
+   * <ol>
+   *   <li>Verifies there is an active Spinnaker execution context
+   *   <li>Checks if the current application is excluded from manifest storage
+   *   <li>Confirms the property name matches one of the predefined keys (e.g., "manifests")
+   *   <li>Ensures the value is a non-empty Set
+   *   <li>Verifies the first element in the Set is a Map
+   *   <li>Confirms the Map hasn't already been stored as an artifact
+   * </ol>
+   *
+   * @param property The bean property to check
+   * @param value The value of the property
+   * @return true if this handler can process the property, false otherwise
+   */
   @Override
   public boolean canHandleProperty(BeanProperty property, Object value) {
     if (AuthenticatedRequest.getSpinnakerExecutionId().isEmpty() || this.exclude.shouldFilter()) {
@@ -85,6 +131,15 @@ public class ManifestStorageCollectionHandler implements ArtifactStorageProperty
         && !EntityHelper.alreadyStored((Map) obj);
   }
 
+  /**
+   * Processes a property by converting each Map in the Set to an artifact and storing it.
+   *
+   * @param store The artifact store to use for storage
+   * @param property The bean property being processed
+   * @param v The value of the property (a Set of Maps)
+   * @param objectMapper The object mapper to use for serialization
+   * @return A new Set containing the processed elements, with Maps replaced by artifact references
+   */
   @Override
   public <T> T handleProperty(
       ArtifactStore store, BeanProperty property, T v, ObjectMapper objectMapper) {

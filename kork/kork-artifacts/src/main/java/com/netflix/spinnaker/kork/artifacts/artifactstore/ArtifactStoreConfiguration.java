@@ -73,6 +73,25 @@ public class ArtifactStoreConfiguration {
     return artifactStore;
   }
 
+  /**
+   * Creates a map of artifact type exclusion filters.
+   *
+   * <p>This method processes the configured artifact filters from properties and organizes them
+   * into a map where:
+   *
+   * <ul>
+   *   <li>Keys are artifact type strings (e.g., "embedded/map/base64") that identify which artifact
+   *       types the filters apply to
+   *   <li>Values are lists of {@link ApplicationStorageFilter} implementations that determine which
+   *       applications should be excluded from artifact storage for that type
+   * </ul>
+   *
+   * <p>For example, a configuration might exclude large Kubernetes manifests from being stored as
+   * artifacts for specific applications that don't need this optimization.
+   *
+   * @param properties The configuration properties containing artifact exclusion filters
+   * @return A map of artifact types to application filters
+   */
   @Bean
   public Map<String, List<ApplicationStorageFilter>> excludeFilters(
       ArtifactStoreConfigurationProperties properties) {

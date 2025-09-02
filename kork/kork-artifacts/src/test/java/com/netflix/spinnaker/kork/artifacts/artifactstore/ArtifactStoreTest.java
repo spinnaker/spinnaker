@@ -38,7 +38,7 @@ class ArtifactStoreTest {
 
   @BeforeAll
   static void init() {
-    AuthenticatedRequest.setApplication("applicaiton");
+    AuthenticatedRequest.setApplication("application");
   }
 
   @Test

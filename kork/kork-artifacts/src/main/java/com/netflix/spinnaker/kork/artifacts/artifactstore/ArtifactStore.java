@@ -49,7 +49,22 @@ public class ArtifactStore implements ArtifactStoreGetter, ArtifactStoreStorer {
             && this.exclude.get(type).stream().anyMatch((filter) -> filter.filter(application));
   }
 
-  /** Store an artifact in the artifact store */
+  /**
+   * Store an artifact in the artifact store.
+   *
+   * <p>This method checks if the artifact should be excluded based on the current application
+   * context and the configured exclusion filters. If the artifact should be excluded, it will be
+   * returned unchanged. Otherwise, it will be stored using the configured artifact store
+   * implementation.
+   *
+   * <p>If the application context is null (i.e., no authenticated application is available), the
+   * original artifact will be returned without storing it, and a warning will be logged.
+   *
+   * @param artifact The artifact to store
+   * @param decorators Optional decorators to apply to the artifact before storing
+   * @return The stored artifact, or the original artifact if storage was skipped due to filtering
+   *     or if no application context is available
+   */
   public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
     String application = AuthenticatedRequest.getSpinnakerApplication().orElse(null);
     if (application == null) {
@@ -61,7 +76,7 @@ public class ArtifactStore implements ArtifactStoreGetter, ArtifactStoreStorer {
     if (this.exclude.containsKey(type)
         && this.exclude.get(type).stream().anyMatch((filter) -> filter.filter(application))) {
       log.debug(
-          "filtering artifact type for application type={} application={}", type, application);
+          "excluding artifact type for application type={} application={}", type, application);
       return artifact;
     }
     return artifactStoreStorer.store(artifact, decorators);

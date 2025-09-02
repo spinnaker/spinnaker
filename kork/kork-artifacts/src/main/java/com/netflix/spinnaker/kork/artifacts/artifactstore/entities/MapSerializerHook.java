@@ -57,7 +57,7 @@ public class MapSerializerHook extends MapSerializer {
     super(defaultSerializer, null, false);
     this.defaultSerializer = defaultSerializer;
     this.storage = storage;
-    this.handlers = handlers;
+    this.handlers = handlers != null ? handlers : List.of();
   }
 
   protected MapSerializerHook(
@@ -78,7 +78,7 @@ public class MapSerializerHook extends MapSerializer {
         includedEntries);
     this.storage = storage;
     this.defaultSerializer = defaultSerializer;
-    this.handlers = handlers;
+    this.handlers = handlers != null ? handlers : List.of();
   }
 
   @Override
