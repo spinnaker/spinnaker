@@ -18,31 +18,52 @@ package com.netflix.spinnaker.okhttp;
 
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.util.StringUtils;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.slf4j.MDC;
 
 /**
  * As {@link retrofit.RequestInterceptor} no longer present in retrofit2, we have to use {@link
  * okhttp3.Interceptor} to add authenticated headers to requests.
  */
+@Slf4j
 public class SpinnakerRequestHeaderInterceptor implements Interceptor {
 
+  /**
+   * Whether to propagate headers to outgoing HTTP requests. If false, no headers are propagated.
+   * Not X-SPINNAKER-*, not additionalHeaders.
+   */
   private final boolean propagateSpinnakerHeaders;
 
   /** Don't propagate X-SPINNAKER-ACCOUNTS. Only relevant when propagateSpinnakerHeaders is true. */
   private final boolean skipAccountsHeader;
 
-  public SpinnakerRequestHeaderInterceptor(boolean propagateSpinnakerHeaders) {
-    this.propagateSpinnakerHeaders = propagateSpinnakerHeaders;
-    this.skipAccountsHeader = false;
+  /**
+   * Headers to propagate from the MDC, in addition to the X-SPINNAKER-* headers. Each element whose
+   * the value in the MDC is non-empty is included in outgoing HTTP requests.
+   */
+  private final List<String> additionalHeaders;
+
+  public SpinnakerRequestHeaderInterceptor(
+      boolean propagateSpinnakerHeaders, List<String> additionalHeaders) {
+    this(propagateSpinnakerHeaders, false /* skipAccountsHeader */, additionalHeaders);
   }
 
   public SpinnakerRequestHeaderInterceptor(
-      boolean propagateSpinnakerHeaders, boolean skipAccountsHeader) {
+      boolean propagateSpinnakerHeaders,
+      boolean skipAccountsHeader,
+      List<String> additionalHeaders) {
+
     this.propagateSpinnakerHeaders = propagateSpinnakerHeaders;
     this.skipAccountsHeader = skipAccountsHeader;
+    this.additionalHeaders = Optional.ofNullable(additionalHeaders).orElse(Collections.emptyList());
   }
 
   @Override
@@ -60,6 +81,15 @@ public class SpinnakerRequestHeaderInterceptor implements Interceptor {
                 builder.addHeader(key, value.get());
               }
             });
+
+    additionalHeaders.forEach(
+        additionalHeader -> {
+          String value = MDC.get(additionalHeader);
+          if (StringUtils.isNotBlank(value)) {
+            log.debug("adding {}={} to request", additionalHeader, value);
+            builder.addHeader(additionalHeader, value);
+          }
+        });
 
     return chain.proceed(builder.build());
   }

@@ -459,6 +459,18 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
     return Optional.of(totalSize);
   }
 
+  private Map<String, String> additionalHeaders = new HashMap<>();
+
+  @Override
+  public void setAdditionalHeaders(Map<String, String> additionalHeaders) {
+    this.additionalHeaders = additionalHeaders;
+  }
+
+  @Override
+  public Map<String, String> getAdditionalHeaders() {
+    return this.additionalHeaders;
+  }
+
   @Nullable
   public StageExecution namedStage(String type) {
     return stages.stream().filter(it -> it.getType().equals(type)).findFirst().orElse(null);

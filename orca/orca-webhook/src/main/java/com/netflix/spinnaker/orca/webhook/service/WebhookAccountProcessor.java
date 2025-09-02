@@ -32,9 +32,10 @@ public interface WebhookAccountProcessor {
    * @param account the name of the Spinnaker account associated with the webhook stage (possibly
    *     null or empty)
    * @param accountDetails details about the Spinnaker account (possibly null)
-   * @param customHeaders the custom headers specified in the webhook stage (possibly null)
+   * @param combinedHeaders the custom headers specified in the webhook stage, combined with
+   *     additional headers from ProvidedIdRequestFilter (possibly null).
    * @return the http request headers to send
    */
   HttpHeaders getHeaders(
-      String account, Map<String, Object> accountDetails, Map<String, Object> customHeaders);
+      String account, Map<String, Object> accountDetails, Map<String, Object> combinedHeaders);
 }

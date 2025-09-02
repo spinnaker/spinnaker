@@ -76,7 +76,7 @@ describe('kubernetes: Load Balancers', () => {
     });
   });
 
-  it('should open service details and validates content', () => {
+  it('should open service details and validate content', () => {
     cy.visit('#/applications/kubernetesapp/loadBalancers');
 
     cy.contains('.rollup-title-cell', 'service backend')
@@ -99,14 +99,14 @@ describe('kubernetes: Load Balancers', () => {
     cy.contains('dt', 'Sess. Affinity').next('dd').should('contain.text', 'None');
 
     cy.get('.collapsible-section')
-      .contains('Status')
-      .parent()
+      .contains('h4', 'Status')
+      .parents('.collapsible-section')
       .within(() => {
       cy.get('.collapsible-heading').should('contain.text', 'Status');
       cy.get('.content-body').should('be.visible');
 
       cy.contains('dt', 'Workloads').should('exist');
-      cy.contains('dd a', 'replicaSet backend-65b97dd546')
+      cy.contains('dd a', 'ReplicaSet backend-65b97dd546')
         .should('have.attr', 'href')
         .and('include', 'replicaSet%20backend-65b97dd546');
 
@@ -120,13 +120,14 @@ describe('kubernetes: Load Balancers', () => {
         .should('have.attr', 'href')
         .and('include', '//10.96.17.52');
 
-      cy.get('button.clipboard-btn').should('have.attr', 'aria-label', 'Copy to clipboard');
+        cy.get('button.copy-to-clipboard')
+          .should('have.attr', 'aria-label', 'Copy to clipboard');
     });
 
     cy.contains('h4', 'Events').scrollIntoView().should('be.visible');
     cy.get('.collapsible-section')
       .contains('Events')
-      .parent()
+      .parents('.collapsible-section')
       .should('contain.text', 'No recent events found');
 
     const labels = [
@@ -138,7 +139,7 @@ describe('kubernetes: Load Balancers', () => {
     labels.forEach(label => {
       cy.get('.collapsible-section')
         .contains('Labels')
-        .parent()
+        .parents()
         .should('contain.text', label);
     });
 

@@ -65,6 +65,16 @@ class GoogleConfiguration {
 
   @ToString(includeNames = true)
   static class DeployDefaults {
+    /**
+     * Feature flag: when true (default) Clouddriver will actively poll GCP asynchronous operations
+     * that mutate backend services and autoscalers.
+     * Setting this to false restores the legacy behaviour where Clouddriver does not wait for
+     * completion of those operations, which can re-introduce race conditions during red/black
+     * deployments but matches the historical behaviour.
+     *
+     * YAML path: google.defaults.enableAsyncOperationWait
+     */
+    boolean enableAsyncOperationWait = true
     List<GoogleDisk> fallbackInstanceTypeDisks = []
     List<GoogleInstanceTypeDisk> instanceTypeDisks = []
 
@@ -88,4 +98,3 @@ class GoogleConfiguration {
     }
   }
 }
-

@@ -9,10 +9,19 @@ import {
 
 import './help/kubernetes.help';
 import { KUBERNETES_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
-import { KUBERNETES_LOAD_BALANCER_DETAILS_CTRL } from './loadBalancer/details/details.controller';
-import { KUBERNETES_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/transformer';
+import {
+  KubernetesLoadBalancerActions,
+  KubernetesLoadBalancerTransformer,
+  LoadBalancerAnnotationCustomSection,
+  LoadBalancerEventsSection,
+  LoadBalancerInformationSection,
+  LoadBalancerLabelsSection,
+  LoadBalancerStatusSection,
+  useKubernetesLoadBalancerDetails,
+} from './loadBalancer';
 import kubernetesLogo from './logo/kubernetes.logo.svg';
 import { KUBERNETES_ANNOTATION_CUSTOM_SECTIONS } from './manifest/annotationCustomSections.component';
+import { KUBERNETES_DELETE } from './manifest/delete/Delete';
 import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.controller';
 import { JSON_EDITOR_COMPONENT } from './manifest/editor/json/jsonEditor.component';
 import { KUBERNETES_MANIFEST_EVENTS } from './manifest/manifestEvents.component';
@@ -20,9 +29,13 @@ import { KUBERNETES_MANIFEST_IMAGE_DETAILS } from './manifest/manifestImageDetai
 import { KUBERNETES_MANIFEST_LABELS } from './manifest/manifestLabels.component';
 import { KUBERNETES_MANIFEST_QOS } from './manifest/manifestQos.component';
 import { KUBERNETES_MANIFEST_RESOURCES } from './manifest/manifestResources.component';
+import { KUBERNETES_PAUSE_ROLLOUT } from './manifest/rollout/PauseRollout';
+import { KUBERNETES_RESUME_ROLLOUT } from './manifest/rollout/ResumeRollout';
+import { KUBERNETES_UNDO_ROLLOUT } from './manifest/rollout/UndoRollout';
 import { KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL } from './manifest/rollout/pause.controller';
 import { KUBERNETES_MANIFEST_RESUME_ROLLOUT_CTRL } from './manifest/rollout/resume.controller';
 import { KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL } from './manifest/rollout/undo.controller';
+import { KUBERNETES_SCALE } from './manifest/scale/Scale';
 import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controller';
 import { KUBERNETES_MANIFEST_SELECTOR } from './manifest/selector/selector.component';
 import { KUBERNETES_MANIFEST_CONDITION } from './manifest/status/condition.component';
@@ -60,9 +73,13 @@ import './logo/kubernetes.logo.less';
 export const KUBERNETES_MODULE = 'spinnaker.kubernetes';
 
 const requires = [
+  KUBERNETES_DELETE,
+  KUBERNETES_PAUSE_ROLLOUT,
+  KUBERNETES_RESUME_ROLLOUT,
+  KUBERNETES_UNDO_ROLLOUT,
+  KUBERNETES_SCALE,
   KUBERNETES_REACT_MODULE,
   KUBERNETES_INSTANCE_DETAILS_CTRL,
-  KUBERNETES_LOAD_BALANCER_DETAILS_CTRL,
   KUBERNETES_SECURITY_GROUP_DETAILS_CTRL,
   KUBERNETES_MANIFEST_DELETE_CTRL,
   KUBERNETES_MANIFEST_SCALE_CTRL,
@@ -71,7 +88,6 @@ const requires = [
   KUBERNETES_MANIFEST_RESUME_ROLLOUT_CTRL,
   KUBERNETES_MANIFEST_STATUS,
   KUBERNETES_MANIFEST_CONDITION,
-  KUBERNETES_LOAD_BALANCER_TRANSFORMER,
   KUBERNETES_SECURITY_GROUP_TRANSFORMER,
   KUBERNETES_MANIFEST_SELECTOR,
   KUBERNETES_MANIFEST_LABELS,
@@ -121,9 +137,16 @@ module(KUBERNETES_MODULE, requires).config(() => {
     },
     loadBalancer: {
       CreateLoadBalancerModal: ManifestWizard,
-      detailsController: 'kubernetesV2LoadBalancerDetailsCtrl',
-      detailsTemplateUrl: require('./loadBalancer/details/details.html'),
-      transformer: 'kubernetesV2LoadBalancerTransformer',
+      useDetailsHook: useKubernetesLoadBalancerDetails,
+      detailsActions: KubernetesLoadBalancerActions,
+      detailsSections: [
+        LoadBalancerInformationSection,
+        LoadBalancerStatusSection,
+        LoadBalancerAnnotationCustomSection,
+        LoadBalancerEventsSection,
+        LoadBalancerLabelsSection,
+      ],
+      transformer: KubernetesLoadBalancerTransformer,
     },
     securityGroup: {
       reader: KubernetesSecurityGroupReader,

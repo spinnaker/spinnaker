@@ -19,6 +19,7 @@ export const registerDefaultFixtures = () => {
   cy.intercept('/applications/*/serverGroups', []);
   cy.intercept('/applications/*/strategyConfigs', []);
   cy.intercept('/applications/*/tasks?statuses=RUNNING,SUSPENDED,NOT_STARTED', []);
+  cy.intercept('/applications/*/rawResources', []);
   cy.intercept('/applications/compute?*', { fixture: 'default/application.compute.json' });
   cy.intercept('/applications/ecsapp?*', { fixture: 'default/application.ecsapp.json' });
   cy.intercept('/applications/cloudfoundryapp?*', { fixture: 'default/application.cfapp.json' });
