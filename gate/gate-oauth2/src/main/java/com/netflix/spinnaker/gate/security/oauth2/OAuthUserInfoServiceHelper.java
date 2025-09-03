@@ -92,15 +92,45 @@ public class OAuthUserInfoServiceHelper {
     this.allowedAccountsSupport = allowedAccountsSupport;
     this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
     this.registry = registry;
-
-    if (providerTokenServices.isPresent()) {
-      this.providerTokenServices = providerTokenServices.get();
-    }
+    this.providerTokenServices = providerTokenServices.orElse(null);
   }
 
-  <T extends OAuth2User> T getOAuthSpinnakerUser(T oAuth2User, OAuth2UserRequest userRequest) {
+  OAuth2User getSpinnakerOAuth2User(OAuth2User oAuth2User, OAuth2UserRequest userRequest) {
     Map<String, Object> details = oAuth2User.getAttributes();
 
+    ResolvedUserInfo userInfo = getUserInfo(details, userRequest);
+
+    return new SpinnakerOAuth2User(
+        Objects.toString(details.get(userInfoMapping.getEmail()), null),
+        Objects.toString(details.get(userInfoMapping.getFirstName()), null),
+        Objects.toString(details.get(userInfoMapping.getLastName()), null),
+        allowedAccountsSupport.filterAllowedAccounts(userInfo.username(), userInfo.roles()),
+        userInfo.roles(),
+        userInfo.username(),
+        details,
+        oAuth2User.getAuthorities());
+  }
+
+  OidcUser getSpinnakerOIDCUser(OidcUser oidcUser, OAuth2UserRequest userRequest) {
+    Map<String, Object> details = oidcUser.getAttributes();
+
+    ResolvedUserInfo userInfo = getUserInfo(details, userRequest);
+
+    return new SpinnakerOIDCUser(
+        Objects.toString(details.get(userInfoMapping.getEmail()), null),
+        Objects.toString(details.get(userInfoMapping.getFirstName()), null),
+        Objects.toString(details.get(userInfoMapping.getLastName()), null),
+        allowedAccountsSupport.filterAllowedAccounts(userInfo.username(), userInfo.roles()),
+        userInfo.roles(),
+        userInfo.username(),
+        oidcUser.getIdToken(),
+        oidcUser.getUserInfo(),
+        details,
+        oidcUser.getAuthorities());
+  }
+
+  /** Handles validation, login, and metric tracking for a given OAuth2/OIDC user. */
+  private ResolvedUserInfo getUserInfo(Map<String, Object> details, OAuth2UserRequest userRequest) {
     if (log.isDebugEnabled()) {
       log.debug("UserInfo details: " + entries(details));
     }
@@ -133,7 +163,7 @@ public class OAuthUserInfoServiceHelper {
               } else {
                 permissionService.loginWithRoles(username, roles);
               }
-              return "Successfully Logged in" + username;
+              return "Successfully Logged in " + username;
             },
             5,
             Duration.ofSeconds(2),
@@ -164,35 +194,11 @@ public class OAuthUserInfoServiceHelper {
       }
     }
 
-    if (oAuth2User instanceof OidcUser oidcUser) {
-      SpinnakerOIDCUser spinnakerUser =
-          new SpinnakerOIDCUser(
-              Objects.toString(details.get(userInfoMapping.getEmail()), null),
-              Objects.toString(details.get(userInfoMapping.getFirstName()), null),
-              Objects.toString(details.get(userInfoMapping.getLastName()), null),
-              allowedAccountsSupport.filterAllowedAccounts(username, roles),
-              roles,
-              username,
-              oidcUser.getIdToken(),
-              oidcUser.getUserInfo(),
-              details,
-              oidcUser.getAuthorities());
-
-      return (T) spinnakerUser;
-    } else {
-      SpinnakerOAuth2User spinnakerUser =
-          new SpinnakerOAuth2User(
-              Objects.toString(details.get(userInfoMapping.getEmail()), null),
-              Objects.toString(details.get(userInfoMapping.getFirstName()), null),
-              Objects.toString(details.get(userInfoMapping.getLastName()), null),
-              allowedAccountsSupport.filterAllowedAccounts(username, roles),
-              roles,
-              username,
-              details,
-              oAuth2User.getAuthorities());
-      return (T) spinnakerUser;
-    }
+    return new ResolvedUserInfo(username, roles);
   }
+
+  /** Holds the resolved user identity information after authentication flow. */
+  private record ResolvedUserInfo(String username, List<String> roles) {}
 
   boolean isServiceAccount(Map<String, Object> details) {
     String email = (String) details.get(userInfoMapping.getServiceAccountEmail());
