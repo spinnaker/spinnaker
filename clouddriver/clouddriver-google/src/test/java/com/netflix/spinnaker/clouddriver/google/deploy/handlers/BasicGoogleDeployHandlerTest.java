@@ -2213,9 +2213,13 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void testNoZonesSelectedButDistributionPolicySet() {
     InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
-    mockDescription.setDistributionPolicy(new GoogleDistributionPolicy());
+    GoogleDistributionPolicy policy = new GoogleDistributionPolicy();
+    policy.setTargetShape("someShape");
+    mockDescription.setDistributionPolicy(policy);
+
     basicGoogleDeployHandler.setDistributionPolicyToInstanceGroup(
         mockDescription, instanceGroupManager);
+
     assertThat(instanceGroupManager.getDistributionPolicy()).isNotNull();
   }
 

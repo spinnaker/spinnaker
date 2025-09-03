@@ -1058,7 +1058,7 @@ public class BasicGoogleDeployHandler
       String region,
       Task task)
       throws IOException {
-    if (description.getRegional()) {
+    if (Boolean.TRUE.equals(description.getRegional())) {
       setDistributionPolicyToInstanceGroup(description, instanceGroupManager);
       String targetLink =
           createRegionalInstanceGroupManagerAndWait(
