@@ -744,6 +744,48 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testGetLoadBalancerToUpdateFromInput_WithNonEmptyLoadBalancers_TrafficEnabled_Null() {
+    List<String> loadBalancerNames = Arrays.asList("lb1", "lb2");
+    mockDescription.setLoadBalancers(loadBalancerNames);
+    mockDescription.setDisableTraffic(null);
+
+    GoogleNetworkLoadBalancer nlb = new GoogleNetworkLoadBalancer();
+    nlb.setTargetPool("target-pool");
+    GoogleLoadBalancerView lbv = nlb.getView();
+
+    List<GoogleLoadBalancerView> foundLoadBalancers =
+        Arrays.asList(
+            mockLoadBalancer(GoogleLoadBalancerType.INTERNAL),
+            mockLoadBalancer(GoogleLoadBalancerType.INTERNAL_MANAGED),
+            mockLoadBalancer(GoogleLoadBalancerType.SSL),
+            mockLoadBalancer(GoogleLoadBalancerType.TCP),
+            lbv);
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.queryAllLoadBalancers(
+                    any(), eq(loadBalancerNames), eq(mockTask), eq("DEPLOY")))
+        .thenReturn(foundLoadBalancers);
+
+    BasicGoogleDeployHandler.LoadBalancerInfo result =
+        basicGoogleDeployHandler.getLoadBalancerToUpdateFromInput(mockDescription, mockTask);
+
+    assertNotNull(result);
+    assertEquals(1, result.internalLoadBalancers.size());
+    assertEquals(1, result.internalHttpLoadBalancers.size());
+    assertEquals(1, result.sslLoadBalancers.size());
+    assertEquals(1, result.tcpLoadBalancers.size());
+    assertEquals(1, result.targetPools.size());
+    assertEquals("target-pool", result.targetPools.get(0));
+
+    mockedGCEUtil.verify(
+        () ->
+            GCEUtil.queryAllLoadBalancers(any(), eq(loadBalancerNames), eq(mockTask), eq("DEPLOY")),
+        times(1));
+  }
+
+  @Test
   void testBuildBootImage() {
     when(googleConfigurationProperties.getBaseImageProjects())
         .thenReturn(Arrays.asList("base-project-1", "base-project-2"));
@@ -1775,10 +1817,9 @@ public class BasicGoogleDeployHandlerTest {
   @Test
   void setCapacityFromSource_whenUseSourceCapacityIsFalse_doesNothing() {
     BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
-    BasicGoogleDeployDescription.Source mockSource =
-        mock(BasicGoogleDeployDescription.Source.class);
+    BasicGoogleDeployDescription.Source mockSource = new BasicGoogleDeployDescription.Source();
     description.setSource(mockSource);
-    when(mockSource.getUseSourceCapacity()).thenReturn(false);
+    mockSource.setUseSourceCapacity(false);
 
     basicGoogleDeployHandler.setCapacityFromSource(description, mockTask);
     verify(mockTask, never()).updateStatus(anyString(), anyString());
@@ -2144,11 +2185,47 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testCreateInstanceGroupManagerFromInput_whenRegionalNull() throws IOException {
+    BasicGoogleDeployHandler.LoadBalancerInfo mockLBInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    mockDescription.setRegional(null);
+
+    doReturn("")
+        .when(basicGoogleDeployHandler)
+        .createInstanceGroupManagerAndWait(any(), any(), any(), any(), any());
+    doNothing().when(basicGoogleDeployHandler).createAutoscaler(any(), any(), any(), any());
+
+    basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
+        mockDescription,
+        instanceGroupManager,
+        mockLBInfo,
+        "test-server-group",
+        "us-central1",
+        mockTask);
+
+    verify(basicGoogleDeployHandler, never()).setDistributionPolicyToInstanceGroup(any(), any());
+    verify(basicGoogleDeployHandler)
+        .createInstanceGroupManagerAndWait(any(), any(), any(), any(), any());
+    verify(basicGoogleDeployHandler).createAutoscaler(any(), any(), any(), any());
+  }
+
+  @Test
+  void testNoZonesSelectedButDistributionPolicySet() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    mockDescription.setDistributionPolicy(new GoogleDistributionPolicy());
+    basicGoogleDeployHandler.setDistributionPolicyToInstanceGroup(
+        mockDescription, instanceGroupManager);
+    assertThat(instanceGroupManager.getDistributionPolicy()).isNotNull();
+  }
+
+  @Test
   void testNoDistributionPolicySet() {
     InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
     mockDescription.setDistributionPolicy(null);
     basicGoogleDeployHandler.setDistributionPolicyToInstanceGroup(
         mockDescription, instanceGroupManager);
+
     assertThat(instanceGroupManager.getDistributionPolicy()).isNull();
   }
 
