@@ -47,6 +47,6 @@ public class SpinnakerOIDCUserInfoService extends OidcUserService {
   @Override
   public OidcUser loadUser(OidcUserRequest userRequest) {
     OidcUser oidcUser = super.loadUser(userRequest);
-    return userInfoService.getOAuthSpinnakerUser(oidcUser, userRequest);
+    return userInfoService.getSpinnakerOIDCUser(oidcUser, userRequest);
   }
 }
