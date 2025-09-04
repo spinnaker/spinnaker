@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.aws.security
 import com.amazonaws.SDKGlobalConfiguration
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.security.config.AmazonCredentialsParser
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration
@@ -143,7 +144,9 @@ class AmazonBasicCredentialsLoaderSpec extends Specification{
       credentialsProviderFactory,
       NetflixAmazonCredentials.class,
       credentialsConfig,
-      accountsConfig)
+      accountsConfig,
+      new AwsConfigurationProperties()
+    )
 
     def loader = new AmazonBasicCredentialsLoader<Account, NetflixAmazonCredentials>(
       amazonCredentialsSource, ci, credentialsRepository, credentialsConfig, accountsConfig, defaultAccountConfigurationProperties
