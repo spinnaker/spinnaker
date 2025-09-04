@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AmazonCredentialsParser;
@@ -80,7 +81,8 @@ public class AmazonCredentialsInitializer {
       AWSCredentialsProviderFactory awsCredentialsProviderFactory,
       Class<? extends NetflixAmazonCredentials> credentialsType,
       CredentialsConfig credentialsConfig,
-      AccountsConfiguration accountsConfig) {
+      AccountsConfiguration accountsConfig,
+      AwsConfigurationProperties awsConfigurationProperties) {
     return new AmazonCredentialsParser<>(
         awsCredentialsProvider,
         amazonClientProvider,
@@ -89,7 +91,8 @@ public class AmazonCredentialsInitializer {
         awsCredentialsProviderFactory,
         (Class<NetflixAmazonCredentials>) credentialsType,
         credentialsConfig,
-        accountsConfig);
+        accountsConfig,
+        awsConfigurationProperties);
   }
 
   @Bean
