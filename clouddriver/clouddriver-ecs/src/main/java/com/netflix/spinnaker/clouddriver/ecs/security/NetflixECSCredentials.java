@@ -22,7 +22,7 @@ public class NetflixECSCredentials extends NetflixAmazonCredentials {
   private static final String CLOUD_PROVIDER = "ecs";
 
   public NetflixECSCredentials(NetflixAmazonCredentials copy) {
-    super(copy, copy.getCredentialsProvider());
+    super(copy, copy.getCredentialsProvider(), null /* awsConfigurationProperties */);
   }
 
   @Override

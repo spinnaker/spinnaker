@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory;
@@ -79,6 +80,7 @@ public class AmazonCredentialsParser<
   // reducing the number of API calls made since known regions are already cached.
   private final ConcurrentMap<String, Region> regionCache;
   private final RetryRegistry retryRegistry;
+  private final AwsConfigurationProperties awsConfigurationProperties;
   private List<String> defaultRegionNames;
 
   // this is a key used in the regions cache to indicate that default regions have been
@@ -93,7 +95,8 @@ public class AmazonCredentialsParser<
       AWSCredentialsProviderFactory awsCredentialsProviderFactory,
       Class<V> credentialsType,
       CredentialsConfig credentialsConfig,
-      AccountsConfiguration accountsConfig) {
+      AccountsConfiguration accountsConfig,
+      AwsConfigurationProperties awsConfigurationProperties) {
     this.amazonClientProvider =
         Objects.requireNonNull(amazonClientProvider, "amazonClientProvider");
     this.credentialsProvider = Objects.requireNonNull(credentialsProvider, "credentialsProvider");
@@ -116,6 +119,7 @@ public class AmazonCredentialsParser<
     this.defaultRegionNames = new ArrayList<>();
 
     this.retryRegistry = getRetryRegistry();
+    this.awsConfigurationProperties = Objects.requireNonNull(awsConfigurationProperties);
 
     // look in the credentials config to find default region names
     if (!CollectionUtils.isNullOrEmpty(credentialsConfig.getDefaultRegions())) {
@@ -442,7 +446,8 @@ public class AmazonCredentialsParser<
                 config.getDefaultLifecycleHookNotificationTargetARNTemplate()));
       }
     }
-    return credentialTranslator.translate(getCredentialsProvider(config, account), account);
+    return credentialTranslator.translate(
+        getCredentialsProvider(config, account), account, awsConfigurationProperties);
   }
 
   /**
@@ -587,7 +592,11 @@ public class AmazonCredentialsParser<
 
     boolean resolveAccountId();
 
-    T translate(AWSCredentialsProvider credentialsProvider, Account account) throws Throwable;
+    T translate(
+        AWSCredentialsProvider credentialsProvider,
+        Account account,
+        AwsConfigurationProperties awsConfigurationProperties)
+        throws Throwable;
   }
 
   static class CopyConstructorTranslator<T extends AmazonCredentials>
@@ -602,7 +611,8 @@ public class AmazonCredentialsParser<
       this.credentialType = credentialType;
       try {
         copyConstructor =
-            credentialType.getConstructor(credentialType, AWSCredentialsProvider.class);
+            credentialType.getConstructor(
+                credentialType, AWSCredentialsProvider.class, AwsConfigurationProperties.class);
       } catch (NoSuchMethodException nsme) {
         throw new IllegalArgumentException(
             "Class "
@@ -611,6 +621,8 @@ public class AmazonCredentialsParser<
                 + credentialType
                 + ", "
                 + AWSCredentialsProvider.class
+                + ", "
+                + AwsConfigurationProperties.class
                 + " args.");
       }
     }
@@ -631,11 +643,15 @@ public class AmazonCredentialsParser<
     }
 
     @Override
-    public T translate(AWSCredentialsProvider credentialsProvider, Account account)
+    public T translate(
+        AWSCredentialsProvider credentialsProvider,
+        Account account,
+        AwsConfigurationProperties awsConfigurationProperties)
         throws Throwable {
       T immutableInstance = objectMapper.convertValue(account, credentialType);
       try {
-        return copyConstructor.newInstance(immutableInstance, credentialsProvider);
+        return copyConstructor.newInstance(
+            immutableInstance, credentialsProvider, awsConfigurationProperties);
       } catch (InvocationTargetException ite) {
         throw ite.getTargetException();
       }
