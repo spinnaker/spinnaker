@@ -78,4 +78,7 @@ final class S3ArtifactProviderProperties implements ArtifactProvider<S3ArtifactA
    * https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/ClientConfiguration.html#setValidateAfterInactivityMillis-int-
    */
   private Integer validateAfterInactivityMillis;
+
+  /** log the endpoints used to make requests to aws */
+  private boolean logEndpoints;
 }

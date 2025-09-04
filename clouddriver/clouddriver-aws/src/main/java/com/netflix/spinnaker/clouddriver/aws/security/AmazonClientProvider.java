@@ -103,6 +103,7 @@ public class AmazonClientProvider {
     private int maxConnectionsPerRoute = 20;
     private boolean uzeGzip = true;
     private boolean addSpinnakerUserToUserAgent = false;
+    private boolean logEndpoints = false;
     private ServiceLimitConfiguration serviceLimitConfiguration =
         new ServiceLimitConfigurationBuilder().build();
     private Registry registry = new NoopRegistry();
@@ -182,6 +183,11 @@ public class AmazonClientProvider {
       return this;
     }
 
+    public Builder logEndpoints(boolean logEndpoints) {
+      this.logEndpoints = logEndpoints;
+      return this;
+    }
+
     public AmazonClientProvider build() {
       HttpClient client = this.httpClient;
       if (client == null) {
@@ -202,11 +208,21 @@ public class AmazonClientProvider {
       EddaTimeoutConfig eddaTimeoutConfig =
           this.eddaTimeoutConfig == null ? EddaTimeoutConfig.DEFAULT : this.eddaTimeoutConfig;
 
-      final List<RequestHandler2> requestHandlers;
+      List<RequestHandler2> handlersToAdd = new ArrayList<>();
+
       if (addSpinnakerUserToUserAgent) {
-        requestHandlers = new ArrayList<>(this.requestHandlers.size() + 1);
+        handlersToAdd.add(new AddSpinnakerUserToUserAgentRequestHandler());
+      }
+
+      if (logEndpoints) {
+        handlersToAdd.add(new LogEndpointRequestHandler());
+      }
+
+      final List<RequestHandler2> requestHandlers;
+      if (!handlersToAdd.isEmpty()) {
+        requestHandlers = new ArrayList<>(this.requestHandlers.size() + handlersToAdd.size());
         requestHandlers.addAll(this.requestHandlers);
-        requestHandlers.add(new AddSpinnakerUserToUserAgentRequestHandler());
+        requestHandlers.addAll(handlersToAdd);
       } else {
         requestHandlers = this.requestHandlers;
       }
@@ -252,18 +268,17 @@ public class AmazonClientProvider {
     }
   }
 
+  /** So it's possible for tests to create mocks */
   public AmazonClientProvider() {
     this((HttpClient) null);
   }
 
+  /** Also for testing */
   public AmazonClientProvider(HttpClient httpClient) {
     this(httpClient, AmazonObjectMapperConfigurer.createConfigured());
   }
 
-  public AmazonClientProvider(ObjectMapper objectMapper) {
-    this(null, objectMapper);
-  }
-
+  /** Also for testing */
   public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper) {
     this(
         httpClient == null ? HttpClients.createDefault() : httpClient,
