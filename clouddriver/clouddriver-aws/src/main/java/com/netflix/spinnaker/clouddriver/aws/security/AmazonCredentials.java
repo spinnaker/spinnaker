@@ -22,6 +22,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Basic set of Amazon credentials that will a provided {@link
+ * Basic set of Amazon credentials that use a provided {@link
  * com.amazonaws.auth.AWSCredentialsProvider} to resolve account credentials. If none provided, the
  * {@link com.amazonaws.auth.DefaultAWSCredentialsProviderChain} will be used. The account's active
  * regions and availability zones can be specified as well.
@@ -52,43 +53,6 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
   private final List<LifecycleHook> lifecycleHooks;
   private final boolean allowPrivateThirdPartyImages;
   private final AWSCredentialsProvider credentialsProvider;
-
-  public static AmazonCredentials fromAWSCredentials(
-      String name,
-      String environment,
-      String accountType,
-      AWSCredentialsProvider credentialsProvider,
-      AmazonClientProvider amazonClientProvider) {
-    return fromAWSCredentials(
-        name, environment, accountType, null, credentialsProvider, amazonClientProvider);
-  }
-
-  public static AmazonCredentials fromAWSCredentials(
-      String name,
-      String environment,
-      String accountType,
-      String defaultKeyPair,
-      AWSCredentialsProvider credentialsProvider,
-      AmazonClientProvider amazonClientProvider) {
-    AWSAccountInfoLookup lookup =
-        new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider);
-    final String accountId = lookup.findAccountId();
-    final List<AWSRegion> regions = lookup.listRegions();
-    return new AmazonCredentials(
-        name,
-        environment,
-        accountType,
-        accountId,
-        defaultKeyPair,
-        true,
-        regions,
-        null,
-        null,
-        null,
-        null,
-        false,
-        credentialsProvider);
-  }
 
   public AmazonCredentials(
       @JsonProperty("name") String name,
@@ -119,7 +83,10 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
         null);
   }
 
-  public AmazonCredentials(AmazonCredentials source, AWSCredentialsProvider credentialsProvider) {
+  public AmazonCredentials(
+      AmazonCredentials source,
+      AWSCredentialsProvider credentialsProvider,
+      AwsConfigurationProperties awsConfigurationProperties) {
     this(
         source.getName(),
         source.getEnvironment(),
