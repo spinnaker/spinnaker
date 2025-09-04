@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
@@ -31,7 +32,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @Data
 public class RestProperties {
-  @Valid List<RestEndpointConfiguration> endpoints;
+  @Valid List<RestEndpointConfiguration> endpoints = new ArrayList<>();
 
   @Data
   public static class RestEndpointConfiguration {

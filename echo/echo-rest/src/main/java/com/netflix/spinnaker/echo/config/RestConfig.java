@@ -83,6 +83,13 @@ public class RestConfig {
 
     RestUrls restUrls = new RestUrls();
 
+    // Add null check to prevent NullPointerException when no endpoints are configured
+    if (restProperties.getEndpoints() == null) {
+      log.warn(
+          "REST is enabled but no endpoints are configured. Please configure at least one endpoint or disable REST.");
+      return restUrls;
+    }
+
     for (RestProperties.RestEndpointConfiguration endpoint : restProperties.getEndpoints()) {
       Map<String, String> headers = new HashMap<>();
 
