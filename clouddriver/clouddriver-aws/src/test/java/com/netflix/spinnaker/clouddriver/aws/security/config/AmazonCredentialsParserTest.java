@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory;
@@ -47,6 +48,9 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.io.TempDir;
 
 class AmazonCredentialsParserTest {
+
+  private final AwsConfigurationProperties awsConfigurationProperties =
+      new AwsConfigurationProperties();
 
   @BeforeEach
   void init(TestInfo testInfo) {
@@ -116,7 +120,8 @@ class AmazonCredentialsParserTest {
             credentialsProviderFactory,
             NetflixAmazonCredentials.class,
             config,
-            accountsConfig);
+            accountsConfig,
+            awsConfigurationProperties);
 
     when(lookup.findAccountId()).thenReturn(regularAccountId);
 
@@ -201,7 +206,8 @@ class AmazonCredentialsParserTest {
             credentialsProviderFactory,
             NetflixAmazonCredentials.class,
             config,
-            accountsConfig);
+            accountsConfig,
+            awsConfigurationProperties);
 
     doReturn(accountId).when(lookup).findAccountId();
     doReturn(List.of()).when(lookup).listRegions(List.of());

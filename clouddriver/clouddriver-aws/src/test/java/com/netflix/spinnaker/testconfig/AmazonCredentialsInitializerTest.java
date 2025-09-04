@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory;
@@ -47,6 +48,7 @@ public class AmazonCredentialsInitializerTest {
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
           .withBean(NoopRegistry.class)
+          .withBean(AwsConfigurationProperties.class)
           .withConfiguration(
               UserConfigurations.of(AwsComponents.class, TestCommonDependencyConfiguration.class));
 

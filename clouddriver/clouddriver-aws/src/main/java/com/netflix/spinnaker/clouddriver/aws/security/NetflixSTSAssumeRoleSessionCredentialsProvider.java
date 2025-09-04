@@ -22,6 +22,7 @@ import com.amazonaws.auth.AWSSessionCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.SpinnakerAwsRegionProvider;
 import java.io.Closeable;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,8 @@ public class NetflixSTSAssumeRoleSessionCredentialsProvider
       String roleSessionName,
       Integer sessionDurationSeconds,
       String accountId,
-      String externalId) {
+      String externalId,
+      AwsConfigurationProperties awsConfigurationProperties) {
 
     this.accountId = accountId;
     this.roleArn = roleArn;
@@ -71,6 +73,10 @@ public class NetflixSTSAssumeRoleSessionCredentialsProvider
           new EndpointConfiguration("sts.cn-north-1.amazonaws.com.cn", this.region));
     } else {
       stsClientBuilder.withRegion(this.region);
+    }
+
+    if (awsConfigurationProperties.getClient().getLogEndpoints()) {
+      stsClientBuilder.withRequestHandlers(new LogEndpointRequestHandler());
     }
 
     STSAssumeRoleSessionCredentialsProvider.Builder stsSessionProviderBuilder =
