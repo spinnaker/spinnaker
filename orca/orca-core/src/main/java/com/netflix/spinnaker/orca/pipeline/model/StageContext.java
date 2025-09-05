@@ -76,6 +76,7 @@ public class StageContext extends ForwardingMap<String, Object> implements Map<S
   public Object getCurrentOnly(@Nullable Object key, Object defaultValue) {
     return super.getOrDefault(key, defaultValue);
   }
+
   /*
    * Gets all objects matching 'key', sorted by proximity to the current stage.
    * If the key exists in the current context, it will be the first element returned

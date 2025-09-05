@@ -40,7 +40,9 @@ public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQuer
 
   @Getter private List<String> groupByFields;
 
-  /** @deprecated Use customInlineTemplate instead. */
+  /**
+   * @deprecated Use customInlineTemplate instead.
+   */
   @Deprecated @Getter private String customFilter;
 
   @Getter private String customInlineTemplate;

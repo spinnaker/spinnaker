@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 class SpinnakerIdeaConfigPlugin implements Plugin<Project> {
@@ -31,10 +32,11 @@ class SpinnakerIdeaConfigPlugin implements Plugin<Project> {
         project.plugins.withType(IdeaPlugin) { IdeaPlugin idea ->
             if (project.rootProject == project) {
                 project.plugins.withType(JavaBasePlugin) {
-                    JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
-                    idea.model.project.jdkName = convention.sourceCompatibility
-                    idea.model.project.languageLevel = convention.targetCompatibility
-                    idea.model.project.targetBytecodeVersion = convention.targetCompatibility
+                  project.extensions.getByType(JavaPluginExtension).with {
+                    idea.model.project.jdkName = it.sourceCompatibility
+                    idea.model.project.languageLevel = it.targetCompatibility
+                    idea.model.project.targetBytecodeVersion = it.targetCompatibility
+                  }
                 }
                 idea.model.project.vcs = 'Git'
                 idea.model.project.ipr.withXml { XmlProvider xp ->

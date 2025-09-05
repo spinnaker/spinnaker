@@ -66,12 +66,6 @@ public class SpinnakerNewIdeaProjectPlugin implements Plugin<Project> {
     });
   }
 
-  private static Stream<DirCacheEntry> entryStream(DirCache index) {
-    return COMMITTED_IDEA_FILES.stream().map(path -> Paths.get(".idea").resolve(path)).map(Path::toString).map(
-      index::getEntry
-    ).filter(Objects::nonNull);
-  }
-
   private static void updateCopyrightText(Project project) {
 
     Path licensePath = project.getRootDir().toPath().resolve(".idea").resolve(LICENSE_FILE);
