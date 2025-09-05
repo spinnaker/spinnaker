@@ -107,7 +107,7 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
           void execute(FormatExtension formatExtension) {
             formatExtension.target('**/.gitignore', 'src/**/*.json', 'src/**/*.yml', 'src/**/*.yaml', 'config/*.yml', 'halconfig/*.yml', '**/*.gradle')
             formatExtension.trimTrailingWhitespace()
-            formatExtension.indentWithSpaces(2)
+            formatExtension.leadingTabsToSpaces(2)
             formatExtension.endWithNewline()
           }
         }
