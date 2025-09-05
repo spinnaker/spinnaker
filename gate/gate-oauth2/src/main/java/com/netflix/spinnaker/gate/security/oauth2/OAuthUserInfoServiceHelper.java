@@ -95,6 +95,23 @@ public class OAuthUserInfoServiceHelper {
     this.providerTokenServices = providerTokenServices.orElse(null);
   }
 
+  /**
+   * Builds a {@link SpinnakerOAuth2User} from the given {@link OAuth2User} and its {@link
+   * OAuth2UserRequest}.
+   *
+   * <p>This method extracts user identity information (email, first name, last name, username,
+   * roles) from the provider's user attributes according to the configured {@link
+   * OAuth2SsoConfig.UserInfoMapping}. It also applies account filtering through {@link
+   * AllowedAccountsSupport}, validates user info requirements, and triggers a login in Fiat to
+   * establish authorization context.
+   *
+   * @param oAuth2User the raw user object returned by the OAuth2 provider
+   * @param userRequest the associated user request, including access token and client registration
+   * @return a {@link SpinnakerOAuth2User} containing normalized user identity, roles, and allowed
+   *     accounts
+   * @throws org.springframework.security.authentication.BadCredentialsException if the user's
+   *     attributes do not meet required constraints
+   */
   OAuth2User getSpinnakerOAuth2User(OAuth2User oAuth2User, OAuth2UserRequest userRequest) {
     Map<String, Object> details = oAuth2User.getAttributes();
 
@@ -111,6 +128,25 @@ public class OAuthUserInfoServiceHelper {
         oAuth2User.getAuthorities());
   }
 
+  /**
+   * Builds a {@link SpinnakerOIDCUser} from the given {@link OidcUser} and its {@link
+   * OAuth2UserRequest}.
+   *
+   * <p>This method extracts identity information (email, first name, last name, username, roles)
+   * from the OIDC claims and user attributes, applies account filtering through {@link
+   * AllowedAccountsSupport}, and triggers a Fiat login to establish authorization context. Unlike
+   * {@link #getSpinnakerOAuth2User}, this method also preserves the OIDC-specific {@link
+   * org.springframework.security.oauth2.core.oidc.OidcIdToken} and {@link
+   * org.springframework.security.oauth2.core.oidc.OidcUserInfo}.
+   *
+   * @param oidcUser the raw user object returned by the OIDC provider, including ID token and user
+   *     info claims
+   * @param userRequest the associated user request, including access token and client registration
+   * @return a {@link SpinnakerOIDCUser} containing normalized user identity, roles, allowed
+   *     accounts, ID token, and OIDC user info
+   * @throws org.springframework.security.authentication.BadCredentialsException if the user's
+   *     claims do not meet required constraints
+   */
   OidcUser getSpinnakerOIDCUser(OidcUser oidcUser, OAuth2UserRequest userRequest) {
     Map<String, Object> details = oidcUser.getAttributes();
 
