@@ -110,7 +110,7 @@ public class DaemonServiceTest {
     daemonService.setAuthnMethod("default", "oauth2", true, oAuth2);
 
     String expectedBody =
-        "{\"enabled\":true,\"client\":{\"clientId\":\"client-id\",\"clientSecret\":\"cf86e306218cf86e306218cf86e306218\",\"accessTokenUri\":\"https://github.com/login/oauth/access_token\",\"userAuthorizationUri\":\"https://github.com/login/oauth/authorize\",\"clientAuthenticationScheme\":null,\"scope\":\"user:email\",\"preEstablishedRedirectUri\":null,\"useCurrentUri\":null},\"userInfoRequirements\":null,\"resource\":{\"userInfoUri\":\"https://api.github.com/user\"},\"userInfoMapping\":{\"email\":\"email\",\"firstName\":\"\",\"lastName\":\"name\",\"username\":\"login\"},\"provider\":\"GITHUB\"}";
+        "{\"enabled\":true,\"client\":{\"clientId\":\"client-id\",\"clientSecret\":\"cf86e306218cf86e306218cf86e306218\",\"accessTokenUri\":\"https://github.com/login/oauth/access_token\",\"userAuthorizationUri\":\"https://github.com/login/oauth/authorize\",\"clientAuthenticationScheme\":null,\"scope\":\"user,email\",\"preEstablishedRedirectUri\":null,\"useCurrentUri\":null},\"userInfoRequirements\":null,\"resource\":{\"userInfoUri\":\"https://api.github.com/user\"},\"userInfoMapping\":{\"email\":\"email\",\"firstName\":\"\",\"lastName\":\"name\",\"username\":\"login\"},\"provider\":\"GITHUB\"}";
 
     wmDaemon.verify(
         putRequestedFor(

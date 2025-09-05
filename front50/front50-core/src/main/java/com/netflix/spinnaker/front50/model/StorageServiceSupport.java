@@ -32,6 +32,9 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.core.SupplierUtils;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -49,11 +52,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.Scheduler;
 
 public abstract class StorageServiceSupport<T extends Timestamped> {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -329,11 +329,11 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
       return;
     }
 
-    Observable.from(items)
+    Observable.fromIterable(items)
         .buffer(10)
         .flatMap(
             itemSet ->
-                Observable.from(itemSet)
+                Observable.fromIterable(itemSet)
                     .flatMap(
                         item -> {
                           try {
@@ -352,8 +352,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
                     .subscribeOn(scheduler))
         .subscribeOn(scheduler)
         .toList()
-        .toBlocking()
-        .single();
+        .blockingGet();
   }
 
   public void bulkDelete(Collection<String> ids) {
@@ -468,11 +467,11 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         }
       }
     } catch (UnsupportedOperationException e) {
-      Observable.from(modifiedKeys)
+      Observable.fromIterable(modifiedKeys)
           .buffer(10)
           .flatMap(
               ids ->
-                  Observable.from(ids)
+                  Observable.fromIterable(ids)
                       .flatMap(
                           entry -> {
                             try {
@@ -501,8 +500,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
                       .subscribeOn(scheduler))
           .subscribeOn(scheduler)
           .toList()
-          .toBlocking()
-          .single()
+          .blockingGet()
           .forEach(item -> resultMap.put(buildObjectKey(item), item));
     }
 

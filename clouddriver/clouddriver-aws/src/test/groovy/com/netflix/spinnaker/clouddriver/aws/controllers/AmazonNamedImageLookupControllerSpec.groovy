@@ -17,13 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.controllers
 
-import com.google.common.collect.Iterables
+
 import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Gauge
-import com.netflix.spectator.api.Measurement
-
-import java.util.function.Supplier
-
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.Cache
@@ -32,10 +27,11 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.aws.controllers.AmazonNamedImageLookupController.LookupOptions
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import jakarta.servlet.http.HttpServletRequest
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import javax.servlet.http.HttpServletRequest
+import java.util.function.Supplier
 import java.util.stream.Collectors
 import java.util.stream.IntStream
 
