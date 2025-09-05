@@ -2,7 +2,8 @@ package com.netflix.spinnaker.cats.pubsub.config;
 
 import com.netflix.spinnaker.cats.pubsub.PubSubAgentRunner;
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties;
-import com.netflix.spinnaker.kork.jedis.RedisClientConnectionProperties;
+import java.net.URL;
+import java.time.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -13,20 +14,14 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import redis.clients.jedis.JedisPoolConfig;
-
-import java.net.URL;
-import java.time.Duration;
 
 @Configuration
 @ConditionalOnProperty("cats.pubsub.enabled")
 public class PubSubSchedulerConfig {
-
 
   @Bean
   PubSubAgentRunner listener() {
@@ -46,7 +41,8 @@ public class PubSubSchedulerConfig {
   }
 
   @Bean
-  RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, MessageListenerAdapter listener) {
+  RedisMessageListenerContainer redisMessageListenerContainer(
+      RedisConnectionFactory connectionFactory, MessageListenerAdapter listener) {
 
     RedisMessageListenerContainer container = new RedisMessageListenerContainer();
     container.setConnectionFactory(connectionFactory);
@@ -56,9 +52,11 @@ public class PubSubSchedulerConfig {
 
   @Bean
   @ConditionalOnMissingBean(RedisConnectionFactory.class)
-  public RedisConnectionFactory redisConnectionFactory(final RedisConfigurationProperties properties, GenericObjectPoolConfig redisPoolConfig) throws Exception{
+  public RedisConnectionFactory redisConnectionFactory(
+      final RedisConfigurationProperties properties, GenericObjectPoolConfig redisPoolConfig)
+      throws Exception {
     GenericObjectPoolConfig poolConfig = redisPoolConfig.clone();
-    //TODO: Move to configuration properties
+    // TODO: Move to configuration properties
     poolConfig.setMaxTotal(300);
     poolConfig.setJmxEnabled(true);
     poolConfig.setBlockWhenExhausted(true);
@@ -70,7 +68,9 @@ public class PubSubSchedulerConfig {
       configuration.setUsername(url.getUserInfo().split(":")[0]);
       configuration.setPassword(url.getUserInfo().split(":")[1]);
     }
-    JedisClientConfiguration.DefaultJedisClientConfigurationBuilder clientConfig = (JedisClientConfiguration.DefaultJedisClientConfigurationBuilder) JedisClientConfiguration.builder();
+    JedisClientConfiguration.DefaultJedisClientConfigurationBuilder clientConfig =
+        (JedisClientConfiguration.DefaultJedisClientConfigurationBuilder)
+            JedisClientConfiguration.builder();
     clientConfig.readTimeout(Duration.ofMillis(properties.getTimeout()));
     if (url.getProtocol().equals("rediss")) {
       clientConfig.useSsl();
