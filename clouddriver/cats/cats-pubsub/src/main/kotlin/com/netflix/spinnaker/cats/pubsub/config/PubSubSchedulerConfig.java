@@ -50,6 +50,10 @@ public class PubSubSchedulerConfig {
     return container;
   }
 
+  /*
+   * THIS SHOULD NOT really exist.  ARGUABLY all of this should come from standard
+   * spring data autowiring.  TODO:  Change to spring auto configuration properties/beans
+   */
   @Bean
   @ConditionalOnMissingBean(RedisConnectionFactory.class)
   public RedisConnectionFactory redisConnectionFactory(

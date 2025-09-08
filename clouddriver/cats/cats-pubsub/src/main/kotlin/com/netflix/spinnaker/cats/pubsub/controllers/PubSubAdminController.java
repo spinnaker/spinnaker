@@ -18,7 +18,7 @@ public class PubSubAdminController {
 
   @GetMapping("/agents")
   public List<StateMachine.AgentState> getAgents() {
-    return stateMachine.listAgents();
+    return stateMachine.listAgentsFilteredWhereIn(null);
   }
 
   @DeleteMapping("/agents/{agentType}")

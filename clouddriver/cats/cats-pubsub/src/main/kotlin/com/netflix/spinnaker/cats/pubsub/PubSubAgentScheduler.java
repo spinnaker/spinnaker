@@ -113,8 +113,8 @@ public class PubSubAgentScheduler extends CatsModuleAware
   public void run() {
 
     // Schedule & queue any agents that CAN be scheduled.
-    stateMachine.listAgents().stream()
-        .filter(each -> QUEABLE_STATE_LIST.contains(each.getCurrentState()))
+    stateMachine
+        .listAgentsFilteredWhereIn(QUEABLE_STATE_LIST)
         .forEach(
             agent -> {
               Agent agentThatCouldBeRun =
@@ -140,8 +140,8 @@ public class PubSubAgentScheduler extends CatsModuleAware
     // times... we may have lots in the queue AND concurrently processing them on top
     // however, the lock system SHOULD reject those into a FAILED state when it encounters them as
     // part of the lock oeprations.
-    stateMachine.listAgents().stream()
-        .filter(agent -> agent.getCurrentState() == StateMachine.State.RUNNING)
+    stateMachine
+        .listAgentsFilteredWhereIn(Set.of(StateMachine.State.RUNNING))
         .forEach(
             runningAgent -> {
               Agent agentThatCouldBeRun =
@@ -172,8 +172,8 @@ public class PubSubAgentScheduler extends CatsModuleAware
                 }
               }
             });
-    stateMachine.listAgents().stream()
-        .filter(each -> each.getCurrentState() == StateMachine.State.DELETED)
+    stateMachine
+        .listAgentsFilteredWhereIn(Set.of(StateMachine.State.DELETED))
         .forEach(
             runningAgent -> {
               // Remove any agent marked as DELETED which hasn't changed in over 3 hours.

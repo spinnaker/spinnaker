@@ -6,8 +6,8 @@ import static org.jooq.impl.DSL.table;
 import com.netflix.spinnaker.cats.agent.Agent;
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
@@ -32,15 +32,15 @@ public class StateMachine {
 
   /** The assumption is that the agent HAS previously existed. WE DO NOT INSERT NEW AGENTS HERE. */
   public void acquireLock(Agent agent, long timeOutMs, State stateToApply) throws Exception {
-    @NotNull
-    ResultSet lockRecord =
+    try (ResultSet lockRecord =
         jooq.selectFrom(table(PUBSUB_AGENT_STATE))
             .where(field(AGENT_TYPE).eq(agent.getAgentType()))
             .forUpdate()
             .queryTimeout((int) (timeOutMs / 1000))
-            .fetchResultSet();
-    if (lockRecord.next()) {
-      lockRecord.updateString("current_state", stateToApply.name());
+            .fetchResultSet()) {
+      if (lockRecord.next()) {
+        lockRecord.updateString("current_state", stateToApply.name());
+      }
     }
   }
 
@@ -54,8 +54,8 @@ public class StateMachine {
    */
   public int changeStateUnlessMarkedForDeletion(Agent agent, State stateToSet) {
     return jooq.update(table(PUBSUB_AGENT_STATE))
-        .set(field("current_state"), stateToSet)
-        .where(AGENT_TYPE, agent.getAgentType())
+        .set(field("current_state"), stateToSet.name())
+        .where(field(AGENT_TYPE).eq(agent.getAgentType()))
         .andNot(field("current_state").eq(StateMachine.State.DELETED.name()))
         .execute();
   }
@@ -69,7 +69,7 @@ public class StateMachine {
     int rowsDeleted =
         jooq.update(table(PUBSUB_AGENT_STATE))
             .set(field("current_state"), StateMachine.State.DELETED.name())
-            .where(AGENT_TYPE, agent.getAgentType())
+            .where(field(AGENT_TYPE).eq(agent.getAgentType()))
             .andNot(field("current_state").eq(StateMachine.State.DELETED.name()))
             .execute();
     if (rowsDeleted != 1) {
@@ -98,6 +98,9 @@ public class StateMachine {
     }
   }
 
+  public static final Set<State> STATES_TO_IGNORE_ON_CREATE_NEW =
+      Set.of(State.DELETED, State.PENDING, State.FINISHED, State.RUNNING);
+
   public void createOrUpdateAgent(Agent agent, State stateToSet) throws Exception {
     // Get last COMPLETE date.  Get agent interval if scheduler aware.  IF interval is AFTER
     // complete date, queue it.
@@ -105,19 +108,24 @@ public class StateMachine {
       @NotNull
       ResultSet lockRecord =
           jooq.selectFrom(PUBSUB_AGENT_STATE)
-              .where(AGENT_TYPE, agent.getAgentType())
+              .where(field(AGENT_TYPE).eq(agent.getAgentType()))
               .forUpdate()
               .fetchResultSet();
       if (lockRecord.next()) {
         // already exists... so we probably are rescheduling an agent.  Some of the providers to an
         // unschedule/reschedule to reschedule various agents.
-        if (lockRecord.getString("current_state").equals(State.DELETED.name())) {
+        if (!STATES_TO_IGNORE_ON_CREATE_NEW.contains(
+            State.valueOf(lockRecord.getString("current_state")))) {
+          // Never executed
+          lockRecord.updateLong("last_execution_time", 0);
           lockRecord.updateString("current_state", stateToSet.name());
+          lockRecord.updateLong("last_transition_time", System.currentTimeMillis());
         }
       } else {
         lockRecord.moveToInsertRow();
         lockRecord.updateString(AGENT_TYPE, agent.getAgentType());
         lockRecord.updateLong("last_execution_time", System.currentTimeMillis());
+        lockRecord.updateLong("last_transition_time", System.currentTimeMillis());
         lockRecord.updateString("current_state", stateToSet.name());
       }
     } catch (Exception e) {
@@ -128,8 +136,14 @@ public class StateMachine {
     }
   }
 
-  public List<AgentState> listAgents() {
-    return jooq.selectFrom(table(PUBSUB_AGENT_STATE)).fetch().into(AgentState.class);
+  public List<AgentState> listAgentsFilteredWhereIn(Set<State> filterList) {
+    try (@NotNull var query = jooq.selectFrom(table(PUBSUB_AGENT_STATE))) {
+      if (filterList != null && !filterList.isEmpty()) {
+        query.where(field("current_state").in(filterList.stream().map(State::name).toList()));
+      }
+      query.orderBy(field("last_execution_time"));
+      return query.fetch().into(AgentState.class);
+    }
   }
 
   public enum State {
@@ -146,19 +160,18 @@ public class StateMachine {
   public static class AgentState {
     @Nonnull private String agentType;
     @Nonnull private State currentState;
-    @Nullable private State previousState;
     private long lastTransitionTime;
     private long lastExecutionTime;
-    private long lastDuration; // Used for determining max allowed time.
-    private long
-        dataProcessed; // Useful metric for knowing HOW much data was processed.  ALllows VERY eays
+    // Used for determining max allowed time.
+    private long lastDuration;
+    // Useful metric for knowing HOW much data was processed.  Allows VERY easy
     // looking up how much activity an agent has on the endpoint.
+    private long dataProcessed;
 
     public static AgentState from(Agent agent) {
       return builder()
           .agentType(agent.getAgentType())
           .currentState(State.NOT_STARTED)
-          .previousState(null)
           .lastTransitionTime(System.currentTimeMillis())
           .lastExecutionTime(0)
           .lastDuration(0)

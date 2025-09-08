@@ -1,0 +1,49 @@
+databaseChangeLog:
+- changeSet:
+    id: create-pubsub-scheduler-tablea
+    author: jason.mcintosh@spinnaker.io
+    changes:
+    - createTable:
+        tableName: pubsub_agent_state
+        columns:
+        - column:
+            name: agent_type
+            type: varchar(512)
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: current_state
+            type: varchar(20)
+            constraints:
+              nullable: false
+        - column:
+            name: last_transition_time
+            type: number
+        - column:
+            name: last_execution_time
+            type: number
+        - column:
+            name: last_duration
+            type: number
+        - column:
+            name: data_processed
+            type: number
+    rollback:
+      - dropTable:
+          tableName: pubsub_agent_state
+
+- changeSet:
+    id: create-pubsub-scheduler-indeexes
+    author: jasonmcintosh@spinnaker.io
+    changes:
+    - createIndex:
+        indexName: agent_type_index
+        tableName: pubsub_agent_state
+        columns:
+        - column:
+            name: agent_type
+        - column:
+            name: current_state
+        - column:
+            name: last_execution_time
