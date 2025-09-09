@@ -34,7 +34,7 @@ databaseChangeLog:
           tableName: pubsub_agent_state
 
 - changeSet:
-    id: create-pubsub-scheduler-indeexes
+    id: create-pubsub-scheduler-indexes
     author: jasonmcintosh@spinnaker.io
     changes:
     - createIndex:

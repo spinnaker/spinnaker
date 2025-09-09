@@ -31,12 +31,15 @@ public class PubSubSchedulerConfig {
 
   @Bean
   RedisMessageListenerContainer redisMessageListenerContainer(
-      RedisConnectionFactory connectionFactory, MessageListenerAdapter listener) {
-
+      PubSubSchedulerProperties properties,
+      RedisConnectionFactory connectionFactory,
+      MessageListenerAdapter listener) {
+    log.info("Starting message listener with " + properties.getMaxConcurrentAgents() + " agents");
     ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
     taskExecutor.setThreadNamePrefix("pubsub-agent-runner-");
-    taskExecutor.setMaxPoolSize(300);
-    taskExecutor.setCorePoolSize(100);
+    taskExecutor.setMaxPoolSize(properties.getMaxConcurrentAgents());
+    taskExecutor.setCorePoolSize(properties.getMaxConcurrentAgents() / 3);
+    taskExecutor.setQueueCapacity(0);
     taskExecutor.initialize();
 
     log.info("Starting RedisMessageListenerContainer & pubsub processing of scheduled agents");

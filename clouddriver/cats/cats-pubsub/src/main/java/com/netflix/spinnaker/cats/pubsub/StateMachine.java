@@ -4,8 +4,10 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
 import com.netflix.spinnaker.cats.agent.Agent;
+import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -25,6 +27,7 @@ public class StateMachine {
   private static final int MAX_DURATION_FOR_AN_AGENT =
       7200; // up to 2 hours.  NO AGENT should EVER take this long.  WE HOPE!
 
+  @Autowired PubSubSchedulerProperties properties;
   @Autowired private DSLContext jooq;
 
   public AgentState getAgent(String agentType) {
@@ -48,7 +51,9 @@ public class StateMachine {
             .queryTimeout(
                 Integer.min(
                     timeOutSeconds,
-                    MAX_DURATION_FOR_AN_AGENT)) // Since we use Integer.max_value for duration this
+                    (int)
+                        Duration.ofMinutes(properties.getMaxDurationForAnAgentMinutes())
+                            .toSeconds()))
             // can go beyond an int...
             .fetchResultSet()) {
       if (lockRecord.next()) {

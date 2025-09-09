@@ -8,6 +8,8 @@ import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
+import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
+import java.time.Duration;
 import java.util.Set;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,7 @@ public class PubSubAgentScheduler extends CatsModuleAware
   @Autowired private AgentIntervalProvider intervalProvider;
   @Autowired @Lazy public ProviderRegistry providerRegistry;
   @Autowired RedisTemplate<String, String> redisTemplate;
+  @Autowired PubSubSchedulerProperties properties;
 
   /**
    * Overview - there are three entry points to "schedule" an agent for cache operations under
@@ -86,7 +89,7 @@ public class PubSubAgentScheduler extends CatsModuleAware
   }
 
   @Override
-  @Scheduled(fixedDelay = 15000)
+  @Scheduled(fixedDelayString = "${cats.pubsub.delay-between-scheduler-runs-ms:15000}")
   public void run() {
     log.debug("Running agent scheduler to look for new agents to enqueue");
     // Schedule & queue any agents that CAN be scheduled.
@@ -181,7 +184,9 @@ public class PubSubAgentScheduler extends CatsModuleAware
             runningAgent -> {
               // Remove any agent marked as DELETED which hasn't changed in over 3 hours.
               if (runningAgent.getLastTransitionTime()
-                  > System.currentTimeMillis() - 3 * 60 * 60 * 1000) {
+                  > System.currentTimeMillis()
+                      - Duration.ofMinutes(properties.getMinutesBeforeDeletingMarkedForDeletion())
+                          .toMillis()) {
                 // The agent has been running TOO long.  This is LIKELY a bad situation.  Figure out
                 // which pod it is, kill the agent process, and move on.  UNFORTUNATELY there's no
                 // "interrupt" option on Agents in spinnaker to DO This :( NOT Yet :(
@@ -198,7 +203,9 @@ public class PubSubAgentScheduler extends CatsModuleAware
               // It's been pending for longer than 20 minutes... probably an issue with the queue.
               // re-enqueue it with
               if (runningAgent.getLastTransitionTime()
-                  < System.currentTimeMillis() - 20 * 60 * 1000) {
+                  < System.currentTimeMillis()
+                      - Duration.ofMinutes(properties.getMinutesBeforeReQueueOfAgents())
+                          .toMillis()) {
                 // The agent has been running TOO long.  This is LIKELY a bad situation.  Figure out
                 // which pod it is, kill the agent process, and move on.  UNFORTUNATELY there's no
                 // "interrupt" option on Agents in spinnaker to DO This :( NOT Yet :(

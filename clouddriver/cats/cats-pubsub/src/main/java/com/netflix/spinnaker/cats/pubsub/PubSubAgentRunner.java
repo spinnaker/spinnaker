@@ -5,6 +5,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
+import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import java.sql.SQLTimeoutException;
@@ -13,7 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
@@ -27,9 +27,7 @@ public class PubSubAgentRunner implements MessageListener {
   @Autowired StateMachine stateMachine;
   @Autowired MeterRegistry meterRegistry;
   @Autowired AgentIntervalProvider intervalProvider;
-
-  @Value("${cats.pubsub.percentMaxOverNormalDuration:1.5}")
-  private double percentMaxOverNormalDuration = 1.5;
+  @Autowired PubSubSchedulerProperties properties;
 
   public void onMessage(Message message, byte[] pattern) {
     String agentType = new String(message.getBody());
@@ -39,7 +37,7 @@ public class PubSubAgentRunner implements MessageListener {
     int lastDurationWithBuffer =
         (int)
             (Duration.ofMillis(agentState.getLastDuration()).toSeconds()
-                * percentMaxOverNormalDuration);
+                * properties.getPercentMaxOverNormalDuration());
     // lock up until a duration.  IF we've exceeded the normal duration, then fail & release.
     try {
       // we WILL NOT process more than one of any given agentType.  IF on demand is processed first,
