@@ -19,16 +19,16 @@ databaseChangeLog:
               nullable: false
         - column:
             name: last_transition_time
-            type: number
+            type: bigint
         - column:
             name: last_execution_time
-            type: number
+            type: bigint
         - column:
             name: last_duration
-            type: number
+            type: bigint
         - column:
             name: data_processed
-            type: number
+            type: bigint
     rollback:
       - dropTable:
           tableName: pubsub_agent_state
