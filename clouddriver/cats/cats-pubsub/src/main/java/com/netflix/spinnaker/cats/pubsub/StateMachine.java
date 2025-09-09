@@ -132,20 +132,20 @@ public class StateMachine {
   public void createOrUpdateAgent(String agentType, State stateToSet) {
     // Get last COMPLETE date.  Get agent interval if scheduler aware.  IF interval is AFTER
     // complete date, queue it.
-    try {
-      @NotNull
-      ResultSet lockRecord =
-          jooq.select(
-                  field("agent_type"),
-                  field("current_state"),
-                  field("last_execution_time"),
-                  field("last_transition_time"),
-                  field("last_duration"))
-              .from(table(PUBSUB_AGENT_STATE))
-              .where(field(AGENT_TYPE).eq(agentType))
-              .forUpdate()
-              .resultSetConcurrency(ResultSet.CONCUR_UPDATABLE)
-              .fetchResultSet();
+    try (@NotNull
+        ResultSet lockRecord =
+            jooq.select(
+                    field("agent_type"),
+                    field("current_state"),
+                    field("last_execution_time"),
+                    field("last_transition_time"),
+                    field("last_duration"))
+                .from(table(PUBSUB_AGENT_STATE))
+                .where(field(AGENT_TYPE).eq(agentType))
+                .forUpdate()
+                .resultSetConcurrency(ResultSet.CONCUR_UPDATABLE)
+                .fetchResultSet()) {
+
       if (lockRecord.next()) {
         // already exists... so we probably are rescheduling an agent.  Some of the providers to an
         // unschedule/reschedule to reschedule various agents.
