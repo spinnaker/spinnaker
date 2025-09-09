@@ -1,0 +1,2 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
+  com.netflix.spinnaker.kork.secrets.env.SecretResolvingEnvironmentPostProcessor

@@ -27,18 +27,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.stream.Stream;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.ObjectProvider;
 
 @ExtendWith(MockitoExtension.class)
 public class SecretManagerTest {
-
-  @Mock ObjectProvider<SecretEngine> secretEngineProvider;
 
   SecretEngineRegistry secretEngineRegistry;
 
@@ -48,8 +45,7 @@ public class SecretManagerTest {
 
   @BeforeEach
   public void setup() {
-    secretEngineRegistry = new SecretEngineRegistry(secretEngineProvider);
-    lenient().when(secretEngineProvider.orderedStream()).thenReturn(Stream.of(secretEngine));
+    secretEngineRegistry = new SecretEngineRegistry(List.of(secretEngine));
     lenient().when(secretEngine.identifier()).thenReturn("s3");
     secretManager = spy(new SecretManager(secretEngineRegistry));
   }
