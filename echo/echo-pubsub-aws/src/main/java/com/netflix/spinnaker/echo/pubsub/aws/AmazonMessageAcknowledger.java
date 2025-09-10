@@ -62,7 +62,12 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
               .build());
       registry.counter(getProcessedMetricId(subscriptionName)).increment();
     } catch (SqsException e) {
-      log.warn("Failed to delete message from queue {}: {}", queueUrl, e.getMessage());
+      log.warn(
+          "Error deleting message: {}, queue: {}, reason: {} (receiptHandle: {})",
+          message.messageId(),
+          queueUrl,
+          e.getMessage(),
+          message.receiptHandle());
     }
   }
 
