@@ -6,21 +6,23 @@ import static org.jooq.impl.DSL.table;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.RecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
+@Setter
 public class StateMachine {
   public static final String PUBSUB_AGENT_STATE = "pubsub_agent_state";
   public static final String AGENT_TYPE = "agent_type";
@@ -29,39 +31,21 @@ public class StateMachine {
 
   @Autowired PubSubSchedulerProperties properties;
   @Autowired private DSLContext jooq;
+  private static final RecordMapper<Record, AgentState> agentStateMapper =
+      row ->
+          AgentState.builder()
+              .agentType(row.get(AGENT_TYPE, String.class))
+              .currentState(row.get("current_state", String.class))
+              .lastTransitionTime(row.get("last_transition_time", Long.class))
+              .lastExecutionTime(row.get("last_execution_time", Long.class))
+              .lastDuration(row.get("last_duration", Long.class))
+              .dataProcessed(row.get("data_processed", Integer.class))
+              .build();
 
   public AgentState getAgent(String agentType) {
     try (var result =
         jooq.selectFrom(table(PUBSUB_AGENT_STATE)).where(field(AGENT_TYPE).eq(agentType))) {
-      return result.fetch().into(AgentState.class).stream().findFirst().orElse(null);
-    }
-  }
-
-  /** The assumption is that the agent HAS previously existed. WE DO NOT INSERT NEW AGENTS HERE. */
-  public void acquireLock(Agent agent, int timeOutSeconds, State stateToApply) throws Exception {
-    log.debug(
-        "Acquiring lock for agent {} with a timeout of {} seconds",
-        agent.getAgentType(),
-        timeOutSeconds);
-    try (ResultSet lockRecord =
-        jooq.selectFrom(table(PUBSUB_AGENT_STATE))
-            .where(field(AGENT_TYPE).eq(agent.getAgentType()))
-            .forUpdate()
-            .resultSetConcurrency(ResultSet.CONCUR_UPDATABLE)
-            .queryTimeout(
-                Integer.min(
-                    timeOutSeconds,
-                    (int)
-                        Duration.ofMinutes(properties.getMaxDurationForAnAgentMinutes())
-                            .toSeconds()))
-            // can go beyond an int...
-            .fetchResultSet()) {
-      if (lockRecord.next()) {
-        lockRecord.updateString("current_state", stateToApply.name());
-        lockRecord.updateRow();
-      }
-    } catch (SQLException e) {
-      log.error("Unable to aquire lock!", e);
+      return result.fetch().map(agentStateMapper).stream().findFirst().orElse(null);
     }
   }
 
@@ -76,6 +60,7 @@ public class StateMachine {
   public int changeStateUnlessMarkedForDeletion(String agentType, State stateToSet) {
     return jooq.update(table(PUBSUB_AGENT_STATE))
         .set(field("current_state"), stateToSet.name())
+        .set(field("last_transition_time"), System.currentTimeMillis())
         .where(field(AGENT_TYPE).eq(agentType))
         .andNot(field("current_state").eq(StateMachine.State.DELETED.name()))
         .execute();
@@ -138,7 +123,7 @@ public class StateMachine {
     // Get last COMPLETE date.  Get agent interval if scheduler aware.  IF interval is AFTER
     // complete date, queue it.
     try (@NotNull
-        ResultSet lockRecord =
+        ResultSet agentRecord =
             jooq.select(
                     field("agent_type"),
                     field("current_state"),
@@ -151,24 +136,24 @@ public class StateMachine {
                 .resultSetConcurrency(ResultSet.CONCUR_UPDATABLE)
                 .fetchResultSet()) {
 
-      if (lockRecord.next()) {
+      if (agentRecord.next()) {
         // already exists... so we probably are rescheduling an agent.  Some of the providers to an
         // unschedule/reschedule to reschedule various agents.
         if (!STATES_TO_IGNORE_ON_EXISTING.contains(
-            State.valueOf(lockRecord.getString("current_state")))) {
+            State.valueOf(agentRecord.getString("current_state")))) {
           // Never executed... so set some defaults for the next poll cycle to queue it as needed
-          lockRecord.updateString("current_state", stateToSet.name());
-          lockRecord.updateLong("last_transition_time", System.currentTimeMillis());
-          lockRecord.updateRow();
+          agentRecord.updateString("current_state", stateToSet.name());
+          agentRecord.updateLong("last_transition_time", System.currentTimeMillis());
+          agentRecord.updateRow();
         }
       } else {
-        lockRecord.moveToInsertRow();
-        lockRecord.updateString(AGENT_TYPE, agentType);
-        lockRecord.updateLong("last_execution_time", 0);
-        lockRecord.updateLong("last_duration", Integer.MAX_VALUE);
-        lockRecord.updateLong("last_transition_time", System.currentTimeMillis());
-        lockRecord.updateString("current_state", stateToSet.name());
-        lockRecord.insertRow();
+        agentRecord.moveToInsertRow();
+        agentRecord.updateString(AGENT_TYPE, agentType);
+        agentRecord.updateLong("last_duration", Integer.MAX_VALUE);
+        agentRecord.updateLong("last_transition_time", System.currentTimeMillis());
+        agentRecord.updateLong("last_execution_time", 0);
+        agentRecord.updateString("current_state", stateToSet.name());
+        agentRecord.insertRow();
       }
     } catch (Exception e) {
       log.error(
@@ -204,7 +189,7 @@ public class StateMachine {
   @Builder
   public static class AgentState {
     @Nonnull private String agentType;
-    @Nonnull private State currentState;
+    @Nonnull private String currentState;
     private long lastTransitionTime;
     private long lastExecutionTime;
     // Used for determining max allowed time.

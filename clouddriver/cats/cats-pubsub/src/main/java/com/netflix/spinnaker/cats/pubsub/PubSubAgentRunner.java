@@ -6,13 +6,15 @@ import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
+import com.netflix.spinnaker.kork.lock.LockManager;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import java.sql.SQLTimeoutException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -28,6 +30,7 @@ public class PubSubAgentRunner implements MessageListener {
   @Autowired MeterRegistry meterRegistry;
   @Autowired AgentIntervalProvider intervalProvider;
   @Autowired PubSubSchedulerProperties properties;
+  @Autowired LockManager lockManager;
 
   public void onMessage(Message message, byte[] pattern) {
     String agentType = new String(message.getBody());
@@ -39,6 +42,7 @@ public class PubSubAgentRunner implements MessageListener {
             (Duration.ofMillis(agentState.getLastDuration()).toSeconds()
                 * properties.getPercentMaxOverNormalDuration());
     // lock up until a duration.  IF we've exceeded the normal duration, then fail & release.
+    LockManager.AcquireLockResponse<Void> lock = null;
     try {
       // we WILL NOT process more than one of any given agentType.  IF on demand is processed first,
       // it'll happen first.
@@ -47,74 +51,72 @@ public class PubSubAgentRunner implements MessageListener {
       // that agent before running it again.
       StopWatch totalDuration = new StopWatch();
       totalDuration.start();
+      AtomicInteger totalDataCached = new AtomicInteger(-1);
       if (agent != null) {
-        stateMachine.acquireLock(agent, lastDurationWithBuffer, StateMachine.State.RUNNING);
-        if (agent instanceof CachingAgent cacheExecutionAgent) {
-          CachingAgent.CacheExecution cacheAgentExecution =
-              (CachingAgent.CacheExecution) cacheExecutionAgent.getAgentExecution(providerRegistry);
-          List<Tag> tags =
-              List.of(
-                  Tag.of("agentType", agentType),
-                  Tag.of("state", StateMachine.State.FINISHED.name()));
-          StopWatch timer = new StopWatch();
-          timer.start();
-          intervalProvider.getInterval(agent).getTimeout();
-          // Run this up to the interval timeout and fail if it runs longer.
-          CacheResult cacheResult = cacheAgentExecution.executeAgentWithoutStore(agent);
-          int totalDataCached =
-              cacheResult.getCacheResults().values().stream()
-                  .map(Collection::size)
-                  .reduce(0, Integer::sum);
-          timer.stop();
-          meterRegistry.gauge("cats.pubsub.execution.duration", tags, timer.getTotalTimeMillis());
-          meterRegistry.gauge("cats.pubsub.execution.size", tags, totalDataCached);
+        String agentSantized =
+            StringUtils.replaceEach(
+                agent.getAgentType(),
+                new String[] {"-", "/", "]", "["},
+                new String[] {".", ".", ".", "."});
+        // QUESTION: DD we really NEED the lock here?  OR just allow that "We want start if one
+        // already running?
+        lockManager.acquireLock(
+            agentSantized,
+            lastDurationWithBuffer,
+            () -> {
+              stateMachine.changeStateUnlessMarkedForDeletion(
+                  agent.getAgentType(), StateMachine.State.RUNNING);
+              if (agent instanceof CachingAgent cacheExecutionAgent) {
+                CachingAgent.CacheExecution cacheAgentExecution =
+                    (CachingAgent.CacheExecution)
+                        cacheExecutionAgent.getAgentExecution(providerRegistry);
+                List<Tag> tags =
+                    List.of(
+                        Tag.of("agentType", agentType),
+                        Tag.of("state", StateMachine.State.FINISHED.name()));
+                StopWatch timer = new StopWatch();
+                timer.start();
+                intervalProvider.getInterval(agent).getTimeout();
+                // Run this up to the interval timeout and fail if it runs longer.
+                CacheResult cacheResult = cacheAgentExecution.executeAgentWithoutStore(agent);
+                totalDataCached.set(
+                    cacheResult.getCacheResults().values().stream()
+                        .map(Collection::size)
+                        .reduce(0, Integer::sum));
+                timer.stop();
+                meterRegistry.gauge(
+                    "cats.pubsub.execution.duration", tags, timer.getTotalTimeMillis());
+                meterRegistry.gauge("cats.pubsub.execution.size", tags, totalDataCached);
 
-          timer = new StopWatch();
-          timer.start();
-          cacheAgentExecution.storeAgentResult(agent, cacheResult);
-          timer.stop();
-          meterRegistry.gauge(
-              "cats.pubsub.execution.storagetime", tags, timer.getTotalTimeMillis());
-          meterRegistry
-              .counter(
-                  "cats.pubsub.agents.processed",
-                  List.of(
-                      Tag.of("agentType", agentType),
-                      Tag.of("state", StateMachine.State.FINISHED.name())))
-              .increment();
-          totalDuration.stop();
-          stateMachine.markAgentCompleted(
-              agent.getAgentType(), totalDuration.getTotalTimeMillis(), totalDataCached);
-        } else {
-          agent.getAgentExecution(providerRegistry).executeAgent(agent);
-          // UNFORTUNATELY... unless this is a  CachingAgent.CacheExecution agent, we won't know how
-          // much data it processed.  There
-          // are a FEW agents that are NOT CacheExecution agents at this time.
-          log.info(
-              "We completed {} but since it's not a CacheExecution agent we can't track how much data it processed.",
-              agent.getAgentType());
-          totalDuration.stop();
-          stateMachine.markAgentCompleted(
-              agent.getAgentType(), totalDuration.getTotalTimeMillis(), -1);
-        }
+                timer = new StopWatch();
+                timer.start();
+                cacheAgentExecution.storeAgentResult(agent, cacheResult);
+                timer.stop();
+                meterRegistry.gauge(
+                    "cats.pubsub.execution.storagetime", tags, timer.getTotalTimeMillis());
+                meterRegistry
+                    .counter(
+                        "cats.pubsub.agents.processed",
+                        List.of(
+                            Tag.of("agentType", agentType),
+                            Tag.of("state", StateMachine.State.FINISHED.name())))
+                    .increment();
+              } else {
+                agent.getAgentExecution(providerRegistry).executeAgent(agent);
+                // UNFORTUNATELY... unless this is a  CachingAgent.CacheExecution agent, we won't
+                // know how
+                // much data it processed.  There
+                // are a FEW agents that are NOT CacheExecution agents at this time.
+                log.debug(
+                    "We completed {} but since it's not a CacheExecution agent we can't track how much data it processed.",
+                    agent.getAgentType());
+              }
+              totalDuration.stop();
+            });
+        stateMachine.markAgentCompleted(
+            agent.getAgentType(), totalDuration.getTotalTimeMillis(), totalDataCached.get());
       }
-    } catch (SQLTimeoutException exceeded) {
-      log.error(
-          "Exceeded max duration for account {} of {} (with buffer) while trying to get a unique lock to run the agent.  There may be a hung agent someplace",
-          agentType,
-          lastDurationWithBuffer);
-      meterRegistry
-          .counter(
-              "cats.pubsub.agents.processed",
-              List.of(
-                  Tag.of("accountType", agentType),
-                  Tag.of("state", StateMachine.State.FAILED.name())))
-          .increment();
-      stateMachine.changeStateUnlessMarkedForDeletion(
-          agent.getAgentType(), StateMachine.State.FAILED);
-      // SO MANY of these will then trigger
-      throw new RuntimeException(exceeded);
-    } catch (ExecutionDurationExceeded exceeded) {
+    } catch (LockManager.LockException exceeded) {
       meterRegistry
           .counter(
               "cats.pubsub.agents.processed",
@@ -123,7 +125,7 @@ public class PubSubAgentRunner implements MessageListener {
                   Tag.of("state", StateMachine.State.FAILED.name())))
           .increment();
       log.error(
-          "Agent {} exceeded max duration for account {} of {} (with buffer).  This shouldn't norally happy if it's performing consistently.",
+          "Lock failed for agent {} max duration for account {} of {} (with buffer).  This shouldn't really happen...",
           agentType,
           agentType,
           lastDurationWithBuffer);

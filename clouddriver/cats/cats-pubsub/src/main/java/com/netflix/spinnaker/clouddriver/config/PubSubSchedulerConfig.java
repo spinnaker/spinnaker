@@ -1,7 +1,16 @@
 package com.netflix.spinnaker.clouddriver.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.pubsub.PubSubAgentRunner;
 import com.netflix.spinnaker.cats.pubsub.PubSubAgentScheduler;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
+import com.netflix.spinnaker.kork.lock.LockManager;
+import java.time.Clock;
+import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -48,5 +57,23 @@ public class PubSubSchedulerConfig {
     container.setConnectionFactory(connectionFactory);
     container.addMessageListener(listener, ChannelTopic.of(PubSubAgentScheduler.CHANNEL));
     return container;
+  }
+
+  @Bean
+  LockManager redisLockManager(
+      Clock clock, Registry registry, RedisClientDelegate redisClientDelegate) {
+    ObjectMapper objectMapper =
+        new ObjectMapper()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+    return new RedisLockManager(
+        null, // will fall back to running node name
+        clock,
+        registry,
+        objectMapper,
+        redisClientDelegate,
+        Optional.empty(),
+        Optional.empty());
   }
 }
