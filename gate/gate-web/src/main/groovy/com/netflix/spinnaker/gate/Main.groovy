@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate
 
-import graphql.kickstart.spring.web.boot.GraphQLWebsocketAutoConfiguration
 import org.springframework.boot.actuate.autoconfigure.ldap.LdapHealthContributorAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -37,7 +36,6 @@ import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
     GroovyTemplateAutoConfiguration,
     GsonAutoConfiguration,
     LdapHealthContributorAutoConfiguration,
-    GraphQLWebsocketAutoConfiguration
   ]
 )
 class Main {
