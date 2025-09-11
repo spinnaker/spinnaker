@@ -56,12 +56,7 @@ public class SpinnakerOAuth2User extends User implements OAuth2User {
       String username,
       Map<String, Object> attributes,
       Collection<? extends GrantedAuthority> authorities) {
-    this.email = email;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.allowedAccounts = allowedAccounts;
-    this.roles = roles;
-    this.username = username;
+    super(email, username, firstName, lastName, roles, allowedAccounts);
     this.attributes = attributes != null ? Map.copyOf(attributes) : Collections.emptyMap();
     this.authorities = authorities != null ? List.copyOf(authorities) : Collections.emptyList();
   }

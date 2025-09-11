@@ -66,14 +66,9 @@ public class SpinnakerOIDCUser extends User implements OidcUser {
       OidcUserInfo userInfo,
       Map<String, Object> attributes,
       Collection<? extends GrantedAuthority> authorities) {
+    super(email, username, firstName, lastName, roles, allowedAccounts);
     this.idToken = idToken;
     this.userInfo = userInfo;
-    this.email = email;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.allowedAccounts = allowedAccounts;
-    this.roles = roles;
-    this.username = username;
     this.attributes =
         attributes != null
             ? Collections.unmodifiableMap(new HashMap<>(attributes))
