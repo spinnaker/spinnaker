@@ -22,6 +22,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.netflix.spinnaker.gate.security.oauth2.provider.SpinnakerProviderTokenServices;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,13 +36,20 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 @SpringBootTest(
     properties = {
-      "security.oauth2.client.clientId=Spinnaker-Client",
-      "security.oauth2.resource.userInfoUri=http://localhost/userinfo"
+      "spring.security.oauth2.client.registration.github.client-id=client-id",
+      "spring.security.oauth2.client.registration.github.client-secret=client-secret"
     })
 @TestPropertySource(properties = {"spring.config.location=classpath:gate-test.yml"})
 public class OAuth2Test {
 
   @Autowired private MockMvc mockMvc;
+
+  /**
+   * This property is used to test the creation of the `GithubProviderTokenServices` bean when the
+   * `spring.security.oauth2.client.registration.github.client-id` property is present in the
+   * configuration. fails if GithubProviderTokenServices bean is unavailable in the context
+   */
+  @Autowired private SpinnakerProviderTokenServices providerTokenServices;
 
   @Test
   void shouldRedirectOnOauth2Authentication() throws Exception {
@@ -51,6 +60,7 @@ public class OAuth2Test {
             .andReturn();
 
     assertEquals(302, result.getResponse().getStatus());
+    Assertions.assertThat(providerTokenServices).isNotNull();
   }
 
   /** Test: Public endpoint should be accessible without authentication */
