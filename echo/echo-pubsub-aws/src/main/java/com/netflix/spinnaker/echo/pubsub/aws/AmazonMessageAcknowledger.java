@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.echo.pubsub.aws;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiptHandleIsInvalidException;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 /**
  * Responds to the SQS queue for each message using the unique messageReceiptHandle of the message.
@@ -32,19 +33,19 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
 
   private static final Logger log = LoggerFactory.getLogger(AmazonMessageAcknowledger.class);
 
-  private AmazonSQS amazonSQS;
+  private SqsClient sqsClient;
   private String queueUrl;
   private Message message;
   private Registry registry;
   private String subscriptionName;
 
   public AmazonMessageAcknowledger(
-      AmazonSQS amazonSQS,
+      SqsClient sqsClient,
       String queueUrl,
       Message message,
       Registry registry,
       String subscriptionName) {
-    this.amazonSQS = amazonSQS;
+    this.sqsClient = sqsClient;
     this.queueUrl = queueUrl;
     this.message = message;
     this.registry = registry;
@@ -53,17 +54,20 @@ public class AmazonMessageAcknowledger implements MessageAcknowledger {
 
   @Override
   public void ack() {
-    // Delete from queue
     try {
-      amazonSQS.deleteMessage(queueUrl, message.getReceiptHandle());
+      sqsClient.deleteMessage(
+          DeleteMessageRequest.builder()
+              .queueUrl(queueUrl)
+              .receiptHandle(message.receiptHandle())
+              .build());
       registry.counter(getProcessedMetricId(subscriptionName)).increment();
-    } catch (ReceiptHandleIsInvalidException e) {
+    } catch (SqsException e) {
       log.warn(
           "Error deleting message: {}, queue: {}, reason: {} (receiptHandle: {})",
-          message.getMessageId(),
+          message.messageId(),
           queueUrl,
           e.getMessage(),
-          message.getReceiptHandle());
+          message.receiptHandle());
     }
   }
 

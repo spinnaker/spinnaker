@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import ch.qos.logback.classic.Level;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sqs.AmazonSQS;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -37,13 +35,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 @ExtendWith(MockitoExtension.class)
 public class AmazonSQSSubscriberTest {
 
-  @Mock private AmazonSNS amazonSNS;
+  @Mock private SnsClient snsClient;
 
-  @Mock private AmazonSQS amazonSQS;
+  @Mock private SqsClient sqsClient;
 
   @Mock private PubsubMessageHandler pubsubMessageHandler;
 
@@ -67,8 +67,8 @@ public class AmazonSQSSubscriberTest {
             objectMapper,
             subscription,
             pubsubMessageHandler,
-            amazonSNS,
-            amazonSQS,
+            snsClient,
+            sqsClient,
             () -> true,
             registry);
   }

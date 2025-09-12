@@ -16,12 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub.aws;
 
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
@@ -41,6 +35,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 /**
  * One subscriber for each subscription. The subscriber makes sure the SQS queue is created,
@@ -54,8 +54,8 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   private static final PubsubSystem pubsubSystem = PubsubSystem.AMAZON;
 
   private final ObjectMapper objectMapper;
-  private final AmazonSNS amazonSNS;
-  private final AmazonSQS amazonSQS;
+  private final SnsClient snsClient;
+  private final SqsClient sqsClient;
 
   private final AmazonPubsubProperties.AmazonPubsubSubscription subscription;
 
@@ -76,18 +76,17 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       ObjectMapper objectMapper,
       AmazonPubsubProperties.AmazonPubsubSubscription subscription,
       PubsubMessageHandler pubsubMessageHandler,
-      AmazonSNS amazonSNS,
-      AmazonSQS amazonSQS,
+      SnsClient snsClient,
+      SqsClient sqsClient,
       Supplier<Boolean> isEnabled,
       Registry registry) {
     this.objectMapper = objectMapper;
     this.subscription = subscription;
     this.pubsubMessageHandler = pubsubMessageHandler;
-    this.amazonSNS = amazonSNS;
-    this.amazonSQS = amazonSQS;
+    this.snsClient = snsClient;
+    this.sqsClient = sqsClient;
     this.isEnabled = isEnabled;
     this.registry = registry;
-
     this.queueARN = new ARN(subscription.getQueueARN());
     this.topicARN = new ARN(subscription.getTopicARN());
   }
@@ -120,11 +119,10 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       log.error("Error initializing queue {}", queueARN, e);
       throw e;
     }
-
     while (true) {
       try {
         listenForMessages();
-      } catch (QueueDoesNotExistException e) {
+      } catch (SqsException e) {
         log.warn("Queue {} does not exist, recreating", queueARN);
         initializeQueue();
       } catch (Exception e) {
@@ -137,45 +135,43 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   private void initializeQueue() {
     this.queueId =
         PubSubUtils.ensureQueueExists(
-            amazonSQS, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds());
-    PubSubUtils.subscribeToTopic(amazonSNS, topicARN, queueARN);
+            sqsClient, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds());
+    PubSubUtils.subscribeToTopic(snsClient, topicARN, queueARN);
   }
 
   private void listenForMessages() {
     while (isEnabled.get()) {
-      ReceiveMessageResult receiveMessageResult =
-          amazonSQS.receiveMessage(
-              new ReceiveMessageRequest(queueId)
-                  .withMaxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
-                  .withVisibilityTimeout(subscription.getVisibilityTimeout())
-                  .withWaitTimeSeconds(subscription.getWaitTimeSeconds())
-                  .withMessageAttributeNames("All"));
-
-      if (receiveMessageResult.getMessages().isEmpty()) {
+      ReceiveMessageRequest request =
+          ReceiveMessageRequest.builder()
+              .queueUrl(queueId)
+              .maxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
+              .visibilityTimeout(subscription.getVisibilityTimeout())
+              .waitTimeSeconds(subscription.getWaitTimeSeconds())
+              .messageAttributeNames("All")
+              .build();
+      ReceiveMessageResponse response = sqsClient.receiveMessage(request);
+      if (response.messages().isEmpty()) {
         log.debug("Received no messages for queue: {}", queueARN);
         continue;
       }
-
-      receiveMessageResult.getMessages().forEach(this::handleMessage);
+      response.messages().forEach(this::handleMessage);
     }
-
-    // If isEnabled is false, let's not busy spin
     sleepALittle();
   }
 
   private void handleMessage(Message message) {
     try {
-      String messageId = message.getMessageId();
-      String messagePayload = unmarshalMessageBody(message.getBody());
+      String messageId = message.messageId();
+      String messagePayload = unmarshalMessageBody(message.body());
 
       Map<String, String> stringifiedMessageAttributes =
-          message.getMessageAttributes().entrySet().stream()
+          message.messageAttributes().entrySet().stream()
               .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
 
       // SNS message attributes are stored within the SQS message body. Add them to other
       // attributes..
       Map<String, MessageAttributeWrapper> messageAttributes =
-          unmarshalMessageAttributes(message.getBody());
+          unmarshalMessageAttributes(message.body());
       stringifiedMessageAttributes.putAll(
           messageAttributes.entrySet().stream()
               .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getAttributeValue())));
@@ -192,7 +188,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
               .build();
 
       AmazonMessageAcknowledger acknowledger =
-          new AmazonMessageAcknowledger(amazonSQS, queueId, message, registry, getName());
+          new AmazonMessageAcknowledger(sqsClient, queueId, message, registry, getName());
 
       if (subscription.getAlternateIdInMessageAttributes() != null
           && !subscription.getAlternateIdInMessageAttributes().isEmpty()
