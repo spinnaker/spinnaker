@@ -20,6 +20,7 @@ dependencies {
   implementation project(':echo-model')
   implementation project(':echo-pubsub-core')
   implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-aws"
   implementation "io.spinnaker.kork:kork-pubsub-aws"
   implementation "com.netflix.spectator:spectator-api"
