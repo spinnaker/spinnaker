@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.front50.filters;
 
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.*;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 

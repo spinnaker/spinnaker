@@ -15,9 +15,9 @@
  */
 package com.netflix.kayenta.atlas.model;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
-import javax.validation.constraints.NotNull;
 import lombok.*;
 
 @Builder

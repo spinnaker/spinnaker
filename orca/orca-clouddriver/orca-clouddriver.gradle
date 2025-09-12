@@ -36,7 +36,7 @@ dependencies {
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("io.kubernetes:client-java")
   implementation("com.amazonaws:aws-java-sdk-lambda")
-  implementation("javax.validation:validation-api")
+  implementation("jakarta.validation:jakarta.validation-api")
   implementation("org.jetbrains:annotations")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-guava")
   implementation("com.squareup.retrofit2:converter-jackson")

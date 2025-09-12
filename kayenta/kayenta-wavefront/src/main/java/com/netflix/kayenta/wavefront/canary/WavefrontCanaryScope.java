@@ -16,7 +16,7 @@
 package com.netflix.kayenta.wavefront.canary;
 
 import com.netflix.kayenta.canary.CanaryScope;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

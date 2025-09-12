@@ -17,11 +17,11 @@
 package com.netflix.kayenta.metrics;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.util.StringUtils;
 
