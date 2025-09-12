@@ -16,13 +16,37 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
+import com.netflix.spinnaker.kork.secrets.SecretException;
 
-@NonnullByDefault
 public interface UserSecretSerde {
+
+  /**
+   * Checks if this serde supports user secrets with the given metadata.
+   *
+   * @param metadata the user secret metadata to check for support
+   * @return true if this serde can serialize and deserialize user secrets with the given metadata
+   */
   boolean supports(UserSecretMetadata metadata);
 
+  /**
+   * Deserializes a raw user secret payload with its parsed metadata.
+   *
+   * @param encoded the raw user secret data
+   * @param metadata the parsed user secret metadata corresponding to the given raw secret
+   * @return the parsed user secret
+   * @throws SecretDecryptionException if the user secret data cannot be parsed as configured by the
+   *     metadata
+   */
   UserSecret deserialize(byte[] encoded, UserSecretMetadata metadata);
 
+  /**
+   * Serializes a raw user secret to the specified encoding in the given metadata.
+   *
+   * @param secret the user secret data
+   * @param metadata the metadata describing the user secret
+   * @return the serialized user secret
+   * @throws SecretException if the user secret cannot be serialized
+   */
   byte[] serialize(UserSecretData secret, UserSecretMetadata metadata);
 }

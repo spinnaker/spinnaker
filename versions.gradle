@@ -16,7 +16,7 @@
 
 // This file serves as a centralized point to declare dependencies that cut across both buildscript and runtime
 ext {
-    kotlinVersion = "1.6.21"
+    kotlinVersion = "1.8.22"
 }
 
 // Define dependencies needed by buildscripts, as that lifecycle phase cannot receive root properties normally

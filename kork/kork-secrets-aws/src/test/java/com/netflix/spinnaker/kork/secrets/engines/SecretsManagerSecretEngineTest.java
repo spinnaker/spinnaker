@@ -146,9 +146,9 @@ public class SecretsManagerSecretEngineTest {
     doReturn(stubResult).when(secretsManagerSecretEngine).getSecretValue(any());
 
     UserSecretReference reference =
-        UserSecretReference.parse("secret://secrets-manager?r=us-west-2&s=private-key");
+        UserSecretReference.parse("secret://secrets-manager?r=us-west-2&s=private-key&k=password");
     UserSecret secret = secretsManagerSecretEngine.decrypt(reference);
-    assertEquals("hunter2", secret.getSecretString("password"));
+    assertEquals("hunter2", secret.getSecretString(reference));
     assertEquals(List.of("a", "b", "c"), secret.getRoles());
   }
 }

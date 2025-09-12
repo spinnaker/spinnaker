@@ -2,12 +2,7 @@ package com.netflix.spinnaker.kork.secrets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.kork.secrets.engines.NoopSecretEngine;
 import java.nio.file.Path;
@@ -16,12 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class SecretSessionTest {
 
-  @Mock private SecretEngineRegistry secretEngineRegistry;
   private SecretEngine secretEngine;
   private List<SecretEngine> secretEngineList = new ArrayList<>();
   private SecretManager secretManager;
@@ -29,20 +24,17 @@ public class SecretSessionTest {
 
   @BeforeEach
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    SecretEngineRegistry secretEngineRegistry = new SecretEngineRegistry(secretEngineList);
 
     secretManager = spy(new SecretManager(secretEngineRegistry));
-    doCallRealMethod().when(secretManager).decrypt(any());
+    lenient().doCallRealMethod().when(secretManager).decrypt(any());
 
     secretEngine = spy(new NoopSecretEngine());
-    doCallRealMethod().when(secretEngine).decrypt(any(EncryptedSecret.class));
+    lenient().doCallRealMethod().when(secretEngine).decrypt(any(EncryptedSecret.class));
 
     secretEngineList.add(secretEngine);
     secretSession = new SecretSession(secretManager);
     addTestValuesToSecretSessionCaches();
-
-    when(secretEngineRegistry.getSecretEngineList()).thenReturn(secretEngineList);
-    when(secretEngineRegistry.getEngine("noop")).thenReturn(secretEngine);
   }
 
   private void addTestValuesToSecretSessionCaches() {

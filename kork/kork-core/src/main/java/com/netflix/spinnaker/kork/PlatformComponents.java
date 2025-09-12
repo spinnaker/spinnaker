@@ -16,24 +16,16 @@
 
 package com.netflix.spinnaker.kork;
 
-import com.netflix.spinnaker.kork.dynamicconfig.TransientConfigConfiguration;
 import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
-import com.netflix.spinnaker.kork.version.ServiceVersion;
-import com.netflix.spinnaker.kork.version.SpringPackageVersionResolver;
-import com.netflix.spinnaker.kork.version.VersionResolver;
 import io.github.resilience4j.circuitbreaker.autoconfigure.CircuitBreakersHealthIndicatorAutoConfiguration;
 import io.github.resilience4j.ratelimiter.autoconfigure.RateLimitersHealthIndicatorAutoConfiguration;
-import java.util.List;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-@Configuration
+@AutoConfiguration
 @Import({
-  TransientConfigConfiguration.class,
+  BootstrapComponents.class,
   SpectatorConfiguration.class,
 })
 @ImportAutoConfiguration(
@@ -41,18 +33,4 @@ import org.springframework.context.annotation.Import;
       CircuitBreakersHealthIndicatorAutoConfiguration.class,
       RateLimitersHealthIndicatorAutoConfiguration.class
     })
-public class PlatformComponents {
-
-  @Bean
-  @ConditionalOnMissingBean(ServiceVersion.class)
-  ServiceVersion serviceVersion(
-      ApplicationContext applicationContext, List<VersionResolver> versionResolvers) {
-    return new ServiceVersion(applicationContext, versionResolvers);
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(SpringPackageVersionResolver.class)
-  VersionResolver springPackageVersionResolver(ApplicationContext applicationContext) {
-    return new SpringPackageVersionResolver(applicationContext);
-  }
-}
+public class PlatformComponents {}

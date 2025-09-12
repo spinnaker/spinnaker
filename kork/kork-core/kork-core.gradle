@@ -1,4 +1,3 @@
-apply plugin: "java-library"
 apply plugin: "groovy"
 apply from: "$rootDir/gradle/lombok.gradle"
 
@@ -30,6 +29,8 @@ dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation("org.mockito:mockito-core")
   testImplementation "org.spockframework:spock-core"
+  testImplementation "org.springframework:spring-web"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"

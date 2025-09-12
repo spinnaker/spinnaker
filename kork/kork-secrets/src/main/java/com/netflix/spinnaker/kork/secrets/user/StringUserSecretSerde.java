@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Component;
 
-@NonnullByDefault
 @Component
 public class StringUserSecretSerde implements UserSecretSerde {
   @Override
@@ -36,6 +34,6 @@ public class StringUserSecretSerde implements UserSecretSerde {
 
   @Override
   public byte[] serialize(UserSecretData secret, UserSecretMetadata metadata) {
-    return secret.getSecretString("").getBytes(StandardCharsets.UTF_8);
+    return secret.getSecretString().getBytes(StandardCharsets.UTF_8);
   }
 }
