@@ -32,6 +32,9 @@ dependencies {
   api 'com.amazonaws:aws-java-sdk-sqs'
   api 'com.netflix.spectator:spectator-api'
   api 'org.slf4j:slf4j-api'
+  api "software.amazon.awssdk:sns"
+  api "software.amazon.awssdk:sqs"
+  api "software.amazon.awssdk:iam-policy-builder"
 
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "cglib:cglib-nodep"
