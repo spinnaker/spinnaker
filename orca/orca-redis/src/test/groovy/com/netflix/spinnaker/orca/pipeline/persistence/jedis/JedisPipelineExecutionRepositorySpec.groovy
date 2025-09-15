@@ -118,7 +118,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     jedis.sadd("allJobs:pipeline", id)
 
     when:
-    def result = repository.retrieve(PIPELINE).toList().toBlocking().first()
+    def result = repository.retrieve(PIPELINE).toList().blockingGet()
 
     then:
     result.isEmpty()
@@ -145,7 +145,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     then:
     jedis.zrange(RedisExecutionRepository.executionsByPipelineKey(pipeline.pipelineConfigId), 0, 1) == [
       pipeline.id
-    ] as Set<String>
+    ] as List<String>
 
     when:
     repository.delete(pipeline.type, pipeline.id)
@@ -155,7 +155,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     thrown ExecutionNotFoundException
 
     and:
-    repository.retrieve(PIPELINE).toList().toBlocking().first() == []
+    repository.retrieve(PIPELINE).toList().blockingGet() == []
     jedis.zrange(RedisExecutionRepository.executionsByPipelineKey(pipeline.pipelineConfigId), 0, 1).isEmpty()
   }
 
@@ -199,7 +199,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
 
     when:
     def retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(pageSize: limit))
-      .toList().toBlocking().first()
+      .toList().blockingGet()
 
     then:
     retrieved.size() == actual
@@ -310,7 +310,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     when:
     // TODO-AJ limits are current applied to each backing redis
     def retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(pageSize: 2))
-      .toList().toBlocking().first()
+      .toList().blockingGet()
 
     then:
     // orchestrations are stored in an unsorted set and results are non-deterministic
@@ -335,7 +335,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     when:
     repository.delete(orchestration1.type, orchestration1.id)
     def retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(pageSize: 2))
-      .toList().toBlocking().first()
+      .toList().blockingGet()
 
     then:
     retrieved*.id == [orchestration2.id]
@@ -343,7 +343,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     when:
     repository.delete(orchestration2.type, orchestration2.id)
     retrieved = repository.retrieveOrchestrationsForApplication("orca", new ExecutionCriteria(pageSize: 2))
-      .toList().toBlocking().first()
+      .toList().blockingGet()
 
     then:
     retrieved.isEmpty()
@@ -459,7 +459,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     when:
     // TODO-AJ limits are current applied to each backing redis
     def retrieved = repository.retrievePipelinesForPipelineConfigId("pipeline-1", new ExecutionCriteria(pageSize: 2))
-      .toList().toBlocking().first()
+      .toList().blockingGet()
 
     then:
     // pipelines are stored in a sorted sets and results should be reverse buildTime ordered
@@ -486,7 +486,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     when:
     repository.delete(pipeline1.type, pipeline1.id)
     def retrieved = repository.retrievePipelinesForPipelineConfigId("pipeline-1", new ExecutionCriteria(pageSize: 2))
-      .toList().toBlocking().first()
+      .toList().blockingGet()
 
     then:
     retrieved*.id == [pipeline2.id]
@@ -494,7 +494,7 @@ class JedisPipelineExecutionRepositorySpec extends PipelineExecutionRepositoryTc
     when:
     repository.delete(pipeline2.type, pipeline2.id)
     retrieved = repository.retrievePipelinesForPipelineConfigId("pipeline-1", new ExecutionCriteria(pageSize: 2))
-      .toList().toBlocking().first()
+      .toList().blockingGet()
 
     then:
     retrieved.isEmpty()

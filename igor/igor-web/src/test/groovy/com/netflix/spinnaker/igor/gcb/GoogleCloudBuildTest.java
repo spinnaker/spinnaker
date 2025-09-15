@@ -54,20 +54,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
-@EnableWebMvc
 @ComponentScan({"com.netflix.spinnaker.config", "com.netflix.spinnaker.igor"})
 @SpringBootTest(
     classes = {
@@ -80,7 +79,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @TestPropertySource(
     properties = {
       "spring.config.location=classpath:gcb/gcb-test.yml",
-      "spring.application.name = igor"
+      "spring.application.name = igor",
+      "spring.mvc.pathmatch.matching-strategy = ANT_PATH_MATCHER"
     })
 public class GoogleCloudBuildTest {
   @Autowired private MockMvc mockMvc;
@@ -94,10 +94,11 @@ public class GoogleCloudBuildTest {
   @TestConfiguration
   @EnableWebSecurity
   @Order(1)
-  static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity httpSecurity) throws Exception {
-      httpSecurity.authorizeRequests().anyRequest().permitAll().and().csrf().disable();
+  static class WebSecurityConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+      http.authorizeHttpRequests().anyRequest().permitAll().and().csrf().disable();
+      return http.build();
     }
   }
 

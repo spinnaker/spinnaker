@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.netflix.spinnaker.kork.aws.bastion.BastionConfig;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
