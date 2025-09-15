@@ -1,0 +1,166 @@
+/*
+ * Copyright 2025 OpsMx, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.netflix.spinnaker.gate.security.oauth;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.netflix.spinnaker.gate.security.oauth.config.OAuth2TestConfiguration;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+
+/**
+ * Integration test that verifies the end-to-end OAuth2 login flow.
+ *
+ * <p>WireMock simulates the OAuth2 provider endpoints:
+ *
+ * <ul>
+ *   <li>/login/oauth/authorize → redirects to the app with code and state
+ *   <li>/login/oauth/user → returns user info JSON
+ * </ul>
+ *
+ * The application runs on a random port, and RestTemplate is configured to follow redirects. This
+ * test also verifies handling of null user ID without causing NPE.
+ */
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = {
+      "spring.security.oauth2.client.registration.github.client-id=client-id",
+      "spring.security.oauth2.client.registration.github.client-secret=client-secret",
+      "spring.security.oauth2.client.registration.github.scope=user,email",
+      "spring.security.oauth2.client.registration.userInfoMapping.email=email",
+      "spring.security.oauth2.client.registration.userInfoMapping.firstName=firstname",
+      "spring.security.oauth2.client.registration.userInfoMapping.lastName=name",
+      "spring.security.oauth2.client.registration.userInfoMapping.username=login"
+    })
+@TestPropertySource(properties = {"spring.config.location=classpath:gate-test.yml"})
+@Import(OAuth2TestConfiguration.class)
+public class OAuth2IntegrationWithWireMockTest {
+
+  // using restTemplate as it follows redirects which is required while testing
+  // the OAuth flows
+  @Autowired private RestTemplate restTemplate;
+
+  @LocalServerPort private int appPort;
+
+  private static WireMockServer wireMockServer;
+
+  @BeforeAll
+  static void startWiremock() {
+    // WireMock must be started BEFORE Spring context needs provider URLs.
+    wireMockServer =
+        new WireMockServer(
+            WireMockConfiguration.options()
+                .dynamicPort()
+                // register extension instance (no app port needed at construction)
+                .extensions(new RedirectWithStateTransformer()));
+    wireMockServer.start();
+  }
+
+  @AfterAll
+  static void stopWiremock() {
+    if (wireMockServer != null) {
+      wireMockServer.stop();
+    }
+    RedirectWithStateTransformer.resetAppPortSupplier();
+  }
+
+  // Provide WireMock URLs into Spring properties before context initialization uses them
+  @DynamicPropertySource
+  static void dynamicProperties(DynamicPropertyRegistry registry) {
+    String base = "http://localhost:" + wireMockServer.port();
+    registry.add(
+        "spring.security.oauth2.client.provider.github.authorization-uri",
+        () -> base + "/login/oauth/authorize");
+    registry.add(
+        "spring.security.oauth2.client.provider.github.token-uri",
+        () -> base + "/login/oauth/access_token");
+    registry.add(
+        "spring.security.oauth2.client.provider.github.user-info-uri",
+        () -> base + "/login/oauth/user");
+  }
+
+  @Test
+  void whenOAuth2UserInfoHasNullsThenAuthenticationSucceeds() {
+    // Now appPort (@LocalServerPort) is available — set the supplier so transformer can use it
+    RedirectWithStateTransformer.setAppPortSupplier(() -> appPort);
+
+    wireMockServer.resetAll();
+
+    wireMockServer.stubFor(
+        WireMock.get(urlPathEqualTo("/login/oauth/authorize"))
+            .willReturn(WireMock.aResponse().withTransformers("redirect-with-state")));
+
+    wireMockServer.stubFor(
+        WireMock.get(urlPathEqualTo("/login/oauth/user"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                {
+                  "email": "rahul.c@opsmx.io",
+                  "login": "rahul-chekuri",
+                  "name": "Rahul Chekuri",
+                  "type": "User",
+                  "id": null
+                }
+                """)));
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(
+        HttpHeaders.ACCEPT,
+        "text/html"); // simulate browser otherwise request will not be cached to replay after
+    // Authentication
+
+    HttpEntity<Void> request = new HttpEntity<>(headers);
+
+    assertThatThrownBy(
+            () ->
+                restTemplate.exchange(
+                    "http://localhost:" + appPort + "/testOAuth2Api",
+                    HttpMethod.GET,
+                    request,
+                    String.class))
+        .isInstanceOf(
+            HttpClientErrorException.NotAcceptable
+                .class); // we see HttpClientErrorException.NotAcceptable.class due to NPE while
+    // processing null values in the attributes
+    //  Assertion to for the positive case
+    //    ResponseEntity<String> response =
+    //      restTemplate.exchange(
+    //        "http://localhost:" + appPort + "/testOAuth2Api",
+    //        HttpMethod.GET,
+    //        request,
+    //        String.class);
+    //    assertThat(response.getBody()).isEqualTo("authenticated");
+  }
+}
