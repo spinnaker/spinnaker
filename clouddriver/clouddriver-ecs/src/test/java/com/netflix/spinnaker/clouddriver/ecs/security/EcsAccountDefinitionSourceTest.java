@@ -24,11 +24,9 @@ import static org.mockito.Mockito.mock;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSource;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,15 +47,15 @@ public class EcsAccountDefinitionSourceTest {
 
     AccountDefinitionRepository repository = mock(AccountDefinitionRepository.class);
 
-    doReturn(Collections.singletonList(mockAccount))
-        .when(repository).listByType(eq("ecs"));
+    doReturn(Collections.singletonList(mockAccount)).when(repository).listByType(eq("ecs"));
 
     ECSCredentialsConfig ecsCredentialsConfig = mock(ECSCredentialsConfig.class);
-    Optional<List<CredentialsDefinitionSource<ECSCredentialsConfig.Account>>> emptyAdditionalSources =
-        Optional.empty();
+    Optional<List<CredentialsDefinitionSource<ECSCredentialsConfig.Account>>>
+        emptyAdditionalSources = Optional.empty();
 
     CredentialsDefinitionSource<ECSCredentialsConfig.Account> source =
-        accountDefinitionSource.ecsAccountSource(repository, emptyAdditionalSources, ecsCredentialsConfig);
+        accountDefinitionSource.ecsAccountSource(
+            repository, emptyAdditionalSources, ecsCredentialsConfig);
 
     assertThat(source).isNotNull();
     assertThat(source).isInstanceOf(AccountDefinitionSource.class);

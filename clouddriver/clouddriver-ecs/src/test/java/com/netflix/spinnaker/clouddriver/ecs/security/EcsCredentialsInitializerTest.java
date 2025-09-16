@@ -34,8 +34,6 @@ import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
-
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -57,9 +55,11 @@ public class EcsCredentialsInitializerTest {
 
   @Test
   public void testEcsCredentialsRepositoryBean() {
-    CredentialsLifecycleHandler<NetflixECSCredentials> eventHandler = mock(CredentialsLifecycleHandler.class);
+    CredentialsLifecycleHandler<NetflixECSCredentials> eventHandler =
+        mock(CredentialsLifecycleHandler.class);
 
-    CredentialsRepository<NetflixECSCredentials> repository = initializer.ecsCredentialsRepository(eventHandler);
+    CredentialsRepository<NetflixECSCredentials> repository =
+        initializer.ecsCredentialsRepository(eventHandler);
 
     assertThat(repository).isNotNull();
     assertThat(repository).isInstanceOf(MapBackedCredentialsRepository.class);
@@ -69,16 +69,18 @@ public class EcsCredentialsInitializerTest {
   @Test
   public void testEcsCredentialsParserBean() {
     ECSCredentialsConfig ecsCredentialsConfig = mock(ECSCredentialsConfig.class);
-    CompositeCredentialsRepository<AccountCredentials> compositeCredentialsRepository = mock(CompositeCredentialsRepository.class);
-    CredentialsParser<AccountsConfiguration.Account, NetflixAmazonCredentials> amazonCredentialsParser = mock(CredentialsParser.class);
+    CompositeCredentialsRepository<AccountCredentials> compositeCredentialsRepository =
+        mock(CompositeCredentialsRepository.class);
+    CredentialsParser<AccountsConfiguration.Account, NetflixAmazonCredentials>
+        amazonCredentialsParser = mock(CredentialsParser.class);
     NamerRegistry namerRegistry = mock(NamerRegistry.class);
 
-    CredentialsParser<ECSCredentialsConfig.Account, NetflixECSCredentials> parser = initializer.ecsCredentialsParser(
-        ecsCredentialsConfig,
-        compositeCredentialsRepository,
-        amazonCredentialsParser,
-        namerRegistry
-    );
+    CredentialsParser<ECSCredentialsConfig.Account, NetflixECSCredentials> parser =
+        initializer.ecsCredentialsParser(
+            ecsCredentialsConfig,
+            compositeCredentialsRepository,
+            amazonCredentialsParser,
+            namerRegistry);
 
     assertThat(parser).isNotNull();
     assertThat(parser).isInstanceOf(EcsCredentialsParser.class);
@@ -86,17 +88,16 @@ public class EcsCredentialsInitializerTest {
 
   @Test
   public void testEcsCredentialsLoaderBeanWithProvidedSource() {
-    CredentialsParser<ECSCredentialsConfig.Account, NetflixECSCredentials> credentialsParser = mock(CredentialsParser.class);
+    CredentialsParser<ECSCredentialsConfig.Account, NetflixECSCredentials> credentialsParser =
+        mock(CredentialsParser.class);
     CredentialsRepository<NetflixECSCredentials> repository = mock(CredentialsRepository.class);
     ECSCredentialsConfig ecsCredentialsConfig = mock(ECSCredentialsConfig.class);
-    CredentialsDefinitionSource<ECSCredentialsConfig.Account> ecsCredentialsSource = mock(CredentialsDefinitionSource.class);
+    CredentialsDefinitionSource<ECSCredentialsConfig.Account> ecsCredentialsSource =
+        mock(CredentialsDefinitionSource.class);
 
-    AbstractCredentialsLoader<NetflixECSCredentials> loader = initializer.ecsCredentialsLoader(
-        credentialsParser,
-        repository,
-        ecsCredentialsConfig,
-        ecsCredentialsSource
-    );
+    AbstractCredentialsLoader<NetflixECSCredentials> loader =
+        initializer.ecsCredentialsLoader(
+            credentialsParser, repository, ecsCredentialsConfig, ecsCredentialsSource);
 
     assertThat(loader).isNotNull();
     assertThat(loader).isInstanceOf(BasicCredentialsLoader.class);
@@ -104,9 +105,11 @@ public class EcsCredentialsInitializerTest {
 
   @Test
   public void testEcsCredentialsInializerSynchronizable() {
-    AbstractCredentialsLoader<NetflixECSCredentials> credentialsLoader = mock(AbstractCredentialsLoader.class);
+    AbstractCredentialsLoader<NetflixECSCredentials> credentialsLoader =
+        mock(AbstractCredentialsLoader.class);
 
-    CredentialsInitializerSynchronizable synchronizable = initializer.ecsCredentialsInializerSynchronizable(credentialsLoader);
+    CredentialsInitializerSynchronizable synchronizable =
+        initializer.ecsCredentialsInializerSynchronizable(credentialsLoader);
 
     assertThat(synchronizable).isNotNull();
     assertThat(synchronizable).isInstanceOf(CredentialsInitializerSynchronizable.class);
