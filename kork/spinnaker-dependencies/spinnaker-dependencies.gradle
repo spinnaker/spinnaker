@@ -149,7 +149,7 @@ dependencies {
     api("de.danielbechler:java-object-diff:0.95")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
-    api("io.mockk:mockk:1.12.4")
+    api("io.mockk:mockk:1.13.17")
     api("io.swagger.core.v3:swagger-annotations:${versions.swagger}")
     api("io.swagger.core.v3:swagger-core:${versions.swagger}")
     api("javax.annotation:javax.annotation-api:1.3.2")
