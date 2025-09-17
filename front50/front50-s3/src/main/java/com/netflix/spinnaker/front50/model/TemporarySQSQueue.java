@@ -18,27 +18,35 @@ package com.netflix.spinnaker.front50.model;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
-import com.amazonaws.auth.policy.Condition;
-import com.amazonaws.auth.policy.Policy;
-import com.amazonaws.auth.policy.Principal;
-import com.amazonaws.auth.policy.Resource;
-import com.amazonaws.auth.policy.Statement;
-import com.amazonaws.auth.policy.actions.SQSActions;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.model.ListTopicsResult;
-import com.amazonaws.services.sns.model.Topic;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.CreateQueueRequest;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiptHandleIsInvalidException;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.policybuilder.iam.IamConditionOperator;
+import software.amazon.awssdk.policybuilder.iam.IamEffect;
+import software.amazon.awssdk.policybuilder.iam.IamPolicy;
+import software.amazon.awssdk.policybuilder.iam.IamPrincipal;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.ListTopicsRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeResponse;
+import software.amazon.awssdk.services.sns.model.Topic;
+import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 /**
  * Encapsulates the lifecycle of a temporary queue.
@@ -49,18 +57,18 @@ import org.slf4j.LoggerFactory;
 public class TemporarySQSQueue {
   private final Logger log = LoggerFactory.getLogger(TemporarySQSQueue.class);
 
-  private final AmazonSQS amazonSQS;
-  private final AmazonSNS amazonSNS;
+  private final SqsClient sqsClient;
+  private final SnsClient snsClient;
 
   private final TemporaryQueue temporaryQueue;
 
   public TemporarySQSQueue(
-      AmazonSQS amazonSQS, AmazonSNS amazonSNS, String snsTopicName, String instanceId) {
-    this.amazonSQS = amazonSQS;
-    this.amazonSNS = amazonSNS;
+      SqsClient sqsClient, SnsClient snsClient, String snsTopicName, String instanceId) {
+    this.sqsClient = sqsClient;
+    this.snsClient = snsClient;
 
     String sanitizedInstanceId = getSanitizedInstanceId(instanceId);
-    String snsTopicArn = getSnsTopicArn(amazonSNS, snsTopicName);
+    String snsTopicArn = getSnsTopicArn(snsClient, snsTopicName);
     String sqsQueueName = snsTopicName + "__" + sanitizedInstanceId;
     String sqsQueueArn =
         snsTopicArn.substring(0, snsTopicArn.lastIndexOf(":") + 1).replace("sns", "sqs")
@@ -70,23 +78,28 @@ public class TemporarySQSQueue {
   }
 
   List<Message> fetchMessages() {
-    ReceiveMessageResult receiveMessageResult =
-        amazonSQS.receiveMessage(
-            new ReceiveMessageRequest(temporaryQueue.sqsQueueUrl)
-                .withMaxNumberOfMessages(10)
-                .withWaitTimeSeconds(1));
+    ReceiveMessageRequest receiveMessageRequest =
+        ReceiveMessageRequest.builder()
+            .queueUrl(temporaryQueue.sqsQueueUrl)
+            .maxNumberOfMessages(10)
+            .waitTimeSeconds(1)
+            .build();
 
-    return receiveMessageResult.getMessages();
+    ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);
+    return response.messages();
   }
 
   void markMessageAsHandled(String receiptHandle) {
     try {
-      amazonSQS.deleteMessage(temporaryQueue.sqsQueueUrl, receiptHandle);
-    } catch (ReceiptHandleIsInvalidException e) {
+      DeleteMessageRequest deleteRequest =
+          DeleteMessageRequest.builder()
+              .queueUrl(temporaryQueue.sqsQueueUrl)
+              .receiptHandle(receiptHandle)
+              .build();
+      sqsClient.deleteMessage(deleteRequest);
+    } catch (SqsException e) {
       log.warn(
-          "Error deleting message, reason: {} (receiptHandle: {})",
-          e.getMessage(),
-          value("receiptHandle", receiptHandle));
+          "Error deleting message, reason: {} (receiptHandle: {})", e.getMessage(), receiptHandle);
     }
   }
 
@@ -96,7 +109,8 @@ public class TemporarySQSQueue {
       log.debug(
           "Removing Temporary S3 Notification Queue: {}",
           value("queue", temporaryQueue.sqsQueueUrl));
-      amazonSQS.deleteQueue(temporaryQueue.sqsQueueUrl);
+      sqsClient.deleteQueue(
+          DeleteQueueRequest.builder().queueUrl(temporaryQueue.sqsQueueUrl).build());
       log.debug(
           "Removed Temporary S3 Notification Queue: {}",
           value("queue", temporaryQueue.sqsQueueUrl));
@@ -110,9 +124,15 @@ public class TemporarySQSQueue {
 
     try {
       log.debug(
-          "Removing S3 Notification Subscription: {}", temporaryQueue.snsTopicSubscriptionArn);
-      amazonSNS.unsubscribe(temporaryQueue.snsTopicSubscriptionArn);
-      log.debug("Removed S3 Notification Subscription: {}", temporaryQueue.snsTopicSubscriptionArn);
+          "Removing S3 Notification Subscription: {}",
+          value("topic", temporaryQueue.snsTopicSubscriptionArn));
+      snsClient.unsubscribe(
+          UnsubscribeRequest.builder()
+              .subscriptionArn(temporaryQueue.snsTopicSubscriptionArn)
+              .build());
+      log.debug(
+          "Removed S3 Notification Subscription: {}",
+          value("topic", temporaryQueue.snsTopicSubscriptionArn));
     } catch (Exception e) {
       log.error(
           "Unable to unsubscribe queue from topic: {} (reason: {})",
@@ -122,20 +142,10 @@ public class TemporarySQSQueue {
     }
   }
 
-  private String getSnsTopicArn(AmazonSNS amazonSNS, String topicName) {
-    ListTopicsResult listTopicsResult = amazonSNS.listTopics();
-    String nextToken = listTopicsResult.getNextToken();
-    List<Topic> topics = listTopicsResult.getTopics();
-
-    while (nextToken != null) {
-      listTopicsResult = amazonSNS.listTopics(nextToken);
-      nextToken = listTopicsResult.getNextToken();
-      topics.addAll(listTopicsResult.getTopics());
-    }
-
-    return topics.stream()
-        .filter(t -> t.getTopicArn().toLowerCase().endsWith(":" + topicName.toLowerCase()))
-        .map(Topic::getTopicArn)
+  private String getSnsTopicArn(SnsClient snsClient, String topicName) {
+    return snsClient.listTopicsPaginator(ListTopicsRequest.builder().build()).topics().stream()
+        .filter(t -> t.topicArn().toLowerCase().endsWith(":" + topicName.toLowerCase()))
+        .map(Topic::topicArn)
         .findFirst()
         .orElseThrow(
             () ->
@@ -143,43 +153,54 @@ public class TemporarySQSQueue {
   }
 
   private TemporaryQueue createQueue(String snsTopicArn, String sqsQueueArn, String sqsQueueName) {
-    String sqsQueueUrl =
-        amazonSQS
-            .createQueue(
-                new CreateQueueRequest()
-                    .withQueueName(sqsQueueName)
-                    .withAttributes(
-                        Collections.singletonMap(
-                            "MessageRetentionPeriod", "60")) // 60s message retention
-                )
-            .getQueueUrl();
-    log.info("Created Temporary S3 Notification Queue: {}", value("queue", sqsQueueUrl));
+    CreateQueueRequest createQueueRequest =
+        CreateQueueRequest.builder()
+            .queueName(sqsQueueName)
+            .attributes(Collections.singletonMap(QueueAttributeName.MESSAGE_RETENTION_PERIOD, "60"))
+            .build();
+    CreateQueueResponse createQueueResponse = sqsClient.createQueue(createQueueRequest);
+    String sqsQueueUrl = createQueueResponse.queueUrl();
+    log.info("Created Temporary S3 Notification Queue: {}", sqsQueueUrl);
 
-    String snsTopicSubscriptionArn =
-        amazonSNS.subscribe(snsTopicArn, "sqs", sqsQueueArn).getSubscriptionArn();
+    SubscribeRequest subscribeRequest =
+        SubscribeRequest.builder()
+            .topicArn(snsTopicArn)
+            .protocol("sqs")
+            .endpoint(sqsQueueArn)
+            .build();
+    SubscribeResponse subscribeResponse = snsClient.subscribe(subscribeRequest);
+    String snsTopicSubscriptionArn = subscribeResponse.subscriptionArn();
 
-    Statement snsStatement =
-        new Statement(Statement.Effect.Allow).withActions(SQSActions.SendMessage);
-    snsStatement.setPrincipals(Principal.All);
-    snsStatement.setResources(Collections.singletonList(new Resource(sqsQueueArn)));
-    snsStatement.setConditions(
-        Collections.singletonList(
-            new Condition()
-                .withType("ArnEquals")
-                .withConditionKey("aws:SourceArn")
-                .withValues(snsTopicArn)));
+    IamPolicy allowSnsPolicy =
+        IamPolicy.builder()
+            .addStatement(
+                s ->
+                    s.effect(IamEffect.ALLOW)
+                        .addAction("sqs:SendMessage")
+                        .addResource(sqsQueueArn)
+                        .addPrincipal(IamPrincipal.ALL)
+                        .addCondition(
+                            c ->
+                                c.operator(IamConditionOperator.STRING_EQUALS)
+                                    .key("aws:SourceArn")
+                                    .value(snsTopicArn)))
+            .build();
 
-    Policy allowSnsPolicy = new Policy("allow-sns", Collections.singletonList(snsStatement));
-
-    HashMap<String, String> attributes = new HashMap<>();
-    attributes.put("Policy", allowSnsPolicy.toJson());
-    amazonSQS.setQueueAttributes(sqsQueueUrl, attributes);
+    Map<QueueAttributeName, String> attributes = new HashMap<>();
+    attributes.put(QueueAttributeName.POLICY, allowSnsPolicy.toJson());
+    sqsClient.setQueueAttributes(
+        SetQueueAttributesRequest.builder().queueUrl(sqsQueueUrl).attributes(attributes).build());
 
     return new TemporaryQueue(snsTopicArn, sqsQueueArn, sqsQueueUrl, snsTopicSubscriptionArn);
   }
 
   static String getSanitizedInstanceId(String instanceId) {
     return instanceId.replaceAll("[^\\w\\-]", "_");
+  }
+
+  @VisibleForTesting
+  TemporaryQueue getTemporaryQueue() {
+    return temporaryQueue;
   }
 
   protected static class TemporaryQueue {
