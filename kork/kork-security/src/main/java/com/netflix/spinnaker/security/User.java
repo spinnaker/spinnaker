@@ -55,6 +55,23 @@ public class User implements UserDetails {
   protected Collection<String> roles = new ArrayList<>();
   protected Collection<String> allowedAccounts = new ArrayList<>();
 
+  public User() {}
+
+  public User(
+      String email,
+      String username,
+      String firstName,
+      String lastName,
+      Collection<String> roles,
+      Collection<String> allowedAccounts) {
+    this.email = email;
+    this.username = username;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.roles = roles;
+    this.allowedAccounts = allowedAccounts;
+  }
+
   @Override
   public List<? extends GrantedAuthority> getAuthorities() {
     return roles.stream()

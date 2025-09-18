@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.security.config
 
 import com.amazonaws.auth.AWSCredentialsProvider
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup
 import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.security.AWSCredentialsProviderFactory
@@ -27,9 +28,13 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCre
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.LifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region
+import spock.lang.Shared
 import spock.lang.Specification
 
 class CredentialsLoaderSpec extends Specification {
+
+    @Shared
+    AwsConfigurationProperties awsConfigurationProperties = new AwsConfigurationProperties()
 
     def 'basic test with defaults'() {
         setup:
@@ -62,7 +67,8 @@ class CredentialsLoaderSpec extends Specification {
           credentialsProviderFactory,
           NetflixAmazonCredentials.class,
           config,
-          accountsConfig)
+          accountsConfig,
+          awsConfigurationProperties)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -108,7 +114,8 @@ class CredentialsLoaderSpec extends Specification {
           credentialsProviderFactory,
           NetflixAmazonCredentials.class,
           config,
-          accountsConfig)
+          accountsConfig,
+          awsConfigurationProperties)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -146,7 +153,8 @@ class CredentialsLoaderSpec extends Specification {
           credentialsProviderFactory,
           NetflixAmazonCredentials.class,
           config,
-          accountsConfig)
+          accountsConfig,
+          awsConfigurationProperties)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -187,7 +195,8 @@ class CredentialsLoaderSpec extends Specification {
           credentialsProviderFactory,
           NetflixAmazonCredentials.class,
           config,
-          accountsConfig)
+          accountsConfig,
+          awsConfigurationProperties)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -224,7 +233,8 @@ class CredentialsLoaderSpec extends Specification {
           credentialsProviderFactory,
           NetflixAmazonCredentials.class,
           config,
-          accountsConfig)
+          accountsConfig,
+          awsConfigurationProperties)
 
         when:
         List<AmazonCredentials> creds = ci.load(config)
@@ -282,7 +292,8 @@ class CredentialsLoaderSpec extends Specification {
           credentialsProviderFactory,
           NetflixAmazonCredentials.class,
           config,
-          accountsConfig)
+          accountsConfig,
+          awsConfigurationProperties)
 
         when:
         List<NetflixAmazonCredentials> creds = ci.load(config)
@@ -332,7 +343,8 @@ class CredentialsLoaderSpec extends Specification {
           credentialsProviderFactory,
           NetflixAssumeRoleAmazonCredentials.class,
           config,
-          accountsConfig)
+          accountsConfig,
+          awsConfigurationProperties)
 
         when:
         ci.load(config)
@@ -387,7 +399,8 @@ class CredentialsLoaderSpec extends Specification {
       credentialsProviderFactory,
       NetflixAssumeRoleAmazonCredentials.class,
       config,
-      accountsConfig)
+      accountsConfig,
+      awsConfigurationProperties)
 
     when:
     List<NetflixAssumeRoleAmazonCredentials> creds = ci.load(config)
@@ -444,7 +457,8 @@ class CredentialsLoaderSpec extends Specification {
       credentialsProviderFactory,
       NetflixAssumeRoleAmazonCredentials.class,
       config,
-      accountsConfig)
+      accountsConfig,
+      awsConfigurationProperties)
 
     when:
     List<NetflixAssumeRoleAmazonCredentials> creds = ci.load(config)

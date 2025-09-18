@@ -21,12 +21,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import java.util.Map;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 class OortServiceTest {
 
@@ -36,7 +38,11 @@ class OortServiceTest {
   @BeforeEach
   void setUp() {
     mockServer.start();
-    Retrofit retrofit = new Retrofit.Builder().baseUrl(mockServer.baseUrl()).build();
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(mockServer.baseUrl())
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
 
     oortService = retrofit.create(OortService.class);
   }
@@ -60,5 +66,21 @@ class OortServiceTest {
                 "spinnaker", "myAccount", "myCluster", "myServerGroup", "aws", "us-west-2"));
 
     assertThat(responseBody).isNotNull();
+  }
+
+  @Test
+  void verifyCloudFormationStackApi() {
+    String stackId =
+        "arn:aws:cloudformation:us-west-2:123456789012:stack/my-stack/50d6f6c0-e4a3-11e4-8f3c-500c217fbb7a";
+    mockServer.stubFor(
+        WireMock.get(WireMock.urlEqualTo("/aws/cloudFormation/stacks/" + stackId))
+            .willReturn(
+                WireMock.aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withBody("{\"message\": \"success\"}")));
+
+    Map map = Retrofit2SyncCall.execute(oortService.getCloudFormationStack(stackId));
+
+    assertThat(map).isNotNull();
   }
 }

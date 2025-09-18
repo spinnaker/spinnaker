@@ -114,6 +114,7 @@ class AwsConfiguration {
       .serviceLimitConfiguration(serviceLimitConfiguration)
       .registry(registry)
       .addSpinnakerUserToUserAgent(awsConfigurationProperties.client.addSpinnakerUserToUserAgent)
+      .logEndpoints(awsConfigurationProperties.client.logEndpoints)
       .build()
   }
 

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
 import java.util.Objects;
@@ -39,7 +40,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
       String assumeRole,
       String sessionName,
       Integer sessionDurationSeconds,
-      String externalId) {
+      String externalId,
+      AwsConfigurationProperties awsConfigurationProperties) {
     String assumeRoleValue = Objects.requireNonNull(assumeRole, "assumeRole");
     if (!assumeRoleValue.startsWith("arn:")) {
 
@@ -62,7 +64,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
             Objects.requireNonNull(sessionName, "sessionName"),
             sessionDurationSeconds,
             accountId,
-            externalId);
+            externalId,
+            awsConfigurationProperties);
   }
 
   /** The role to assume on the target account. */
@@ -108,11 +111,25 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
         assumeRole,
         sessionName,
         sessionDurationSeconds,
-        externalId);
+        externalId,
+        null /* awsConfigurationProperties */);
   }
 
+  /**
+   * Construct a new AssumeRoleAmazonCredentials object by copying an existing one. Even though
+   * AssumeRoleAmazonCredentials objects have (via AmazonCredentials) both a credentialsProvider and
+   * awsConfigurationProperties, this method takes those as separate arguments in case the existing
+   * object doesn't have them, which is the case when it was constructed via deserialization. This
+   * is what AmazonCredentialsParser does.
+   *
+   * @param copy the object to copy
+   * @param credentialsProvider a credentials provider
+   * @param awsConfigurationProperties configuration properties
+   */
   public AssumeRoleAmazonCredentials(
-      AssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
+      AssumeRoleAmazonCredentials copy,
+      AWSCredentialsProvider credentialsProvider,
+      AwsConfigurationProperties awsConfigurationProperties) {
     this(
         copy.getName(),
         copy.getEnvironment(),
@@ -130,7 +147,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
         copy.getAssumeRole(),
         copy.getSessionName(),
         copy.getSessionDurationSeconds(),
-        copy.getExternalId());
+        copy.getExternalId(),
+        awsConfigurationProperties);
   }
 
   AssumeRoleAmazonCredentials(
@@ -150,7 +168,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
       String assumeRole,
       String sessionName,
       Integer sessionDurationSeconds,
-      String externalId) {
+      String externalId,
+      AwsConfigurationProperties awsConfigurationProperties) {
     super(
         name,
         environment,
@@ -170,7 +189,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
             assumeRole,
             sessionName == null ? DEFAULT_SESSION_NAME : sessionName,
             sessionDurationSeconds,
-            externalId));
+            externalId,
+            awsConfigurationProperties));
     this.assumeRole = assumeRole;
     this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
     this.sessionDurationSeconds = sessionDurationSeconds;

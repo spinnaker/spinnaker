@@ -426,7 +426,7 @@ public class BasicGoogleDeployHandler
             .filter(lb -> lb.getLoadBalancerType() == GoogleLoadBalancerType.TCP)
             .collect(Collectors.toList());
 
-    if (!description.getDisableTraffic()) {
+    if (!Boolean.TRUE.equals(description.getDisableTraffic())) {
       info.targetPools =
           foundLB.stream()
               .filter(lb -> lb.getLoadBalancerType() == GoogleLoadBalancerType.NETWORK)
@@ -881,8 +881,7 @@ public class BasicGoogleDeployHandler
   protected void setCapacityFromSource(BasicGoogleDeployDescription description, Task task) {
     BasicGoogleDeployDescription.Source source = description.getSource();
     if (source != null
-        && source.getUseSourceCapacity() != null
-        && source.getUseSourceCapacity()
+        && Boolean.TRUE.equals(source.getUseSourceCapacity())
         && StringUtils.isNotBlank(source.getRegion())
         && StringUtils.isNotBlank(source.getServerGroupName())) {
       task.updateStatus(
@@ -935,8 +934,8 @@ public class BasicGoogleDeployHandler
 
       // Handle both typed GoogleHealthCheck objects and LinkedHashMap from cache
       if (healthCheckResult != null) {
-        if (healthCheckResult instanceof GoogleHealthCheck) {
-          autoHealingHealthCheck = (GoogleHealthCheck) healthCheckResult;
+        if (healthCheckResult instanceof GoogleHealthCheck healthCheck) {
+          autoHealingHealthCheck = healthCheck;
         } else if (healthCheckResult instanceof Map) {
           try {
             // Convert LinkedHashMap to GoogleHealthCheck using ObjectMapper
@@ -1059,7 +1058,7 @@ public class BasicGoogleDeployHandler
       String region,
       Task task)
       throws IOException {
-    if (description.getRegional()) {
+    if (Boolean.TRUE.equals(description.getRegional())) {
       setDistributionPolicyToInstanceGroup(description, instanceGroupManager);
       String targetLink =
           createRegionalInstanceGroupManagerAndWait(
@@ -1078,8 +1077,8 @@ public class BasicGoogleDeployHandler
     if (description.getDistributionPolicy() != null) {
       DistributionPolicy distributionPolicy = new DistributionPolicy();
 
-      if (description.getSelectZones()
-          && !description.getDistributionPolicy().getZones().isEmpty()) {
+      if (Boolean.TRUE.equals(description.getSelectZones())
+          && !CollectionUtils.isEmpty(description.getDistributionPolicy().getZones())) {
         log.info(
             String.format(
                 "Configuring explicit zones selected for regional server group: %s",
@@ -1100,7 +1099,7 @@ public class BasicGoogleDeployHandler
         distributionPolicy.setTargetShape(description.getDistributionPolicy().getTargetShape());
       }
 
-      if (!distributionPolicy.getZones().isEmpty()
+      if (!CollectionUtils.isEmpty(distributionPolicy.getZones())
           || StringUtils.isNotBlank(distributionPolicy.getTargetShape())) {
         instanceGroupManager.setDistributionPolicy(distributionPolicy);
       }
@@ -1113,7 +1112,8 @@ public class BasicGoogleDeployHandler
       String serverGroupName,
       List<BackendService> backendServicesToUpdate,
       Task task) {
-    if (!description.getDisableTraffic() && hasBackedServiceFromInput(description, lbInfo)) {
+    if (!Boolean.TRUE.equals(description.getDisableTraffic())
+        && hasBackedServiceFromInput(description, lbInfo)) {
       backendServicesToUpdate.forEach(
           backendService -> {
             Operation backendServiceOperation =
@@ -1174,7 +1174,7 @@ public class BasicGoogleDeployHandler
       String region,
       List<BackendService> regionBackendServicesToUpdate,
       Task task) {
-    if (!description.getDisableTraffic()
+    if (!Boolean.TRUE.equals(description.getDisableTraffic())
         && (!lbInfo.internalLoadBalancers.isEmpty()
             || !lbInfo.internalHttpLoadBalancers.isEmpty())) {
       regionBackendServicesToUpdate.forEach(
