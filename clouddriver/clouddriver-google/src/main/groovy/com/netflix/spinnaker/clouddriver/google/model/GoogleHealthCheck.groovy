@@ -23,6 +23,7 @@ import groovy.transform.Canonical
 class GoogleHealthCheck {
   String name
   String requestPath
+  String grpcServiceName
   String selfLink
   int port
   HealthCheckType healthCheckType
@@ -71,20 +72,20 @@ class GoogleHealthCheck {
           null
         break
       case HealthCheckType.HTTPS:
-        break
         return this.port ?
           "HTTPS:${this.port}${this.requestPath ?: '/'}" :
           null
-      case HealthCheckType.HTTP2:
         break
+      case HealthCheckType.HTTP2:
         return this.port ?
           "HTTP2:${this.port}${this.requestPath ?: '/'}" :
           null
-      case HealthCheckType.GRPC:
         break
+      case HealthCheckType.GRPC:
         return this.port ?
-          "GRPC:${this.port}${this.requestPath ?: '/'}" :
+          "GRPC:${this.port}${this.grpcServiceName ?: ''}" :
           null
+        break
       case HealthCheckType.SSL:
         return this.port ?
           "SSL:${this.port}" :
@@ -116,6 +117,7 @@ class GoogleHealthCheck {
     int healthyThreshold
     int port
     String requestPath
+    String grpcServiceName
     String selfLink
     String kind
     String target
@@ -130,6 +132,7 @@ class GoogleHealthCheck {
       healthyThreshold = googleHealthCheck.healthyThreshold
       port = googleHealthCheck.port
       requestPath = googleHealthCheck.requestPath
+      grpcServiceName = googleHealthCheck.grpcServiceName
       selfLink = googleHealthCheck.selfLink
       kind = googleHealthCheck.kind
       target = googleHealthCheck.target
@@ -153,6 +156,8 @@ class GoogleHealthCheck {
   static enum HealthCheckKind {
     healthCheck,
     httpHealthCheck,
-    httpsHealthCheck
+    httpsHealthCheck,
+    http2HealthCheck,
+    grpcHealthCheck
   }
 }

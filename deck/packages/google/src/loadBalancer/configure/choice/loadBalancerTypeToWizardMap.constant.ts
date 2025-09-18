@@ -24,6 +24,18 @@ const loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap = {
     editTemplateUrl: require('../http/editHttpLoadBalancer.html'),
     controller: 'gceCreateHttpLoadBalancerCtrl',
   },
+  HTTP2: {
+    label: 'HTTP/2',
+    createTemplateUrl: require('../http/createHttpLoadBalancer.html'),
+    editTemplateUrl: require('../http/editHttpLoadBalancer.html'),
+    controller: 'gceCreateHttpLoadBalancerCtrl',
+  },
+  GRPC: {
+    label: 'GRPC',
+    createTemplateUrl: require('../http/createHttpLoadBalancer.html'),
+    editTemplateUrl: require('../http/editHttpLoadBalancer.html'),
+    controller: 'gceCreateHttpLoadBalancerCtrl',
+  },
   INTERNAL_MANAGED: {
     label: 'Internal HTTP(S)',
     createTemplateUrl: require('../http/createHttpLoadBalancer.html'),

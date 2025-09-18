@@ -103,4 +103,64 @@ class GoogleHealthCheckCachingAgentTest {
     GoogleHealthCheck ghc = healthCheckAgent.toGoogleHealthCheck(hc, REGION)
     assertThat(ghc).isNull()
   }
+
+  @Test
+  void createsValidHttp2HealthCheck() {
+    HTTP2HealthCheck http2HealthCheck = new HTTP2HealthCheck()
+    http2HealthCheck.setPort(8080)
+    http2HealthCheck.setRequestPath("/health")
+
+    HealthCheck hc = buildBaseHealthCheck("http2-valid", REGION)
+    hc.setHttp2HealthCheck(http2HealthCheck)
+    hc.setType("HTTP2")
+
+    GoogleHealthCheck ghc = healthCheckAgent.toGoogleHealthCheck(hc, REGION)
+    assertThat(ghc.getPort()).isEqualTo(8080)
+    assertThat(ghc.getRegion()).isEqualTo(REGION)
+    assertThat(ghc.getRequestPath()).isEqualTo("/health")
+    assertThat(ghc.getHealthCheckType()).isEqualTo(GoogleHealthCheck.HealthCheckType.HTTP2)
+  }
+
+  @Test
+  void handlesHttp2HealthCheckWithoutPort() {
+    HTTP2HealthCheck http2HealthCheck = new HTTP2HealthCheck()
+    http2HealthCheck.setRequestPath("/health")
+
+    HealthCheck hc = buildBaseHealthCheck("http2-no-port", REGION)
+    hc.setHttp2HealthCheck(http2HealthCheck)
+    hc.setType("HTTP2")
+
+    GoogleHealthCheck ghc = healthCheckAgent.toGoogleHealthCheck(hc, REGION)
+    assertThat(ghc).isNull()
+  }
+
+  @Test
+  void createsValidGrpcHealthCheck() {
+    GRPCHealthCheck grpcHealthCheck = new GRPCHealthCheck()
+    grpcHealthCheck.setPort(9090)
+    grpcHealthCheck.setGrpcServiceName("com.example.HealthService")
+
+    HealthCheck hc = buildBaseHealthCheck("grpc-valid", REGION)
+    hc.setGrpcHealthCheck(grpcHealthCheck)
+    hc.setType("GRPC")
+
+    GoogleHealthCheck ghc = healthCheckAgent.toGoogleHealthCheck(hc, REGION)
+    assertThat(ghc.getPort()).isEqualTo(9090)
+    assertThat(ghc.getRegion()).isEqualTo(REGION)
+    assertThat(ghc.getRequestPath()).isEqualTo("com.example.HealthService")
+    assertThat(ghc.getHealthCheckType()).isEqualTo(GoogleHealthCheck.HealthCheckType.GRPC)
+  }
+
+  @Test
+  void handlesGrpcHealthCheckWithoutPort() {
+    GRPCHealthCheck grpcHealthCheck = new GRPCHealthCheck()
+    grpcHealthCheck.setGrpcServiceName("com.example.HealthService")
+
+    HealthCheck hc = buildBaseHealthCheck("grpc-no-port", REGION)
+    hc.setGrpcHealthCheck(grpcHealthCheck)
+    hc.setType("GRPC")
+
+    GoogleHealthCheck ghc = healthCheckAgent.toGoogleHealthCheck(hc, REGION)
+    assertThat(ghc).isNull()
+  }
 }

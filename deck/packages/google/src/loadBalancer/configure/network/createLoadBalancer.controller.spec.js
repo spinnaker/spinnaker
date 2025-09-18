@@ -46,7 +46,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
     loadBalancer.healthCheckProtocol = 'TCP';
     expect(this.ctrl.requiresHealthCheckPath()).toBe(false);
 
-    loadBalancer.healthCheckProtocol = 'HTTP/2';
+    loadBalancer.healthCheckProtocol = 'HTTP2';
     expect(this.ctrl.requiresHealthCheckPath()).toBe(true);
 
     loadBalancer.healthCheckProtocol = 'GRPC';

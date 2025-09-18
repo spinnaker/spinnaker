@@ -22,7 +22,7 @@
         <select
           class="form-control input-sm"
           ng-change="$ctrl.onProtocolChange()"
-          ng-options="protocol as protocol for protocol in ['HTTP', 'HTTPS', 'TCP', 'SSL', 'HTTP/2', 'GRPC']"
+          ng-options="protocol as protocol for protocol in ['HTTP', 'HTTPS', 'TCP', 'SSL', 'HTTP2', 'GRPC']"
           ng-model="$ctrl.healthCheck.healthCheckType"
         ></select>
       </div>
@@ -75,7 +75,7 @@
 
     <div
       class="form-group"
-      ng-if="$ctrl.healthCheck.healthCheckType === 'HTTP' || $ctrl.healthCheck.healthCheckType === 'HTTPS'|| $ctrl.healthCheck.healthCheckType === 'HTTP/2'"
+      ng-if="$ctrl.healthCheck.healthCheckType === 'HTTP' || $ctrl.healthCheck.healthCheckType === 'HTTPS'|| $ctrl.healthCheck.healthCheckType === 'HTTP2'"
     >
       <div class="col-md-4 sm-label-right">Request Path</div>
       <div class="col-md-4">
@@ -94,6 +94,16 @@
           max="65535"
           ng-model="$ctrl.healthCheck.port"
         />
+      </div>
+    </div>
+
+    <div
+      class="form-group"
+      ng-if="$ctrl.healthCheck.healthCheckType === 'GRPC'"
+    >
+      <div class="col-md-4 sm-label-right">Service Name</div>
+      <div class="col-md-4">
+        <input class="form-control input-sm" ng-model="$ctrl.healthCheck.grpcServiceName" placeholder="com.example.HealthService" />
       </div>
     </div>
 
