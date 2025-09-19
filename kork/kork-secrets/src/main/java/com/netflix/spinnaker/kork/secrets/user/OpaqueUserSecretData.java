@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.secrets.user;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import lombok.Getter;
@@ -26,7 +25,6 @@ import lombok.Getter;
 /**
  * Opaque user secrets are generic user secrets encoded as a map of key/value pairs (all strings).
  */
-@NonnullByDefault
 @UserSecretType("opaque")
 public class OpaqueUserSecretData implements UserSecretData {
   @Getter(onMethod = @__({@JsonValue}))
