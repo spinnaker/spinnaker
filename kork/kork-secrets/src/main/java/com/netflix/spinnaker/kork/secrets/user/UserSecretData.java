@@ -16,10 +16,26 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import java.util.NoSuchElementException;
 
-@NonnullByDefault
 public interface UserSecretData {
-  /** Gets the value of this secret with the provided key and returns a string encoding of it. */
+  /**
+   * Gets the value of this secret with the provided key and returns a string encoding of it.
+   *
+   * @param key the key to look up the secret value for in this data; can be an empty string for
+   *     flat secrets
+   * @return the secret value encoded as a string
+   * @throws NoSuchElementException if no secret value exists for the given key
+   */
   String getSecretString(String key);
+
+  /**
+   * Gets the value of this secret as a single string if the underlying secret data supports it.
+   *
+   * @return the secret payload as a string
+   * @throws UnsupportedOperationException if this secret doesn't support scalar strings
+   */
+  default String getSecretString() {
+    throw new UnsupportedOperationException();
+  }
 }

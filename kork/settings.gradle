@@ -47,6 +47,7 @@ include(
   "kork-pubsub-aws",
   "kork-runtime",
   "kork-secrets",
+  "kork-secrets-api",
   "kork-secrets-aws",
   "kork-secrets-gcp",
   "kork-security",

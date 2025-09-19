@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.secrets;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -93,25 +92,18 @@ public class EncryptedSecretTest {
 
   @Test
   public void updateThrowsInvalidSecretFormatException() {
-    Exception exception =
-        assertThrows(
-            InvalidSecretFormatException.class, () -> new EncryptedSecret().update("encrypted:s3"));
-    assertTrue(
-        exception
-            .getMessage()
-            .contains("Invalid encrypted secret format, must have at least one parameter"));
+    assertThrows(
+        InvalidSecretFormatException.class,
+        () -> new EncryptedSecret().update("encrypted:s3"),
+        "Missing parameters in encrypted: URI");
   }
 
   @Test
   public void updateThrowsInvalidSecretFormatExceptionNoKeyValuePairs() {
-    Exception exception =
-        assertThrows(
-            InvalidSecretFormatException.class,
-            () -> new EncryptedSecret().update("encrypted:s3!foobar"));
-    assertTrue(
-        exception
-            .getMessage()
-            .contains("Invalid encrypted secret format, keys and values must be delimited by ':'"));
+    assertThrows(
+        InvalidSecretFormatException.class,
+        () -> new EncryptedSecret().update("encrypted:s3!foobar"),
+        "Invalid encrypted secret format, keys and values must be delimited by ':'");
   }
 
   @Test

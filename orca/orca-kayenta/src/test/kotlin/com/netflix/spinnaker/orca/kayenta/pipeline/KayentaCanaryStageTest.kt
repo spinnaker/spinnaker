@@ -79,8 +79,5 @@ object KayentaCanaryStageTest : Spek({
 })
 
 private operator fun <E> List<E>.get(range: IntRange): List<E> {
-  return subList(range.start, range.endExclusive)
+  return subList(range.start, range.endInclusive + 1)
 }
-
-private val IntRange.endExclusive: Int
-  get() = endInclusive + 1

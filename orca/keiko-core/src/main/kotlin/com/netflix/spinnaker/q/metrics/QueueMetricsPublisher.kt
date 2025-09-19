@@ -75,6 +75,9 @@ class QueueMetricsPublisher(
       is LockFailed -> event.counter.increment()
       is MessageRescheduled -> event.counter.increment()
       is MessageNotFound -> event.counter.increment()
+      is HandlerThrewError -> registry.counter("queue.handler.error",
+        "messageType", event.payload.javaClass.simpleName).increment()
+      NoHandlerCapacity -> registry.counter("queue.capacity.error").increment()
     }
   }
 

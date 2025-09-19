@@ -16,22 +16,24 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import java.util.stream.StreamSupport;
 import lombok.RequiredArgsConstructor;
 
-@NonnullByDefault
 @RequiredArgsConstructor
 public class UserSecretSerdeFactory {
   private final Iterable<UserSecretSerde> serdes;
 
+  /**
+   * Locates the first supported serde that supports the provided metadata.
+   *
+   * @param metadata metadata of the user secret to find a serde for
+   * @return the found serde
+   * @throws UnsupportedUserSecretTypeException if no serde supports the type given in the metadata
+   */
   public UserSecretSerde serdeFor(UserSecretMetadata metadata) {
     return StreamSupport.stream(serdes.spliterator(), false)
         .filter(serde -> serde.supports(metadata))
         .findFirst()
-        .orElseThrow(
-            () ->
-                new InvalidSecretFormatException("Unsupported user secret metadata: " + metadata));
+        .orElseThrow(() -> new UnsupportedUserSecretTypeException(metadata.getType()));
   }
 }

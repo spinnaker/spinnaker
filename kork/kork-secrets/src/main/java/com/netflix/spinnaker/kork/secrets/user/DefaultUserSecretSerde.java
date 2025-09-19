@@ -19,14 +19,12 @@ package com.netflix.spinnaker.kork.secrets.user;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
-import com.netflix.spinnaker.kork.secrets.SecretException;
+import com.netflix.spinnaker.kork.jackson.UserFriendlyErrorHandler;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
+import org.springframework.core.NestedExceptionUtils;
 
 /**
  * Maps structured user secret data types to a corresponding {@link UserSecretData} instance using
@@ -39,7 +37,6 @@ import java.util.TreeMap;
  * @see UserSecretReference
  * @see UserSecretType
  */
-@NonnullByDefault
 public class DefaultUserSecretSerde implements UserSecretSerde {
   private final Map<String, Class<? extends UserSecretData>> userSecretTypes =
       new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -56,28 +53,67 @@ public class DefaultUserSecretSerde implements UserSecretSerde {
 
   @Override
   public boolean supports(UserSecretMetadata metadata) {
-    return userSecretTypes.containsKey(metadata.getType())
-        && mappersByEncodingFormat.containsKey(metadata.getEncoding());
+    var encoding = metadata.getEncoding();
+    return encoding != null
+        && userSecretTypes.containsKey(metadata.getType())
+        && mappersByEncodingFormat.containsKey(encoding);
   }
 
   @Override
   public UserSecret deserialize(byte[] encoded, UserSecretMetadata metadata) {
-    var type = Objects.requireNonNull(userSecretTypes.get(metadata.getType()));
-    var mapper = Objects.requireNonNull(mappersByEncodingFormat.get(metadata.getEncoding()));
-    try {
-      return UserSecret.builder().metadata(metadata).data(mapper.readValue(encoded, type)).build();
-    } catch (IOException e) {
-      throw new SecretDecryptionException(e);
+    var secretType = metadata.getType();
+    var type = userSecretTypes.get(secretType);
+    if (type == null) {
+      throw new UnsupportedUserSecretTypeException(secretType);
     }
+    var encoding = metadata.getEncoding();
+    if (encoding == null) {
+      throw new UnsupportedUserSecretEncodingException();
+    }
+    var mapper = mappersByEncodingFormat.get(encoding);
+    if (mapper == null) {
+      throw new UnsupportedUserSecretEncodingException(encoding);
+    }
+    UserSecretData data;
+    try {
+      data = mapper.readValue(encoded, type);
+    } catch (IOException e) {
+      throw sanitizedSecretDataException(e);
+    }
+    return UserSecret.builder().metadata(metadata).data(data).build();
+  }
+
+  /**
+   * Returns a sanitized exception for a secret data parsing error, making sure not to leak the
+   * contents of the secret data that originally caused the error. Should be safe to log.
+   */
+  private static InvalidUserSecretDataException sanitizedSecretDataException(final IOException e) {
+    Throwable rootCause = NestedExceptionUtils.getRootCause(e);
+    final String suffix;
+    if (rootCause instanceof JsonProcessingException) { // includes JsonParseException
+      suffix = UserFriendlyErrorHandler.translateJacksonError(rootCause);
+    } else {
+      suffix = "unknown error encountered while decoding the contents as JSON";
+    }
+    // do not attach original object `e` to avoid leaking the contents of a secret
+    return new InvalidUserSecretDataException(
+        "the secret value does not seem to be valid JSON: " + suffix);
   }
 
   @Override
   public byte[] serialize(UserSecretData secret, UserSecretMetadata metadata) {
-    var mapper = Objects.requireNonNull(mappersByEncodingFormat.get(metadata.getEncoding()));
+    var encoding = metadata.getEncoding();
+    if (encoding == null) {
+      throw new UnsupportedUserSecretEncodingException();
+    }
+    var mapper = mappersByEncodingFormat.get(encoding);
+    if (mapper == null) {
+      throw new UnsupportedUserSecretEncodingException(encoding);
+    }
     try {
       return mapper.writeValueAsBytes(secret);
-    } catch (JsonProcessingException e) {
-      throw new SecretException(e);
+    } catch (IOException e) {
+      throw sanitizedSecretDataException(e);
     }
   }
 }
