@@ -17,7 +17,11 @@
 package com.netflix.spinnaker.kork.secrets.user;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
 import java.util.List;
@@ -45,8 +49,46 @@ public class UserSecretSerdeTest {
     var secret = serde.deserialize(bytes, metadata);
     assertThat(secret.getType(), equalTo("opaque"));
     assertThat(secret.getEncoding(), equalTo("json"));
-    assertThat(secret.getSecretString("foo"), equalTo("bar"));
-    assertThat(secret.getSecretString("second"), equalTo("second"));
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=foo")), equalTo("bar"));
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=second")),
+        equalTo("second"));
+  }
+
+  @Test
+  public void invalidSecretJson() {
+    var metadata =
+        UserSecretMetadata.builder().type("opaque").encoding("json").roles(List.of()).build();
+    var serde = factory.serdeFor(metadata);
+    var bytes =
+        serde.serialize(
+            new OpaqueUserSecretData(Map.of("foo", "bar", "second", "second")), metadata);
+    bytes[0] = '?'; // corrupt the data
+    try {
+      serde.deserialize(bytes, metadata);
+    } catch (InvalidUserSecretDataException e) { // look for leaked data in the error message
+      assertThat(
+          e.getMessage(),
+          equalTo(
+              "the secret value does not seem to be valid JSON: unknown error encountered while decoding the contents as JSON"));
+
+      // print entire stack trace into a string
+      var stackTrace = new java.io.StringWriter();
+      e.printStackTrace(new java.io.PrintWriter(stackTrace));
+
+      // collect representations of the exception, strings that we might log
+      List<String> exceptionPrintouts = List.of(stackTrace.toString(), e.getMessage());
+
+      // check that none of the exception representations contain the secret data
+      List<String> unexpectedStrings = List.of("foo", "bar", "second");
+      exceptionPrintouts.forEach(
+          printout ->
+              unexpectedStrings.forEach(
+                  secretWord -> assertThat(printout, not(containsString(secretWord)))));
+    } catch (Exception e) {
+      fail("Unexpected exception class: " + e.getClass().getName());
+    }
   }
 
   @Test
@@ -59,9 +101,12 @@ public class UserSecretSerdeTest {
     var secret = serde.deserialize(bytes, metadata);
     assertThat(secret.getType(), equalTo("opaque"));
     assertThat(secret.getEncoding(), equalTo("yaml"));
-    assertThat(secret.getSecretString("a"), equalTo("A"));
-    assertThat(secret.getSecretString("b"), equalTo("B"));
-    assertThat(secret.getSecretString("c"), equalTo("C"));
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=a")), equalTo("A"));
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=b")), equalTo("B"));
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=c")), equalTo("C"));
   }
 
   @Test
@@ -73,6 +118,14 @@ public class UserSecretSerdeTest {
     var secret = serde.deserialize(bytes, metadata);
     assertThat(secret.getType(), equalTo("opaque"));
     assertThat(secret.getEncoding(), equalTo("cbor"));
-    assertThat(secret.getSecretString("bin"), equalTo("packed"));
+    assertThat(
+        secret.getSecretString(UserSecretReference.parse("secret://mock?k=bin")),
+        equalTo("packed"));
+  }
+
+  @Test
+  void nullEncodingDoesNotThrowNullPointerException() {
+    var metadata = UserSecretMetadata.builder().type("opaque").build();
+    assertThrows(UnsupportedUserSecretTypeException.class, () -> factory.serdeFor(metadata));
   }
 }

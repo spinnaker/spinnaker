@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.kork.secrets
 
-package com.netflix.spinnaker.kork.secrets;
+import java.net.URI
 
-public class InvalidSecretFormatException extends SecretException {
+/**
+ * Base exception type for errors related to the format of an invalid [SecretReference].
+ */
+open class InvalidSecretFormatException : SecretException {
+  constructor() : super()
 
-  public InvalidSecretFormatException() {
-    super();
-  }
+  constructor(message: String?) : super(message)
 
-  public InvalidSecretFormatException(String message) {
-    super(message);
-  }
+  constructor(cause: Throwable?) : super(cause)
 
-  public InvalidSecretFormatException(Throwable cause) {
-    super(cause);
-  }
+  constructor(message: String?, cause: Throwable?) : super(message, cause)
 
-  public InvalidSecretFormatException(String message, Throwable cause) {
-    super(message, cause);
+  constructor(message: String, secretReference: URI) : this(message) {
+    additionalAttributes["secretReference"] = secretReference
   }
 }
