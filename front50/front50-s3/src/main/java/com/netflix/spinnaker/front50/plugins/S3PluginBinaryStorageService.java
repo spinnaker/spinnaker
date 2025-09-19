@@ -15,67 +15,92 @@
  */
 package com.netflix.spinnaker.front50.plugins;
 
-import static java.lang.String.format;
-
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import com.netflix.spinnaker.front50.config.S3PluginStorageProperties;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 public class S3PluginBinaryStorageService implements PluginBinaryStorageService {
 
-  private final AmazonS3 amazonS3;
+  private final S3Client s3Client;
   private final S3PluginStorageProperties properties;
 
-  public S3PluginBinaryStorageService(AmazonS3 amazonS3, S3PluginStorageProperties properties) {
-    this.amazonS3 = amazonS3;
+  public S3PluginBinaryStorageService(S3Client s3Client, S3PluginStorageProperties properties) {
+    this.s3Client = s3Client;
     this.properties = properties;
   }
 
   @Override
   public void store(@Nonnull String key, @Nonnull byte[] item) {
-    if (amazonS3.doesObjectExist(properties.getBucket(), buildObjectKey(key))) {
+    String bucket = properties.getBucket();
+    String objectKey = buildObjectKey(key);
+
+    try {
+      s3Client.headObject(HeadObjectRequest.builder().bucket(bucket).key(objectKey).build());
       throw new PluginBinaryAlreadyExistsException(key);
+    } catch (NoSuchKeyException e) {
+      // Object does not exist, so proceed
+    } catch (S3Exception e) {
+      if (e.statusCode() != 404) {
+        throw e;
+      }
+      // Object does not exist, so proceed
     }
 
-    ObjectMetadata metadata = new ObjectMetadata();
-    metadata.setContentLength(item.length);
-    metadata.setContentMD5(
-        Base64.getEncoder().encodeToString(Hashing.md5().hashBytes(item).asBytes()));
+    PutObjectRequest putRequest =
+        PutObjectRequest.builder()
+            .bucket(properties.getBucket())
+            .key(objectKey)
+            .contentLength((long) item.length)
+            .contentMD5(Base64.getEncoder().encodeToString(Hashing.md5().hashBytes(item).asBytes()))
+            .build();
 
-    amazonS3.putObject(
-        properties.getBucket(), buildObjectKey(key), new ByteArrayInputStream(item), metadata);
+    s3Client.putObject(putRequest, RequestBody.fromBytes(item));
   }
 
   @Override
   public void delete(@Nonnull String key) {
-    amazonS3.deleteObject(properties.getBucket(), buildObjectKey(key));
+    s3Client.deleteObject(
+        DeleteObjectRequest.builder()
+            .bucket(properties.getBucket())
+            .key(buildObjectKey(key))
+            .build());
   }
 
   @Nonnull
   @Override
   public List<String> listKeys() {
-    ObjectListing listing =
-        amazonS3.listObjects(
-            new ListObjectsRequest(properties.getBucket(), buildFolder(), null, null, 1000));
-    List<S3ObjectSummary> summaries = listing.getObjectSummaries();
 
-    while (listing.isTruncated()) {
-      listing = amazonS3.listNextBatchOfObjects(listing);
-      summaries.addAll(listing.getObjectSummaries());
-    }
+    ListObjectsV2Request listRequest =
+        ListObjectsV2Request.builder()
+            .bucket(properties.getBucket())
+            .prefix(buildFolder())
+            .maxKeys(1000)
+            .build();
+
+    List<S3Object> summaries =
+        s3Client.listObjectsV2Paginator(listRequest).contents().stream().toList();
 
     return summaries.stream()
-        .map(S3ObjectSummary::getKey)
+        .map(S3Object::key)
         .filter(k -> k.endsWith(".zip"))
         .collect(Collectors.toList());
   }
@@ -83,20 +108,17 @@ public class S3PluginBinaryStorageService implements PluginBinaryStorageService 
   @Nullable
   @Override
   public byte[] load(@Nonnull String key) {
-    S3Object object;
-    try {
-      object = amazonS3.getObject(properties.getBucket(), buildObjectKey(key));
-    } catch (AmazonS3Exception e) {
-      if (e.getStatusCode() == 404) {
+    GetObjectRequest getObjectRequest =
+        GetObjectRequest.builder().bucket(properties.getBucket()).key(buildObjectKey(key)).build();
+    try (ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest)) {
+      return ByteStreams.toByteArray(s3Object);
+    } catch (S3Exception e) {
+      if (e.statusCode() == 404) {
         return null;
       }
       throw e;
-    }
-
-    try {
-      return ByteStreams.toByteArray(object.getObjectContent());
     } catch (IOException e) {
-      throw new SystemException(format("Failed to read object contents: %s", key), e);
+      throw new SystemException(String.format("Failed to read object contents: %s", key), e);
     }
   }
 

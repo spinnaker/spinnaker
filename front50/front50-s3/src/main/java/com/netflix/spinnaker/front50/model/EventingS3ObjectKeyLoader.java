@@ -18,7 +18,6 @@ package com.netflix.spinnaker.front50.model;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 
-import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -46,6 +45,7 @@ import javax.annotation.PreDestroy;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
  * An ObjectKeyLoader is responsible for returning a last modified timestamp for all objects of a
@@ -193,11 +193,11 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
 
         messages.forEach(
             message -> {
-              S3Event s3Event = unmarshall(objectMapper, message.getBody());
+              S3Event s3Event = unmarshall(objectMapper, message.body());
               if (s3Event != null) {
                 tick(s3Event);
               }
-              temporarySQSQueue.markMessageAsHandled(message.getReceiptHandle());
+              temporarySQSQueue.markMessageAsHandled(message.receiptHandle());
             });
       } catch (Exception e) {
         log.error("Failed to poll for messages", e);
