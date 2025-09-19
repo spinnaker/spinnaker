@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
+import com.netflix.spinnaker.kork.secrets.engines.NoopSecretParameter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,16 +39,18 @@ public class UserSecretManagerTest {
   public void getTestSecret() {
     var ref = UserSecretReference.parse("secret://noop?v=test");
     var secret = userSecretManager.getUserSecret(ref);
-    assertEquals("test", secret.getSecretString("v"));
+    assertEquals("test", ref.getParameter(NoopSecretParameter.VALUE));
+    assertEquals("test", secret.getSecretString(ref));
     assertEquals("opaque", secret.getType());
     assertTrue(secret.getRoles().isEmpty());
   }
 
   @Test
   public void getTestSecretString() {
-    var ref = UserSecretReference.parse("secret://noop?foo=bar");
+    var ref = UserSecretReference.parse("secret://noop?v=bar");
     var userSecret = userSecretManager.getUserSecret(ref);
-    assertEquals("bar", userSecret.getSecretString("foo"));
+    assertEquals("bar", ref.getParameter(NoopSecretParameter.VALUE));
+    assertEquals("bar", userSecret.getSecretString(ref));
   }
 
   @Test

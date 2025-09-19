@@ -16,14 +16,9 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import java.util.Objects;
+import com.netflix.spinnaker.kork.ClassScanner;
 import java.util.stream.Stream;
-import org.apache.logging.log4j.LogManager;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.type.filter.AssignableTypeFilter;
-import org.springframework.util.ClassUtils;
 
 /**
  * Provides subtypes of {@link UserSecretData} for registration as user secret types. All beans of
@@ -35,28 +30,8 @@ public interface UserSecretTypeProvider {
   Stream<? extends Class<? extends UserSecretData>> getUserSecretTypes();
 
   static UserSecretTypeProvider fromPackage(String basePackage, ResourceLoader loader) {
-    var provider = new ClassPathScanningCandidateComponentProvider(false);
-    provider.setResourceLoader(loader);
-    provider.addIncludeFilter(new AssignableTypeFilter(UserSecretData.class));
-    return () ->
-        provider.findCandidateComponents(basePackage).stream()
-            .map(BeanDefinition::getBeanClassName)
-            .filter(Objects::nonNull)
-            .map(
-                className -> {
-                  Class<? extends UserSecretData> type = null;
-                  try {
-                    type =
-                        ClassUtils.forName(className, loader.getClassLoader())
-                            .asSubclass(UserSecretData.class);
-                  } catch (ClassNotFoundException e) {
-                    LogManager.getLogger()
-                        .error(
-                            "Unable to load discovered UserSecret class {}. User secrets with this type will not be parseable.",
-                            className,
-                            e);
-                  }
-                  return type;
-                });
+    ClassScanner<UserSecretData> userSecretDataClassScanner =
+        ClassScanner.forBaseType(UserSecretData.class).addLoadablePackage(loader, basePackage);
+    return () -> userSecretDataClassScanner.scan().stream();
   }
 }
