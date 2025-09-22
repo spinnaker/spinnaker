@@ -26,6 +26,7 @@ import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.security.oauth.config.OAuth2TestConfiguration;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,11 +107,14 @@ public class OAuth2IntegrationWithWireMockTest {
         () -> base + "/login/oauth/user");
   }
 
-  @Test
-  void whenOAuth2UserInfoHasNullsThenAuthenticationSucceeds() {
+  @BeforeEach
+  public void setUp() {
     // Now appPort (@LocalServerPort) is available — set the supplier so transformer can use it
     RedirectWithStateTransformer.setAppPortSupplier(() -> appPort);
+  }
 
+  @Test
+  void whenOAuth2UserInfoHasNullsThenAuthenticationSucceeds() {
     githubMockServer.stubFor(
         WireMock.get(urlPathEqualTo("/login/oauth/authorize"))
             .willReturn(WireMock.aResponse().withTransformers("redirect-with-state")));
