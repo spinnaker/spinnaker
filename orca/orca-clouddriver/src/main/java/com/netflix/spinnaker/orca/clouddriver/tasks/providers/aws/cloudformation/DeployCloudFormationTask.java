@@ -43,7 +43,6 @@ import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 
 @Slf4j
 @Component
@@ -121,7 +120,9 @@ public class DeployCloudFormationTask implements CloudProviderAware, Task {
     } else if (templateBody instanceof List && !((List) templateBody).isEmpty()) {
       templateBody =
           ((List<?>) templateBody)
-              .stream().map(part -> YamlHelper.newYaml().dump(part)).collect(Collectors.joining("\n---\n"));
+              .stream()
+                  .map(part -> YamlHelper.newYaml().dump(part))
+                  .collect(Collectors.joining("\n---\n"));
       task.put("templateBody", templateBody);
     }
 

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.security.oauth2;
 
 import com.netflix.spinnaker.security.User;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
