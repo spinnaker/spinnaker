@@ -27,7 +27,12 @@ class GoogleHealthCheckTest extends Specification {
     GoogleHealthCheck healthCheck = new GoogleHealthCheck()
     healthCheck.healthCheckType = healthCheckType
     healthCheck.port = port
-    healthCheck.requestPath = requestPath
+    
+    if (healthCheckType == GoogleHealthCheck.HealthCheckType.GRPC) {
+      healthCheck.grpcServiceName = requestPath
+    } else {
+      healthCheck.requestPath = requestPath
+    }
 
     when:
     String target = healthCheck.getTarget()

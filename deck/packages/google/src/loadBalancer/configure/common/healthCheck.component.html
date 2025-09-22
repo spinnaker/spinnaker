@@ -75,7 +75,11 @@
 
     <div
       class="form-group"
-      ng-if="$ctrl.healthCheck.healthCheckType === 'HTTP' || $ctrl.healthCheck.healthCheckType === 'HTTPS'|| $ctrl.healthCheck.healthCheckType === 'HTTP2'"
+      ng-if="
+        $ctrl.healthCheck.healthCheckType === 'HTTP' ||
+        $ctrl.healthCheck.healthCheckType === 'HTTPS' ||
+        $ctrl.healthCheck.healthCheckType === 'HTTP2'
+      "
     >
       <div class="col-md-4 sm-label-right">Request Path</div>
       <div class="col-md-4">
@@ -97,13 +101,14 @@
       </div>
     </div>
 
-    <div
-      class="form-group"
-      ng-if="$ctrl.healthCheck.healthCheckType === 'GRPC'"
-    >
+    <div class="form-group" ng-if="$ctrl.healthCheck.healthCheckType === 'GRPC'">
       <div class="col-md-4 sm-label-right">Service Name</div>
       <div class="col-md-4">
-        <input class="form-control input-sm" ng-model="$ctrl.healthCheck.grpcServiceName" placeholder="com.example.HealthService" />
+        <input
+          class="form-control input-sm"
+          ng-model="$ctrl.healthCheck.grpcServiceName"
+          placeholder="com.example.HealthService"
+        />
       </div>
     </div>
 
