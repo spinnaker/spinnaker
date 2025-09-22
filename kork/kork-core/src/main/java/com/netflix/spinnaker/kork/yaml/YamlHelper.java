@@ -16,22 +16,24 @@ public class YamlHelper {
   private static YamlParserProperties yamlParserProperties;
 
   @Autowired
-  public YamlHelper(YamlParserProperties props){
+  public YamlHelper(YamlParserProperties props) {
     yamlParserProperties = props;
   }
 
-  private static boolean hasYamlSecurityPropertiesConfigured(){
-    return yamlParserProperties != null && (yamlParserProperties.getMaxAliasesForCollections() != null || yamlParserProperties.getCodePointLimit() != null);
+  private static boolean hasYamlSecurityPropertiesConfigured() {
+    return yamlParserProperties != null
+        && (yamlParserProperties.getMaxAliasesForCollections() != null
+            || yamlParserProperties.getCodePointLimit() != null);
   }
 
   public static Yaml newYaml() {
-    if(hasYamlSecurityPropertiesConfigured()){
+    if (hasYamlSecurityPropertiesConfigured()) {
       LoaderOptions opts = getLoaderOptions();
 
-      Constructor  constructor  = new Constructor(opts);
-      Representer  representer  = new Representer();
-      DumperOptions dumperOpts  = new DumperOptions();
-      Resolver     resolver     = new Resolver();    // default tag resolver
+      Constructor constructor = new Constructor(opts);
+      Representer representer = new Representer();
+      DumperOptions dumperOpts = new DumperOptions();
+      Resolver resolver = new Resolver(); // default tag resolver
 
       return new Yaml(constructor, representer, dumperOpts, opts, resolver);
     }
@@ -40,12 +42,12 @@ public class YamlHelper {
   }
 
   public static Yaml newYamlSafeConstructor() {
-    if(hasYamlSecurityPropertiesConfigured()){
+    if (hasYamlSecurityPropertiesConfigured()) {
       LoaderOptions opts = getLoaderOptions();
 
-      SafeConstructor constructor  = new SafeConstructor(opts);
-      Representer  representer  = new Representer();
-      DumperOptions dumperOpts  = new DumperOptions();
+      SafeConstructor constructor = new SafeConstructor(opts);
+      Representer representer = new Representer();
+      DumperOptions dumperOpts = new DumperOptions();
 
       return new Yaml(constructor, representer, dumperOpts, opts);
     }
@@ -54,11 +56,11 @@ public class YamlHelper {
   }
 
   public static Yaml newYamlDumperOptions(DumperOptions dumperOptions) {
-    if(hasYamlSecurityPropertiesConfigured()){
+    if (hasYamlSecurityPropertiesConfigured()) {
       LoaderOptions opts = getLoaderOptions();
 
-      SafeConstructor constructor  = new SafeConstructor(opts);
-      Representer  representer  = new Representer();
+      SafeConstructor constructor = new SafeConstructor(opts);
+      Representer representer = new Representer();
 
       return new Yaml(constructor, representer, dumperOptions, opts);
     }
@@ -67,7 +69,7 @@ public class YamlHelper {
   }
 
   public static Yaml newYamlLoaderOptions(LoaderOptions loaderOptions) {
-    if(hasYamlSecurityPropertiesConfigured()){
+    if (hasYamlSecurityPropertiesConfigured()) {
       LoaderOptions opts = getLoaderOptions();
       return new Yaml(opts);
     }
@@ -75,7 +77,7 @@ public class YamlHelper {
   }
 
   public static Yaml newYamlRepresenter(Constructor constructor, Representer representer) {
-    if(hasYamlSecurityPropertiesConfigured()){
+    if (hasYamlSecurityPropertiesConfigured()) {
       LoaderOptions opts = getLoaderOptions();
       return new Yaml(constructor, representer, new DumperOptions(), opts);
     }
