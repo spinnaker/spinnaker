@@ -67,7 +67,6 @@ import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.util.UriUtils;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit2.Response;
 
 @Slf4j

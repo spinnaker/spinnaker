@@ -19,17 +19,15 @@ package com.netflix.spinnaker.halyard.core;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.File;
 import java.io.IOException;
-
-import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import lombok.Data;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /**
  * This is the collection of general, top-level flags that come from the application configuration
