@@ -15,16 +15,17 @@
  */
 package com.netflix.spinnaker.front50.config;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.S3ClientOptions;
+import java.net.URI;
+import java.time.Duration;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache.ProxyConfiguration;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 /**
  * Creates an S3 client.
@@ -34,51 +35,51 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class S3ClientFactory {
 
-  public static AmazonS3 create(
-      AWSCredentialsProvider awsCredentialsProvider, S3Properties s3Properties) {
-    ClientConfiguration clientConfiguration = new ClientConfiguration();
+  public static S3Client create(
+      AwsCredentialsProvider awsCredentialsProvider, S3Properties s3Properties) {
+    ApacheHttpClient.Builder httpClientBuilder =
+        ApacheHttpClient.builder().connectionTimeout(Duration.ofSeconds(10));
 
-    if (s3Properties.getProxyProtocol() != null) {
-      if (s3Properties.getProxyProtocol().equalsIgnoreCase("HTTPS")) {
-        clientConfiguration.setProtocol(Protocol.HTTPS);
-      } else {
-        clientConfiguration.setProtocol(Protocol.HTTP);
+    if (s3Properties.getProxyHost() != null && s3Properties.getProxyPort() != null) {
+      String protocol = "http";
+      if (s3Properties.getProxyProtocol() != null) {
+        protocol = s3Properties.getProxyProtocol().toLowerCase();
       }
+      String proxyUri =
+          protocol + "://" + s3Properties.getProxyHost() + ":" + s3Properties.getProxyPort();
 
-      Optional.ofNullable(s3Properties.getProxyHost()).ifPresent(clientConfiguration::setProxyHost);
-      Optional.ofNullable(s3Properties.getProxyPort())
-          .map(Integer::parseInt)
-          .ifPresent(clientConfiguration::setProxyPort);
+      ProxyConfiguration proxyConfig =
+          ProxyConfiguration.builder().endpoint(URI.create(proxyUri)).build();
+
+      httpClientBuilder.proxyConfiguration(proxyConfig);
     }
 
-    if (!StringUtils.isEmpty(s3Properties.getSignerOverride())) {
-      clientConfiguration.setSignerOverride(s3Properties.getSignerOverride());
-    }
+    S3Configuration.Builder s3ConfigBuilder = S3Configuration.builder();
 
-    AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
-
-    S3ClientOptions.Builder clientOptionsBuilder = S3ClientOptions.builder();
     if (s3Properties.getPayloadSigning() != null) {
-      clientOptionsBuilder.setPayloadSigningEnabled(s3Properties.getPayloadSigning());
+      s3ConfigBuilder.checksumValidationEnabled(s3Properties.getPayloadSigning());
     }
+
+    if (s3Properties.getPathStyleAccess() != null) {
+      s3ConfigBuilder.pathStyleAccessEnabled(s3Properties.getPathStyleAccess());
+    }
+
+    S3ClientBuilder s3Builder =
+        S3Client.builder()
+            .httpClientBuilder(httpClientBuilder)
+            .credentialsProvider(awsCredentialsProvider)
+            .serviceConfiguration(s3ConfigBuilder.build());
 
     if (!StringUtils.isEmpty(s3Properties.getEndpoint())) {
-      client.setEndpoint(s3Properties.getEndpoint());
+      s3Builder.endpointOverride(URI.create(s3Properties.getEndpoint()));
 
       if (!StringUtils.isEmpty(s3Properties.getRegionOverride())) {
-        client.setSignerRegionOverride(s3Properties.getRegionOverride());
+        s3Builder.region(Region.of(s3Properties.getRegionOverride()));
       }
-
-      clientOptionsBuilder.setPathStyleAccess(s3Properties.getPathStyleAccess());
     } else {
-      Optional.ofNullable(s3Properties.getRegion())
-          .map(Regions::fromName)
-          .map(Region::getRegion)
-          .ifPresent(client::setRegion);
+      Optional.ofNullable(s3Properties.getRegion()).map(Region::of).ifPresent(s3Builder::region);
     }
 
-    client.setS3ClientOptions(clientOptionsBuilder.build());
-
-    return client;
+    return s3Builder.build();
   }
 }
