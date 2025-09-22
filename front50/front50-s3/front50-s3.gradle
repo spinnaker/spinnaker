@@ -24,9 +24,14 @@ dependencies {
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-aws"
   implementation "io.spinnaker.kork:kork-security"
-  implementation "com.amazonaws:aws-java-sdk-s3"
-  implementation "com.amazonaws:aws-java-sdk-sts"
   implementation "com.netflix.eureka:eureka-client"
+  implementation "software.amazon.awssdk:apache-client"
+  implementation "software.amazon.awssdk:auth"
+  implementation "software.amazon.awssdk:aws-core"
+  implementation "software.amazon.awssdk:iam-policy-builder"
+  implementation "software.amazon.awssdk:s3"
+  implementation "software.amazon.awssdk:sns"
+  implementation "software.amazon.awssdk:sqs"
 
   testImplementation project(":front50-test")
 }
