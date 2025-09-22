@@ -97,6 +97,13 @@ class RedisCacheSpec extends WriteableCacheSpec {
     new Bean('value', 10)      | [key: 'value', key2: 10]   | "Java object"
     [key: 'value', key2: null] | [key: 'value']             | "Map with null"
     new Bean('value', null)    | [key: 'value']             | "Java object with null"
+    TestEnum.OLD_VALUE         | "OLD_VALUE"                | "Enum old value"
+    TestEnum.NEW_VALUE         | "NEW_VALUE"                | "Enum new value"
+  }
+  
+  enum TestEnum {
+    OLD_VALUE,
+    NEW_VALUE // Simulates a newly added enum value
   }
 
   @Unroll

@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.cats.redis.cache;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics;
@@ -35,6 +37,13 @@ public class RedisNamedCacheFactory implements NamedCacheFactory {
       RedisCacheOptions options,
       CacheMetrics cacheMetrics) {
     this.redisClientDelegate = redisClientDelegate;
+
+    // Configure the ObjectMapper to handle enum values safely
+    // When deserializing, use default values for unknown enum constants
+    // This is critical for handling the new http2HealthCheck and grpcHealthCheck enum values
+    objectMapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+    objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
+
     this.objectMapper = objectMapper;
     this.options = options;
     this.cacheMetrics = cacheMetrics;
