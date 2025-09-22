@@ -15,19 +15,19 @@
  */
 package com.netflix.spinnaker.gate.security.oauth;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.security.oauth.config.OAuth2TestConfiguration;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -76,7 +76,11 @@ public class OAuth2IntegrationWithWireMockTest {
 
   @LocalServerPort private int appPort;
 
-  private static WireMockServer wireMockServer;
+  @RegisterExtension
+  static WireMockExtension githubMockServer =
+      WireMockExtension.newInstance()
+          .options(wireMockConfig().dynamicPort().extensions(new RedirectWithStateTransformer()))
+          .build();
 
   /** To prevent attempts to connect to clouddriver */
   @MockBean private DefaultProviderLookupService defaultProviderLookupService;
@@ -87,30 +91,10 @@ public class OAuth2IntegrationWithWireMockTest {
   /** To prevent periodic calls to service's /health endpoints */
   @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
-  @BeforeAll
-  static void startWiremock() {
-    // WireMock must be started BEFORE Spring context needs provider URLs.
-    wireMockServer =
-        new WireMockServer(
-            WireMockConfiguration.options()
-                .dynamicPort()
-                // register extension instance (no app port needed at construction)
-                .extensions(new RedirectWithStateTransformer()));
-    wireMockServer.start();
-  }
-
-  @AfterAll
-  static void stopWiremock() {
-    if (wireMockServer != null) {
-      wireMockServer.stop();
-    }
-    RedirectWithStateTransformer.resetAppPortSupplier();
-  }
-
   // Provide WireMock URLs into Spring properties before context initialization uses them
   @DynamicPropertySource
   static void dynamicProperties(DynamicPropertyRegistry registry) {
-    String base = "http://localhost:" + wireMockServer.port();
+    String base = "http://localhost:" + githubMockServer.getPort();
     registry.add(
         "spring.security.oauth2.client.provider.github.authorization-uri",
         () -> base + "/login/oauth/authorize");
@@ -127,13 +111,11 @@ public class OAuth2IntegrationWithWireMockTest {
     // Now appPort (@LocalServerPort) is available — set the supplier so transformer can use it
     RedirectWithStateTransformer.setAppPortSupplier(() -> appPort);
 
-    wireMockServer.resetAll();
-
-    wireMockServer.stubFor(
+    githubMockServer.stubFor(
         WireMock.get(urlPathEqualTo("/login/oauth/authorize"))
             .willReturn(WireMock.aResponse().withTransformers("redirect-with-state")));
 
-    wireMockServer.stubFor(
+    githubMockServer.stubFor(
         WireMock.get(urlPathEqualTo("/login/oauth/user"))
             .willReturn(
                 WireMock.aResponse()
@@ -163,5 +145,7 @@ public class OAuth2IntegrationWithWireMockTest {
             request,
             String.class);
     assertThat(response.getBody()).isEqualTo("authenticated");
+    githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/authorize")));
+    githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
   }
 }
