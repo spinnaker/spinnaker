@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.gate.security.oauth;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -36,10 +36,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -156,24 +156,12 @@ public class OAuth2IntegrationWithWireMockTest {
 
     HttpEntity<Void> request = new HttpEntity<>(headers);
 
-    assertThatThrownBy(
-            () ->
-                restTemplate.exchange(
-                    "http://localhost:" + appPort + "/testOAuth2Api",
-                    HttpMethod.GET,
-                    request,
-                    String.class))
-        .isInstanceOf(
-            HttpClientErrorException.NotAcceptable
-                .class); // we see HttpClientErrorException.NotAcceptable.class due to NPE while
-    // processing null values in the attributes
-    //  Assertion to for the positive case
-    //    ResponseEntity<String> response =
-    //      restTemplate.exchange(
-    //        "http://localhost:" + appPort + "/testOAuth2Api",
-    //        HttpMethod.GET,
-    //        request,
-    //        String.class);
-    //    assertThat(response.getBody()).isEqualTo("authenticated");
+    ResponseEntity<String> response =
+        restTemplate.exchange(
+            "http://localhost:" + appPort + "/testOAuth2Api",
+            HttpMethod.GET,
+            request,
+            String.class);
+    assertThat(response.getBody()).isEqualTo("authenticated");
   }
 }

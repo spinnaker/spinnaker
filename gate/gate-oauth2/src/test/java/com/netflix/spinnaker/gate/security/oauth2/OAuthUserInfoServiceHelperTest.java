@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.security.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -177,7 +176,7 @@ public class OAuthUserInfoServiceHelperTest {
   }
 
   @Test
-  void shouldThrowNpeWhenGetUserInfoReturnsNullValue() {
+  void shouldSupportsWhenGetUserInfoReturnsNullValue() {
     Map<String, Object> badAttributes = new HashMap<>();
     badAttributes.put("username", "test-user");
     badAttributes.put("firstName", null); // NPE trigger
@@ -208,8 +207,8 @@ public class OAuthUserInfoServiceHelperTest {
         .when(allowedAccountsSupport)
         .filterAllowedAccounts(userName, roles);
 
-    assertThatThrownBy(() -> helper.getSpinnakerOAuth2User(fakeUser, request))
-        .isInstanceOf(NullPointerException.class);
+    assertThat(helper.getSpinnakerOAuth2User(fakeUser, request).getAttributes().get("firstName"))
+        .isNull();
   }
 
   @ParameterizedTest

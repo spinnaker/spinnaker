@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.security.oauth2;
 import com.netflix.spinnaker.security.User;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.security.core.GrantedAuthority;
@@ -57,7 +58,10 @@ public class SpinnakerOAuth2User extends User implements OAuth2User {
       Map<String, Object> attributes,
       Collection<? extends GrantedAuthority> authorities) {
     super(email, username, firstName, lastName, roles, allowedAccounts);
-    this.attributes = attributes != null ? Map.copyOf(attributes) : Collections.emptyMap();
+    this.attributes =
+        attributes != null
+            ? Collections.unmodifiableMap(new HashMap<>(attributes))
+            : Collections.emptyMap();
     this.authorities = authorities != null ? List.copyOf(authorities) : Collections.emptyList();
   }
 
