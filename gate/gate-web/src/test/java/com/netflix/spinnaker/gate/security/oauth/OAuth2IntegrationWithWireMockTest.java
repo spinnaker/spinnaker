@@ -21,12 +21,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.security.oauth.config.OAuth2TestConfiguration;
+import com.netflix.spinnaker.gate.services.ApplicationService;
+import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
@@ -73,6 +77,15 @@ public class OAuth2IntegrationWithWireMockTest {
   @LocalServerPort private int appPort;
 
   private static WireMockServer wireMockServer;
+
+  /** To prevent attempts to connect to clouddriver */
+  @MockBean private DefaultProviderLookupService defaultProviderLookupService;
+
+  /** To prevent attempts to connect to front50 */
+  @MockBean private ApplicationService applicationService;
+
+  /** To prevent periodic calls to service's /health endpoints */
+  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   @BeforeAll
   static void startWiremock() {
