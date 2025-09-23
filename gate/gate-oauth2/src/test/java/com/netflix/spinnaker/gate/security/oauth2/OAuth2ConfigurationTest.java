@@ -33,6 +33,7 @@ import org.junit.jupiter.api.TestInfo;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
@@ -51,6 +52,7 @@ class OAuth2ConfigurationTest {
                   DefaultCookieSerializer.class,
                   PermissionRevokingLogoutSuccessHandler.class,
                   AuthConfig.class,
+                  OAuth2BeanConfiguration.class,
                   OAuth2SsoConfig.class));
 
   @BeforeEach
@@ -62,16 +64,7 @@ class OAuth2ConfigurationTest {
   void testOAuth2ConfigIsValid() {
     runner.run(
         ctx -> {
-          // FIXME: This is supposed to work
-          //
-          // assertThat(ctx).hasSingleBean(OAuth2AccessTokenResponseClient.class);
-          assertThat(ctx).hasFailed();
-          assertThat(ctx)
-              .getFailure()
-              .hasMessage(
-                  "Error creating bean with name 'OAuth2SsoConfig': Unsatisfied dependency expressed through field 'tokenResponseClient';"
-                      + " nested exception is org.springframework.beans.factory.BeanCurrentlyInCreationException: Error creating bean with name 'OAuth2SsoConfig':"
-                      + " Requested bean is currently in creation: Is there an unresolvable circular reference?");
+          assertThat(ctx).hasSingleBean(OAuth2AccessTokenResponseClient.class);
         });
   }
 
