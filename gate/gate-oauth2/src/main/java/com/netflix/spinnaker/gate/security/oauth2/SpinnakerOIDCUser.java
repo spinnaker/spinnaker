@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.security.oauth2;
 import com.netflix.spinnaker.security.User;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.security.core.GrantedAuthority;
@@ -67,7 +68,10 @@ public class SpinnakerOIDCUser extends User implements OidcUser {
     super(email, username, firstName, lastName, roles, allowedAccounts);
     this.idToken = idToken;
     this.userInfo = userInfo;
-    this.attributes = attributes != null ? Map.copyOf(attributes) : Collections.emptyMap();
+    this.attributes =
+        attributes != null
+            ? Collections.unmodifiableMap(new HashMap<>(attributes))
+            : Collections.emptyMap();
     this.authorities = authorities != null ? List.copyOf(authorities) : Collections.emptyList();
   }
 
