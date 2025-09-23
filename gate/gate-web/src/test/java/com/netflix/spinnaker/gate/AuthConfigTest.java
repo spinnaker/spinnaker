@@ -133,8 +133,9 @@ class AuthConfigTest {
         restTemplate
             .withBasicAuth(TEST_USER, TEST_PASSWORD)
             .exchange("/forward", HttpMethod.GET, null, Object.class);
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEqualTo("hello");
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/hello");
+    assertThat(response.getBody()).isNull();
   }
 
   @Test
