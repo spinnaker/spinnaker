@@ -22,7 +22,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
 
   implementation "redis.clients:jedis"
-  implementation "io.reactivex:rxjava"
+  implementation "io.reactivex.rxjava3:rxjava"
   implementation "com.hubspot.jinjava:jinjava"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-jedis"

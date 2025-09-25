@@ -63,11 +63,11 @@ class PendingExecutionAgent(
 
       for (configId in pendingConfigIds) {
         val runningPipelines = executionRepository.retrievePipelinesForPipelineConfigId(configId, singleRunningCriteria)
-          .toList().toBlocking().single()
+          .toList().blockingGet()
 
         if (runningPipelines.isEmpty()) {
           val lastCompletedPipeline = executionRepository.retrievePipelinesForPipelineConfigId(configId, lastCompletedCriteria)
-            .toList().toBlocking().single()
+            .toList().blockingGet()
 
           val purgeQueue = if (lastCompletedPipeline.any()) {
             !(lastCompletedPipeline.first().isKeepWaitingPipelines)

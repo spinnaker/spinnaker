@@ -19,11 +19,11 @@ package com.netflix.spinnaker.igor.travis.config;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.config.BuildServerProperties;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;

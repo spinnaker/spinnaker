@@ -21,9 +21,9 @@ import com.netflix.spinnaker.gate.services.WebhookService
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException
 import io.cloudevents.spring.mvc.CloudEventHttpMessageConverter
+import jakarta.servlet.ServletException
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockWebServer
 import org.springframework.http.HttpHeaders
@@ -31,9 +31,8 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.web.util.NestedServletException
-import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -98,8 +97,8 @@ class WebhooksControllerSpec extends Specification {
         .andExpect(status().isOk()).andReturn()
 
     then:
-    NestedServletException ex = thrown()
-    ex.message.startsWith("Request processing failed; nested exception is com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException: java.net.ConnectException: Failed to connect to localhost")
+    ServletException ex = thrown()
+    ex.message.startsWith("Request processing failed: com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException: java.net.ConnectException: Failed to connect to")
   }
 
   void 'handles CDEvents API with BAD_REQUEST'() {
@@ -155,7 +154,7 @@ class WebhooksControllerSpec extends Specification {
       .andExpect(status().isOk()).andReturn()
 
     then:
-    NestedServletException ex = thrown()
-    ex.message.startsWith("Request processing failed; nested exception is com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException: java.net.ConnectException: Failed to connect to localhost")
+    ServletException ex = thrown()
+    ex.message.startsWith("Request processing failed: com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException: java.net.ConnectException: Failed to connect to")
   }
 }

@@ -21,7 +21,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 class SearchControllerSpec extends Specification {
   def searchService = Mock(SearchService)

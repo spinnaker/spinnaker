@@ -20,6 +20,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.rosco.jobs.JobExecutor;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestRequest;
@@ -67,7 +68,7 @@ public class CloudFoundryBakeManifestService
   public Artifact bake(CloudFoundryBakeManifestRequest bakeManifestRequest) throws IOException {
     String pattern = "\\(\\((!?[-/\\.\\w\\pL\\]\\[]+)\\)\\)";
 
-    Yaml yaml = new Yaml();
+    Yaml yaml = YamlHelper.newYaml();
 
     String manifestTemplate =
         CharStreams.toString(
