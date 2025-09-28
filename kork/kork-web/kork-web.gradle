@@ -40,6 +40,7 @@ dependencies {
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
 
   runtimeOnly "org.hibernate.validator:hibernate-validator"
+  runtimeOnly("org.springframework.boot:spring-boot-properties-migrator")
 
   testImplementation project(":kork-test")
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
