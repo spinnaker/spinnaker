@@ -17,11 +17,16 @@
 package com.netflix.spinnaker.gate.security.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +40,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import retrofit2.mock.Calls;
 
 @ExtendWith(MockitoExtension.class)
@@ -166,6 +173,42 @@ public class OAuthUserInfoServiceHelperTest {
     when(front50Service.getServiceAccounts()).thenReturn(Calls.response(List.of(serviceAccount)));
 
     assertThat(userInfoService.isServiceAccount(details)).isFalse();
+  }
+
+  @Test
+  void shouldSupportsWhenGetUserInfoReturnsNullValue() {
+    Map<String, Object> badAttributes = new HashMap<>();
+    badAttributes.put("username", "test-user");
+    badAttributes.put("firstName", null); // NPE trigger
+
+    OAuth2User fakeUser = mock(OAuth2User.class);
+    when(fakeUser.getAttributes()).thenReturn(badAttributes);
+
+    OAuth2UserRequest request = mock(OAuth2UserRequest.class);
+    AllowedAccountsSupport allowedAccountsSupport = mock(AllowedAccountsSupport.class);
+    OAuthUserInfoServiceHelper helper =
+        spy(
+            new OAuthUserInfoServiceHelper(
+                userInfoMapping,
+                userInfoRequirements,
+                permissionService,
+                front50Service,
+                allowedAccountsSupport,
+                null,
+                null,
+                Optional.empty()));
+    String userName = "userName";
+    List<String> roles = Collections.singletonList("ROLE_USER");
+    OAuthUserInfoServiceHelper.ResolvedUserInfo userInfo =
+        new OAuthUserInfoServiceHelper.ResolvedUserInfo(userName, roles);
+    doReturn(userInfo).when(helper).getUserInfo(badAttributes, request);
+
+    doReturn(Collections.singletonList("SOME_ACCOUNT"))
+        .when(allowedAccountsSupport)
+        .filterAllowedAccounts(userName, roles);
+
+    assertThat(helper.getSpinnakerOAuth2User(fakeUser, request).getAttributes().get("firstName"))
+        .isNull();
   }
 
   @ParameterizedTest
