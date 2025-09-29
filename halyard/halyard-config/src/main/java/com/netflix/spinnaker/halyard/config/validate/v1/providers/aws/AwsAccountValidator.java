@@ -17,10 +17,6 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.aws;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -28,6 +24,10 @@ import com.netflix.spinnaker.halyard.config.services.v1.ProviderService;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 @Component
 public class AwsAccountValidator extends Validator<AwsAccount> {
@@ -41,12 +41,12 @@ public class AwsAccountValidator extends Validator<AwsAccount> {
         .forEach(error -> p.addProblem(Severity.FATAL, error));
   }
 
-  public static AWSCredentialsProvider getAwsCredentialsProvider(
+  public static AwsCredentialsProvider getAwsCredentialsProvider(
       String accessKeyId, String secretKey) {
     if (accessKeyId != null && secretKey != null) {
-      return new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKeyId, secretKey));
+      return StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKeyId, secretKey));
     } else {
-      return DefaultAWSCredentialsProviderChain.getInstance();
+      return DefaultCredentialsProvider.create();
     }
   }
 }

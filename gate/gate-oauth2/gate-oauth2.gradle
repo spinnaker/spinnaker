@@ -11,4 +11,5 @@ dependencies {
   implementation "org.springframework.session:spring-session-core"
 
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "io.spinnaker.kork:kork-core"
 }

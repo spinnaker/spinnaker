@@ -22,14 +22,14 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Component;
 
-@Configuration
 @EnableWebSecurity
 @SpinnakerAuthConfig
 @Conditional(OAuthConfigEnabled.class)
@@ -40,6 +40,9 @@ public class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired private SpinnakerOIDCUserInfoService oidcUserInfoService;
   @Autowired private DefaultCookieSerializer defaultCookieSerializer;
 
+  @Autowired
+  private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient;
+
   @Override
   public void configure(HttpSecurity httpSecurity) throws Exception {
     defaultCookieSerializer.setSameSite(null);
@@ -48,11 +51,18 @@ public class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
         .authorizeRequests(auth -> auth.anyRequest().authenticated())
         .oauth2Login(
             oauth2 ->
-                oauth2.userInfoEndpoint(
-                    userInfo ->
-                        userInfo
-                            .userService(customOAuth2UserService)
-                            .oidcUserService(oidcUserInfoService)));
+                oauth2
+                    .userInfoEndpoint(
+                        userInfo ->
+                            userInfo
+                                .userService(customOAuth2UserService)
+                                .oidcUserService(oidcUserInfoService))
+                    // Using same token response client that get sets by default this is to allows
+                    // injection of a mock or test implementation
+                    // for unit/integration tests, so we don't need to call GitHub (or any real
+                    // OAuth2 provider)
+                    .tokenEndpoint()
+                    .accessTokenResponseClient(tokenResponseClient));
   }
 
   /**
