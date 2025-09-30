@@ -18,6 +18,7 @@
 apply plugin: "java-library"
 apply from: "$rootDir/gradle/detekt.gradle"
 apply from: "$rootDir/../kotlin.gradle"
+apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {
   compileOnly(platform(project(":spinnaker-dependencies")))
@@ -54,7 +55,7 @@ dependencies {
 sourceSets {
   test {
     java {
-      srcDirs = ['src/test/java']
+      srcDirs = ['src/test/java', 'src/main/test']
     }
   }
 }
