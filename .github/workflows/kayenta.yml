@@ -39,6 +39,7 @@ on:
       - 'fiat/**'
       - 'kork/**'
       - 'orca/**'
+      - '.github/workflows/kayenta.yml'
 
   pull_request:
     branches:
@@ -49,6 +50,7 @@ on:
       - 'fiat/**'
       - 'kork/**'
       - 'orca/**'
+      - '.github/workflows/kayenta.yml'
 
 jobs:
   build:

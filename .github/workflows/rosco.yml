@@ -38,6 +38,7 @@ on:
       - 'rosco/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/rosco.yml'
 
   pull_request:
     branches:
@@ -47,6 +48,7 @@ on:
       - 'rosco/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/rosco.yml'
 
 jobs:
   build:

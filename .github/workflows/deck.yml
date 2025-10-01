@@ -43,6 +43,7 @@ on:
       - release-*
     paths:
       - 'deck/**'
+      - '.github/workflows/deck.yml'
 
   pull_request:
     branches:
@@ -50,6 +51,7 @@ on:
       - release-*
     paths:
       - 'deck/**'
+      - '.github/workflows/deck.yml'
 
 jobs:
   build:

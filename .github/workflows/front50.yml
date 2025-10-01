@@ -38,6 +38,7 @@ on:
       - 'front50/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/front50.yml'
 
   pull_request:
     branches:
@@ -47,6 +48,7 @@ on:
       - 'front50/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/front50.yml'
 
 jobs:
   build:

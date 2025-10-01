@@ -38,6 +38,7 @@ on:
       - 'gate/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/gate.yml'
 
   pull_request:
     branches:
@@ -47,6 +48,7 @@ on:
       - 'gate/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/gate.yml'
 
 jobs:
   build:

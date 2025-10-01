@@ -38,6 +38,7 @@ on:
       - 'orca/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/orca.yml'
 
   pull_request:
     branches:
@@ -47,6 +48,7 @@ on:
       - 'orca/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/orca.yml'
 
 jobs:
   build:

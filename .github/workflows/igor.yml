@@ -38,6 +38,7 @@ on:
       - 'igor/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/igor.yml'
 
   pull_request:
     branches:
@@ -47,6 +48,7 @@ on:
       - 'igor/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/igor.yml'
 
 jobs:
   build:

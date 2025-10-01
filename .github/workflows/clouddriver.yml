@@ -38,6 +38,7 @@ on:
       - 'clouddriver/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/clouddriver.yml'
 
   pull_request:
     branches:
@@ -47,6 +48,7 @@ on:
       - 'clouddriver/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/clouddriver.yml'
 
 jobs:
   build:

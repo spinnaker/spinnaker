@@ -38,6 +38,7 @@ on:
       - 'echo/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/echo.yml'
 
   pull_request:
     branches:
@@ -47,6 +48,7 @@ on:
       - 'echo/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/echo.yml'
 
 jobs:
   build:

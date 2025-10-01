@@ -37,6 +37,7 @@ on:
     paths:
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/fiat.yml'
 
   pull_request:
     branches:
@@ -45,6 +46,7 @@ on:
     paths:
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/fiat.yml'
 
 jobs:
   build:

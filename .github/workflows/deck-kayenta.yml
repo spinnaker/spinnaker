@@ -26,6 +26,7 @@ on:
       - release-*
     paths:
       - 'deck-kayenta/**'
+      - '.github/workflows/deck-kayenta.yml'
 
   pull_request:
     branches:
@@ -33,6 +34,7 @@ on:
       - release-*
     paths:
       - 'deck-kayenta/**'
+      - '.github/workflows/deck-kayenta.yml'
 
 jobs:
   build:
