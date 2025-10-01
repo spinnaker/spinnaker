@@ -30,7 +30,7 @@ jobs:
           ['Management', 'Swagger']
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Gradle validation step
         uses: gradle/wrapper-validation-action@v3
@@ -56,7 +56,7 @@ jobs:
         test: ['canaryAnalysisIsSuccessful', 'canaryAnalysisIsFailed']
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Gradle validation step
         uses: gradle/wrapper-validation-action@v3
