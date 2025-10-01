@@ -77,23 +77,17 @@ class OortServiceTest {
   void verifyCloudFormationStackApi() {
     String stackId =
         "arn:aws:cloudformation:us-west-2:123456789012:stack/my-stack/50d6f6c0-e4a3-11e4-8f3c-500c217fbb7a";
+    String encodedStackId =
+        "arn%3Aaws%3Acloudformation%3Aus-west-2%3A123456789012%3Astack/my-stack/50d6f6c0-e4a3-11e4-8f3c-500c217fbb7a";
     mockServer.stubFor(
-        WireMock.get(WireMock.urlEqualTo("/aws/cloudFormation/stacks/" + stackId))
+        WireMock.get(WireMock.urlEqualTo("/aws/cloudFormation/stacks/" + encodedStackId))
             .willReturn(
                 WireMock.aResponse()
                     .withStatus(HttpStatus.OK.value())
                     .withBody("{\"message\": \"success\"}")));
 
     Map map = Retrofit2SyncCall.execute(oortService.getCloudFormationStack(stackId));
-    // FIXME: map is supposed to receive a response body if the request matches the stub above.
-    //
-    //                                                Request was not matched
-    //                                               =======================
-    // Closest stub:
-    // /aws/cloudFormation/stacks/arn:aws:cloudformation:us-west-2:123456789012:stack/my-stack/50d6f6c0-e4a3-11e4-8f3c-500c217fbb7a
-    // Request:
-    // /aws/cloudFormation/stacks/arn%3Aaws%3Acloudformation%3Aus-west-2%3A123456789012%3Astack/my-stack/50d6f6c0-e4a3-11e4-8f3c-500c217fbb7a
 
-    assertThat(map).isNull();
+    assertThat(map).isNotNull();
   }
 }

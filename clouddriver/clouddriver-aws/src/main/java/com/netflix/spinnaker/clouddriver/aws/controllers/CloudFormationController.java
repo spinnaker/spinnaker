@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.controllers;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormationStack;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonCloudFormationProvider;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -55,12 +57,13 @@ class CloudFormationController {
     String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
     String stackId =
         new AntPathMatcher().extractPathWithinPattern(pattern, request.getRequestURI());
-    log.debug("Cloud formation get stack with id {}", stackId);
+    String decodedStackId = URLDecoder.decode(stackId, StandardCharsets.UTF_8);
+    log.debug("Cloud formation get stack with id {}", decodedStackId);
     return cloudFormationProvider
-        .get(stackId)
+        .get(decodedStackId)
         .orElseThrow(
             () ->
                 new NotFoundException(
-                    String.format("Cloud Formation stackId %s not found.", stackId)));
+                    String.format("Cloud Formation stackId %s not found.", decodedStackId)));
   }
 }
