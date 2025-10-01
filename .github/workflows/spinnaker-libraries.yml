@@ -45,7 +45,7 @@ jobs:
           version-override: ${{ inputs.version-override }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: |
             17
