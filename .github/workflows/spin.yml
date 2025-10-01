@@ -46,7 +46,7 @@ jobs:
           version-override: ${{ inputs.version-override }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: spin/go.mod
           cache: false
