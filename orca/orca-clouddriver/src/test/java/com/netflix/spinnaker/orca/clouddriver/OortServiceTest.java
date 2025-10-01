@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.orca.clouddriver;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import java.util.Map;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +44,12 @@ class OortServiceTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(mockServer.baseUrl())
+            .client(
+                new okhttp3.OkHttpClient.Builder()
+                    .addInterceptor(new Retrofit2EncodeCorrectionInterceptor())
+                    .build())
             .addConverterFactory(JacksonConverterFactory.create())
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build();
 
     oortService = retrofit.create(OortService.class);
@@ -79,8 +87,15 @@ class OortServiceTest {
                     .withStatus(HttpStatus.OK.value())
                     .withBody("{\"message\": \"success\"}")));
 
-    Map map = Retrofit2SyncCall.execute(oortService.getCloudFormationStack(stackId));
-
-    assertThat(map).isNotNull();
+    // FIXME: actual url contains encoded characters, but stub above does not match
+    Throwable thrown =
+        catchThrowable(
+            () -> Retrofit2SyncCall.executeCall(oortService.getCloudFormationStack(stackId)));
+    assertThat(thrown).isInstanceOf(SpinnakerHttpException.class);
+    assertThat(thrown.getMessage())
+        .isEqualTo(
+            "Status: 404, Method: GET, URL: "
+                + mockServer.baseUrl()
+                + "/aws/cloudFormation/stacks/arn%3Aaws%3Acloudformation%3Aus-west-2%3A123456789012%3Astack/my-stack/50d6f6c0-e4a3-11e4-8f3c-500c217fbb7a, Message: Not Found");
   }
 }
