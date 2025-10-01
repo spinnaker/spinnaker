@@ -9,10 +9,12 @@ on:
       - release-*
     paths:
       - 'kayenta/**'
+      - '.github/workflows/kayenta-integration-tests.yml'
 
   pull_request:
     paths:
       - 'kayenta/**'
+      - '.github/workflows/kayenta-integration-tests.yml'
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g

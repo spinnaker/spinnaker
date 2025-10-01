@@ -5,6 +5,17 @@ on:
   schedule:
     - cron: '22 20 * * *'
 
+  push:
+    branches:
+      - main
+      - release-*
+    paths:
+      - '.github/workflows/codeql-analysis.yml'
+
+  pull_request:
+    paths:
+      - '.github/workflows/codeql-analysis.yml'
+
 jobs:
   analyze:
     name: Analyze
