@@ -81,7 +81,7 @@ jobs:
         run: ./gradlew :spin:gorelease
 
       - name: Login to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         if: github.event_name != 'pull_request'
         with:
           credentials_json: ${{ secrets.GAR_JSON_KEY }}
