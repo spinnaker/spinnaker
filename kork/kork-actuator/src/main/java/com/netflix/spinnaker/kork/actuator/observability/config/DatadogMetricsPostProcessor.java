@@ -33,7 +33,7 @@ public class DatadogMetricsPostProcessor implements EnvironmentPostProcessor {
 
     boolean datadogEnabled =
         Boolean.parseBoolean(
-            environment.getProperty("observability.config.metrics.datadog", "false"));
+            environment.getProperty("observability.config.metrics.datadog.enabled", "false"));
 
     // Ensure management.metrics.export.datadog.enabled is set before Spring interprets it
     props.setProperty("management.metrics.export.datadog.enabled", String.valueOf(datadogEnabled));
