@@ -20,7 +20,7 @@ import static java.util.Optional.ofNullable;
 
 import com.netflix.spinnaker.kork.actuator.observability.model.ArmoryEnvironmentMetadata;
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsConfig;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.version.VersionResolver;
 import io.micrometer.core.instrument.Tag;
 import java.util.HashMap;
@@ -51,7 +51,7 @@ public class TagsService {
   private final String springInjectedApplicationName;
 
   public TagsService(
-      ObservabilityConfigurationProperites metricsConfig,
+      ObservabilityConfigurationProperties metricsConfig,
       VersionResolver versionResolver,
       @Value("${spring.application.name:#{null}}") String springInjectedApplicationName) {
 

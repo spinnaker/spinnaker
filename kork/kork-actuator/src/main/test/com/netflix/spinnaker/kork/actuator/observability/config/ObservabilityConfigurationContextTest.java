@@ -18,7 +18,7 @@ package com.netflix.spinnaker.kork.actuator.observability.config;
 
 import static org.junit.Assert.*;
 
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.prometheus.MutatedPrometheusMeterRegistry;
 import com.netflix.spinnaker.kork.actuator.observability.prometheus.PrometheusScrapeEndpoint;
 import com.netflix.spinnaker.kork.actuator.observability.registry.ArmoryObservabilityCompositeRegistry;
@@ -43,7 +43,7 @@ public class ObservabilityConfigurationContextTest {
 
     runner.run(
         context -> {
-          assertNotNull(context.getBean(ObservabilityConfigurationProperites.class));
+          assertNotNull(context.getBean(ObservabilityConfigurationProperties.class));
           assertNotNull(context.getBean(TagsService.class));
           assertNotNull(context.getBean(PrometheusScrapeEndpoint.class));
           assertNotNull(context.getBean(ArmoryObservabilityCompositeRegistry.class));
@@ -176,7 +176,7 @@ public class ObservabilityConfigurationContextTest {
 
     runner.run(
         context -> {
-          assertFalse(context.containsBean("observabilityConfigurationProperites"));
+          assertFalse(context.containsBean("observabilityConfigurationProperties"));
           assertFalse(context.containsBean("prometheusScrapeEndpoint"));
           assertFalse(context.containsBean("armoryObservabilityCompositeRegistry"));
         });

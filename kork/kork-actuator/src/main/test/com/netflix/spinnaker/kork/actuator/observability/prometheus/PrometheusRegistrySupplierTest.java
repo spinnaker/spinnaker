@@ -22,7 +22,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsConfig;
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsPrometheusConfig;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import io.micrometer.core.instrument.Clock;
 import io.prometheus.client.CollectorRegistry;
 import org.junit.Before;
@@ -42,7 +42,7 @@ public class PrometheusRegistrySupplierTest {
   @Before
   public void before() {
     initMocks(this);
-    var observabilityConfigurationProperites = new ObservabilityConfigurationProperites();
+    var observabilityConfigurationProperites = new ObservabilityConfigurationProperties();
     var metricsConfig = new MetricsConfig();
     observabilityConfigurationProperites.setMetrics(metricsConfig);
     prometheusConfig = MetricsPrometheusConfig.builder().build();

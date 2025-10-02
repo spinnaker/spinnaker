@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.actuator.observability.prometheus;
 
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsPrometheusConfig;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
 import io.micrometer.core.instrument.Clock;
 import io.prometheus.client.CollectorRegistry;
@@ -34,7 +34,7 @@ public class PrometheusRegistrySupplier implements Supplier<RegistryConfigWrappe
   private final Clock clock;
 
   public PrometheusRegistrySupplier(
-      ObservabilityConfigurationProperites pluginConfig,
+      ObservabilityConfigurationProperties pluginConfig,
       CollectorRegistry collectorRegistry,
       Clock clock) {
 
@@ -43,7 +43,7 @@ public class PrometheusRegistrySupplier implements Supplier<RegistryConfigWrappe
     this.clock = clock;
   }
 
-  public PrometheusRegistrySupplier(ObservabilityConfigurationProperites pluginConfig) {
+  public PrometheusRegistrySupplier(ObservabilityConfigurationProperties pluginConfig) {
     this(pluginConfig, new CollectorRegistry(), Clock.SYSTEM);
   }
 
