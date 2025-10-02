@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.actuator.observability.config;
 
 import com.netflix.spinnaker.kork.actuator.observability.datadog.DataDogRegistrySupplier;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.newrelic.NewRelicRegistrySupplier;
 import com.netflix.spinnaker.kork.actuator.observability.prometheus.PrometheusRegistrySupplier;
 import com.netflix.spinnaker.kork.actuator.observability.prometheus.PrometheusScrapeEndpoint;
@@ -57,8 +57,8 @@ public class ObservabilityConfiguration {
   }
 
   @Bean
-  public ObservabilityConfigurationProperites observabilityConfigurationProperites() {
-    return new ObservabilityConfigurationProperites();
+  public ObservabilityConfigurationProperties observabilityConfigurationProperties() {
+    return new ObservabilityConfigurationProperties();
   }
 
   @Bean
@@ -69,7 +69,7 @@ public class ObservabilityConfiguration {
 
   @Bean
   public TagsService tagsService(
-      ObservabilityConfigurationProperites observabilityConfigurationProperites,
+      ObservabilityConfigurationProperties observabilityConfigurationProperites,
       VersionResolver versionResolver,
       @Value("${spring.application.name:#{null}}") String springInjectedApplicationName) {
     return new TagsService(
@@ -100,7 +100,7 @@ public class ObservabilityConfiguration {
 
   @Bean
   public PrometheusRegistrySupplier prometheusRegistrySupplier(
-      ObservabilityConfigurationProperites pluginConfig,
+      ObservabilityConfigurationProperties pluginConfig,
       CollectorRegistry collectorRegistry,
       Clock clock) {
     return new PrometheusRegistrySupplier(pluginConfig, collectorRegistry, clock);
@@ -123,13 +123,13 @@ public class ObservabilityConfiguration {
 
   @Bean
   public DataDogRegistrySupplier dataDogRegistrySupplier(
-      @NotNull ObservabilityConfigurationProperites pluginConfig) {
+      @NotNull ObservabilityConfigurationProperties pluginConfig) {
     return new DataDogRegistrySupplier(pluginConfig);
   }
 
   @Bean
   public NewRelicRegistrySupplier newRelicRegistrySupplier(
-      ObservabilityConfigurationProperites pluginConfig, TagsService tagsService) {
+      ObservabilityConfigurationProperties pluginConfig, TagsService tagsService) {
     return new NewRelicRegistrySupplier(pluginConfig, tagsService);
   }
 }

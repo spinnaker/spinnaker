@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.actuator.observability.newrelic;
 
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsNewRelicConfig;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
 import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
 import io.micrometer.core.ipc.http.HttpUrlConnectionSender;
@@ -42,7 +42,7 @@ public class NewRelicRegistrySupplier implements Supplier<RegistryConfigWrapper>
   private static final double ONE_MINUTE_IN_SECONDS = 60d;
 
   public NewRelicRegistrySupplier(
-      ObservabilityConfigurationProperites pluginConfig, TagsService tagsService) {
+      ObservabilityConfigurationProperties pluginConfig, TagsService tagsService) {
 
     newRelicConfig = pluginConfig.getMetrics().getNewrelic();
     this.tagsService = tagsService;

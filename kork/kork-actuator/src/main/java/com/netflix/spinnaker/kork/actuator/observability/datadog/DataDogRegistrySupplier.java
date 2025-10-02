@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.actuator.observability.datadog;
 
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsDatadogConfig;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
 import io.micrometer.core.ipc.http.HttpUrlConnectionSender;
 import io.micrometer.datadog.DatadogMeterRegistry;
@@ -30,7 +30,7 @@ public class DataDogRegistrySupplier implements Supplier<RegistryConfigWrapper> 
   private final MetricsDatadogConfig datadogConfig;
   protected HttpUrlConnectionSender sender;
 
-  public DataDogRegistrySupplier(@NotNull ObservabilityConfigurationProperites pluginConfig) {
+  public DataDogRegistrySupplier(@NotNull ObservabilityConfigurationProperties pluginConfig) {
     datadogConfig = pluginConfig.getMetrics().getDatadog();
     this.sender =
         new HttpUrlConnectionSender(

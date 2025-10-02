@@ -23,7 +23,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsConfig;
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsNewRelicConfig;
-import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperites;
+import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
 import io.micrometer.core.ipc.http.HttpSender;
 import io.micrometer.core.ipc.http.HttpUrlConnectionSender;
@@ -48,7 +48,7 @@ public class NewRelicRegistrySupplierTest {
   @Before
   public void before() throws IOException {
     initMocks(this);
-    var observabilityConfigurationProperites = new ObservabilityConfigurationProperites();
+    var observabilityConfigurationProperites = new ObservabilityConfigurationProperties();
     var metricsConfig = new MetricsConfig();
     observabilityConfigurationProperites.setMetrics(metricsConfig);
     config = MetricsNewRelicConfig.builder().apiKey("foo").build();
