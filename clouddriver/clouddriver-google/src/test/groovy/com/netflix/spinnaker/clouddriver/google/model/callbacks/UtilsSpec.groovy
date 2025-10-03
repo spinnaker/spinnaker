@@ -128,6 +128,8 @@ class UtilsSpec extends Specification {
       "https://compute.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/healthChecks/jake-ilb"      | "healthChecks"
       "https://compute.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpHealthChecks/jake-ilb"  | "httpHealthChecks"
       "https://compute.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpsHealthChecks/jake-ilb" | "httpsHealthChecks"
+      "https://compute.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/http2HealthChecks/jake-ilb" | "http2HealthChecks"
+      "https://compute.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/grpcHealthChecks/jake-ilb"  | "grpcHealthChecks"
   }
 
   @Unroll

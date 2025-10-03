@@ -40,6 +40,7 @@ on:
       - 'fiat/**'
       - 'front50/**'
       - 'kork/**'
+      - '.github/workflows/halyard.yml'
 
   pull_request:
     branches:
@@ -51,12 +52,13 @@ on:
       - 'fiat/**'
       - 'front50/**'
       - 'kork/**'
+      - '.github/workflows/halyard.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/generic-build-publish
         with:
           project: halyard
