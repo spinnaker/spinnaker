@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.actuator.observability.model.MetricsNewRelicCo
 import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
 import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.ipc.http.HttpUrlConnectionSender;
 import io.micrometer.newrelic.NewRelicRegistry;
 import java.net.InetSocketAddress;
@@ -69,11 +70,14 @@ public class NewRelicRegistrySupplier implements Supplier<RegistryConfigWrapper>
     var config = new NewRelicRegistryConfig(newRelicConfig);
     var registry = new NewRelicRegistry.NewRelicRegistryBuilder(config).httpSender(sender).build();
 
+    List<Tag> defaultTags =
+        newRelicConfig.getRegistry().isDefaultTagsDisabled()
+            ? List.of()
+            : tagsService.getDefaultTags();
+
     registry.gauge(
         "metrics.dpm",
-        newRelicConfig.getRegistry().isDefaultTagsDisabled()
-            ? tagsService.getDefaultTags()
-            : List.of(),
+        defaultTags,
         registry,
         reg ->
             reg.getMeters().size() * (ONE_MINUTE_IN_SECONDS / newRelicConfig.getStepInSeconds()));
