@@ -25,11 +25,14 @@ import com.netflix.spinnaker.kork.actuator.observability.model.MetricsConfig;
 import com.netflix.spinnaker.kork.actuator.observability.model.MetricsNewRelicConfig;
 import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.ipc.http.HttpSender;
 import io.micrometer.core.ipc.http.HttpUrlConnectionSender;
 import io.micrometer.newrelic.NewRelicRegistry;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,6 +90,50 @@ public class NewRelicRegistrySupplierTest {
     assertTrue(
         "Received " + decompressByteData(captor.getValue().getEntity()),
         decompressByteData(captor.getValue().getEntity()).contains("testCounter"));
+  }
+
+  @Test
+  public void dpmGauge_hasDefaultTags_whenDefaultTagsNotDisabled() {
+    config.setEnabled(true);
+    config.getRegistry().setDefaultTagsDisabled(false);
+
+    when(tagsService.getDefaultTags())
+        .thenReturn(List.of(Tag.of("env", "test"), Tag.of("svc", "orca")));
+
+    NewRelicRegistry registry = (NewRelicRegistry) sut.get().getMeterRegistry();
+
+    Meter dpm =
+        registry.getMeters().stream()
+            .filter(m -> m.getId().getName().equals("metrics.dpm"))
+            .findFirst()
+            .orElse(null);
+
+    assertNotNull("DPM gauge should be registered", dpm);
+    assertEquals("test", dpm.getId().getTag("env"));
+    assertEquals("orca", dpm.getId().getTag("svc"));
+    registry.stop();
+  }
+
+  @Test
+  public void dpmGauge_hasNoDefaultTags_whenDefaultTagsDisabled() {
+    config.setEnabled(true);
+    config.getRegistry().setDefaultTagsDisabled(true);
+
+    when(tagsService.getDefaultTags())
+        .thenReturn(List.of(Tag.of("env", "test"), Tag.of("svc", "orca")));
+
+    NewRelicRegistry registry = (NewRelicRegistry) sut.get().getMeterRegistry();
+
+    Meter dpm =
+        registry.getMeters().stream()
+            .filter(m -> m.getId().getName().equals("metrics.dpm"))
+            .findFirst()
+            .orElse(null);
+
+    assertNotNull("DPM gauge should be registered", dpm);
+    assertNull("No env tag expected when default tags are disabled", dpm.getId().getTag("env"));
+    assertNull("No svc tag expected when default tags are disabled", dpm.getId().getTag("svc"));
+    registry.stop();
   }
 
   private String decompressByteData(byte[] result) throws IOException {
