@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kork.actuator.observability.model.MetricsConfig;
 import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.version.VersionResolver;
 import io.micrometer.core.instrument.Tag;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,9 @@ public class TagsService {
   protected final MetricsConfig metricsConfig;
   private final VersionResolver versionResolver;
   private final String springInjectedApplicationName;
+  private final BuildProperties cachedBuildProps;
+  private final ArmoryEnvironmentMetadata cachedMetadata;
+  private final List<Tag> cachedDefaultTags;
 
   public TagsService(
       ObservabilityConfigurationProperties metricsConfig,
@@ -58,6 +62,13 @@ public class TagsService {
     this.metricsConfig = metricsConfig.getMetrics();
     this.versionResolver = versionResolver;
     this.springInjectedApplicationName = springInjectedApplicationName;
+
+    // Cache build properties and derived tags once at construction time
+    this.cachedBuildProps = getBuildProperties(getPropertiesPath());
+    this.cachedMetadata = getEnvironmentMetadata(cachedBuildProps);
+    var tagsAsMap = getDefaultTagsAsFilteredMap(cachedMetadata);
+    // Make the list immutable to ensure thread-safety and avoid accidental mutation
+    this.cachedDefaultTags = Collections.unmodifiableList(getDefaultTags(tagsAsMap));
   }
 
   private String trimToNull(String string) {
@@ -152,10 +163,6 @@ public class TagsService {
   }
 
   public List<Tag> getDefaultTags() {
-    var springbootPropertiesPath = getPropertiesPath();
-    var buildProperties = getBuildProperties(springbootPropertiesPath);
-    var environmentMetadata = getEnvironmentMetadata(buildProperties);
-    var tagsAsMap = getDefaultTagsAsFilteredMap(environmentMetadata);
-    return getDefaultTags(tagsAsMap);
+    return cachedDefaultTags;
   }
 }
