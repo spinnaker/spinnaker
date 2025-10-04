@@ -26,10 +26,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import redis.clients.jedis.*;
+import redis.clients.jedis.args.BitOP;
+import redis.clients.jedis.args.GeoUnit;
+import redis.clients.jedis.params.BitPosParams;
 import redis.clients.jedis.params.GeoRadiusParam;
 import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.params.SortingParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.params.ZIncrByParams;
+import redis.clients.jedis.params.ZParams;
+import redis.clients.jedis.resps.GeoRadiusResponse;
+import redis.clients.jedis.resps.Tuple;
 
 public class InstrumentedPipeline extends Pipeline {
 
@@ -37,13 +44,14 @@ public class InstrumentedPipeline extends Pipeline {
   private final Pipeline delegated;
   private final String poolName;
 
-  public InstrumentedPipeline(Registry registry, Pipeline delegated) {
-    this(registry, delegated, "unnamed");
+  public InstrumentedPipeline(Registry registry, Jedis jedis) {
+    this(registry, jedis, "unnamed");
   }
 
-  public InstrumentedPipeline(Registry registry, Pipeline delegated, String poolName) {
+  public InstrumentedPipeline(Registry registry, Jedis jedis, String poolName) {
+    super(jedis);
     this.registry = registry;
-    this.delegated = delegated;
+    this.delegated = jedis.pipelined();
     this.poolName = poolName;
   }
 
@@ -104,22 +112,6 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public void setClient(Client client) {
-    delegated.setClient(client);
-  }
-
-  @Override
-  public void clear() {
-    delegated.clear();
-  }
-
-  @Override
-  public boolean isInMulti() {
-    String command = "isInMulti";
-    return instrumented(command, () -> delegated.isInMulti());
-  }
-
-  @Override
   public void sync() {
     delegated.sync();
   }
@@ -127,25 +119,7 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public List<Object> syncAndReturnAll() {
     String command = "syncAndReturnAll";
-    return instrumented(command, () -> delegated.syncAndReturnAll());
-  }
-
-  @Override
-  public Response<String> discard() {
-    String command = "discard";
-    return instrumented(command, () -> delegated.discard());
-  }
-
-  @Override
-  public Response<List<Object>> exec() {
-    String command = "exec";
-    return instrumented(command, () -> delegated.exec());
-  }
-
-  @Override
-  public Response<String> multi() {
-    String command = "multi";
-    return instrumented(command, () -> delegated.multi());
+    return instrumented(command, delegated::syncAndReturnAll);
   }
 
   @Override
@@ -155,21 +129,9 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<List<String>> brpop(String... args) {
-    String command = "brpop";
-    return instrumented(command, () -> delegated.brpop(args));
-  }
-
-  @Override
   public Response<List<String>> brpop(int timeout, String... keys) {
     String command = "brpop";
     return instrumented(command, () -> delegated.brpop(timeout, keys));
-  }
-
-  @Override
-  public Response<List<String>> blpop(String... args) {
-    String command = "blpop";
-    return instrumented(command, () -> delegated.blpop(args));
   }
 
   @Override
@@ -179,37 +141,25 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Map<String, String>> blpopMap(int timeout, String... keys) {
-    String command = "blpopMap";
-    return instrumented(command, () -> delegated.blpopMap(timeout, keys));
-  }
-
-  @Override
-  public Response<List<byte[]>> brpop(byte[]... args) {
+  public Response<List<byte[]>> brpop(double timeout, byte[]... args) {
     String command = "brpop";
-    return instrumented(command, () -> delegated.brpop(args));
+    return instrumented(command, () -> delegated.brpop(timeout, args));
   }
 
   @Override
-  public Response<List<String>> brpop(int timeout, byte[]... keys) {
+  public Response<List<byte[]>> brpop(int timeout, byte[]... keys) {
     String command = "brpop";
     return instrumented(command, () -> delegated.brpop(timeout, keys));
   }
 
   @Override
-  public Response<Map<String, String>> brpopMap(int timeout, String... keys) {
-    String command = "brpopMap";
-    return instrumented(command, () -> delegated.brpopMap(timeout, keys));
-  }
-
-  @Override
-  public Response<List<byte[]>> blpop(byte[]... args) {
+  public Response<List<byte[]>> blpop(double timeout, byte[]... args) {
     String command = "blpop";
-    return instrumented(command, () -> delegated.blpop(args));
+    return instrumented(command, () -> delegated.blpop(timeout, args));
   }
 
   @Override
-  public Response<List<String>> blpop(int timeout, byte[]... keys) {
+  public Response<List<byte[]>> blpop(int timeout, byte[]... keys) {
     String command = "blpop";
     return instrumented(command, () -> delegated.blpop(timeout, keys));
   }
@@ -431,18 +381,6 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> watch(String... keys) {
-    String command = "watch";
-    return instrumented(command, () -> delegated.watch(keys));
-  }
-
-  @Override
-  public Response<String> watch(byte[]... keys) {
-    String command = "watch";
-    return instrumented(command, () -> delegated.watch(keys));
-  }
-
-  @Override
   public Response<Long> zinterstore(String dstkey, String... sets) {
     String command = "zinterstore";
     return instrumented(command, () -> delegated.zinterstore(dstkey, sets));
@@ -491,30 +429,6 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> bgrewriteaof() {
-    String command = "bgrewriteaof";
-    return instrumented(command, () -> delegated.bgrewriteaof());
-  }
-
-  @Override
-  public Response<String> bgsave() {
-    String command = "bgsave";
-    return instrumented(command, () -> delegated.bgsave());
-  }
-
-  @Override
-  public Response<List<String>> configGet(String pattern) {
-    String command = "configGet";
-    return instrumented(command, () -> delegated.configGet(pattern));
-  }
-
-  @Override
-  public Response<String> configSet(String parameter, String value) {
-    String command = "configSet";
-    return instrumented(command, () -> delegated.configSet(parameter, value));
-  }
-
-  @Override
   public Response<String> brpoplpush(String source, String destination, int timeout) {
     String command = "brpoplpush";
     return instrumented(command, () -> delegated.brpoplpush(source, destination, timeout));
@@ -524,24 +438,6 @@ public class InstrumentedPipeline extends Pipeline {
   public Response<byte[]> brpoplpush(byte[] source, byte[] destination, int timeout) {
     String command = "brpoplpush";
     return instrumented(command, () -> delegated.brpoplpush(source, destination, timeout));
-  }
-
-  @Override
-  public Response<String> configResetStat() {
-    String command = "configResetStat";
-    return instrumented(command, () -> delegated.configResetStat());
-  }
-
-  @Override
-  public Response<String> save() {
-    String command = "save";
-    return instrumented(command, () -> delegated.save());
-  }
-
-  @Override
-  public Response<Long> lastsave() {
-    String command = "lastsave";
-    return instrumented(command, () -> delegated.lastsave());
   }
 
   @Override
@@ -559,61 +455,19 @@ public class InstrumentedPipeline extends Pipeline {
   @Override
   public Response<String> randomKey() {
     String command = "randomKey";
-    return instrumented(command, () -> delegated.randomKey());
-  }
-
-  @Override
-  public Response<byte[]> randomKeyBinary() {
-    String command = "randomKeyBinary";
-    return instrumented(command, () -> delegated.randomKeyBinary());
-  }
-
-  @Override
-  public Response<String> flushDB() {
-    String command = "flushDB";
-    return instrumented(command, () -> delegated.flushDB());
-  }
-
-  @Override
-  public Response<String> flushAll() {
-    String command = "flushAll";
-    return instrumented(command, () -> delegated.flushAll());
-  }
-
-  @Override
-  public Response<String> info() {
-    String command = "info";
-    return instrumented(command, () -> delegated.info());
-  }
-
-  @Override
-  public Response<String> info(String section) {
-    String command = "info";
-    return instrumented(command, () -> delegated.info(section));
+    return instrumented(command, delegated::randomKey);
   }
 
   @Override
   public Response<List<String>> time() {
     String command = "time";
-    return instrumented(command, () -> delegated.time());
+    return instrumented(command, delegated::time);
   }
 
   @Override
   public Response<Long> dbSize() {
     String command = "dbSize";
-    return instrumented(command, () -> delegated.dbSize());
-  }
-
-  @Override
-  public Response<String> shutdown() {
-    String command = "shutdown";
-    return instrumented(command, () -> delegated.shutdown());
-  }
-
-  @Override
-  public Response<String> ping() {
-    String command = "ping";
-    return instrumented(command, () -> delegated.ping());
+    return instrumented(command, delegated::dbSize);
   }
 
   @Override
@@ -635,72 +489,9 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> clusterNodes() {
-    String command = "clusterNodes";
-    return instrumented(command, () -> delegated.clusterNodes());
-  }
-
-  @Override
-  public Response<String> clusterMeet(String ip, int port) {
-    String command = "clusterMeet";
-    return instrumented(command, () -> delegated.clusterMeet(ip, port));
-  }
-
-  @Override
-  public Response<String> clusterAddSlots(int... slots) {
-    String command = "clusterAddSlots";
-    return instrumented(command, () -> delegated.clusterAddSlots(slots));
-  }
-
-  @Override
-  public Response<String> clusterDelSlots(int... slots) {
-    String command = "clusterDelSlots";
-    return instrumented(command, () -> delegated.clusterDelSlots(slots));
-  }
-
-  @Override
-  public Response<String> clusterInfo() {
-    String command = "clusterInfo";
-    return instrumented(command, () -> delegated.clusterInfo());
-  }
-
-  @Override
-  public Response<List<String>> clusterGetKeysInSlot(int slot, int count) {
-    String command = "clusterGetKeysInSlot";
-    return instrumented(command, () -> delegated.clusterGetKeysInSlot(slot, count));
-  }
-
-  @Override
-  public Response<String> clusterSetSlotNode(int slot, String nodeId) {
-    String command = "clusterSetSlotNode";
-    return instrumented(command, () -> delegated.clusterSetSlotNode(slot, nodeId));
-  }
-
-  @Override
-  public Response<String> clusterSetSlotMigrating(int slot, String nodeId) {
-    String command = "clusterSetSlotMigrating";
-    return instrumented(command, () -> delegated.clusterSetSlotMigrating(slot, nodeId));
-  }
-
-  @Override
-  public Response<String> clusterSetSlotImporting(int slot, String nodeId) {
-    String command = "clusterSetSlotImporting";
-    return instrumented(command, () -> delegated.clusterSetSlotImporting(slot, nodeId));
-  }
-
-  @Override
   public Response<Object> eval(byte[] script) {
     String command = "eval";
     return instrumented(command, payloadSize(script), () -> delegated.eval(script));
-  }
-
-  @Override
-  public Response<Object> eval(byte[] script, byte[] keyCount, byte[]... params) {
-    String command = "eval";
-    return instrumented(
-        command,
-        payloadSize(script) + payloadSize(params),
-        () -> delegated.eval(script, keyCount, params));
   }
 
   @Override
@@ -775,36 +566,6 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<List<String>> blpop(String key) {
-    String command = "blpop";
-    return instrumented(command, () -> delegated.blpop(key));
-  }
-
-  @Override
-  public Response<List<String>> brpop(String key) {
-    String command = "brpop";
-    return instrumented(command, () -> delegated.brpop(key));
-  }
-
-  @Override
-  public Response<List<byte[]>> blpop(byte[] key) {
-    String command = "blpop";
-    return instrumented(command, () -> delegated.blpop(key));
-  }
-
-  @Override
-  public Response<List<byte[]>> brpop(byte[] key) {
-    String command = "brpop";
-    return instrumented(command, () -> delegated.brpop(key));
-  }
-
-  @Override
-  public Response<Long> decr(String key) {
-    String command = "decr";
-    return instrumented(command, () -> delegated.decr(key));
-  }
-
-  @Override
   public Response<Long> decr(byte[] key) {
     String command = "decr";
     return instrumented(command, () -> delegated.decr(key));
@@ -835,18 +596,6 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> echo(String string) {
-    String command = "echo";
-    return instrumented(command, () -> delegated.echo(string));
-  }
-
-  @Override
-  public Response<byte[]> echo(byte[] string) {
-    String command = "echo";
-    return instrumented(command, () -> delegated.echo(string));
-  }
-
-  @Override
   public Response<Boolean> exists(String key) {
     String command = "exists";
     return instrumented(command, () -> delegated.exists(key));
@@ -859,13 +608,13 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Long> expire(String key, int seconds) {
+  public Response<Long> expire(String key, long seconds) {
     String command = "expire";
     return instrumented(command, () -> delegated.expire(key, seconds));
   }
 
   @Override
-  public Response<Long> expire(byte[] key, int seconds) {
+  public Response<Long> expire(byte[] key, long seconds) {
     String command = "expire";
     return instrumented(command, () -> delegated.expire(key, seconds));
   }
@@ -1333,19 +1082,19 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Boolean> setbit(byte[] key, long offset, byte[] value) {
+  public Response<Boolean> setbit(byte[] key, long offset, boolean value) {
     String command = "setbit";
     return instrumented(command, () -> delegated.setbit(key, offset, value));
   }
 
   @Override
-  public Response<String> setex(String key, int seconds, String value) {
+  public Response<String> setex(String key, long seconds, String value) {
     String command = "setex";
     return instrumented(command, payloadSize(value), () -> delegated.setex(key, seconds, value));
   }
 
   @Override
-  public Response<String> setex(byte[] key, int seconds, byte[] value) {
+  public Response<String> setex(byte[] key, long seconds, byte[] value) {
     String command = "setex";
     return instrumented(command, payloadSize(value), () -> delegated.setex(key, seconds, value));
   }
@@ -1501,7 +1250,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> substr(byte[] key, int start, int end) {
+  public Response<byte[]> substr(byte[] key, int start, int end) {
     String command = "substr";
     return instrumented(command, () -> delegated.substr(key, start, end));
   }
@@ -1641,95 +1390,95 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<String>> zrange(String key, long start, long end) {
+  public Response<List<String>> zrange(String key, long start, long end) {
     String command = "zrange";
     return instrumented(command, () -> delegated.zrange(key, start, end));
   }
 
   @Override
-  public Response<Set<byte[]>> zrange(byte[] key, long start, long end) {
+  public Response<List<byte[]>> zrange(byte[] key, long start, long end) {
     String command = "zrange";
     return instrumented(command, () -> delegated.zrange(key, start, end));
   }
 
   @Override
-  public Response<Set<String>> zrangeByScore(String key, double min, double max) {
+  public Response<List<String>> zrangeByScore(String key, double min, double max) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max));
   }
 
   @Override
-  public Response<Set<byte[]>> zrangeByScore(byte[] key, double min, double max) {
+  public Response<List<byte[]>> zrangeByScore(byte[] key, double min, double max) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max));
   }
 
   @Override
-  public Response<Set<String>> zrangeByScore(String key, String min, String max) {
+  public Response<List<String>> zrangeByScore(String key, String min, String max) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max));
   }
 
   @Override
-  public Response<Set<byte[]>> zrangeByScore(byte[] key, byte[] min, byte[] max) {
+  public Response<List<byte[]>> zrangeByScore(byte[] key, byte[] min, byte[] max) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max));
   }
 
   @Override
-  public Response<Set<String>> zrangeByScore(
+  public Response<List<String>> zrangeByScore(
       String key, double min, double max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<String>> zrangeByScore(
+  public Response<List<String>> zrangeByScore(
       String key, String min, String max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<byte[]>> zrangeByScore(
+  public Response<List<byte[]>> zrangeByScore(
       byte[] key, double min, double max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<byte[]>> zrangeByScore(
+  public Response<List<byte[]>> zrangeByScore(
       byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(String key, double min, double max) {
+  public Response<List<Tuple>> zrangeByScoreWithScores(String key, double min, double max) {
     String command = "zrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max));
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(String key, String min, String max) {
+  public Response<List<Tuple>> zrangeByScoreWithScores(String key, String min, String max) {
     String command = "zrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max));
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(byte[] key, double min, double max) {
+  public Response<List<Tuple>> zrangeByScoreWithScores(byte[] key, double min, double max) {
     String command = "zrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max));
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(byte[] key, byte[] min, byte[] max) {
+  public Response<List<Tuple>> zrangeByScoreWithScores(byte[] key, byte[] min, byte[] max) {
     String command = "zrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max));
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(
+  public Response<List<Tuple>> zrangeByScoreWithScores(
       String key, double min, double max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
     return instrumented(
@@ -1737,7 +1486,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(
+  public Response<List<Tuple>> zrangeByScoreWithScores(
       String key, String min, String max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
     return instrumented(
@@ -1745,7 +1494,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(
+  public Response<List<Tuple>> zrangeByScoreWithScores(
       byte[] key, double min, double max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
     return instrumented(
@@ -1753,7 +1502,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeByScoreWithScores(
+  public Response<List<Tuple>> zrangeByScoreWithScores(
       byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
     return instrumented(
@@ -1761,83 +1510,83 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<String>> zrevrangeByScore(String key, double max, double min) {
+  public Response<List<String>> zrevrangeByScore(String key, double max, double min) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min));
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrangeByScore(byte[] key, double max, double min) {
+  public Response<List<byte[]>> zrevrangeByScore(byte[] key, double max, double min) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min));
   }
 
   @Override
-  public Response<Set<String>> zrevrangeByScore(String key, String max, String min) {
+  public Response<List<String>> zrevrangeByScore(String key, String max, String min) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min));
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrangeByScore(byte[] key, byte[] max, byte[] min) {
+  public Response<List<byte[]>> zrevrangeByScore(byte[] key, byte[] max, byte[] min) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min));
   }
 
   @Override
-  public Response<Set<String>> zrevrangeByScore(
+  public Response<List<String>> zrevrangeByScore(
       String key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<String>> zrevrangeByScore(
+  public Response<List<String>> zrevrangeByScore(
       String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrangeByScore(
+  public Response<List<byte[]>> zrevrangeByScore(
       byte[] key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrangeByScore(
+  public Response<List<byte[]>> zrevrangeByScore(
       byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min) {
+  public Response<List<Tuple>> zrevrangeByScoreWithScores(String key, double max, double min) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(String key, String max, String min) {
+  public Response<List<Tuple>> zrevrangeByScoreWithScores(String key, String max, String min) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(byte[] key, double max, double min) {
+  public Response<List<Tuple>> zrevrangeByScoreWithScores(byte[] key, double max, double min) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(byte[] key, byte[] max, byte[] min) {
+  public Response<List<Tuple>> zrevrangeByScoreWithScores(byte[] key, byte[] max, byte[] min) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(
+  public Response<List<Tuple>> zrevrangeByScoreWithScores(
       String key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(
@@ -1845,7 +1594,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(
+  public Response<List<Tuple>> zrevrangeByScoreWithScores(
       String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(
@@ -1853,7 +1602,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(
+  public Response<List<Tuple>> zrevrangeByScoreWithScores(
       byte[] key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(
@@ -1861,7 +1610,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeByScoreWithScores(
+  public Response<List<Tuple>> zrevrangeByScoreWithScores(
       byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(
@@ -1869,13 +1618,13 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeWithScores(String key, long start, long end) {
+  public Response<List<Tuple>> zrangeWithScores(String key, long start, long end) {
     String command = "zrangeWithScores";
     return instrumented(command, () -> delegated.zrangeWithScores(key, start, end));
   }
 
   @Override
-  public Response<Set<Tuple>> zrangeWithScores(byte[] key, long start, long end) {
+  public Response<List<Tuple>> zrangeWithScores(byte[] key, long start, long end) {
     String command = "zrangeWithScores";
     return instrumented(command, () -> delegated.zrangeWithScores(key, start, end));
   }
@@ -1941,25 +1690,25 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<String>> zrevrange(String key, long start, long end) {
+  public Response<List<String>> zrevrange(String key, long start, long end) {
     String command = "zrevrange";
     return instrumented(command, () -> delegated.zrevrange(key, start, end));
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrange(byte[] key, long start, long end) {
+  public Response<List<byte[]>> zrevrange(byte[] key, long start, long end) {
     String command = "zrevrange";
     return instrumented(command, () -> delegated.zrevrange(key, start, end));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeWithScores(String key, long start, long end) {
+  public Response<List<Tuple>> zrevrangeWithScores(String key, long start, long end) {
     String command = "zrevrangeWithScores";
     return instrumented(command, () -> delegated.zrevrangeWithScores(key, start, end));
   }
 
   @Override
-  public Response<Set<Tuple>> zrevrangeWithScores(byte[] key, long start, long end) {
+  public Response<List<Tuple>> zrevrangeWithScores(byte[] key, long start, long end) {
     String command = "zrevrangeWithScores";
     return instrumented(command, () -> delegated.zrevrangeWithScores(key, start, end));
   }
@@ -2001,52 +1750,52 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Set<byte[]>> zrangeByLex(byte[] key, byte[] min, byte[] max) {
+  public Response<List<byte[]>> zrangeByLex(byte[] key, byte[] min, byte[] max) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max));
   }
 
   @Override
-  public Response<Set<String>> zrangeByLex(String key, String min, String max) {
+  public Response<List<String>> zrangeByLex(String key, String min, String max) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max));
   }
 
   @Override
-  public Response<Set<byte[]>> zrangeByLex(
+  public Response<List<byte[]>> zrangeByLex(
       byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<String>> zrangeByLex(
+  public Response<List<String>> zrangeByLex(
       String key, String min, String max, int offset, int count) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max, offset, count));
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrangeByLex(byte[] key, byte[] max, byte[] min) {
+  public Response<List<byte[]>> zrevrangeByLex(byte[] key, byte[] max, byte[] min) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min));
   }
 
   @Override
-  public Response<Set<String>> zrevrangeByLex(String key, String max, String min) {
+  public Response<List<String>> zrevrangeByLex(String key, String max, String min) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min));
   }
 
   @Override
-  public Response<Set<byte[]>> zrevrangeByLex(
+  public Response<List<byte[]>> zrevrangeByLex(
       byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min, offset, count));
   }
 
   @Override
-  public Response<Set<String>> zrevrangeByLex(
+  public Response<List<String>> zrevrangeByLex(
       String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min, offset, count));
@@ -2187,13 +1936,13 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> restore(String key, int ttl, byte[] serializedValue) {
+  public Response<String> restore(String key, long ttl, byte[] serializedValue) {
     String command = "restore";
     return instrumented(command, () -> delegated.restore(key, ttl, serializedValue));
   }
 
   @Override
-  public Response<String> restore(byte[] key, int ttl, byte[] serializedValue) {
+  public Response<String> restore(byte[] key, long ttl, byte[] serializedValue) {
     String command = "restore";
     return instrumented(command, () -> delegated.restore(key, ttl, serializedValue));
   }

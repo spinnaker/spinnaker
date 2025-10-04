@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate
 
+import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 import org.springframework.boot.actuate.autoconfigure.ldap.LdapHealthContributorAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -23,7 +24,6 @@ import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.scheduling.annotation.EnableAsync
-import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 
 @EnableAsync
 @EnableConfigurationProperties
@@ -35,12 +35,12 @@ import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
   exclude = [
     GroovyTemplateAutoConfiguration,
     GsonAutoConfiguration,
-    LdapHealthContributorAutoConfiguration,
+    LdapHealthContributorAutoConfiguration
   ]
 )
 class Main {
 
-  static final Map<String, String> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "gate").build()
+  static final Map<String, String> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "gate").property("spring.mvc.pathmatch.matching-strategy","ANT_PATH_MATCHER").build()
 
   static void main(String... args) {
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)

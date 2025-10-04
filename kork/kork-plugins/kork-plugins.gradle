@@ -30,7 +30,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
   implementation("com.google.guava:guava")
-  implementation "javax.inject:javax.inject:1"
+  implementation "jakarta.inject:jakarta.inject-api:2.0.1"
 
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties")
@@ -41,7 +41,7 @@ dependencies {
   testImplementation("org.mockito:mockito-core")
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
-  testImplementation("com.github.tomakehurst:wiremock:2.15.0")
+  testImplementation("org.wiremock:wiremock:3.0.4")
 
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"

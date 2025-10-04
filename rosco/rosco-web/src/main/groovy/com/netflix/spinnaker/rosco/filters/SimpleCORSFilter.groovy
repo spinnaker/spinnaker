@@ -18,8 +18,8 @@ package com.netflix.spinnaker.rosco.filters
 
 import org.springframework.stereotype.Component
 
-import javax.servlet.*
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.*
+import jakarta.servlet.http.HttpServletResponse
 
 @Component
 public class SimpleCORSFilter implements Filter {

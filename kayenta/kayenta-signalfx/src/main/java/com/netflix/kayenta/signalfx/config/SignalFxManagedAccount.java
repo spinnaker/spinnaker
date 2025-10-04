@@ -19,10 +19,10 @@ package com.netflix.kayenta.signalfx.config;
 
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data

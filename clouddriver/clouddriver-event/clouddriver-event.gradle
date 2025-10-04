@@ -25,7 +25,7 @@ dependencies {
   implementation "com.google.code.findbugs:jsr305"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
-  implementation "javax.validation:validation-api"
+  implementation "jakarta.validation:jakarta.validation-api"
   implementation "org.hibernate.validator:hibernate-validator"
 
   testImplementation "cglib:cglib-nodep"

@@ -23,7 +23,7 @@ dependencies {
   implementation "org.apache.groovy:groovy"
   implementation "org.spockframework:spock-core"
   implementation "io.spinnaker.kork:kork-sql-test"
-  implementation "io.reactivex:rxjava"
+  implementation "io.reactivex.rxjava3:rxjava"
 }
 
 tasks.compileGroovy.enabled = true

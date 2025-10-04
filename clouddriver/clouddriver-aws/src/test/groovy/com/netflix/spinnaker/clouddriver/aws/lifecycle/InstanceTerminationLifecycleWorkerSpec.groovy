@@ -36,7 +36,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
-import javax.inject.Provider
+import jakarta.inject.Provider
 
 class InstanceTerminationLifecycleWorkerSpec extends Specification {
 

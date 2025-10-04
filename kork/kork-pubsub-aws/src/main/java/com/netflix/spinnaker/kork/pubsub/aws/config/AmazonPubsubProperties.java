@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws.config;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.Collections;
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
