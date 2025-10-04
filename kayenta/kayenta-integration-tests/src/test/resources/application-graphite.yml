@@ -17,3 +17,4 @@ management:
         port: ${embedded.graphite.picklePort}
         protocol: pickled
         step: 1s
+        graphite-tags-enabled: false
