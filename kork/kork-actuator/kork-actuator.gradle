@@ -51,12 +51,17 @@ dependencies {
   testImplementation 'io.rest-assured:rest-assured:4.3.0'
   testImplementation "org.mock-server:mockserver-client-java:5.10.0"
   testImplementation "org.mock-server:mockserver-junit-rule:5.10.0"
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
 }
 
 sourceSets {
   test {
     java {
       srcDirs = ['src/test/java', 'src/main/test']
+    }
+    resources {
+      // Ensure test resources under src/main/test/resources are on the classpath
+      srcDirs += ['src/main/test/resources']
     }
   }
 }
