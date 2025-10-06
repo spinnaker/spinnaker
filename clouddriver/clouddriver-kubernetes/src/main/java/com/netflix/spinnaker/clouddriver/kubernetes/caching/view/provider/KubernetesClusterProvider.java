@@ -52,9 +52,12 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Component
+@Primary // Ensures this provider takes precedence over other Kubernetes cluster providers (e.g.,
+// from Armory agent, plugins)
 public class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
   private final KubernetesCacheUtils cacheUtils;
 
