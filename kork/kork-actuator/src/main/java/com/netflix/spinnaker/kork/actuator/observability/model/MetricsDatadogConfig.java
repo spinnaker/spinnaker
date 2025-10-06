@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,8 +29,14 @@ import lombok.NoArgsConstructor;
 public class MetricsDatadogConfig extends MetricsIntegrationConfig {
   // Datadog Specific Settings
   @Builder.Default private boolean enabled = false;
-  @Builder.Default private String apiKey = null;
-  @Builder.Default private String applicationKey = null;
+
+  @Builder.Default
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private String apiKey = null;
+
+  @Builder.Default
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private String applicationKey = null;
   // @Builder.Default private String hostTag = null;
   @Builder.Default private String uri = "https://api.datadoghq.com";
   // @Builder.Default private String descriptions = null;
