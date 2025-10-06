@@ -24,58 +24,48 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 
-public class DatadogMetricsPostProcessorTest {
+public class PrometheusMetricsPostProcessorTest {
 
   @Test
   public void setsManagementPropertyWhenEnabledTrueWithCompositeOptOut() {
     ConfigurableEnvironment env = new StandardEnvironment();
     Properties p = new Properties();
-    p.setProperty("observability.config.metrics.datadog.enabled", "true");
+    p.setProperty("observability.config.metrics.prometheus.enabled", "true");
     // Opt-out from composite so Boot can own the exporter
     p.setProperty("observability.config.override-primary-registry", "false");
     env.getPropertySources().addFirst(new PropertiesPropertySource("test", p));
 
-    new DatadogMetricsPostProcessor()
+    new PrometheusMetricsPostProcessor()
         .postProcessEnvironment(env, new SpringApplication(Object.class));
 
-    assertEquals("true", env.getProperty("management.metrics.export.datadog.enabled"));
+    assertEquals("true", env.getProperty("management.metrics.export.prometheus.enabled"));
   }
 
   @Test
   public void setsManagementPropertyDisabledWhenCompositeOverrideEnabled() {
     ConfigurableEnvironment env = new StandardEnvironment();
     Properties p = new Properties();
-    p.setProperty("observability.config.metrics.datadog.enabled", "true");
+    p.setProperty("observability.config.metrics.prometheus.enabled", "true");
     // Default is override-primary-registry=true; set explicitly for clarity
     p.setProperty("observability.config.override-primary-registry", "true");
     env.getPropertySources().addFirst(new PropertiesPropertySource("test", p));
 
-    new DatadogMetricsPostProcessor()
+    new PrometheusMetricsPostProcessor()
         .postProcessEnvironment(env, new SpringApplication(Object.class));
 
-    assertEquals("false", env.getProperty("management.metrics.export.datadog.enabled"));
+    assertEquals("false", env.getProperty("management.metrics.export.prometheus.enabled"));
   }
 
   @Test
   public void setsManagementPropertyWhenEnabledFalse() {
     ConfigurableEnvironment env = new StandardEnvironment();
     Properties p = new Properties();
-    p.setProperty("observability.config.metrics.datadog.enabled", "false");
+    p.setProperty("observability.config.metrics.prometheus.enabled", "false");
     env.getPropertySources().addFirst(new PropertiesPropertySource("test", p));
 
-    new DatadogMetricsPostProcessor()
+    new PrometheusMetricsPostProcessor()
         .postProcessEnvironment(env, new SpringApplication(Object.class));
 
-    assertEquals("false", env.getProperty("management.metrics.export.datadog.enabled"));
-  }
-
-  @Test
-  public void defaultsToFalseWhenPropertyMissing() {
-    ConfigurableEnvironment env = new StandardEnvironment();
-
-    new DatadogMetricsPostProcessor()
-        .postProcessEnvironment(env, new SpringApplication(Object.class));
-
-    assertEquals("false", env.getProperty("management.metrics.export.datadog.enabled"));
+    assertEquals("false", env.getProperty("management.metrics.export.prometheus.enabled"));
   }
 }

@@ -37,6 +37,8 @@ import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
@@ -48,6 +50,7 @@ import org.springframework.core.annotation.Order;
 
 @Slf4j
 @Configuration
+@AutoConfigureBefore(MetricsAutoConfiguration.class)
 @Order(Ordered.HIGHEST_PRECEDENCE + 66)
 @ConditionalOnProperty(name = "observability.enabled", havingValue = "true")
 public class ObservabilityConfiguration {
@@ -108,6 +111,10 @@ public class ObservabilityConfiguration {
 
   @Bean
   @Primary
+  @ConditionalOnProperty(
+      name = "observability.config.override-primary-registry",
+      havingValue = "true",
+      matchIfMissing = true)
   public ArmoryObservabilityCompositeRegistry armoryObservabilityCompositeRegistry(
       Clock clock,
       Collection<Supplier<RegistryConfigWrapper>> registrySuppliers,
