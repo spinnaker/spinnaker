@@ -24,6 +24,8 @@ import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Tag;
 import java.util.List;
 import org.junit.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 public class ArmoryRecommendedFiltersIntegrationTest {
@@ -32,6 +34,8 @@ public class ArmoryRecommendedFiltersIntegrationTest {
   public void test_recommended_filters_deny_controller_invocations_and_tags_are_snake_cased() {
     ApplicationContextRunner runner =
         new ApplicationContextRunner()
+            .withConfiguration(
+                AutoConfigurations.of(ConfigurationPropertiesAutoConfiguration.class))
             .withUserConfiguration(ObservabilityConfiguration.class)
             .withPropertyValues(
                 "observability.enabled=true",

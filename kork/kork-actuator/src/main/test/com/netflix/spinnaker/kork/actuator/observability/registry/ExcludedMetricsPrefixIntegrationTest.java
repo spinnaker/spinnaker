@@ -22,6 +22,8 @@ import com.netflix.spinnaker.kork.actuator.observability.config.ObservabilityCon
 import com.netflix.spinnaker.kork.actuator.observability.prometheus.PrometheusScrapeEndpoint;
 import io.micrometer.core.instrument.Clock;
 import org.junit.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 public class ExcludedMetricsPrefixIntegrationTest {
@@ -30,6 +32,8 @@ public class ExcludedMetricsPrefixIntegrationTest {
   public void test_excluded_metrics_prefix_filters_metrics() {
     ApplicationContextRunner runner =
         new ApplicationContextRunner()
+            .withConfiguration(
+                AutoConfigurations.of(ConfigurationPropertiesAutoConfiguration.class))
             .withUserConfiguration(ObservabilityConfiguration.class)
             .withPropertyValues(
                 "observability.enabled=true",
