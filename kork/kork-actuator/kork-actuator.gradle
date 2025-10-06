@@ -45,6 +45,7 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.springframework.boot:spring-boot-starter-actuator"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.testcontainers:testcontainers:1.14.3"
   testImplementation 'io.rest-assured:rest-assured:4.3.0'

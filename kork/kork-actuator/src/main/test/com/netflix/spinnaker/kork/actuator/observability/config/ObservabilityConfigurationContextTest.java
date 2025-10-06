@@ -24,7 +24,11 @@ import com.netflix.spinnaker.kork.actuator.observability.prometheus.PrometheusSc
 import com.netflix.spinnaker.kork.actuator.observability.registry.ArmoryObservabilityCompositeRegistry;
 import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
+import io.micrometer.datadog.DatadogMeterRegistry;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.Test;
@@ -47,6 +51,91 @@ public class ObservabilityConfigurationContextTest {
           assertNotNull(context.getBean(TagsService.class));
           assertNotNull(context.getBean(PrometheusScrapeEndpoint.class));
           assertNotNull(context.getBean(ArmoryObservabilityCompositeRegistry.class));
+        });
+  }
+
+  @Test
+  public void test_boot_datadog_registry_exists_when_composite_opted_out() {
+    ApplicationContextRunner runner =
+        new ApplicationContextRunner()
+            .withUserConfiguration(ObservabilityConfiguration.class)
+            .withPropertyValues(
+                "observability.enabled=true",
+                "spring.application.name=test-service",
+                // opt-out of composite so Boot can own the registries
+                "observability.config.override-primary-registry=false",
+                // enable provider-level Datadog
+                "observability.config.metrics.datadog.enabled=true",
+                // ApplicationContextRunner does not invoke EnvironmentPostProcessors, so emulate
+                // the effect of DatadogMetricsPostProcessor here
+                "management.metrics.export.datadog.enabled=true",
+                "management.metrics.export.datadog.api-key=TEST_API_KEY")
+            .withBean(Clock.class, () -> Clock.SYSTEM);
+
+    runner.run(
+        context -> {
+          // Our composite should not be present
+          assertFalse(context.containsBean("armoryObservabilityCompositeRegistry"));
+
+          // Boot should provide Datadog registry bean
+          DatadogMeterRegistry dd = context.getBean(DatadogMeterRegistry.class);
+          assertNotNull(dd);
+
+          // Boot should provide a CompositeMeterRegistry as primary for MeterRegistry injection
+          MeterRegistry injected = context.getBean(MeterRegistry.class);
+          assertNotNull(injected);
+          assertTrue(injected instanceof CompositeMeterRegistry);
+        });
+  }
+
+  @Test
+  public void test_boot_prometheus_registry_exists_when_composite_opted_out() {
+    ApplicationContextRunner runner =
+        new ApplicationContextRunner()
+            .withUserConfiguration(ObservabilityConfiguration.class)
+            .withPropertyValues(
+                "observability.enabled=true",
+                "spring.application.name=test-service",
+                // opt-out of composite so Boot can own the registries
+                "observability.config.override-primary-registry=false",
+                // enable provider-level Prometheus
+                "observability.config.metrics.prometheus.enabled=true")
+            .withBean(Clock.class, () -> Clock.SYSTEM);
+
+    runner.run(
+        context -> {
+          // Our composite should not be present
+          assertFalse(context.containsBean("armoryObservabilityCompositeRegistry"));
+
+          // Boot should provide Prometheus registry bean
+          PrometheusMeterRegistry prom = context.getBean(PrometheusMeterRegistry.class);
+          assertNotNull(prom);
+
+          // Boot should provide a CompositeMeterRegistry as primary
+          MeterRegistry injected = context.getBean(MeterRegistry.class);
+          assertNotNull(injected);
+          assertTrue(injected instanceof CompositeMeterRegistry);
+        });
+  }
+
+  @Test
+  public void test_composite_disabled_when_override_primary_registry_false() {
+    ApplicationContextRunner runner =
+        new ApplicationContextRunner()
+            .withUserConfiguration(ObservabilityConfiguration.class)
+            .withPropertyValues(
+                "observability.enabled=true",
+                "spring.application.name=test-service",
+                "observability.config.override-primary-registry=false")
+            .withBean(Clock.class, () -> Clock.SYSTEM);
+
+    runner.run(
+        context -> {
+          // Composite registry should not be present when override is explicitly false
+          assertFalse(context.containsBean("armoryObservabilityCompositeRegistry"));
+          // Other observability beans should still be wired
+          assertNotNull(context.getBean(ObservabilityConfigurationProperties.class));
+          assertNotNull(context.getBean(TagsService.class));
         });
   }
 

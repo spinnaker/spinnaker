@@ -22,8 +22,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 
-public class DatadogMetricsPostProcessor implements EnvironmentPostProcessor {
-  private static final String PROPERTY_SOURCE_NAME = "datadog-metrics-defaults";
+public class PrometheusMetricsPostProcessor implements EnvironmentPostProcessor {
+  private static final String PROPERTY_SOURCE_NAME = "prometheus-metrics-defaults";
 
   @Override
   public void postProcessEnvironment(
@@ -31,22 +31,18 @@ public class DatadogMetricsPostProcessor implements EnvironmentPostProcessor {
     MutablePropertySources propertySources = environment.getPropertySources();
     Properties props = new Properties();
 
-    boolean datadogEnabled =
+    boolean promEnabled =
         Boolean.parseBoolean(
-            environment.getProperty("observability.config.metrics.datadog.enabled", "false"));
+            environment.getProperty("observability.config.metrics.prometheus.enabled", "false"));
 
-    // If the composite registry override is active (default), ensure Boot's Datadog exporter is
-    // disabled to avoid duplicate registries/exports. When explicitly opting out of the composite,
-    // mirror the observability Datadog enable flag to Boot's property so Boot can own the exporter.
     boolean overridePrimary =
         Boolean.parseBoolean(
             environment.getProperty("observability.config.override-primary-registry", "true"));
 
-    boolean bootDatadogEnabled = !overridePrimary && datadogEnabled;
+    boolean bootPrometheusEnabled = !overridePrimary && promEnabled;
 
-    // Ensure management.metrics.export.datadog.enabled is set before Spring interprets it
     props.setProperty(
-        "management.metrics.export.datadog.enabled", String.valueOf(bootDatadogEnabled));
+        "management.metrics.export.prometheus.enabled", String.valueOf(bootPrometheusEnabled));
 
     propertySources.addFirst(new PropertiesPropertySource(PROPERTY_SOURCE_NAME, props));
   }
