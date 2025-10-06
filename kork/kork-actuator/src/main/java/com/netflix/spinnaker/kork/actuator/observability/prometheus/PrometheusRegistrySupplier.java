@@ -38,7 +38,7 @@ public class PrometheusRegistrySupplier implements Supplier<RegistryConfigWrappe
       CollectorRegistry collectorRegistry,
       Clock clock) {
 
-    prometheusConfig = pluginConfig.getMetrics().prometheus();
+    prometheusConfig = pluginConfig.getMetrics().getPrometheus();
     this.collectorRegistry = collectorRegistry;
     this.clock = clock;
   }
