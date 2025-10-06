@@ -18,8 +18,6 @@ package com.netflix.spinnaker.kork.actuator.observability.model;
 
 import java.util.Map;
 import lombok.Data;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
 
 @Data
 public class MetricsConfig {
@@ -28,22 +26,4 @@ public class MetricsConfig {
   private MetricsNewRelicConfig newrelic = new MetricsNewRelicConfig();
   private MetricsDatadogConfig datadog = new MetricsDatadogConfig();
   private boolean armoryRecommendedFiltersEnabled = false;
-
-  @Bean
-  @ConditionalOnProperty(value = "observability.config.metrics.prometheus", matchIfMissing = true)
-  public MetricsPrometheusConfig prometheus() {
-    return this.prometheus;
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = "observability.config.metrics.newrelic", matchIfMissing = true)
-  public MetricsNewRelicConfig newrelic() {
-    return this.newrelic;
-  }
-
-  @ConditionalOnProperty(value = "observability.config.metrics.datadog", matchIfMissing = true)
-  @Bean
-  MetricsDatadogConfig datadog() {
-    return this.datadog;
-  }
 }
