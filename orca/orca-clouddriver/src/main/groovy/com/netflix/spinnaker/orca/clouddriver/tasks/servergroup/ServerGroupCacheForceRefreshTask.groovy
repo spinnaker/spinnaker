@@ -138,7 +138,7 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
     boolean allUpdatesApplied = true
     refreshableServerGroups.each { Map<String, String> model ->
       try {
-        def response = Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
+        def response = Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, (Map) model))
         if (response.code() != HttpURLConnection.HTTP_OK) {
           // cache update was not applied immediately; need to poll for completion
           allUpdatesApplied = false
