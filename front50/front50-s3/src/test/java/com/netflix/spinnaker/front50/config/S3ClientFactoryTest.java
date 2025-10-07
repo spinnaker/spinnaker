@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.front50.config;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.S3Client;
 
 public class S3ClientFactoryTest {
 
@@ -15,10 +15,7 @@ public class S3ClientFactoryTest {
     S3Properties props = new S3MetadataStorageProperties();
     props.setRegion("us-west-2");
     props.setEndpoint("https://minio-host:9000");
-    // FIXME: this should not throw an exception
-    assertThatThrownBy(() -> S3ClientFactory.create(mockProvider, props))
-        .isInstanceOf(SdkClientException.class)
-        .hasMessageContaining(
-            "Unable to load region from system settings. Region must be specified either via environment variable (AWS_REGION) or  system property (aws.region)");
+    S3Client client = S3ClientFactory.create(mockProvider, props);
+    assertThat(client.serviceClientConfiguration().region().id()).isEqualTo("us-west-2");
   }
 }
