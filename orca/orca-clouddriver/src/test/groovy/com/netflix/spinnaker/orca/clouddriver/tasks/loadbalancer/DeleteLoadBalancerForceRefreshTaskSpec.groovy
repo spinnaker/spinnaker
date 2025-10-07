@@ -45,7 +45,7 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
 
     then:
     1 * task.cacheService.forceCacheUpdate(stage.context.cloudProvider, DeleteLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> {
-      String cloudProvider, String type, Map<String, ? extends Object> body ->
+      String cloudProvider, String type, Map<String, Object> body ->
 
       assert body.loadBalancerName == config.loadBalancerName
       assert body.account == config.credentials

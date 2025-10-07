@@ -42,7 +42,7 @@ public class SecurityGroupForceCacheRefreshTask implements CloudProviderAware, T
 
     stage.context.targets.each { Map target ->
       cacheService.forceCacheUpdate(
-        cloudProvider, REFRESH_TYPE, [account: target.accountName, securityGroupName: target.name, region: target.region]
+        cloudProvider, REFRESH_TYPE, [account: target.accountName, securityGroupName: target.name, region: target.region] as Map
       )
     }
 
