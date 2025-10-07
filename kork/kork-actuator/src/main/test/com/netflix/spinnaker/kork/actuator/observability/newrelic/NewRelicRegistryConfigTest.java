@@ -37,7 +37,7 @@ public class NewRelicRegistryConfigTest {
             .uri("https://foo.com")
             .build();
 
-    var sut = new NewRelicRegistryConfig(delegate);
+    var sut = new TelemetryNewRelicRegistryConfig(delegate);
     assertEquals(delegate.getApiKey(), sut.apiKey());
     assertEquals(delegate.getBatchSize(), sut.batchSize());
     assertEquals(delegate.isEnableAuditMode(), sut.enableAuditMode());
@@ -47,10 +47,10 @@ public class NewRelicRegistryConfigTest {
     assertEquals(5, delegate.getConnectDurationSeconds());
   }
 
-  @Test(expected = NewRelicRegistryConfig.NewRelicRegistryConfigException.class)
+  @Test(expected = TelemetryNewRelicRegistryConfig.NewRelicRegistryConfigException.class)
   public void test_that_apiKey_throws_exception_if_not_set() {
     var delegate = MetricsNewRelicConfig.builder().build();
-    var sut = new NewRelicRegistryConfig(delegate);
+    var sut = new TelemetryNewRelicRegistryConfig(delegate);
     sut.apiKey();
   }
 }

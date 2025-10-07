@@ -67,7 +67,7 @@ public class NewRelicRegistrySupplier implements Supplier<RegistryConfigWrapper>
       return null;
     }
 
-    var config = new NewRelicRegistryConfig(newRelicConfig);
+    var config = new TelemetryNewRelicRegistryConfig(newRelicConfig);
     var registry = new NewRelicRegistry.NewRelicRegistryBuilder(config).httpSender(sender).build();
 
     List<Tag> defaultTags =

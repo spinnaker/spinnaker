@@ -163,9 +163,9 @@ dependencies {
     // java.lang.NoClassDefFoundError at LogbackLoggingSystem.java:293
     // Hence pinning slf4j-api at 1.7.36 which spring boot 2.7.18 brings in.
     api("org.slf4j:slf4j-api"){
-//      version {
-//        strictly("1.7.36")
-//      }
+      version {
+        strictly("1.7.36")
+      }
     }
     api("org.pf4j:pf4j-update:2.3.0")
     api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.openapi}")
