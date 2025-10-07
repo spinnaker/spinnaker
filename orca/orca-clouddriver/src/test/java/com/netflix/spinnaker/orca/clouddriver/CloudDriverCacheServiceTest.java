@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.orca.clouddriver;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -10,6 +8,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import okhttp3.OkHttpClient;
@@ -39,23 +38,15 @@ public class CloudDriverCacheServiceTest {
   }
 
   @Test
-  public void verifyForceCacheUpdate() {
+  public void verifyForceCacheUpdate() throws IOException {
     wmCache.stubFor(
         WireMock.post(urlMatching("/cache/aws/CloudFormation"))
             .willReturn(WireMock.aResponse().withStatus(200).withBody("{\"status\":\"ok\"}")));
 
-    // FIXME: Retrofit does not support wildcard in the method parameter.
-    Throwable thrown =
-        catchThrowable(
-            () ->
-                Retrofit2SyncCall.execute(
-                    cacheService.forceCacheUpdate(
-                        "aws",
-                        "CloudFormation",
-                        Map.of("id", "1", "region", List.of("us-east-1")))));
-    assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
-    assertThat(thrown.getMessage())
-        .contains(
-            "Parameter type must not include a type variable or wildcard: java.util.Map<java.lang.String, ?> (parameter #3)");
+    Retrofit2SyncCall.execute(
+        cacheService.forceCacheUpdate(
+            "aws", "CloudFormation", Map.of("id", "1", "region", List.of("us-east-1"))));
+
+    wmCache.verify(1, WireMock.postRequestedFor(urlMatching("/cache/aws/CloudFormation")));
   }
 }
