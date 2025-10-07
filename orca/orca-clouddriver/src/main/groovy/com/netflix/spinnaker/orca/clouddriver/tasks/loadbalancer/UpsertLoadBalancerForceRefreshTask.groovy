@@ -116,7 +116,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
                 [loadBalancerName: target.name,
                  region          : region,
                  account         : target.credentials,
-                 loadBalancerType: stage.context.loadBalancerType]
+                 loadBalancerType: stage.context.loadBalancerType] as Map
           ))
         }, 3, 1000, false)
 
