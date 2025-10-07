@@ -23,12 +23,13 @@ import java.util.Optional;
 
 /**
  * New Relic config wrapper that sources its config from the Spring Context Plugin Configuration.
+ * Package-private to avoid simple-name collision with Telemetry's interface.
  */
-public class NewRelicRegistryConfig implements io.micrometer.NewRelicRegistryConfig {
+class TelemetryNewRelicRegistryConfig implements io.micrometer.NewRelicRegistryConfig {
 
   private final MetricsNewRelicConfig newRelicConfig;
 
-  public NewRelicRegistryConfig(MetricsNewRelicConfig newRelicConfig) {
+  public TelemetryNewRelicRegistryConfig(MetricsNewRelicConfig newRelicConfig) {
     this.newRelicConfig = newRelicConfig;
   }
 
