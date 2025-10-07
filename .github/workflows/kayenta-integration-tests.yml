@@ -9,10 +9,12 @@ on:
       - release-*
     paths:
       - 'kayenta/**'
+      - '.github/workflows/kayenta-integration-tests.yml'
 
   pull_request:
     paths:
       - 'kayenta/**'
+      - '.github/workflows/kayenta-integration-tests.yml'
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx2g -Xms2g
@@ -28,13 +30,13 @@ jobs:
           ['Management', 'Swagger']
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Gradle validation step
         uses: gradle/wrapper-validation-action@v3
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: 17
           distribution: 'zulu'
@@ -54,13 +56,13 @@ jobs:
         test: ['canaryAnalysisIsSuccessful', 'canaryAnalysisIsFailed']
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Gradle validation step
         uses: gradle/wrapper-validation-action@v3
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: 17
           distribution: 'zulu'

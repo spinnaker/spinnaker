@@ -142,11 +142,27 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
                 TAG_SCOPE, SCOPE_GLOBAL) }
         break
       case "httpsHealthChecks":
-        operationName = "copmute.httpsHealthChecks.get"
+        operationName = "compute.httpsHealthChecks.get"
         healthCheckGet = {
             timeExecute(
                 compute.httpsHealthChecks().get(project, healthCheckName),
                 "compute.httpsHealthChecks.get",
+                TAG_SCOPE, SCOPE_GLOBAL) }
+        break
+      case "http2HealthChecks":
+        operationName = "compute.http2HealthChecks.get"
+        healthCheckGet = {
+            timeExecute(
+                compute.http2HealthChecks().get(project, healthCheckName),
+                "compute.http2HealthChecks.get",
+                TAG_SCOPE, SCOPE_GLOBAL) }
+        break
+      case "grpcHealthChecks":
+        operationName = "compute.grpcHealthChecks.get"
+        healthCheckGet = {
+            timeExecute(
+                compute.grpcHealthChecks().get(project, healthCheckName),
+                "compute.grpcHealthChecks.get",
                 TAG_SCOPE, SCOPE_GLOBAL) }
         break
       case "healthChecks":
@@ -233,6 +249,20 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
             timeExecute(
                 compute.httpsHealthChecks().delete(project, healthCheckName),
                 "compute.httpsHealthChecks.delete",
+                TAG_SCOPE, SCOPE_GLOBAL) }
+        break
+      case "http2HealthChecks":
+        deleteHealthCheckClosure = {
+            timeExecute(
+                compute.http2HealthChecks().delete(project, healthCheckName),
+                "compute.http2HealthChecks.delete",
+                TAG_SCOPE, SCOPE_GLOBAL) }
+        break
+      case "grpcHealthChecks":
+        deleteHealthCheckClosure = {
+            timeExecute(
+                compute.grpcHealthChecks().delete(project, healthCheckName),
+                "compute.grpcHealthChecks.delete",
                 TAG_SCOPE, SCOPE_GLOBAL) }
         break
       case "healthChecks":

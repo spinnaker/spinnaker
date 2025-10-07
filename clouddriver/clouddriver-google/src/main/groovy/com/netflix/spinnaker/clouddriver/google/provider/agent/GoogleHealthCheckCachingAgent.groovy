@@ -210,6 +210,28 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
         newHC.port = port
         newHC.requestPath = hc.getHttpsHealthCheck().getRequestPath()
         break
+      case 'HTTP2':
+        port = hc.getHttp2HealthCheck().getPort()
+        if (port == null) {
+          log.warn("HTTP2 health check ${hc.getName()} has a null port, ignoring.")
+          return null
+        }
+
+        newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTP2
+        newHC.port = port
+        newHC.requestPath = hc.getHttp2HealthCheck().getRequestPath()
+        break
+      case 'GRPC':
+        port = hc.getGrpcHealthCheck().getPort()
+        if (port == null) {
+          log.warn("GRPC health check ${hc.getName()} has a null port, ignoring.")
+          return null
+        }
+
+        newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.GRPC
+        newHC.port = port
+        newHC.requestPath = hc.getGrpcHealthCheck().getGrpcServiceName()
+        break
       case 'TCP':
         port = hc.getTcpHealthCheck().getPort()
         if (port == null) {
