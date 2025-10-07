@@ -56,7 +56,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
   void "should force cache refresh server groups via oort when name provided"() {
     when:
     1 * cloudDriverCacheService.forceCacheUpdate('aws', 'LoadBalancer', _) >> {
-      String cloudProvider, String type, Map<String, ? extends Object> body ->
+      String cloudProvider, String type, Map<String, Object> body ->
         assert cloudProvider == "aws"
         assert body.loadBalancerName == "flapjack-frontend"
         assert body.account == "spinnaker"
