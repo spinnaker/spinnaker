@@ -72,13 +72,9 @@ public class S3ClientFactory {
 
     if (!StringUtils.isEmpty(s3Properties.getEndpoint())) {
       s3Builder.endpointOverride(URI.create(s3Properties.getEndpoint()));
-
-      if (!StringUtils.isEmpty(s3Properties.getRegionOverride())) {
-        s3Builder.region(Region.of(s3Properties.getRegionOverride()));
-      }
-    } else {
-      Optional.ofNullable(s3Properties.getRegion()).map(Region::of).ifPresent(s3Builder::region);
     }
+
+    Optional.ofNullable(s3Properties.getRegion()).map(Region::of).ifPresent(s3Builder::region);
 
     return s3Builder.build();
   }
