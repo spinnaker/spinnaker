@@ -74,7 +74,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
     then:
     1 * task.cacheService.forceCacheUpdate(stage.context.cloudProvider, ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> {
-      String cloudProvider, String type, Map<String, ? extends Object> body ->
+      String cloudProvider, String type, Map<String, Object> body ->
         expectations = body
         Calls.response(Response.success(202, ResponseBody.create(MediaType.parse("application/json"),"[]")))
     }
