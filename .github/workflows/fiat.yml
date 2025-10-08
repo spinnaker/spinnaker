@@ -37,6 +37,7 @@ on:
     paths:
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/fiat.yml'
 
   pull_request:
     branches:
@@ -45,12 +46,13 @@ on:
     paths:
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/fiat.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/generic-build-publish
         with:
           project: fiat
