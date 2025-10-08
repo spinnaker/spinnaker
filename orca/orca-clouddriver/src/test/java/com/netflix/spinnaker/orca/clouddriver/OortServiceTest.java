@@ -17,14 +17,15 @@
 package com.netflix.spinnaker.orca.clouddriver;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,22 +81,21 @@ class OortServiceTest {
   void verifyCloudFormationStackApi() {
     String stackId =
         "arn:aws:cloudformation:us-west-2:123456789012:stack/my-stack/50d6f6c0-e4a3-11e4-8f3c-500c217fbb7a";
+    String encodedStackId = URLEncoder.encode(stackId, StandardCharsets.UTF_8);
     mockServer.stubFor(
-        WireMock.get(WireMock.urlEqualTo("/aws/cloudFormation/stacks/" + stackId))
+        WireMock.get(
+                WireMock.urlEqualTo("/aws/cloudFormation/stacks/stack?stackId=" + encodedStackId))
             .willReturn(
                 WireMock.aResponse()
                     .withStatus(HttpStatus.OK.value())
-                    .withBody("{\"message\": \"success\"}")));
+                    .withBody("{\"stackId\": \"" + stackId + "\"}")));
 
-    // FIXME: actual url contains encoded characters, but stub above does not match
-    Throwable thrown =
-        catchThrowable(
-            () -> Retrofit2SyncCall.executeCall(oortService.getCloudFormationStack(stackId)));
-    assertThat(thrown).isInstanceOf(SpinnakerHttpException.class);
-    assertThat(thrown.getMessage())
-        .isEqualTo(
-            "Status: 404, Method: GET, URL: "
-                + mockServer.baseUrl()
-                + "/aws/cloudFormation/stacks/arn%3Aaws%3Acloudformation%3Aus-west-2%3A123456789012%3Astack/my-stack/50d6f6c0-e4a3-11e4-8f3c-500c217fbb7a, Message: Not Found");
+    Map cloudFormationStack =
+        Retrofit2SyncCall.execute(oortService.getCloudFormationStack(stackId));
+    mockServer.verify(
+        1,
+        WireMock.getRequestedFor(
+            WireMock.urlEqualTo("/aws/cloudFormation/stacks/stack?stackId=" + encodedStackId)));
+    assertThat(cloudFormationStack.get("stackId")).isEqualTo(stackId);
   }
 }
