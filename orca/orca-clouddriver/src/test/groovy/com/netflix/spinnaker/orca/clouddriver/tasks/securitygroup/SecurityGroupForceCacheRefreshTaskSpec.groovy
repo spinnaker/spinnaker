@@ -46,7 +46,7 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
 
     then:
     1 * task.cacheService.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, _) >> {
-      String cloudProvider, String type, Map<String, ? extends Object> body ->
+      String cloudProvider, String type, Map<String, Object> body ->
 
       assert body.securityGroupName == config.name
       assert body.account == config.accountName
