@@ -178,7 +178,7 @@ public interface OortService {
   Call<List<Map>> getEntityTags(@QueryMap Map parameters);
 
   @GET("aws/cloudFormation/stacks/stack")
-  Call<Map> getCloudFormationStack(@Query("stackId") String stackId);
+  Call<Map<String, Object>> getCloudFormationStack(@Query("stackId") String stackId);
 
   @GET("servicebroker/{account}/serviceInstance")
   Call<Map<String, Object>> getServiceInstance(
