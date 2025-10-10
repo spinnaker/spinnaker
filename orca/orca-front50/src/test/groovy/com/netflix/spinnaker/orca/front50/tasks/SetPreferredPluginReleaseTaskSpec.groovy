@@ -19,6 +19,10 @@ package com.netflix.spinnaker.orca.front50.tasks
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Response
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -41,11 +45,14 @@ class SetPreferredPluginReleaseTaskSpec extends Specification {
       ]
     }
 
+    and:
+    Call<ResponseBody> mockCall = Calls.response(Response.success(null))
+    1 * front50Service.setPreferredPluginVersion("netflix.foo", "1.0.1", true) >> mockCall
+
     when:
     def result = subject.execute(stageExecution)
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    1 * front50Service.setPreferredPluginVersion("netflix.foo", "1.0.1", true)
   }
 }

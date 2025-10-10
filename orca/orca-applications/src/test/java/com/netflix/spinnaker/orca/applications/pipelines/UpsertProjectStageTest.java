@@ -39,6 +39,7 @@ import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -71,6 +72,33 @@ public class UpsertProjectStageTest {
     var field = UpsertProjectStage.UpsertProjectTask.class.getDeclaredField("front50Service");
     field.setAccessible(true);
     field.set(task, front50Service);
+  }
+
+  @Test
+  void shouldVerifyCallNotMadeWithoutExecuteCall() throws Exception {
+    // Given
+    Map<String, Object> context = new HashMap<>();
+    Map<String, Object> projectData = new HashMap<>();
+    projectData.put("name", "test-project");
+    projectData.put("email", "test@example.com");
+    context.put("project", projectData);
+
+    Front50Service.Project expectedProject = new Front50Service.Project();
+    expectedProject.setId("new-id");
+    expectedProject.setName("test-project");
+
+    front50Server.stubFor(
+        post(urlEqualTo("/v2/projects"))
+            .willReturn(okJson(objectMapper.writeValueAsString(expectedProject))));
+
+    // When
+    Call<Front50Service.Project> result = front50Service.createProject(projectData);
+
+    // Then
+    assertEquals(false, result.isExecuted());
+
+    // Verify the request
+    front50Server.verify(0, postRequestedFor(urlEqualTo("/v2/projects")));
   }
 
   @Test
