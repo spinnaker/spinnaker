@@ -48,8 +48,8 @@ class ProjectController {
 
     def pipelineConfigIds = []
     try {
-      def project = Retrofit2SyncCall.executeCall(front50Service.getProject(projectId))
-      pipelineConfigIds = project.body().config.pipelineConfigs*.pipelineConfigId
+      def project = Retrofit2SyncCall.execute(front50Service.getProject(projectId))
+      pipelineConfigIds = project.config.pipelineConfigs*.pipelineConfigId
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
         return []
