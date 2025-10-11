@@ -29,7 +29,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 import javax.annotation.Nonnull
 
 /**
@@ -301,9 +301,9 @@ class DualExecutionRepository(
     sorter: ExecutionComparator?
   ): MutableList<PipelineExecution> {
     val result = Observable.merge(
-      Observable.from(primary.retrieveOrchestrationsForApplication(application, criteria, sorter)),
-      Observable.from(previous.retrieveOrchestrationsForApplication(application, criteria, sorter))
-    ).toList().toBlocking().single().distinctBy { it.id }.toMutableList()
+      Observable.fromIterable(primary.retrieveOrchestrationsForApplication(application, criteria, sorter)),
+      Observable.fromIterable(previous.retrieveOrchestrationsForApplication(application, criteria, sorter))
+    ).toList().blockingGet().distinctBy { it.id }.toMutableList()
 
     return if (sorter != null) {
       result.asSequence().sortedWith(sorter as Comparator<in PipelineExecution>).toMutableList()
@@ -338,16 +338,16 @@ class DualExecutionRepository(
 
   override fun retrieveBufferedExecutions(): MutableList<PipelineExecution> {
     return Observable.merge(
-      Observable.from(primary.retrieveBufferedExecutions()),
-      Observable.from(previous.retrieveBufferedExecutions())
-    ).toList().toBlocking().single().distinctBy { it.id }.toMutableList()
+      Observable.fromIterable(primary.retrieveBufferedExecutions()),
+      Observable.fromIterable(previous.retrieveBufferedExecutions())
+    ).toList().blockingGet().distinctBy { it.id }.toMutableList()
   }
 
   override fun retrieveAllApplicationNames(executionType: ExecutionType?): MutableList<String> {
     return Observable.merge(
-      Observable.from(primary.retrieveAllApplicationNames(executionType)),
-      Observable.from(previous.retrieveAllApplicationNames(executionType))
-    ).toList().toBlocking().single().distinct().toMutableList()
+      Observable.fromIterable(primary.retrieveAllApplicationNames(executionType)),
+      Observable.fromIterable(previous.retrieveAllApplicationNames(executionType))
+    ).toList().blockingGet().distinct().toMutableList()
   }
 
   override fun retrieveAllApplicationNames(
@@ -355,9 +355,9 @@ class DualExecutionRepository(
     minExecutions: Int
   ): MutableList<String> {
     return Observable.merge(
-      Observable.from(primary.retrieveAllApplicationNames(executionType, minExecutions)),
-      Observable.from(previous.retrieveAllApplicationNames(executionType, minExecutions))
-    ).toList().toBlocking().single().distinct().toMutableList()
+      Observable.fromIterable(primary.retrieveAllApplicationNames(executionType, minExecutions)),
+      Observable.fromIterable(previous.retrieveAllApplicationNames(executionType, minExecutions))
+    ).toList().blockingGet().distinct().toMutableList()
   }
 
   override fun hasExecution(type: ExecutionType, id: String): Boolean {
@@ -366,8 +366,8 @@ class DualExecutionRepository(
 
   override fun retrieveAllExecutionIds(type: ExecutionType): MutableList<String> {
     return Observable.merge(
-      Observable.from(primary.retrieveAllExecutionIds(type)),
-      Observable.from(previous.retrieveAllExecutionIds(type))
-    ).toList().toBlocking().single().distinct().toMutableList()
+      Observable.fromIterable(primary.retrieveAllExecutionIds(type)),
+      Observable.fromIterable(previous.retrieveAllExecutionIds(type))
+    ).toList().blockingGet().distinct().toMutableList()
   }
 }

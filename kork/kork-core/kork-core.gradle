@@ -25,6 +25,7 @@ dependencies {
   implementation "com.netflix.spectator:spectator-reg-micrometer"
 
   testImplementation project(":kork-test")
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation("org.mockito:mockito-core")

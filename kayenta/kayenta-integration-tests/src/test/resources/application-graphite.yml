@@ -9,8 +9,12 @@ kayenta:
           - METRICS_STORE
 
 management:
-  metrics:
-    export:
-      graphite:
-        step: 1s
+  graphite:
+    metrics:
+      export:
+        enabled: true
+        host: localhost
         port: ${embedded.graphite.picklePort}
+        protocol: pickled
+        step: 1s
+        graphite-tags-enabled: false

@@ -73,7 +73,9 @@ public class ArtifactController {
   }
 
   // PUT because we need to send a body, which GET does not allow for spring/retrofit
-  @RequestMapping(method = RequestMethod.PUT, value = "/fetch")
+  @RequestMapping(
+      method = RequestMethod.PUT,
+      value = {"/fetch", "/fetch/"})
   StreamingResponseBody fetch(@RequestBody Artifact artifact) {
     if (artifactDownloader == null) {
       throw new IllegalStateException(

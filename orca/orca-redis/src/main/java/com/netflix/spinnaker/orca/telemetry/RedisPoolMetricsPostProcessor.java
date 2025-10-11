@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.telemetry;
 
 import com.netflix.spectator.api.Registry;
-import java.lang.reflect.Field;
-import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -37,11 +35,8 @@ public class RedisPoolMetricsPostProcessor extends AbstractMetricsPostProcessor<
 
   @SuppressWarnings("unchecked")
   @Override
-  protected void applyMetrics(JedisPool bean, String beanName)
-      throws NoSuchFieldException, IllegalAccessException {
-    final Field poolAccess = Pool.class.getDeclaredField("internalPool");
-    poolAccess.setAccessible(true);
-    GenericObjectPool<Jedis> pool = (GenericObjectPool<Jedis>) poolAccess.get(bean);
+  protected void applyMetrics(JedisPool bean, String beanName) {
+    final Pool<Jedis> pool = bean;
     registry.gauge(
         registry.createId("redis.connectionPool.maxIdle", "poolName", beanName),
         pool,

@@ -21,6 +21,9 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.controllers.filter.PrototypeMeasurementFilter;
 import com.netflix.spectator.stackdriver.ConfigParams;
 import com.netflix.spectator.stackdriver.StackdriverWriter;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Date;
@@ -38,9 +41,6 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import rx.Observable;
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
 
 @Configuration
 @EnableConfigurationProperties({

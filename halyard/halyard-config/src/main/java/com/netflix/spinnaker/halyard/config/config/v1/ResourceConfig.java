@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -29,8 +30,6 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
-import org.yaml.snakeyaml.representer.Representer;
 
 @Component
 public class ResourceConfig {
@@ -102,7 +101,7 @@ public class ResourceConfig {
     DumperOptions options = new DumperOptions();
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
     options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
-    return new Yaml(new SafeConstructor(), new Representer(), options);
+    return YamlHelper.newYamlDumperOptions(options);
   }
 
   private String normalizePath(String path) {

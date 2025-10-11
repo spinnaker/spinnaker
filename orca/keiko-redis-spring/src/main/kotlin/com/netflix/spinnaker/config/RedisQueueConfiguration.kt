@@ -37,6 +37,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import redis.clients.jedis.Connection
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
@@ -138,7 +139,7 @@ class RedisQueueConfiguration {
     @Value("\${redis.connection:redis://localhost:6379}") connection: String,
     @Value("\${redis.timeout:2000}") timeout: Int,
     @Value("\${redis.maxattempts:4}") maxAttempts: Int,
-    redisPoolConfig: GenericObjectPoolConfig<Jedis>
+    redisPoolConfig: GenericObjectPoolConfig<Connection>
   ): JedisCluster {
     URI.create(connection).let { cx ->
       val port = if (cx.port == -1) Protocol.DEFAULT_PORT else cx.port
