@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.job;
 
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService;
@@ -93,6 +94,6 @@ public class JobUtils implements CloudProviderAware {
     if (appName == null || front50Service == null) {
       return false;
     }
-    return front50Service.get(appName) != null;
+    return Retrofit2SyncCall.executeCall(front50Service.get(appName)) != null;
   }
 }
