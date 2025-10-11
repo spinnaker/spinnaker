@@ -20,15 +20,12 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonCloudFormationStack;
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonCloudFormationProvider;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.HandlerMapping;
 
 @Slf4j
 @RequestMapping("/aws/cloudFormation/stacks")
@@ -50,11 +47,8 @@ class CloudFormationController {
     return cloudFormationProvider.list(accountName, region);
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/**")
-  AmazonCloudFormationStack get(HttpServletRequest request) {
-    String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
-    String stackId =
-        new AntPathMatcher().extractPathWithinPattern(pattern, request.getRequestURI());
+  @RequestMapping(method = RequestMethod.GET, value = "/stack")
+  AmazonCloudFormationStack get(@RequestParam String stackId) {
     log.debug("Cloud formation get stack with id {}", stackId);
     return cloudFormationProvider
         .get(stackId)
