@@ -17,35 +17,32 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider
 
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
+import com.netflix.spinnaker.clouddriver.security.BaseProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 
 import static com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys.Namespace.SECURITY_GROUPS
 import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 
 @ConditionalOnProperty('azure.enabled')
-class AzureInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
+class AzureInfrastructureProvider extends BaseProvider implements SearchableProvider {
   public static final String PROVIDER_NAME = AzureInfrastructureProvider.name
 
   private final AzureCloudProvider azureCloudProvider
-  private final Collection<Agent> agents
 
   AzureInfrastructureProvider(AzureCloudProvider azureCloudProvider, Collection<Agent> agents) {
     this.azureCloudProvider = azureCloudProvider
-    this.agents = agents
+    // Add initial agents using BaseProvider's addAgents method
+    if (agents) {
+      addAgents(agents)
+    }
   }
 
   @Override
   String getProviderName() {
     return PROVIDER_NAME
-  }
-
-  @Override
-  Collection<Agent> getAgents() {
-    agents
   }
 
   final Set<String> defaultCaches = [SECURITY_GROUPS.ns].asImmutable()

@@ -171,7 +171,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
   }
 
   @Override
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     def keys = providerCache.getIdentifiers(AZURE_ON_DEMAND.ns)
     keys = keys.findAll {
       def key = Keys.parse(azureCloudProvider, it)
