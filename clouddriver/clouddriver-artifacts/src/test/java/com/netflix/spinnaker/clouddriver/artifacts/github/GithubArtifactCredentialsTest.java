@@ -23,14 +23,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
+import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.TempDirectory;
@@ -47,7 +50,11 @@ class GithubArtifactCredentialsTest {
   @Test
   void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitHubArtifactAccount account =
-        GitHubArtifactAccount.builder().name("my-github-account").token("abc").build();
+        GitHubArtifactAccount.builder()
+            .name("my-github-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .token("abc")
+            .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", equalTo("token abc")));
   }
@@ -62,6 +69,7 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -78,6 +86,7 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -93,6 +102,7 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .username("user")
             .password("passw0rd")
             .build();
@@ -110,6 +120,7 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .usernamePasswordFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -119,7 +130,10 @@ class GithubArtifactCredentialsTest {
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitHubArtifactAccount account =
-        GitHubArtifactAccount.builder().name("my-github-account").build();
+        GitHubArtifactAccount.builder()
+            .name("my-github-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }
@@ -129,6 +143,7 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .token("zzz")
             .useContentAPI(true)
             .build();
@@ -147,6 +162,7 @@ class GithubArtifactCredentialsTest {
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .name("my-github-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .token("zzz")
             .useContentAPI(true)
             .githubAPIVersion("v10")
@@ -158,6 +174,56 @@ class GithubArtifactCredentialsTest {
         m ->
             m.withHeader("Authorization", equalTo("token zzz"))
                 .withHeader("Accept", equalTo("application/vnd.github.v10.raw")));
+  }
+
+  @Test
+  void downloadWithARestrictedUrl() throws IOException {
+    // explicitly deny the test server we're hitting.
+    // Github is interesting as ANY URL has to support BOTH the regular url & the download_url
+    // expected by the response.
+    // IT's VERY likely this is the same.  BUT should document this.
+    GitHubArtifactAccount account =
+        GitHubArtifactAccount.builder()
+            .urlRestrictions(
+                HttpUrlRestrictions.builder()
+                    .allowedDomains(
+                        List.of("www.http-response.com", "jsonplaceholder.typicode.com"))
+                    .build())
+            .name("my-bitbucket-account")
+            .build();
+    GitHubArtifactCredentials credentials =
+        new GitHubArtifactCredentials(account, okHttpClient, objectMapper);
+    Artifact artifact =
+        Artifact.builder()
+            .reference("http://example.com")
+            .version("master")
+            .type("github/file")
+            .build();
+    assertThat(
+            credentials.download(
+                Artifact.builder()
+                    .reference(
+                        "https://www.http-response.com/json?body={%22download_url%22:%22https://jsonplaceholder.typicode.com/posts/1%22}")
+                    .build()))
+        .isNotNull();
+    Assertions.assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
+  }
+
+  @Test
+  void defaultRestrictLinkLocalAndLocalhost() {
+    // explicitly deny the test server we're hitting.
+    GitHubArtifactCredentials credentials =
+        new GitHubArtifactCredentials(
+            GitHubArtifactAccount.builder().name("my-github-account").build(),
+            okHttpClient,
+            objectMapper);
+    Artifact artifact =
+        Artifact.builder()
+            .reference("http://localhost")
+            .version("master")
+            .type("github/file")
+            .build();
+    Assertions.assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
   }
 
   private void runTestCase(

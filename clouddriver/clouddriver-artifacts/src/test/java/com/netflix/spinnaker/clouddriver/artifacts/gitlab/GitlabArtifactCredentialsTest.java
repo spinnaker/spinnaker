@@ -22,14 +22,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.TempDirectory;
@@ -46,7 +49,11 @@ class GitlabArtifactCredentialsTest {
   @Test
   void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitlabArtifactAccount account =
-        GitlabArtifactAccount.builder().name("my-gitlab-account").token("abc").build();
+        GitlabArtifactAccount.builder()
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .name("my-gitlab-account")
+            .token("abc")
+            .build();
 
     runTestCase(server, account, m -> m.withHeader("Private-Token", equalTo("abc")));
   }
@@ -61,6 +68,7 @@ class GitlabArtifactCredentialsTest {
     GitlabArtifactAccount account =
         GitlabArtifactAccount.builder()
             .name("my-gitlab-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -70,9 +78,44 @@ class GitlabArtifactCredentialsTest {
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     GitlabArtifactAccount account =
-        GitlabArtifactAccount.builder().name("my-gitlab-account").build();
+        GitlabArtifactAccount.builder()
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .name("my-gitlab-account")
+            .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
+  }
+
+  @Test
+  void blockByDefaultIfNoRestrictionsAreSetToLocalhost() {
+    // explicitly deny the test server we're hitting.
+    GitlabArtifactAccount account =
+        GitlabArtifactAccount.builder().name("my-gitlab-account").build();
+    GitlabArtifactCredentials credentials = new GitlabArtifactCredentials(account, okHttpClient);
+    Artifact artifact =
+        Artifact.builder()
+            .reference("http://localhost")
+            .version("master")
+            .type("gitlab/file")
+            .build();
+    Assertions.assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
+  }
+
+  @Test
+  void obeyRestrictionsWhenSet() throws IOException {
+    // explicitly deny the test server we're hitting.
+    GitlabArtifactAccount account =
+        GitlabArtifactAccount.builder()
+            .urlRestrictions(
+                HttpUrlRestrictions.builder().allowedDomains(List.of("example.com")).build())
+            .name("my-gitlab-account")
+            .build();
+    GitlabArtifactCredentials credentials = new GitlabArtifactCredentials(account, okHttpClient);
+    assertThat(credentials.download(Artifact.builder().reference("http://example.com").build()))
+        .isNotNull();
+    Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () -> credentials.download(Artifact.builder().reference("http://google.com").build()));
   }
 
   private void runTestCase(
