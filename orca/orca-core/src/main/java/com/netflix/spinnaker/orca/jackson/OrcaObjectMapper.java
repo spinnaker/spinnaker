@@ -79,6 +79,11 @@ public class OrcaObjectMapper {
 
     instance.registerModule(module);
 
+    // Custom (de)serializers added to ensure HttpMethod values are always uppercase.
+    // This restores the behavior that existed before Spring Boot 3 upgrade:
+    // previously, HttpMethod values were serialized as uppercase globally.
+    // Using a custom serializer/deserializer ensures consistency for all JSON
+    // (de)serialization across Orca, including tests and persisted payloads.
     SimpleModule httpMethodModule = new SimpleModule();
     httpMethodModule.addSerializer(HttpMethod.class, new HttpMethodSerializer());
     httpMethodModule.addDeserializer(HttpMethod.class, new HttpMethodDeserializer());
@@ -98,6 +103,11 @@ public class OrcaObjectMapper {
     return INSTANCE;
   }
 
+  /**
+   * Custom Jackson serializer for {@link HttpMethod}.
+   *
+   * <p>Converts the enum value to an uppercase string (e.g., {@code GET}).
+   */
   static class HttpMethodSerializer extends JsonSerializer<HttpMethod> {
     @Override
     public void serialize(HttpMethod value, JsonGenerator gen, SerializerProvider serializer)
@@ -106,6 +116,12 @@ public class OrcaObjectMapper {
     }
   }
 
+  /**
+   * Custom Jackson deserializer for {@link HttpMethod}.
+   *
+   * <p>Converts JSON strings (e.g., {@code get}, {@code Get}, {@code GET}) into uppercase before
+   * resolving the corresponding {@link HttpMethod}.
+   */
   static class HttpMethodDeserializer extends JsonDeserializer<HttpMethod> {
     @Override
     public HttpMethod deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
