@@ -40,7 +40,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 )
 class Main {
 
-  static final Map<String, String> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "gate").property("spring.mvc.pathmatch.matching-strategy","ANT_PATH_MATCHER").build()
+  static final Map<String, String> DEFAULT_PROPS = new DefaultPropertiesBuilder().property("spring.application.name", "gate").build()
 
   static void main(String... args) {
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
