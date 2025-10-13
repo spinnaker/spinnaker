@@ -29,11 +29,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 public class OkHttp3ClientConfigurationTest {
   private final ApplicationContextRunner runner =
@@ -61,15 +58,5 @@ public class OkHttp3ClientConfigurationTest {
 
   @Configuration
   @ComponentScan(basePackageClasses = OkHttp3ClientConfiguration.class)
-  static class OkHttp3ClientConfigurationTestConfig {
-    @Bean
-    public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
-      return new HandlerMappingIntrospector();
-    }
-
-    @Bean
-    public AuthenticationConfiguration authenticationConfiguration() {
-      return new AuthenticationConfiguration();
-    }
-  }
+  static class OkHttp3ClientConfigurationTestConfig {}
 }
