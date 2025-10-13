@@ -45,7 +45,6 @@ class BuildControllerSpec extends Specification {
   @Shared def MASTER = 'MASTER'
   @Shared def BUILD_NUMBER = 123
   @Shared def JOB_NAME = "name/with/slashes and spaces"
-  @Shared def JOB_NAME_LEGACY = "job"
   @Shared def JOB_NAME_ENCODED = "name/with/slashes%20and%20spaces"
 
 
