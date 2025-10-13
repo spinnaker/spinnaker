@@ -60,7 +60,7 @@ class JedisConfig {
         } finally {
           jedis?.close()
         }
-        Pool<Jedis> internal = jedisPool //thx groovy
+        Pool<Jedis> internal = jedisPool
         health.withDetail('maxIdle', internal.maxIdle)
         health.withDetail('minIdle', internal.minIdle)
         health.withDetail('numActive', internal.numActive)

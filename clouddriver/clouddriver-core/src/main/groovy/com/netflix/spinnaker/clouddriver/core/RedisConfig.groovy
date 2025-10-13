@@ -144,7 +144,7 @@ class RedisConfig {
         }
 
         if (jedisPool instanceof InstrumentedJedisPool) {
-          GenericObjectPool internalPool = jedisPool.internalPoolReference //thx groovy
+          GenericObjectPool internalPool = jedisPool.internalPoolReference
           health.withDetail('maxIdle', internalPool.maxIdle)
           health.withDetail('minIdle', internalPool.minIdle)
           health.withDetail('numActive', internalPool.numActive)
