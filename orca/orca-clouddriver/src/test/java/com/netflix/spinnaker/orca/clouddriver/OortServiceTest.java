@@ -20,7 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.AfterEach;
@@ -41,7 +45,12 @@ class OortServiceTest {
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(mockServer.baseUrl())
+            .client(
+                new okhttp3.OkHttpClient.Builder()
+                    .addInterceptor(new Retrofit2EncodeCorrectionInterceptor())
+                    .build())
             .addConverterFactory(JacksonConverterFactory.create())
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build();
 
     oortService = retrofit.create(OortService.class);
@@ -72,15 +81,21 @@ class OortServiceTest {
   void verifyCloudFormationStackApi() {
     String stackId =
         "arn:aws:cloudformation:us-west-2:123456789012:stack/my-stack/50d6f6c0-e4a3-11e4-8f3c-500c217fbb7a";
+    String encodedStackId = URLEncoder.encode(stackId, StandardCharsets.UTF_8);
     mockServer.stubFor(
-        WireMock.get(WireMock.urlEqualTo("/aws/cloudFormation/stacks/" + stackId))
+        WireMock.get(
+                WireMock.urlEqualTo("/aws/cloudFormation/stacks/stack?stackId=" + encodedStackId))
             .willReturn(
                 WireMock.aResponse()
                     .withStatus(HttpStatus.OK.value())
-                    .withBody("{\"message\": \"success\"}")));
+                    .withBody("{\"stackId\": \"" + stackId + "\"}")));
 
-    Map map = Retrofit2SyncCall.execute(oortService.getCloudFormationStack(stackId));
-
-    assertThat(map).isNotNull();
+    Map cloudFormationStack =
+        Retrofit2SyncCall.execute(oortService.getCloudFormationStack(stackId));
+    mockServer.verify(
+        1,
+        WireMock.getRequestedFor(
+            WireMock.urlEqualTo("/aws/cloudFormation/stacks/stack?stackId=" + encodedStackId)));
+    assertThat(cloudFormationStack.get("stackId")).isEqualTo(stackId);
   }
 }
