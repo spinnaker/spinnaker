@@ -21,7 +21,11 @@ import com.netflix.spinnaker.igor.PendingOperationsCache
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.UpdatedBuild
 import com.netflix.spinnaker.igor.config.JenkinsConfig
-import com.netflix.spinnaker.igor.jenkins.client.model.*
+import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
+import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
+import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
+import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
@@ -47,7 +51,9 @@ import spock.lang.Specification
 
 import static com.netflix.spinnaker.igor.build.BuildController.InvalidJobParameterException
 import static com.netflix.spinnaker.igor.build.BuildController.validateJobParameters
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 /**
  * Tests for BuildController
