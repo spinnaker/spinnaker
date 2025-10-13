@@ -17,12 +17,20 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTaggerSpec
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls
 import spock.lang.Unroll
 
@@ -236,5 +244,58 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
       credentials: imageTagger.defaultBakeAccount
     ]
     operationContext.extraOutput.regions == ["us-east-1", "us-west-1"]
+  }
+
+  def "should handle query map in findImage calls using WireMock"() {
+    given:
+    // Set up WireMock server
+    def server = new WireMockServer(WireMockConfiguration.options().dynamicPort())
+    server.start()
+
+    // Create a Retrofit instance that points to the mock server
+    def retrofit = new Retrofit.Builder()
+      .baseUrl(server.url("/"))
+      .client(new OkHttpClient.Builder()
+        .addInterceptor(new Retrofit2EncodeCorrectionInterceptor())
+        .build())
+      .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+      .build()
+
+    // Create the OortService using the Retrofit instance
+    def mockOortService = retrofit.create(OortService)
+
+    // Create an ImageTagger with the mocked OortService
+    def testImageTagger = new AmazonImageTagger(mockOortService, new ObjectMapper())
+    testImageTagger.defaultBakeAccount = "test"
+
+    // Set up pipeline and stage
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
+    def stage = new StageExecutionImpl(pipeline, "upsertImageTags", [
+      imageNames: ["test-image"],
+      cloudProvider: "aws"
+    ])
+
+    // Stub the WireMock server for the findImage endpoint
+    // This simulates the HTTP response that OortService would get
+    server.stubFor(WireMock.get(WireMock.urlPathMatching("/aws/images/find"))
+      .withQueryParam("q", WireMock.equalTo("test-image"))
+    // No query parameters for additionalFilters - this simulates the null query map
+      .willReturn(WireMock.aResponse()
+        .withStatus(200)
+        .withHeader("Content-Type", "application/json")
+        .withBody('''[{"imageName":"test-image", "accounts":["test"], "amis":{"us-east-1":["ami-123"]}}]''')))
+
+    when:
+    def result = testImageTagger.findImages(["test-image"], [], stage, AmazonImageTagger.MatchedImage.class)
+
+    then:
+    // If the fix is implemented, this should pass
+    // If the fix is not implemented, it will throw IllegalArgumentException
+    result.size() == 1
+    result[0].imageName == "test-image"
+
+    cleanup:
+    server.stop()
   }
 }
