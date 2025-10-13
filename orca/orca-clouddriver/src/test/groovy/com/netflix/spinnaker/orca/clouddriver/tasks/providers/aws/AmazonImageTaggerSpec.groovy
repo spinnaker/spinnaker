@@ -65,13 +65,13 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
 
     and:
     if (foundById) {
-      1 * oortService.findImage("aws", "ami-id", null, null, null) >> Calls.response(
+      1 * oortService.findImage("aws", "ami-id", null, null, Map.of()) >> Calls.response(
           [["imageName": "ami-name"]])
-      1 * oortService.findImage("aws", "ami-name", null, null, null) >> Calls.response([])
+      1 * oortService.findImage("aws", "ami-name", null, null, Map.of()) >> Calls.response([])
     } else if (imageId != null) {
-      1 * oortService.findImage("aws", imageId, null, null, null) >> Calls.response([])
+      1 * oortService.findImage("aws", imageId, null, null, Map.of()) >> Calls.response([])
     } else {
-      1 * oortService.findImage("aws", imageName, null, null, null) >> Calls.response([])
+      1 * oortService.findImage("aws", imageName, null, null, Map.of()) >> Calls.response([])
     }
 
     when:
@@ -176,7 +176,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     def operationContext = imageTagger.getOperationContext(stage)
 
     then:
-    1 * oortService.findImage("aws", "my-ami", null, null, null) >> Calls.response(
+    1 * oortService.findImage("aws", "my-ami", null, null, Map.of()) >> Calls.response(
       [
         [imageName: "my-ami-v2", accounts: ["test"], amis: ["us-east-1": ["my-ami-00002"]]],
         [imageName: "my-ami", accounts: ["test", "prod"], amis: ["us-east-1": ["my-ami-00001"]], tagsByImageId: ["my-ami-00001": [tag1: "originalValue1"]]]
@@ -215,12 +215,12 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     def operationContext = imageTagger.getOperationContext(stage)
 
     then:
-    1 * oortService.findImage("aws", "my-ami-1", null, null, null) >> Calls.response(
+    1 * oortService.findImage("aws", "my-ami-1", null, null, Map.of()) >> Calls.response(
       [
         [imageName: "my-ami-1", accounts: ["test"], amis: ["us-east-1": ["my-ami-00002"]]]
       ]
     )
-    1 * oortService.findImage("aws", "my-ami-2", null, null, null) >> Calls.response(
+    1 * oortService.findImage("aws", "my-ami-2", null, null, Map.of()) >> Calls.response(
       [
         [imageName: "my-ami-2", accounts: ["test"], amis: ["us-west-1": ["my-ami-00001"]]]
       ]
@@ -290,10 +290,10 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     def result = testImageTagger.findImages(["test-image"], [], stage, AmazonImageTagger.MatchedImage.class)
 
     then:
-    // If the fix is implemented, this should pass
-    // If the fix is not implemented, it will throw IllegalArgumentException
     result.size() == 1
     result[0].imageName == "test-image"
+    server.verify(1, WireMock.getRequestedFor(WireMock.urlPathMatching("/aws/images/find"))
+      .withQueryParam("q", WireMock.equalTo("test-image")))
 
     cleanup:
     server.stop()
