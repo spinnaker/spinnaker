@@ -78,7 +78,6 @@ class StandaloneContainerTest {
   @BeforeAll
   static void setupOnce() throws Exception {
     front50Port = wmFront50.getRuntimeInfo().getHttpPort();
-
     logger.info("wiremock front50 http port: {} ", front50Port);
 
     // set up front50 stub for /pipelines...return an empty json list
