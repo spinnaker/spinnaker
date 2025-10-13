@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -95,15 +96,13 @@ public class WebhookResponseProcessor {
     if (!StringUtils.isEmpty(e.getResponseBodyAsString())) {
       webhookOutput.setBody(processResponseBodyAsJson(e.getResponseBodyAsString()));
     }
-    TaskResult result =
-        processReceivedFailureStatusCode(
-            HttpStatus.valueOf(e.getStatusCode().value()), webhookOutput);
+    TaskResult result = processReceivedFailureStatusCode(e.getStatusCode(), webhookOutput);
     log.warn(webhookOutput.getError(), e);
     return result;
   }
 
   private TaskResult processReceivedFailureStatusCode(
-      HttpStatus status, WebhookStage.WebhookResponseStageData webHookOutput) {
+      HttpStatusCode status, WebhookStage.WebhookResponseStageData webHookOutput) {
     String errorMessage;
     ExecutionStatus executionStatus;
     // Fail fast status check, retry status check or fail permanently
