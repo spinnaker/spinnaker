@@ -63,7 +63,7 @@ public class JenkinsArtifactCredentials
             + artifact.getVersion()
             + "/artifact"
             + formattedReference;
-    HttpUrl url = HttpUrl.parse(buildUrl);
+    HttpUrl url = parseUrl(buildUrl);
     if (url == null) {
       throw new IllegalArgumentException(
           "Malformed content URL in reference: "
