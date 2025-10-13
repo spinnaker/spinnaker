@@ -53,6 +53,23 @@ public class SwaggerConfig {
                 .description("Spinnaker Documentation"));
   }
 
+  /**
+   * OpenAPI customizer to remove Groovy's MetaClass from generated schemas.
+   *
+   * <p>In Groovy applications, the dynamic {@code groovy.lang.MetaClass} property can be picked up
+   * by OpenAPI/Swagger and included as a schema, which is unnecessary and can cause issues in API
+   * documentation.
+   *
+   * <p>This bean iterates over all schemas in the OpenAPI components and removes any entry named
+   * {@code "groovy.lang.MetaClass"}. This achieves the same effect as the previous approach used in
+   * older OpenAPI versions, where similar logic or workarounds were applied to ignore Groovy's
+   * MetaClass in API documentation.
+   *
+   * <p>By using this customizer, we ensure that the generated OpenAPI spec reflects only the
+   * relevant application classes without any Groovy-specific dynamic properties.
+   *
+   * @return an {@link OpenApiCustomizer} that removes Groovy MetaClass schemas
+   */
   @Bean
   public OpenApiCustomizer ignoreGroovyMetaClassCustomizer() {
     return openApi -> {
