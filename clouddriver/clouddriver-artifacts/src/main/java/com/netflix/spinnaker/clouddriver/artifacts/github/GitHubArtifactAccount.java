@@ -18,9 +18,10 @@
 package com.netflix.spinnaker.clouddriver.artifacts.github;
 
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
+import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
+import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
@@ -31,8 +32,8 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-public class GitHubArtifactAccount implements ArtifactAccount, BasicAuth, TokenAuth {
-  private String name;
+public class GitHubArtifactAccount extends UserInputValidatedArtifactAccount
+    implements BasicAuth, TokenAuth {
   /*
    One of the following are required for auth:
     - username and password
@@ -59,8 +60,11 @@ public class GitHubArtifactAccount implements ArtifactAccount, BasicAuth, TokenA
       String token,
       String tokenFile,
       String githubAPIVersion,
-      boolean useContentAPI) {
-    this.name = Strings.nullToEmpty(name);
+      boolean useContentAPI,
+      HttpUrlRestrictions urlRestrictions) {
+    super(
+        Strings.nullToEmpty(name),
+        Optional.ofNullable(urlRestrictions).orElse(HttpUrlRestrictions.builder().build()));
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));
     this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));
