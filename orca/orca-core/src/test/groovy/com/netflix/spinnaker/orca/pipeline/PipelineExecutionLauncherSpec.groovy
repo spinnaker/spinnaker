@@ -60,7 +60,6 @@ class PipelineExecutionLauncherSpec extends Specification {
     context.with {
       beanFactory.with {
         register(TestConfiguration)
-        registerSingleton("providedIdRequestFilterConfigurationProperties", new ProvidedIdRequestFilterConfigurationProperties())
         registerSingleton("clock", Clock.systemDefaultZone())
         registerSingleton("objectMapper", objectMapper)
         registerSingleton("executionRepository", executionRepository)
