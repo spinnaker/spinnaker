@@ -50,9 +50,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
       Map task = ((List<Map>) stage.getContext().get("kato.tasks")).iterator().next();
       Map result = ((List<Map>) task.get("resultObjects")).iterator().next();
       String stackId = (String) result.get("stackId");
-      Map<String, ?> stack =
-          (Map<String, Object>)
-              Retrofit2SyncCall.execute(oortService.getCloudFormationStack(stackId));
+      Map<String, Object> stack =
+          Retrofit2SyncCall.execute(oortService.getCloudFormationStack(stackId));
       log.info(
           "Received cloud formation stackId "
               + stackId

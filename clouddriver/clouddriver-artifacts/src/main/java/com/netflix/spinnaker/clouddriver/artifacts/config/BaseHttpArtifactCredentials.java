@@ -28,7 +28,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 @Slf4j
-public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
+public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedArtifactAccount> {
   @JsonIgnore private final OkHttpClient okHttpClient;
   @JsonIgnore private final T account;
 
@@ -67,7 +67,13 @@ public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
   protected HttpUrl parseUrl(String stringUrl) {
     HttpUrl httpUrl = HttpUrl.parse(stringUrl);
     if (httpUrl == null) {
-      throw new IllegalArgumentException("Malformed URL: " + stringUrl);
+      throw new IllegalArgumentException(
+          "Malformed URL (check artifact references): "
+              + stringUrl
+              + ". Read more here https://www.spinnaker.io/reference/artifacts/types/");
+    }
+    if (account.getUrlRestrictions() != null) {
+      account.getUrlRestrictions().validateURI(httpUrl.uri().normalize());
     }
     return httpUrl;
   }

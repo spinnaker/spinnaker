@@ -22,14 +22,17 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.TempDirectory;
@@ -46,6 +49,7 @@ class HttpArtifactCredentialsTest {
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .name("my-http-account")
             .username("user")
             .password("passw0rd")
@@ -63,6 +67,7 @@ class HttpArtifactCredentialsTest {
 
     HttpArtifactAccount account =
         HttpArtifactAccount.builder()
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .name("my-http-account")
             .usernamePasswordFile(authFile.toAbsolutePath().toString())
             .build();
@@ -72,14 +77,22 @@ class HttpArtifactCredentialsTest {
 
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
-    HttpArtifactAccount account = HttpArtifactAccount.builder().name("my-http-account").build();
+    HttpArtifactAccount account =
+        HttpArtifactAccount.builder()
+            .name("my-http-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .build();
 
     runTestCase(server, account, m -> m.withHeader("Authorization", absent()));
   }
 
   @Test
   void throwExceptionOnNonSuccessfulResponse(@WiremockResolver.Wiremock WireMockServer server) {
-    HttpArtifactAccount account = HttpArtifactAccount.builder().name("my-http-account").build();
+    HttpArtifactAccount account =
+        HttpArtifactAccount.builder()
+            .name("my-http-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .build();
     HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
     Artifact artifact =
         Artifact.builder().reference(server.baseUrl() + URL).type("http/file").build();
@@ -92,6 +105,33 @@ class HttpArtifactCredentialsTest {
         .hasMessageContaining("404")
         .hasMessageContaining(server.baseUrl());
     assertThat(server.findUnmatchedRequests().getRequests()).isEmpty();
+  }
+
+  @Test
+  void blockUnlessInWhiteList() throws IOException {
+    // explicitly deny the test server we're hitting.
+    HttpArtifactAccount account =
+        HttpArtifactAccount.builder()
+            .urlRestrictions(
+                HttpUrlRestrictions.builder().allowedDomains(List.of("google.com")).build())
+            .name("my-bitbucket-account")
+            .build();
+    HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
+    assertThat(credentials.download(Artifact.builder().reference("http://google.com").build()))
+        .isNotNull();
+    Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () -> credentials.download(Artifact.builder().reference("http://example.com").build()));
+  }
+
+  @Test
+  void defaultRestrictLinkLocalAndLocalhost() {
+    // explicitly deny the test server we're hitting.
+    HttpArtifactAccount account = HttpArtifactAccount.builder().name("my-github-account").build();
+    HttpArtifactCredentials credentials = new HttpArtifactCredentials(account, okHttpClient);
+    Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () -> credentials.download(Artifact.builder().reference("http://localhost").build()));
   }
 
   private void runTestCase(

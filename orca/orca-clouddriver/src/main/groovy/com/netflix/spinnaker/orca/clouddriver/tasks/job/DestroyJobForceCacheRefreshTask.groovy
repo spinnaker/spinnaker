@@ -44,7 +44,7 @@ class DestroyJobForceCacheRefreshTask implements CloudProviderAware, Task {
     String name = stage.context.jobName
     String region = stage.context.region
 
-    def model = [jobName: name, region: region, account: account, evict: true]
+    def model = [jobName: name, region: region, account: account, evict: true] as Map
     cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
     TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
   }
