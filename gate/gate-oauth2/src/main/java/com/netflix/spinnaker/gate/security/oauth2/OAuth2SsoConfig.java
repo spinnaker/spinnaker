@@ -21,8 +21,8 @@ import java.util.HashMap;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
-
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -54,21 +54,21 @@ public class OAuth2SsoConfig {
     defaultCookieSerializer.setSameSite(null);
     authConfig.configure(httpSecurity);
     httpSecurity
-      .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-      .oauth2Login(
-        oauth2 ->
-          oauth2
-            .userInfoEndpoint(
-              userInfo ->
-                userInfo
-                  .userService(customOAuth2UserService)
-                  .oidcUserService(oidcUserInfoService))
-            // Using same token response client that get sets by default this is to allows
-            // injection of a mock or test implementation
-            // for unit/integration tests, so we don't need to call GitHub (or any real
-            // OAuth2 provider)
-            .tokenEndpoint()
-            .accessTokenResponseClient(tokenResponseClient));
+        .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+        .oauth2Login(
+            oauth2 ->
+                oauth2
+                    .userInfoEndpoint(
+                        userInfo ->
+                            userInfo
+                                .userService(customOAuth2UserService)
+                                .oidcUserService(oidcUserInfoService))
+                    // Using same token response client that get sets by default this is to allows
+                    // injection of a mock or test implementation
+                    // for unit/integration tests, so we don't need to call GitHub (or any real
+                    // OAuth2 provider)
+                    .tokenEndpoint()
+                    .accessTokenResponseClient(tokenResponseClient));
     return httpSecurity.build();
   }
 
