@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.google.config
 
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount
+import com.fasterxml.jackson.annotation.JsonTypeName
+import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition
 import groovy.transform.Canonical
 import groovy.transform.ToString
 import org.springframework.boot.context.properties.NestedConfigurationProperty
@@ -38,7 +40,8 @@ class GoogleConfigurationProperties {
   }
 
   @ToString(includeNames = true)
-  static class ManagedAccount extends GoogleCommonManagedAccount {
+  @JsonTypeName("google")
+  static class ManagedAccount extends GoogleCommonManagedAccount implements AccessControlledAccountDefinition {
     boolean alphaListed
     List<String> imageProjects
     ConsulConfig consul
