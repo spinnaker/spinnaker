@@ -155,7 +155,10 @@ public class WebhookResponseProcessor {
       errorMessage =
           format(
               "An exception occurred for pipeline %s performing a %s request to %s. %s",
-              executionId, stageData.method, stageData.url, e.toString());
+              executionId, stageData.method, stageData.url, e);
+      if (e.getCause() != null) {
+        errorMessage = errorMessage + "; nested exception is " + e.getCause();
+      }
       executionStatus = ExecutionStatus.TERMINAL;
     }
     var webhookOutput = new WebhookStage.WebhookResponseStageData();

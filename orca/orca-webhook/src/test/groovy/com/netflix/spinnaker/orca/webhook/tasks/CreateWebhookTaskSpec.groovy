@@ -256,7 +256,7 @@ class CreateWebhookTaskSpec extends Specification {
       expectedErrorMessage = "Socket timeout in webhook on POST request for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
     } else {
       expectedStatus = ExecutionStatus.TERMINAL
-      expectedErrorMessage = "An exception occurred for pipeline ${stage.execution.id} performing a POST request to ${stage.context.url}. org.springframework.web.client.ResourceAccessException: I/O error on POST request for https://my-service.io/api/"
+      expectedErrorMessage = "An exception occurred for pipeline ${stage.execution.id} performing a POST request to ${stage.context.url}. org.springframework.web.client.ResourceAccessException: I/O error on POST request for https://my-service.io/api/; nested exception is java.net.SocketTimeoutException: timeout"
     }
 
     result.status == expectedStatus
