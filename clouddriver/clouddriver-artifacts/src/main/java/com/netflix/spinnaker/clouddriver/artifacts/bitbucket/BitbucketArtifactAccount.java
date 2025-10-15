@@ -18,9 +18,10 @@
 package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
+import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
+import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
@@ -30,8 +31,8 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-public class BitbucketArtifactAccount implements ArtifactAccount, BasicAuth, TokenAuth {
-  String name;
+public class BitbucketArtifactAccount extends UserInputValidatedArtifactAccount
+    implements BasicAuth, TokenAuth {
   Optional<String> username;
   Optional<String> password;
   Optional<String> usernamePasswordFile;
@@ -47,8 +48,11 @@ public class BitbucketArtifactAccount implements ArtifactAccount, BasicAuth, Tok
       String password,
       String usernamePasswordFile,
       String token,
-      String tokenFile) {
-    this.name = Strings.nullToEmpty(name);
+      String tokenFile,
+      HttpUrlRestrictions urlRestrictions) {
+    super(
+        Strings.nullToEmpty(name),
+        Optional.ofNullable(urlRestrictions).orElse(HttpUrlRestrictions.builder().build()));
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));
     this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));
@@ -58,7 +62,11 @@ public class BitbucketArtifactAccount implements ArtifactAccount, BasicAuth, Tok
 
   @ParametersAreNullableByDefault
   BitbucketArtifactAccount(
-      String name, String username, String password, String usernamePasswordFile) {
-    this(name, username, password, usernamePasswordFile, null, null);
+      String name,
+      String username,
+      String password,
+      String usernamePasswordFile,
+      HttpUrlRestrictions urlRestrictions) {
+    this(name, username, password, usernamePasswordFile, null, null, urlRestrictions);
   }
 }
