@@ -208,7 +208,7 @@ public class WaitOnJobCompletion implements CloudProviderAware, OverridableTimeo
     if (appName == null || front50Service == null) {
       return false
     }
-    return front50Service.get(appName) != null
+    return  Retrofit2SyncCall.executeCall(front50Service.get(appName)) != null
   }
 
   /**
