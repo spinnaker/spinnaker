@@ -13,6 +13,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.Front50Service.Project;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.reactivex.rxjava3.core.Observable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import retrofit2.Call;
 import retrofit2.Response;
-import rx.Observable;
 
 @ExtendWith(MockitoExtension.class)
 class ProjectControllerTest {
@@ -93,9 +93,9 @@ class ProjectControllerTest {
 
     // Set up repository to return executions
     when(executionRepository.retrievePipelinesForPipelineConfigId(eq("pipeline-1"), any()))
-        .thenReturn(Observable.from(Collections.singletonList(execution1)));
+        .thenReturn(Observable.fromIterable(Collections.singletonList(execution1)));
     when(executionRepository.retrievePipelinesForPipelineConfigId(eq("pipeline-2"), any()))
-        .thenReturn(Observable.from(Collections.singletonList(execution2)));
+        .thenReturn(Observable.fromIterable(Collections.singletonList(execution2)));
 
     List<PipelineExecution> result = controller.list("test-project", 5, null);
 
