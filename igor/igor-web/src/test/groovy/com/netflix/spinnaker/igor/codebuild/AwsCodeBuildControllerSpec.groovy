@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.igor.codebuild
 
-import com.amazonaws.services.codebuild.model.StartBuildRequest
 import com.fasterxml.jackson.databind.ObjectMapper
+import software.amazon.awssdk.services.codebuild.model.StartBuildRequest
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -45,17 +45,18 @@ class AwsCodeBuildControllerSpec extends Specification {
     ]
 
     when:
-    def startBuildRequest = objectMapper.convertValue(request, StartBuildRequest.class)
+    def builder = objectMapper.convertValue(request, StartBuildRequest.builder().getClass() as Class<StartBuildRequest.Builder>)
+    def startBuildRequest = builder.build()
 
     then:
-    startBuildRequest.getProjectName() == "test"
-    startBuildRequest.getEnvironmentVariablesOverride().size() == 2
-    startBuildRequest.getEnvironmentVariablesOverride().get(0).getType() == "PLAINTEXT"
-    startBuildRequest.getEnvironmentVariablesOverride().get(0).getName() == "KEY1"
-    startBuildRequest.getEnvironmentVariablesOverride().get(0).getValue() == "VALUE1"
-    startBuildRequest.getEnvironmentVariablesOverride().get(1).getType() == "PLAINTEXT"
-    startBuildRequest.getEnvironmentVariablesOverride().get(1).getName() == "KEY2"
-    startBuildRequest.getEnvironmentVariablesOverride().get(1).getValue() == "VALUE2"
+    startBuildRequest.projectName() == "test"
+    startBuildRequest.environmentVariablesOverride().size() == 2
+    startBuildRequest.environmentVariablesOverride().get(0).type().toString() == "PLAINTEXT"
+    startBuildRequest.environmentVariablesOverride().get(0).name() == "KEY1"
+    startBuildRequest.environmentVariablesOverride().get(0).value() == "VALUE1"
+    startBuildRequest.environmentVariablesOverride().get(1).type().toString() == "PLAINTEXT"
+    startBuildRequest.environmentVariablesOverride().get(1).name() == "KEY2"
+    startBuildRequest.environmentVariablesOverride().get(1).value() == "VALUE2"
 
   }
 }
