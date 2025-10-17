@@ -28,7 +28,6 @@ class GitHubArtifactConfigurationTest {
     GitHubArtifactCredentials credentialsForType =
         (GitHubArtifactCredentials)
             credentialsRepository.getCredentialsForType("test", "github/file");
-    System.out.println(credentialsForType.getClass().getCanonicalName());
     assertThat(credentialsForType).isNotNull();
     assertThat(credentialsForType.getAccount().getUrlRestrictions().getAllowedSchemes())
         .contains("http", "https");
