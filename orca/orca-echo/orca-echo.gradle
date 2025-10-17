@@ -25,9 +25,9 @@ dependencies {
   implementation(project(":orca-dry-run"))
   implementation("io.spinnaker.kork:kork-core")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
-  implementation("javax.validation:validation-api")
   implementation("io.spinnaker.fiat:fiat-core")
   implementation("io.spinnaker.fiat:fiat-api")
+  implementation("jakarta.validation:jakarta.validation-api")
   implementation("io.spinnaker.kork:kork-retrofit")
 
   testImplementation("io.spinnaker.kork:kork-retrofit2")

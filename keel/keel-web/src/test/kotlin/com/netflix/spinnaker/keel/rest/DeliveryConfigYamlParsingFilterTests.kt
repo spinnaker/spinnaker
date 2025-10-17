@@ -24,9 +24,9 @@ import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import javax.servlet.FilterChain
-import javax.servlet.ServletRequest
-import javax.servlet.http.HttpServletRequestWrapper
+import jakarta.servlet.FilterChain
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.http.HttpServletRequestWrapper
 
 @SpringBootTest(
   webEnvironment = NONE

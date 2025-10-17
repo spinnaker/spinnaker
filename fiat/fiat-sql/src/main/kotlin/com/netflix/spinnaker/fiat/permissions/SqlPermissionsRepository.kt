@@ -46,7 +46,7 @@ import java.time.Clock
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
-import javax.annotation.PreDestroy
+import jakarta.annotation.PreDestroy
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.coroutines.CoroutineContext

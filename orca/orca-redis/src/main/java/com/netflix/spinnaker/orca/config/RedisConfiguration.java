@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.notifications.RedisNotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
 import groovy.util.logging.Slf4j;
+import io.reactivex.rxjava3.core.Scheduler;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.Optional;
@@ -44,7 +45,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
-import rx.Scheduler;
 
 @Slf4j
 @Configuration

@@ -22,5 +22,5 @@ dependencies {
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "com.squareup.retrofit2:converter-jackson"
-  implementation "javax.inject:javax.inject:1"
+  implementation "jakarta.inject:jakarta.inject-api:2.0.1"
 }

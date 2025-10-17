@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.gate.services.CanaryService
 import groovy.transform.CompileStatic
