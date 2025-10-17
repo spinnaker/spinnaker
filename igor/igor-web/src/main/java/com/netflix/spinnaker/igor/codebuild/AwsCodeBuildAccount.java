@@ -16,36 +16,36 @@
 
 package com.netflix.spinnaker.igor.codebuild;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.codebuild.AWSCodeBuildClient;
-import com.amazonaws.services.codebuild.AWSCodeBuildClientBuilder;
-import com.amazonaws.services.codebuild.model.BatchGetBuildsRequest;
-import com.amazonaws.services.codebuild.model.Build;
-import com.amazonaws.services.codebuild.model.BuildArtifacts;
-import com.amazonaws.services.codebuild.model.ListProjectsRequest;
-import com.amazonaws.services.codebuild.model.ListProjectsResult;
-import com.amazonaws.services.codebuild.model.ProjectSortByType;
-import com.amazonaws.services.codebuild.model.StartBuildRequest;
-import com.amazonaws.services.codebuild.model.StopBuildRequest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.codebuild.CodeBuildClient;
+import software.amazon.awssdk.services.codebuild.model.BatchGetBuildsRequest;
+import software.amazon.awssdk.services.codebuild.model.Build;
+import software.amazon.awssdk.services.codebuild.model.BuildArtifacts;
+import software.amazon.awssdk.services.codebuild.model.ListProjectsRequest;
+import software.amazon.awssdk.services.codebuild.model.ListProjectsResponse;
+import software.amazon.awssdk.services.codebuild.model.ProjectSortByType;
+import software.amazon.awssdk.services.codebuild.model.StartBuildRequest;
+import software.amazon.awssdk.services.codebuild.model.StopBuildRequest;
 
 /** Generates authenticated requests to AWS CodeBuild API for a single configured account */
 @RequiredArgsConstructor
 public class AwsCodeBuildAccount {
-  private final AWSCodeBuildClient client;
+  private final CodeBuildClient client;
 
-  public AwsCodeBuildAccount(AWSCredentialsProvider credentialsProvider, String region) {
+  public AwsCodeBuildAccount(AwsCredentialsProvider credentialsProvider, String region) {
     // TODO: Add client-side rate limiting to avoid getting throttled if necessary
     this.client =
-        (AWSCodeBuildClient)
-            AWSCodeBuildClientBuilder.standard()
-                .withCredentials(credentialsProvider)
-                .withRequestHandlers(new AwsCodeBuildRequestHandler())
-                .withRegion(region)
-                .build();
+        CodeBuildClient.builder()
+            .credentialsProvider(credentialsProvider)
+            .region(Region.of(region))
+            .overrideConfiguration(
+                cfg -> cfg.addExecutionInterceptor(new AwsCodeBuildRequestInterceptor()))
+            .build();
   }
 
   // The number of projects has an upper limit of 5000 per region per account
@@ -55,24 +55,26 @@ public class AwsCodeBuildAccount {
     String nextToken = null;
 
     do {
-      ListProjectsResult result =
-          client.listProjects(
-              new ListProjectsRequest()
-                  .withSortBy(ProjectSortByType.NAME)
-                  .withNextToken(nextToken));
-      projects.addAll(result.getProjects());
-      nextToken = result.getNextToken();
+      ListProjectsRequest.Builder requestBuilder =
+          ListProjectsRequest.builder().sortBy(ProjectSortByType.NAME);
+      if (nextToken != null) {
+        requestBuilder.nextToken(nextToken);
+      }
+      ListProjectsResponse result = client.listProjects(requestBuilder.build());
+      projects.addAll(result.projects());
+      nextToken = result.nextToken();
     } while (nextToken != null);
 
     return projects;
   }
 
   public Build startBuild(StartBuildRequest request) {
-    return client.startBuild(request).getBuild();
+    return client.startBuild(request).build();
   }
 
   public Build getBuild(String buildId) {
-    return client.batchGetBuilds(new BatchGetBuildsRequest().withIds(buildId)).getBuilds().get(0);
+    BatchGetBuildsRequest request = BatchGetBuildsRequest.builder().ids(buildId).build();
+    return client.batchGetBuilds(request).builds().get(0);
   }
 
   public List<Artifact> getArtifacts(String buildId) {
@@ -81,19 +83,20 @@ public class AwsCodeBuildAccount {
   }
 
   public Build stopBuild(String buildId) {
-    return client.stopBuild(new StopBuildRequest().withId(buildId)).getBuild();
+    StopBuildRequest request = StopBuildRequest.builder().id(buildId).build();
+    return client.stopBuild(request).build();
   }
 
   private List<Artifact> extractArtifactsFromBuild(Build build) {
     ArrayList<Artifact> artifactsList = new ArrayList<>();
-    BuildArtifacts primaryArtifacts = build.getArtifacts();
-    List<BuildArtifacts> secondaryArtifacts = build.getSecondaryArtifacts();
+    BuildArtifacts primaryArtifacts = build.artifacts();
+    List<BuildArtifacts> secondaryArtifacts = build.secondaryArtifacts();
     if (primaryArtifacts != null) {
-      artifactsList.add(getS3Artifact(primaryArtifacts.getLocation()));
+      artifactsList.add(getS3Artifact(primaryArtifacts.location()));
     }
     if (secondaryArtifacts != null) {
       secondaryArtifacts.forEach(
-          artifacts -> artifactsList.add(getS3Artifact(artifacts.getLocation())));
+          artifacts -> artifactsList.add(getS3Artifact(artifacts.location())));
     }
     return artifactsList;
   }
