@@ -28,6 +28,7 @@ import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
+import com.netflix.spinnaker.kork.secrets.SecretReference;
 import com.netflix.spinnaker.kork.secrets.user.OpaqueUserSecretData;
 import com.netflix.spinnaker.kork.secrets.user.UserSecret;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretData;
@@ -41,10 +42,12 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.DockerClientFactory;
@@ -136,21 +139,35 @@ public class SecretsManagerSecretEngineIntegrationTest {
     }
 
     @Bean
-    public SecretsManagerClientProvider localstackClientProvider(LocalStackContainer container) {
-      return (params) ->
-          AWSSecretsManagerClientBuilder.standard()
-              .withEndpointConfiguration(
-                  new AwsClientBuilder.EndpointConfiguration(
-                      container.getEndpoint().toString(), container.getRegion()))
-              .withCredentials(
-                  new AWSStaticCredentialsProvider(
-                      new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
-              .build();
-    }
-
-    @Bean
     public ObjectMapper mapper() {
       return new ObjectMapper();
+    }
+  }
+
+  @TestComponent
+  @RequiredArgsConstructor
+  public static class LocalstackClientProvider implements SecretsManagerClientProvider {
+    private final LocalStackContainer container;
+
+    @Override
+    public AWSSecretsManager getClientForSecretParameters(Map<String, String> parameters) {
+      return create();
+    }
+
+    @Override
+    public AWSSecretsManager getClientForSecret(SecretReference reference) {
+      return create();
+    }
+
+    private AWSSecretsManager create() {
+      return AWSSecretsManagerClientBuilder.standard()
+          .withEndpointConfiguration(
+              new AwsClientBuilder.EndpointConfiguration(
+                  container.getEndpoint().toString(), container.getRegion()))
+          .withCredentials(
+              new AWSStaticCredentialsProvider(
+                  new BasicAWSCredentials(container.getAccessKey(), container.getSecretKey())))
+          .build();
     }
   }
 }
