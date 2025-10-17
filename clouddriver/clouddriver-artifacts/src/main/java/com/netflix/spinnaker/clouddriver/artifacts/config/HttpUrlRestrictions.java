@@ -27,13 +27,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
-
-@Builder
-@Getter
 
 /**
  * A set of restrictions and validations of the restrictions. These in combination provide some
@@ -57,6 +56,10 @@ import org.springframework.security.web.util.matcher.IpAddressMatcher;
 // should move that code (and this) to maybe a common area, and possibly an OKHTTP interceptor
 // INSTEAD of URL validation.  This would catch more easily rebind attacks and similar where it can
 // get the resolved IP on a request.
+@Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class HttpUrlRestrictions {
 
   @Builder.Default

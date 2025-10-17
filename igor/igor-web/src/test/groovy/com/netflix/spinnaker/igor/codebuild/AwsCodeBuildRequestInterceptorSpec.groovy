@@ -16,25 +16,25 @@
 
 package com.netflix.spinnaker.igor.codebuild
 
-import com.amazonaws.AmazonServiceException
-import com.amazonaws.DefaultRequest
-import com.amazonaws.Response
-import com.amazonaws.services.codebuild.model.InvalidInputException
-import com.amazonaws.services.codebuild.model.StartBuildRequest
-import com.amazonaws.services.codebuild.model.StartBuildResult
 import com.netflix.spinnaker.igor.exceptions.BuildJobError
+import software.amazon.awssdk.awscore.exception.AwsServiceException
+import software.amazon.awssdk.core.interceptor.Context
+import software.amazon.awssdk.services.codebuild.model.CodeBuildException
 import spock.lang.Specification
 
-class AwsCodeBuildRequestHandlerSpec extends Specification {
-  def handler = new AwsCodeBuildRequestHandler()
-  def request = new DefaultRequest(new StartBuildRequest(), "codebuild")
-  def response = new Response(new StartBuildResult(), null)
+class AwsCodeBuildRequestInterceptorSpec extends Specification {
+  def interceptor = new AwsCodeBuildRequestInterceptor()
 
   def "should throw BuildJobError in case of a client exception"() {
     when:
-    def exception = new InvalidInputException("err msg")
-    exception.setErrorType(AmazonServiceException.ErrorType.Client)
-    handler.afterError(request, response, exception)
+    AwsServiceException exception = CodeBuildException.builder()
+      .message("err msg")
+      .statusCode(400)
+      .build()
+    def context = Mock(Context.FailedExecution)
+    context.exception() >> exception
+    interceptor.onExecutionFailure(context, null)
+
     then:
     BuildJobError err = thrown()
     err.getMessage().contains("err msg")
@@ -43,7 +43,9 @@ class AwsCodeBuildRequestHandlerSpec extends Specification {
   def "should throw RuntimeException in case of other exceptions"() {
     when:
     def exception = new IllegalArgumentException("err msg")
-    handler.afterError(request, response, exception)
+    def context = Mock(Context.FailedExecution)
+    context.exception() >> exception
+    interceptor.onExecutionFailure(context, null)
 
     then:
     RuntimeException err = thrown()
