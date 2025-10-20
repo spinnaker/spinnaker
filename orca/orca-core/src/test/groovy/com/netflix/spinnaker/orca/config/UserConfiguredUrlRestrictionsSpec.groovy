@@ -74,6 +74,25 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
   }
 
   @Unroll
+  def 'should block ip ranges if set'() {
+    given:
+    UserConfiguredUrlRestrictions config = new UserConfiguredUrlRestrictions.Builder().withRejectVerbatimIps(false).withRejectedIps(List.of("192.168.0.0/16", "10.0.0.0/8")).build()
+
+    when:
+    config.validateURI(uri)
+
+    then:
+    thrown(IllegalArgumentException.class)
+
+    where:
+    uri << [
+      "https://192.168.16.22",
+      "https://10.1.2.3",
+      "http://0a010203.0a010204.rbndr.us"
+    ]
+  }
+
+  @Unroll
   def 'should allow non-internal URLs by default'() {
     given:
     UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().build())

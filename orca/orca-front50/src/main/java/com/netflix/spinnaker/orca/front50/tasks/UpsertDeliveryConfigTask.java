@@ -66,7 +66,7 @@ public class UpsertDeliveryConfigTask implements Task {
       return false;
     }
     try {
-      front50Service.getDeliveryConfig(id);
+      Retrofit2SyncCall.executeCall(front50Service.getDeliveryConfig(id));
       return true;
     } catch (SpinnakerHttpException e) {
       if (Arrays.asList(404, 403, 401).contains(e.getResponseCode())) {

@@ -25,27 +25,19 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 
 @NonnullByDefault
-public abstract class SimpleHttpArtifactCredentials<T extends ArtifactAccount>
+public abstract class SimpleHttpArtifactCredentials<T extends UserInputValidatedArtifactAccount>
     extends BaseHttpArtifactCredentials<T> {
   protected SimpleHttpArtifactCredentials(OkHttpClient okHttpClient, T account) {
     super(okHttpClient, account);
   }
 
   protected HttpUrl getDownloadUrl(Artifact artifact) throws IOException {
-    HttpUrl url = HttpUrl.parse(artifact.getReference());
-    if (url == null) {
-      throw new IllegalArgumentException(
-          "Malformed content URL in reference: "
-              + artifact.getReference()
-              + ". Read more here https://www.spinnaker.io/reference/artifacts/types/");
-    }
-    return url;
+    return parseUrl(artifact.getReference());
   }
 
   public final InputStream download(Artifact artifact) throws IOException {
-    HttpUrl downloadUrl = getDownloadUrl(artifact);
     try {
-      return fetchUrl(downloadUrl).byteStream();
+      return fetchUrl(getDownloadUrl(artifact)).byteStream();
     } catch (IOException e) {
       throw new FailedDownloadException(
           "Unable to download the contents of artifact " + artifact + ": " + e.getMessage(), e);

@@ -85,7 +85,7 @@ public abstract class ImageTagger {
         // attempt to lookup the equivalent image name (given the upstream amiId/imageId)
         List<Map> allMatchedImages =
             Retrofit2SyncCall.execute(
-                oortService.findImage(getCloudProvider(), upstreamImageId, null, null, null));
+                oortService.findImage(getCloudProvider(), upstreamImageId, null, null, Map.of()));
         if (allMatchedImages.isEmpty()) {
           throw new ImageNotFound(format("No image found (imageId: %s)", upstreamImageId), true);
         }
@@ -105,7 +105,7 @@ public abstract class ImageTagger {
     for (String targetImageName : imageNames) {
       List<Map> allMatchedImages =
           Retrofit2SyncCall.execute(
-              oortService.findImage(getCloudProvider(), targetImageName, null, null, null));
+              oortService.findImage(getCloudProvider(), targetImageName, null, null, Map.of()));
       Map matchedImage =
           allMatchedImages.stream()
               .filter(image -> image.get("imageName").equals(targetImageName))

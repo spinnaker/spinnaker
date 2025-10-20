@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.clouddriver.artifacts.helm;
 
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
+import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
@@ -29,8 +29,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-public class HelmArtifactAccount implements ArtifactAccount, BasicAuth {
-  private final String name;
+public class HelmArtifactAccount extends UserInputValidatedArtifactAccount implements BasicAuth {
   /*
    One of the following are required for auth:
     - username and password
@@ -50,7 +49,7 @@ public class HelmArtifactAccount implements ArtifactAccount, BasicAuth {
       String password,
       String usernamePasswordFile,
       String repository) {
-    this.name = Strings.nullToEmpty(name);
+    super(name, null);
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));
     this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));

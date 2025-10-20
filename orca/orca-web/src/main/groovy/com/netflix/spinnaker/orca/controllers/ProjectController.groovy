@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -47,7 +48,7 @@ class ProjectController {
 
     def pipelineConfigIds = []
     try {
-      def project = front50Service.getProject(projectId)
+      def project = Retrofit2SyncCall.execute(front50Service.getProject(projectId))
       pipelineConfigIds = project.config.pipelineConfigs*.pipelineConfigId
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {

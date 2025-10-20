@@ -206,8 +206,11 @@ public class UserConfiguredUrlRestrictions {
   }
 
   boolean isValidIpAddress(String host) {
-    var matcher = new IpAddressMatcher(host);
-    return rejectedIps.stream().noneMatch(matcher::matches);
+    return rejectedIps.stream()
+        .noneMatch(
+            restriction -> {
+              return new IpAddressMatcher(restriction).matches(host);
+            });
   }
 
   boolean isIpAddress(String host) {

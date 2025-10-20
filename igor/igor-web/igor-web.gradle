@@ -51,7 +51,6 @@ dependencies {
     implementation "org.springframework.cloud:spring-cloud-context"
     implementation "org.springframework.cloud:spring-cloud-config-server"
 
-    implementation "com.amazonaws:aws-java-sdk"
     implementation "com.google.apis:google-api-services-cloudbuild"
     implementation "com.google.apis:google-api-services-storage"
     implementation 'com.google.auth:google-auth-library-oauth2-http'
@@ -64,6 +63,7 @@ dependencies {
     implementation "io.spinnaker.kork:kork-telemetry"
     implementation "io.spinnaker.kork:kork-plugins"
     implementation "io.spinnaker.kork:kork-retrofit"
+    implementation "software.amazon.awssdk:codebuild"
 
 
     implementation "io.github.resilience4j:resilience4j-retry"

@@ -17,8 +17,9 @@
 package com.netflix.spinnaker.clouddriver.artifacts.gitlab;
 
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.clouddriver.artifacts.config.TokenAuth;
+import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
 import javax.annotation.ParametersAreNullableByDefault;
@@ -28,16 +29,18 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-public class GitlabArtifactAccount implements ArtifactAccount, TokenAuth {
-  private final String name;
+public class GitlabArtifactAccount extends UserInputValidatedArtifactAccount implements TokenAuth {
   private final Optional<String> token;
   private final Optional<String> tokenFile;
 
   @Builder
   @ConstructorBinding
   @ParametersAreNullableByDefault
-  GitlabArtifactAccount(String name, String token, String tokenFile) {
-    this.name = Strings.nullToEmpty(name);
+  GitlabArtifactAccount(
+      String name, String token, String tokenFile, HttpUrlRestrictions urlRestrictions) {
+    super(
+        Strings.nullToEmpty(name),
+        Optional.ofNullable(urlRestrictions).orElse(HttpUrlRestrictions.builder().build()));
     this.token = Optional.ofNullable(Strings.emptyToNull(token));
     this.tokenFile = Optional.ofNullable(Strings.emptyToNull(tokenFile));
   }
