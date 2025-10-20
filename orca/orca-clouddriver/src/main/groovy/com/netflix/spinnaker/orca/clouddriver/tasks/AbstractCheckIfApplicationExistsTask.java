@@ -99,16 +99,14 @@ public abstract class AbstractCheckIfApplicationExistsTask implements Task {
     }
     if (fetchedApplication == null) {
       if (this.config.isAuditModeEnabled()) {
-        String pipelineName = "unknown";
-        if (stage.getParent() != null) {
-          pipelineName = stage.getParent().getName();
-        }
         log.warn(
-            "Warning: stage: {}, pipeline: {}, message: {}. "
-                + "This will be a terminal failure in the near future.",
+            "Warning: {} in stage: {}, type: {}, pipeline: {}. "
+                + "This would be a terminal failure if"
+                + " 'tasks.clouddriver.check-if-application-exists.audit-mode-enabled: false'",
             errorMessage,
             stage.getName(),
-            pipelineName);
+            stage.getType(),
+            stage.getExecution().getName());
         outputs.put("checkIfApplicationExistsWarning", errorMessage);
       } else {
         log.error(errorMessage);
