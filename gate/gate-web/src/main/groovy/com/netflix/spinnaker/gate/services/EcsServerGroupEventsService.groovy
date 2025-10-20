@@ -32,6 +32,8 @@ class EcsServerGroupEventsService {
   }
 
   List getServerGroupEvents(String application, String account, String serverGroupName, String region, String cloudProvider) {
-    Retrofit2SyncCall.execute(clouddriver.getServerGroupEvents(application, account, serverGroupName, region, cloudProvider))
+    Retrofit2SyncCall.execute(
+      clouddriver.getServerGroupEvents(application, account, serverGroupName, region, cloudProvider)
+    )
   }
 }
