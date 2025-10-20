@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
@@ -239,8 +240,14 @@ class SqlExecutionRepository(
       }
       if (execution.status == NOT_STARTED) {
         execution.status = ExecutionStatus.CANCELED
+      } else if (!execution.status.isComplete
+        && execution.stages.all { it.status.isComplete || it.status == NOT_STARTED }) {
+        // In some cases, a race condition could occur between a pipeline cancellation and completion.
+        // This could cause the pipeline status to be incorrectly updated to RUNNING even when there are
+        // no more stages to run, resulting in the pipeline remaining in the RUNNING state indefinitely.
+        // Explicitly setting the status to CANCELED here takes care of such race conditions.
+        execution.status = CANCELED
       }
-
       storeExecutionInternal(dslContext, execution)
     }
   }
