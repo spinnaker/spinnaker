@@ -36,6 +36,7 @@ import com.netflix.spinnaker.q.metrics.MessageProcessing
 import com.netflix.spinnaker.q.metrics.MessagePushed
 import com.netflix.spinnaker.q.metrics.MessageRescheduled
 import com.netflix.spinnaker.q.metrics.MessageRetried
+import com.netflix.spinnaker.q.metrics.MessageRetryFailed
 import com.netflix.spinnaker.q.metrics.QueuePolled
 import com.netflix.spinnaker.q.metrics.QueueState
 import com.netflix.spinnaker.q.metrics.RetryPolled
@@ -79,7 +80,7 @@ class RedisQueue(
   publisher
 ) {
 
-  final override val log: Logger = LoggerFactory.getLogger(javaClass)
+  override val log: Logger = LoggerFactory.getLogger(javaClass)
 
   override val queueKey = "$queueName.queue"
   override val unackedKey = "$queueName.unacked"
@@ -94,7 +95,7 @@ class RedisQueue(
     log.info("Configured $javaClass queue: $queueName")
   }
 
-  final override fun cacheScript() {
+  override fun cacheScript() {
     pool.resource.use { redis ->
       readMessageWithLockScriptSha = redis.scriptLoad(READ_MESSAGE_WITH_LOCK_SRC)
     }
@@ -111,12 +112,15 @@ class RedisQueue(
             val maxAttempts = message.getAttribute<MaxAttemptsAttribute>()?.maxAttempts
               ?: 0
 
-            if (maxAttempts > 0 && attempts > maxAttempts) {
+            if (maxAttempts in 1 until attempts) {
               log.warn("Message $fingerprint with payload $message exceeded $maxAttempts retries")
               handleDeadMessage(message)
               redis.removeMessage(fingerprint)
               fire(MessageDead)
             } else {
+              log.info("Successfully polled a message with fingerprint $fingerprint " +
+                "payload $message, acknowledgement timeout ${message.ackTimeoutMs}ms " +
+                "and attributes ${message.attributes}")
               fire(MessageProcessing(message, scheduledTime, clock.instant()))
               callback(message, ack)
             }
@@ -142,6 +146,9 @@ class RedisQueue(
           fire(MessageDuplicate(message))
         } else {
           redis.queueMessage(message, delay)
+          log.info("Successfully pushed message with fingerprint ${message.fingerprint()}, " +
+            "payload $message, acknowledgement timeout ${message.ackTimeoutMs}ms " +
+            "and attributes ${message.attributes}")
           fire(MessagePushed(message))
         }
       }
@@ -193,38 +200,44 @@ class RedisQueue(
           }
 
           fingerprints.forEach { fingerprint ->
-            val attempts = redis.hgetInt(attemptsKey, fingerprint)
-            redis.readMessageWithoutLock(fingerprint) { message ->
-              val maxAttempts = message.getAttribute<MaxAttemptsAttribute>()?.maxAttempts ?: 0
+            try {
+              val attempts = redis.hgetInt(attemptsKey, fingerprint)
+              redis.readMessageWithoutLock(fingerprint) { message ->
+                val maxAttempts = message.getAttribute<MaxAttemptsAttribute>()?.maxAttempts ?: 0
 
-              /* If maxAttempts attribute is set, let poll() handle max retry logic.
-                 If not, check for attempts >= Queue.maxRetries - 1, as attemptsKey is now
-                 only incremented when retrying unacked messages vs. by readMessage*() */
-              if (maxAttempts == 0 && attempts >= Queue.maxRetries - 1) {
-                log.warn("Message $fingerprint with payload $message exceeded max retries")
-                handleDeadMessage(message)
-                redis.removeMessage(fingerprint)
-                fire(MessageDead)
-              } else {
-                if (redis.zismember(queueKey, fingerprint)) {
-                  redis
-                    .multi {
-                      zrem(unackedKey, fingerprint)
-                      zadd(queueKey, score(), fingerprint)
-                      hincrBy(attemptsKey, fingerprint, 1L)
-                    }
-                  log.info(
-                    "Not retrying message $fingerprint because an identical message " +
-                      "is already on the queue"
-                  )
-                  fire(MessageDuplicate(message))
+                /* If maxAttempts attribute is set, let poll() handle max retry logic.
+                   If not, check for attempts >= Queue.maxRetries - 1, as attemptsKey is now
+                   only incremented when retrying unacked messages vs. by readMessage*() */
+                if (maxAttempts == 0 && attempts >= Queue.maxRetries - 1) {
+                  log.warn("Message $fingerprint with payload $message exceeded max retries")
+                  handleDeadMessage(message)
+                  redis.removeMessage(fingerprint)
+                  fire(MessageDead)
                 } else {
-                  log.warn("Retrying message $fingerprint after $attempts attempts")
-                  redis.hincrBy(attemptsKey, fingerprint, 1L)
-                  redis.requeueMessage(fingerprint)
-                  fire(MessageRetried)
+                  if (redis.zismember(queueKey, fingerprint)) {
+                    redis
+                      .multi {
+                        zrem(unackedKey, fingerprint)
+                        zadd(queueKey, score(), fingerprint)
+                        hincrBy(attemptsKey, fingerprint, 1L)
+                      }
+                    log.info(
+                      "Not retrying message $fingerprint because an identical message " +
+                        "is already on the queue"
+                    )
+                    fire(MessageDuplicate(message))
+                  } else {
+                    log.warn("Retrying message $fingerprint after $attempts attempts")
+                    redis.hincrBy(attemptsKey, fingerprint, 1L)
+                    redis.requeueMessage(fingerprint)
+                    fire(MessageRetried)
+                  }
                 }
               }
+            } catch (e: Throwable) {
+              log.error("Caught unhandled exception while retrying unacked message $fingerprint. " +
+                "Ignoring it and proceeding with the rest of the messages in the unacked queue.", e)
+              fire(MessageRetryFailed)
             }
           }
         }

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.q.metrics.MessageDuplicate
 import com.netflix.spinnaker.q.metrics.MessageProcessing
 import com.netflix.spinnaker.q.metrics.MessagePushed
 import com.netflix.spinnaker.q.metrics.MessageRetried
+import com.netflix.spinnaker.q.metrics.MessageRetryFailed
 import com.netflix.spinnaker.q.metrics.MonitorableQueue
 import com.netflix.spinnaker.q.metrics.QueuePolled
 import com.netflix.spinnaker.q.metrics.QueueState
@@ -115,18 +116,24 @@ class InMemoryQueue(
     val now = clock.instant()
     fire(RetryPolled)
     unacked.pollAll { message ->
-      if (message.count >= Queue.maxRetries) {
-        deadMessageHandlers.forEach { it.invoke(this, message.payload) }
-        fire(MessageDead)
-      } else {
-        val existed = queue.removeIf { it.payload == message.payload }
-        log.warn("redelivering unacked message ${message.payload}")
-        queue.put(message.copy(scheduledTime = now, count = message.count + 1))
-        if (existed) {
-          fire(MessageDuplicate(message.payload))
+      try {
+        if (message.count >= Queue.maxRetries) {
+          deadMessageHandlers.forEach { it.invoke(this, message.payload) }
+          fire(MessageDead)
         } else {
-          fire(MessageRetried)
+          val existed = queue.removeIf { it.payload == message.payload }
+          log.warn("redelivering unacked message ${message.payload}")
+          queue.put(message.copy(scheduledTime = now, count = message.count + 1))
+          if (existed) {
+            fire(MessageDuplicate(message.payload))
+          } else {
+            fire(MessageRetried)
+          }
         }
+      } catch (e: Throwable) {
+        log.error("Caught unhandled exception while retrying unacked message ${message.id}." +
+          "Ignoring it and proceeding with the rest of the messages in the unacked queue.", e)
+        fire(MessageRetryFailed)
       }
     }
   }

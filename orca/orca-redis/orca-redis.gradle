@@ -15,3 +15,7 @@ dependencies {
   testImplementation(project(":orca-test-groovy"))
   testImplementation("io.spinnaker.kork:kork-jedis-test")
 }
+
+test {
+  useJUnitPlatform()
+}
