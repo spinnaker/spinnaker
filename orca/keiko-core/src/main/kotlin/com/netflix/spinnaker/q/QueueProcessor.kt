@@ -80,7 +80,8 @@ class QueueProcessor(
   }
 
   val callback: QueueCallback = { message, ack ->
-    log.info("Received message $message")
+    log.info("Received message $message with an acknowledgement timeout of ${message.ackTimeoutMs}ms " +
+      "and the following attributes: ${message.attributes}")
     val handler = handlerFor(message)
     if (handler != null) {
       try {
