@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis;
 import static com.google.common.collect.Maps.filterValues;
 import static com.netflix.spinnaker.orca.api.pipeline.SyntheticStageOwner.STAGE_BEFORE;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED;
+import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE;
 import static com.netflix.spinnaker.orca.config.RedisConfiguration.Clients.EXECUTION_REPOSITORY;
@@ -199,20 +201,38 @@ public class RedisExecutionRepository implements ExecutionRepository {
   public void cancel(ExecutionType type, @Nonnull String id, String user, String reason) {
     ImmutablePair<String, RedisClientDelegate> pair = fetchKey(id);
     RedisClientDelegate delegate = pair.getRight();
+    PipelineExecution execution = retrieve(type, id);
     delegate.withCommandsClient(
         c -> {
           Map<String, String> data = new HashMap<>();
           data.put("canceled", "true");
+          execution.setCanceled(true);
           if (StringUtils.isNotEmpty(user)) {
             data.put("canceledBy", user);
+            execution.setCanceledBy(user);
           }
           if (StringUtils.isNotEmpty(reason)) {
             data.put("cancellationReason", reason);
+            execution.setCancellationReason(reason);
           }
           ExecutionStatus currentStatus = ExecutionStatus.valueOf(c.hget(pair.getLeft(), "status"));
           if (currentStatus == ExecutionStatus.NOT_STARTED) {
             data.put("status", ExecutionStatus.CANCELED.name());
+          } else if (!execution.getStatus().isComplete()
+              && execution.getStages().stream()
+                  .allMatch(
+                      stage ->
+                          stage.getStatus().isComplete() || stage.getStatus() == NOT_STARTED)) {
+            // In some cases, a race condition could occur between a pipeline cancellation and
+            // completion.
+            // This could cause the pipeline status to be incorrectly updated to RUNNING even when
+            // there are
+            // no more stages to run, resulting in the pipeline remaining in the RUNNING state
+            // indefinitely.
+            // Explicitly setting the status to CANCELED here takes care of such race conditions.
+            execution.setStatus(CANCELED);
           }
+          store(execution);
           c.hmset(pair.getLeft(), data);
           c.srem(allBufferedExecutionsKey(type), id);
         });
