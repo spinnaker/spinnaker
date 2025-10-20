@@ -423,6 +423,12 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
   def "cancelling a running execution does not update the status immediately"() {
     given:
     def execution = pipeline()
+    execution.stages.add(
+        new StageExecutionImpl(execution, "wait", "Stage 1", [foo: 'FOO'])
+            .with {
+              status = RUNNING
+              return it
+            })
     repository().store(execution)
     repository().updateStatus(execution.type, execution.id, RUNNING)
 
@@ -446,6 +452,12 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
     given:
     def execution = pipeline()
     def user = "user@netflix.com"
+    execution.stages.add(
+        new StageExecutionImpl(execution, "wait", "Stage 1", [foo: 'FOO'])
+            .with {
+              status = RUNNING
+              return it
+            })
     repository().store(execution)
     repository().updateStatus(execution.type, execution.id, RUNNING)
 
