@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.front50.pipeline;
 
 import static java.lang.String.format;
 
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +42,8 @@ public class EnabledPipelineValidator implements PipelineValidator {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final Front50Service front50Service;
+
+  private final RetrySupport retrySupport = new RetrySupport();
 
   @Autowired
   public EnabledPipelineValidator(Optional<Front50Service> front50Service) {
@@ -61,33 +65,45 @@ public class EnabledPipelineValidator implements PipelineValidator {
     }
 
     if (!isStrategy(pipeline)) {
-      try {
-        // attempt an optimized lookup via pipeline config id vs fetching all pipelines for the
-        // application and filtering
-        Map<String, Object> pipelineConfig =
-            Retrofit2SyncCall.execute(front50Service.getPipeline(pipeline.getPipelineConfigId()));
+      // attempt an optimized lookup via pipeline config id vs fetching all pipelines for the
+      // application and filtering
+      Map<String, Object> pipelineConfig =
+          retrySupport.retry(
+              () -> {
+                try {
+                  return Retrofit2SyncCall.execute(
+                      front50Service.getPipeline(pipeline.getPipelineConfigId()));
+                } catch (SpinnakerHttpException e) {
+                  // If the pipeline doesn't exist, go ahead and return without throwing
+                  // an exception.  This matches the previous behavior, and saves a call
+                  // to get all pipelines in an application.
 
-        if ((boolean) pipelineConfig.getOrDefault("disabled", false)) {
-          throw new PipelineIsDisabled(
-              pipelineConfig.get("id").toString(),
-              pipelineConfig.get("application").toString(),
-              pipelineConfig.get("name").toString());
-        }
+                  if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
+                    return null;
+                  }
 
+                  // Previous behavior was to fall back to querying for all pipelines in
+                  // an application.  Let's trust the query by pipeline config id and stop
+                  // here.
+                  throw e;
+                }
+              },
+              3,
+              Duration.ofMillis(500),
+              true /* exponential */); // arbitrary values for maxRetries and backoff
+
+      if (pipelineConfig == null) {
         return;
-      } catch (SpinnakerHttpException e) {
-        // If the pipeline doesn't exist, go ahead and return without throwing
-        // an exception.  This matches the previous behavior, and saves a call
-        // to get all pipelines in an application.
-        if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
-          return;
-        }
-
-        // Previous behavior was to fall back to querying for all pipelines in
-        // an application.  Let's trust the query by pipeline config id and stop
-        // here.
-        throw e;
       }
+
+      if ((boolean) pipelineConfig.getOrDefault("disabled", false)) {
+        throw new PipelineIsDisabled(
+            pipelineConfig.get("id").toString(),
+            pipelineConfig.get("application").toString(),
+            pipelineConfig.get("name").toString());
+      }
+
+      return;
     }
 
     // If we get here, we're dealing with a strategy.

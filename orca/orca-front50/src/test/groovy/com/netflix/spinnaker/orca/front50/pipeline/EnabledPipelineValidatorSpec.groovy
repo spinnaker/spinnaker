@@ -55,7 +55,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     }
   }
 
-  def "fails when getPipeline responds with 500"() {
+  def "fails when getPipeline responds with 500 to all attempts"() {
     given:
     SpinnakerHttpException spinnakerHttpException = makeSpinnakerHttpException(500)
 
@@ -63,7 +63,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw spinnakerHttpException }
+    3 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw spinnakerHttpException }
     0 * front50Service._
 
     // checkRunnable is documented to throw a PipelineValidationFailed exception
