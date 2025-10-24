@@ -22,7 +22,6 @@ dependencies {
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
 
-  implementation "com.amazonaws:aws-java-sdk-s3"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.google.apis:google-api-services-storage"
@@ -37,7 +36,8 @@ dependencies {
   implementation "io.spinnaker.kork:kork-docker"
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.netflix.spectator:spectator-api"
-  implementation("com.netflix.spectator:spectator-ext-aws") {
+  implementation "com.netflix.spectator:spectator-ext-ipc"
+  implementation("com.netflix.spectator:spectator-ext-aws2") {
     // exclude transitives to keep spectator's version of the aws sdk from
     // overriding what we specify elsewhere.  It's not so much the aws sdk that
     // causes problems, but its transitive dependencies -- jackson and then
@@ -54,6 +54,8 @@ dependencies {
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "software.amazon.awssdk:s3"
+  implementation "software.amazon.awssdk:apache-client"
 
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "io.spinnaker.kork:kork-aws"
