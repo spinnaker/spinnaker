@@ -470,7 +470,7 @@ class TaskController {
         try {
           Map<String, Object> pipeline = Retrofit2SyncCall.execute(front50Service.getPipeline(application, pipelineName, false))
           // double check that the name actually matches since that's what the previous code did
-          if (pipeline.get("name") == pipelineName) {
+          if (pipelineName.equals(pipeline.get("name"))) {
             pipelineConfigIds = [pipeline.id as String]
           }
         } catch (SpinnakerHttpException e) {
