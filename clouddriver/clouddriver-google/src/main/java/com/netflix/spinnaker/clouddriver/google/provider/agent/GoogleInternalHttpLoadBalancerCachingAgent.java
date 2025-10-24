@@ -691,6 +691,14 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
       port = healthCheck.getHttpsHealthCheck().getPort();
       requestPath = healthCheck.getHttpsHealthCheck().getRequestPath();
       hcType = GoogleHealthCheck.HealthCheckType.HTTPS;
+    } else if (healthCheck.getHttp2HealthCheck() != null) {
+      port = healthCheck.getHttp2HealthCheck().getPort();
+      requestPath = healthCheck.getHttp2HealthCheck().getRequestPath();
+      hcType = GoogleHealthCheck.HealthCheckType.HTTP2;
+    } else if (healthCheck.getGrpcHealthCheck() != null) {
+      port = healthCheck.getGrpcHealthCheck().getPort();
+      requestPath = healthCheck.getGrpcHealthCheck().getGrpcServiceName();
+      hcType = GoogleHealthCheck.HealthCheckType.GRPC;
     }
     //    else if (healthCheck.getUdpHealthCheck() != null) {
     //      port = healthCheck.getUdpHealthCheck().getPort();

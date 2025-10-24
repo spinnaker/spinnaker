@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.docker;
 
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
+import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.service.DefaultDockerOkClientProvider;
@@ -38,9 +38,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
  */
 @NonnullByDefault
 @Value
-public class HelmOciDockerArtifactAccount implements ArtifactAccount {
-  private final String name;
-
+public class HelmOciDockerArtifactAccount extends UserInputValidatedArtifactAccount {
   private final String username;
   private final String password;
   private final File passwordFile;
@@ -75,7 +73,7 @@ public class HelmOciDockerArtifactAccount implements ArtifactAccount {
       long clientTimeoutMillis,
       int paginateSize,
       ServiceClientProvider serviceClientProvider) {
-    this.name = Strings.nullToEmpty(name);
+    super(Strings.nullToEmpty(name), null);
     this.username = username;
     this.password = password;
     this.passwordFile = passwordFile;

@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.echo.spring
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -41,9 +43,10 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
   def objectMapper = new ObjectMapper()
 
   @Shared ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
+  @Shared Registry registry = new DefaultRegistry()
 
   @Subject
-  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor)
+  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor, registry)
 
   @Shared
   ApplicationNotifications notifications = new ApplicationNotifications()

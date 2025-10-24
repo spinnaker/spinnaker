@@ -30,7 +30,7 @@ public interface CloudDriverCacheService {
   Call<ResponseBody> forceCacheUpdate(
       @Path("cloudProvider") String cloudProvider,
       @Path("type") String type,
-      @Body Map<String, ?> data);
+      @Body Map<String, Object> data);
 
   @PUT("/admin/db/truncate/{namespace}")
   Call<Map<String, Object>> clearNamespace(@Path("namespace") String namespace);

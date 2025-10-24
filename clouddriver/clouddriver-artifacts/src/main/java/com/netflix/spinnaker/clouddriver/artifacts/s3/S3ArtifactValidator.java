@@ -16,21 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.S3Object;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.io.InputStream;
+import software.amazon.awssdk.services.s3.S3Client;
 
 @NonnullByDefault
 public interface S3ArtifactValidator {
   /**
    * Validate an S3 artifact. Throw an exception if invalid.
    *
-   * @param amazonS3 the S3 client used to retrieve the artifact to validate
-   * @param s3Obj the artifact to validate. It is the implementation's responsibility to either
-   *     return the input stream from this object to the caller, or close it.
-   * @return the validated S3 artifact (e.g. s3obj.getObjectContent()). It it the caller's
-   *     responsibility to close this stream as soon as possible.
+   * @param s3Client the S3 client used to retrieve the artifact to validate
+   * @param bucketName the bucket name
+   * @param key the object key
+   * @param objectContent the input stream of the artifact content. It is the implementation's
+   *     responsibility to either return this input stream to the caller or close it.
+   * @return the validated S3 artifact input stream. It is the caller's responsibility to close this
+   *     stream as soon as possible.
    */
-  InputStream validate(AmazonS3 amazonS3, S3Object s3obj);
+  InputStream validate(S3Client s3Client, String bucketName, String key, InputStream objectContent);
 }

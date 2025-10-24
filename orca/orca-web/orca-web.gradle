@@ -98,7 +98,8 @@ dependencies {
   testImplementation("com.nhaarman:mockito-kotlin")
   testImplementation("io.spinnaker.kork:kork-sql-test")
   testImplementation("org.testcontainers:mysql")
-  testImplementation ("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
 }
 
 sourceSets {
