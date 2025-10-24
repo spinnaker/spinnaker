@@ -54,7 +54,9 @@ public class DeleteDeliveryConfigTask implements Task {
       // ignore
     }
 
-    front50Service.deleteDeliveryConfig(config.get().getApplication(), stageData.deliveryConfigId);
+    Retrofit2SyncCall.executeCall(
+        front50Service.deleteDeliveryConfig(
+            config.get().getApplication(), stageData.deliveryConfigId));
 
     return TaskResult.SUCCEEDED;
   }

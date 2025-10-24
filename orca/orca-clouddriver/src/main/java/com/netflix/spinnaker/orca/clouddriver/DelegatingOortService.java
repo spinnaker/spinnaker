@@ -177,7 +177,7 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public Call<Map> getCloudFormationStack(String stackId) {
+  public Call<Map<String, Object>> getCloudFormationStack(String stackId) {
     return getService().getCloudFormationStack(stackId);
   }
 

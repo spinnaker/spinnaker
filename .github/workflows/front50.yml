@@ -38,6 +38,7 @@ on:
       - 'front50/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/front50.yml'
 
   pull_request:
     branches:
@@ -47,12 +48,13 @@ on:
       - 'front50/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/front50.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/generic-build-publish
         with:
           project: front50

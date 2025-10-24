@@ -46,7 +46,7 @@ class DeleteSecurityGroupForceRefreshTask implements CloudProviderAware, Task {
     List<String> regions = stage.context.regions
 
     regions.each { region ->
-      def model = [securityGroupName: name, vpcId: vpcId, region: region, account: account, evict: true]
+      def model = [securityGroupName: name, vpcId: vpcId, region: region, account: account, evict: true] as Map
       cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
     }
     TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)

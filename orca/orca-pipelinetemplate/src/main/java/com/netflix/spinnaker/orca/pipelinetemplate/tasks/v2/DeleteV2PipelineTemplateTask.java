@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipelinetemplate.tasks.v2;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -48,7 +49,7 @@ public class DeleteV2PipelineTemplateTask implements RetryableTask {
     String tag = (String) stage.getContext().get("tag");
     String digest = (String) stage.getContext().get("digest");
 
-    front50Service.deleteV2PipelineTemplate(templateId, tag, digest);
+    Retrofit2SyncCall.executeCall(front50Service.deleteV2PipelineTemplate(templateId, tag, digest));
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("notification.type", "deletepipelinetemplate");
