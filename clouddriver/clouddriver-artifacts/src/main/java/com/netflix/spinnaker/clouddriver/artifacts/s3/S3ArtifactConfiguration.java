@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,8 @@ class S3ArtifactConfiguration {
   public CredentialsTypeProperties<S3ArtifactCredentials, S3ArtifactAccount>
       s3CredentialsProperties(
           Optional<S3ArtifactValidator> s3ArtifactValidator,
-          S3ArtifactProviderProperties s3ArtifactProviderProperties) {
+          S3ArtifactProviderProperties s3ArtifactProviderProperties,
+          Registry registry) {
     return CredentialsTypeProperties.<S3ArtifactCredentials, S3ArtifactAccount>builder()
         .type(S3ArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(S3ArtifactCredentials.class)
@@ -47,7 +49,7 @@ class S3ArtifactConfiguration {
             a -> {
               try {
                 return new S3ArtifactCredentials(
-                    a, s3ArtifactValidator, s3ArtifactProviderProperties);
+                    a, s3ArtifactValidator, s3ArtifactProviderProperties, registry);
               } catch (Exception e) {
                 log.warn("Failure instantiating s3 artifact account {}: ", a, e);
                 return null;
