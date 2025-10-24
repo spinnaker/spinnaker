@@ -121,6 +121,8 @@ dependencies {
     api("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
     api("com.netflix.spectator:spectator-api:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-aws:${versions.spectator}")
+    api("com.netflix.spectator:spectator-ext-aws2:${versions.spectator}")
+    api("com.netflix.spectator:spectator-ext-ipc:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-gc:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-jvm:${versions.spectator}")
     api("com.netflix.spectator:spectator-nflx-plugin:${versions.spectator}")
