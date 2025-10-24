@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -31,6 +32,6 @@ class EcsCloudMetricService {
   }
 
   List getEcsAllMetricAlarms() {
-    clouddriver.getEcsAllMetricAlarms()
+    Retrofit2SyncCall.execute(clouddriver.getEcsAllMetricAlarms())
   }
 }
