@@ -154,7 +154,7 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
   }
 
   @Override
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     return []
   }
 

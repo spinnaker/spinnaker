@@ -83,7 +83,8 @@ public class AzureNamedAccountCredentials extends AbstractAccountCredentials<Azu
     this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
     this.permissions = permissions
     this.credentials = appKey.isEmpty() ? null : buildCredentials()
-    this.locationToInstanceTypesMap = this.credentials.computeClient.getVirtualMachineSizesByRegions(this.regions)
+    // Lazy load instance types to avoid blocking startup with bad credentials (like AWS/Google)
+    this.locationToInstanceTypesMap = [:] // Will be populated on first use
     this.regionsSupportZones = Arrays.asList("centralus", "eastus", "eastus2", "francecentral", "northeurope", "southeastasia", "westeurope", "westus2")
     this.availabilityZones = Arrays.asList("1", "2", "3")
   }

@@ -93,7 +93,7 @@ abstract class AzureCachingAgent implements CachingAgent, OnDemandAgent, Account
   abstract OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data)
 
   @Override
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     return []
   }
 
