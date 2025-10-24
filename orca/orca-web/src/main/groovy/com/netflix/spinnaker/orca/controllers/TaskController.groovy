@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -461,19 +462,30 @@ class TaskController {
       : null // null means all trigger types
 
     // Filter by application (and pipeline name, if that parameter has been given in addition to application name)
-    List<String> pipelineConfigIds
+    List<String> pipelineConfigIds = Collections.emptyList()
     if (application == "*") {
       pipelineConfigIds = getPipelineConfigIdsOfReadableApplications()
     } else {
-      List<Map<String, Object>> pipelines = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false))
-      pipelines = pipelines.stream().filter({ pipeline ->
-        if (pipelineName != null && pipelineName != "") {
-          return pipeline.get("name") == pipelineName
-        } else {
-          return true
+      if (pipelineName != null && pipelineName != "") {
+        try {
+          Map<String, Object> pipeline = Retrofit2SyncCall.execute(front50Service.getPipeline(application, pipelineName, false))
+          // double check that the name actually matches since that's what the previous code did
+          if (pipelineName.equals(pipeline.get("name"))) {
+            pipelineConfigIds = [pipeline.id as String]
+          }
+        } catch (SpinnakerHttpException e) {
+          // pipeline not found was silently ignored before.  At least log at
+          // debug.  Let other exceptions bubble up.
+          if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
+            log.debug("no pipeline with name '{}' in application '{}'", pipelineName, application);
+          } else {
+            throw e;
+          }
         }
-      }).collect(Collectors.toList())
-      pipelineConfigIds = pipelines*.id as List<String>
+      } else {
+        List<Map<String, Object>> pipelines = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false))
+        pipelineConfigIds = pipelines*.id as List<String>
+      }
     }
 
     ExecutionCriteria executionCriteria = new ExecutionCriteria()
@@ -485,6 +497,10 @@ class TaskController {
     }
 
     List<PipelineExecution> matchingExecutions = new ArrayList<>()
+
+    if (pipelineConfigIds.isEmpty()) {
+      return []
+    }
 
     int page = 1
     while (matchingExecutions.size() < size) {

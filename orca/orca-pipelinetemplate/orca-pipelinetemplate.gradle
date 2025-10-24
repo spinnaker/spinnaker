@@ -38,3 +38,7 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
+
+test {
+  useJUnitPlatform()
+}
