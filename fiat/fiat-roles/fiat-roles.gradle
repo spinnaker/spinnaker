@@ -36,4 +36,5 @@ dependencies {
 
   testImplementation "org.apache.commons:commons-collections4:4.1"
   testImplementation "org.testcontainers:testcontainers"
+  testImplementation "io.spinnaker.kork:kork-jedis-test"
 }
