@@ -46,8 +46,8 @@ dependencies {
    * specified by `spring-boot-dependencies`.
    */
   // Springdoc includes a newer version of Jackson, which conflicts with the SnakeYaml pin below
-  // Jackson 2.15+ requires SnakeYaml 2.x, last Jackson version with SnakeYaml 1.31 compat is 2.14.0
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.14.0"))
+  // Jackson 2.15+ requires SnakeYaml 2.x, last Jackson version with SnakeYaml 1.33 compat is 2.14.3
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.14.3"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform(libs.kotlin.bom))
