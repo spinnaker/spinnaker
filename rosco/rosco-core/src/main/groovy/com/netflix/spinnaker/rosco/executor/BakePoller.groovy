@@ -31,8 +31,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
-import rx.functions.Action0
-import rx.schedulers.Schedulers
+import io.reactivex.rxjava3.functions.Action
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.core.Observable
 
 import java.util.concurrent.TimeUnit
 
@@ -79,7 +80,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
     Schedulers.io().createWorker().schedulePeriodically(
       {
         try {
-          rx.Observable.from(bakeStore.thisInstanceIncompleteBakeIds)
+          Observable.fromIterable(bakeStore.thisInstanceIncompleteBakeIds)
             .subscribe(
               { String incompleteBakeId ->
                 try {
@@ -91,19 +92,19 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
               {
                 log.error("Update Error: ${it.message}")
               },
-              {} as Action0
+              {} as Action
             )
         } catch (Exception e) {
           log.error("Update Polling Error:", e)
         }
-      } as Action0, 0, pollingIntervalSeconds, TimeUnit.SECONDS
+      } as Runnable, 0, pollingIntervalSeconds, TimeUnit.SECONDS
     )
 
     // Check _all_ rosco instances' incomplete bakes for staleness.
     Schedulers.io().createWorker().schedulePeriodically(
       {
         try {
-          rx.Observable.from(bakeStore.allIncompleteBakeIds.entrySet())
+          Observable.fromIterable(bakeStore.allIncompleteBakeIds.entrySet())
             .subscribe(
               { Map.Entry<String, Set<String>> entry ->
                 String roscoInstanceId = entry.key
@@ -111,7 +112,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
                 if (roscoInstanceId != this.roscoInstanceId) {
                   try {
-                    rx.Observable.from(incompleteBakeIds)
+                    Observable.fromIterable(incompleteBakeIds)
                       .subscribe(
                         { String statusId ->
                           BakeStatus bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
@@ -148,7 +149,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
                         {
                           log.error("Error: ${it.message}")
                         },
-                        {} as Action0
+                        {} as Action
                     )
                   } catch (Exception e) {
                     log.error("Zombie Killer Polling Error:", e)
@@ -158,12 +159,12 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
               {
                 log.error("Zombie Killer Error: ${it.message}")
               },
-              {} as Action0
+              {} as Action
             )
         } catch (Exception e) {
           log.error("Zombie Killer Polling Error:", e)
         }
-      } as Action0, 0, orphanedJobPollingIntervalSeconds, TimeUnit.SECONDS
+      } as Runnable, 0, orphanedJobPollingIntervalSeconds, TimeUnit.SECONDS
     )
   }
 

@@ -40,7 +40,9 @@ services:
 ---
 
 spring:
-  profiles: launch-templates
+  config:
+    activate:
+      on-profile: launch-templates
 
 aws:
   enabled: true

@@ -42,7 +42,8 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-aop"
   implementation "io.github.resilience4j:resilience4j-spring-boot2"
 
-  implementation "org.springdoc:springdoc-openapi-ui:1.8.0"
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0"
+  implementation "javax.xml.bind:jaxb-api"
 
   implementation "io.cloudevents:cloudevents-spring:2.5.0"
   implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
@@ -68,7 +69,7 @@ dependencies {
   testImplementation "com.squareup.retrofit2:converter-jackson"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "org.springframework.security:spring-security-oauth2-client"
-  testImplementation "org.apache.httpcomponents:httpclient"
+  testImplementation "org.apache.httpcomponents.client5:httpclient5"
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {

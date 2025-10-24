@@ -27,15 +27,10 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.configuration.ObjectPostProcessorConfiguration;
 
 public class OkHttp3ClientConfigurationTest {
   private final ApplicationContextRunner runner =
@@ -63,16 +58,5 @@ public class OkHttp3ClientConfigurationTest {
 
   @Configuration
   @ComponentScan(basePackageClasses = OkHttp3ClientConfiguration.class)
-  static class OkHttp3ClientConfigurationTestConfig {
-
-    @Bean
-    public ObjectPostProcessor<Object> objectPostProcessor(AutowireCapableBeanFactory beanFactory) {
-      return new ObjectPostProcessorConfiguration().objectPostProcessor(beanFactory);
-    }
-
-    @Bean
-    public AuthenticationConfiguration authenticationConfiguration() {
-      return new AuthenticationConfiguration();
-    }
-  }
+  static class OkHttp3ClientConfigurationTestConfig {}
 }
