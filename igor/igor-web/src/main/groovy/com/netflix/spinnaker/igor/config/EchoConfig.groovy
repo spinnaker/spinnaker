@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.igor.history.EchoService
@@ -43,11 +45,14 @@ class EchoConfig {
         if (address == 'none') {
             return null
         }
-
+        ObjectMapper objectMapper =
+        new ObjectMapper()
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(address))
             .client(okHttpClientConfig.createForRetrofit2().build())
-            .addConverterFactory(CustomConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create(objectMapper))
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(EchoService)

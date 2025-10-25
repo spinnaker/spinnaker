@@ -14,64 +14,65 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.helm.accounts;
+package com.netflix.spinnaker.igor.health;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.Assert.assertEquals;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.netflix.spectator.api.DefaultRegistry;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
-import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
-import java.util.List;
+import java.util.Optional;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.Status;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
-public class HelmAccountsServiceTest {
+public class EchoServiceHealthIndicatorTest {
 
   @RegisterExtension
-  static WireMockExtension wmHelmAccounts =
+  static WireMockExtension wmEcho =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
-  static HelmAccountsService helmAccountsService;
+  static EchoServiceHealthIndicator echoSerivceHealthIndicator;
+  static Registry registry;
+  static EchoService echoService;
 
   @BeforeAll
   public static void setup() {
+    registry = new DefaultRegistry();
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
-    helmAccountsService =
+    echoService =
         new Retrofit.Builder()
-            .baseUrl(RetrofitUtils.getBaseUrl(wmHelmAccounts.baseUrl()))
+            .baseUrl(RetrofitUtils.getBaseUrl(wmEcho.baseUrl()))
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(JacksonConverterFactory.create(objectMapper))
             .build()
-            .create(HelmAccountsService.class);
+            .create(EchoService.class);
+
+    echoSerivceHealthIndicator = new EchoServiceHealthIndicator(registry, Optional.of(echoService));
   }
 
   @Test
-  public void testGetAllAccounts_with_additionalFields() {
-    // Helm account with an addition field "type"
-    String expectedResponse =
-        "[{\"name\":\"acc1\",\"types\":[\"type1\",\"type2\"],\"type\":\"helm\"}]";
+  public void testHealth() {
+    wmEcho.stubFor(WireMock.post("/").willReturn(aResponse().withStatus(200)));
 
-    wmHelmAccounts.stubFor(
-        WireMock.get("/artifacts/credentials").willReturn(aResponse().withBody(expectedResponse)));
-
-    List<ArtifactAccount> accounts =
-        Retrofit2SyncCall.execute(helmAccountsService.getAllAccounts());
-
-    assertThat(accounts).hasSize(1);
-    assertThat(accounts.get(0).name).isEqualTo("acc1");
-    assertThat(accounts.get(0).types).containsExactly("type1", "type2");
+    echoSerivceHealthIndicator.checkHealth();
+    Health health = echoSerivceHealthIndicator.health();
+    assertEquals(health.getStatus(), Status.UP);
   }
 }
