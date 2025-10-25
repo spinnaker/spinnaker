@@ -18,7 +18,7 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.igor.history.EchoService
@@ -47,8 +47,7 @@ class EchoConfig {
         }
         ObjectMapper objectMapper =
         new ObjectMapper()
-            .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(address))
