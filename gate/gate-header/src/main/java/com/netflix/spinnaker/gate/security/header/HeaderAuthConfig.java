@@ -85,6 +85,18 @@ public class HeaderAuthConfig {
 
     HttpSessionSecurityContextRepository securityContextRepository =
         new HttpSessionSecurityContextRepository();
+
+    // Save the work to read and write session information.  Each request
+    // provides X-SPINNAKER-USER, and gate caches information from fiat, so
+    // there's no need for callers to support session cookies, and dealing with
+    // expiration, etc.
+    //
+    // With this, when services.fiat.legacyFallback is false, FiatSessionFilter
+    // doesn't ever do meaningful work because request.getSession() always returns
+    // null, so save some cycles by setting fiat.session-filter.enabled to false.
+    //
+    // When services.fiat.legacyFallback is true, FiatSessionFilter still
+    // invalidates the cache for the user.
     securityContextRepository.setAllowSessionCreation(false);
     requestHeaderAuthenticationFilter.setSecurityContextRepository(securityContextRepository);
     return requestHeaderAuthenticationFilter;
