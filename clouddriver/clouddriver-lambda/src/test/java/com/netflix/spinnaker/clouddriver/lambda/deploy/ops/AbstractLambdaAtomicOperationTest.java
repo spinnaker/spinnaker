@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import com.amazonaws.ClientConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -27,11 +27,9 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaFunctionOutputDescription;
 import com.netflix.spinnaker.config.LambdaServiceConfig;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -109,24 +107,24 @@ class AbstractLambdaAtomicOperationTest {
     when(creds.isLambdaEnabled()).thenReturn(true);
     desc.setCredentials(creds);
     AbstractLambdaAtomicOperation<
-      InvokeLambdaFunctionDescription, InvokeLambdaFunctionOutputDescription>
-      operation =
-      new AbstractLambdaAtomicOperation<>(desc, null) {
+            InvokeLambdaFunctionDescription, InvokeLambdaFunctionOutputDescription>
+        operation =
+            new AbstractLambdaAtomicOperation<>(desc, null) {
 
-        @Override
-        public InvokeLambdaFunctionOutputDescription operate(
-          List<InvokeLambdaFunctionOutputDescription> priorOutputs) {
-          return null;
-        }
-      };
+              @Override
+              public InvokeLambdaFunctionOutputDescription operate(
+                  List<InvokeLambdaFunctionOutputDescription> priorOutputs) {
+                return null;
+              }
+            };
     operation.operationsConfig = new LambdaServiceConfig();
     operation.operationsConfig.setTcpKeepAlive(true);
     operation.amazonClientProvider = mock(AmazonClientProvider.class);
     ArgumentCaptor<ClientConfiguration> captureclientConfig =
-      ArgumentCaptor.forClass(ClientConfiguration.class);
+        ArgumentCaptor.forClass(ClientConfiguration.class);
     operation.getLambdaClient();
     verify(operation.amazonClientProvider)
-      .getAmazonLambda(any(), captureclientConfig.capture(), eq("someplace"));
+        .getAmazonLambda(any(), captureclientConfig.capture(), eq("someplace"));
     assertEquals(true, captureclientConfig.getValue().useTcpKeepAlive());
   }
 
@@ -137,9 +135,9 @@ class AbstractLambdaAtomicOperationTest {
     props.put("aws.lambda.tcpKeepAlive", "true");
     // When
     LambdaServiceConfig config =
-      new Binder(new MapConfigurationPropertySource(props))
-        .bind("aws.lambda", LambdaServiceConfig.class)
-        .get();
+        new Binder(new MapConfigurationPropertySource(props))
+            .bind("aws.lambda", LambdaServiceConfig.class)
+            .get();
 
     // Then
     assertThat(config.isTcpKeepAlive()).isTrue();
