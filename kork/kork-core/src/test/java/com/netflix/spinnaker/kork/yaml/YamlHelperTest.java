@@ -16,13 +16,13 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.representer.Representer;
 
-@SpringBootTest(classes = YamlAutoConfigurationTest.TestConfig.class)
+@SpringBootTest(classes = YamlHelperTest.TestConfig.class)
 @TestPropertySource(
     properties = {
       "spinnaker.yaml.max-aliases-for-collections=55",
       "spinnaker.yaml.code-point-limit=1024"
     })
-class YamlAutoConfigurationTest {
+class YamlHelperTest {
 
   static DumperOptions DUMPER_OPTIONS;
 
