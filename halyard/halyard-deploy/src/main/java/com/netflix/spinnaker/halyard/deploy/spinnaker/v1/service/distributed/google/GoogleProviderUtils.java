@@ -58,7 +58,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
-import org.springframework.test.util.TestSocketUtils;
 
 @Slf4j
 class GoogleProviderUtils {
@@ -188,7 +187,7 @@ class GoogleProviderUtils {
       }
     }
 
-    int localPort = TestSocketUtils.findAvailableTcpPort();
+    int localPort = SocketUtils.findAvailableTcpPort();
 
     command.clear();
     command.add("ssh");
