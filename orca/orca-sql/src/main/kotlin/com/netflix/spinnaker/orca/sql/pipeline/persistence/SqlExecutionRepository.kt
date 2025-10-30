@@ -581,14 +581,11 @@ class SqlExecutionRepository(
    * It executes the following query to get execution details for n executions at a time in a specific application
    *
    * SELECT id, body, compressed_body, compression_type, `partition`
-       FROM pipelines force index (`pipeline_application_idx`)
+       FROM pipelines
        left outer join
        pipelines_compressed_executions
        using (`id`)
-       WHERE (
-         application = "<myapp>" and
-         id in ('id1', 'id2', 'id3')
-       );
+       WHERE id in ('id1', 'id2', 'id3');
    *
    * it then gets all the stage information for all the executions returned from the above query.
    */
@@ -597,17 +594,11 @@ class SqlExecutionRepository(
     pipelineExecutions: List<String>,
     queryTimeoutSeconds: Int
   ): Collection<PipelineExecution> {
-    withPool(poolName) {
+    withPool(readPoolName) {
       val baseQuery = jooq.select(selectExecutionFields(compressionProperties))
-        .from(
-          if (jooq.dialect() == SQLDialect.MYSQL) PIPELINE.tableName.forceIndex("pipeline_application_idx")
-          else PIPELINE.tableName
-        )
+        .from(PIPELINE.tableName)
         .leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
-        .where(
-          field("application").eq(application)
-            .and(field("id").`in`(*pipelineExecutions.toTypedArray()))
-        )
+        .where(field("id").`in`(*pipelineExecutions.toTypedArray()))
         .queryTimeout(queryTimeoutSeconds) // add an explicit timeout so that the query doesn't run forever
         .fetch()
 
