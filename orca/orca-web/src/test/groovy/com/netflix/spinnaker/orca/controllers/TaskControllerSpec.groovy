@@ -34,6 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.util.ExpressionUtils
 import groovy.json.JsonSlurper
+import jakarta.servlet.ServletException
 import okhttp3.ResponseBody
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
@@ -77,19 +78,19 @@ class TaskControllerSpec extends Specification {
 
   void setup() {
     mockMvc = MockMvcBuilders.standaloneSetup(
-        new TaskController(
-            front50Service,
-            executionRepository,
-            executionRunner,
-            executionOperator,
-            List.of(Mock(StageDefinitionBuilder)),
-            new ContextParameterProcessor(),
-            Mock(ExpressionUtils),
-            mapper,
-            registry,
-            Mock(StageDefinitionBuilderFactory),
-            taskControllerConfigurationProperties
-        )
+      new TaskController(
+        front50Service,
+        executionRepository,
+        executionRunner,
+        executionOperator,
+        List.of(Mock(StageDefinitionBuilder)),
+        new ContextParameterProcessor(),
+        Mock(ExpressionUtils),
+        mapper,
+        registry,
+        Mock(StageDefinitionBuilderFactory),
+        taskControllerConfigurationProperties
+      )
     ).build()
   }
 
@@ -398,17 +399,17 @@ class TaskControllerSpec extends Specification {
     0 * front50Service._
 
     1 * executionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(["1"], _, _, _ ) >> pipelines.findAll {
-        it.pipelineConfigId == "1"
-      }.collect { config ->
-        PipelineExecutionImpl pipeline = pipeline {
-          id = config.id
-          application = app
-          startTime = config.startTime
-          pipelineConfigId = config.pipelineConfigId
-        }
-        pipeline.setTrigger(config.trigger)
-        return pipeline
+      it.pipelineConfigId == "1"
+    }.collect { config ->
+      PipelineExecutionImpl pipeline = pipeline {
+        id = config.id
+        application = app
+        startTime = config.startTime
+        pipelineConfigId = config.pipelineConfigId
       }
+      pipeline.setTrigger(config.trigger)
+      return pipeline
+    }
     0 * executionRepository._
 
     results.id == ['test-1', 'test-2', 'test-3', 'test-4', 'test-5']
@@ -419,16 +420,16 @@ class TaskControllerSpec extends Specification {
     def app = "covfefe"
     def pipelines = [
       [pipelineConfigId: "1", id: "test-1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
-        trigger: new DockerTrigger("test-account", "test-repo", "1")
+       trigger: new DockerTrigger("test-account", "test-repo", "1")
       ],
       [pipelineConfigId: "1", id: "test-2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli(),
-        trigger: new GitTrigger("c681a6af-1096-4727-ac9e-70d3b2460228", "github", "spinnaker", "no-match", "orca", "push")
+       trigger: new GitTrigger("c681a6af-1096-4727-ac9e-70d3b2460228", "github", "spinnaker", "no-match", "orca", "push")
       ],
       [pipelineConfigId: "1", id: "test-3", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
-        trigger: new GitTrigger("c681a6af-1096-4727-ac9e-70d3b2460228", "github", "spinnaker", "no-match", "orca", "push")
+       trigger: new GitTrigger("c681a6af-1096-4727-ac9e-70d3b2460228", "github", "spinnaker", "no-match", "orca", "push")
       ],
       [pipelineConfigId: "1", id: "test-4", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
-        trigger: new JenkinsTrigger("master", "job", 1, "test-property-file")
+       trigger: new JenkinsTrigger("master", "job", 1, "test-property-file")
       ],
       [pipelineConfigId: "1", id: "test-5", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
        trigger: new ArtifactoryTrigger("libs-demo-local")
@@ -584,7 +585,7 @@ class TaskControllerSpec extends Specification {
     0 * front50Service._
     0 * executionRepository._
 
-    def e = thrown NestedServletException
+    def e = thrown ServletException
     e.cause == front50Error
   }
 
@@ -674,7 +675,7 @@ class TaskControllerSpec extends Specification {
     0 * front50Service._
     0 * executionRepository._
 
-    def e = thrown NestedServletException
+    def e = thrown ServletException
     e.cause == front50Error
   }
 
@@ -925,12 +926,12 @@ class TaskControllerSpec extends Specification {
         [:],
         "test",
         [x: 1, y: 2,
-          z: [
-            q: "asdf",
-            r: [
-              "t", "u", "v"
-              ]
-          ]
+         z: [
+           q: "asdf",
+           r: [
+             "t", "u", "v"
+           ]
+         ]
         ]
       ],
       [
@@ -1013,11 +1014,11 @@ class TaskControllerSpec extends Specification {
       ],
       [
         [z:
-          [
-            r: [
-              "t"
-            ]
-          ]
+           [
+             r: [
+               "t"
+             ]
+           ]
         ],
         "test",
         ["c", "b"],
@@ -1144,12 +1145,12 @@ class TaskControllerSpec extends Specification {
         j: [:],
         k: "test",
         l: [x: 1, y: 2,
-         z: [
-           q: "asdf",
-           r: [
-             "t", "u", "v"
-           ]
-         ]
+            z: [
+              q: "asdf",
+              r: [
+                "t", "u", "v"
+              ]
+            ]
         ]
       ],
       [
@@ -1193,12 +1194,12 @@ class TaskControllerSpec extends Specification {
       ],
       [
         l: [y: 2, x: 1,
-         z: [
-           r: [
-             "v", "u", "t"
-           ],
-           q: "asdf"
-         ]
+            z: [
+              r: [
+                "v", "u", "t"
+              ],
+              q: "asdf"
+            ]
         ],
         j: [:],
         k: "test",
@@ -1251,16 +1252,16 @@ class TaskControllerSpec extends Specification {
   static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
     String url = "https://front50";
     retrofit2.Response retrofit2Response =
-        retrofit2.Response.error(
-            status,
-            ResponseBody.create(
-                okhttp3.MediaType.parse("application/json"), message))
+      retrofit2.Response.error(
+        status,
+        ResponseBody.create(
+          okhttp3.MediaType.parse("application/json"), message))
 
     Retrofit retrofit =
-        new Retrofit.Builder()
-            .baseUrl(url)
-            .addConverterFactory(JacksonConverterFactory.create())
-            .build();
+      new Retrofit.Builder()
+        .baseUrl(url)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
