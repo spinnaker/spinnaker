@@ -18,9 +18,12 @@ package com.netflix.spinnaker.clouddriver
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDeserializer
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration
+import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.DeserializerHookRegistry
+import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.SerializerHookRegistry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap
@@ -84,10 +87,19 @@ class Main extends SpringBootServletInitializer {
 
   @Bean
   @Primary
-  ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
-    return builder.createXmlMapper(false)
-      .mixIn(Artifact.class, ArtifactMixin.class)
-      .build()
+  ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder, Optional<DeserializerHookRegistry> deserializerHook, Optional<SerializerHookRegistry> serializerHook) {
+    builder = builder.createXmlMapper(false)
+      .mixIn(Artifact.class, ArtifactMixin.class);
+
+    SimpleModule module = new SimpleModule("registryHook")
+    if (deserializerHook.isPresent()) {
+      module.setDeserializerModifier(deserializerHook.get())
+    }
+    if (serializerHook.isPresent()) {
+      module.setSerializerModifier(serializerHook.get());
+    }
+    builder.modules(l -> l.add(module))
+    return builder.build();
   }
 
   @Override
