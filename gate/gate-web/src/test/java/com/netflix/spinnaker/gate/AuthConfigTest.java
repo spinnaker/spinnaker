@@ -59,7 +59,12 @@ import org.springframework.web.bind.annotation.RestController;
       "spring.config.location=classpath:gate-test.yml",
       "spring.security.user.name=testuser",
       "spring.security.user.password=testpassword",
-      "security.basicform.enabled=true"
+      "security.basicform.enabled=true",
+      // Enable webhook auth to validate that requests to /webhooks/* are protected.
+      // When this flag is true, requests to /webhooks/* should require valid credentials;
+      // this test confirms that behavior.
+      // See AuthConfig#webhookDefaultAuthEnabled.
+      "security.webhooks.default-auth-enabled=true"
     })
 class AuthConfigTest {
 

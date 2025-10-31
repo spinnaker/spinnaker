@@ -11,9 +11,6 @@ spring:
 
   application:
     name: gate
-security:
-  webhooks:
-    default-auth-enabled: true #to verify whether the webhook URL is accessible when valid credentials are provided.
 services:
   clouddriver.baseUrl: "http://localhost:7002"
 
