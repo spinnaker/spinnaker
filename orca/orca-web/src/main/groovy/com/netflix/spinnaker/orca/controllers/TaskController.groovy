@@ -246,7 +246,7 @@ class TaskController {
 
       List<PipelineExecution> executions = rx.Observable.from(ids.collect {
         try {
-          executionRepository.retrieve(PIPELINE, it)
+          executionRepository.retrieve(PIPELINE, it, false)
         } catch (ExecutionNotFoundException e) {
           null
         }
@@ -565,7 +565,7 @@ class TaskController {
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
   PipelineExecution getPipeline(@PathVariable String id) {
-    executionRepository.retrieve(PIPELINE, id)
+    executionRepository.retrieve(PIPELINE, id, false)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")

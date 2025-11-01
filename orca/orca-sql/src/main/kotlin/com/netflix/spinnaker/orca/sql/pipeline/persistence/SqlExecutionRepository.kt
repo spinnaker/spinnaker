@@ -415,6 +415,10 @@ class SqlExecutionRepository(
     selectExecution(jooq, type, id)
       ?: throw ExecutionNotFoundException("No $type found for $id")
 
+  override fun retrieve(type: ExecutionType, id: String, requireLatestVersion: Boolean) =
+    selectExecution(jooq, type, id, requireLatestVersion)
+      ?: throw ExecutionNotFoundException("No $type found for $id with requireLatestVersion: $requireLatestVersion")
+
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> =
     Observable.from(
       fetchExecutions { pageSize, cursor ->
@@ -1303,6 +1307,19 @@ class SqlExecutionRepository(
     id: String
   ): PipelineExecution? {
     withPool(poolName) {
+      val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+      return select.fetchExecution()
+    }
+  }
+
+  private fun selectExecution(
+    ctx: DSLContext,
+    type: ExecutionType,
+    id: String,
+    requireLatestVersion: Boolean
+  ): PipelineExecution? {
+    val selectPool = if (requireLatestVersion) poolName else readPoolName
+    withPool(selectPool) {
       val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
       return select.fetchExecution()
     }

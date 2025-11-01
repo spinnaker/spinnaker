@@ -55,6 +55,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.testcontainers:mysql")
   testImplementation("org.testcontainers:postgresql")
+  testImplementation("io.spinnaker.kork:kork-web")
 
   testRuntimeOnly("com.mysql:mysql-connector-j")
   testRuntimeOnly("org.postgresql:postgresql")
