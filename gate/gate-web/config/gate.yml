@@ -112,7 +112,15 @@ spring:
       SORT_PROPERTIES_ALPHABETICALLY: true
     serialization:
       ORDER_MAP_ENTRIES_BY_KEYS: true
-
+  # Spring Boot 3.0 (Spring Framework 6) changed the default path matching strategy
+  # from AntPathMatcher to PathPatternParser.
+  # PathPatternParser handles trailing slashes differently —
+  # for example, "/api/test" and "/api/test/" are no longer treated as equivalent paths.
+  # To restore the old behavior where both were matched the same way,
+  # we explicitly set the matching strategy back to ANT_PATH_MATCHER.
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
 spring.session.store-type: redis
 
 ---

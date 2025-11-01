@@ -30,11 +30,9 @@ import org.apache.commons.exec.PumpStreamHandler
 import org.apache.commons.exec.Watchdog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import rx.Scheduler
-import rx.functions.Action0
-import rx.schedulers.Schedulers
-
-import javax.annotation.PostConstruct
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.core.Scheduler
+import jakarta.annotation.PostConstruct
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.ToDoubleFunction
 
@@ -56,9 +54,9 @@ class JobExecutorLocal implements JobExecutor {
     String jobId = jobRequest.jobId
 
     scheduler.createWorker().schedule(
-      new Action0() {
+      new Runnable() {
         @Override
-        public void call() {
+        void run() {
           PumpStreamHandler pumpStreamHandler
           ByteArrayOutputStream stdOut
           ByteArrayOutputStream stdErr

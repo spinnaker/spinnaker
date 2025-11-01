@@ -22,11 +22,12 @@ import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
@@ -34,7 +35,7 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 @Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
-public class BasicAuthConfig extends WebSecurityConfigurerAdapter {
+public class BasicAuthConfig {
 
   @VisibleForTesting protected final AuthConfig authConfig;
 
@@ -52,18 +53,17 @@ public class BasicAuthConfig extends WebSecurityConfigurerAdapter {
     this.defaultCookieSerializer = defaultCookieSerializer;
   }
 
-  @Override
-  protected void configure(AuthenticationManagerBuilder auth) {
-    auth.authenticationProvider(authProvider);
-  }
-
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
+  @Bean
+  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
+  @Order(2)
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     defaultCookieSerializer.setSameSite(null);
     http.formLogin()
         .and()
+        .authenticationProvider(authProvider)
         .httpBasic()
         .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
     authConfig.configure(http);
+    return http.build();
   }
 }

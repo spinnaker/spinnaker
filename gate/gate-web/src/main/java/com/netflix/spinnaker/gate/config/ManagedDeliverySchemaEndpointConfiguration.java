@@ -18,20 +18,25 @@ package com.netflix.spinnaker.gate.config;
 
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @Order(HIGHEST_PRECEDENCE + 23)
-public class ManagedDeliverySchemaEndpointConfiguration extends WebSecurityConfigurerAdapter {
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    http.requestMatcher(new AntPathRequestMatcher("/managed/delivery-configs/schema"))
+public class ManagedDeliverySchemaEndpointConfiguration {
+
+  @Bean
+  @Order(1)
+  public SecurityFilterChain schemaSecurityFilterChain(HttpSecurity http) throws Exception {
+    return http.securityMatcher(new AntPathRequestMatcher("/managed/delivery-configs/schema"))
         .authorizeRequests()
         .anyRequest()
-        .permitAll();
+        .permitAll()
+        .and()
+        .build();
   }
 }
