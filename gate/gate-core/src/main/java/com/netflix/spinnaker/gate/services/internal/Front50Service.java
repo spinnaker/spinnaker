@@ -48,7 +48,7 @@ public interface Front50Service {
   Call<List<Map>> getAllPipelineConfigs();
 
   @GET("pipelines/{app}")
-  Call<List<Map>> getPipelineConfigsForApplication(
+  Call<List<Map<String, Object>>> getPipelineConfigsForApplication(
       @Path("app") String app,
       @Query("pipelineNameFilter") String pipelineNameFilter,
       @Query("refresh") boolean refresh);
@@ -80,7 +80,7 @@ public interface Front50Service {
   Call<List<Map>> getAllStrategyConfigs();
 
   @GET("strategies/{app}")
-  Call<List<Map>> getStrategyConfigs(@Path("app") String app);
+  Call<List<Map<String, Object>>> getStrategyConfigs(@Path("app") String app);
 
   @DELETE("strategies/{app}/{name}")
   Call<ResponseBody> deleteStrategyConfig(@Path("app") String app, @Path("name") String name);
