@@ -7,6 +7,33 @@ on:
   workflow_dispatch: # allows for manual invocation
 
 jobs:
+  ghcr-cleaner:
+    uses: docker/login-action@v3 # Use the latest stable version
+    steps:
+      # configure based on your registry
+      - name: Login to GHCR
+        registry: ghcr.io
+        with:
+          registry: us-docker.pkg.dev
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+      # delete untaggd images older than 48 hours
+      - uses: 'docker://us-docker.pkg.dev/gcr-cleaner/gcr-cleaner/gcr-cleaner-cli'
+        with:
+          args: >-
+            -repo=ghcr.io/spinnaker/clouddriver
+            -repo=ghcr.io/spinnaker/gate
+            -repo=ghcr.io/spinnaker/halyard
+            -repo=ghcr.io/spinnaker/orca
+            -repo=ghcr.io/spinnaker/rosco
+            -repo=ghcr.io/spinnaker/igor
+            -repo=ghcr.io/spinnaker/front50
+            -repo=ghcr.io/spinnaker/echo
+            -repo=ghcr.io/spinnaker/deck
+            -grace=48h
+            -dry-run=false
+
   gcr-cleaner:
     runs-on: 'ubuntu-latest'
     steps:
