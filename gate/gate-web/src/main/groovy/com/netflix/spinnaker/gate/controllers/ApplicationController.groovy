@@ -146,14 +146,7 @@ class ApplicationController {
   @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.GET)
   Map getPipelineConfig(
     @PathVariable("application") String application, @PathVariable("pipelineName") String pipelineName) {
-    def config = applicationService.getPipelineConfigsForApplication(application).find {
-      it.name == pipelineName
-    }
-    if (!config) {
-      log.warn("Pipeline config {} not found for application {}", value("pipeline", pipelineName), value('application', application))
-      throw new NotFoundException("Pipeline config (id: ${pipelineName}) not found for Application (id: ${application})")
-    }
-    config
+    applicationService.getPipelineConfigForApplication(application, pipelineName)
   }
 
   @Operation(summary = "Retrieve a list of an application's pipeline strategy configurations")
