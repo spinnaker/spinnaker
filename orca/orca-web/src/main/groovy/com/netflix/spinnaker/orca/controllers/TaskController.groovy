@@ -18,18 +18,28 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Preconditions
+import com.google.common.base.Strings
+import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.api.pipeline.models.*
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
+import com.netflix.spinnaker.orca.pipeline.model.FailedStageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -43,7 +53,14 @@ import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import rx.schedulers.Schedulers
 
 import java.nio.charset.Charset
@@ -229,7 +246,7 @@ class TaskController {
 
       List<PipelineExecution> executions = rx.Observable.from(ids.collect {
         try {
-          executionRepository.retrieve(PIPELINE, it)
+          executionRepository.retrieve(PIPELINE, it, false)
         } catch (ExecutionNotFoundException e) {
           null
         }
@@ -252,6 +269,117 @@ class TaskController {
     }
 
     return filterPipelinesByHistoryCutoff(allPipelines, limit)
+  }
+
+  /**
+   * Retrieves the subset of pipeline stages in a failed state.
+   * For stages which are nested pipelines the execution graph is traversed and leaf failed child stages are also returned.
+   * An empty list is returned if no failed stages map to the given pipeline execution id.
+   *
+   * @param executionId Pipeline execution id for which to retrieve failed stages.
+   * @param deckOrigin (optional) The Deck UI origin to use for building the pipeline execution URL for failing stages.
+   * If not set then only the path is generated and returned, i.e. the part after scheme://host:port.
+   * @param limit (optional) The maximum number of nested pipeline executions to return for failing stages. The default value is 1.
+   * @return List of one or more failed stage summaries.
+   */
+  @PreAuthorize("hasPermission(this.getPipeline(#executionId)?.application, 'APPLICATION', 'READ')")
+  @RequestMapping(value = "/pipelines/failedStages", method = RequestMethod.GET)
+  List<FailedStageExecution> getFailedStagesForPipelineExecution(
+    @RequestParam(value = "executionId") String executionId,
+    @RequestParam(value = "deckOrigin", required = false) String inputDeckOrigin,
+    @RequestParam(value = "limit", defaultValue = "1") Integer limit
+  ) {
+    // Input validation.
+    Preconditions.checkArgument(limit > 0, "limit must be positive!");
+    final String deckOrigin = Strings.isNullOrEmpty(inputDeckOrigin) ? null : inputDeckOrigin.trim();
+
+    // Check the root pipeline stages for failure. If none then we are done!
+    // Topological sorting ensures the stage index can be used to build the URL path fragment for the Deck UI.
+    // Simple BFS on the root pipeline and traversing the nested pipeline tree to find failed stages.
+    // Since, there are no cycles, we needn't explicitly track the visited nodes.
+    // Terminate the search when either 'limit' number of failed leaf stages are added or all the failed leaf stages are added.
+
+    // Build up the list of failing leaf stages (result)
+    final List<FailedStageExecution> failedLeafStageExecutions = new ArrayList<>()
+    // Queue is used in BFS for temporarily storing the unvisited intermediate nodes (pipeline execution IDs) waiting to be processed in the FIFO order.
+    final Deque<String> queue = new ArrayDeque<String>()
+
+    // Add the root pipeline execution ID to the queue
+    queue.add(executionId)
+
+    // We perform BFS until the queue is empty or we have collected 'limit' number of failed leaf stages.
+    while (failedLeafStageExecutions.size() < limit && queue.size() > 0) {
+
+      String currentPipelineID = queue.removeFirst()
+      PipelineExecution currentPipelineExecution = getPipelineExecution(currentPipelineID)
+
+      // If there's no execution with id = currentPipelineID. This could happen with invalid input, invalid pipeline contents, or possible races with execution cleanup.
+      if (currentPipelineExecution == null) {
+        continue;
+      }
+
+      // The stage index part of the Deck UI URL path fragment requires sorting the stages.
+      int stageIndex = 0;
+      for (final StageExecution stageExecution : StageExecutionImpl.topologicalSortAsImmutableList(currentPipelineExecution.getStages())) {
+
+        if (configurationProperties.failedStages.onlyIncludeStagesThatFailPipelines ?
+            stageCausesPipelineFailure(stageExecution) : stageExecution.getStatus().isFailure()) {
+          FailedStageExecution childFailedStageExecution = FailedStageExecution.of(currentPipelineExecution, stageExecution, stageIndex, deckOrigin);
+
+          String nextExecutionId = childFailedStageExecution.getChildPipelineExecutionId()
+
+          if (nextExecutionId == null) {
+            // childFailedStageExecution is a leaf failed stage. Add it to the result.
+            failedLeafStageExecutions.add(childFailedStageExecution)
+
+            if (failedLeafStageExecutions.size() >= limit) {
+              break;
+            }
+          }
+          else {
+            // It is an intermediate failed stage. Add its pipeline execution ID to the queue for processing.
+            queue.addLast(nextExecutionId)
+          }
+        }
+        stageIndex++;
+      }
+    }
+    // Return the array of failed leaf nodes
+    return failedLeafStageExecutions;
+  }
+
+  /**
+   * Helper method to return the pipeline execution.
+   *
+   * @param executionId Pipeline for which to return the execution
+   * @return pipelineExecution for the given executionId
+   */
+  private PipelineExecution getPipelineExecution(final String executionId) {
+    final PipelineExecution pipelineExecution;
+    try {
+      pipelineExecution = executionRepository.retrieve(PIPELINE, executionId)
+    }
+    catch (ExecutionNotFoundException e) {
+      log.info("No pipeline execution found for executionID: " + executionId)
+      return null;
+    }
+    return pipelineExecution;
+  }
+
+  /** @return true if a stage caused a pipeline to fail, false otherwise. */
+  private boolean stageCausesPipelineFailure(StageExecution stage) {
+    // Stages with TERMINAL status, or STOPPED status with
+    // completeOtherBranchesThenFail set to true cause pipeline failure.
+    //
+    // Relevant methods where this logic lives in orca:
+    //
+    // CompleteExecution.determineFinalStatus
+    // StageExecution.determineStatus
+    // StageExecution.failureStatus
+    // PipelineExecution.shouldOverrideSuccess
+    return stage.status == ExecutionStatus.TERMINAL ||
+        (stage.status == ExecutionStatus.STOPPED &&
+            stage.context['completeOtherBranchesThenFail'] == true)
   }
 
   /**
@@ -334,19 +462,30 @@ class TaskController {
       : null // null means all trigger types
 
     // Filter by application (and pipeline name, if that parameter has been given in addition to application name)
-    List<String> pipelineConfigIds
+    List<String> pipelineConfigIds = Collections.emptyList()
     if (application == "*") {
       pipelineConfigIds = getPipelineConfigIdsOfReadableApplications()
     } else {
-      List<Map<String, Object>> pipelines = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false))
-      pipelines = pipelines.stream().filter({ pipeline ->
-        if (pipelineName != null && pipelineName != "") {
-          return pipeline.get("name") == pipelineName
-        } else {
-          return true
+      if (pipelineName != null && pipelineName != "") {
+        try {
+          Map<String, Object> pipeline = Retrofit2SyncCall.execute(front50Service.getPipeline(application, pipelineName, false))
+          // double check that the name actually matches since that's what the previous code did
+          if (pipelineName.equals(pipeline.get("name"))) {
+            pipelineConfigIds = [pipeline.id as String]
+          }
+        } catch (SpinnakerHttpException e) {
+          // pipeline not found was silently ignored before.  At least log at
+          // debug.  Let other exceptions bubble up.
+          if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
+            log.debug("no pipeline with name '{}' in application '{}'", pipelineName, application);
+          } else {
+            throw e;
+          }
         }
-      }).collect(Collectors.toList())
-      pipelineConfigIds = pipelines*.id as List<String>
+      } else {
+        List<Map<String, Object>> pipelines = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false))
+        pipelineConfigIds = pipelines*.id as List<String>
+      }
     }
 
     ExecutionCriteria executionCriteria = new ExecutionCriteria()
@@ -358,6 +497,10 @@ class TaskController {
     }
 
     List<PipelineExecution> matchingExecutions = new ArrayList<>()
+
+    if (pipelineConfigIds.isEmpty()) {
+      return []
+    }
 
     int page = 1
     while (matchingExecutions.size() < size) {
@@ -422,7 +565,7 @@ class TaskController {
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
   PipelineExecution getPipeline(@PathVariable String id) {
-    executionRepository.retrieve(PIPELINE, id)
+    executionRepository.retrieve(PIPELINE, id, false)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")

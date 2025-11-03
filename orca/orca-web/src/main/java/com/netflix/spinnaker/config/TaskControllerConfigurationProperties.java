@@ -67,6 +67,8 @@ public class TaskControllerConfigurationProperties {
 
   boolean excludeExecutionsOfDisabledPipelines = false;
 
+  FailedStagesProperties failedStages;
+
   public boolean getOptimizeExecutionRetrieval() {
     return this.optimizeExecutionRetrieval;
   }
@@ -78,5 +80,10 @@ public class TaskControllerConfigurationProperties {
 
   public int getDaysOfExecutionHistory() {
     return this.daysOfExecutionHistory;
+  }
+
+  @Data
+  public static class FailedStagesProperties {
+    private boolean onlyIncludeStagesThatFailPipelines;
   }
 }
