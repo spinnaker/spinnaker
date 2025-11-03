@@ -163,6 +163,12 @@ public class CredentialsConfig {
      */
     private int timeoutInSeconds = 180;
 
+    /**
+     * Control whether the managingAccountProfile feature is enabled / whether the
+     * managingAccountProfile property in each account is used.
+     */
+    private boolean useManagingAccountProfile;
+
     // Retry config
     int maxRetries = 10;
     long backOffInMs = 5000;

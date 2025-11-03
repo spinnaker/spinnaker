@@ -33,5 +33,12 @@ dependencies {
   testImplementation("org.apache.groovy:groovy-json")
   testImplementation("io.spinnaker.fiat:fiat-core")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
+}
+
+test {
+  useJUnitPlatform()
 }

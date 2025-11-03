@@ -16,7 +16,11 @@
 
 package com.netflix.spinnaker.orca.web.config
 
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilter
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
 import groovy.util.logging.Slf4j
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -45,6 +49,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 @ComponentScan(['com.netflix.spinnaker.orca.controllers', 'com.netflix.spinnaker.orca.util'])
 @CompileStatic
 @EnableFiatAutoConfig
+@EnableConfigurationProperties(ProvidedIdRequestFilterConfigurationProperties)
 @Slf4j
 class WebConfiguration {
 
@@ -71,6 +76,30 @@ class WebConfiguration {
   FilterRegistrationBean authenticatedRequestFilter() {
     def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true))
     frb.order = Ordered.HIGHEST_PRECEDENCE
+    return frb
+  }
+
+  /**
+   * In gate, AuthenticatedRequestFilter is registered at low precedence in the
+   * filter chain, so e.g. filters for spring security run first.  gate
+   * registers ProvidedIdRequestFilter at high precedence to ensure that tracing
+   * identifiers (e.g. X-SPINNAKER-REQUEST-ID, X-SPINNAKER-EXECUTION-ID) make it
+   * to the MDC early.  This way they're available for logging during the
+   * security filter chain, and are including in requests made during
+   * authentication (e.g. to fiat).
+   *
+   * In orca, AuthenticatedRequestFilter is registered at high precedence, so
+   * ProvidedIdRequestFilter doesn't seem necessary.  But it's additionalHeaders
+   * feature is useful, so use it.  It's a bit of duplicate work, but given what
+   * happens in gate, it seems cleaner than adding an additionalHeaders feature
+   * to AuthenticatedRequestFilter since that would require duplicate
+   * configuration for users.
+   */
+  @ConditionalOnProperty("provided-id-request-filter.enabled")
+  @Bean
+  FilterRegistrationBean<ProvidedIdRequestFilter> providedIdRequestFilter(ProvidedIdRequestFilterConfigurationProperties providedIdRequestFilterConfigurationProperties) {
+    def frb = new FilterRegistrationBean<>(new ProvidedIdRequestFilter(providedIdRequestFilterConfigurationProperties));
+    frb.order = Ordered.HIGHEST_PRECEDENCE + 1
     return frb
   }
 

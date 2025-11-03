@@ -23,14 +23,17 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.TempDirectory;
@@ -47,7 +50,11 @@ class BitbucketArtifactCredentialsTest {
   @Test
   void downloadWithToken(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     BitbucketArtifactAccount account =
-        BitbucketArtifactAccount.builder().name("my-bitbucket-account").token("abc").build();
+        BitbucketArtifactAccount.builder()
+            .name("my-bitbucket-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .token("abc")
+            .build();
 
     runTestCase(
         server,
@@ -67,6 +74,7 @@ class BitbucketArtifactCredentialsTest {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
             .name("my-bitbucket-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -88,6 +96,7 @@ class BitbucketArtifactCredentialsTest {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
             .name("my-bitbucket-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .tokenFile(authFile.toAbsolutePath().toString())
             .build();
 
@@ -112,6 +121,7 @@ class BitbucketArtifactCredentialsTest {
   void downloadWithBasicAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .name("my-bitbucket-account")
             .username("user")
             .password("passw0rd")
@@ -129,6 +139,7 @@ class BitbucketArtifactCredentialsTest {
 
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
             .name("my-bitbucket-account")
             .usernamePasswordFile(authFile.toAbsolutePath().toString())
             .build();
@@ -139,9 +150,50 @@ class BitbucketArtifactCredentialsTest {
   @Test
   void downloadWithNoAuth(@WiremockResolver.Wiremock WireMockServer server) throws IOException {
     BitbucketArtifactAccount account =
-        BitbucketArtifactAccount.builder().name("my-bitbucket-account").build();
+        BitbucketArtifactAccount.builder()
+            .name("my-bitbucket-account")
+            .urlRestrictions(HttpUrlRestrictions.builder().rejectLocalhost(false).build())
+            .build();
 
     runTestCase(server, account, m -> m.withHeader(AUTHORIZATION, absent()));
+  }
+
+  @Test
+  void blockDownloadUnlessInWhiteList() throws IOException {
+    // explicitly deny the test server we're hitting.
+    BitbucketArtifactAccount account =
+        BitbucketArtifactAccount.builder()
+            .urlRestrictions(
+                HttpUrlRestrictions.builder().allowedDomains(List.of("google.com")).build())
+            .name("my-bitbucket-account")
+            .build();
+    BitbucketArtifactCredentials credentials =
+        new BitbucketArtifactCredentials(account, okHttpClient);
+    Artifact artifact =
+        Artifact.builder()
+            .reference("http://example.com")
+            .version("master")
+            .type("bitbucket/file")
+            .build();
+    assertThat(credentials.download(Artifact.builder().reference("http://google.com").build()))
+        .isNotNull();
+    Assertions.assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
+  }
+
+  @Test
+  void downloadWithARestrictedUrlBlockLinkLocalByDefault() {
+    // explicitly deny the test server we're hitting.
+    BitbucketArtifactAccount account =
+        BitbucketArtifactAccount.builder().name("my-bitbucket-account").build();
+    BitbucketArtifactCredentials credentials =
+        new BitbucketArtifactCredentials(account, okHttpClient);
+    Artifact artifact =
+        Artifact.builder()
+            .reference("http://localhost")
+            .version("master")
+            .type("bitbucket/file")
+            .build();
+    Assertions.assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
   }
 
   private void runTestCase(
@@ -151,7 +203,6 @@ class BitbucketArtifactCredentialsTest {
       throws IOException {
     BitbucketArtifactCredentials credentials =
         new BitbucketArtifactCredentials(account, okHttpClient);
-
     Artifact artifact =
         Artifact.builder()
             .reference(server.baseUrl() + DOWNLOAD_PATH)

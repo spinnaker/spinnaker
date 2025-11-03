@@ -16,28 +16,36 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.PredefinedClientConfigurations;
-import com.amazonaws.Request;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.handlers.RequestHandler2;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.S3Object;
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.aws.SpectatorRequestMetricCollector;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.aws2.SpectatorExecutionInterceptor;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.InputStream;
+import java.net.URI;
+import java.time.Duration;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Slf4j
 @NonnullByDefault
@@ -51,32 +59,35 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
   private final String region;
   private final String awsAccessKeyId;
   private final String awsSecretAccessKey;
-  private final String signerOverride;
   private final Optional<S3ArtifactValidator> s3ArtifactValidator;
   private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
-  private final S3ArtifactRequestHandler s3ArtifactRequestHandler;
+  private final S3ArtifactRequestInterceptor s3ArtifactRequestInterceptor;
+  private final SpectatorExecutionInterceptor spectatorExecutionInterceptor;
 
-  private AmazonS3 amazonS3;
-
-  S3ArtifactCredentials(
-      S3ArtifactAccount account,
-      Optional<S3ArtifactValidator> s3ArtifactValidator,
-      S3ArtifactProviderProperties s3ArtifactProviderProperties) {
-    this(account, s3ArtifactValidator, null, s3ArtifactProviderProperties);
-  }
-
-  S3ArtifactCredentials(
-      S3ArtifactAccount account,
-      @Nullable AmazonS3 amazonS3,
-      S3ArtifactProviderProperties s3ArtifactProviderProperties) {
-    this(account, Optional.empty(), amazonS3, s3ArtifactProviderProperties);
-  }
+  private S3Client s3Client;
 
   S3ArtifactCredentials(
       S3ArtifactAccount account,
       Optional<S3ArtifactValidator> s3ArtifactValidator,
-      @Nullable AmazonS3 amazonS3,
-      S3ArtifactProviderProperties s3ArtifactProviderProperties)
+      S3ArtifactProviderProperties s3ArtifactProviderProperties,
+      Registry registry) {
+    this(account, s3ArtifactValidator, null, s3ArtifactProviderProperties, registry);
+  }
+
+  S3ArtifactCredentials(
+      S3ArtifactAccount account,
+      @Nullable S3Client s3Client,
+      S3ArtifactProviderProperties s3ArtifactProviderProperties,
+      Registry registry) {
+    this(account, Optional.empty(), s3Client, s3ArtifactProviderProperties, registry);
+  }
+
+  S3ArtifactCredentials(
+      S3ArtifactAccount account,
+      Optional<S3ArtifactValidator> s3ArtifactValidator,
+      @Nullable S3Client s3Client,
+      S3ArtifactProviderProperties s3ArtifactProviderProperties,
+      Registry registry)
       throws IllegalArgumentException {
     name = account.getName();
     apiEndpoint = account.getApiEndpoint();
@@ -84,39 +95,48 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     region = account.getRegion();
     awsAccessKeyId = account.getAwsAccessKeyId();
     awsSecretAccessKey = account.getAwsSecretAccessKey();
-    signerOverride = account.getSignerOverride();
     this.s3ArtifactValidator = s3ArtifactValidator;
-    this.amazonS3 = amazonS3;
+    this.s3Client = s3Client;
     this.s3ArtifactProviderProperties = s3ArtifactProviderProperties;
-    s3ArtifactRequestHandler = new S3ArtifactRequestHandler(name);
+    s3ArtifactRequestInterceptor =
+        new S3ArtifactRequestInterceptor(name, this.s3ArtifactProviderProperties);
+    spectatorExecutionInterceptor = new SpectatorExecutionInterceptor(registry);
   }
 
-  private AmazonS3 getS3Client() {
-    if (amazonS3 != null) {
-      return amazonS3;
+  private S3Client getS3Client() {
+    if (s3Client != null) {
+      return s3Client;
     }
 
-    AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-    builder.setClientConfiguration(getClientConfiguration());
-    builder.setRequestHandlers(s3ArtifactRequestHandler);
+    S3ClientBuilder builder = S3Client.builder();
+
+    ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder();
+    configureHttpClient(httpClientBuilder);
+    builder.httpClientBuilder(httpClientBuilder);
+
+    ClientOverrideConfiguration.Builder configBuilder = ClientOverrideConfiguration.builder();
+    configureClientOverrides(configBuilder);
+    configBuilder.addExecutionInterceptor(s3ArtifactRequestInterceptor);
+    configBuilder.addExecutionInterceptor(spectatorExecutionInterceptor);
+    builder.overrideConfiguration(configBuilder.build());
 
     if (!apiEndpoint.isEmpty()) {
-      AwsClientBuilder.EndpointConfiguration endpoint =
-          new AwsClientBuilder.EndpointConfiguration(apiEndpoint, apiRegion);
-      builder.setEndpointConfiguration(endpoint);
-      builder.setPathStyleAccessEnabled(true);
+      builder.endpointOverride(URI.create(apiEndpoint));
+      builder.forcePathStyle(true);
+      if (!apiRegion.isEmpty()) {
+        builder.region(Region.of(apiRegion));
+      }
     } else if (!region.isEmpty()) {
-      builder.setRegion(region);
+      builder.region(Region.of(region));
     }
 
     if (!awsAccessKeyId.isEmpty() && !awsSecretAccessKey.isEmpty()) {
-      BasicAWSCredentials awsStaticCreds =
-          new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey);
-      builder.withCredentials(new AWSStaticCredentialsProvider(awsStaticCreds));
+      AwsBasicCredentials awsCreds = AwsBasicCredentials.create(awsAccessKeyId, awsSecretAccessKey);
+      builder.credentialsProvider(StaticCredentialsProvider.create(awsCreds));
     }
 
-    amazonS3 = builder.build();
-    return amazonS3;
+    s3Client = builder.build();
+    return s3Client;
   }
 
   @Override
@@ -133,31 +153,29 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     }
     String bucketName = reference.substring(0, slash);
     String path = reference.substring(slash + 1);
-    S3Object s3obj;
+
     try {
-      s3obj = getS3Client().getObject(bucketName, path);
-    } catch (AmazonS3Exception e) {
-      // An out-of-the-box AmazonS3Exception doesn't include the bucket/key
+      GetObjectRequest getObjectRequest =
+          GetObjectRequest.builder().bucket(bucketName).key(path).build();
+
+      InputStream objectContent = getS3Client().getObject(getObjectRequest);
+
+      if (s3ArtifactValidator.isEmpty()) {
+        return objectContent;
+      }
+      return s3ArtifactValidator.get().validate(getS3Client(), bucketName, path, objectContent);
+    } catch (NoSuchKeyException e) {
+      log.error("S3 object not found: s3://{}/{}: '{}'", bucketName, path, e.getMessage());
+      // throw a more specific exception, to get more info to the caller
+      // and such that the resulting http response code isn't 500 since
+      // that this isn't a server error, nor is retryable.
+      throw new NotFoundException("s3://" + bucketName + "/" + path + " not found", e);
+    } catch (S3Exception e) {
+      // An out-of-the-box S3Exception doesn't include the bucket/key
       // name so it's hard to know what's actually failing.
       log.error("exception getting object: s3://{}/{}: '{}'", bucketName, path, e.getMessage());
-
-      // In case this is a "file not found" error, throw a more specific
-      // exception, to get more info to the caller, and such that the resulting
-      // http response code isn't 500 since that this isn't a server error, nor
-      // is retryable.
-      //
-      // See
-      // https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
-      // for the list of error codes.
-      if ("NoSuchKey".equals(e.getErrorCode())) {
-        throw new NotFoundException("s3://" + bucketName + "/" + path + " not found", e);
-      }
       throw e;
     }
-    if (s3ArtifactValidator.isEmpty()) {
-      return s3obj.getObjectContent();
-    }
-    return s3ArtifactValidator.get().validate(getS3Client(), s3obj);
   }
 
   @Override
@@ -165,62 +183,63 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     return CREDENTIALS_TYPE;
   }
 
-  private ClientConfiguration getClientConfiguration() {
-    ClientConfiguration configuration =
-        configuration = PredefinedClientConfigurations.defaultConfig();
-
-    if (!signerOverride.isEmpty()) {
-      configuration.setSignerOverride(signerOverride);
-    }
-
-    if (s3ArtifactProviderProperties.getClientExecutionTimeout() != null) {
-      configuration.setClientExecutionTimeout(
-          s3ArtifactProviderProperties.getClientExecutionTimeout());
-    }
+  private void configureHttpClient(ApacheHttpClient.Builder httpClientBuilder) {
     if (s3ArtifactProviderProperties.getConnectionMaxIdleMillis() != null) {
-      configuration.setConnectionMaxIdleMillis(
-          s3ArtifactProviderProperties.getConnectionMaxIdleMillis());
+      httpClientBuilder.connectionMaxIdleTime(
+          Duration.ofMillis(s3ArtifactProviderProperties.getConnectionMaxIdleMillis()));
     }
     if (s3ArtifactProviderProperties.getConnectionTimeout() != null) {
-      configuration.setConnectionTimeout(s3ArtifactProviderProperties.getConnectionTimeout());
+      httpClientBuilder.connectionTimeout(
+          Duration.ofMillis(s3ArtifactProviderProperties.getConnectionTimeout()));
     }
     if (s3ArtifactProviderProperties.getConnectionTTL() != null) {
-      configuration.setConnectionTTL(s3ArtifactProviderProperties.getConnectionTTL());
+      httpClientBuilder.connectionTimeToLive(
+          Duration.ofMillis(s3ArtifactProviderProperties.getConnectionTTL()));
     }
     if (s3ArtifactProviderProperties.getMaxConnections() != null) {
-      configuration.setMaxConnections(s3ArtifactProviderProperties.getMaxConnections());
-    }
-    if (s3ArtifactProviderProperties.getRequestTimeout() != null) {
-      configuration.setRequestTimeout(s3ArtifactProviderProperties.getRequestTimeout());
+      httpClientBuilder.maxConnections(s3ArtifactProviderProperties.getMaxConnections());
     }
     if (s3ArtifactProviderProperties.getSocketTimeout() != null) {
-      configuration.setSocketTimeout(s3ArtifactProviderProperties.getSocketTimeout());
+      httpClientBuilder.socketTimeout(
+          Duration.ofMillis(s3ArtifactProviderProperties.getSocketTimeout()));
     }
-    if (s3ArtifactProviderProperties.getValidateAfterInactivityMillis() != null) {
-      configuration.setValidateAfterInactivityMillis(
-          s3ArtifactProviderProperties.getValidateAfterInactivityMillis());
+  }
+
+  private void configureClientOverrides(ClientOverrideConfiguration.Builder configBuilder) {
+    if (s3ArtifactProviderProperties.getClientExecutionTimeout() != null) {
+      configBuilder.apiCallTimeout(
+          Duration.ofMillis(s3ArtifactProviderProperties.getClientExecutionTimeout()));
     }
-    return configuration;
   }
 
   @NonnullByDefault
-  static class S3ArtifactRequestHandler extends RequestHandler2 {
+  static class S3ArtifactRequestInterceptor implements ExecutionInterceptor {
 
-    private final String value;
+    /** The artifact account name */
+    private final String name;
 
-    S3ArtifactRequestHandler(String value) {
-      this.value = value;
+    private final S3ArtifactProviderProperties s3ArtifactProviderProperties;
+
+    /** To prevent logging the same endpoint multiple times */
+    private final Set<URI> endpoints = ConcurrentHashMap.newKeySet();
+
+    S3ArtifactRequestInterceptor(
+        String name, S3ArtifactProviderProperties s3ArtifactProviderProperties) {
+      this.name = name;
+      this.s3ArtifactProviderProperties = s3ArtifactProviderProperties;
     }
 
     @Override
-    public void beforeRequest(Request<?> request) {
-      // To get connection pool metrics, differentiate our client from others.
-      // Use SpectatorRequestMetricCollector.DEFAULT_HANDLER_CONTEXT_KEY to
-      // match what SpectatorRequestMetricCollector uses.  See
-      // https://github.com/Netflix/spectator/blob/v1.0.6/spectator-ext-aws/src/main/java/com/netflix/spectator/aws/SpectatorRequestMetricCollector.java#L108
-      // and
-      // https://github.com/Netflix/spectator/blob/v1.0.6/spectator-ext-aws/src/main/java/com/netflix/spectator/aws/SpectatorRequestMetricCollector.java#L177-L186.
-      request.addHandlerContext(SpectatorRequestMetricCollector.DEFAULT_HANDLER_CONTEXT_KEY, value);
+    public void beforeTransmission(
+        Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+      SdkHttpRequest request = context.httpRequest();
+
+      if (s3ArtifactProviderProperties.isLogEndpoints() && endpoints.add(request.getUri())) {
+        log.info(
+            "S3ArtifactRequestInterceptor::beforeTransmission: name: {}, endpoint: '{}'",
+            name,
+            request.getUri().toString());
+      }
     }
   }
 }

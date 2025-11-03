@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -41,6 +40,8 @@ import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilter
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector
@@ -57,20 +58,18 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.util.CollectionUtils
 import org.springframework.web.client.RestTemplate
-import retrofit.Endpoint
-
-import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
 @Configuration
 @Slf4j
-@EnableConfigurationProperties([PipelineControllerConfigProperties, ApplicationConfigurationProperties])
+@EnableConfigurationProperties([PipelineControllerConfigProperties,
+                                ApplicationConfigurationProperties,
+                                ProvidedIdRequestFilterConfigurationProperties])
 @Import([PluginsAutoConfiguration, DeckPluginConfiguration, PluginWebConfiguration])
 class GateConfig {
 
@@ -121,7 +120,6 @@ class GateConfig {
   }
 
   @Bean
-  @Primary
   FiatService fiatService() {
     // always create the fiat service even if 'services.fiat.enabled' is 'false' (it can be enabled dynamically)
     createClient "fiat", FiatService, null, true
@@ -176,7 +174,7 @@ class GateConfig {
 
       List<ServiceSelector> selectors = []
       endpoints.each { sourceApp, url ->
-        def service = buildService("clouddriver",  ClouddriverService, newFixedEndpoint(url))
+        def service = buildService("clouddriver",  ClouddriverService, url)
         selectors << new ByUserOriginSelector(service, 2, ['origin': (Object) sourceApp])
       }
 
@@ -238,7 +236,6 @@ class GateConfig {
       def noSslCustomizationProps = props.clone()
       noSslCustomizationProps.keyStore = null
       noSslCustomizationProps.trustStore = null
-      def okHttpClient = new OkHttp3ClientConfiguration(noSslCustomizationProps, interceptor).create().build()
       createClient "kayenta", KayentaService
     } else {
       createClient "kayenta", KayentaService
@@ -264,18 +261,18 @@ class GateConfig {
       return null
     }
 
-    Endpoint endpoint = serviceConfiguration.getServiceEndpoint(serviceName, dynamicName)
+    String endpoint = serviceConfiguration.getServiceEndpoint(serviceName, dynamicName)
 
     buildService(serviceName, type, endpoint)
   }
 
-  private <T> T buildService(String serviceName, Class<T> type, Endpoint endpoint) {
+  private <T> T buildService(String serviceName, Class<T> type, String endpoint) {
     ObjectMapper objectMapper = objectMapperBuilder.build() as ObjectMapper
     if(serviceName.equals("echo")) {
       objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
       objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, false)
     }
-    serviceClientProvider.getService(type, new DefaultServiceEndpoint(serviceName, endpoint.url), objectMapper)
+    serviceClientProvider.getService(type, new DefaultServiceEndpoint(serviceName, endpoint), objectMapper)
   }
 
   private <T> SelectableService createClientSelector(String serviceName, Class<T> type) {
@@ -290,7 +287,7 @@ class GateConfig {
           buildService(
             serviceName,
             type,
-            newFixedEndpoint(it.baseUrl)),
+            it.baseUrl),
           it.priority,
           it.config)
 
@@ -338,6 +335,20 @@ class GateConfig {
     return frb
   }
 
+  /**
+   * Ensure that tracing identifiers (e.g. X-SPINNAKER-REQUEST-ID,
+   * X-SPINNAKER-EXECUTION-ID) make it to the MDC early.  This way they're
+   * available for logging during the security filter chain, and are including
+   * in requests made during authentication (e.g. to fiat).
+   */
+  @ConditionalOnProperty("provided-id-request-filter.enabled")
+  @Bean
+  FilterRegistrationBean<ProvidedIdRequestFilter> providedIdRequestFilter(ProvidedIdRequestFilterConfigurationProperties providedIdRequestFilterConfigurationProperties) {
+    def frb = new FilterRegistrationBean<>(new ProvidedIdRequestFilter(providedIdRequestFilterConfigurationProperties));
+    frb.order = Ordered.HIGHEST_PRECEDENCE + 2
+    return frb
+  }
+
   @Bean
   FilterRegistrationBean<RequestSheddingFilter> requestSheddingFilter(DynamicConfigService dynamicConfigService) {
     def frb = new FilterRegistrationBean<>(new RequestSheddingFilter(dynamicConfigService, registry))
@@ -345,9 +356,10 @@ class GateConfig {
     /*
      * This filter should:
      * - be placed early in the request chain to allow for requests to be shed prior to the security filter chain.
-     * - be placed after the RequestLoggingFilter such that shed requests are logged.
+     * - be placed after the RequestLoggingFilter (if enabled) such that shed requests are logged.
+     * - be placed after the ProvidedIdRequestFilter (if enabled) such that shed requests are logged.
      */
-    frb.order = Ordered.HIGHEST_PRECEDENCE + 2
+    frb.order = Ordered.HIGHEST_PRECEDENCE + 3
     return frb
   }
 

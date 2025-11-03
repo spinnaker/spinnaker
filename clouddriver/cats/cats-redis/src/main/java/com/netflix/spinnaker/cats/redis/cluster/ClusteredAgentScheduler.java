@@ -43,10 +43,12 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 import redis.clients.jedis.params.SetParams;
 
 public class ClusteredAgentScheduler extends CatsModuleAware
     implements AgentScheduler<AgentLock>, Runnable {
+
   private enum Status {
     SUCCESS,
     FAILURE
@@ -71,8 +73,21 @@ public class ClusteredAgentScheduler extends CatsModuleAware
   private final Map<String, NextAttempt> activeAgents = new ConcurrentHashMap<>();
 
   private final NodeStatusProvider nodeStatusProvider;
+  private final HealthEndpoint healthEndpoint;
   private final DynamicConfigService dynamicConfigService;
   private final ShardingFilter shardingFilter;
+
+  // flag that enables the capability to wait for the health check to be successful before running
+  // caching agents
+  private final boolean waitOnHealthCheckEnabled;
+
+  // this flag is applicable when clustered.agent.scheduler.wait-on-health-check-enabled: true.
+  // It is set to true only when the health check is successful (i.e. health endpoint status == UP).
+  private Boolean healthyOnce;
+
+  // this flag is applicable when clustered.agent.scheduler.wait-on-health-check-enabled: true.
+  // It specifies the amount of time to wait before running caching agents.
+  private final long startUpDelay;
 
   private static final long MIN_TTL_THRESHOLD = 500L;
   private static final String SET_IF_NOT_EXIST = "NX";
@@ -93,6 +108,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
       NodeIdentity nodeIdentity,
       AgentIntervalProvider intervalProvider,
       NodeStatusProvider nodeStatusProvider,
+      HealthEndpoint healthEndpoint,
       String enabledAgentPattern,
       Integer agentLockAcquisitionIntervalSeconds,
       DynamicConfigService dynamicConfigService,
@@ -102,6 +118,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
         nodeIdentity,
         intervalProvider,
         nodeStatusProvider,
+        healthEndpoint,
         Executors.newSingleThreadScheduledExecutor(
             new ThreadFactoryBuilder()
                 .setNameFormat(ClusteredAgentScheduler.class.getSimpleName() + "-%d")
@@ -121,16 +138,19 @@ public class ClusteredAgentScheduler extends CatsModuleAware
       NodeIdentity nodeIdentity,
       AgentIntervalProvider intervalProvider,
       NodeStatusProvider nodeStatusProvider,
+      HealthEndpoint healthEndpoint,
       ScheduledExecutorService lockPollingScheduler,
       ExecutorService agentExecutionPool,
       String enabledAgentPattern,
       Integer agentLockAcquisitionIntervalSeconds,
       DynamicConfigService dynamicConfigService,
       ShardingFilter shardingFilter) {
+    this.healthyOnce = false;
     this.redisClientDelegate = redisClientDelegate;
     this.nodeIdentity = nodeIdentity;
     this.intervalProvider = intervalProvider;
     this.nodeStatusProvider = nodeStatusProvider;
+    this.healthEndpoint = healthEndpoint;
     this.agentExecutionPool = agentExecutionPool;
     this.enabledAgentPattern = Pattern.compile(enabledAgentPattern);
     this.dynamicConfigService = dynamicConfigService;
@@ -139,6 +159,21 @@ public class ClusteredAgentScheduler extends CatsModuleAware
         agentLockAcquisitionIntervalSeconds == null ? 1 : agentLockAcquisitionIntervalSeconds;
 
     lockPollingScheduler.scheduleAtFixedRate(this, 0, lockInterval, TimeUnit.SECONDS);
+
+    this.waitOnHealthCheckEnabled =
+        dynamicConfigService.getConfig(
+            Boolean.class, "clustered.agent.scheduler.wait-on-health-check-enabled", false);
+    logger.info("delay starting agents after health check: {}", waitOnHealthCheckEnabled);
+
+    // the default value of 75s is set after observing how long, on average, it takes k8s to
+    // discover that the pod is up and running.
+    this.startUpDelay =
+        dynamicConfigService
+            .getConfig(
+                Integer.class,
+                "clustered.agent.scheduler.wait-time-after-successful-health-check-seconds",
+                75)
+            .longValue();
   }
 
   private Map<String, NextAttempt> acquire() {
@@ -186,11 +221,13 @@ public class ClusteredAgentScheduler extends CatsModuleAware
     if (!nodeStatusProvider.isNodeEnabled()) {
       return;
     }
-    try {
-      pruneActiveAgents();
-      runAgents();
-    } catch (Throwable t) {
-      logger.error("Unable to run agents", t);
+    if (shouldRunAgents()) {
+      try {
+        pruneActiveAgents();
+        runAgents();
+      } catch (Throwable t) {
+        logger.error("Unable to run agents", t);
+      }
     }
   }
 
@@ -408,6 +445,40 @@ public class ClusteredAgentScheduler extends CatsModuleAware
             action.getAgent().getAgentType(), lockReleaseTime.getNextTime(status));
       }
     }
+  }
+
+  private boolean isHealthy() {
+    return healthEndpoint.health().getStatus().getCode().equals("UP");
+  }
+
+  // This is to give k8s a chance to get the health status before the clouddriver pod gets super
+  // busy
+  // running caching agents.
+  // We have noticed that it takes a while for k8s to report the pod as healthy even after the
+  // health endpoint
+  // status is UP. This is mainly due to the jvm becoming busy and probe calls timing out randomly
+  // when these
+  // caching agents are started. So this function waits for a configured amount of time if the
+  // health check is
+  // successful.
+  private boolean shouldRunAgents() {
+    if (waitOnHealthCheckEnabled && !healthyOnce) {
+      if (isHealthy()) {
+        healthyOnce = true;
+        try {
+          logger.info(
+              "health check is successful. Waiting for {} seconds before starting agents",
+              startUpDelay);
+          TimeUnit.SECONDS.sleep(startUpDelay);
+        } catch (final InterruptedException e) {
+          logger.warn("error occurred in delaying agent startup. Ignoring this error.", e);
+        }
+      } else {
+        logger.warn("health check is not successful. Not starting agents");
+        return false;
+      }
+    }
+    return true;
   }
 
   private static class AgentExecutionAction {

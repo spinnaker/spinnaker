@@ -48,7 +48,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @Slf4j
 @GateSystemTest
 @SpringBootTest(
-    properties = ['retrofit.enabled=false','ldap.enabled=true', 'spring.application.name=gate', 'fiat.enabled=false', 'services.fiat.baseUrl=https://localhost'])
+    properties = ['ldap.enabled=true', 'spring.application.name=gate', 'fiat.enabled=false', 'services.fiat.baseUrl=https://localhost'])
 @ContextConfiguration(
   classes = [LdapSsoConfig, Main, LdapTestConfig, RedisTestConfig],
   initializers = YamlFileApplicationContextInitializer

@@ -5,6 +5,17 @@ on:
   schedule:
     - cron: '22 20 * * *'
 
+  push:
+    branches:
+      - main
+      - release-*
+    paths:
+      - '.github/workflows/codeql-analysis.yml'
+
+  pull_request:
+    paths:
+      - '.github/workflows/codeql-analysis.yml'
+
 jobs:
   analyze:
     name: Analyze
@@ -25,16 +36,16 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
         config-file: ${{ matrix.project }}/codeql-config.yml
         source-root: ${{ matrix.project }}
 
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       with:
         java-version: '17'
         distribution: zulu
@@ -47,4 +58,4 @@ jobs:
         ./gradlew :${{ matrix.project }}:assemble
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4

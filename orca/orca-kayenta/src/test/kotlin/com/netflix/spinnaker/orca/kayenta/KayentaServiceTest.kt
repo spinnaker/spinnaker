@@ -44,8 +44,6 @@ import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import retrofit.Endpoint
-import retrofit.Endpoints.newFixedEndpoint
 
 object KayentaServiceTest : Spek({
 
@@ -519,5 +517,3 @@ object KayentaServiceTest : Spek({
   }
 })
 
-val WireMockServer.endpoint: Endpoint
-  get() = newFixedEndpoint(url("/"))

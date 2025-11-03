@@ -19,10 +19,12 @@ package com.netflix.spinnaker.clouddriver.artifacts.http;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import com.netflix.spinnaker.clouddriver.artifacts.config.BasicAuth;
+import com.netflix.spinnaker.clouddriver.artifacts.config.HttpUrlRestrictions;
+import com.netflix.spinnaker.clouddriver.artifacts.config.UserInputValidatedArtifactAccount;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
@@ -30,8 +32,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 @NonnullByDefault
 @Value
-public class HttpArtifactAccount implements ArtifactAccount, BasicAuth {
-  private final String name;
+public class HttpArtifactAccount extends UserInputValidatedArtifactAccount implements BasicAuth {
   /*
    One of the following are required for auth:
     - username and password
@@ -45,8 +46,12 @@ public class HttpArtifactAccount implements ArtifactAccount, BasicAuth {
   @ConstructorBinding
   @ParametersAreNullableByDefault
   public HttpArtifactAccount(
-      String name, String username, String password, String usernamePasswordFile) {
-    this.name = Strings.nullToEmpty(name);
+      String name,
+      String username,
+      String password,
+      String usernamePasswordFile,
+      @Nullable HttpUrlRestrictions urlRestrictions) {
+    super(name, Optional.ofNullable(urlRestrictions).orElse(HttpUrlRestrictions.builder().build()));
     this.username = Optional.ofNullable(Strings.emptyToNull(username));
     this.password = Optional.ofNullable(Strings.emptyToNull(password));
     this.usernamePasswordFile = Optional.ofNullable(Strings.emptyToNull(usernamePasswordFile));

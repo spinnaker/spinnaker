@@ -36,6 +36,7 @@ object RetryPolled : QueueEvent()
 data class MessagePushed(val payload: Message) : QueueEvent()
 object MessageAcknowledged : QueueEvent()
 object MessageRetried : QueueEvent()
+object MessageRetryFailed : QueueEvent()
 data class MessageProcessing(val payload: Message, val lag: Duration) : QueueEvent() {
   constructor(payload: Message, scheduledTime: Instant, now: Instant) :
     this(payload, Duration.between(scheduledTime, now))

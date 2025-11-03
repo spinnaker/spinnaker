@@ -29,7 +29,6 @@ import com.netflix.spinnaker.kork.client.ServiceClientFactory
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import okhttp3.OkHttpClient
@@ -98,12 +97,7 @@ private open class TestConfiguration {
 
   @Bean
   open fun okHttpClientProvider(okHttpClient: OkHttpClient): OkHttpClientProvider {
-    return OkHttpClientProvider(listOf(DefaultOkHttpClientBuilderProvider(okHttpClient,  OkHttpClientConfigurationProperties())), Retrofit2EncodeCorrectionInterceptor())
-  }
-
-  @Bean
-  open fun spinnakerRequestInterceptor(): SpinnakerRequestInterceptor {
-    return SpinnakerRequestInterceptor(true)
+    return OkHttpClientProvider(listOf(DefaultOkHttpClientBuilderProvider(okHttpClient,  OkHttpClientConfigurationProperties())))
   }
 
   @Bean

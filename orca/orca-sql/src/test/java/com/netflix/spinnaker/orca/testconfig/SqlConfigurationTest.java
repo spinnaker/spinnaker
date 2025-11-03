@@ -62,7 +62,6 @@ class SqlConfigurationTest {
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
           .withPropertyValues(
-              "retrofit.enabled=false",
               "sql.enabled=true",
               "sql.connectionPools.default.default=true",
               "sql.connectionPools.default.jdbcUrl=" + SqlTestUtil.tcJdbcUrl,

@@ -72,10 +72,10 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
       String account,
       String cluster,
       String serverGroup,
-      String region,
-      String cloudProvider) {
+      String cloudProvider,
+      String region) {
     return getService()
-        .getServerGroupFromCluster(app, account, cluster, serverGroup, region, cloudProvider);
+        .getServerGroupFromCluster(app, account, cluster, serverGroup, cloudProvider, region);
   }
 
   @Override
@@ -177,7 +177,7 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
-  public Call<Map> getCloudFormationStack(String stackId) {
+  public Call<Map<String, Object>> getCloudFormationStack(String stackId) {
     return getService().getCloudFormationStack(stackId);
   }
 
@@ -190,5 +190,10 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   @Override
   public Call<List<Map<String, Object>>> getCredentials(boolean expand) {
     return getService().getCredentials(expand);
+  }
+
+  @Override
+  public Call<Map<String, Object>> getCredentialsAuthorized(String account, boolean expand) {
+    return getService().getCredentialsAuthorized(account, expand);
   }
 }

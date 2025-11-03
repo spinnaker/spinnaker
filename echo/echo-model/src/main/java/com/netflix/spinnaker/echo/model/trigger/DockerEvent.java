@@ -17,28 +17,15 @@
 package com.netflix.spinnaker.echo.model.trigger;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
-@Data
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DockerEvent extends TriggerEvent {
+public class DockerEvent extends AbstractOCIRegistryEvent {
   public static final String TYPE = "DOCKER";
 
-  Content content;
-
-  @Data
-  @AllArgsConstructor
-  @NoArgsConstructor
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Content {
-    private String account;
-    private String registry;
-    private String repository;
-    private String tag;
-    private String digest;
+  @Override
+  public String getEventType() {
+    return TYPE;
   }
 }

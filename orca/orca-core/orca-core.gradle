@@ -19,7 +19,6 @@ apply from: "$rootDir/gradle/detekt.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 
-
 dependencies {
   api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")
   api("io.spinnaker.kork:kork-artifacts")
@@ -43,6 +42,7 @@ dependencies {
   implementation("com.netflix.frigga:frigga")
   implementation("com.netflix.spectator:spectator-api")
   implementation("io.spinnaker.kork:kork-core")
+  implementation("io.spinnaker.kork:kork-web")
   implementation("net.logstash.logback:logstash-logback-encoder")
   implementation("org.springframework.security:spring-security-web")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
@@ -72,4 +72,10 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
+}
+test {
+  useJUnitPlatform()
+}
+tasks.named('test') {
+  jvmArgs += "--add-opens=java.base/java.util=ALL-UNNAMED"
 }

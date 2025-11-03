@@ -107,11 +107,11 @@ public class AppengineConfigurationProperties {
 
     interface MetadataService {
       @Headers("Metadata-Flavor: Google")
-      @GET("/project/project-id")
+      @GET("project/project-id")
       Call<ResponseBody> getProject();
 
       @Headers("Metadata-Flavor: Google")
-      @GET("/instance/service-accounts/default/email")
+      @GET("instance/service-accounts/default/email")
       Call<ResponseBody> getApplicationDefaultServiceAccountEmail();
     }
 

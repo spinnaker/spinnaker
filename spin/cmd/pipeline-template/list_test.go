@@ -71,6 +71,36 @@ func TestPipelineTemplateList_fail(t *testing.T) {
 	}
 }
 
+func TestPipelineTemplateList_noScopesParameter(t *testing.T) {
+	ts := testGatePipelineTemplateListNoScopesParameter()
+	defer ts.Close()
+
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
+
+	args := []string{"pipeline-template", "list", "--gate-endpoint", ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+}
+
+func TestPipelineTemplateList_withScopesParameter(t *testing.T) {
+	ts := testGatePipelineTemplateListWithScopesParameter()
+	defer ts.Close()
+
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
+
+	args := []string{"pipeline-template", "list", "--scopes", "specific", "--gate-endpoint", ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err != nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+}
+
 // testGatePipelineTemplateListSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with a 200 and a well-formed pipelineTemplate list.
 func testGatePipelineTemplateListSuccess() *httptest.Server {
@@ -87,6 +117,44 @@ func testGateScopedPipelineTemplateListSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/pipelineTemplates/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, strings.TrimSpace(scopedPipelineTemplateListJson))
+	}))
+	return httptest.NewServer(mux)
+}
+
+// testGatePipelineTemplateListNoScopesParameter spins up a local http server that verifies
+// that when no scopes are provided, the scopes parameter is not sent to the API at all.
+// This test verifies the fix for the issue where empty scopes array was causing empty results.
+func testGatePipelineTemplateListNoScopesParameter() *httptest.Server {
+	mux := util.TestGateMuxWithVersionHandler()
+	mux.Handle("/v2/pipelineTemplates/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Verify that when no scopes are provided by user, no scopes parameter is sent to API
+		scopes := r.URL.Query().Get("scopes")
+		if scopes != "" {
+			// If scopes parameter is present, it should only be when explicitly provided
+			http.Error(w, "Unexpected scopes parameter when none should be provided", http.StatusBadRequest)
+			return
+		}
+
+		// Return successful response when no scopes parameter is present
+		fmt.Fprintln(w, strings.TrimSpace(pipelineTemplateListJson))
+	}))
+	return httptest.NewServer(mux)
+}
+
+// testGatePipelineTemplateListWithScopesParameter verifies that when scopes are explicitly provided,
+// they are correctly sent to the API as query parameters.
+func testGatePipelineTemplateListWithScopesParameter() *httptest.Server {
+	mux := util.TestGateMuxWithVersionHandler()
+	mux.Handle("/v2/pipelineTemplates/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Verify that when scopes are provided by user, they are correctly sent to API
+		scopes := r.URL.Query().Get("scopes")
+		if scopes == "" {
+			http.Error(w, "Scopes parameter is required", http.StatusBadRequest)
+			return
+		}
+
+		// Return successful response when scopes parameter is present
+		fmt.Fprintln(w, strings.TrimSpace(pipelineTemplateListJson))
 	}))
 	return httptest.NewServer(mux)
 }

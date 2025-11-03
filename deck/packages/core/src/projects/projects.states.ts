@@ -2,13 +2,13 @@ import type { StateParams } from '@uirouter/angularjs';
 import { module } from 'angular';
 
 import { ProjectHeader } from './ProjectHeader';
+import { Projects } from './Projects';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
 import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
 import { CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER } from './dashboard/dashboard.controller';
 import type { IProject } from '../domain/IProject';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
 import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
-import { CORE_PROJECTS_PROJECTS_CONTROLLER } from './projects.controller';
 import { ProjectReader } from './service/ProjectReader';
 
 export interface IProjectStateParms extends StateParams {
@@ -17,7 +17,6 @@ export interface IProjectStateParms extends StateParams {
 
 export const PROJECTS_STATES_CONFIG = 'spinnaker.core.projects.state.config';
 module(PROJECTS_STATES_CONFIG, [
-  CORE_PROJECTS_PROJECTS_CONTROLLER,
   CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER,
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
@@ -58,7 +57,7 @@ module(PROJECTS_STATES_CONFIG, [
                   email: null,
                   config: null,
                   notFound: true,
-                };
+                } as IProject;
               },
             );
           },
@@ -88,9 +87,8 @@ module(PROJECTS_STATES_CONFIG, [
       url: '/projects',
       views: {
         'main@': {
-          templateUrl: require('../projects/projects.html'),
-          controller: 'ProjectsCtrl',
-          controllerAs: 'ctrl',
+          component: Projects,
+          $type: 'react',
         },
       },
       data: {

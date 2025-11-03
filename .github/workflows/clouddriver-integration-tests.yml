@@ -9,10 +9,16 @@ on:
       - release-*
     paths:
       - 'clouddriver/**'
+      - 'fiat/**'
+      - 'kork/**'
+      - '.github/workflows/clouddriver-integration-tests.yml'
 
   pull_request:
     paths:
       - 'clouddriver/**'
+      - 'fiat/**'
+      - 'kork/**'
+      - '.github/workflows/clouddriver-integration-tests.yml'
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx10g -Xms10g
@@ -21,8 +27,8 @@ jobs:
   it-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v5
+    - uses: actions/setup-java@v5
       with:
         java-version: |
           17

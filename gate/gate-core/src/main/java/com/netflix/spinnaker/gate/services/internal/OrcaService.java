@@ -17,11 +17,11 @@ import retrofit2.http.Query;
 
 public interface OrcaService {
   @Headers("Content-type: application/context+json")
-  @POST("/ops")
+  @POST("ops")
   Call<Map> doOperation(@Body Map<String, Object> body);
 
   @Headers("Accept: application/json")
-  @GET("/applications/{application}/tasks")
+  @GET("applications/{application}/tasks")
   Call<List> getTasks(
       @Path("application") String app,
       @Query("page") Integer page,
@@ -29,7 +29,7 @@ public interface OrcaService {
       @Query("statuses") String statuses);
 
   @Headers("Accept: application/json")
-  @GET("/v2/applications/{application}/pipelines")
+  @GET("v2/applications/{application}/pipelines")
   Call<List> getPipelines(
       @Path("application") String app,
       @Query("limit") Integer limit,
@@ -37,30 +37,30 @@ public interface OrcaService {
       @Query("expand") Boolean expand);
 
   @Headers("Accept: application/json")
-  @GET("/projects/{projectId}/pipelines")
+  @GET("projects/{projectId}/pipelines")
   Call<List<Map>> getPipelinesForProject(
       @Path("projectId") String projectId,
       @Query("limit") Integer limit,
       @Query("statuses") String statuses);
 
   @Headers("Accept: application/json")
-  @GET("/tasks/{id}")
+  @GET("tasks/{id}")
   Call<Map> getTask(@Path("id") String id);
 
   @Headers("Accept: application/json")
-  @DELETE("/tasks/{id}")
+  @DELETE("tasks/{id}")
   Call<Map> deleteTask(@Path("id") String id);
 
   @Headers("Accept: application/json")
-  @PUT("/tasks/{id}/cancel")
+  @PUT("tasks/{id}/cancel")
   Call<Map> cancelTask(@Path("id") String id, @Body String ignored);
 
   @Headers("Accept: application/json")
-  @PUT("/tasks/cancel")
+  @PUT("tasks/cancel")
   Call<Map> cancelTasks(@Body List<String> taskIds);
 
   @Headers("Accept: application/json")
-  @GET("/pipelines")
+  @GET("pipelines")
   Call<List> getSubsetOfExecutions(
       @Query("pipelineConfigIds") String pipelineConfigIds,
       @Query("executionIds") String executionIds,
@@ -68,8 +68,14 @@ public interface OrcaService {
       @Query("statuses") String statuses,
       @Query("expand") boolean expand);
 
+  @GET("/pipelines/failedStages")
+  Call<List<Object>> getFailedStagesForPipelineExecution(
+      @Query("executionId") String executionId,
+      @Query("deckOrigin") String deckOrigin,
+      @Query("limit") Integer limit);
+
   @Headers("Accept: application/json")
-  @GET("/applications/{application}/pipelines/search")
+  @GET("applications/{application}/pipelines/search")
   Call<List> searchForPipelineExecutionsByTrigger(
       @Path("application") String application,
       @Query("triggerTypes") String triggerTypes,
@@ -85,11 +91,11 @@ public interface OrcaService {
       @Query("expand") boolean expand);
 
   @Headers("Accept: application/json")
-  @GET("/pipelines/{id}")
+  @GET("pipelines/{id}")
   Call<Map> getPipeline(@Path("id") String id);
 
   @Headers("Accept: application/json")
-  @PUT("/pipelines/{id}/cancel")
+  @PUT("pipelines/{id}/cancel")
   Call<Void> cancelPipeline(
       @Path("id") String id,
       @Query("reason") String reason,
@@ -113,43 +119,43 @@ public interface OrcaService {
   Call<Void> pausePipeline(@Path("id") String id, @Body String ignored);
 
   @Headers("Accept: application/json")
-  @PUT("/pipelines/{id}/resume")
+  @PUT("pipelines/{id}/resume")
   Call<Void> resumePipeline(@Path("id") String id, @Body String ignored);
 
   @Headers("Accept: application/json")
-  @DELETE("/pipelines/{id}")
+  @DELETE("pipelines/{id}")
   Call<Void> deletePipeline(@Path("id") String id);
 
   @Headers("Accept: application/json")
-  @PUT("/pipelines/{executionId}/stages/{stageId}/restart")
+  @PUT("pipelines/{executionId}/stages/{stageId}/restart")
   Call<Map> restartPipelineStage(
       @Path("executionId") String executionId,
       @Path("stageId") String stageId,
       @Body Map restartDetails);
 
   @Headers("Accept: application/json")
-  @POST("/orchestrate")
+  @POST("orchestrate")
   Call<Map> startPipeline(@Body Map pipelineConfig, @Query("user") String user);
 
   @Headers("Accept: application/json")
-  @PATCH("/pipelines/{executionId}/stages/{stageId}")
+  @PATCH("pipelines/{executionId}/stages/{stageId}")
   Call<Map> updatePipelineStage(
       @Path("executionId") String executionId, @Path("stageId") String stageId, @Body Map context);
 
   @Headers("Accept: application/json")
-  @GET("/pipelines/{id}/evaluateExpression")
+  @GET("pipelines/{id}/evaluateExpression")
   Call<Map> evaluateExpressionForExecution(
       @Path("id") String executionId, @Query("expression") String pipelineExpression);
 
   @Headers("Accept: application/json")
-  @GET("/pipelines/{id}/{stageId}/evaluateExpression")
+  @GET("pipelines/{id}/{stageId}/evaluateExpression")
   Call<Map> evaluateExpressionForExecutionAtStage(
       @Path("id") String executionId,
       @Path("stageId") String stageId,
       @Query("expression") String pipelineExpression);
 
   @Headers("Accept: application/json")
-  @POST("/pipelines/{id}/evaluateVariables")
+  @POST("pipelines/{id}/evaluateVariables")
   Call<Map> evaluateVariables(
       @Path("id") String id,
       @Query("requisiteStageRefIds") String requisiteStageRefIds,
@@ -157,40 +163,40 @@ public interface OrcaService {
       @Body List<Map<String, String>> expressions);
 
   @Headers("Accept: application/json")
-  @GET("/webhooks/preconfigured")
+  @GET("webhooks/preconfigured")
   Call<List> preconfiguredWebhooks();
 
   @Headers("Accept: application/json")
-  @GET("/jobs/preconfigured")
+  @GET("jobs/preconfigured")
   Call<List> getPreconfiguredJobs();
 
   @Headers("Accept: application/json")
-  @GET("/pipelineTemplate")
+  @GET("pipelineTemplate")
   Call<Map> resolvePipelineTemplate(
       @Query("source") String source,
       @Query("executionId") String executionId,
       @Query("pipelineConfigId") String pipelineConfigId);
 
-  @POST("/convertPipelineToTemplate")
+  @POST("convertPipelineToTemplate")
   Call<ResponseBody> convertToPipelineTemplate(@Body Map<String, ? extends Object> pipelineConfig);
 
   @Headers("Accept: application/json")
-  @POST("/v2/pipelineTemplates/plan")
+  @POST("v2/pipelineTemplates/plan")
   Call<Map<String, Object>> plan(@Body Map<String, Object> pipelineConfig);
 
-  @POST("/concourse/stage/start")
+  @POST("concourse/stage/start")
   Call<ResponseBody> concourseStageExecution(
       @Query("stageId") String stageId,
       @Query("job") String job,
       @Query("buildNumber") Integer buildNumber,
       @Body String emptyBody);
 
-  @GET("/capabilities/deploymentMonitors")
+  @GET("capabilities/deploymentMonitors")
   Call<List<Object>> getDeploymentMonitors();
 
-  @GET("/capabilities/expressions")
+  @GET("capabilities/expressions")
   Call<Map> getExpressionCapabilities();
 
-  @GET("/installedPlugins")
+  @GET("installedPlugins")
   Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 }

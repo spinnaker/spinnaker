@@ -40,11 +40,13 @@ dependencies {
   testImplementation(project(":orca-pipelinetemplate"))
   testImplementation("com.github.ben-manes.caffeine:guava")
   testImplementation("org.apache.groovy:groovy-json")
-  testRuntimeOnly("net.bytebuddy:byte-buddy")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-junit-jupiter")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testRuntimeOnly("net.bytebuddy:byte-buddy")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 sourceSets {

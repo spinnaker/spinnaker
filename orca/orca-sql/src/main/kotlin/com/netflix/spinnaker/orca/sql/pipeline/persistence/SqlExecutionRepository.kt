@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
@@ -239,8 +240,14 @@ class SqlExecutionRepository(
       }
       if (execution.status == NOT_STARTED) {
         execution.status = ExecutionStatus.CANCELED
+      } else if (!execution.status.isComplete
+        && execution.stages.all { it.status.isComplete || it.status == NOT_STARTED }) {
+        // In some cases, a race condition could occur between a pipeline cancellation and completion.
+        // This could cause the pipeline status to be incorrectly updated to RUNNING even when there are
+        // no more stages to run, resulting in the pipeline remaining in the RUNNING state indefinitely.
+        // Explicitly setting the status to CANCELED here takes care of such race conditions.
+        execution.status = CANCELED
       }
-
       storeExecutionInternal(dslContext, execution)
     }
   }
@@ -574,14 +581,11 @@ class SqlExecutionRepository(
    * It executes the following query to get execution details for n executions at a time in a specific application
    *
    * SELECT id, body, compressed_body, compression_type, `partition`
-       FROM pipelines force index (`pipeline_application_idx`)
+       FROM pipelines
        left outer join
        pipelines_compressed_executions
        using (`id`)
-       WHERE (
-         application = "<myapp>" and
-         id in ('id1', 'id2', 'id3')
-       );
+       WHERE id in ('id1', 'id2', 'id3');
    *
    * it then gets all the stage information for all the executions returned from the above query.
    */
@@ -590,17 +594,11 @@ class SqlExecutionRepository(
     pipelineExecutions: List<String>,
     queryTimeoutSeconds: Int
   ): Collection<PipelineExecution> {
-    withPool(poolName) {
+    withPool(readPoolName) {
       val baseQuery = jooq.select(selectExecutionFields(compressionProperties))
-        .from(
-          if (jooq.dialect() == SQLDialect.MYSQL) PIPELINE.tableName.forceIndex("pipeline_application_idx")
-          else PIPELINE.tableName
-        )
+        .from(PIPELINE.tableName)
         .leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
-        .where(
-          field("application").eq(application)
-            .and(field("id").`in`(*pipelineExecutions.toTypedArray()))
-        )
+        .where(field("id").`in`(*pipelineExecutions.toTypedArray()))
         .queryTimeout(queryTimeoutSeconds) // add an explicit timeout so that the query doesn't run forever
         .fetch()
 

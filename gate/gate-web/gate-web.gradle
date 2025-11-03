@@ -42,12 +42,6 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-aop"
   implementation "io.github.resilience4j:resilience4j-spring-boot2"
 
-  implementation "com.graphql-java-kickstart:graphql-spring-boot-starter:7.0.1"
-  implementation "com.graphql-java-kickstart:graphql-java-tools:6.0.2"
-  implementation ("com.graphql-java:graphql-java:14.0") { // To avoid version bump with spring boot 2.7.x upgrade.
-      force = true					   // Unpin it after adoption of spring-boot-starter-graphql
-   }
-
   implementation "org.springdoc:springdoc-openapi-ui:1.8.0"
 
   implementation "io.cloudevents:cloudevents-spring:2.5.0"
@@ -57,10 +51,9 @@ dependencies {
   runtimeOnly "io.spinnaker.kork:kork-runtime"
   runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
 
-  testImplementation "com.graphql-java-kickstart:graphql-spring-boot-starter-test:7.0.1"
-
   testImplementation project(":gate-ldap") // TODO: Move system tests to own module
   testImplementation project(":gate-basic")
+  testImplementation project(":gate-header")
   testImplementation project(":gate-oauth2")
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "com.squareup.okhttp3:mockwebserver"
@@ -75,7 +68,7 @@ dependencies {
   testImplementation "com.squareup.retrofit2:converter-jackson"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "org.springframework.security:spring-security-oauth2-client"
-
+  testImplementation "org.apache.httpcomponents:httpclient"
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {

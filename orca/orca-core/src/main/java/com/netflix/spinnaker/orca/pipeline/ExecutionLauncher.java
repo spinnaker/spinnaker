@@ -26,9 +26,11 @@ import static java.util.Collections.emptyMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.exceptions.UserException;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -40,14 +42,18 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.util.StringUtils;
 import java.time.Clock;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
@@ -66,6 +72,8 @@ public class ExecutionLauncher {
   private final Optional<Registry> registry;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final ExecutionConfigurationProperties executionConfigurationProperties;
+  private final ProvidedIdRequestFilterConfigurationProperties
+      providedIdRequestFilterConfigurationProperties;
 
   @Autowired
   public ExecutionLauncher(
@@ -76,7 +84,9 @@ public class ExecutionLauncher {
       ApplicationEventPublisher applicationEventPublisher,
       Optional<PipelineValidator> pipelineValidator,
       Optional<Registry> registry,
-      ExecutionConfigurationProperties executionConfigurationProperties) {
+      ExecutionConfigurationProperties executionConfigurationProperties,
+      ProvidedIdRequestFilterConfigurationProperties
+          providedIdRequestFilterConfigurationProperties) {
     this.objectMapper = objectMapper;
     this.executionRepository = executionRepository;
     this.executionRunner = executionRunner;
@@ -85,10 +95,23 @@ public class ExecutionLauncher {
     this.pipelineValidator = pipelineValidator;
     this.registry = registry;
     this.executionConfigurationProperties = executionConfigurationProperties;
+    this.providedIdRequestFilterConfigurationProperties =
+        providedIdRequestFilterConfigurationProperties;
   }
 
+  /** Start executing a top-level pipeline */
   public PipelineExecution start(ExecutionType type, Map<String, Object> config) {
-    final PipelineExecution execution = parse(type, config);
+    return start(type, config, null /* rootId */);
+  }
+
+  /**
+   * Start executing a pipeline
+   *
+   * @param rootId for child pipelines, the execution id of the root / top-most parent. Null for
+   *     top-level pipelines.
+   */
+  public PipelineExecution start(ExecutionType type, Map<String, Object> config, String rootId) {
+    final PipelineExecution execution = parse(type, config, rootId);
     final PipelineExecution existingExecution = checkForCorrelatedExecution(execution);
     if (existingExecution != null) {
       return existingExecution;
@@ -108,14 +131,22 @@ public class ExecutionLauncher {
     return execution;
   }
 
+  /** Log that an execution of a top-level pipeline failed. */
+  public PipelineExecution fail(ExecutionType type, Map<String, Object> config, Exception e) {
+    return fail(type, config, null /* rootId */, e);
+  }
+
   /**
    * Log that an execution failed; useful if a pipeline failed validation and we want to persist the
    * failure to the execution history but don't actually want to attempt to run the execution.
    *
+   * @param rootId for child pipelines, the execution id of the root / top-most parent. Null for
+   *     top-level pipelines.
    * @param e the exception that was thrown during pipeline validation
    */
-  public PipelineExecution fail(ExecutionType type, Map<String, Object> config, Exception e) {
-    final PipelineExecution execution = parse(type, config);
+  public PipelineExecution fail(
+      ExecutionType type, Map<String, Object> config, String rootId, Exception e) {
+    final PipelineExecution execution = parse(type, config, rootId);
 
     persistExecution(execution);
 
@@ -197,10 +228,10 @@ public class ExecutionLauncher {
     executionRepository.cancel(execution.getType(), execution.getId(), canceledBy, reason);
   }
 
-  private PipelineExecution parse(ExecutionType type, Map<String, Object> config) {
+  private PipelineExecution parse(ExecutionType type, Map<String, Object> config, String rootId) {
     switch (type) {
       case PIPELINE:
-        return parsePipeline(config);
+        return parsePipeline(config, rootId);
       case ORCHESTRATION:
         return parseOrchestration(config);
       default:
@@ -208,35 +239,52 @@ public class ExecutionLauncher {
     }
   }
 
-  private PipelineExecution parsePipeline(Map<String, Object> config) {
+  @VisibleForTesting
+  PipelineExecution parsePipeline(Map<String, Object> config, String rootId) {
     // TODO: can we not just annotate the class properly to avoid all this?
-    return new PipelineBuilder(getString(config, "application"))
-        .withId(getString(config, "executionId"))
-        .withName(getString(config, "name"))
-        .withPipelineConfigId(getString(config, "id"))
-        .withTrigger(objectMapper.convertValue(config.get("trigger"), Trigger.class))
-        .withStages(getList(config, "stages"))
-        .withLimitConcurrent(getBoolean(config, "limitConcurrent"))
-        .withMaxConcurrentExecutions(getInt(config, "maxConcurrentExecutions"))
-        .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
-        .withNotifications(getList(config, "notifications"))
-        .withInitialConfig(getMap(config, "initialConfig"))
-        .withOrigin(getString(config, "origin"))
-        .withStartTimeExpiry(getString(config, "startTimeExpiry"))
-        .withSource(
-            (config.get("source") == null)
-                ? null
-                : objectMapper.convertValue(
-                    config.get("source"), PipelineExecution.PipelineSource.class))
-        .withSpelEvaluator(getString(config, "spelEvaluator"))
-        .withTemplateVariables(getMap(config, "templateVariables"))
-        .withIncludeAllowedAccounts(executionConfigurationProperties.isIncludeAllowedAccounts())
-        .build();
+    PipelineBuilder pipelineBuilder =
+        new PipelineBuilder(getString(config, "application"))
+            .withId(getString(config, "executionId"))
+            .withRootId(rootId)
+            .withName(getString(config, "name"))
+            .withPipelineConfigId(getString(config, "id"))
+            .withTrigger(objectMapper.convertValue(config.get("trigger"), Trigger.class))
+            .withStages(getList(config, "stages"))
+            .withLimitConcurrent(getBoolean(config, "limitConcurrent"))
+            .withMaxConcurrentExecutions(getInt(config, "maxConcurrentExecutions"))
+            .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
+            .withNotifications(getList(config, "notifications"))
+            .withInitialConfig(getMap(config, "initialConfig"))
+            .withOrigin(getString(config, "origin"))
+            .withStartTimeExpiry(getString(config, "startTimeExpiry"))
+            .withSource(
+                (config.get("source") == null)
+                    ? null
+                    : objectMapper.convertValue(
+                        config.get("source"), PipelineExecution.PipelineSource.class))
+            .withSpelEvaluator(getString(config, "spelEvaluator"))
+            .withTemplateVariables(getMap(config, "templateVariables"))
+            .withIncludeAllowedAccounts(
+                executionConfigurationProperties.isIncludeAllowedAccounts());
+
+    if (providedIdRequestFilterConfigurationProperties.isEnabled()) {
+      // Putting info from the MDC into the execution context is one step along
+      // the way of making the info available to worker threads.  Once it's in
+      // the execution context, StageExecution.withLoggingContext (in
+      // RunTaskHandler) can put it in the MDC of worker threads.  From there,
+      // SpinnakerRequestHeaderInterceptor adds it as outgoing http request
+      // headers.  Because it's in the execution context, it's also available to
+      // task implementations.
+      pipelineBuilder.withAdditionalHeaders(getProvidedAdditionalHeaders());
+    }
+
+    return pipelineBuilder.build();
   }
 
   private PipelineExecution parseOrchestration(Map<String, Object> config) {
     PipelineExecution orchestration =
         PipelineExecutionImpl.newOrchestration(getString(config, "application"));
+
     if (config.containsKey("name")) {
       orchestration.setDescription(getString(config, "name"));
     }
@@ -382,5 +430,16 @@ public class ExecutionLauncher {
         }
       }
     }
+  }
+
+  /** If enabled, retrieve the non-empty headers that ProvidedIdRequestFilter put into the MDC. */
+  private Map<String, String> getProvidedAdditionalHeaders() {
+    if (!providedIdRequestFilterConfigurationProperties.isEnabled()) {
+      return Collections.emptyMap();
+    }
+
+    return providedIdRequestFilterConfigurationProperties.getAdditionalHeaders().stream()
+        .filter(additionalHeader -> StringUtils.isNotBlank(MDC.get(additionalHeader)))
+        .collect(Collectors.toMap(Function.identity(), MDC::get));
   }
 }
