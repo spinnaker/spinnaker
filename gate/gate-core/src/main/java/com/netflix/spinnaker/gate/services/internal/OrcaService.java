@@ -115,7 +115,7 @@ public interface OrcaService {
       @Query("executionId") String executionId, @Query("dryRun") boolean dryRun);
 
   @Headers("Accept: application/json")
-  @PUT("/pipelines/{id}/pause")
+  @PUT("pipelines/{id}/pause")
   Call<Void> pausePipeline(@Path("id") String id, @Body String ignored);
 
   @Headers("Accept: application/json")
