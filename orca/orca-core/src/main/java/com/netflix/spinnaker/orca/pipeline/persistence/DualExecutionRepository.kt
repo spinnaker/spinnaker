@@ -160,6 +160,10 @@ class DualExecutionRepository(
     return select(type, id).retrieve(type, id)
   }
 
+  override fun retrieve(type: ExecutionType, id: String, requireLatestVersion: Boolean): PipelineExecution {
+    return select(type, id).retrieve(type, id, requireLatestVersion)
+  }
+
   override fun delete(type: ExecutionType, id: String) {
     return select(type, id).delete(type, id)
   }
