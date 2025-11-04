@@ -25,9 +25,9 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@CompileStatic
 @Component
 @Slf4j
+@CompileStatic
 class ExecutionHistoryService {
   @Autowired
   OrcaServiceSelector orcaServiceSelector
@@ -38,8 +38,10 @@ class ExecutionHistoryService {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().getTasks(app, page, limit, statuses))
   }
 
-  List getPipelines(String app, Integer limit, String statuses, Boolean expand) {
+  List getPipelines(String app, Integer limit, String statuses, Boolean expand, String pipelineNameFilter = null) {
     Preconditions.checkNotNull(app)
-    Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipelines(app, limit, statuses, expand))
+    def pipelines = Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipelines(app, limit, statuses, expand, pipelineNameFilter))
+    log.debug("received {} executions for application: {}", pipelines.size(), app)
+    return pipelines
   }
 }

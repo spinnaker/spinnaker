@@ -53,6 +53,7 @@ import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
+import org.springframework.util.ObjectUtils
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -722,12 +723,11 @@ class TaskController {
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
   List<PipelineExecution> getApplicationPipelines(@PathVariable String application,
-                                                      @RequestParam(value = "limit", defaultValue = "5")
-                                            int limit,
-                                                      @RequestParam(value = "statuses", required = false)
-                                            String statuses,
-                                                      @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
-    return getPipelinesForApplication(application, limit, statuses, expand)
+                                                      @RequestParam(value = "limit", defaultValue = "5") int limit,
+                                                      @RequestParam(value = "statuses", required = false) String statuses,
+                                                      @RequestParam(value = "expand", defaultValue = "true") Boolean expand,
+                                                      @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter) {
+    return getPipelinesForApplication(application, limit, statuses, expand, pipelineNameFilter)
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
@@ -735,7 +735,8 @@ class TaskController {
   List<PipelineExecution> getPipelinesForApplication(@PathVariable String application,
                                                      @RequestParam(value = "limit", defaultValue = "5") int limit,
                                                      @RequestParam(value = "statuses", required = false) String statuses,
-                                                     @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
+                                                     @RequestParam(value = "expand", defaultValue = "true") Boolean expand,
+                                                     @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter) {
     if (!front50Service) {
       throw new UnsupportedOperationException("Cannot lookup pipelines, front50 has not been enabled. Fix this by setting front50.enabled: true")
     }
@@ -750,7 +751,10 @@ class TaskController {
     )
 
     // get all relevant pipeline and strategy configs from front50
-    def pipelineConfigIds = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null))*.id as List<String>
+    def pipelineConfigs = ObjectUtils.isEmpty(pipelineNameFilter) ?
+        Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null)) :
+        Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null, pipelineNameFilter))
+    def pipelineConfigIds = pipelineConfigs*.id as List<String>
     log.debug("received ${pipelineConfigIds.size()} pipelines for application: $application from front50")
     def strategyConfigIds = Retrofit2SyncCall.execute(front50Service.getStrategies(application))*.id as List<String>
     log.debug("received ${strategyConfigIds.size()} strategies for application: $application from front50")
