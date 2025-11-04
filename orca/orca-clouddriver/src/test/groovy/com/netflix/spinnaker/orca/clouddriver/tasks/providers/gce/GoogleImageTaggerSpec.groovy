@@ -55,14 +55,14 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
 
     and:
     if (foundById) {
-      1 * oortService.findImage("gce", "gce-image-id", null, null, null) >> {
+      1 * oortService.findImage("gce", "gce-image-id", null, null, Map.of()) >> {
         Calls.response([["imageName": "my-gce-image"]])
       }
-      1 * oortService.findImage("gce", "my-gce-image", null, null, null) >> { Calls.response([]) }
+      1 * oortService.findImage("gce", "my-gce-image", null, null, Map.of()) >> { Calls.response([]) }
     } else if (imageId != null) {
-      1 * oortService.findImage("gce", imageId, null, null, null) >> { Calls.response([]) }
+      1 * oortService.findImage("gce", imageId, null, null, Map.of()) >> { Calls.response([]) }
     } else {
-      1 * oortService.findImage("gce", imageName, null, null, null) >> { Calls.response([]) }
+      1 * oortService.findImage("gce", imageName, null, null, Map.of()) >> { Calls.response([]) }
     }
 
     when:
@@ -94,7 +94,7 @@ class GoogleImageTaggerSpec extends ImageTaggerSpec {
     def operationContext = imageTagger.getOperationContext(stage)
 
     then:
-    1 * oortService.findImage("gce", "my-gce-image", null, null, null) >> {
+    1 * oortService.findImage("gce", "my-gce-image", null, null, Map.of()) >> {
       Calls.response([
         [imageName: "my-gce-image-v2", account: "test"],
         [imageName: "my-gce-image", account: "test", tags: [tag1: "originalValue1"]]
