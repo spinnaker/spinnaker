@@ -53,7 +53,6 @@ import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
-import org.springframework.util.ObjectUtils
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -720,23 +719,60 @@ class TaskController {
     return augmentedContext
   }
 
+  /**
+   * The v2 version of the endpoint to fetch a list of pipeline executions by application name.
+   * This method simply passes through all of it's parameters to the v1 version of the endpoint
+   * at {@link TaskController#getPipelinesForApplication}.
+   * @param application
+   * @param limit
+   * @param statuses
+   * @param expand
+   * @param pipelineNameFilter
+   * @param pipelineLimit
+   * @return
+   */
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
   List<PipelineExecution> getApplicationPipelines(@PathVariable String application,
                                                       @RequestParam(value = "limit", defaultValue = "5") int limit,
                                                       @RequestParam(value = "statuses", required = false) String statuses,
                                                       @RequestParam(value = "expand", defaultValue = "true") Boolean expand,
-                                                      @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter) {
-    return getPipelinesForApplication(application, limit, statuses, expand, pipelineNameFilter)
+                                                      @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
+                                                      @RequestParam(value = "pipelineLimit", required = false) Integer pipelineLimit) {
+    return getPipelinesForApplication(application, limit, statuses, expand, pipelineNameFilter, pipelineLimit)
   }
 
+  /**
+   * Fetches all of the pipeline executions for a given application.
+   *
+   * @param application The name of the application to get executions for
+   * @param limit Determines the maximum number of executions present
+   *              in each group of executions grouped by name. For example,
+   *              if there are 10 executions under the name pipelineA, and limit
+   *              is 5, only the 5 most recently executed executions with that pipeline name
+   *              will be returned
+   * @param statuses A CSV string of pipeline statuses to filter by
+   * @param expand If set to false, will reduce the amount of information present in the pipeline
+   *               execution json. It removes the following fields; outputs, tasks, everything from context
+   *               but the context.group, and all of the stages fields present in the triggers.
+   * @param pipelineNameFilter When present, will filter the executions list by pipeline name.
+   *                           This value is simply passed through to front50s
+   *                           pipelines/applicationName endpoint. The return value from that endpoint is used
+   *                           to determine which pipeline names orca should retrieve executions for
+   * @param pipelineLimit When present, will limit total number of pipeline executions returned to a max value
+   *                      of pipelineLimit. This value is simply passed through to front50s
+   *                      pipelines/applicationName endpoint. The return value from that endpoint is used
+   *                      to determine which pipeline names orca should retrieve executions for
+   * @return
+   */
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<PipelineExecution> getPipelinesForApplication(@PathVariable String application,
                                                      @RequestParam(value = "limit", defaultValue = "5") int limit,
                                                      @RequestParam(value = "statuses", required = false) String statuses,
                                                      @RequestParam(value = "expand", defaultValue = "true") Boolean expand,
-                                                     @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter) {
+                                                     @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
+                                                     @RequestParam(value = "pipelineLimit", required = false) Integer pipelineLimit) {
     if (!front50Service) {
       throw new UnsupportedOperationException("Cannot lookup pipelines, front50 has not been enabled. Fix this by setting front50.enabled: true")
     }
@@ -751,9 +787,7 @@ class TaskController {
     )
 
     // get all relevant pipeline and strategy configs from front50
-    def pipelineConfigs = ObjectUtils.isEmpty(pipelineNameFilter) ?
-        Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null)) :
-        Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null, pipelineNameFilter))
+    def pipelineConfigs = Retrofit2SyncCall.execute(front50Service.getPipelines(application, false, this.configurationProperties.excludeExecutionsOfDisabledPipelines ? true : null, pipelineNameFilter, pipelineLimit))
     def pipelineConfigIds = pipelineConfigs*.id as List<String>
     log.debug("received ${pipelineConfigIds.size()} pipelines for application: $application from front50")
     def strategyConfigIds = Retrofit2SyncCall.execute(front50Service.getStrategies(application))*.id as List<String>

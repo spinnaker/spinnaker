@@ -80,7 +80,13 @@ interface Front50Service {
   Call<List<Map<String, Object>>> getPipelines(@Path("applicationName") String applicationName, @Query("refresh") boolean refresh, @Query("enabledPipelines") Boolean enabledPipelines)
 
   @GET("/pipelines/{applicationName}")
-  Call<List<Map<String, Object>>> getPipelines(@Path("applicationName") String applicationName, @Query("refresh") boolean refresh, @Query("enabledPipelines") Boolean enabledPipelines, @Query("pipelineNameFilter") String pipelineNameFilter);
+  Call<List<Map<String, Object>>> getPipelines(
+      @Path("applicationName") String applicationName,
+      @Query("refresh") boolean refresh,
+      @Query("enabledPipelines") Boolean enabledPipelines,
+      @Query("pipelineNameFilter") String pipelineNameFilter,
+      @Query("pipelineLimit") Integer pipelineLimit
+  );
 
   @GET("/pipelines/{applicationName}/name/{name}")
   Call<Map<String, Object>> getPipeline(@Path("applicationName") String applicationName, @Path("name") String name, @Query("refresh") boolean refresh);

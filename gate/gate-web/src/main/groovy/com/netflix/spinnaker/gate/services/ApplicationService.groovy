@@ -151,11 +151,11 @@ class ApplicationService {
   }
 
   List<Map> getPipelineConfigsForApplication(String app) {
-    return getPipelineConfigsForApplication(app, null);
+    return getPipelineConfigsForApplication(app, null, null);
   }
 
-  List<Map> getPipelineConfigsForApplication(String app, String pipelineNameFilter) {
-    return Retrofit2SyncCall.execute(front50Service.getPipelineConfigsForApplication(app, pipelineNameFilter, true))
+  List<Map> getPipelineConfigsForApplication(String app, String pipelineNameFilter, Integer pipelineLimit) {
+    return Retrofit2SyncCall.execute(front50Service.getPipelineConfigsForApplication(app, pipelineNameFilter, pipelineLimit, true))
   }
 
   /**
