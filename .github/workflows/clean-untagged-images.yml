@@ -23,14 +23,17 @@ jobs:
         with:
           args: >-
             -repo=ghcr.io/spinnaker/clouddriver
+            -repo=ghcr.io/spinnaker/deck
+            -repo=ghcr.io/spinnaker/echo
+            -repo=ghcr.io/spinnaker/fiat
+            -repo=ghcr.io/spinnaker/front50
             -repo=ghcr.io/spinnaker/gate
             -repo=ghcr.io/spinnaker/halyard
+            -repo=ghcr.io/spinnaker/igor
+            -repo=ghcr.io/spinnaker/kayenta
+            -repo=ghcr.io/spinnaker/keel
             -repo=ghcr.io/spinnaker/orca
             -repo=ghcr.io/spinnaker/rosco
-            -repo=ghcr.io/spinnaker/igor
-            -repo=ghcr.io/spinnaker/front50
-            -repo=ghcr.io/spinnaker/echo
-            -repo=ghcr.io/spinnaker/deck
             -grace=48h
             -dry-run=false
 
