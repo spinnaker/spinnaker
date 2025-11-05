@@ -214,7 +214,7 @@ class TaskControllerSqlExecutionRepositoryTest : JUnit5Minutests {
         Fixture(true)
       }
 
-      testExecutionRetrieval(optimizedDescription(false))
+      testExecutionRetrieval(optimizedDescription(true))
     }
 
     context("test query having explicit query timeouts") {
