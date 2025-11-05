@@ -24,8 +24,8 @@ class EcsImageFinderTest {
 
   @Test
   void findIMagePassesMap(@WiremockResolver.Wiremock WireMockServer server) {
-    // At the moment, clouddriver doesn't have any ECS images, as ECS... doesn't do images - that's
-    // AWS...aka this is returning whatever is passed
+    // At the moment, clouddriver doesn't have any ECS images, so this will
+    // return whatever matches a URL on the resulting image query parameter.  
     server.stubFor(
         any(urlPathEqualTo("/ecs/images/find"))
             .willReturn(
