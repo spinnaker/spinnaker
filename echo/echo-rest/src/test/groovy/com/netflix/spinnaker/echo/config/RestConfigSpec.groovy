@@ -118,4 +118,21 @@ class RestConfigSpec extends Specification {
     then:
     headers.get().get("Authorization") == "FromFile"
   }
+
+  void "Handle splunk URLs with a NON / ending"() {
+    given:
+      String actualUrl = wireMockServer.baseUrl() + "/hec/services/collector/event?"
+
+    when:
+    wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/hec/services/collector/event"))
+      .willReturn(WireMock.aResponse()
+        .withStatus(200).withBody("{\"confirmed\"}")))
+    RestProperties.RestEndpointConfiguration endpoint = new RestProperties.RestEndpointConfiguration(
+      url: actualUrl)
+    RestUrls restUrls = configureRestServices(endpoint, EmptyHeadersFile)
+
+
+    then:
+      restUrls.getServices().get(0).getClient().recordEvent(actualUrl, [:]).execute().body().string().contains("confirmed")
+  }
 }
