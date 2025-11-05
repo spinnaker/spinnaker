@@ -607,9 +607,11 @@ class SqlExecutionRepository(
     queryTimeoutSeconds: Int
   ): Collection<PipelineExecution> {
     withPool(readPoolName) {
-      val baseQuery = jooq.select(selectExecutionFields(compressionProperties))
-        .from(PIPELINE.tableName)
-        .leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
+      val selectFrom = jooq.select(selectExecutionFields(compressionProperties)).from(PIPELINE.tableName)
+      if (compressionProperties.enabled) {
+        selectFrom.leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
+      }
+      val baseQuery = selectFrom
         .where(field("id").`in`(*pipelineExecutions.toTypedArray()))
         .queryTimeout(queryTimeoutSeconds) // add an explicit timeout so that the query doesn't run forever
         .fetch()
