@@ -39,8 +39,8 @@ runs:
       # use service account flow defined at: https://github.com/docker/login-action#service-account-based-authentication-1
       with:
         registry: ghcr.io
-        username:  ${{ github.actor }}
-        password:  ${{ secrets.GITHUB_TOKEN }}
+        username:  spinnaker
+        password:  ${{ inputs.github-token }}
 
     - name: Login to GAR
       if: github.event_name != 'pull_request'
