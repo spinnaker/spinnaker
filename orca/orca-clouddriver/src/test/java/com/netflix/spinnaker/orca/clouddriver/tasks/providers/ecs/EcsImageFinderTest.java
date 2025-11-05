@@ -43,6 +43,5 @@ class EcsImageFinderTest {
             new StageExecutionImpl(), "asdf", Map.of("ignored", "ignored"), List.of("alsoIgnored"));
     assertThat(imageDetails).hasSize(1);
     assertThat(imageDetails.iterator().next().getImageName()).isEqualTo("asdf");
-    //    OortService service = CloudDriverConfiguration.ClouddriverRetrofitBuilder.
   }
 }
