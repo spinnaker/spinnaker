@@ -437,7 +437,7 @@ class SqlExecutionRepository(
     withPool(readPoolName) {
       val select = jooq.selectExecutions(
         type,
-        fields = selectExecutionFields(compressionProperties) + field("status"),
+        fields = selectFields() + field("status"),
         conditions = {
           if (partition.isNullOrEmpty()) {
             it.statusIn(criteria.statuses)
@@ -610,7 +610,7 @@ class SqlExecutionRepository(
     queryTimeoutSeconds: Int
   ): Collection<PipelineExecution> {
     withPool(readPoolName) {
-      val selectFrom = jooq.select(selectExecutionFields(compressionProperties)).from(PIPELINE.tableName)
+      val selectFrom = jooq.select(selectFields()).from(PIPELINE.tableName)
       if (compressionProperties.enabled) {
         selectFrom.leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
       }
@@ -714,7 +714,7 @@ class SqlExecutionRepository(
 
   override fun retrieveOrchestrationForCorrelationId(correlationId: String): PipelineExecution {
     withPool(poolName) {
-      val execution = jooq.selectExecution(ORCHESTRATION, compressionProperties)
+      val execution = jooq.selectExecution(ORCHESTRATION)
         .where(
           field("id").eq(
             field(
@@ -748,7 +748,7 @@ class SqlExecutionRepository(
 
   override fun retrievePipelineForCorrelationId(correlationId: String): PipelineExecution {
     withPool(poolName) {
-      val execution = jooq.selectExecution(PIPELINE, compressionProperties)
+      val execution = jooq.selectExecution(PIPELINE)
         .where(
           field("id").eq(
             field(
@@ -870,7 +870,7 @@ class SqlExecutionRepository(
     executionCriteria: ExecutionCriteria
   ): List<PipelineExecution> {
     withPool(readPoolName) {
-      val select = jooq.select(selectExecutionFields(compressionProperties))
+      val select = jooq.select(selectFields())
         .from(PIPELINE.tableName)
         .join(
           jooq.selectExecutions(
@@ -1326,7 +1326,7 @@ class SqlExecutionRepository(
     id: String
   ): PipelineExecution? {
     withPool(poolName) {
-      val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+      val select = ctx.selectExecution(type).where(id.toWhereCondition())
       return select.fetchExecution()
     }
   }
@@ -1341,7 +1341,7 @@ class SqlExecutionRepository(
     // because the default pool always contains the latest version
     if (!readPoolEnabled()) {
       withPool(poolName) {
-        val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+        val select = ctx.selectExecution(type).where(id.toWhereCondition())
         return select.fetchExecution()
       }
     }
@@ -1350,7 +1350,6 @@ class SqlExecutionRepository(
       val pipelineExecution = withPool(readPoolName) {
         val select = ctx.selectExecution(
           type,
-          compressionProperties,
           fields = selectReadPoolFields(executionType = type)
         )
           .where(id.toWhereCondition())
@@ -1361,12 +1360,12 @@ class SqlExecutionRepository(
       }
       // If we couldn't find an up-to-date execution, use the regular pool instead
       withPool(poolName) {
-        val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+        val select = ctx.selectExecution(type).where(id.toWhereCondition())
         return select.fetchExecution()
       }
     } else {
       withPool(readPoolName) {
-        val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+        val select = ctx.selectExecution(type).where(id.toWhereCondition())
         return select.fetchExecution()
       }
     }
@@ -1422,7 +1421,7 @@ class SqlExecutionRepository(
 
   private fun DSLContext.selectExecutions(
     type: ExecutionType,
-    fields: List<Field<Any>> = selectExecutionFields(compressionProperties),
+    fields: List<Field<Any>> = selectFields(),
     conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
     seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
   ): SelectForUpdateStep<out Record> {
@@ -1439,7 +1438,7 @@ class SqlExecutionRepository(
 
   private fun DSLContext.selectExecutions(
     type: ExecutionType,
-    fields: List<Field<Any>> = selectExecutionFields(compressionProperties),
+    fields: List<Field<Any>> = selectFields(),
     usingIndex: String,
     conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
     seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
@@ -1453,6 +1452,35 @@ class SqlExecutionRepository(
     return selectFrom
       .let { conditions(it) }
       .let { seek(it) }
+  }
+
+  private fun DSLContext.selectExecution(type: ExecutionType, fields: List<Field<Any>> = selectFields()): SelectJoinStep<Record> {
+    val selectFrom = select(fields).from(type.tableName)
+
+    if (compressionProperties.enabled) {
+      selectFrom.leftJoin(type.tableName.compressedExecTable).using(field("id"))
+    }
+
+    return selectFrom
+  }
+
+  /**
+   * The fields used in a SELECT executions query.
+   */
+  private fun selectFields(): List<Field<Any>> {
+    if (compressionProperties.enabled) {
+      return listOf(field("id"),
+        field("body"),
+        field("compressed_body"),
+        field("compression_type"),
+        field(name("partition"))
+      )
+    }
+
+    return listOf(field("id"),
+      field("body"),
+      field(name("partition"))
+    )
   }
 
   private fun selectReadPoolFields(executionType: ExecutionType): List<Field<Any>> {
