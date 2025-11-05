@@ -8,10 +8,11 @@ on:
 
 jobs:
   ghcr-cleaner:
-    uses: docker/login-action@v3 # Use the latest stable version
+    runs-on: 'ubuntu-latest'
     steps:
       # configure based on your registry
       - name: Login to GHCR
+        uses: docker/login-action@v3 # Use the latest stable version
         registry: ghcr.io
         with:
           registry: us-docker.pkg.dev
@@ -19,7 +20,8 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
       # delete untaggd images older than 48 hours
-      - uses: 'docker://us-docker.pkg.dev/gcr-cleaner/gcr-cleaner/gcr-cleaner-cli'
+      - name: Clean images
+        uses: 'docker://us-docker.pkg.dev/gcr-cleaner/gcr-cleaner/gcr-cleaner-cli'
         with:
           args: >-
             -repo=ghcr.io/spinnaker/clouddriver
