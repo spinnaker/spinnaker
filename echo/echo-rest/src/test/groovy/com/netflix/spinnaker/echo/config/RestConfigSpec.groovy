@@ -12,13 +12,15 @@ import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig
 import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.util.concurrent.BlockingVariable
+
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 
 @SpringBootTest(classes = [Retrofit2TestConfig, Retrofit2BasicLogTestConfig],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -134,5 +136,6 @@ class RestConfigSpec extends Specification {
 
     then:
       restUrls.getServices().get(0).getClient().recordEvent(actualUrl, [:]).execute().body().string().contains("confirmed")
+      wireMockServer.verify(1, postRequestedFor(urlEqualTo("/hec/services/collector/event")))
   }
 }
