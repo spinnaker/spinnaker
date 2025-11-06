@@ -627,7 +627,7 @@ class SqlExecutionRepository(
 
     val finalResult: MutableList<String> = mutableListOf()
 
-    withPool(poolName) {
+    withPool(readPoolName) {
       val baseQuery = jooq.select(field("config_id"), field("id"))
         .from(table)
         .where(baseQueryPredicate)
