@@ -360,7 +360,7 @@ class TaskController {
   private PipelineExecution getPipelineExecution(final String executionId) {
     final PipelineExecution pipelineExecution;
     try {
-      pipelineExecution = executionRepository.retrieve(PIPELINE, executionId)
+      pipelineExecution = executionRepository.retrieve(PIPELINE, executionId, true)
     }
     catch (ExecutionNotFoundException e) {
       log.info("No pipeline execution found for executionID: " + executionId)

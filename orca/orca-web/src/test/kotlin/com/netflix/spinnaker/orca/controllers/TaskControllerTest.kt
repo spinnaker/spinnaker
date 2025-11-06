@@ -81,7 +81,7 @@ class TaskControllerTest : JUnit5Minutests {
         }
 
         fun setupExecutionsInDb(pipelineID: String, stageIds: List<String>, stageTypes: List<String>, stageStatuses: List<ExecutionStatus>, stageContext: List<Map<String, Any>>) {
-          Mockito.`when`(executionMockRepository.retrieve(PIPELINE, pipelineID)).thenReturn(
+          Mockito.`when`(executionMockRepository.retrieve(PIPELINE, pipelineID, true)).thenReturn(
             createPipelineExecution(
               pipelineID,
               stageIds,
