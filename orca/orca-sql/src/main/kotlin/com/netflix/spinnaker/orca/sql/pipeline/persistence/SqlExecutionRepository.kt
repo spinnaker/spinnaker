@@ -564,7 +564,7 @@ class SqlExecutionRepository(
     }
 
   override fun retrievePipelineConfigIdsForApplication(application: String): List<String> =
-    withPool(poolName) {
+    withPool(readPoolName) {
       return jooq.selectDistinct(field("config_id"))
         .from(PIPELINE.tableName)
         .where(field("application").eq(application))
@@ -1474,6 +1474,14 @@ class SqlExecutionRepository(
     }
   }
 
+  /**
+   * Read an execution from the read pool
+   * @param ctx context for the read operation
+   * @param type the type of execution to read
+   * @param id the id of the execution to read
+   * @param readReplicaRequirement requirement for information from the read replica
+   * @return an execution
+   */
   private fun selectExecution(
     ctx: DSLContext,
     type: ExecutionType,
