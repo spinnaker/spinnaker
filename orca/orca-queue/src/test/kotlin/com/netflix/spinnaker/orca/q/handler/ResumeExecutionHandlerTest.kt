@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.ResumeExecution
 import com.netflix.spinnaker.orca.q.ResumeStage
 import com.netflix.spinnaker.q.Queue
@@ -74,7 +75,7 @@ object ResumeExecutionHandlerTest : SubjectSpek<ResumeExecutionHandler>({
     val message = ResumeExecution(pipeline.type, pipeline.id, pipeline.application)
 
     beforeGroup {
-      whenever(repository.retrieve(pipeline.type, pipeline.id)) doReturn pipeline
+      whenever(repository.retrieve(pipeline.type, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
     }
 
     afterGroup(::resetMocks)

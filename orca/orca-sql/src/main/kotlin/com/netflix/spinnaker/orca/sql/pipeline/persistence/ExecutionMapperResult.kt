@@ -1,0 +1,41 @@
+/*
+ * Copyright 2023 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.sql.pipeline.persistence
+
+import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+
+/**
+ * Defines the result of an [ExecutionMapper] when processing a ResultSet. This allows the
+ * ExecutionMapper to communicate a more complex result when the returned
+ * collection of PipelineExecutions is empty.  Use "data object" instead of
+ * "object" and remove toString overrides wth kotlin >= 1.7.20.
+ */
+sealed interface ExecutionMapperResult {
+  data class Success(val executions: Collection<PipelineExecution>) : ExecutionMapperResult
+  object NotFound: ExecutionMapperResult {
+    override fun toString(): String = "NotFound"
+  }
+  object InvalidVersion: ExecutionMapperResult {
+    override fun toString(): String = "InvalidVersion"
+  }
+  object MissingFromReplicationLagRepository: ExecutionMapperResult {
+    override fun toString(): String = "MissingFromReplicationLagRepository"
+  }
+  object Failure: ExecutionMapperResult {
+    override fun toString(): String = "Failure"
+  }
+}

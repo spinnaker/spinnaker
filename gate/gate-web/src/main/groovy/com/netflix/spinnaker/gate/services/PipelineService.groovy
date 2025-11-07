@@ -27,6 +27,7 @@ import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import de.huxhorn.sulky.ulid.ULID
 import groovy.util.logging.Slf4j
+import okhttp3.ResponseBody
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -166,8 +167,25 @@ class PipelineService {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().startPipeline(pipelineConfig, user))
   }
 
-  Map getPipeline(String id) {
-    Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(id))
+  /**
+   * Retrieve a pipeline execution by id
+   * @param id the id of the execution to retrieve
+   * @param requireUpToDateVersion whether to fetch the up-to-date version of the execution
+   */
+  Map getPipeline(String id, boolean requireUpToDateVersion) {
+    Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(id, requireUpToDateVersion))
+  }
+
+  /**
+   * Retrieve the status of a pipeline execution
+   * @param id the id of the execution to retrieve
+   * @param readReplicaRequirement the requirement that the issuer of the
+   *   query has for the execution from the read pool (currently NONE, PRESENT, or
+   *   UP_TO_DATE are valid (case-insensitive))
+   */
+  String getPipelineStatus(String id, String readReplicaRequirement) {
+    ResponseBody responseBody = Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipelineStatus(id, readReplicaRequirement))
+    responseBody.string()
   }
 
   void cancelPipeline(String id, String reason, boolean force) {

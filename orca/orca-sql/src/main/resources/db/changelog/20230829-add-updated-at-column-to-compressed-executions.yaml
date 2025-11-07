@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-updated-at-column
+      author: dzheng
+      changes:
+        - addColumn:
+            tableName: pipelines_compressed_executions
+            columns:
+              - column:
+                  name: updated_at
+                  type: bigint
+        - addColumn:
+            tableName: pipeline_stages_compressed_executions
+            columns:
+              - column:
+                  name: updated_at
+                  type: bigint
+        - addColumn:
+            tableName: orchestrations_compressed_executions
+            columns:
+              - column:
+                  name: updated_at
+                  type: bigint
+        - addColumn:
+            tableName: orchestration_stages_compressed_executions
+            columns:
+              - column:
+                  name: updated_at
+                  type: bigint
+      rollback:
+        - dropColumn:
+            tableName: orchestration_stages_compressed_executions
+            columnName: updated_at
+        - dropColumn:
+            tableName: orchestrations_compressed_executions
+            columnName: updated_at
+        - dropColumn:
+            tableName: pipeline_stages_compressed_executions
+            columnName: updated_at
+        - dropColumn:
+            tableName: pipelines_compressed_executions
+            columnName: updated_at

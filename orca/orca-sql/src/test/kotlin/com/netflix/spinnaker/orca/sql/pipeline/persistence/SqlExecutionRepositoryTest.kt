@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.CompressionMode
 import com.netflix.spinnaker.config.CompressionType
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import com.nhaarman.mockito_kotlin.atLeastOnce
 import com.nhaarman.mockito_kotlin.doReturn
@@ -44,9 +46,10 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
 import org.testcontainers.DockerClientFactory
 import java.lang.System.currentTimeMillis
-import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
+import java.util.Optional
 import javax.sql.DataSource
 
 class SqlExecutionRepositoryTest : JUnit5Minutests {
@@ -88,21 +91,23 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         stage {}
       }
       val pipelineId = pipelineExecution.id
-
+      val testUpdatedAt = 0L
       val testBody = "test_body" // not long enough to compress
       val testPairs = mutableMapOf(
-          field("id") to testId,
-          field("application") to testApplication,
-          field("body") to testBody,
-          field("build_time") to currentTimeMillis()
+        field("id") to testId,
+        field("application") to testApplication,
+        field("body") to testBody,
+        field("build_time") to currentTimeMillis(),
+        field("updated_at") to testUpdatedAt
       )
 
       val testCompressibleBody = "test_body_long_enough_to_compress"
       val testCompressiblePairs = mutableMapOf(
-          field("id") to testId,
-          field("application") to testApplication,
-          field("body") to testCompressibleBody,
-          field("build_time") to currentTimeMillis()
+        field("id") to testId,
+        field("application") to testApplication,
+        field("body") to testCompressibleBody,
+        field("build_time") to currentTimeMillis(),
+        field("updated_at") to testUpdatedAt
       )
 
       test("verify assumptions") {
@@ -599,9 +604,11 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
           readPoolName,
           null,
           emptyList(),
-          executionCompressionPropertiesEnabled,
+          executionCompressionPropertiesEnabled, // arbitrary
           false,
-          mockedAbstractRoutingDataSource
+          mockedAbstractRoutingDataSource,
+          mockedReplicationLagAwareRepository,
+          NoopRegistry()
         )
 
         verify(mockedAbstractRoutingDataSource, atLeastOnce()).resolvedDataSources
@@ -625,9 +632,11 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
           readPoolName,
           null,
           emptyList(),
-          executionCompressionPropertiesEnabled,
+          executionCompressionPropertiesEnabled, // arbitrary
           false,
-          mockedAbstractRoutingDataSource
+          mockedAbstractRoutingDataSource,
+          mockedReplicationLagAwareRepository,
+          NoopRegistry()
         )
 
         verify(mockedAbstractRoutingDataSource, atLeastOnce()).resolvedDataSources
@@ -658,6 +667,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
       compressionType = CompressionType.ZLIB
     }
     val mockDataSource = mock<DataSource>()
+    val mockedReplicationLagAwareRepository = Optional.of(mock<ReplicationLagAwareRepository>())
 
     val sqlExecutionRepository =
       SqlExecutionRepository(
@@ -673,7 +683,9 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         emptyList(),
         executionCompressionPropertiesEnabled,
         false,
-        mockDataSource
+        mockDataSource,
+        mockedReplicationLagAwareRepository,
+        NoopRegistry()
       )
 
     val executionCompressionPropertiesDisabled = ExecutionCompressionProperties().apply {
@@ -694,7 +706,9 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         emptyList(),
         executionCompressionPropertiesDisabled,
         false,
-        mockDataSource
+        mockDataSource,
+        mockedReplicationLagAwareRepository,
+        NoopRegistry()
       )
 
     val executionCompressionPropertiesReadOnly = ExecutionCompressionProperties().apply {
@@ -718,7 +732,9 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         emptyList(),
         executionCompressionPropertiesReadOnly,
         false,
-        mockDataSource
+        mockDataSource,
+        mockedReplicationLagAwareRepository,
+        NoopRegistry()
       )
 
     val sqlExecutionRepositoryWithPipelineRefOnly =
@@ -735,7 +751,9 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         emptyList(),
         executionCompressionPropertiesDisabled,
         true,
-        mockDataSource
+        mockDataSource,
+        mockedReplicationLagAwareRepository,
+        NoopRegistry()
       )
 
     val sqlExecutionRepositoryWithPipelineRefAndCompression =
@@ -752,7 +770,9 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         emptyList(),
         executionCompressionPropertiesEnabled,
         true,
-        mockDataSource
+        mockDataSource,
+        mockedReplicationLagAwareRepository,
+        NoopRegistry()
       )
 
     fun addCustomDeserializerWithFeatureFlagEnabled() {

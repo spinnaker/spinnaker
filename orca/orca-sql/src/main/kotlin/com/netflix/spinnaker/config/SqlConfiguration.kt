@@ -18,10 +18,13 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.orca.api.pipeline.persistence.ExecutionRepositoryListener
+import com.netflix.spinnaker.orca.config.RedisReplicationLagAwareRepositoryProperties
 import com.netflix.spinnaker.orca.interlink.Interlink
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.lock.RunOnLockAcquired
@@ -31,6 +34,8 @@ import com.netflix.spinnaker.orca.notifications.SqlNotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.model.support.CustomTriggerDeserializerSupplier
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.RedisReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
@@ -60,8 +65,13 @@ import org.springframework.context.annotation.Primary
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
-@EnableConfigurationProperties(OrcaSqlProperties::class, ExecutionCompressionProperties::class, PipelineRefProperties::class)
-@Import(DefaultSqlConfiguration::class)
+@EnableConfigurationProperties(
+  OrcaSqlProperties::class,
+  ExecutionCompressionProperties::class,
+  PipelineRefProperties::class,
+  RedisReplicationLagAwareRepositoryProperties::class
+)
+@Import(DefaultSqlConfiguration::class, JedisClientConfiguration::class)
 @ComponentScan("com.netflix.spinnaker.orca.sql")
 
 class SqlConfiguration {
@@ -83,7 +93,8 @@ class SqlConfiguration {
     executionRepositoryListeners: Collection<ExecutionRepositoryListener>,
     compressionProperties: ExecutionCompressionProperties,
     pipelineRefProperties: PipelineRefProperties,
-    dataSource: DataSource
+    dataSource: DataSource,
+    replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -96,7 +107,9 @@ class SqlConfiguration {
       executionRepositoryListeners = executionRepositoryListeners,
       compressionProperties = compressionProperties,
       pipelineRefEnabled = pipelineRefProperties.enabled,
-      dataSource = dataSource
+      dataSource = dataSource,
+      replicationLagAwareRepository = replicationLagAwareRepository,
+      registry = registry
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "primary"))) as ExecutionRepository
     }
@@ -112,7 +125,8 @@ class SqlConfiguration {
     @Value("\${execution-repository.sql.secondary.pool-name}") poolName: String,
     compressionProperties: ExecutionCompressionProperties,
     pipelineRefProperties: PipelineRefProperties,
-    dataSource: DataSource
+    dataSource: DataSource,
+    replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -124,7 +138,9 @@ class SqlConfiguration {
       poolName,
       compressionProperties = compressionProperties,
       pipelineRefEnabled = pipelineRefProperties.enabled,
-      dataSource = dataSource
+      dataSource = dataSource,
+      replicationLagAwareRepository = replicationLagAwareRepository,
+      registry = registry
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }
@@ -164,7 +180,6 @@ class SqlConfiguration {
     retryProperties = properties.retries.transactions
   )
 
-
   @Bean
   @ConditionalOnProperty("sql.external-lock.enabled")
   fun sqlRunOnLockAcquired(lockProvider: LockProvider): RunOnLockAcquired {
@@ -187,4 +202,11 @@ class SqlConfiguration {
     return customTrigger
   }
 
+  @ConditionalOnProperty("execution-repository.sql.read-replica.enabled")
+  @Bean
+  fun redisReplicationLagAwareRepository(redisClientSelector: RedisClientSelector) =
+    RedisReplicationLagAwareRepository(
+      redisClientSelector.primary("default"),
+      RedisReplicationLagAwareRepositoryProperties()
+    )
 }

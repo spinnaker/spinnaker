@@ -156,8 +156,8 @@ class InMemoryExecutionRepository : ExecutionRepository {
     return storageFor(type)[id] ?: throw ExecutionNotFoundException("No $type found for $id")
   }
 
-  override fun retrieve(type: ExecutionType, id: String, requireLatestVersion: Boolean): PipelineExecution {
-    // There is no read replica and therefore no replication lag, so the latest version
+  override fun retrieve(type: ExecutionType, id: String, readReplicaRequirement: ReadReplicaRequirement): PipelineExecution {
+    // There is no read replica and therefore no replication lag, so an up-to-date version
     // is always available
     return retrieve(type, id)
   }
@@ -168,6 +168,14 @@ class InMemoryExecutionRepository : ExecutionRepository {
 
   override fun retrieve(type: ExecutionType, criteria: ExecutionCriteria): Observable<PipelineExecution> {
     return Observable.from(storageFor(type).values)
+  }
+
+  override fun getApplication(id: String): String {
+    return retrieve(PIPELINE, id).getApplication()
+  }
+
+  override fun getStatus(id: String, readReplicaRequirement: ReadReplicaRequirement): String {
+    return retrieve(PIPELINE, id, readReplicaRequirement).getStatus().toString()
   }
 
   override fun store(execution: PipelineExecution) {
@@ -281,6 +289,16 @@ class InMemoryExecutionRepository : ExecutionRepository {
         .filter { it.pipelineConfigId == pipelineConfigId }
         .applyCriteria(criteria)
     )
+  }
+
+  override fun retrievePipelinesForPipelineConfigId(
+    pipelineConfigId: String,
+    criteria: ExecutionCriteria,
+    readReplicaRequirement: ReadReplicaRequirement
+  ): Observable<PipelineExecution> {
+    // There is no read replica and therefore no replication lag, so an up-to-date version
+    // is always available
+    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
   }
 
   override fun retrievePipelineConfigIdsForApplication(application: String): List<String> {

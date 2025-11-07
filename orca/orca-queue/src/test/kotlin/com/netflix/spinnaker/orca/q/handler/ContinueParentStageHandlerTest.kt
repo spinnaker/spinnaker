@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.ext.beforeStages
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.orca.q.ContinueParentStage
 import com.netflix.spinnaker.orca.q.StartTask
@@ -82,7 +83,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         beforeGroup {
           pipeline.stageByRef("1<1").status = status
           pipeline.stageByRef("1<2").status = RUNNING
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -111,7 +112,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         beforeGroup {
           pipeline.stageByRef("1<1").status = status
           pipeline.stageByRef("1<2").status = TERMINAL
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -143,7 +144,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
 
         and("they have not started yet") {
           beforeGroup {
-            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -160,7 +161,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         and("they have already started") {
           beforeGroup {
             pipeline.stageByRef("1").tasks.first().status = RUNNING
-            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
           }
 
           afterGroup(::resetMocks)
@@ -189,7 +190,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
 
         beforeGroup {
           pipeline.stageByRef("1").beforeStages().forEach { it.status = status }
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -222,7 +223,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         beforeGroup {
           pipeline.stageByRef("1>1").status = status
           pipeline.stageByRef("1>2").status = RUNNING
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -251,7 +252,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         beforeGroup {
           pipeline.stageByRef("1>1").status = status
           pipeline.stageByRef("1>2").status = TERMINAL
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)
@@ -280,7 +281,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
         beforeGroup {
           pipeline.stageByRef("1>1").status = status
           pipeline.stageByRef("1>2").status = SUCCEEDED
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, pipeline.id, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)

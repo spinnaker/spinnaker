@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.TestDatabase
@@ -35,6 +36,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineExecutionRepositoryTck
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import org.jooq.impl.DSL
 import rx.schedulers.Schedulers
 import de.huxhorn.sulky.ulid.ULID
@@ -112,7 +114,10 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
             [],
             new ExecutionCompressionProperties(enabled: compression),
             false,
-            Mock(DataSource)),
+            Mock(DataSource),
+            Optional.empty(),
+            new NoopRegistry()
+        ),
         "namespace")
   }
 
@@ -326,7 +331,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     repo.store(orig)
 
     when:
-    PipelineExecution e = repo.retrieve(PIPELINE, id)
+    PipelineExecution e = repo.retrieve(PIPELINE, id, ReadReplicaRequirement.UP_TO_DATE)
 
     then:
     e.id == id
@@ -343,7 +348,7 @@ abstract class SqlPipelineExecutionRepositorySpec extends PipelineExecutionRepos
     repo.store(orig)
 
     when:
-    PipelineExecution e = repo.retrieve(PIPELINE, id)
+    PipelineExecution e = repo.retrieve(PIPELINE, id, ReadReplicaRequirement.UP_TO_DATE)
 
     then:
     e.id == id

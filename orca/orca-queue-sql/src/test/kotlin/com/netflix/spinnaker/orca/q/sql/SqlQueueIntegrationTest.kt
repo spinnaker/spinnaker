@@ -36,7 +36,10 @@ import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.config.JedisConfiguration
 import com.netflix.spinnaker.orca.config.RedisConfiguration
+import com.netflix.spinnaker.orca.config.RedisReplicationLagAwareRepositoryProperties
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.RedisReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.TestConfig
 import com.netflix.spinnaker.orca.q.migration.ExecutionTypeDeserializer
@@ -118,13 +121,14 @@ class SqlTestConfig {
 
   @Bean
   fun sqlExecutionRepository(
-    dsl: DSLContext,
-    mapper: ObjectMapper,
-    registry: Registry,
-    properties: SqlProperties,
-    orcaSqlProperties: OrcaSqlProperties,
-    compressionProperties: ExecutionCompressionProperties,
-    dataSource: DataSource
+          dsl: DSLContext,
+          mapper: ObjectMapper,
+          registry: Registry,
+          properties: SqlProperties,
+          orcaSqlProperties: OrcaSqlProperties,
+          compressionProperties: ExecutionCompressionProperties,
+          dataSource: DataSource,
+          replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>
   ) = SqlExecutionRepository(
     orcaSqlProperties.partitionName,
     dsl,
@@ -135,7 +139,9 @@ class SqlTestConfig {
     interlink = null,
     compressionProperties = compressionProperties,
     pipelineRefEnabled = false,
-    dataSource = dataSource
+    dataSource = dataSource,
+    replicationLagAwareRepository = replicationLagAwareRepository,
+    registry = registry
   )
 
   @Bean
@@ -168,6 +174,13 @@ class SqlTestConfig {
   @Bean
   fun redisClientSelector(redisClientDelegates: List<RedisClientDelegate>) =
     RedisClientSelector(redisClientDelegates)
+
+  @Bean
+  fun executionUpdateTimeRepository(redisClientSelector: RedisClientSelector) =
+          RedisReplicationLagAwareRepository(
+                  redisClientSelector.primary("default"),
+            RedisReplicationLagAwareRepositoryProperties()
+          )
 }
 
 @ExtendWith(SpringExtension::class)
@@ -188,6 +201,7 @@ class SqlTestConfig {
     "logging.level.org.springframework.test=ERROR",
     "logging.level.com.netflix.spinnaker=FATAL",
     "execution-repository.sql.enabled=true",
+    "execution-repository.sql.read-replica.enabled=true",
     "execution-repository.redis.enabled=false",
     "keiko.queue.redis.enabled=false",
     "keiko.queue.sql.enabled=true",

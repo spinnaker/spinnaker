@@ -38,6 +38,7 @@ import com.netflix.spinnaker.orca.ext.syntheticStages
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilderImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.CancelStage
@@ -221,7 +222,7 @@ class CompleteStageHandler(
     }
 
     if (hasPlannedStages) {
-      this.setExecution(repository.retrieve(this.execution.type, this.execution.id))
+      this.setExecution(repository.retrieve(this.execution.type, this.execution.id, ReadReplicaRequirement.UP_TO_DATE))
     }
   }
 

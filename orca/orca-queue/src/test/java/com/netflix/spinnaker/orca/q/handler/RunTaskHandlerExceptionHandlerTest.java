@@ -47,6 +47,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import com.netflix.spinnaker.orca.q.DummyTask;
@@ -193,7 +194,8 @@ class RunTaskHandlerExceptionHandlerTest {
             taskId,
             DummyTask.class);
 
-    when(executionRepository.retrieve(PIPELINE, runTaskMessage.getExecutionId()))
+    when(executionRepository.retrieve(
+            PIPELINE, runTaskMessage.getExecutionId(), ReadReplicaRequirement.UP_TO_DATE))
         .thenReturn(pipeline);
   }
 

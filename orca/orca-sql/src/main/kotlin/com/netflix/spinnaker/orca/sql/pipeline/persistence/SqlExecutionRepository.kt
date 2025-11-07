@@ -17,6 +17,9 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.CaseFormat
+import com.google.common.base.Preconditions
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
@@ -51,9 +54,14 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.NATURAL_ASC
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionComparator.START_TIME_OR_ID
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.UnpausablePipelineException
 import com.netflix.spinnaker.orca.pipeline.persistence.UnresumablePipelineException
 import de.huxhorn.sulky.ulid.SpinULID
+import io.github.resilience4j.core.IntervalFunction
+import io.github.resilience4j.retry.RetryConfig
+import io.github.resilience4j.retry.RetryRegistry
 import java.time.Duration
 import org.jooq.DSLContext
 import org.jooq.DatePart
@@ -83,6 +91,8 @@ import java.io.ByteArrayOutputStream
 import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
+import java.time.Instant
+import java.util.Optional
 import java.util.stream.Collectors.toList
 import javax.sql.DataSource
 import kotlin.collections.Collection
@@ -128,7 +138,9 @@ class SqlExecutionRepository(
   private val executionRepositoryListeners: Collection<ExecutionRepositoryListener> = emptyList(),
   private val compressionProperties: ExecutionCompressionProperties,
   private val pipelineRefEnabled: Boolean,
-  private val dataSource: DataSource
+  private val dataSource: DataSource,
+  private val replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>,
+  private val registry: Registry
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
     val ulid = SpinULID(SecureRandom())
@@ -136,6 +148,11 @@ class SqlExecutionRepository(
   }
 
   private val log = LoggerFactory.getLogger(javaClass)
+  private val readPoolRetrieveSucceededId = registry.createId("executionRepository.sql.readPool.retrieveSucceeded")
+  private val readPoolRetrieveFailedId = registry.createId("executionRepository.sql.readPool.retrieveFailed")
+  private val readPoolRetrieveTotalId = registry.createId("executionRepository.sql.readPool.retrieveTotalAttempts")
+  private val readPoolRetryRegistry = initializeReadPoolRetryRegistry(retryProperties)
+  private val readPoolFieldRetryRegistry = initializeReadPoolFieldRetryRegistry(retryProperties)
 
   init {
     // If there's no read pool configured, fall back to the default pool
@@ -172,6 +189,39 @@ class SqlExecutionRepository(
     }
   }
 
+  private fun initializeReadPoolRetryRegistry(retryProperties: RetryProperties): RetryRegistry {
+    val exponentialMultiplier = 2.0
+    val jitter = 0.2
+    val retryInterval = IntervalFunction.ofExponentialRandomBackoff(retryProperties.backoffMs, exponentialMultiplier, jitter)
+    val retryConfig = RetryConfig.custom<ExecutionMapperResult>()
+      .maxAttempts(retryProperties.maxRetries)
+      .intervalFunction(retryInterval)
+      .retryOnResult { executionMapperResult ->
+        (executionMapperResult is ExecutionMapperResult.NotFound) ||
+          (executionMapperResult is ExecutionMapperResult.InvalidVersion)
+      }
+      .build()
+    return RetryRegistry.of(retryConfig)
+  }
+
+  /**
+   * TODO: figure out a way to combine ExecutionMapperResult and ReplicationLagAwareFieldResult with a generic so this method can disappear
+   */
+  private fun initializeReadPoolFieldRetryRegistry(retryProperties: RetryProperties): RetryRegistry {
+    val exponentialMultiplier = 2.0
+    val jitter = 0.2
+    val retryInterval = IntervalFunction.ofExponentialRandomBackoff(retryProperties.backoffMs, exponentialMultiplier, jitter)
+    val retryConfig = RetryConfig.custom<ReplicationLagAwareFieldResult>()
+      .maxAttempts(retryProperties.maxRetries)
+      .intervalFunction(retryInterval)
+      .retryOnResult { replicationLagAwareFieldResult ->
+        (replicationLagAwareFieldResult is ReplicationLagAwareFieldResult.NotFound) ||
+          (replicationLagAwareFieldResult is ReplicationLagAwareFieldResult.InvalidVersion)
+      }
+      .build()
+    return RetryRegistry.of(retryConfig)
+  }
+
   override fun store(execution: PipelineExecution) {
     withPool(poolName) {
       jooq.transactional { storeExecutionInternal(it, execution, true) }
@@ -191,7 +241,16 @@ class SqlExecutionRepository(
 
   override fun removeStage(execution: PipelineExecution, stageId: String) {
     validateHandledPartitionOrThrow(execution)
-
+    // removeStage can be called multiple times in succession, making execution.stages.size an inaccurate
+    // indicator of the actual number of stages that belong to an execution. Therefore, query the repository instead
+    replicationLagAwareRepository.ifPresent { it ->
+      val numStages = it.getPipelineExecutionNumStages(execution.id)
+      if (numStages != null) {
+        it.putPipelineExecutionNumStages(execution.id, numStages - 1)
+      } else {
+        it.putPipelineExecutionNumStages(execution.id, execution.stages.size - 1)
+      }
+    }
     withPool(poolName) {
       jooq.delete(execution.type.stagesTableName)
         .where(stageId.toWhereCondition()).execute()
@@ -201,6 +260,17 @@ class SqlExecutionRepository(
   override fun addStage(stage: StageExecution) {
     if (stage.syntheticStageOwner == null || stage.parentStageId == null) {
       throw SyntheticStageRequired()
+    }
+    // addStage can be called multiple times in succession, making stage.execution.stages.size an inaccurate
+    // indicator of the actual number of stages that belong to an execution. Therefore, query the repository instead
+    val pipelineExecutionId = stage.execution.id
+    replicationLagAwareRepository.ifPresent { it ->
+      val numStages = it.getPipelineExecutionNumStages(pipelineExecutionId)
+      if (numStages != null) {
+        it.putPipelineExecutionNumStages(pipelineExecutionId, numStages + 1)
+      } else {
+        it.putPipelineExecutionNumStages(pipelineExecutionId, stage.execution.stages.size + 1)
+      }
     }
     storeStage(stage)
   }
@@ -415,9 +485,9 @@ class SqlExecutionRepository(
     selectExecution(jooq, type, id)
       ?: throw ExecutionNotFoundException("No $type found for $id")
 
-  override fun retrieve(type: ExecutionType, id: String, requireLatestVersion: Boolean) =
-    selectExecution(jooq, type, id, requireLatestVersion)
-      ?: throw ExecutionNotFoundException("No $type found for $id with requireLatestVersion: $requireLatestVersion")
+  override fun retrieve(type: ExecutionType, id: String, readReplicaRequirement: ReadReplicaRequirement) =
+    selectExecution(jooq, type, id, readReplicaRequirement)
+      ?: throw ExecutionNotFoundException("No $type found for $id with readReplicaRequirement: $readReplicaRequirement")
 
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> =
     Observable.from(
@@ -430,11 +500,34 @@ class SqlExecutionRepository(
     return retrieve(type, criteria, null)
   }
 
+  override fun getApplication(id: String): String {
+    return getApplication(jooq, id)
+      ?: throw ExecutionNotFoundException("No $PIPELINE found for $id")
+  }
+
+  /**
+   * @return The application of a pipeline execution, or null if it doesn't exist
+   */
+  private fun getApplication(
+    ctx: DSLContext,
+    id: String
+  ): String? {
+
+    // PRESENT is sufficient since the application property of a pipeline
+    // execution is considered immutable.  No need to wait for the execution to be
+    // up to date.
+    return ctx.fetchFieldFromReadPool(id, field("application", String::class.java), ReadReplicaRequirement.PRESENT);
+  }
+
+  override fun getStatus(id: String, readReplicaRequirement: ReadReplicaRequirement): String {
+    return jooq.fetchFieldFromReadPool(id, field("status", String::class.java), readReplicaRequirement) ?: throw ExecutionNotFoundException("No $PIPELINE found for $id")
+  }
+
   private fun retrieve(type: ExecutionType, criteria: ExecutionCriteria, partition: String?): Observable<PipelineExecution> {
     withPool(readPoolName) {
       val select = jooq.selectExecutions(
         type,
-        fields = selectExecutionFields(compressionProperties) + field("status"),
+        fields = selectFields(type) + field("status"),
         conditions = {
           if (partition.isNullOrEmpty()) {
             it.statusIn(criteria.statuses)
@@ -471,7 +564,7 @@ class SqlExecutionRepository(
     }
 
   override fun retrievePipelineConfigIdsForApplication(application: String): List<String> =
-    withPool(poolName) {
+    withPool(readPoolName) {
       return jooq.selectDistinct(field("config_id"))
         .from(PIPELINE.tableName)
         .where(field("application").eq(application))
@@ -558,8 +651,10 @@ class SqlExecutionRepository(
 
     val finalResult: MutableList<String> = mutableListOf()
 
-    withPool(poolName) {
-      val baseQuery = jooq.select(field("config_id"), field("id"))
+    withPool(readPoolName) {
+      val configIdField = field("config_id", String::class.java)
+      val idField = field("id", String::class.java)
+      val baseQuery = jooq.select(configIdField, idField)
         .from(table)
         .where(baseQueryPredicate)
         // ULIDs are ordered by time.  Assume id is a ULID since what gate's
@@ -570,8 +665,8 @@ class SqlExecutionRepository(
         // provided somehow, mapLegacyId in this class ensures id is a ULID.
         //
         // Order the result by id to retrieve the newest executions
-         .orderBy(field("config_id"), field("id"))
-         .fetch().intoGroups("config_id", "id")
+         .orderBy(configIdField, idField)
+         .fetch().intoGroups(configIdField, idField)
 
         baseQuery.forEach {
           val count = it.value.size
@@ -579,10 +674,10 @@ class SqlExecutionRepository(
             finalResult.addAll(it.value
               .stream()
               .skip((count - criteria.pageSize).toLong())
-              .collect(toList()) as List<String>
+              .collect(toList())
             )
           } else {
-            finalResult.addAll(it.value as List<String>)
+            finalResult.addAll(it.value)
           }
         }
     }
@@ -607,7 +702,7 @@ class SqlExecutionRepository(
     queryTimeoutSeconds: Int
   ): Collection<PipelineExecution> {
     withPool(readPoolName) {
-      val selectFrom = jooq.select(selectExecutionFields(compressionProperties)).from(PIPELINE.tableName)
+      val selectFrom = jooq.select(selectFields(PIPELINE)).from(PIPELINE.tableName)
       if (compressionProperties.enabled) {
         selectFrom.leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
       }
@@ -617,7 +712,7 @@ class SqlExecutionRepository(
         .fetch()
 
       log.debug("getting stage information for all the executions found so far")
-      return ExecutionMapper(mapper, stageReadSize,compressionProperties, pipelineRefEnabled).map(baseQuery.intoResultSet(), jooq)
+      return ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(baseQuery.intoResultSet(), jooq)
     }
   }
 
@@ -625,39 +720,45 @@ class SqlExecutionRepository(
     pipelineConfigId: String,
     criteria: ExecutionCriteria
   ): Observable<PipelineExecution> {
+    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria, ReadReplicaRequirement.NONE)
+  }
+
+  override fun retrievePipelinesForPipelineConfigId(
+    pipelineConfigId: String,
+    criteria: ExecutionCriteria,
+    readReplicaRequirement: ReadReplicaRequirement
+  ): Observable<PipelineExecution> {
     // When not filtering by status, provide an index hint to ensure use of `pipeline_config_id_idx` which
     // fully satisfies the where clause and order by. Without, some lookups by config_id matching thousands
     // of executions triggered costly full table scans.
-    withPool(readPoolName) {
-      val select = if (criteria.statuses.isEmpty() || criteria.statuses.size == ExecutionStatus.values().size) {
-        jooq.selectExecutions(
-          PIPELINE,
-          usingIndex = "pipeline_config_id_idx",
-          conditions = {
-            it.where(field("config_id").eq(pipelineConfigId))
-              .statusIn(criteria.statuses)
-          },
-          seek = {
-            it.orderBy(field("id").desc()).limit(criteria.pageSize)
-          }
-        )
-      } else {
-        // When filtering by status, the above index hint isn't ideal. In this case, `pipeline_config_status_idx`
-        // appears to be used reliably without hinting.
-        jooq.selectExecutions(
-          PIPELINE,
-          conditions = {
-            it.where(field("config_id").eq(pipelineConfigId))
-              .statusIn(criteria.statuses)
-          },
-          seek = {
-            it.orderBy(field("id").desc()).limit(criteria.pageSize)
-          }
-        )
-      }
-
-      return Observable.from(select.fetchExecutions())
+    val select = if (criteria.statuses.isEmpty() || criteria.statuses.size == ExecutionStatus.values().size) {
+      jooq.selectExecutions(
+        PIPELINE,
+        usingIndex = "pipeline_config_id_idx",
+        conditions = {
+          it.where(field("config_id").eq(pipelineConfigId))
+            .statusIn(criteria.statuses)
+        },
+        seek = {
+          it.orderBy(field("id").desc()).limit(criteria.pageSize)
+        }
+      )
+    } else {
+      // When filtering by status, the above index hint isn't ideal. In this case, `pipeline_config_status_idx`
+      // appears to be used reliably without hinting.
+      jooq.selectExecutions(
+        PIPELINE,
+        conditions = {
+          it.where(field("config_id").eq(pipelineConfigId))
+            .statusIn(criteria.statuses)
+        },
+        seek = {
+          it.orderBy(field("id").desc()).limit(criteria.pageSize)
+        }
+      )
     }
+
+    return Observable.from(select.fetchExecutionsFromReadPool(readReplicaRequirement))
   }
 
   override fun retrieveOrchestrationsForApplication(
@@ -711,7 +812,7 @@ class SqlExecutionRepository(
 
   override fun retrieveOrchestrationForCorrelationId(correlationId: String): PipelineExecution {
     withPool(poolName) {
-      val execution = jooq.selectExecution(ORCHESTRATION, compressionProperties)
+      val execution = jooq.selectExecution(ORCHESTRATION)
         .where(
           field("id").eq(
             field(
@@ -745,7 +846,7 @@ class SqlExecutionRepository(
 
   override fun retrievePipelineForCorrelationId(correlationId: String): PipelineExecution {
     withPool(poolName) {
-      val execution = jooq.selectExecution(PIPELINE, compressionProperties)
+      val execution = jooq.selectExecution(PIPELINE)
         .where(
           field("id").eq(
             field(
@@ -867,7 +968,51 @@ class SqlExecutionRepository(
     executionCriteria: ExecutionCriteria
   ): List<PipelineExecution> {
     withPool(readPoolName) {
-      val select = jooq.select(selectExecutionFields(compressionProperties))
+      // The query here doesn't work with
+      //
+      // `pipelines_compressed_executions`.`updated_at` as `compressed_updated_at`
+      //
+      // from selectFields(PIPELINE) when compression is enabled.  The full error message is:
+      //
+      // org.jooq.exception.DataAccessException: SQL [select id, body, compressed_body, compression_type, `partition`, `pipelines`.`updated_at` as `updated_at`, `pipelines_compressed_executions`.`updated_at` as `compressed_updated_at` from pipelines join (select id, compressed_body, compression_type from pipelines left outer join pipelines_compressed_executions using (id) where (config_id in (?, ?) and build_time > ? and build_time < ?) order by build_time asc limit ? offset ?) as `alias_122785528` using (id) order by build_time asc]; Unknown column 'pipelines_compressed_executions.updated_at' in 'field list'
+      // 	at app//org.jooq.impl.Tools.translate(Tools.java:2903)
+      // 	at app//org.jooq.impl.DefaultExecuteContext.sqlException(DefaultExecuteContext.java:757)
+      // 	at app//org.jooq.impl.AbstractQuery.execute(AbstractQuery.java:389)
+      // 	at app//org.jooq.impl.AbstractResultQuery.fetch(AbstractResultQuery.java:337)
+      // 	at app//org.jooq.impl.SelectImpl.fetch(SelectImpl.java:2880)
+      // 	at app//com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository.fetchExecutions(SqlExecutionRepository.kt:1506)
+      // 	at app//com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository.retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(SqlExecutionRepository.kt:920)
+      // 	at app//com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository.retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(SqlExecutionRepository.kt:936)
+      // 	at app//com.netflix.spinnaker.kork.telemetry.InstrumentedProxy.invoke(InstrumentedProxy.java:103)
+      // 	at com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlPipelineExecutionRepositorySpec.can retrieve ALL pipelines by configIds between build time boundaries(SqlPipelineExecutionRepositorySpec.groovy:665)
+      // Caused by: java.sql.SQLSyntaxErrorException: Unknown column 'pipelines_compressed_executions.updated_at' in 'field list'
+      // 	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121)
+      // 	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
+      // 	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:916)
+      // 	at com.mysql.cj.jdbc.ClientPreparedStatement.execute(ClientPreparedStatement.java:354)
+      // 	at com.zaxxer.hikari.pool.ProxyPreparedStatement.execute(ProxyPreparedStatement.java:44)
+      // 	at org.jooq.tools.jdbc.DefaultPreparedStatement.execute(DefaultPreparedStatement.java:214)
+      // 	at org.jooq.impl.Tools.executeStatementAndGetFirstResultSet(Tools.java:4217)
+      // 	at org.jooq.impl.AbstractResultQuery.execute(AbstractResultQuery.java:283)
+      // 	at org.jooq.impl.AbstractQuery.execute(AbstractQuery.java:375)
+      // 	... 7 more
+      //
+      //
+      // So, since this is a query that uses the read pool already, and isn't concerned with replication lag, build the list of fields manually instead of calling selectFields(PIPELINE)
+      val baseFields = if (compressionProperties.enabled)
+        listOf(field("id"),
+          field("body"),
+          field("compressed_body"),
+          field("compression_type"),
+          field(name("partition")),
+          field("updated_at"))
+      else
+        listOf(field("id"),
+          field("body"),
+          field(name("partition")),
+          field("updated_at"))
+
+      val select = jooq.select(baseFields)
         .from(PIPELINE.tableName)
         .join(
           jooq.selectExecutions(
@@ -999,6 +1144,7 @@ class SqlExecutionRepository(
       val tableName = execution.type.tableName
       val stageTableName = execution.type.stagesTableName
       val status = execution.status.toString()
+      val updatedAt = Instant.now().toEpochMilli()
       val body = mapper.writeValueAsString(execution)
       val bodySize = body.length.toLong()
       execution.setSize(bodySize)
@@ -1014,7 +1160,7 @@ class SqlExecutionRepository(
         field("application") to execution.application,
         field("build_time") to (execution.buildTime ?: currentTimeMillis()),
         field("canceled") to execution.isCanceled,
-        field("updated_at") to currentTimeMillis(),
+        field("updated_at") to updatedAt,
         field("body") to body
       )
 
@@ -1024,7 +1170,7 @@ class SqlExecutionRepository(
         field(name("partition")) to partitionName,
         // won't have started on insert
         field("canceled") to execution.isCanceled,
-        field("updated_at") to currentTimeMillis()
+        field("updated_at") to updatedAt
       )
 
       // Set startTime only if it is not null
@@ -1053,6 +1199,7 @@ class SqlExecutionRepository(
           compressionProperties.isWriteEnabled()
         )
       }
+      replicationLagAwareRepository.ifPresent { it -> it.putPipelineExecutionUpdate(executionId, Instant.ofEpochMilli(updatedAt)) }
 
       storeCorrelationIdInternal(ctx, execution)
 
@@ -1073,6 +1220,7 @@ class SqlExecutionRepository(
             }.execute()
         }
 
+        replicationLagAwareRepository.ifPresent { it -> it.putPipelineExecutionNumStages(executionId, stages.size) }
         stages.forEach { storeStageInternal(ctx, it, executionId) }
       }
     } finally {
@@ -1091,6 +1239,7 @@ class SqlExecutionRepository(
   ) {
     val stageTable = stage.execution.type.stagesTableName
     val table = stage.execution.type.tableName
+    val updatedAt = Instant.now().toEpochMilli()
     val body = mapper.writeValueAsString(stage)
     val bodySize = body.length.toLong()
     stage.setSize(bodySize)
@@ -1106,17 +1255,18 @@ class SqlExecutionRepository(
       field("legacy_id") to legacyId,
       field("execution_id") to executionUlid,
       field("status") to stage.status.toString(),
-      field("updated_at") to currentTimeMillis(),
+      field("updated_at") to updatedAt,
       field("body") to body
     )
 
     val updatePairs = mapOf(
       field("status") to stage.status.toString(),
-      field("updated_at") to currentTimeMillis(),
+      field("updated_at") to updatedAt,
       field("body") to body
     )
 
     upsert(ctx, stageTable, insertPairs, updatePairs, stage.id, compressionProperties.isWriteEnabled())
+    replicationLagAwareRepository.ifPresent { it -> it.putStageExecutionUpdate(stageId, Instant.ofEpochMilli(updatedAt)) }
 
     // This method is called from [storeInternal] as well. We don't want to notify multiple times for the same
     // overall persist operation.
@@ -1220,10 +1370,12 @@ class SqlExecutionRepository(
         // Set uncompressed body to empty string since body is not a nullable column
         updatedInsertPairs[bodyField] = ""
         updatedUpdatePairs[bodyField] = ""
+        val updatedAt = insertPairs[field("updated_at")] as Long
         compressedExecTablePairs = mapOf(
           field("id") to id,
           field("compressed_body") to compressedBody,
-          field("compression_type") to compressionProperties.compressionType.type
+          field("compression_type") to compressionProperties.compressionType.type,
+          field("updated_at") to updatedAt
         )
         isBodyCompressed = true
       }
@@ -1317,22 +1469,27 @@ class SqlExecutionRepository(
     id: String
   ): PipelineExecution? {
     withPool(poolName) {
-      val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+      val select = ctx.selectExecution(type).where(id.toWhereCondition())
       return select.fetchExecution()
     }
   }
 
+  /**
+   * Read an execution from the read pool
+   * @param ctx context for the read operation
+   * @param type the type of execution to read
+   * @param id the id of the execution to read
+   * @param readReplicaRequirement requirement for information from the read replica
+   * @return an execution
+   */
   private fun selectExecution(
     ctx: DSLContext,
     type: ExecutionType,
     id: String,
-    requireLatestVersion: Boolean
+    readReplicaRequirement: ReadReplicaRequirement
   ): PipelineExecution? {
-    val selectPool = if (requireLatestVersion) poolName else readPoolName
-    withPool(selectPool) {
-      val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
-      return select.fetchExecution()
-    }
+    val select = ctx.selectExecution(type).where(id.toWhereCondition())
+    return select.fetchExecutionFromReadPool(readReplicaRequirement)
   }
 
   private fun selectExecutions(
@@ -1385,7 +1542,7 @@ class SqlExecutionRepository(
 
   private fun DSLContext.selectExecutions(
     type: ExecutionType,
-    fields: List<Field<Any>> = selectExecutionFields(compressionProperties),
+    fields: List<Field<Any>> = selectFields(type),
     conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
     seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
   ): SelectForUpdateStep<out Record> {
@@ -1402,7 +1559,7 @@ class SqlExecutionRepository(
 
   private fun DSLContext.selectExecutions(
     type: ExecutionType,
-    fields: List<Field<Any>> = selectExecutionFields(compressionProperties),
+    fields: List<Field<Any>> = selectFields(type),
     usingIndex: String,
     conditions: (SelectJoinStep<Record>) -> SelectConnectByStep<out Record>,
     seek: (SelectConnectByStep<out Record>) -> SelectForUpdateStep<out Record>
@@ -1418,11 +1575,296 @@ class SqlExecutionRepository(
       .let { seek(it) }
   }
 
+  private fun DSLContext.selectExecution(type: ExecutionType, fields: List<Field<Any>> = selectFields(type)): SelectJoinStep<Record> {
+    val selectFrom = select(fields).from(type.tableName)
+
+    if (compressionProperties.enabled) {
+      selectFrom.leftJoin(type.tableName.compressedExecTable).using(field("id"))
+    }
+
+    return selectFrom
+  }
+
+  /**
+   * The fields used in a SELECT executions query.
+   */
+  private fun selectFields(executionType: ExecutionType): List<Field<Any>> {
+    if (compressionProperties.enabled) {
+      return listOf(field("id"),
+        field("body"),
+        field("compressed_body"),
+        field("compression_type"),
+        field(name("partition")),
+        field(name(executionType.tableName.name, "updated_at")).`as`("updated_at"),
+        field(name(executionType.tableName.compressedExecTable.name, "updated_at")).`as`("compressed_updated_at")
+      )
+    }
+
+    return listOf(field("id"),
+        field("body"),
+        field(name("partition")),
+        field("updated_at")
+    )
+  }
+
+  /**
+   * Read a field from a pipeline execution, accounting for replication lag in a database setup with a primary instance
+   * and one or more read replicas, as specified by readReplicaRequirement. If the execution is not up-to-date with the primary instance, retry the query until
+   * the fetched execution is up-to-date. If this exhausts all retry attempts, retry the query using the default pool.
+   *
+   * @param id: the id of the execution from which to retrieve a field
+   * @param oneField: a field to retrieve
+   * @param readReplicaRequirement: the requirement that the issuer of the query has for executions from the read pool
+   *
+   * @return the given field from the given execution id, or null if the execution is not found
+   */
+  private fun DSLContext.fetchFieldFromReadPool(id: String, oneField: Field<String>, readReplicaRequirement: ReadReplicaRequirement): String? {
+
+    val selectOneField = select(oneField).from(PIPELINE.tableName).where(id.toWhereCondition())
+
+    // Avoid collecting the readPoolRetrieve class of metrics here because it will
+    // skew the number of times that retrieving using the read pool succeeded
+    // on the first try
+    if (readReplicaRequirement == ReadReplicaRequirement.NONE) {
+      withPool(readPoolName) {
+        return selectOneField.fetchOne(oneField)
+      }
+    }
+
+    // If the read pool configuration does not satisfy the requirement, then
+    // retrieve the execution from the default pool which does. This ensures that
+    // the retrieved execution is up-to-date.
+    if (!readPoolSatisfiesRequirement(readReplicaRequirement)) {
+      withPool(poolName) {
+        return selectOneField.fetchOne(oneField)
+      }
+    }
+
+    val selectReplicationLagFields = select(listOf(oneField, field("updated_at"))).from(PIPELINE.tableName).where(id.toWhereCondition())
+
+    // Attempt to find an execution from the read pool that satisfies the requirement
+    val readPoolFieldRetryContext = readPoolFieldRetryRegistry.retry("field-read-pool")
+    var numberOfReadPoolQueries = 0L
+    val replicationLagAwareFieldResult = try {
+      withPool(readPoolName) {
+        readPoolFieldRetryContext.executeSupplier {
+          numberOfReadPoolQueries += 1
+          if (readReplicaRequirement == ReadReplicaRequirement.PRESENT) {
+            selectOneField.fetchFieldFromReadPool(id, oneField, readReplicaRequirement)
+          } else {
+            selectReplicationLagFields.fetchFieldFromReadPool(id, oneField, readReplicaRequirement)
+          }
+        }
+      }
+    } catch (e: Exception) {
+      // Swallow the exception and let code below process the failure by falling back to the default pool
+      log.error("Encountered an exception when fetching ${oneField.name} from the read pool", e)
+      ReplicationLagAwareFieldResult.Failure
+    }
+
+    registry.counter(readPoolRetrieveTotalId).increment()
+
+    // Determine the result and perform additional tasks if necessary
+    when (replicationLagAwareFieldResult) {
+      is ReplicationLagAwareFieldResult.Success -> {
+        registry.counter(readPoolRetrieveSucceededId.withTag(
+          "numAttempts", numberOfReadPoolQueries.toString()
+        )).increment()
+        return replicationLagAwareFieldResult.result
+      }
+      is ReplicationLagAwareFieldResult.NotFound -> {
+        withPool(poolName) {
+          val defaultPoolResult = selectOneField.fetchOne(oneField)
+          // To avoid skewing the metric, only executions that exist in the default pool but not in the read pool
+          // should count toward the read pool retrieval failed metric
+          if (defaultPoolResult != null) {
+            registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(replicationLagAwareFieldResult.toString()))).increment()
+          }
+          return defaultPoolResult
+        }
+      }
+      is ReplicationLagAwareFieldResult.Failure,
+      is ReplicationLagAwareFieldResult.InvalidVersion,
+      is ReplicationLagAwareFieldResult.MissingFromReplicationLagRepository -> {
+        registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(replicationLagAwareFieldResult.toString()))).increment()
+        withPool(poolName) {
+          return selectOneField.fetchOne(oneField)
+        }
+      }
+    }
+  }
+
+  /**
+   * An implementation of fetchExecutions that accounts for replication lag in a database setup with a primary instance
+   * and one or more read replicas. If readReplicaRequirement is UP_TO_DATE, attempt to fetch the executions from the read pool.
+   * If the resulting executions are not up-to-date with the executions in the primary instance, retry the query until
+   * the fetched executions are up-to-date. If this exhausts all retry attempts, retry the query using the default pool.
+   *
+   * @param readReplicaRequirement: the requirement that the issuer of the query has for executions from the read pool.  PRESENT not supported.
+   *
+   * @return a Collection of PipelineExecutions satisfying the query
+   */
+  private fun SelectForUpdateStep<out Record>.fetchExecutionsFromReadPool(readReplicaRequirement: ReadReplicaRequirement): Collection<PipelineExecution> {
+    if (readReplicaRequirement == ReadReplicaRequirement.PRESENT) {
+       throw IllegalArgumentException("ReadReplicaRequirement.PRESENT not supported in fetchExecutionsFromReadPool")
+    }
+    // Avoid collecting the readPoolRetrieve class of metrics here because it will
+    // skew the number of times that retrieving using the read pool succeeded
+    // on the first try
+    if (readReplicaRequirement == ReadReplicaRequirement.NONE) {
+      withPool(readPoolName) {
+        return fetchExecutions()
+      }
+    }
+    // If the read pool configuration does not satisfy the requirement, then
+    // retrieve the execution from the default pool which does. This ensures that
+    // the retrieved execution is up-to-date.
+    if (!readPoolSatisfiesRequirement(readReplicaRequirement)) {
+      withPool(poolName) {
+        return fetchExecutions()
+      }
+    }
+    // Attempt to find an up-to-date execution from the read pool
+    val readPoolRetryContext = readPoolRetryRegistry.retry("read-pool")
+    var numberOfReadPoolQueries = 0L
+    val executionMapperResult = try {
+      withPool(readPoolName) {
+        readPoolRetryContext.executeSupplier {
+          numberOfReadPoolQueries += 1
+          fetchLatestExecutions()
+        }
+      }
+    } catch (e: Exception) {
+      // Swallow the exception and let code below process the failure by falling back to the default pool
+      log.error("Encountered an exception when fetching executions from the read pool", e)
+      ExecutionMapperResult.Failure
+    }
+    registry.counter(readPoolRetrieveTotalId).increment()
+    // Determine the result and perform additional tasks if necessary
+    when (executionMapperResult) {
+      is ExecutionMapperResult.Success -> {
+        registry.counter(
+          readPoolRetrieveSucceededId.withTag(
+            "numAttempts", numberOfReadPoolQueries.toString()
+          )
+        ).increment()
+        return executionMapperResult.executions
+      }
+      is ExecutionMapperResult.NotFound -> {
+        withPool(poolName) {
+          val executions = fetchExecutions()
+          // To avoid skewing the metric, only executions that exist in the default pool but not in the read pool
+          // should count toward the read pool retrieval failed metric
+          if (executions.isNotEmpty()) {
+            registry.counter(
+              readPoolRetrieveFailedId.withTag(
+                "result_code",
+                formatTag(executionMapperResult.toString())
+              )
+            ).increment()
+          }
+          return executions
+        }
+      }
+      is ExecutionMapperResult.Failure,
+      is ExecutionMapperResult.InvalidVersion -> {
+        registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(executionMapperResult.toString()))).increment()
+        withPool(poolName) {
+          return fetchExecutions()
+        }
+      }
+      // If an execution is missing from the ReplicationLagAwareRepository, retrieve
+      // the execution using the default pool. If successful, also repopulate the
+      // ReplicationLagAwareRepository with the execution metadata
+      is ExecutionMapperResult.MissingFromReplicationLagRepository -> {
+        registry.counter(readPoolRetrieveFailedId.withTag("result_code", formatTag(executionMapperResult.toString()))).increment()
+        val executions = withPool(poolName) {
+          fetchExecutions()
+        }
+
+        replicationLagAwareRepository.ifPresent { replLagAwareRepo ->
+          executions.forEach { pipelineExecution ->
+            replLagAwareRepo.putPipelineExecutionUpdate(
+              pipelineExecution.id,
+              Instant.ofEpochMilli(pipelineExecution.updatedAt)
+            )
+            replLagAwareRepo.putPipelineExecutionNumStages(
+              pipelineExecution.id,
+              pipelineExecution.stages.size
+            )
+            pipelineExecution.stages.forEach {
+              replLagAwareRepo.putStageExecutionUpdate(it.id, Instant.ofEpochMilli(it.updatedAt))
+            }
+          }
+        }
+        return executions
+      }
+    }
+  }
+
+  /**
+   * Format metrics tag values in lower snake
+   *
+   * @param tagValue: unprocessed tag value, assume upper camel
+   */
+  private fun formatTag(tagValue: String) =
+    CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, tagValue)
+
+  private fun SelectForUpdateStep<out Record>.fetchExecutionFromReadPool(readReplicaRequirement: ReadReplicaRequirement) =
+    fetchExecutionsFromReadPool(readReplicaRequirement).firstOrNull()
+
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
     ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled).map(fetch().intoResultSet(), jooq)
 
   private fun SelectForUpdateStep<out Record>.fetchExecution() =
     fetchExecutions().firstOrNull()
+
+  private fun SelectForUpdateStep<out Record>.fetchLatestExecutions(): ExecutionMapperResult {
+    Preconditions.checkState(replicationLagAwareRepository.isPresent())
+    return ExecutionMapper(
+      mapper,
+      stageReadSize,
+      compressionProperties,
+      pipelineRefEnabled,
+    ).map(replicationLagAwareRepository.get(), fetch().intoResultSet(), jooq)
+  }
+
+  /**
+   * Fetch a field (and updated_at) from the read pool and assess whether the
+   * execution is up to date or not.  Assume that the database query returns 0
+   * or 1 row.  Additional rows are ignored.
+   *
+   * @param executionId: the id of the execution from which to fetch a field
+   * @param field: the field to fetch
+   * @param readReplicaRequirement: the requirement to satisfy
+   */
+  private fun SelectForUpdateStep<out Record>.fetchFieldFromReadPool(executionId: String, field: Field<String>, readReplicaRequirement: ReadReplicaRequirement): ReplicationLagAwareFieldResult {
+    val result = fetch()
+
+    when (readReplicaRequirement) {
+      ReadReplicaRequirement.NONE -> throw IllegalStateException("ReadReplicaRequirement.NONE is invalid in replication-lag-aware SelectForUpdateStep.fetchFieldFromReadPool")
+      ReadReplicaRequirement.PRESENT -> {
+        if (result.isEmpty()) {
+          return ReplicationLagAwareFieldResult.NotFound
+        }
+        return ReplicationLagAwareFieldResult.Success(result.getValue(0, field))
+      }
+      ReadReplicaRequirement.UP_TO_DATE -> {
+        Preconditions.checkState(replicationLagAwareRepository.isPresent)
+
+        if (result.isEmpty()) {
+          return ReplicationLagAwareFieldResult.NotFound
+        }
+        val oldestAllowedUpdate = replicationLagAwareRepository.get().getPipelineExecutionUpdate(executionId)
+              ?: return ReplicationLagAwareFieldResult.MissingFromReplicationLagRepository
+        val updatedAt = result.getValue(0, field("updated_at", Long::class.java))
+        if (updatedAt < oldestAllowedUpdate.toEpochMilli()) {
+          return ReplicationLagAwareFieldResult.InvalidVersion
+        }
+        return ReplicationLagAwareFieldResult.Success(result.getValue(0, field))
+      }
+    }
+  }
 
   private fun fetchExecutions(nextPage: (Int, String?) -> Iterable<PipelineExecution>) =
     object : Iterable<PipelineExecution> {
@@ -1468,6 +1910,14 @@ class SqlExecutionRepository(
       } catch (e: Exception) {
         log.warn("Listener '${it.javaClass.simpleName}' encountered an error", e)
       }
+    }
+  }
+
+  private fun readPoolSatisfiesRequirement(readReplicaRequirement: ReadReplicaRequirement): Boolean {
+    return when (readReplicaRequirement) {
+      ReadReplicaRequirement.NONE -> true
+      ReadReplicaRequirement.PRESENT -> readPoolName != poolName
+      ReadReplicaRequirement.UP_TO_DATE -> readPoolName != poolName && replicationLagAwareRepository.isPresent()
     }
   }
 

@@ -79,24 +79,27 @@ public interface ExecutionRepository {
   /**
    * In ExecutionRepository implementations with replication lag, the caller can specify whether
    * they require the latest version of the PipelineExecution in the repository. Set
-   * requireLatestVersion according to the needs of the application as there are tradeoffs.
-   * Repository implementations without replication lag will behave as if requireLatestVersion =
+   * requireUpToDateVersion according to the needs of the application as there are tradeoffs.
+   * Repository implementations without replication lag will behave as if requireUpToDateVersion =
    * true
    *
-   * <p>Specifying requireLatestVersion = true provides strict consistency but comes with the cost
-   * of higher database load and a slower query. Specifying requireLatestVersion = false reduces
-   * database load and provides a faster query, but the returned PipelineExecution may not be the
-   * latest version.
+   * <p>Specifying requireUpToDateVersion = true provides strict consistency but comes with the cost
+   * of higher database load and a slower query. Specifying requireUpToDateVersion = false reduces
+   * database load and provides a faster query, but the returned PipelineExecution may not be up to
+   * date with the latest changes on the primary database.
    *
    * @param type Execution type
    * @param id Execution id
-   * @param requireLatestVersion Whether this operation needs to fetch the latest PipelineExecution
+   * @param readReplicaRequirement Whether this operation needs to fetch an up-to-date
+   *     PipelineExecution
    * @return A PipelineExecution that satisfies the given parameters
    * @throws ExecutionNotFoundException
    */
   @Nonnull
   PipelineExecution retrieve(
-      @Nonnull ExecutionType type, @Nonnull String id, boolean requireLatestVersion)
+      @Nonnull ExecutionType type,
+      @Nonnull String id,
+      ReadReplicaRequirement readReplicaRequirement)
       throws ExecutionNotFoundException;
 
   @Nonnull
@@ -108,12 +111,46 @@ public interface ExecutionRepository {
   Observable<PipelineExecution> retrieve(
       @Nonnull ExecutionType type, @Nonnull ExecutionCriteria criteria);
 
+  /**
+   * Retrieve the application of a pipeline execution. An execution's application is considered
+   * immutable, so if a read replica is available, it's acceptable to use it without waiting for an
+   * up-to-date version.
+   *
+   * @param id the id of the execution
+   */
+  String getApplication(@Nonnull String id) throws ExecutionNotFoundException;
+
+  /**
+   * Retrieve the status of a pipeline execution.
+   *
+   * @param id the id of the execution
+   * @param readReplicaRequirement the requirement that the issuer of the query has for the
+   *     execution from the read pool
+   */
+  String getStatus(@Nonnull String id, ReadReplicaRequirement readReplicaRequirement)
+      throws ExecutionNotFoundException;
+
   @Nonnull
   Observable<PipelineExecution> retrievePipelinesForApplication(@Nonnull String application);
 
   @Nonnull
   Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
       @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria);
+
+  /**
+   * A replication lag-aware implementation of retrievePipelinesForPipelineConfigId
+   *
+   * @param pipelineConfigId Pipeline config ID
+   * @param criteria Search query filters
+   * @param readReplicaRequirement Whether this operation needs to fetch an up-to-date pipeline
+   *     execution
+   * @return
+   */
+  @Nonnull
+  Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
+      @Nonnull String pipelineConfigId,
+      @Nonnull ExecutionCriteria criteria,
+      ReadReplicaRequirement readReplicaRequirement);
 
   @Nonnull
   Collection<String> retrievePipelineConfigIdsForApplication(@Nonnull String application);

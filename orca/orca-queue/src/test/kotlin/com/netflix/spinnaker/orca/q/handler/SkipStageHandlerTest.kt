@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.orca.q.SkipStage
@@ -80,7 +81,7 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       val message = SkipStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -108,7 +109,7 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       val message = SkipStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -163,7 +164,7 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       val message = SkipStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -219,7 +220,7 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       val message = SkipStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -253,7 +254,7 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       val message = SkipStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -293,7 +294,7 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
       val message = SkipStage(pipeline.stageByRef("1"))
 
       beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
       }
 
       afterGroup(::resetMocks)
@@ -331,7 +332,7 @@ object SkipStageHandlerTest : SubjectSpek<SkipStageHandler>({
         val message = SkipStage(pipeline.stageByRef("1"))
 
         beforeGroup {
-          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(repository.retrieve(PIPELINE, message.executionId, ReadReplicaRequirement.UP_TO_DATE)) doReturn pipeline
         }
 
         afterGroup(::resetMocks)

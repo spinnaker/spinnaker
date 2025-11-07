@@ -42,6 +42,7 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.util.ExpressionUtils
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -216,6 +217,8 @@ class TaskController {
  * specified
  * @param expand (optional) Expands each execution object in the resulting list. If this value is missing,
  * it is defaulted to true.
+ * @param requireUpToDateVersion (optional) whether to fetch the up-to-date version of the specified execution(s).  Only
+ * used when executionIds is specified.
  * @return
  */
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
@@ -225,7 +228,8 @@ class TaskController {
     @RequestParam(value = "executionIds", required = false) String executionIds,
     @RequestParam(value = "limit", required = false) Integer limit,
     @RequestParam(value = "statuses", required = false) String statuses,
-    @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
+    @RequestParam(value = "expand", defaultValue = "true") boolean expand,
+    @RequestParam(defaultValue = "false") boolean requireUpToDateVersion) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     limit = limit ?: 1
     ExecutionCriteria executionCriteria = new ExecutionCriteria(
@@ -246,7 +250,7 @@ class TaskController {
 
       List<PipelineExecution> executions = rx.Observable.from(ids.collect {
         try {
-          executionRepository.retrieve(PIPELINE, it, false)
+          executionRepository.retrieve(PIPELINE, it, requireUpToDateVersion ? ReadReplicaRequirement.UP_TO_DATE : ReadReplicaRequirement.NONE)
         } catch (ExecutionNotFoundException e) {
           null
         }
@@ -282,7 +286,7 @@ class TaskController {
    * @param limit (optional) The maximum number of nested pipeline executions to return for failing stages. The default value is 1.
    * @return List of one or more failed stage summaries.
    */
-  @PreAuthorize("hasPermission(this.getPipeline(#executionId)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getApplication(#executionId), 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/failedStages", method = RequestMethod.GET)
   List<FailedStageExecution> getFailedStagesForPipelineExecution(
     @RequestParam(value = "executionId") String executionId,
@@ -357,7 +361,7 @@ class TaskController {
   private PipelineExecution getPipelineExecution(final String executionId) {
     final PipelineExecution pipelineExecution;
     try {
-      pipelineExecution = executionRepository.retrieve(PIPELINE, executionId)
+      pipelineExecution = executionRepository.retrieve(PIPELINE, executionId, ReadReplicaRequirement.UP_TO_DATE)
     }
     catch (ExecutionNotFoundException e) {
       log.info("No pipeline execution found for executionID: " + executionId)
@@ -562,13 +566,37 @@ class TaskController {
     return result
   }
 
+  /**
+   * Retrieve a pipeline execution by id
+   * @param id the id of the execution to retrieve
+   * @param requireUpToDateVersion (optional) whether to fetch the up-to-date version of the execution
+   */
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
-  PipelineExecution getPipeline(@PathVariable String id) {
-    executionRepository.retrieve(PIPELINE, id, false)
+  PipelineExecution getPipeline(@PathVariable String id,
+                                @RequestParam(defaultValue = "false") boolean requireUpToDateVersion) {
+    executionRepository.retrieve(PIPELINE, id, requireUpToDateVersion ? ReadReplicaRequirement.UP_TO_DATE : ReadReplicaRequirement.NONE)
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
+  /**
+   * Retrieve the status of a pipeline execution by id
+   * @param id the id of the execution for which to retrieve status
+   * @param readReplicaRequirementStr (optional) the requirement that the issuer of the
+   *   query has for the execution from the read pool (currently NONE, PRESENT, or
+   *   UP_TO_DATE are valid (case-insensitive)).  Defaults to UP_TO_DATE with the
+   *   expectation that most queries for status need up to date info.
+   */
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'READ')")
+  @RequestMapping(value = "/pipelines/{id}/status", method = RequestMethod.GET)
+  String getPipelineStatus(@PathVariable String id,
+                           @RequestParam(name = "readReplicaRequirement", defaultValue = "UP_TO_DATE") String readReplicaRequirementStr) {
+
+    // This throws an IllegalArgumentException if readReplicaRequirementStr is invalid
+    ReadReplicaRequirement readReplicaRequirement = ReadReplicaRequirement.valueOf(readReplicaRequirementStr.toUpperCase());
+    executionRepository.getStatus(id, readReplicaRequirement)
+  }
+
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String id) {
     executionRepository.retrieve(PIPELINE, id).with {
@@ -581,7 +609,7 @@ class TaskController {
     }
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(
@@ -590,14 +618,14 @@ class TaskController {
     executionOperator.cancel(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/pause", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void pause(@PathVariable String id) {
     executionOperator.pause(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/resume", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void resume(@PathVariable String id) {
@@ -620,7 +648,7 @@ class TaskController {
     []
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   PipelineExecution updatePipelineStage(
     @PathVariable String id,
@@ -648,14 +676,14 @@ class TaskController {
     }
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
   PipelineExecution retryPipelineStage(
     @PathVariable String id, @PathVariable String stageId, @RequestBody Map restartDetails) {
     return executionOperator.restartStage(id, stageId, restartDetails)
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}/evaluateExpression", method = RequestMethod.GET)
   Map evaluateExpressionForExecution(@PathVariable("id") String id,
                                      @RequestParam("expression")
@@ -674,7 +702,7 @@ class TaskController {
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}/{stageId}/evaluateExpression", method = RequestMethod.GET)
   Map evaluateExpressionForExecutionAtStage(@PathVariable("id") String id,
                                             @PathVariable("stageId") String stageId,
@@ -694,7 +722,7 @@ class TaskController {
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
   }
 
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(this.getApplication(#id), 'APPLICATION', 'READ')")
   @PostMapping("/pipelines/{id}/evaluateVariables")
   Map evaluateVariables(@PathVariable("id") String id,
                         @RequestParam(value = "requisiteStageRefIds", defaultValue = "") String requisiteStageRefIds,
@@ -1156,6 +1184,18 @@ class TaskController {
       } catch (Exception e) {
         log.error("shutting down the executor service failed", e)
       }
+    }
+  }
+
+  /**
+   * Return the application for a pipeline execution id, or null if there's no
+   * execution with the given id. Public so it's available to SpEL expressions.
+   */
+  public String getApplication(String id) {
+    try {
+      return executionRepository.getApplication(id)
+    } catch (ExecutionNotFoundException e) {
+      return null
     }
   }
 

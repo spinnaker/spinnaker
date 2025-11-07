@@ -23,25 +23,32 @@ import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
-import java.sql.ResultSet
+import com.netflix.spinnaker.orca.pipeline.persistence.ReplicationLagAwareRepository
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
+import java.sql.ResultSet
+import java.time.Instant
+import java.util.Optional
 
 /**
  * Converts a SQL [ResultSet] into an Execution.
  *
  * When retrieving an Execution from SQL, we lazily load its stages on-demand
  * in this mapper as well.
+ *
+ * The mapper accepts an optional replicationLagAwareRepository parameter.
+ * If present, the mapper verifies that all executions
+ * and compressed executions comply with the requirements set by replicationLagAwareRepository.
+ * If any part of the ResultSet fails to meet the requirements, the mapper returns an empty list of executions
  */
 class ExecutionMapper(
   private val mapper: ObjectMapper,
   private val stageBatchSize: Int,
   private val compressionProperties: ExecutionCompressionProperties,
-  private val pipelineRefEnabled: Boolean
+  private val pipelineRefEnabled: Boolean,
 ) {
-
   private val log = LoggerFactory.getLogger(javaClass)
 
   /**
@@ -69,12 +76,81 @@ class ExecutionMapper(
     }
   }
 
+  /**
+   * Determines whether the execution represented by the ResultSet is an up-to-date version.
+   * The ResultSet is expected to contain an `updated_at` column which represents the update time of the execution
+   * and a `compressed_updated_at` column which represents the update time of the compressed
+   * execution, if it exists.
+   *
+   * @param rs [ResultSet] representing the execution
+   *
+   * @return true if the execution is up-to-date, false otherwise
+   */
+  @VisibleForTesting
+  fun isUpToDateVersion(rs: ResultSet, oldestAllowedUpdate: Instant): Boolean {
+    if (rs.getLong("updated_at") < oldestAllowedUpdate.toEpochMilli()) {
+      return false
+    }
+    // If the execution is compressed, then confirm that the compressed execution is up-to-date
+    val body: String? = rs.getString("body")
+    return if (compressionProperties.enabled && body.isNullOrEmpty()) {
+      rs.getLong("compressed_updated_at") >= oldestAllowedUpdate.toEpochMilli()
+    } else {
+      true
+    }
+  }
+
+  /**
+   * Maps a given ResultSet to a Collection<PipelineExecution> and returns the result
+   * in an [ExecutionMapperResult]. If the collection is empty,
+   * [ReplicationLagAwareResultCode] communicates the reason and the caller can use this information
+   * to perform additional processing as needed.
+   *
+   * Return an ExecutionMapperResult instead of throwing different exception classes because
+   * this function can return an empty collection as part of its normal behavior. In other words,
+   * returning an empty collection is not considered "truly exceptional" or "unexpected" behavior.
+   */
+  fun map(replicationLagAwareRepository: ReplicationLagAwareRepository,
+          rs: ResultSet, context: DSLContext): ExecutionMapperResult {
+    return map(Optional.of(replicationLagAwareRepository), rs, context)
+  }
+
+  /**
+   * Maps a given ResultSet to a Collection<PipelineExecution> without any awareness of replication lag.
+   */
   fun map(rs: ResultSet, context: DSLContext): Collection<PipelineExecution> {
+    return when (val executionMapperResult = map(Optional.empty(), rs, context)) {
+      is ExecutionMapperResult.Success -> executionMapperResult.executions
+      is ExecutionMapperResult.NotFound -> emptyList()
+      else -> throw IllegalStateException("invalid result code for non-replication-lag-aware map: $executionMapperResult")
+    }
+  }
+
+  /**
+   * Maps a given ResultSet to a Collection<PipelineExecution> and returns the result
+   * in an [ExecutionMapperResult]. If the collection is empty,
+   * [ReplicationLagAwareResultCode] communicates the reason and the caller can use this information
+   * to perform additional processing as needed.
+   *
+   * Return an ExecutionMapperResult instead of throwing different exception classes because
+   * this function can return an empty collection as part of its normal behavior. In other words,
+   * returning an empty collection is not considered "truly exceptional" or "unexpected" behavior.
+   */
+  private fun map(replicationLagAwareRepository: Optional<ReplicationLagAwareRepository>,
+          rs: ResultSet, context: DSLContext): ExecutionMapperResult {
     val results = mutableListOf<PipelineExecution>()
     val executionMap = mutableMapOf<String, PipelineExecution>()
     val legacyMap = mutableMapOf<String, String>()
 
     while (rs.next()) {
+      if (replicationLagAwareRepository.isPresent()) {
+        val executionId = rs.getString("id")
+        val oldestAllowedUpdate = replicationLagAwareRepository.get().getPipelineExecutionUpdate(executionId)
+          ?: return ExecutionMapperResult.MissingFromReplicationLagRepository
+        if (!isUpToDateVersion(rs, oldestAllowedUpdate)) {
+          return ExecutionMapperResult.InvalidVersion
+        }
+      }
       val body = getDecompressedBody(rs)
       if (body.isNotEmpty()) {
         mapper.readValue<PipelineExecution>(body)
@@ -82,6 +158,7 @@ class ExecutionMapper(
             execution ->
             convertPipelineRefTrigger(execution, context)
             execution.setSize(body.length.toLong())
+            execution.updatedAt = rs.getLong("updated_at")
             results.add(execution)
             execution.partition = rs.getString("partition")
 
@@ -99,6 +176,8 @@ class ExecutionMapper(
     if (results.isNotEmpty()) {
       val type = results[0].type
 
+      var invalidVersion = false
+      var missingFromReplicationLagRepository = false
       results.chunked(stageBatchSize) { executions ->
         val executionIds: List<String> = executions.map {
           if (legacyMap.containsKey(it.id)) {
@@ -110,7 +189,33 @@ class ExecutionMapper(
 
         context.selectExecutionStages(type, executionIds, compressionProperties).let { stageResultSet ->
           while (stageResultSet.next()) {
+            if (replicationLagAwareRepository.isPresent()) {
+              val stageId = stageResultSet.getString("id")
+              val oldestAllowedUpdate = replicationLagAwareRepository.get().getStageExecutionUpdate(stageId)
+              if (oldestAllowedUpdate == null) {
+                missingFromReplicationLagRepository = true
+                return@chunked
+              }
+              if (!isUpToDateVersion(stageResultSet, oldestAllowedUpdate)) {
+                invalidVersion = true
+                return@chunked
+              }
+            }
             mapStage(stageResultSet, executionMap)
+          }
+        }
+
+        if (replicationLagAwareRepository.isPresent()) {
+          executions.forEach { execution ->
+            val expectedNumberOfStages = replicationLagAwareRepository.get().getPipelineExecutionNumStages(execution.id)
+            if (expectedNumberOfStages == null) {
+              missingFromReplicationLagRepository = true
+              return@chunked
+            }
+            if (execution.stages.size != expectedNumberOfStages) {
+              invalidVersion = true
+              return@chunked
+            }
           }
         }
 
@@ -118,9 +223,23 @@ class ExecutionMapper(
           execution.stages.sortBy { it.refId }
         }
       }
+
+      // A result where the execution is missing from the ReplicationLagAwareRepository has a higher
+      // precedence than a result where the version is invalid since MISSING_FROM_REPLICATION_LAG_REPOSITORY
+      // is a more specific case of INVALID_VERSION
+      if (missingFromReplicationLagRepository) {
+        return ExecutionMapperResult.MissingFromReplicationLagRepository
+      }
+      if (invalidVersion) {
+        return ExecutionMapperResult.InvalidVersion
+      }
     }
 
-    return results
+    return if (results.isNotEmpty()) {
+      ExecutionMapperResult.Success(results)
+    } else {
+      ExecutionMapperResult.NotFound
+    }
   }
 
   private fun mapStage(rs: ResultSet, executions: Map<String, PipelineExecution>) {
@@ -133,6 +252,7 @@ class ExecutionMapper(
           .apply {
             execution = executions.getValue(executionId)
             setSize(body.length.toLong())
+            updatedAt = rs.getLong("updated_at")
           }
       )
   }

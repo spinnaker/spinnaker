@@ -352,8 +352,10 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
   @Override
   public @Nonnull PipelineExecution retrieve(
-      @Nonnull ExecutionType type, @Nonnull String id, boolean requireLatestVersion) {
-    // There is no read replica and therefore no replication lag, so the latest version
+      @Nonnull ExecutionType type,
+      @Nonnull String id,
+      ReadReplicaRequirement readReplicaRequirement) {
+    // There is no read replica and therefore no replication lag, so an up-to-date version
     // is always available
     return retrieve(type, id);
   }
@@ -385,6 +387,19 @@ public class RedisExecutionRepository implements ExecutionRepository {
                 })
             .collect(Collectors.toList());
     return Observable.merge(observables);
+  }
+
+  @Override
+  public String getApplication(@Nonnull String id) throws ExecutionNotFoundException {
+    // This could be more efficient by querying for less data from redis.
+    return retrieve(PIPELINE, id).getApplication();
+  }
+
+  @Override
+  public String getStatus(@Nonnull String id, ReadReplicaRequirement readReplicaRequirement)
+      throws ExecutionNotFoundException {
+    // This could be more efficient by querying for less data from redis.
+    return retrieve(PIPELINE, id).getStatus().toString();
   }
 
   @Override
@@ -505,6 +520,16 @@ public class RedisExecutionRepository implements ExecutionRepository {
     }
 
     return currentObservable;
+  }
+
+  @Override
+  public @Nonnull Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
+      @Nonnull String pipelineConfigId,
+      @Nonnull ExecutionCriteria criteria,
+      ReadReplicaRequirement readReplicaRequirement) {
+    // There is no read replica and therefore no replication lag, so an up-to-date version
+    // is always available
+    return retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria);
   }
 
   @Override

@@ -94,7 +94,17 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @GET("pipelines/{id}")
-  Call<Map> getPipeline(@Path("id") String id);
+  Call<Map> getPipeline(
+      @Path("id") String id, @Query("requireUpToDateVersion") boolean requireUpToDateVersion);
+
+  /**
+   * Use ResponseBody so retrofit doesn't attempt to process the response body as json / with the
+   * normal JacksonConverterFactory converter. The response from orca is plain text (e.g. SUCCEEDED)
+   * when the response code is 200. It's json when it's an error.
+   */
+  @GET("/pipelines/{id}/status")
+  Call<ResponseBody> getPipelineStatus(
+      @Path("id") String id, @Query("readReplicaRequirement") String readReplicaRequirement);
 
   @Headers("Accept: application/json")
   @PUT("pipelines/{id}/cancel")

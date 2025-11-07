@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CON
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.nhaarman.mockito_kotlin.mock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -81,7 +82,7 @@ class TaskControllerTest : JUnit5Minutests {
         }
 
         fun setupExecutionsInDb(pipelineID: String, stageIds: List<String>, stageTypes: List<String>, stageStatuses: List<ExecutionStatus>, stageContext: List<Map<String, Any>>) {
-          Mockito.`when`(executionMockRepository.retrieve(PIPELINE, pipelineID)).thenReturn(
+          Mockito.`when`(executionMockRepository.retrieve(PIPELINE, pipelineID, ReadReplicaRequirement.UP_TO_DATE)).thenReturn(
             createPipelineExecution(
               pipelineID,
               stageIds,

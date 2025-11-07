@@ -93,7 +93,10 @@ abstract class OldPipelineCleanupPollingNotificationAgentSpec extends Specificat
         [],
         new ExecutionCompressionProperties(),
         false,
-        Mock(DataSource))
+        Mock(DataSource),
+        Optional.empty(),
+        new NoopRegistry()
+    )
   }
 
   def cleanup() {

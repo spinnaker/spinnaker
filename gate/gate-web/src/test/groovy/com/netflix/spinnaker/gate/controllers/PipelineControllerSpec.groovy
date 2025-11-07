@@ -26,16 +26,22 @@ import groovy.json.JsonSlurper
 import okhttp3.ResponseBody
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.mock.Calls;
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.nio.charset.StandardCharsets
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 class PipelineControllerSpec extends Specification {
 
@@ -338,10 +344,73 @@ class PipelineControllerSpec extends Specification {
     response.contentAsString == ""
   }
 
+  @Unroll
+  void "GET /pipelines/id passes requireUpToDateVersion query param (#requireUpToDateVersionStr)"() {
+    given:
+    def executionId = "some-execution-id"
+
+    when:
+    mockMvc.perform(get("/pipelines/${executionId}")
+                    .queryParam('requireUpToDateVersion', requireUpToDateVersionStr))
+      .andDo(print())
+      .andExpect(status().is(statusCode))
+
+    then:
+    ((statusCode == 200) ? 1 : 0) * pipelineService.getPipeline(executionId, requireUpToDateVersion)
+    0 * pipelineService._
+
+    where:
+    requireUpToDateVersionStr | requireUpToDateVersion | statusCode
+    ''                        | false                  | 200
+    'trUe'                    | true                   | 200
+    'fAlse'                   | false                  | 200
+    'olishdg'                 | false                  | 400
+    'yES'                     | true                   | 200
+    'nO'                      | false                  | 200
+  }
+
+  @Unroll
+  void "GET /pipelines/id/status passes readReplicaRequirement query param (#readReplicaRequirement)"() {
+    given:
+    def executionId = "some-execution-id"
+    def executionStatus = "arbitrary status"
+
+    when:
+    mockMvc.perform(get("/pipelines/${executionId}/status")
+                    .queryParam('readReplicaRequirement', readReplicaRequirement))
+      .andDo(print())
+      .andExpect(status().isOk())
+      .andExpect(content().string(executionStatus))
+
+    then:
+    1 * pipelineService.getPipelineStatus(executionId, readReplicaRequirement) >> executionStatus
+    0 * pipelineService._
+
+    where:
+    readReplicaRequirement << ["NONE", "PRESENT", "up_to_date", "bogus"]
+  }
+
+  @Unroll
+  void "GET /pipelines/id/status has a default value for the readReplicaRequirement query param"() {
+    given:
+    def executionId = "some-execution-id"
+    def executionStatus = "arbitrary status"
+
+    when:
+    mockMvc.perform(get("/pipelines/${executionId}/status"))
+      .andDo(print())
+      .andExpect(status().isOk())
+      .andExpect(content().string(executionStatus))
+
+    then:
+    1 * pipelineService.getPipelineStatus(executionId, "UP_TO_DATE") >> executionStatus
+    0 * pipelineService._
+  }
+
   static SpinnakerHttpException makeSpinnakerHttpException(int status, Map body) {
     String url = "https://some-url";
-    retrofit2.Response retrofit2Response =
-      retrofit2.Response.error(
+    Response retrofit2Response =
+      Response.error(
         status,
         ResponseBody.create(
           okhttp3.MediaType.parse("application/json"), new ObjectMapper().writeValueAsString(body)));

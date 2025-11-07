@@ -25,6 +25,7 @@ dependencies {
   api("io.spinnaker.kork:kork-core")
   api("io.spinnaker.kork:kork-exceptions")
   api("io.spinnaker.kork:kork-expressions")
+  api("io.spinnaker.kork:kork-jedis")
   api("io.spinnaker.kork:kork-moniker")
   api("io.spinnaker.kork:kork-plugins")
   api("io.spinnaker.kork:kork-security")
@@ -62,6 +63,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
 
   testImplementation(project(":orca-test"))
+  testImplementation(project(":orca-test-redis"))
   testImplementation(project(":orca-test-groovy"))
   testImplementation(project(":orca-sql"))
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")

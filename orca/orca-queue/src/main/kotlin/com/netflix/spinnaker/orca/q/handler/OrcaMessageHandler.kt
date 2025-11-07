@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import com.netflix.spinnaker.orca.pipeline.persistence.ReadReplicaRequirement
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.ContinueParentStage
 import com.netflix.spinnaker.orca.q.ExecutionLevel
@@ -92,7 +93,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
 
   fun ExecutionLevel.withExecution(block: (PipelineExecution) -> Unit) =
     try {
-      val execution = repository.retrieve(executionType, executionId)
+      val execution = repository.retrieve(executionType, executionId, ReadReplicaRequirement.UP_TO_DATE)
       block.invoke(execution)
     } catch (e: ExecutionNotFoundException) {
       queue.push(InvalidExecutionId(this))
@@ -123,7 +124,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
           maxConcurrentExecutions > 0 -> {
             val criteria = ExecutionCriteria().setPageSize(maxConcurrentExecutions+MIN_PAGE_SIZE).setStatuses(RUNNING)
             repository
-              .retrievePipelinesForPipelineConfigId(configId, criteria)
+              .retrievePipelinesForPipelineConfigId(configId, criteria, ReadReplicaRequirement.UP_TO_DATE)
               .filter { it.id != id }
               .count()
               .toBlocking()
@@ -135,7 +136,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
       else -> {
         val criteria = ExecutionCriteria().setPageSize(MIN_PAGE_SIZE).setStatuses(RUNNING)
         repository
-          .retrievePipelinesForPipelineConfigId(configId, criteria)
+          .retrievePipelinesForPipelineConfigId(configId, criteria, ReadReplicaRequirement.UP_TO_DATE)
           .filter { it.id != id }
           .count()
           .toBlocking()
