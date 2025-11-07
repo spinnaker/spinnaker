@@ -270,7 +270,7 @@ class TaskControllerSpec extends Specification {
     })
     0 * executionRepository._
 
-    1 * front50Service.getPipelines(app, false, taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines ? true : null) >> Calls.response(front50ConfigIds)
+    1 * front50Service.getPipelines(app, false, taskControllerConfigurationProperties.excludeExecutionsOfDisabledPipelines ? true : null, null, null) >> Calls.response(front50ConfigIds)
     1 * front50Service.getStrategies(app) >> Calls.response([])
     0 * front50Service._
     results.id == resultsIds

@@ -154,7 +154,7 @@ class AzureLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, Acco
   }
 
   @Override
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+  Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
     return []
   }
 

@@ -415,6 +415,10 @@ class SqlExecutionRepository(
     selectExecution(jooq, type, id)
       ?: throw ExecutionNotFoundException("No $type found for $id")
 
+  override fun retrieve(type: ExecutionType, id: String, requireLatestVersion: Boolean) =
+    selectExecution(jooq, type, id, requireLatestVersion)
+      ?: throw ExecutionNotFoundException("No $type found for $id with requireLatestVersion: $requireLatestVersion")
+
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> =
     Observable.from(
       fetchExecutions { pageSize, cursor ->
@@ -558,7 +562,15 @@ class SqlExecutionRepository(
       val baseQuery = jooq.select(field("config_id"), field("id"))
         .from(table)
         .where(baseQueryPredicate)
-         .orderBy(field("config_id"))
+        // ULIDs are ordered by time.  Assume id is a ULID since what gate's
+        // PipelineController.triggerViaEcho provides.  Currently (4-nov-26), the
+        // UI uses triggerViaEcho to invoke pipelines.  If there's no execution id
+        // provided (e.g. via gate's PipelineController.trigger method), a
+        // PipelineExecutionImpl constructor provides one.  If a non-ULID is
+        // provided somehow, mapLegacyId in this class ensures id is a ULID.
+        //
+        // Order the result by id to retrieve the newest executions
+         .orderBy(field("config_id"), field("id"))
          .fetch().intoGroups("config_id", "id")
 
         baseQuery.forEach {
@@ -595,9 +607,11 @@ class SqlExecutionRepository(
     queryTimeoutSeconds: Int
   ): Collection<PipelineExecution> {
     withPool(readPoolName) {
-      val baseQuery = jooq.select(selectExecutionFields(compressionProperties))
-        .from(PIPELINE.tableName)
-        .leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
+      val selectFrom = jooq.select(selectExecutionFields(compressionProperties)).from(PIPELINE.tableName)
+      if (compressionProperties.enabled) {
+        selectFrom.leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
+      }
+      val baseQuery = selectFrom
         .where(field("id").`in`(*pipelineExecutions.toTypedArray()))
         .queryTimeout(queryTimeoutSeconds) // add an explicit timeout so that the query doesn't run forever
         .fetch()
@@ -1303,6 +1317,19 @@ class SqlExecutionRepository(
     id: String
   ): PipelineExecution? {
     withPool(poolName) {
+      val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+      return select.fetchExecution()
+    }
+  }
+
+  private fun selectExecution(
+    ctx: DSLContext,
+    type: ExecutionType,
+    id: String,
+    requireLatestVersion: Boolean
+  ): PipelineExecution? {
+    val selectPool = if (requireLatestVersion) poolName else readPoolName
+    withPool(selectPool) {
       val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
       return select.fetchExecution()
     }

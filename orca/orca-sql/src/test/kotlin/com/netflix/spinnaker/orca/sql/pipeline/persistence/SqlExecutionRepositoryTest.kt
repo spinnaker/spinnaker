@@ -235,6 +235,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
 
         val actualPipelineExecution = sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineId)
         assertThat(actualPipelineExecution).isEqualTo(pipelineExecution)
+        val actualPipelineExecutions = sqlExecutionRepositoryNoCompression.retrievePipelineExecutionDetailsForApplication(testApplication, listOf(pipelineId), 10 /* arbitrary timeout */)
+        assertThat(actualPipelineExecutions.single()).isEqualTo(pipelineExecution)
 
         // Make sure is calculated on retrieve as well
         assertThat(actualPipelineExecution.size.get()).isEqualTo(expectedPipelineExecutionSize)
