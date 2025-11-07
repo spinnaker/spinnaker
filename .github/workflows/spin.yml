@@ -130,4 +130,5 @@ jobs:
           release-train: ${{ steps.version.outputs.release-train}}
           build-url: ${{ steps.version.outputs.build-url }}
           push: ${{ github.event_name != 'pull_request' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           gar-json-key: ${{ secrets.GAR_JSON_KEY }}
