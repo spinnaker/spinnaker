@@ -18,10 +18,7 @@ import org.yaml.snakeyaml.representer.Representer;
 
 @SpringBootTest(classes = YamlHelperTest.TestConfig.class)
 @TestPropertySource(
-    properties = {
-      "spinnaker.yaml.max-aliases-for-collections=55",
-      "spinnaker.yaml.code-point-limit=1024"
-    })
+    properties = {"snakeyaml.max-aliases-for-collections=55", "snakeyaml.code-point-limit=1024"})
 class YamlHelperTest {
 
   static DumperOptions DUMPER_OPTIONS;
