@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
+import io.reactivex.rxjava3.core.Observable
 
 import java.time.Clock
 import java.time.Duration
@@ -50,15 +51,15 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     ).filter
 
     expect:
-    filter.call(pipeline {
+    filter.test(pipeline {
       status = ExecutionStatus.SUCCEEDED
       startTime = Duration.ofDays(1).toMillis()
     }) == true
-    filter.call(pipeline {
+    filter.test(pipeline {
       status = ExecutionStatus.RUNNING
       startTime = Duration.ofDays(1).toMillis()
     }) == false
-    filter.call(pipeline {
+    filter.test(pipeline {
       status = ExecutionStatus.SUCCEEDED
       startTime = Duration.ofDays(3).toMillis()
     }) == false
@@ -88,7 +89,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     ).mapper
 
     expect:
-    with(mapper.call(pipeline)) {
+    with(mapper.apply(pipeline)) {
       id == "ID1"
       application == "orca"
       pipelineConfigId == "P1"
@@ -122,7 +123,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     }
     def executionRepository = Mock(ExecutionRepository) {
       1 * retrieveAllApplicationNames(PIPELINE) >> ["orca"]
-      1 * retrievePipelinesForApplication("orca") >> rx.Observable.from(pipelines)
+      1 * retrievePipelinesForApplication("orca") >> Observable.fromIterable(pipelines)
     }
     def pipelineDependencyCleanupOperator = Mock(PipelineDependencyCleanupOperator)
     def agent = new OldPipelineCleanupPollingNotificationAgent(

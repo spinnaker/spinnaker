@@ -28,7 +28,7 @@ import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
 import com.netflix.spinnaker.orca.front50.Front50Service
 
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -49,7 +49,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import retrofit2.mock.Calls
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll

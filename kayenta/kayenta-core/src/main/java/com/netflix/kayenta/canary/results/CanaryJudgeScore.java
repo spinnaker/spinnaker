@@ -17,7 +17,7 @@
 package com.netflix.kayenta.canary.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Builder

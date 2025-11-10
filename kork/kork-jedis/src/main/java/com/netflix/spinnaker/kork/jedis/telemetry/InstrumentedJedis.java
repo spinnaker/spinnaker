@@ -26,11 +26,23 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import redis.clients.jedis.*;
+import redis.clients.jedis.args.BitOP;
+import redis.clients.jedis.args.ClusterResetType;
+import redis.clients.jedis.args.GeoUnit;
+import redis.clients.jedis.args.ListPosition;
+import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.params.BitPosParams;
 import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.params.SortingParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.params.ZIncrByParams;
-import redis.clients.jedis.util.Slowlog;
+import redis.clients.jedis.params.ZParams;
+import redis.clients.jedis.resps.GeoRadiusResponse;
+import redis.clients.jedis.resps.ScanResult;
+import redis.clients.jedis.resps.Slowlog;
+import redis.clients.jedis.resps.Tuple;
 
 /**
  * Instruments: - Timer for each command - Distribution summary for all payload sizes - Error rates
@@ -134,25 +146,25 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long exists(String... keys) {
+  public long exists(String... keys) {
     String command = "exists";
     return instrumented(command, () -> delegated.exists(keys));
   }
 
   @Override
-  public Boolean exists(String key) {
+  public boolean exists(String key) {
     String command = "exists";
     return instrumented(command, () -> delegated.exists(key));
   }
 
   @Override
-  public Long del(String... keys) {
+  public long del(String... keys) {
     String command = "del";
     return instrumented(command, () -> delegated.del(keys));
   }
 
   @Override
-  public Long del(String key) {
+  public long del(String key) {
     String command = "del";
     return instrumented(command, () -> delegated.del(key));
   }
@@ -182,31 +194,31 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long renamenx(String oldkey, String newkey) {
+  public long renamenx(String oldkey, String newkey) {
     String command = "renamenx";
     return instrumented(command, () -> delegated.renamenx(oldkey, newkey));
   }
 
   @Override
-  public Long expire(String key, int seconds) {
+  public long expire(String key, long seconds) {
     String command = "expire";
     return instrumented(command, () -> delegated.expire(key, seconds));
   }
 
   @Override
-  public Long expireAt(String key, long unixTime) {
+  public long expireAt(String key, long unixTime) {
     String command = "expireAt";
     return instrumented(command, () -> delegated.expireAt(key, unixTime));
   }
 
   @Override
-  public Long ttl(String key) {
+  public long ttl(String key) {
     String command = "ttl";
     return instrumented(command, () -> delegated.ttl(key));
   }
 
   @Override
-  public Long move(String key, int dbIndex) {
+  public long move(String key, int dbIndex) {
     String command = "move";
     return instrumented(command, () -> delegated.move(key, dbIndex));
   }
@@ -224,13 +236,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long setnx(String key, String value) {
+  public long setnx(String key, String value) {
     String command = "setnx";
     return instrumented(command, payloadSize(value), () -> delegated.setnx(key, value));
   }
 
   @Override
-  public String setex(String key, int seconds, String value) {
+  public String setex(String key, long seconds, String value) {
     String command = "setex";
     return instrumented(command, payloadSize(value), () -> delegated.setex(key, seconds, value));
   }
@@ -242,43 +254,43 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long msetnx(String... keysvalues) {
+  public long msetnx(String... keysvalues) {
     String command = "msetnx";
     return instrumented(command, payloadSize(keysvalues), () -> delegated.msetnx(keysvalues));
   }
 
   @Override
-  public Long decrBy(String key, long integer) {
+  public long decrBy(String key, long integer) {
     String command = "decrBy";
     return instrumented(command, () -> delegated.decrBy(key, integer));
   }
 
   @Override
-  public Long decr(String key) {
+  public long decr(String key) {
     String command = "decr";
     return instrumented(command, () -> delegated.decr(key));
   }
 
   @Override
-  public Long incrBy(String key, long integer) {
+  public long incrBy(String key, long integer) {
     String command = "incrBy";
     return instrumented(command, () -> delegated.incrBy(key, integer));
   }
 
   @Override
-  public Double incrByFloat(String key, double value) {
+  public double incrByFloat(String key, double value) {
     String command = "incrByFloat";
     return instrumented(command, () -> delegated.incrByFloat(key, value));
   }
 
   @Override
-  public Long incr(String key) {
+  public long incr(String key) {
     String command = "incr";
     return instrumented(command, () -> delegated.incr(key));
   }
 
   @Override
-  public Long append(String key, String value) {
+  public long append(String key, String value) {
     String command = "append";
     return instrumented(command, payloadSize(value), () -> delegated.append(key, value));
   }
@@ -290,7 +302,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long hset(String key, String field, String value) {
+  public long hset(String key, String field, String value) {
     String command = "hset";
     return instrumented(command, payloadSize(value), () -> delegated.hset(key, field, value));
   }
@@ -302,7 +314,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long hsetnx(String key, String field, String value) {
+  public long hsetnx(String key, String field, String value) {
     String command = "hsetnx";
     return instrumented(command, payloadSize(value), () -> delegated.hsetnx(key, field, value));
   }
@@ -320,31 +332,31 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long hincrBy(String key, String field, long value) {
+  public long hincrBy(String key, String field, long value) {
     String command = "hincrBy";
     return instrumented(command, () -> delegated.hincrBy(key, field, value));
   }
 
   @Override
-  public Double hincrByFloat(String key, String field, double value) {
+  public double hincrByFloat(String key, String field, double value) {
     String command = "hincrByFloat";
     return instrumented(command, () -> delegated.hincrByFloat(key, field, value));
   }
 
   @Override
-  public Boolean hexists(String key, String field) {
+  public boolean hexists(String key, String field) {
     String command = "hexists";
     return instrumented(command, () -> delegated.hexists(key, field));
   }
 
   @Override
-  public Long hdel(String key, String... fields) {
+  public long hdel(String key, String... fields) {
     String command = "hdel";
     return instrumented(command, () -> delegated.hdel(key, fields));
   }
 
   @Override
-  public Long hlen(String key) {
+  public long hlen(String key) {
     String command = "hlen";
     return instrumented(command, () -> delegated.hlen(key));
   }
@@ -368,19 +380,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long rpush(String key, String... strings) {
+  public long rpush(String key, String... strings) {
     String command = "rpush";
     return instrumented(command, payloadSize(strings), () -> delegated.rpush(key, strings));
   }
 
   @Override
-  public Long lpush(String key, String... strings) {
+  public long lpush(String key, String... strings) {
     String command = "lpush";
     return instrumented(command, payloadSize(strings), () -> delegated.lpush(key, strings));
   }
 
   @Override
-  public Long llen(String key) {
+  public long llen(String key) {
     String command = "llen";
     return instrumented(command, () -> delegated.llen(key));
   }
@@ -410,7 +422,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long lrem(String key, long count, String value) {
+  public long lrem(String key, long count, String value) {
     String command = "lrem";
     return instrumented(command, payloadSize(value), () -> delegated.lrem(key, count, value));
   }
@@ -434,7 +446,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long sadd(String key, String... members) {
+  public long sadd(String key, String... members) {
     String command = "sadd";
     return instrumented(command, payloadSize(members), () -> delegated.sadd(key, members));
   }
@@ -446,7 +458,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long srem(String key, String... members) {
+  public long srem(String key, String... members) {
     String command = "srem";
     return instrumented(command, payloadSize(members), () -> delegated.srem(key, members));
   }
@@ -464,19 +476,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long smove(String srckey, String dstkey, String member) {
+  public long smove(String srckey, String dstkey, String member) {
     String command = "smove";
     return instrumented(command, () -> delegated.smove(srckey, dstkey, member));
   }
 
   @Override
-  public Long scard(String key) {
+  public long scard(String key) {
     String command = "scard";
     return instrumented(command, () -> delegated.scard(key));
   }
 
   @Override
-  public Boolean sismember(String key, String member) {
+  public boolean sismember(String key, String member) {
     String command = "sismember";
     return instrumented(command, () -> delegated.sismember(key, member));
   }
@@ -488,7 +500,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long sinterstore(String dstkey, String... keys) {
+  public long sinterstore(String dstkey, String... keys) {
     String command = "sinterstore";
     return instrumented(command, () -> delegated.sinterstore(dstkey, keys));
   }
@@ -500,7 +512,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long sunionstore(String dstkey, String... keys) {
+  public long sunionstore(String dstkey, String... keys) {
     String command = "sunionstore";
     return instrumented(command, () -> delegated.sunionstore(dstkey, keys));
   }
@@ -512,7 +524,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long sdiffstore(String dstkey, String... keys) {
+  public long sdiffstore(String dstkey, String... keys) {
     String command = "sdiffstore";
     return instrumented(command, () -> delegated.sdiffstore(dstkey, keys));
   }
@@ -530,43 +542,43 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long zadd(String key, double score, String member) {
+  public long zadd(String key, double score, String member) {
     String command = "zadd";
     return instrumented(command, () -> delegated.zadd(key, score, member));
   }
 
   @Override
-  public Long zadd(String key, double score, String member, ZAddParams params) {
+  public long zadd(String key, double score, String member, ZAddParams params) {
     String command = "zadd";
     return instrumented(command, () -> delegated.zadd(key, score, member, params));
   }
 
   @Override
-  public Long zadd(String key, Map<String, Double> scoreMembers) {
+  public long zadd(String key, Map<String, Double> scoreMembers) {
     String command = "zadd";
     return instrumented(command, () -> delegated.zadd(key, scoreMembers));
   }
 
   @Override
-  public Long zadd(String key, Map<String, Double> scoreMembers, ZAddParams params) {
+  public long zadd(String key, Map<String, Double> scoreMembers, ZAddParams params) {
     String command = "zadd";
     return instrumented(command, () -> delegated.zadd(key, scoreMembers, params));
   }
 
   @Override
-  public Set<String> zrange(String key, long start, long end) {
+  public List<String> zrange(String key, long start, long end) {
     String command = "zrange";
     return instrumented(command, () -> delegated.zrange(key, start, end));
   }
 
   @Override
-  public Long zrem(String key, String... members) {
+  public long zrem(String key, String... members) {
     String command = "zrem";
     return instrumented(command, () -> delegated.zrem(key, members));
   }
 
   @Override
-  public Double zincrby(String key, double score, String member) {
+  public double zincrby(String key, double score, String member) {
     String command = "zincrby";
     return instrumented(command, () -> delegated.zincrby(key, score, member));
   }
@@ -590,25 +602,25 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<String> zrevrange(String key, long start, long end) {
+  public List<String> zrevrange(String key, long start, long end) {
     String command = "zrevrange";
     return instrumented(command, () -> delegated.zrevrange(key, start, end));
   }
 
   @Override
-  public Set<Tuple> zrangeWithScores(String key, long start, long end) {
+  public List<Tuple> zrangeWithScores(String key, long start, long end) {
     String command = "zrangeWithScores";
     return instrumented(command, () -> delegated.zrangeWithScores(key, start, end));
   }
 
   @Override
-  public Set<Tuple> zrevrangeWithScores(String key, long start, long end) {
+  public List<Tuple> zrevrangeWithScores(String key, long start, long end) {
     String command = "zrevrangeWithScores";
     return instrumented(command, () -> delegated.zrevrangeWithScores(key, start, end));
   }
 
   @Override
-  public Long zcard(String key) {
+  public long zcard(String key) {
     String command = "zcard";
     return instrumented(command, () -> delegated.zcard(key));
   }
@@ -644,25 +656,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public List<String> blpop(String... args) {
-    String command = "blpop";
-    return instrumented(command, () -> delegated.blpop(args));
-  }
-
-  @Override
-  public List<String> brpop(String... args) {
-    String command = "brpop";
-    return instrumented(command, () -> delegated.brpop(args));
-  }
-
-  @Override
-  public Long sort(String key, SortingParams sortingParameters, String dstkey) {
+  public long sort(String key, SortingParams sortingParameters, String dstkey) {
     String command = "sort";
     return instrumented(command, () -> delegated.sort(key, sortingParameters, dstkey));
   }
 
   @Override
-  public Long sort(String key, String dstkey) {
+  public long sort(String key, String dstkey) {
     String command = "sort";
     return instrumented(command, () -> delegated.sort(key, dstkey));
   }
@@ -674,55 +674,55 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long zcount(String key, double min, double max) {
+  public long zcount(String key, double min, double max) {
     String command = "zcount";
     return instrumented(command, () -> delegated.zcount(key, min, max));
   }
 
   @Override
-  public Long zcount(String key, String min, String max) {
+  public long zcount(String key, String min, String max) {
     String command = "zcount";
     return instrumented(command, () -> delegated.zcount(key, min, max));
   }
 
   @Override
-  public Set<String> zrangeByScore(String key, double min, double max) {
+  public List<String> zrangeByScore(String key, double min, double max) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max));
   }
 
   @Override
-  public Set<String> zrangeByScore(String key, String min, String max) {
+  public List<String> zrangeByScore(String key, String min, String max) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max));
   }
 
   @Override
-  public Set<String> zrangeByScore(String key, double min, double max, int offset, int count) {
+  public List<String> zrangeByScore(String key, double min, double max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Set<String> zrangeByScore(String key, String min, String max, int offset, int count) {
+  public List<String> zrangeByScore(String key, String min, String max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(String key, double min, double max) {
+  public List<Tuple> zrangeByScoreWithScores(String key, double min, double max) {
     String command = "zrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max));
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(String key, String min, String max) {
+  public List<Tuple> zrangeByScoreWithScores(String key, String min, String max) {
     String command = "zrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max));
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(
+  public List<Tuple> zrangeByScoreWithScores(
       String key, double min, double max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
     return instrumented(
@@ -730,7 +730,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(
+  public List<Tuple> zrangeByScoreWithScores(
       String key, String min, String max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
     return instrumented(
@@ -738,31 +738,31 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<String> zrevrangeByScore(String key, double max, double min) {
+  public List<String> zrevrangeByScore(String key, double max, double min) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min));
   }
 
   @Override
-  public Set<String> zrevrangeByScore(String key, String max, String min) {
+  public List<String> zrevrangeByScore(String key, String max, String min) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min));
   }
 
   @Override
-  public Set<String> zrevrangeByScore(String key, double max, double min, int offset, int count) {
+  public List<String> zrevrangeByScore(String key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(String key, double max, double min) {
+  public List<Tuple> zrevrangeByScoreWithScores(String key, double max, double min) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min));
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(
+  public List<Tuple> zrevrangeByScoreWithScores(
       String key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(
@@ -770,7 +770,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(
+  public List<Tuple> zrevrangeByScoreWithScores(
       String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(
@@ -778,115 +778,115 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<String> zrevrangeByScore(String key, String max, String min, int offset, int count) {
+  public List<String> zrevrangeByScore(String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(String key, String max, String min) {
+  public List<Tuple> zrevrangeByScoreWithScores(String key, String max, String min) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min));
   }
 
   @Override
-  public Long zremrangeByRank(String key, long start, long end) {
+  public long zremrangeByRank(String key, long start, long end) {
     String command = "zremrangeByRank";
     return instrumented(command, () -> delegated.zremrangeByRank(key, start, end));
   }
 
   @Override
-  public Long zremrangeByScore(String key, double start, double end) {
+  public long zremrangeByScore(String key, double start, double end) {
     String command = "zremrangeByScore";
     return instrumented(command, () -> delegated.zremrangeByScore(key, start, end));
   }
 
   @Override
-  public Long zremrangeByScore(String key, String start, String end) {
+  public long zremrangeByScore(String key, String start, String end) {
     String command = "zremrangeByScore";
     return instrumented(command, () -> delegated.zremrangeByScore(key, start, end));
   }
 
   @Override
-  public Long zunionstore(String dstkey, String... sets) {
+  public long zunionstore(String dstkey, String... sets) {
     String command = "zunionstore";
     return instrumented(command, () -> delegated.zunionstore(dstkey, sets));
   }
 
   @Override
-  public Long zunionstore(String dstkey, ZParams params, String... sets) {
+  public long zunionstore(String dstkey, ZParams params, String... sets) {
     String command = "zunionstore";
     return instrumented(command, () -> delegated.zunionstore(dstkey, params, sets));
   }
 
   @Override
-  public Long zinterstore(String dstkey, String... sets) {
+  public long zinterstore(String dstkey, String... sets) {
     String command = "zinterstore";
     return instrumented(command, () -> delegated.zinterstore(dstkey, sets));
   }
 
   @Override
-  public Long zinterstore(String dstkey, ZParams params, String... sets) {
+  public long zinterstore(String dstkey, ZParams params, String... sets) {
     String command = "zinterstore";
     return instrumented(command, () -> delegated.zinterstore(dstkey, params, sets));
   }
 
   @Override
-  public Long zlexcount(String key, String min, String max) {
+  public long zlexcount(String key, String min, String max) {
     String command = "zlexcount";
     return instrumented(command, () -> delegated.zlexcount(key, min, max));
   }
 
   @Override
-  public Set<String> zrangeByLex(String key, String min, String max) {
+  public List<String> zrangeByLex(String key, String min, String max) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max));
   }
 
   @Override
-  public Set<String> zrangeByLex(String key, String min, String max, int offset, int count) {
+  public List<String> zrangeByLex(String key, String min, String max, int offset, int count) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max, offset, count));
   }
 
   @Override
-  public Set<String> zrevrangeByLex(String key, String max, String min) {
+  public List<String> zrevrangeByLex(String key, String max, String min) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min));
   }
 
   @Override
-  public Set<String> zrevrangeByLex(String key, String max, String min, int offset, int count) {
+  public List<String> zrevrangeByLex(String key, String max, String min, int offset, int count) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min, offset, count));
   }
 
   @Override
-  public Long zremrangeByLex(String key, String min, String max) {
+  public long zremrangeByLex(String key, String min, String max) {
     String command = "zremrangeByLex";
     return instrumented(command, () -> delegated.zremrangeByLex(key, min, max));
   }
 
   @Override
-  public Long strlen(String key) {
+  public long strlen(String key) {
     String command = "strlen";
     return instrumented(command, () -> delegated.strlen(key));
   }
 
   @Override
-  public Long lpushx(String key, String... string) {
+  public long lpushx(String key, String... string) {
     String command = "lpushx";
     return instrumented(command, payloadSize(string), () -> delegated.lpushx(key, string));
   }
 
   @Override
-  public Long persist(String key) {
+  public long persist(String key) {
     String command = "persist";
     return instrumented(command, () -> delegated.persist(key));
   }
 
   @Override
-  public Long rpushx(String key, String... string) {
+  public long rpushx(String key, String... string) {
     String command = "rpushx";
     return instrumented(command, payloadSize(string), () -> delegated.rpushx(key, string));
   }
@@ -898,7 +898,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long linsert(
+  public long linsert(
       final String key, final ListPosition where, final String pivot, final String value) {
     String command = "linsert";
     return instrumented(
@@ -912,25 +912,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Boolean setbit(String key, long offset, boolean value) {
+  public boolean setbit(String key, long offset, boolean value) {
     String command = "setbit";
     return instrumented(command, () -> delegated.setbit(key, offset, value));
   }
 
   @Override
-  public Boolean setbit(String key, long offset, String value) {
-    String command = "setbit";
-    return instrumented(command, payloadSize(value), () -> delegated.setbit(key, offset, value));
-  }
-
-  @Override
-  public Boolean getbit(String key, long offset) {
+  public boolean getbit(String key, long offset) {
     String command = "getbit";
     return instrumented(command, () -> delegated.getbit(key, offset));
   }
 
   @Override
-  public Long setrange(String key, long offset, String value) {
+  public long setrange(String key, long offset, String value) {
     String command = "setrange";
     return instrumented(command, payloadSize(value), () -> delegated.setrange(key, offset, value));
   }
@@ -942,13 +936,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long bitpos(String key, boolean value) {
+  public long bitpos(String key, boolean value) {
     String command = "bitpos";
     return instrumented(command, () -> delegated.bitpos(key, value));
   }
 
   @Override
-  public Long bitpos(String key, boolean value, BitPosParams params) {
+  public long bitpos(String key, boolean value, BitPosParams params) {
     String command = "bitpos";
     return instrumented(command, () -> delegated.bitpos(key, value, params));
   }
@@ -980,7 +974,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long publish(String channel, String message) {
+  public long publish(String channel, String message) {
     String command = "publish";
     return instrumented(command, payloadSize(message), () -> delegated.publish(channel, message));
   }
@@ -1071,19 +1065,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long bitcount(String key) {
+  public long bitcount(String key) {
     String command = "bitcount";
     return instrumented(command, () -> delegated.bitcount(key));
   }
 
   @Override
-  public Long bitcount(String key, long start, long end) {
+  public long bitcount(String key, long start, long end) {
     String command = "bitcount";
     return instrumented(command, () -> delegated.bitcount(key, start, end));
   }
 
   @Override
-  public Long bitop(BitOP op, String destKey, String... srcKeys) {
+  public long bitop(BitOP op, String destKey, String... srcKeys) {
     String command = "bitop";
     return instrumented(command, () -> delegated.bitop(op, destKey, srcKeys));
   }
@@ -1143,25 +1137,25 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public String restore(String key, int ttl, byte[] serializedValue) {
+  public String restore(String key, long ttl, byte[] serializedValue) {
     String command = "restore";
     return instrumented(command, () -> delegated.restore(key, ttl, serializedValue));
   }
 
   @Override
-  public Long pexpire(String key, long milliseconds) {
+  public long pexpire(String key, long milliseconds) {
     String command = "pexpire";
     return instrumented(command, () -> delegated.pexpire(key, milliseconds));
   }
 
   @Override
-  public Long pexpireAt(String key, long millisecondsTimestamp) {
+  public long pexpireAt(String key, long millisecondsTimestamp) {
     String command = "pexpireAt";
     return instrumented(command, () -> delegated.pexpireAt(key, millisecondsTimestamp));
   }
 
   @Override
-  public Long pttl(String key) {
+  public long pttl(String key) {
     String command = "pttl";
     return instrumented(command, () -> delegated.pttl(key));
   }
@@ -1258,7 +1252,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public String clusterReset(final ClusterReset resetType) {
+  public String clusterReset(final ClusterResetType resetType) {
     String command = "clusterReset";
     return instrumented(command, () -> delegated.clusterReset(resetType));
   }
@@ -1324,13 +1318,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long clusterKeySlot(String key) {
+  public long clusterKeySlot(String key) {
     String command = "clusterKeySlot";
     return instrumented(command, () -> delegated.clusterKeySlot(key));
   }
 
   @Override
-  public Long clusterCountKeysInSlot(int slot) {
+  public long clusterCountKeysInSlot(int slot) {
     String command = "clusterCountKeysInSlot";
     return instrumented(command, () -> delegated.clusterCountKeysInSlot(slot));
   }
@@ -1384,7 +1378,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Map<String, String> pubsubNumSub(String... channels) {
+  public Map<String, Long> pubsubNumSub(String... channels) {
     String command = "pubsubNumSub";
     return instrumented(command, () -> delegated.pubsubNumSub(channels));
   }
@@ -1396,12 +1390,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public void setDataSource(JedisPoolAbstract jedisPool) {
-    delegated.setDataSource(jedisPool);
-  }
-
-  @Override
-  public Long pfadd(String key, String... elements) {
+  public long pfadd(String key, String... elements) {
     String command = "pfadd";
     return instrumented(command, payloadSize(elements), () -> delegated.pfadd(key, elements));
   }
@@ -1437,14 +1426,14 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long geoadd(String key, double longitude, double latitude, String member) {
+  public long geoadd(String key, double longitude, double latitude, String member) {
     String command = "geoadd";
     return instrumented(
         command, payloadSize(member), () -> delegated.geoadd(key, longitude, latitude, member));
   }
 
   @Override
-  public Long geoadd(String key, Map<String, GeoCoordinate> memberCoordinateMap) {
+  public long geoadd(String key, Map<String, GeoCoordinate> memberCoordinateMap) {
     String command = "geoadd";
     return instrumented(command, () -> delegated.geoadd(key, memberCoordinateMap));
   }
@@ -1545,25 +1534,25 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long exists(byte[]... keys) {
+  public long exists(byte[]... keys) {
     String command = "exists";
     return instrumented(command, () -> delegated.exists(keys));
   }
 
   @Override
-  public Boolean exists(byte[] key) {
+  public boolean exists(byte[] key) {
     String command = "exists";
     return instrumented(command, () -> delegated.exists(key));
   }
 
   @Override
-  public Long del(byte[]... keys) {
+  public long del(byte[]... keys) {
     String command = "del";
     return instrumented(command, () -> delegated.del(keys));
   }
 
   @Override
-  public Long del(byte[] key) {
+  public long del(byte[] key) {
     String command = "del";
     return instrumented(command, () -> delegated.del(key));
   }
@@ -1599,31 +1588,31 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long renamenx(byte[] oldkey, byte[] newkey) {
+  public long renamenx(byte[] oldkey, byte[] newkey) {
     String command = "renamenx";
     return instrumented(command, () -> delegated.renamenx(oldkey, newkey));
   }
 
   @Override
-  public Long dbSize() {
+  public long dbSize() {
     String command = "dbSize";
     return instrumented(command, () -> delegated.dbSize());
   }
 
   @Override
-  public Long expire(byte[] key, int seconds) {
+  public long expire(byte[] key, long seconds) {
     String command = "expire";
     return instrumented(command, () -> delegated.expire(key, seconds));
   }
 
   @Override
-  public Long expireAt(byte[] key, long unixTime) {
+  public long expireAt(byte[] key, long unixTime) {
     String command = "expireAt";
     return instrumented(command, () -> delegated.expireAt(key, unixTime));
   }
 
   @Override
-  public Long ttl(byte[] key) {
+  public long ttl(byte[] key) {
     String command = "ttl";
     return instrumented(command, () -> delegated.ttl(key));
   }
@@ -1635,7 +1624,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long move(byte[] key, int dbIndex) {
+  public long move(byte[] key, int dbIndex) {
     String command = "move";
     return instrumented(command, () -> delegated.move(key, dbIndex));
   }
@@ -1659,13 +1648,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long setnx(byte[] key, byte[] value) {
+  public long setnx(byte[] key, byte[] value) {
     String command = "setnx";
     return instrumented(command, payloadSize(value), () -> delegated.setnx(key, value));
   }
 
   @Override
-  public String setex(byte[] key, int seconds, byte[] value) {
+  public String setex(byte[] key, long seconds, byte[] value) {
     String command = "setex";
     return instrumented(command, payloadSize(value), () -> delegated.setex(key, seconds, value));
   }
@@ -1677,43 +1666,43 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long msetnx(byte[]... keysvalues) {
+  public long msetnx(byte[]... keysvalues) {
     String command = "msetnx";
     return instrumented(command, payloadSize(keysvalues), () -> delegated.msetnx(keysvalues));
   }
 
   @Override
-  public Long decrBy(byte[] key, long integer) {
+  public long decrBy(byte[] key, long integer) {
     String command = "decrBy";
     return instrumented(command, () -> delegated.decrBy(key, integer));
   }
 
   @Override
-  public Long decr(byte[] key) {
+  public long decr(byte[] key) {
     String command = "decr";
     return instrumented(command, () -> delegated.decr(key));
   }
 
   @Override
-  public Long incrBy(byte[] key, long integer) {
+  public long incrBy(byte[] key, long integer) {
     String command = "incrBy";
     return instrumented(command, () -> delegated.incrBy(key, integer));
   }
 
   @Override
-  public Double incrByFloat(byte[] key, double integer) {
+  public double incrByFloat(byte[] key, double integer) {
     String command = "incrByFloat";
     return instrumented(command, () -> delegated.incrByFloat(key, integer));
   }
 
   @Override
-  public Long incr(byte[] key) {
+  public long incr(byte[] key) {
     String command = "incr";
     return instrumented(command, () -> delegated.incr(key));
   }
 
   @Override
-  public Long append(byte[] key, byte[] value) {
+  public long append(byte[] key, byte[] value) {
     String command = "append";
     return instrumented(command, payloadSize(value), () -> delegated.append(key, value));
   }
@@ -1725,7 +1714,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long hset(byte[] key, byte[] field, byte[] value) {
+  public long hset(byte[] key, byte[] field, byte[] value) {
     String command = "hset";
     return instrumented(command, payloadSize(value), () -> delegated.hset(key, field, value));
   }
@@ -1737,7 +1726,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long hsetnx(byte[] key, byte[] field, byte[] value) {
+  public long hsetnx(byte[] key, byte[] field, byte[] value) {
     String command = "hsetnx";
     return instrumented(command, payloadSize(value), () -> delegated.hsetnx(key, field, value));
   }
@@ -1755,31 +1744,31 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long hincrBy(byte[] key, byte[] field, long value) {
+  public long hincrBy(byte[] key, byte[] field, long value) {
     String command = "hincrBy";
     return instrumented(command, () -> delegated.hincrBy(key, field, value));
   }
 
   @Override
-  public Double hincrByFloat(byte[] key, byte[] field, double value) {
+  public double hincrByFloat(byte[] key, byte[] field, double value) {
     String command = "hincrByFloat";
     return instrumented(command, () -> delegated.hincrByFloat(key, field, value));
   }
 
   @Override
-  public Boolean hexists(byte[] key, byte[] field) {
+  public boolean hexists(byte[] key, byte[] field) {
     String command = "hexists";
     return instrumented(command, () -> delegated.hexists(key, field));
   }
 
   @Override
-  public Long hdel(byte[] key, byte[]... fields) {
+  public long hdel(byte[] key, byte[]... fields) {
     String command = "hdel";
     return instrumented(command, () -> delegated.hdel(key, fields));
   }
 
   @Override
-  public Long hlen(byte[] key) {
+  public long hlen(byte[] key) {
     String command = "hlen";
     return instrumented(command, () -> delegated.hlen(key));
   }
@@ -1803,19 +1792,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long rpush(byte[] key, byte[]... strings) {
+  public long rpush(byte[] key, byte[]... strings) {
     String command = "rpush";
     return instrumented(command, payloadSize(strings), () -> delegated.rpush(key, strings));
   }
 
   @Override
-  public Long lpush(byte[] key, byte[]... strings) {
+  public long lpush(byte[] key, byte[]... strings) {
     String command = "lpush";
     return instrumented(command, payloadSize(strings), () -> delegated.lpush(key, strings));
   }
 
   @Override
-  public Long llen(byte[] key) {
+  public long llen(byte[] key) {
     String command = "llen";
     return instrumented(command, () -> delegated.llen(key));
   }
@@ -1845,7 +1834,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long lrem(byte[] key, long count, byte[] value) {
+  public long lrem(byte[] key, long count, byte[] value) {
     String command = "lrem";
     return instrumented(command, payloadSize(value), () -> delegated.lrem(key, count, value));
   }
@@ -1869,7 +1858,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long sadd(byte[] key, byte[]... members) {
+  public long sadd(byte[] key, byte[]... members) {
     String command = "sadd";
     return instrumented(command, payloadSize(members), () -> delegated.sadd(key, members));
   }
@@ -1881,7 +1870,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long srem(byte[] key, byte[]... member) {
+  public long srem(byte[] key, byte[]... member) {
     String command = "srem";
     return instrumented(command, payloadSize(member), () -> delegated.srem(key, member));
   }
@@ -1899,19 +1888,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long smove(byte[] srckey, byte[] dstkey, byte[] member) {
+  public long smove(byte[] srckey, byte[] dstkey, byte[] member) {
     String command = "smove";
     return instrumented(command, () -> delegated.smove(srckey, dstkey, member));
   }
 
   @Override
-  public Long scard(byte[] key) {
+  public long scard(byte[] key) {
     String command = "scard";
     return instrumented(command, () -> delegated.scard(key));
   }
 
   @Override
-  public Boolean sismember(byte[] key, byte[] member) {
+  public boolean sismember(byte[] key, byte[] member) {
     String command = "sismember";
     return instrumented(command, () -> delegated.sismember(key, member));
   }
@@ -1923,7 +1912,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long sinterstore(byte[] dstkey, byte[]... keys) {
+  public long sinterstore(byte[] dstkey, byte[]... keys) {
     String command = "sinterstore";
     return instrumented(command, () -> delegated.sinterstore(dstkey, keys));
   }
@@ -1935,7 +1924,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long sunionstore(byte[] dstkey, byte[]... keys) {
+  public long sunionstore(byte[] dstkey, byte[]... keys) {
     String command = "sunionstore";
     return instrumented(command, () -> delegated.sunionstore(dstkey, keys));
   }
@@ -1947,7 +1936,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long sdiffstore(byte[] dstkey, byte[]... keys) {
+  public long sdiffstore(byte[] dstkey, byte[]... keys) {
     String command = "sdiffstore";
     return instrumented(command, () -> delegated.sdiffstore(dstkey, keys));
   }
@@ -1965,43 +1954,43 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long zadd(byte[] key, double score, byte[] member) {
+  public long zadd(byte[] key, double score, byte[] member) {
     String command = "zadd";
     return instrumented(command, () -> delegated.zadd(key, score, member));
   }
 
   @Override
-  public Long zadd(byte[] key, double score, byte[] member, ZAddParams params) {
+  public long zadd(byte[] key, double score, byte[] member, ZAddParams params) {
     String command = "zadd";
     return instrumented(command, () -> delegated.zadd(key, score, member, params));
   }
 
   @Override
-  public Long zadd(byte[] key, Map<byte[], Double> scoreMembers) {
+  public long zadd(byte[] key, Map<byte[], Double> scoreMembers) {
     String command = "zadd";
     return instrumented(command, () -> delegated.zadd(key, scoreMembers));
   }
 
   @Override
-  public Long zadd(byte[] key, Map<byte[], Double> scoreMembers, ZAddParams params) {
+  public long zadd(byte[] key, Map<byte[], Double> scoreMembers, ZAddParams params) {
     String command = "zadd";
     return instrumented(command, () -> delegated.zadd(key, scoreMembers, params));
   }
 
   @Override
-  public Set<byte[]> zrange(byte[] key, long start, long end) {
+  public List<byte[]> zrange(byte[] key, long start, long end) {
     String command = "zrange";
     return instrumented(command, () -> delegated.zrange(key, start, end));
   }
 
   @Override
-  public Long zrem(byte[] key, byte[]... members) {
+  public long zrem(byte[] key, byte[]... members) {
     String command = "zrem";
     return instrumented(command, () -> delegated.zrem(key, members));
   }
 
   @Override
-  public Double zincrby(byte[] key, double score, byte[] member) {
+  public double zincrby(byte[] key, double score, byte[] member) {
     String command = "zincrby";
     return instrumented(command, () -> delegated.zincrby(key, score, member));
   }
@@ -2025,25 +2014,25 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<byte[]> zrevrange(byte[] key, long start, long end) {
+  public List<byte[]> zrevrange(byte[] key, long start, long end) {
     String command = "zrevrange";
     return instrumented(command, () -> delegated.zrevrange(key, start, end));
   }
 
   @Override
-  public Set<Tuple> zrangeWithScores(byte[] key, long start, long end) {
+  public List<Tuple> zrangeWithScores(byte[] key, long start, long end) {
     String command = "zrangeWithScores";
     return instrumented(command, () -> delegated.zrangeWithScores(key, start, end));
   }
 
   @Override
-  public Set<Tuple> zrevrangeWithScores(byte[] key, long start, long end) {
+  public List<Tuple> zrevrangeWithScores(byte[] key, long start, long end) {
     String command = "zrevrangeWithScores";
     return instrumented(command, () -> delegated.zrevrangeWithScores(key, start, end));
   }
 
   @Override
-  public Long zcard(byte[] key) {
+  public long zcard(byte[] key) {
     String command = "zcard";
     return instrumented(command, () -> delegated.zcard(key));
   }
@@ -2106,13 +2095,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long sort(byte[] key, SortingParams sortingParameters, byte[] dstkey) {
+  public long sort(byte[] key, SortingParams sortingParameters, byte[] dstkey) {
     String command = "sort";
     return instrumented(command, () -> delegated.sort(key, sortingParameters, dstkey));
   }
 
   @Override
-  public Long sort(byte[] key, byte[] dstkey) {
+  public long sort(byte[] key, byte[] dstkey) {
     String command = "sort";
     return instrumented(command, () -> delegated.sort(key, dstkey));
   }
@@ -2124,15 +2113,15 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public List<byte[]> blpop(byte[]... args) {
+  public List<byte[]> blpop(double timeout, byte[]... args) {
     String command = "blpop";
-    return instrumented(command, () -> delegated.blpop(args));
+    return instrumented(command, () -> delegated.blpop(timeout, args));
   }
 
   @Override
-  public List<byte[]> brpop(byte[]... args) {
+  public List<byte[]> brpop(double timeout, byte[]... args) {
     String command = "brpop";
-    return instrumented(command, () -> delegated.brpop(args));
+    return instrumented(command, () -> delegated.brpop(timeout, args));
   }
 
   @Override
@@ -2144,60 +2133,59 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public Pipeline pipelined() {
     String command = "pipelined";
-    return instrumented(
-        command, () -> new InstrumentedPipeline(registry, delegated.pipelined(), poolName));
+    return instrumented(command, () -> new InstrumentedPipeline(registry, delegated, poolName));
   }
 
   @Override
-  public Long zcount(byte[] key, double min, double max) {
+  public long zcount(byte[] key, double min, double max) {
     String command = "zcount";
     return instrumented(command, () -> delegated.zcount(key, min, max));
   }
 
   @Override
-  public Long zcount(byte[] key, byte[] min, byte[] max) {
+  public long zcount(byte[] key, byte[] min, byte[] max) {
     String command = "zcount";
     return instrumented(command, () -> delegated.zcount(key, min, max));
   }
 
   @Override
-  public Set<byte[]> zrangeByScore(byte[] key, double min, double max) {
+  public List<byte[]> zrangeByScore(byte[] key, double min, double max) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max));
   }
 
   @Override
-  public Set<byte[]> zrangeByScore(byte[] key, byte[] min, byte[] max) {
+  public List<byte[]> zrangeByScore(byte[] key, byte[] min, byte[] max) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max));
   }
 
   @Override
-  public Set<byte[]> zrangeByScore(byte[] key, double min, double max, int offset, int count) {
+  public List<byte[]> zrangeByScore(byte[] key, double min, double max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Set<byte[]> zrangeByScore(byte[] key, byte[] min, byte[] max, int offset, int count) {
+  public List<byte[]> zrangeByScore(byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByScore";
     return instrumented(command, () -> delegated.zrangeByScore(key, min, max, offset, count));
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(byte[] key, double min, double max) {
+  public List<Tuple> zrangeByScoreWithScores(byte[] key, double min, double max) {
     String command = "zrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max));
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(byte[] key, byte[] min, byte[] max) {
+  public List<Tuple> zrangeByScoreWithScores(byte[] key, byte[] min, byte[] max) {
     String command = "zrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrangeByScoreWithScores(key, min, max));
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(
+  public List<Tuple> zrangeByScoreWithScores(
       byte[] key, double min, double max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
     return instrumented(
@@ -2205,7 +2193,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<Tuple> zrangeByScoreWithScores(
+  public List<Tuple> zrangeByScoreWithScores(
       byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByScoreWithScores";
     return instrumented(
@@ -2213,37 +2201,37 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<byte[]> zrevrangeByScore(byte[] key, double max, double min) {
+  public List<byte[]> zrevrangeByScore(byte[] key, double max, double min) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min));
   }
 
   @Override
-  public Set<byte[]> zrevrangeByScore(byte[] key, byte[] max, byte[] min) {
+  public List<byte[]> zrevrangeByScore(byte[] key, byte[] max, byte[] min) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min));
   }
 
   @Override
-  public Set<byte[]> zrevrangeByScore(byte[] key, double max, double min, int offset, int count) {
+  public List<byte[]> zrevrangeByScore(byte[] key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Set<byte[]> zrevrangeByScore(byte[] key, byte[] max, byte[] min, int offset, int count) {
+  public List<byte[]> zrevrangeByScore(byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByScore";
     return instrumented(command, () -> delegated.zrevrangeByScore(key, max, min, offset, count));
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(byte[] key, double max, double min) {
+  public List<Tuple> zrevrangeByScoreWithScores(byte[] key, double max, double min) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min));
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(
+  public List<Tuple> zrevrangeByScoreWithScores(
       byte[] key, double max, double min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(
@@ -2251,13 +2239,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(byte[] key, byte[] max, byte[] min) {
+  public List<Tuple> zrevrangeByScoreWithScores(byte[] key, byte[] max, byte[] min) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(command, () -> delegated.zrevrangeByScoreWithScores(key, max, min));
   }
 
   @Override
-  public Set<Tuple> zrevrangeByScoreWithScores(
+  public List<Tuple> zrevrangeByScoreWithScores(
       byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByScoreWithScores";
     return instrumented(
@@ -2265,79 +2253,79 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long zremrangeByRank(byte[] key, long start, long end) {
+  public long zremrangeByRank(byte[] key, long start, long end) {
     String command = "zremrangeByRank";
     return instrumented(command, () -> delegated.zremrangeByRank(key, start, end));
   }
 
   @Override
-  public Long zremrangeByScore(byte[] key, double start, double end) {
+  public long zremrangeByScore(byte[] key, double start, double end) {
     String command = "zremrangeByScore";
     return instrumented(command, () -> delegated.zremrangeByScore(key, start, end));
   }
 
   @Override
-  public Long zremrangeByScore(byte[] key, byte[] start, byte[] end) {
+  public long zremrangeByScore(byte[] key, byte[] start, byte[] end) {
     String command = "zremrangeByScore";
     return instrumented(command, () -> delegated.zremrangeByScore(key, start, end));
   }
 
   @Override
-  public Long zunionstore(byte[] dstkey, byte[]... sets) {
+  public long zunionstore(byte[] dstkey, byte[]... sets) {
     String command = "zunionstore";
     return instrumented(command, () -> delegated.zunionstore(dstkey, sets));
   }
 
   @Override
-  public Long zunionstore(byte[] dstkey, ZParams params, byte[]... sets) {
+  public long zunionstore(byte[] dstkey, ZParams params, byte[]... sets) {
     String command = "zunionstore";
     return instrumented(command, () -> delegated.zunionstore(dstkey, params, sets));
   }
 
   @Override
-  public Long zinterstore(byte[] dstkey, byte[]... sets) {
+  public long zinterstore(byte[] dstkey, byte[]... sets) {
     String command = "zinterstore";
     return instrumented(command, () -> delegated.zinterstore(dstkey, sets));
   }
 
   @Override
-  public Long zinterstore(byte[] dstkey, ZParams params, byte[]... sets) {
+  public long zinterstore(byte[] dstkey, ZParams params, byte[]... sets) {
     String command = "zinterstore";
     return instrumented(command, () -> delegated.zinterstore(dstkey, params, sets));
   }
 
   @Override
-  public Long zlexcount(byte[] key, byte[] min, byte[] max) {
+  public long zlexcount(byte[] key, byte[] min, byte[] max) {
     String command = "zlexcount";
     return instrumented(command, () -> delegated.zlexcount(key, min, max));
   }
 
   @Override
-  public Set<byte[]> zrangeByLex(byte[] key, byte[] min, byte[] max) {
+  public List<byte[]> zrangeByLex(byte[] key, byte[] min, byte[] max) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max));
   }
 
   @Override
-  public Set<byte[]> zrangeByLex(byte[] key, byte[] min, byte[] max, int offset, int count) {
+  public List<byte[]> zrangeByLex(byte[] key, byte[] min, byte[] max, int offset, int count) {
     String command = "zrangeByLex";
     return instrumented(command, () -> delegated.zrangeByLex(key, min, max, offset, count));
   }
 
   @Override
-  public Set<byte[]> zrevrangeByLex(byte[] key, byte[] max, byte[] min) {
+  public List<byte[]> zrevrangeByLex(byte[] key, byte[] max, byte[] min) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min));
   }
 
   @Override
-  public Set<byte[]> zrevrangeByLex(byte[] key, byte[] max, byte[] min, int offset, int count) {
+  public List<byte[]> zrevrangeByLex(byte[] key, byte[] max, byte[] min, int offset, int count) {
     String command = "zrevrangeByLex";
     return instrumented(command, () -> delegated.zrevrangeByLex(key, max, min, offset, count));
   }
 
   @Override
-  public Long zremrangeByLex(byte[] key, byte[] min, byte[] max) {
+  public long zremrangeByLex(byte[] key, byte[] min, byte[] max) {
     String command = "zremrangeByLex";
     return instrumented(command, () -> delegated.zremrangeByLex(key, min, max));
   }
@@ -2361,15 +2349,15 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long lastsave() {
+  public long lastsave() {
     String command = "lastsave";
     return instrumented(command, () -> delegated.lastsave());
   }
 
   @Override
-  public String shutdown() {
+  public void shutdown() throws JedisException {
     String command = "shutdown";
-    return instrumented(command, () -> delegated.shutdown());
+    instrumented(command, () -> delegated.shutdown());
   }
 
   @Override
@@ -2414,7 +2402,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public byte[] configSet(byte[] parameter, byte[] value) {
+  public String configSet(byte[] parameter, byte[] value) {
     String command = "configSet";
     return instrumented(command, () -> delegated.configSet(parameter, value));
   }
@@ -2426,30 +2414,25 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long strlen(byte[] key) {
+  public long strlen(byte[] key) {
     String command = "strlen";
     return instrumented(command, () -> delegated.strlen(key));
   }
 
   @Override
-  public void sync() {
-    delegated.sync();
-  }
-
-  @Override
-  public Long lpushx(byte[] key, byte[]... string) {
+  public long lpushx(byte[] key, byte[]... string) {
     String command = "lpushx";
     return instrumented(command, payloadSize(string), () -> delegated.lpushx(key, string));
   }
 
   @Override
-  public Long persist(byte[] key) {
+  public long persist(byte[] key) {
     String command = "persist";
     return instrumented(command, () -> delegated.persist(key));
   }
 
   @Override
-  public Long rpushx(byte[] key, byte[]... string) {
+  public long rpushx(byte[] key, byte[]... string) {
     String command = "rpushx";
     return instrumented(command, payloadSize(string), () -> delegated.rpushx(key, string));
   }
@@ -2461,7 +2444,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long linsert(
+  public long linsert(
       final byte[] key, final ListPosition where, final byte[] pivot, final byte[] value) {
     String command = "linsert";
     return instrumented(
@@ -2469,15 +2452,9 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public String debug(DebugParams params) {
-    String command = "debug";
-    return instrumented(command, () -> delegated.debug(params));
-  }
-
-  @Override
-  public Client getClient() {
+  public Connection getClient() {
     String command = "getClient";
-    return instrumented(command, () -> delegated.getClient());
+    return instrumented(command, () -> delegated.getConnection());
   }
 
   @Override
@@ -2487,37 +2464,31 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Boolean setbit(byte[] key, long offset, boolean value) {
+  public boolean setbit(byte[] key, long offset, boolean value) {
     String command = "setbit";
     return instrumented(command, () -> delegated.setbit(key, offset, value));
   }
 
   @Override
-  public Boolean setbit(byte[] key, long offset, byte[] value) {
-    String command = "setbit";
-    return instrumented(command, payloadSize(value), () -> delegated.setbit(key, offset, value));
-  }
-
-  @Override
-  public Boolean getbit(byte[] key, long offset) {
+  public boolean getbit(byte[] key, long offset) {
     String command = "getbit";
     return instrumented(command, () -> delegated.getbit(key, offset));
   }
 
   @Override
-  public Long bitpos(byte[] key, boolean value) {
+  public long bitpos(byte[] key, boolean value) {
     String command = "bitpos";
     return instrumented(command, () -> delegated.bitpos(key, value));
   }
 
   @Override
-  public Long bitpos(byte[] key, boolean value, BitPosParams params) {
+  public long bitpos(byte[] key, boolean value, BitPosParams params) {
     String command = "bitpos";
     return instrumented(command, () -> delegated.bitpos(key, value, params));
   }
 
   @Override
-  public Long setrange(byte[] key, long offset, byte[] value) {
+  public long setrange(byte[] key, long offset, byte[] value) {
     String command = "setrange";
     return instrumented(command, payloadSize(value), () -> delegated.setrange(key, offset, value));
   }
@@ -2529,7 +2500,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long publish(byte[] channel, byte[] message) {
+  public long publish(byte[] channel, byte[] message) {
     String command = "publish";
     return instrumented(command, payloadSize(message), () -> delegated.publish(channel, message));
   }
@@ -2555,15 +2526,6 @@ public class InstrumentedJedis extends Jedis {
     String command = "eval";
     return instrumented(
         command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
-  }
-
-  @Override
-  public Object eval(byte[] script, byte[] keyCount, byte[]... params) {
-    String command = "eval";
-    return instrumented(
-        command,
-        payloadSize(script) + payloadSize(params),
-        () -> delegated.eval(script, keyCount, params));
   }
 
   @Override
@@ -2607,13 +2569,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long scriptExists(byte[] sha1) {
+  public Boolean scriptExists(byte[] sha1) {
     String command = "scriptExists";
     return instrumented(command, () -> delegated.scriptExists(sha1));
   }
 
   @Override
-  public List<Long> scriptExists(byte[]... sha1) {
+  public List<Boolean> scriptExists(byte[]... sha1) {
     String command = "scriptExists";
     return instrumented(command, () -> delegated.scriptExists(sha1));
   }
@@ -2637,7 +2599,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long slowlogLen() {
+  public long slowlogLen() {
     String command = "slowlogLen";
     return instrumented(command, () -> delegated.slowlogLen());
   }
@@ -2673,19 +2635,19 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long bitcount(byte[] key) {
+  public long bitcount(byte[] key) {
     String command = "bitcount";
     return instrumented(command, () -> delegated.bitcount(key));
   }
 
   @Override
-  public Long bitcount(byte[] key, long start, long end) {
+  public long bitcount(byte[] key, long start, long end) {
     String command = "bitcount";
     return instrumented(command, () -> delegated.bitcount(key, start, end));
   }
 
   @Override
-  public Long bitop(BitOP op, byte[] destKey, byte[]... srcKeys) {
+  public long bitop(BitOP op, byte[] destKey, byte[]... srcKeys) {
     String command = "bitop";
     return instrumented(command, () -> delegated.bitop(op, destKey, srcKeys));
   }
@@ -2697,25 +2659,25 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public String restore(byte[] key, int ttl, byte[] serializedValue) {
+  public String restore(byte[] key, long ttl, byte[] serializedValue) {
     String command = "restore";
     return instrumented(command, () -> delegated.restore(key, ttl, serializedValue));
   }
 
   @Override
-  public Long pexpire(byte[] key, long milliseconds) {
+  public long pexpire(byte[] key, long milliseconds) {
     String command = "pexpire";
     return instrumented(command, () -> delegated.pexpire(key, milliseconds));
   }
 
   @Override
-  public Long pexpireAt(byte[] key, long millisecondsTimestamp) {
+  public long pexpireAt(byte[] key, long millisecondsTimestamp) {
     String command = "pexpireAt";
     return instrumented(command, () -> delegated.pexpireAt(key, millisecondsTimestamp));
   }
 
   @Override
-  public Long pttl(byte[] key) {
+  public long pttl(byte[] key) {
     String command = "pttl";
     return instrumented(command, () -> delegated.pttl(key));
   }
@@ -2758,13 +2720,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long waitReplicas(int replicas, long timeout) {
+  public long waitReplicas(int replicas, long timeout) {
     String command = "waitReplicas";
     return instrumented(command, () -> delegated.waitReplicas(replicas, timeout));
   }
 
   @Override
-  public Long pfadd(byte[] key, byte[]... elements) {
+  public long pfadd(byte[] key, byte[]... elements) {
     String command = "pfadd";
     return instrumented(command, payloadSize(elements), () -> delegated.pfadd(key, elements));
   }
@@ -2782,7 +2744,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long pfcount(byte[]... keys) {
+  public long pfcount(byte[]... keys) {
     String command = "pfcount";
     return instrumented(command, () -> delegated.pfcount(keys));
   }
@@ -2836,13 +2798,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public Long geoadd(byte[] key, double longitude, double latitude, byte[] member) {
+  public long geoadd(byte[] key, double longitude, double latitude, byte[] member) {
     String command = "geoadd";
     return instrumented(command, () -> delegated.geoadd(key, longitude, latitude, member));
   }
 
   @Override
-  public Long geoadd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
+  public long geoadd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
     String command = "geoadd";
     return instrumented(command, () -> delegated.geoadd(key, memberCoordinateMap));
   }

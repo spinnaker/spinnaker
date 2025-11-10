@@ -20,7 +20,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-core"
-  implementation "javax.validation:validation-api"
+  implementation "jakarta.validation:jakarta.validation-api"
   implementation "io.cloudevents:cloudevents-spring:2.5.0"
   implementation "io.cloudevents:cloudevents-json-jackson:2.5.0"
   implementation "io.cloudevents:cloudevents-http-basic:2.5.0"

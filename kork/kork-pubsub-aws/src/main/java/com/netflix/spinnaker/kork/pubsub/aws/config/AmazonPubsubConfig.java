@@ -29,7 +29,7 @@ import com.netflix.spinnaker.kork.pubsub.aws.SNSPublisherProvider;
 import com.netflix.spinnaker.kork.pubsub.aws.SQSSubscriberProvider;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandlerFactory;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -21,7 +21,7 @@ dependencies {
   api("io.spinnaker.kork:kork-web")
 
   implementation(project(":orca-core"))
-  implementation("io.reactivex:rxjava")
+  implementation("io.reactivex.rxjava3:rxjava")
   implementation("io.spinnaker.kork:kork-retrofit")
   implementation("io.spinnaker.kork:kork-retrofit2")
   implementation "com.google.guava:guava"

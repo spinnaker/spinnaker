@@ -16,8 +16,8 @@
 package com.netflix.kayenta.canary;
 
 import com.netflix.kayenta.canary.results.CanaryResult;
+import jakarta.validation.constraints.NotNull;
 import java.util.Map;
-import javax.validation.constraints.NotNull;
 import lombok.*;
 
 @Data

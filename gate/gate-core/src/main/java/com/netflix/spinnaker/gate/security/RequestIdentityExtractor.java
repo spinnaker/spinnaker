@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.gate.security;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * An interface for inspecting an HttpRequest during filter processing where full authentication may

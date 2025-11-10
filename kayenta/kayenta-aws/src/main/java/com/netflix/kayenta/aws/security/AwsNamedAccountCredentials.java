@@ -19,7 +19,7 @@ package com.netflix.kayenta.aws.security;
 import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.kayenta.security.AccountCredentials;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;

@@ -22,7 +22,7 @@ import com.netflix.spectator.gc.GcLogger;
 import com.netflix.spectator.jvm.Jmx;
 import com.netflix.spectator.micrometer.MicrometerRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

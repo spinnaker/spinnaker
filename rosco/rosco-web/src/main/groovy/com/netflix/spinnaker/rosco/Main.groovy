@@ -50,7 +50,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 
-import javax.servlet.Filter
+import jakarta.servlet.Filter
 
 @Configuration
 @ComponentScan([

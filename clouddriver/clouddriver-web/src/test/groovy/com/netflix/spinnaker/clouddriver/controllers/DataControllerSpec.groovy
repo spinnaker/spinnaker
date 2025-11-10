@@ -24,7 +24,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 class DataControllerSpec extends Specification {
 

@@ -30,10 +30,10 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.v2.V2DefaultR
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.v2.V2RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2TemplateConfiguration;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
 
 public class V2TemplateLoaderHandler implements Handler {
 

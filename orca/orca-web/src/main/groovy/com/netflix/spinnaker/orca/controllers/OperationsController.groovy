@@ -48,7 +48,7 @@ import javassist.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE

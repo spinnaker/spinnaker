@@ -23,9 +23,9 @@ import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.reactivex.rxjava3.core.Scheduler;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import rx.Scheduler;
 
 public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags>
     implements EntityTagsDAO {

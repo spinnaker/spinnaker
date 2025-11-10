@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -42,7 +43,6 @@ import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 
 @Slf4j
 @Component
@@ -115,12 +115,14 @@ public class DeployCloudFormationTask implements CloudProviderAware, Task {
     Object templateBody = task.get("templateBody");
 
     if (templateBody instanceof Map && !((Map) templateBody).isEmpty()) {
-      templateBody = new Yaml().dump(templateBody);
+      templateBody = YamlHelper.newYaml().dump(templateBody);
       task.put("templateBody", templateBody);
     } else if (templateBody instanceof List && !((List) templateBody).isEmpty()) {
       templateBody =
           ((List<?>) templateBody)
-              .stream().map(part -> new Yaml().dump(part)).collect(Collectors.joining("\n---\n"));
+              .stream()
+                  .map(part -> YamlHelper.newYaml().dump(part))
+                  .collect(Collectors.joining("\n---\n"));
       task.put("templateBody", templateBody);
     }
 

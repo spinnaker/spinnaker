@@ -16,7 +16,7 @@
 package com.netflix.kayenta.events;
 
 import com.netflix.kayenta.canary.CanaryExecutionStatusResponse;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.context.ApplicationEvent;
 
 public class CanaryExecutionCompletedEvent extends ApplicationEvent {

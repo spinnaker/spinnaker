@@ -18,7 +18,7 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Builder
