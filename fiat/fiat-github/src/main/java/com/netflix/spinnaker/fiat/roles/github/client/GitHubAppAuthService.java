@@ -21,13 +21,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.KeyFactory;
 import java.security.PrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import lombok.Data;
@@ -37,6 +35,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.util.StringUtils;
 
 @Slf4j
@@ -145,23 +147,23 @@ public class GitHubAppAuthService {
   }
 
   private PrivateKey loadPrivateKey(String privateKeyPath) {
-    try {
-      String content = new String(Files.readAllBytes(Paths.get(privateKeyPath)));
+    try (Reader keyReader = Files.newBufferedReader(Paths.get(privateKeyPath));
+        PEMParser pemParser = new PEMParser(keyReader)) {
 
-      // Remove PEM headers and footers, and whitespace
-      String privateKeyPEM =
-          content
-              .replaceAll("-----BEGIN PRIVATE KEY-----", "")
-              .replaceAll("-----END PRIVATE KEY-----", "")
-              .replaceAll("-----BEGIN RSA PRIVATE KEY-----", "")
-              .replaceAll("-----END RSA PRIVATE KEY-----", "")
-              .replaceAll("\\s+", "");
+      Object object = pemParser.readObject();
+      JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
 
-      byte[] keyBytes = Base64.getDecoder().decode(privateKeyPEM);
-      PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-      KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-
-      return keyFactory.generatePrivate(spec);
+      if (object instanceof PEMKeyPair) {
+        // For PKCS#1 format (-----BEGIN RSA PRIVATE KEY-----)
+        return converter.getPrivateKey(((PEMKeyPair) object).getPrivateKeyInfo());
+      } else if (object instanceof PrivateKeyInfo) {
+        // For PKCS#8 format (-----BEGIN PRIVATE KEY-----)
+        return converter.getPrivateKey((PrivateKeyInfo) object);
+      } else {
+        throw new IllegalArgumentException(
+            "Unsupported PEM format. Expected RSA private key, got: "
+                + (object != null ? object.getClass().getName() : "null"));
+      }
     } catch (Exception e) {
       throw new RuntimeException(
           "Failed to load GitHub App private key from: " + privateKeyPath, e);
