@@ -41,6 +41,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import redis.clients.jedis.Connection
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
@@ -84,7 +85,7 @@ class RedisQueueShovelConfiguration {
     @Value("\${redis.connection-previous}") previousConnection: String,
     @Value("\${redis.timeout:2000}") timeout: Int,
     @Value("\${redis.maxattempts:4}") maxAttempts: Int,
-    redisPoolConfig: GenericObjectPoolConfig<Jedis>,
+    redisPoolConfig: GenericObjectPoolConfig<Connection>,
     registry: Registry
   ): JedisCluster {
     if (mainConnection == previousConnection) {

@@ -30,6 +30,7 @@ import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFacto
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -37,7 +38,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;

@@ -31,6 +31,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 /**
  * In combination with HeaderAuthConfigurerAdapter, authenticate the X-SPINNAKER-USER header using
@@ -81,6 +82,23 @@ public class HeaderAuthConfig {
     // HeaderAuthenticationDetailsSource takes care of this.
     requestHeaderAuthenticationFilter.setAuthenticationDetailsSource(
         new HeaderAuthenticationDetailsSource());
+
+    HttpSessionSecurityContextRepository securityContextRepository =
+        new HttpSessionSecurityContextRepository();
+
+    // Save the work to read and write session information.  Each request
+    // provides X-SPINNAKER-USER, and gate caches information from fiat, so
+    // there's no need for callers to support session cookies, and dealing with
+    // expiration, etc.
+    //
+    // With this, when services.fiat.legacyFallback is false, FiatSessionFilter
+    // doesn't ever do meaningful work because request.getSession() always returns
+    // null, so save some cycles by setting fiat.session-filter.enabled to false.
+    //
+    // When services.fiat.legacyFallback is true, FiatSessionFilter still
+    // invalidates the cache for the user.
+    securityContextRepository.setAllowSessionCreation(false);
+    requestHeaderAuthenticationFilter.setSecurityContextRepository(securityContextRepository);
     return requestHeaderAuthenticationFilter;
   }
 

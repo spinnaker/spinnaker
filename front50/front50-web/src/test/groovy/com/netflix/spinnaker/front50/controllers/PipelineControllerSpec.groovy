@@ -26,7 +26,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 import spock.mock.DetachedMockFactory
 
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 import java.util.concurrent.Executors
 import java.util.stream.Collectors
 

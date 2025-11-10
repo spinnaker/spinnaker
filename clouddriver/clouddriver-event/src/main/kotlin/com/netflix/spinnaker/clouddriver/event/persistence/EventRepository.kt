@@ -17,8 +17,8 @@ package com.netflix.spinnaker.clouddriver.event.persistence
 
 import com.netflix.spinnaker.clouddriver.event.Aggregate
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
-import javax.validation.constraints.Max
-import javax.validation.constraints.Positive
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Positive
 
 /**
  * The [EventRepository] is responsible for reading and writing immutable event logs from a persistent store.

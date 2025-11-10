@@ -20,7 +20,7 @@ import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 import com.netflix.spinnaker.echo.pubsub.PollingMonitor;
 import com.netflix.spinnaker.echo.pubsub.PubsubSubscribers;
 import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -20,11 +20,11 @@ import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-import java.util.Arrays;
+import io.swagger.v3.oas.models.media.Schema;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import javax.annotation.Nullable;
-import org.springdoc.core.SpringDocUtils;
+import java.util.Map;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -45,11 +45,6 @@ public class SwaggerConfig {
 
   @Bean
   public OpenAPI gateApi() {
-    Arrays.stream((ignoredClasses()))
-        .forEach(
-            each -> {
-              SpringDocUtils.getConfig().addJavaTypeToIgnore(each);
-            });
     return new OpenAPI()
         .info(new Info().description(description).title(title).contact(new Contact().name(contact)))
         .externalDocs(
@@ -58,20 +53,39 @@ public class SwaggerConfig {
                 .description("Spinnaker Documentation"));
   }
 
-  private static Class[] ignoredClasses() {
-    return IGNORED_CLASS_NAMES.stream()
-        .map(SwaggerConfig::getClassIfPresent)
-        .filter(Objects::nonNull)
-        .toArray(Class[]::new);
-  }
-
-  @Nullable
-  private static Class<?> getClassIfPresent(String name) {
-    try {
-      return Class.forName(name);
-    } catch (ClassNotFoundException e) {
-      return null;
-    }
+  /**
+   * OpenAPI customizer to remove Groovy's MetaClass from generated schemas.
+   *
+   * <p>In Groovy applications, the dynamic {@code groovy.lang.MetaClass} property can be picked up
+   * by OpenAPI/Swagger and included as a schema, which is unnecessary and can cause issues in API
+   * documentation.
+   *
+   * <p>This bean iterates over all schemas in the OpenAPI components and removes any entry named
+   * {@code "groovy.lang.MetaClass"}. This achieves the same effect as the previous approach used in
+   * older OpenAPI versions, where similar logic or workarounds were applied to ignore Groovy's
+   * MetaClass in API documentation.
+   *
+   * <p>By using this customizer, we ensure that the generated OpenAPI spec reflects only the
+   * relevant application classes without any Groovy-specific dynamic properties.
+   *
+   * @return an {@link OpenApiCustomizer} that removes Groovy MetaClass schemas
+   */
+  @Bean
+  public OpenApiCustomizer ignoreGroovyMetaClassCustomizer() {
+    return openApi -> {
+      if (openApi.getComponents() != null) {
+        Map<String, Schema> schemas = openApi.getComponents().getSchemas();
+        if (schemas != null) {
+          Iterator<Map.Entry<String, Schema>> iterator = schemas.entrySet().iterator();
+          while (iterator.hasNext()) {
+            Map.Entry<String, Schema> entry = iterator.next();
+            if ("groovy.lang.MetaClass".equals(entry.getKey())) {
+              iterator.remove(); // remove schema for groovy.lang.MetaClass
+            }
+          }
+        }
+      }
+    };
   }
 
   public void setTitle(String title) {

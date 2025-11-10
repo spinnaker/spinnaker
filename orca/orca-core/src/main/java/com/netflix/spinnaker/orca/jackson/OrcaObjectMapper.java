@@ -21,8 +21,14 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TI
 import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -39,6 +45,8 @@ import com.netflix.spinnaker.orca.jackson.mixin.TriggerMixin;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl;
+import java.io.IOException;
+import org.springframework.http.HttpMethod;
 
 public class OrcaObjectMapper {
   private OrcaObjectMapper() {}
@@ -71,8 +79,19 @@ public class OrcaObjectMapper {
 
     instance.registerModule(module);
 
+    // Custom (de)serializers added to ensure HttpMethod values are always uppercase.
+    // This restores the behavior that existed before Spring Boot 3 upgrade:
+    // previously, HttpMethod values were serialized as uppercase globally.
+    // Using a custom serializer/deserializer ensures consistency for all JSON
+    // (de)serialization across Orca, including tests and persisted payloads.
+    SimpleModule httpMethodModule = new SimpleModule();
+    httpMethodModule.addSerializer(HttpMethod.class, new HttpMethodSerializer());
+    httpMethodModule.addDeserializer(HttpMethod.class, new HttpMethodDeserializer());
+    instance.registerModule(httpMethodModule);
+
     return instance;
   }
+
   /**
    * Return an ObjectMapper instance that can be reused. Do not change the configuration of this
    * instance as it will be shared across the entire application, use {@link #newInstance()}
@@ -82,5 +101,31 @@ public class OrcaObjectMapper {
    */
   public static ObjectMapper getInstance() {
     return INSTANCE;
+  }
+
+  /**
+   * Custom Jackson serializer for {@link HttpMethod}.
+   *
+   * <p>Converts the enum value to an uppercase string (e.g., {@code GET}).
+   */
+  static class HttpMethodSerializer extends JsonSerializer<HttpMethod> {
+    @Override
+    public void serialize(HttpMethod value, JsonGenerator gen, SerializerProvider serializer)
+        throws IOException {
+      gen.writeString(value.name().toUpperCase());
+    }
+  }
+
+  /**
+   * Custom Jackson deserializer for {@link HttpMethod}.
+   *
+   * <p>Converts JSON strings (e.g., {@code get}, {@code Get}, {@code GET}) into uppercase before
+   * resolving the corresponding {@link HttpMethod}.
+   */
+  static class HttpMethodDeserializer extends JsonDeserializer<HttpMethod> {
+    @Override
+    public HttpMethod deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+      return HttpMethod.valueOf(p.getText().toUpperCase());
+    }
   }
 }

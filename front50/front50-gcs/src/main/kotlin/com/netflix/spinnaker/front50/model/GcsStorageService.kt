@@ -39,7 +39,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 class GcsStorageService(
   private val storage: Storage,

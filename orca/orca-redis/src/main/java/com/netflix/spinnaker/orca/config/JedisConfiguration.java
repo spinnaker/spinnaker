@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.orca.config;
 
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
 
 @Configuration
 public class JedisConfiguration {

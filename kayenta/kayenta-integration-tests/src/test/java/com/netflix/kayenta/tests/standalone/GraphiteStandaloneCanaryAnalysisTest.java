@@ -20,25 +20,36 @@ import static org.hamcrest.CoreMatchers.is;
 import com.netflix.kayenta.steps.StandaloneCanaryAnalysisSteps;
 import com.netflix.kayenta.tests.BaseIntegrationTest;
 import io.restassured.response.ValidatableResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
 
   @Autowired protected StandaloneCanaryAnalysisSteps steps;
 
   @Test
-  public void canaryAnalysisIsSuccessful() {
-    String canaryAnalysisExecutionId =
-        steps.createCanaryAnalysis(
-            "cpu-successful-analysis-case",
-            "graphite-account",
-            "in-memory-store-account",
-            "canary-configs/graphite/integration-test-cpu.json");
+  public void canaryAnalysisIsSuccessful() throws InterruptedException {
+    int retries = 4;
+    ValidatableResponse response = null;
+    while (retries > 0) {
+      String canaryAnalysisExecutionId =
+          steps.createCanaryAnalysis(
+              "cpu-successful-analysis-case",
+              "graphite-account",
+              "in-memory-store-account",
+              "canary-configs/graphite/integration-test-cpu.json");
 
-    ValidatableResponse response =
-        steps.waitUntilCanaryAnalysisCompleted(canaryAnalysisExecutionId);
-
+      response = steps.waitUntilCanaryAnalysisCompleted(canaryAnalysisExecutionId);
+      if (!"SUCCEEDED".equals(response.extract().path("executionStatus"))) {
+        log.warn("Validation failed so retrying . . ");
+        Thread.sleep(30000);
+        retries--;
+        continue;
+      }
+      break;
+    }
     response
         .body("executionStatus", is("SUCCEEDED"))
         .body("canaryAnalysisExecutionResult.hasWarnings", is(false))

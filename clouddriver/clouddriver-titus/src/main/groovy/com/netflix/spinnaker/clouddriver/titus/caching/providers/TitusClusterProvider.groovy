@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import javax.inject.Provider
+import jakarta.inject.Provider
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*

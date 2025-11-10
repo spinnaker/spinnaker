@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
+import redis.clients.jedis.util.Pool
 
 @Configuration
 class JedisConfig {
@@ -59,7 +60,7 @@ class JedisConfig {
         } finally {
           jedis?.close()
         }
-        def internal = jedisPool.internalPool //thx groovy
+        Pool<Jedis> internal = jedisPool
         health.withDetail('maxIdle', internal.maxIdle)
         health.withDetail('minIdle', internal.minIdle)
         health.withDetail('numActive', internal.numActive)

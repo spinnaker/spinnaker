@@ -4,15 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.jackson.writeYamlAsJsonString
 import org.springframework.http.HttpStatus
 import java.io.ByteArrayInputStream
-import javax.servlet.Filter
-import javax.servlet.FilterChain
-import javax.servlet.ReadListener
-import javax.servlet.ServletInputStream
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletRequestWrapper
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.Filter
+import jakarta.servlet.FilterChain
+import jakarta.servlet.ReadListener
+import jakarta.servlet.ServletInputStream
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.ServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequestWrapper
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * A filter for POST /delivery-configs which first parses YAML using snakeyaml, which supports YAML anchors

@@ -28,8 +28,8 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.github.resilience4j:resilience4j-circuitbreaker"
-  implementation "io.reactivex:rxjava"
   implementation 'javax.annotation:javax.annotation-api'
+  implementation "io.reactivex.rxjava3:rxjava"
   implementation "net.logstash.logback:logstash-logback-encoder"
   implementation "org.slf4j:slf4j-api"
   implementation "org.springframework:spring-beans"
