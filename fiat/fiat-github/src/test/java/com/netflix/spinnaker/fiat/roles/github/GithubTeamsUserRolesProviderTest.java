@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 OpsMx, Inc.
+ * Copyright 2025 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,66 +16,365 @@
 
 package com.netflix.spinnaker.fiat.roles.github;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
-import com.netflix.spinnaker.fiat.roles.github.model.Member;
-import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
-import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import java.util.List;
-import okhttp3.OkHttpClient;
+import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.permissions.ExternalUser;
+import java.io.IOException;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.kohsuke.github.*;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class GithubTeamsUserRolesProviderTest {
-  @RegisterExtension
-  static WireMockExtension wmGithub =
-      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+/** Tests for GithubTeamsUserRolesProvider using hub4j/github-api library. */
+@ExtendWith(MockitoExtension.class)
+class GithubTeamsUserRolesProviderTest {
 
-  GitHubClient gitHubClient;
-  int port;
-  String baseUrl = "http://localhost:PORT/api/v3/";
+  @Mock private GitHub gitHubClient;
+
+  @Mock private GHOrganization organization;
+
+  @Mock private GHTeam team1;
+
+  @Mock private GHTeam team2;
+
+  @Mock private GHUser user1;
+
+  @Mock private GHUser user2;
+
+  @Mock private PagedIterable<GHUser> orgMembers;
+
+  @Mock private PagedIterable<GHUser> team1Members;
+
+  @Mock private PagedIterable<GHUser> team2Members;
+
+  private GithubTeamsUserRolesProvider provider;
+  private GitHubProperties gitHubProperties;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws IOException {
+    provider = new GithubTeamsUserRolesProvider();
+    gitHubProperties = new GitHubProperties();
+    gitHubProperties.setBaseUrl("https://api.github.com");
+    gitHubProperties.setOrganization("test-org");
+    gitHubProperties.setAccessToken("ghp_test_token");
 
-    port = wmGithub.getPort();
+    provider.setGitHubClient(gitHubClient);
+    provider.setGitHubProperties(gitHubProperties);
 
-    baseUrl = baseUrl.replaceFirst("PORT", String.valueOf(port));
+    // Use lenient() for stubbings that aren't used in all tests
+    lenient().when(gitHubClient.getOrganization("test-org")).thenReturn(organization);
 
-    gitHubClient =
-        new Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(new OkHttpClient())
-            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-            .addConverterFactory(JacksonConverterFactory.create())
-            .build()
-            .create(GitHubClient.class);
+    // Mock users
+    lenient().when(user1.getLogin()).thenReturn("user1");
+    lenient().when(user2.getLogin()).thenReturn("user2");
+
+    // Mock teams
+    lenient().when(team1.getName()).thenReturn("Team 1");
+    lenient().when(team1.getSlug()).thenReturn("team-1");
+    lenient().when(team2.getName()).thenReturn("Team 2");
+    lenient().when(team2.getSlug()).thenReturn("team-2");
+
+    Map<String, GHTeam> teams = new HashMap<>();
+    teams.put("team-1", team1);
+    teams.put("team-2", team2);
+    lenient().when(organization.getTeams()).thenReturn(teams);
   }
 
   @Test
-  void testBaseUrlWithMultipleSlashes() {
-    wmGithub.stubFor(
-        WireMock.get(urlEqualTo("/api/v3/orgs/org1/members?page=1&per_page=2"))
-            .willReturn(
-                aResponse()
-                    .withStatus(200)
-                    .withBody(
-                        "[{\"login\": \"foo\",\"id\": 18634546},{\"login\": \"bar\",\"id\": 202758929}]")));
+  void shouldInitializeWithValidConfiguration() throws Exception {
+    // When & Then
+    assertDoesNotThrow(() -> provider.afterPropertiesSet());
+  }
 
-    List<Member> members = Retrofit2SyncCall.execute(gitHubClient.getOrgMembers("org1", 1, 2));
+  @Test
+  void shouldFailInitializationWithoutOrganization() {
+    // Given
+    gitHubProperties.setOrganization(null);
 
-    wmGithub.verify(
-        1, WireMock.getRequestedFor(urlEqualTo("/api/v3/orgs/org1/members?page=1&per_page=2")));
+    // When & Then
+    assertThrows(IllegalStateException.class, () -> provider.afterPropertiesSet());
+  }
 
-    assertThat(members.size()).isEqualTo(2);
+  @Test
+  void shouldFailInitializationWithoutBaseUrl() {
+    // Given
+    gitHubProperties.setBaseUrl(null);
+
+    // When & Then
+    assertThrows(IllegalStateException.class, () -> provider.afterPropertiesSet());
+  }
+
+  @Test
+  void shouldLoadRolesForOrgMember() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Mock org members
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1, user2));
+
+    // Mock team 1 members
+    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
+    when(team1.listMembers()).thenReturn(team1Members);
+    when(team1Members.toList()).thenReturn(Arrays.asList(user1));
+
+    // Mock team 2 members
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Collections.emptyList());
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then
+    assertNotNull(roles);
+    assertEquals(2, roles.size()); // org + team1
+
+    assertTrue(roles.stream().anyMatch(r -> r.getName().equals("test-org")));
+    assertTrue(roles.stream().anyMatch(r -> r.getName().equals("team-1")));
+    assertFalse(roles.stream().anyMatch(r -> r.getName().equals("team-2")));
+
+    roles.forEach(role -> assertEquals(Role.Source.GITHUB_TEAMS, role.getSource()));
+  }
+
+  @Test
+  void shouldReturnEmptyRolesForNonOrgMember() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Mock org members (doesn't include user3)
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1, user2));
+
+    ExternalUser externalUser = new ExternalUser().setId("user3");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then
+    assertNotNull(roles);
+    assertTrue(roles.isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptyRolesForEmptyUsername() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+    ExternalUser externalUser = new ExternalUser().setId("");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then
+    assertNotNull(roles);
+    assertTrue(roles.isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptyRolesForNullUsername() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+    ExternalUser externalUser = new ExternalUser().setId(null);
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then
+    assertNotNull(roles);
+    assertTrue(roles.isEmpty());
+  }
+
+  @Test
+  void shouldHandleCaseInsensitiveUsernames() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Mock org members with uppercase login
+    GHUser upperCaseUser = mock(GHUser.class);
+    when(upperCaseUser.getLogin()).thenReturn("USER1");
+
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(upperCaseUser));
+
+    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
+    when(team1.listMembers()).thenReturn(team1Members);
+    when(team1Members.toList()).thenReturn(Collections.emptyList());
+
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Collections.emptyList());
+
+    // Test with lowercase username
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then
+    assertNotNull(roles);
+    assertEquals(1, roles.size()); // Just org role
+    assertTrue(roles.stream().anyMatch(r -> r.getName().equals("test-org")));
+  }
+
+  @Test
+  void shouldLoadRolesForMultipleUsers() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Mock org members
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1, user2));
+
+    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
+    when(team1.listMembers()).thenReturn(team1Members);
+    when(team1Members.toList()).thenReturn(Arrays.asList(user1));
+
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Arrays.asList(user2));
+
+    Collection<ExternalUser> users =
+        Arrays.asList(new ExternalUser().setId("user1"), new ExternalUser().setId("user2"));
+
+    // When
+    Map<String, Collection<Role>> rolesMap = provider.multiLoadRoles(users);
+
+    // Then
+    assertNotNull(rolesMap);
+    assertEquals(2, rolesMap.size());
+
+    Collection<Role> user1Roles = rolesMap.get("user1");
+    assertNotNull(user1Roles);
+    assertEquals(2, user1Roles.size()); // org + team1
+
+    Collection<Role> user2Roles = rolesMap.get("user2");
+    assertNotNull(user2Roles);
+    assertEquals(2, user2Roles.size()); // org + team2
+  }
+
+  @Test
+  void shouldHandleEmptyUserCollection() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // When
+    Map<String, Collection<Role>> rolesMap = provider.multiLoadRoles(Collections.emptyList());
+
+    // Then
+    assertNotNull(rolesMap);
+    assertTrue(rolesMap.isEmpty());
+  }
+
+  @Test
+  void shouldHandleNullUserCollection() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // When
+    Map<String, Collection<Role>> rolesMap = provider.multiLoadRoles(null);
+
+    // Then
+    assertNotNull(rolesMap);
+    assertTrue(rolesMap.isEmpty());
+  }
+
+  @Test
+  void shouldHandleIOExceptionFromGitHub() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Mock IOException when getting organization
+    when(gitHubClient.getOrganization("test-org")).thenThrow(new IOException("API error"));
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then - Should handle gracefully and return empty roles
+    assertNotNull(roles);
+    assertTrue(roles.isEmpty());
+  }
+
+  @Test
+  void shouldHandleNoTeams() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Mock org members
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
+
+    // Mock no teams
+    when(organization.getTeams()).thenReturn(Collections.emptyMap());
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then
+    assertNotNull(roles);
+    assertEquals(1, roles.size()); // Just org role
+    assertTrue(roles.stream().anyMatch(r -> r.getName().equals("test-org")));
+  }
+
+  @Test
+  void shouldConvertRoleNamesToLowerCase() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Mock org members
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
+
+    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
+    when(team1.listMembers()).thenReturn(team1Members);
+    when(team1Members.toList()).thenReturn(Arrays.asList(user1));
+
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Collections.emptyList());
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then
+    roles.forEach(role -> assertEquals(role.getName(), role.getName().toLowerCase()));
+  }
+
+  @Test
+  void shouldSetCorrectRoleSource() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Mock org members
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
+
+    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
+    when(team1.listMembers()).thenReturn(team1Members);
+    when(team1Members.toList()).thenReturn(Collections.emptyList());
+
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Collections.emptyList());
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then
+    roles.forEach(role -> assertEquals(Role.Source.GITHUB_TEAMS, role.getSource()));
   }
 }
