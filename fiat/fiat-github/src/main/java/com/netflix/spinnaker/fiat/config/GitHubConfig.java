@@ -41,14 +41,14 @@ public class GitHubConfig {
           gitHubProperties.getOrganization(),
           gitHubProperties.getAuthMethod());
       log.info(
-          "Benefits: Better rate limits (5000/hour vs 1000/hour), enhanced security, and detailed audit logs");
+          "Benefits: Better rate limits (5000/hour vs 15000/hour), enhanced security, and detailed audit logs");
     } else {
       log.info(
           "Personal Access Token authentication enabled for organization: {} (method: {})",
           gitHubProperties.getOrganization(),
           gitHubProperties.getAuthMethod());
       log.warn(
-          "Consider migrating to GitHub App authentication for better rate limits (5000/hour vs 1000/hour) and enhanced security");
+          "Consider migrating to GitHub App authentication for better rate limits (5000/hour vs 15000/hour) and enhanced security");
     }
   }
 
