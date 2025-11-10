@@ -18,7 +18,7 @@ package com.netflix.spinnaker.credentials.definition;
 
 import com.netflix.spinnaker.credentials.Credentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 
 public abstract class AbstractCredentialsLoader<T extends Credentials>

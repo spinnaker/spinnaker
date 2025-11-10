@@ -25,6 +25,7 @@ import dev.minutest.rootContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.http.MediaType
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
 import strikt.api.expectThat
@@ -53,6 +54,7 @@ class AdminControllerTest : JUnit5Minutests {
       expectThat(discoveryActivator.enabled).isTrue()
 
       val response = mockMvc.post("/admin/instance/enabled") {
+        with(csrf())
         contentType = MediaType.APPLICATION_JSON
         content = jacksonObjectMapper().writeValueAsString(mapOf("enabled" to false))
       }.andReturn().response

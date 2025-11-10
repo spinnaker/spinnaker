@@ -30,11 +30,10 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.DefaultAgentIntervalProvider;
 import com.netflix.spinnaker.cats.test.TestAgent;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -74,9 +73,9 @@ public class ClusteredSortAgentSchedulerTest {
   @Test
   public void testRunningAgentsSemaphore() {
     when(jedis.zrangeByScore(eq(ClusteredSortAgentScheduler.WORKING_SET), anyString(), anyString()))
-        .thenReturn(new HashSet<>());
+        .thenReturn(new ArrayList<>());
     when(jedis.zrangeByScore(eq(ClusteredSortAgentScheduler.WAITING_SET), anyString(), anyString()))
-        .thenReturn(Set.of("testAgentType"));
+        .thenReturn(List.of("testAgentType"));
 
     clusteredSortAgentScheduler.saturatePool();
 
@@ -92,9 +91,9 @@ public class ClusteredSortAgentSchedulerTest {
     CountDownLatch latch = new CountDownLatch(1);
 
     when(jedis.zrangeByScore(eq(ClusteredSortAgentScheduler.WORKING_SET), anyString(), anyString()))
-        .thenReturn(new HashSet<>());
+        .thenReturn(new ArrayList<>());
     when(jedis.zrangeByScore(eq(ClusteredSortAgentScheduler.WAITING_SET), anyString(), anyString()))
-        .thenReturn(Set.of(agent1.getAgentType(), agent2.getAgentType()));
+        .thenReturn(List.of(agent1.getAgentType(), agent2.getAgentType()));
     when(jedis.scriptExists(anyString())).thenReturn(true);
     clusteredSortAgentScheduler.schedule(agent1, agentExecution, executionInstrumentation);
     clusteredSortAgentScheduler.schedule(agent2, agentExecution, executionInstrumentation);

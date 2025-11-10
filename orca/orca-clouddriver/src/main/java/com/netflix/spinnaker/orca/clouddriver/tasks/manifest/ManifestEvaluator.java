@@ -29,6 +29,7 @@ import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.BindArtifact;
@@ -52,14 +53,13 @@ import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** This class handles resolving a list of manifests and associated artifacts. */
 @Component
 @NonnullByDefault
 public class ManifestEvaluator implements CloudProviderAware {
   private static final ThreadLocal<Yaml> yamlParser =
-      ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
+      ThreadLocal.withInitial(() -> YamlHelper.newYamlSafeConstructor());
   private static final ObjectMapper objectMapper = OrcaObjectMapper.getInstance();
 
   private final ArtifactUtils artifactUtils;

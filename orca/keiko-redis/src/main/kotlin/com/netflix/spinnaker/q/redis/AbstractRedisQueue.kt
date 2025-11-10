@@ -17,7 +17,6 @@ import java.util.Optional
 import org.slf4j.Logger
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.Transaction
-import redis.clients.jedis.commands.JedisClusterCommands
 import redis.clients.jedis.commands.JedisCommands
 
 abstract class AbstractRedisQueue(
@@ -79,25 +78,13 @@ abstract class AbstractRedisQueue(
   internal fun JedisCommands.hgetInt(key: String, field: String, default: Int = 0) =
     hget(key, field)?.toInt() ?: default
 
-  internal fun JedisClusterCommands.hgetInt(key: String, field: String, default: Int = 0) =
-    hget(key, field)?.toInt() ?: default
-
   internal fun JedisCommands.zismember(key: String, member: String) =
-    zrank(key, member) != null
-
-  internal fun JedisClusterCommands.zismember(key: String, member: String) =
     zrank(key, member) != null
 
   internal fun JedisCommands.anyZismember(key: String, members: Set<String>) =
     members.any { zismember(key, it) }
 
-  internal fun JedisClusterCommands.anyZismember(key: String, members: Set<String>) =
-    members.any { zismember(key, it) }
-
   internal fun JedisCommands.firstFingerprint(key: String, fingerprint: Fingerprint) =
-    fingerprint.all.firstOrNull { zismember(key, it) }
-
-  internal fun JedisClusterCommands.firstFingerprint(key: String, fingerprint: Fingerprint) =
     fingerprint.all.firstOrNull { zismember(key, it) }
 
   @Deprecated("Hashes the attributes property, which is mutable")

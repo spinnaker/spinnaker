@@ -21,19 +21,23 @@ import java.util.HashMap;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Component;
 
+@Configuration
 @EnableWebSecurity
 @SpinnakerAuthConfig
 @Conditional(OAuthConfigEnabled.class)
-public class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
+public class OAuth2SsoConfig {
 
   @Autowired private AuthConfig authConfig;
   @Autowired private SpinnakerOAuth2UserInfoService customOAuth2UserService;
@@ -43,12 +47,14 @@ public class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient;
 
-  @Override
-  public void configure(HttpSecurity httpSecurity) throws Exception {
+  @Bean
+  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
+  @Order(2)
+  SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
     defaultCookieSerializer.setSameSite(null);
     authConfig.configure(httpSecurity);
     httpSecurity
-        .authorizeRequests(auth -> auth.anyRequest().authenticated())
+        .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
         .oauth2Login(
             oauth2 ->
                 oauth2
@@ -63,6 +69,7 @@ public class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
                     // OAuth2 provider)
                     .tokenEndpoint()
                     .accessTokenResponseClient(tokenResponseClient));
+    return httpSecurity.build();
   }
 
   /**

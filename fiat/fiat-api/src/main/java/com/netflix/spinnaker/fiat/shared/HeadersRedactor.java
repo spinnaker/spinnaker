@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 
 class HeadersRedactor {
 

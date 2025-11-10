@@ -24,9 +24,9 @@ import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.reactivex.rxjava3.core.Scheduler;
 import java.util.Collection;
 import java.util.Map;
-import rx.Scheduler;
 
 public class DefaultApplicationDAO extends StorageServiceSupport<Application>
     implements ApplicationDAO {

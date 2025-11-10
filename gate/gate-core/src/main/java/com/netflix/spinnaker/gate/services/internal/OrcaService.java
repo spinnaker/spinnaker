@@ -34,7 +34,9 @@ public interface OrcaService {
       @Path("application") String app,
       @Query("limit") Integer limit,
       @Query("statuses") String statuses,
-      @Query("expand") Boolean expand);
+      @Query("expand") Boolean expand,
+      @Query("pipelineNameFilter") String pipelineNameFilter,
+      @Query("pipelineLimit") Integer pipelineLimit);
 
   @Headers("Accept: application/json")
   @GET("projects/{projectId}/pipelines")

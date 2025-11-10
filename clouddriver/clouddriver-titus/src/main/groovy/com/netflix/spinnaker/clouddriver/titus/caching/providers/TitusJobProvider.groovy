@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.model.TitusJobStatus
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import com.netflix.spinnaker.kork.yaml.YamlHelper
 import groovy.util.logging.Slf4j
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -105,7 +106,7 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
       if (fileName.endsWith('.json')) {
         results = objectMapper.readValue(fileContents, Map)
       } else if (fileName.endsWith('.yml')) {
-        def yaml = new Yaml(new SafeConstructor())
+        def yaml = YamlHelper.newYamlSafeConstructor()
         results = yaml.load(fileContents)
       } else {
         Properties propertiesFile = new Properties()

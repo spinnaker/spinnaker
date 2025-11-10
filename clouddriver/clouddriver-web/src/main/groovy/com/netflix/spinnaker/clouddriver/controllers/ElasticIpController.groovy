@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import io.reactivex.rxjava3.core.Observable
 
 @RequestMapping("/elasticIps")
 @RestController
@@ -38,21 +39,21 @@ class ElasticIpController {
 
   @RequestMapping(method = RequestMethod.GET, value = "/{account}")
   Set<ElasticIp> listByAccount(@PathVariable String account) {
-    rx.Observable.from(elasticIpProviders).flatMap {
-      rx.Observable.from(it.getAllByAccount(account))
+    Observable.fromIterable (elasticIpProviders).flatMap {
+      Observable.fromIterable (it.getAllByAccount(account))
     } reduce(new HashSet<ElasticIp>(), { Set elasticIps, ElasticIp elasticIp ->
       elasticIps << elasticIp
       elasticIps
-    }) toBlocking() first()
+    }) blockingGet()
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{account}", params = ['region'])
   Set<ElasticIp> listByAccountAndRegion(@PathVariable String account, @RequestParam("region") String region) {
-    rx.Observable.from(elasticIpProviders).flatMap {
-      rx.Observable.from(it.getAllByAccountAndRegion(account, region))
+    Observable.fromIterable (elasticIpProviders).flatMap {
+      Observable.fromIterable (it.getAllByAccountAndRegion(account, region))
     } reduce(new HashSet<ElasticIp>(), { Set elasticIps, ElasticIp elasticIp ->
       elasticIps << elasticIp
       elasticIps
-    }) toBlocking() first()
+    }) blockingGet()
   }
 }

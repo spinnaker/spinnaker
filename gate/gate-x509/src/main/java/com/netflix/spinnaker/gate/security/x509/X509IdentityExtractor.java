@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.gate.security.x509;
 
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
-import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 

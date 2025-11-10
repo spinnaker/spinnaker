@@ -31,7 +31,7 @@ dependencies {
   implementation("io.spinnaker.kork:kork-plugins")
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "commons-io:commons-io"
-  implementation "io.reactivex:rxjava"
+  implementation "io.reactivex.rxjava3:rxjava"
   implementation "io.swagger.core.v3:swagger-annotations"
   implementation "org.apache.groovy:groovy"
   implementation "org.slf4j:slf4j-api"

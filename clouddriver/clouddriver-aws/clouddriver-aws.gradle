@@ -24,7 +24,7 @@ dependencies {
   implementation project(":clouddriver-security")
   implementation project(":clouddriver-saga")
 
-  implementation "javax.inject:javax.inject:1"
+  implementation "jakarta.inject:jakarta.inject-api:2.0.1"
   implementation "com.amazonaws:aws-java-sdk"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
@@ -42,7 +42,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.squareup.retrofit2:converter-jackson"
-  implementation "io.reactivex:rxjava"
+  implementation "io.reactivex.rxjava3:rxjava"
   implementation "org.apache.httpcomponents:httpclient"
   implementation "org.apache.httpcomponents:httpcore"
   implementation "org.apache.groovy:groovy"
