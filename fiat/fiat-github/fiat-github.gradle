@@ -8,10 +8,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-github"
   implementation "jakarta.validation:jakarta.validation-api"
-  implementation "io.jsonwebtoken:jjwt-api:0.11.5"
-  implementation "io.jsonwebtoken:jjwt-impl:0.11.5"
-  implementation "io.jsonwebtoken:jjwt-jackson:0.11.5"
-  implementation "org.bouncycastle:bcpkix-jdk15on:1.70"
+  implementation "jakarta.annotation:jakarta.annotation-api"
 
   testImplementation "org.junit.jupiter:junit-jupiter"
   testImplementation "org.mockito:mockito-core"

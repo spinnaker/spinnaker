@@ -2,8 +2,8 @@ package com.netflix.spinnaker.fiat.config;
 
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
 import com.netflix.spinnaker.kork.github.GitHubClientFactory;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
-import javax.annotation.PostConstruct;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.kohsuke.github.GitHub;
