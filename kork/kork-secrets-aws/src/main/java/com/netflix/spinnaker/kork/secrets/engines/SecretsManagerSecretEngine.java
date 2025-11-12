@@ -27,8 +27,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
+import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import com.netflix.spinnaker.kork.secrets.SecretException;
+import com.netflix.spinnaker.kork.secrets.SecretReference;
 import com.netflix.spinnaker.kork.secrets.StandardSecretParameter;
 import com.netflix.spinnaker.kork.secrets.user.UserSecret;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretMetadata;
@@ -45,7 +47,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.NonNull;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,8 +63,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class SecretsManagerSecretEngine implements SecretEngine {
-  protected static final String SECRET_NAME = "s";
-  protected static final String SECRET_REGION = "r";
+  protected static final String SECRET_NAME = SecretsManagerSecretParameter.NAME.getParameterName();
+  protected static final String SECRET_REGION =
+      SecretsManagerSecretParameter.REGION.getParameterName();
   protected static final String SECRET_KEY = StandardSecretParameter.KEY.getParameterName();
 
   private static final String IDENTIFIER = "secrets-manager";
@@ -83,7 +86,7 @@ public class SecretsManagerSecretEngine implements SecretEngine {
 
   @Override
   public String identifier() {
-    return SecretsManagerSecretEngine.IDENTIFIER;
+    return IDENTIFIER;
   }
 
   @Override
@@ -101,8 +104,7 @@ public class SecretsManagerSecretEngine implements SecretEngine {
   }
 
   @Override
-  @NonNull
-  public UserSecret decrypt(@NonNull UserSecretReference reference) {
+  public @Nonnull UserSecret decrypt(@Nonnull UserSecretReference reference) {
     validate(reference);
     Map<String, String> parameters = reference.getParameters();
     Map<String, String> tags =
@@ -148,7 +150,7 @@ public class SecretsManagerSecretEngine implements SecretEngine {
   }
 
   @Override
-  public void validate(@NonNull UserSecretReference reference) {
+  public void validate(@Nonnull UserSecretReference reference) {
     Set<String> paramNames = reference.getParameters().keySet();
     if (!paramNames.contains(SECRET_NAME)) {
       throw new InvalidSecretFormatException(
@@ -163,6 +165,29 @@ public class SecretsManagerSecretEngine implements SecretEngine {
   @Override
   public void clearCache() {
     cache.clear();
+  }
+
+  @Override
+  public boolean supports(@Nonnull SecretReference reference) {
+    return IDENTIFIER.equals(reference.getEngineIdentifier());
+  }
+
+  @Override
+  public @Nonnull String resolve(@Nonnull SecretReference reference) {
+    var client = clientProvider.getClientForSecret(reference);
+    var request =
+        new GetSecretValueRequest()
+            .withSecretId(reference.getRequiredParameter(SecretsManagerSecretParameter.NAME));
+    try {
+      var response = client.getSecretValue(request);
+      if (response.getSecretBinary() != null) {
+        return new String(toByteArray(response.getSecretBinary()), StandardCharsets.UTF_8);
+      }
+      return response.getSecretString();
+    } catch (AWSSecretsManagerException e) {
+      throw new SecretDecryptionException(
+          "An error occurred when using AWS Secrets Manager to fetch: " + reference.getUri(), e);
+    }
   }
 
   protected DescribeSecretResult getSecretDescription(Map<String, String> parameters) {
