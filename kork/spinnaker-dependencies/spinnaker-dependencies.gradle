@@ -27,7 +27,7 @@ ext {
     spectator        : "1.0.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
-    springBoot       : "3.0.13",
+    springBoot       : "3.1.12",
     springCloud      : "2022.0.5",
     swagger          : "2.2.22",
     // 3.0.13 brings in 10.1.16, which introduce CVEs. Continue to pin till >=3.2.12.
