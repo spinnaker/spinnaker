@@ -17,12 +17,19 @@
 package com.netflix.spinnaker.gate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
+import com.netflix.spinnaker.gate.services.PipelineService;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -35,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -53,6 +61,8 @@ class SpinnakerTomcatErrorValveTest {
   @LocalServerPort private int port;
 
   @Autowired private ObjectMapper objectMapper;
+
+  @MockBean private PipelineService pipelineService;
 
   /** Mock the application service to disable the background thread that caches applications */
   @MockBean private ApplicationService applicationService;
@@ -79,11 +89,69 @@ class SpinnakerTomcatErrorValveTest {
     HttpResponse<String> response = callGate(request, 400);
 
     Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
+    assertThat(jsonResponse.get("status")).isEqualTo(400);
+    assertThat(jsonResponse.containsKey("error")).isTrue();
+    assertThat(jsonResponse.get("error")).isNull();
+    assertThat(jsonResponse.get("exception")).isEqualTo(IllegalArgumentException.class.getName());
     assertThat(jsonResponse.get("message"))
         .isEqualTo(
             "Invalid character found in the request target [/bracket-is-an-invalid-character?[foo] ]. The valid characters are defined in RFC 7230 and RFC 3986");
-    assertThat(jsonResponse.get("exception")).isEqualTo(IllegalArgumentException.class.getName());
-    assertThat(jsonResponse.get("status")).isEqualTo(400);
+    assertThat(jsonResponse.get("timestamp")).isNotNull();
+  }
+
+  @Test
+  void invokePipelineConfigPipelineNameHasASlash() throws Exception {
+    // arbitrary URL with a slash
+    URI uri =
+        new URI(
+            "http://localhost:"
+                + port
+                + "/pipelines/"
+                + APPLICATION
+                + "/pipeline-name/has-a-slash");
+    HttpRequest request =
+        HttpRequest.newBuilder(uri)
+            .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .POST(HttpRequest.BodyPublishers.ofString("{}"))
+            .build();
+
+    HttpResponse<String> response = callGate(request, 404);
+    assertThat(response).isNotNull();
+
+    // Note: the response in this case comes from spring boot's
+    // DefaultErrorAttributes, NOT SpinnakerTomcatErrorValve.
+    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
+    assertThat(jsonResponse.get("status")).isEqualTo(404);
+    assertThat(jsonResponse.get("error")).isEqualTo("Not Found");
+    assertThat(jsonResponse.containsKey("exception")).isFalse();
+    assertThat(jsonResponse.get("message")).isEqualTo("No message available");
+    assertThat(jsonResponse.get("timestamp")).isNotNull();
+
+    verify(pipelineService, never()).trigger(anyString(), anyString(), anyMap());
+  }
+
+  @Test
+  void invokePipelineConfigPipelineNameHasAnEncodedSlash() throws Exception {
+    // arbitrary URL with an encoded slash.
+    URI uri =
+        new URI(
+            "http://localhost:"
+                + port
+                + "/pipelines/my-application/pipeline-name%2fhas-an-encoded-slash");
+    HttpRequest request =
+        HttpRequest.newBuilder(uri)
+            .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+            .POST(HttpRequest.BodyPublishers.ofString("{}"))
+            .build();
+
+    HttpResponse<String> response = callGate(request, 400);
+    assertThat(response).isNotNull();
+
+    // FIXME: expect a json response
+    assertThatThrownBy(() -> objectMapper.readValue(response.body(), mapType))
+        .isInstanceOf(JsonParseException.class);
+
+    verify(pipelineService, never()).trigger(anyString(), anyString(), anyMap());
   }
 
   private HttpResponse<String> callGate(HttpRequest request, int expectedStatusCode)
