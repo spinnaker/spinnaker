@@ -17,13 +17,11 @@
 package com.netflix.spinnaker.gate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
@@ -147,9 +145,13 @@ class SpinnakerTomcatErrorValveTest {
     HttpResponse<String> response = callGate(request, 400);
     assertThat(response).isNotNull();
 
-    // FIXME: expect a json response
-    assertThatThrownBy(() -> objectMapper.readValue(response.body(), mapType))
-        .isInstanceOf(JsonParseException.class);
+    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
+    assertThat(jsonResponse.get("status")).isEqualTo(400);
+    assertThat(jsonResponse.get("error"))
+        .isEqualTo("Invalid URI: [The encoded slash character is not allowed]");
+    assertThat(jsonResponse.containsKey("exception")).isFalse();
+    assertThat(jsonResponse.containsKey("message")).isFalse();
+    assertThat(jsonResponse.get("timestamp")).isNotNull();
 
     verify(pipelineService, never()).trigger(anyString(), anyString(), anyMap());
   }
