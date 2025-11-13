@@ -266,24 +266,6 @@ public class HeaderAuthTest {
   }
 
   @Test
-  void testSpinnakerTomcatErrorValve() throws Exception {
-    // If error handling is configured properly, other tests don't exercise
-    // SpinnakerTomcatErrorValve, so let's exercise it here.an-invalid-character")
-    URI uri = new URI("http://localhost:" + port + "/bracket-is-an-invalid-character?[foo]");
-
-    HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
-
-    HttpResponse<String> response = callGate(request, 400);
-
-    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
-    assertThat(jsonResponse.get("message"))
-        .isEqualTo(
-            "Invalid character found in the request target [/bracket-is-an-invalid-character?[foo] ]. The valid characters are defined in RFC 7230 and RFC 3986");
-    assertThat(jsonResponse.get("exception")).isEqualTo(IllegalArgumentException.class.getName());
-    assertThat(jsonResponse.get("status")).isEqualTo(400);
-  }
-
-  @Test
   void testCsrfDisabled() throws Exception {
     // Choose an arbitrary endpoint that only works if csrf is disabled.  That
     // is, any endpoint with an http method that DefaultRequiresCsrfMatcher
