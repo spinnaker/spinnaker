@@ -19,11 +19,7 @@ package com.netflix.spinnaker.gate.security.header;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.common.Header;
-import org.apache.catalina.Container;
-import org.apache.catalina.core.StandardHost;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.websocket.servlet.TomcatWebSocketServletWebServerCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -138,28 +134,5 @@ public class HeaderAuthConfig {
   public AuthenticationManager authenticationManager(
       AuthenticationProvider authenticationProvider) {
     return new ProviderManager(authenticationProvider);
-  }
-
-  /**
-   * Inspired by https://github.com/spring-projects/spring-boot/issues/21257#issuecomment-745565376
-   * to customize tomcat exception handling, and specifically to generate json responses for
-   * exceptions that bubble up to tomcat / aren't handled by spring boot nor spring security.
-   */
-  @Bean
-  public TomcatWebSocketServletWebServerCustomizer errorValveCustomizer() {
-    return new TomcatWebSocketServletWebServerCustomizer() {
-      @Override
-      public void customize(TomcatServletWebServerFactory factory) {
-        factory.addContextCustomizers(
-            (context) -> {
-              Container parent = context.getParent();
-              if (parent instanceof StandardHost) {
-                ((StandardHost) parent)
-                    .setErrorReportValveClass(
-                        "com.netflix.spinnaker.gate.tomcat.SpinnakerTomcatErrorValve");
-              }
-            });
-      }
-    };
   }
 }
