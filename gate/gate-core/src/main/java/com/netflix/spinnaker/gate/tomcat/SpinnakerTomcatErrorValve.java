@@ -57,7 +57,7 @@ public class SpinnakerTomcatErrorValve extends ErrorReportValve {
   protected void report(Request request, Response response, Throwable throwable) {
     int statusCode = response.getStatus();
     log.info("SpinnakerTomcatErrorValve.report entry point: status code: {}", statusCode);
-    if ((statusCode < 400) || (throwable == null)) {
+    if (statusCode < 400) {
       // Let the base class handle everything that's not an error
       super.report(request, response, throwable);
       return;
@@ -87,8 +87,10 @@ public class SpinnakerTomcatErrorValve extends ErrorReportValve {
     errorAttributes.put("timestamp", new Date());
     errorAttributes.put("status", response.getStatus());
     errorAttributes.put("error", response.getMessage());
-    errorAttributes.put("exception", throwable.getClass().getName());
-    errorAttributes.put("message", throwable.getMessage());
+    if (throwable != null) {
+      errorAttributes.put("exception", throwable.getClass().getName());
+      errorAttributes.put("message", throwable.getMessage());
+    }
 
     String responseBody;
     try {
