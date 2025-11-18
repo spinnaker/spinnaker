@@ -225,10 +225,13 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
     } catch (GHFileNotFoundException e) {
       log.error("GitHub organization not found: {}", orgName, e);
+      // For 404, return empty set (org doesn't exist, no retries will help)
       return Collections.emptySet();
     } catch (IOException e) {
       String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-      if (message.contains("api rate limit exceeded")) {
+
+      // Log specific error types with actionable information
+      if (message.contains("rate limit")) {
         log.error(
             "GitHub API rate limit exceeded for organization: {}. Check rate limit at: https://api.github.com/rate_limit",
             orgName,
@@ -246,6 +249,16 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
       } else {
         log.error("Failed to fetch members for organization: {}", orgName, e);
       }
+
+      // For authentication/authorization errors (401/403), throw exception instead of returning
+      // empty set
+      // This allows Guava cache to keep using stale cached values until issue is resolved
+      if (message.contains("401") || message.contains("403") || message.contains("rate limit")) {
+        throw new RuntimeException(
+            "Critical GitHub API error - using cached values if available", e);
+      }
+
+      // For other transient errors, return empty set
       return Collections.emptySet();
     }
   }
@@ -264,10 +277,13 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
     } catch (GHFileNotFoundException e) {
       log.error("GitHub organization not found: {}", orgName, e);
+      // For 404, return empty map (org doesn't exist, no retries will help)
       return Collections.emptyMap();
     } catch (IOException e) {
       String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-      if (message.contains("api rate limit exceeded")) {
+
+      // Log specific error types with actionable information
+      if (message.contains("rate limit")) {
         log.error(
             "GitHub API rate limit exceeded for organization: {}. Check rate limit at: https://api.github.com/rate_limit",
             orgName,
@@ -285,6 +301,16 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
       } else {
         log.error("Failed to fetch teams for organization: {}", orgName, e);
       }
+
+      // For authentication/authorization errors (401/403), throw exception instead of returning
+      // empty map
+      // This allows Guava cache to keep using stale cached values until issue is resolved
+      if (message.contains("401") || message.contains("403") || message.contains("rate limit")) {
+        throw new RuntimeException(
+            "Critical GitHub API error - using cached values if available", e);
+      }
+
+      // For other transient errors, return empty map
       return Collections.emptyMap();
     }
   }
@@ -322,10 +348,13 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
           teamSlug,
           gitHubProperties.getOrganization(),
           e);
+      // For 404, return empty set (team doesn't exist, no retries will help)
       return Collections.emptySet();
     } catch (IOException e) {
       String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-      if (message.contains("api rate limit exceeded")) {
+
+      // Log specific error types with actionable information
+      if (message.contains("rate limit")) {
         log.error(
             "GitHub API rate limit exceeded for team: {} in organization: {}. Check rate limit at: https://api.github.com/rate_limit",
             teamSlug,
@@ -350,6 +379,16 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
             gitHubProperties.getOrganization(),
             e);
       }
+
+      // For authentication/authorization errors (401/403), throw exception instead of returning
+      // empty set
+      // This allows Guava cache to keep using stale cached values until issue is resolved
+      if (message.contains("401") || message.contains("403") || message.contains("rate limit")) {
+        throw new RuntimeException(
+            "Critical GitHub API error - using cached values if available", e);
+      }
+
+      // For other transient errors, return empty set
       return Collections.emptySet();
     }
   }
@@ -526,5 +565,108 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     users.forEach(u -> emailGroupsMap.put(u.getId(), loadRoles(u)));
 
     return emailGroupsMap;
+  }
+
+  /**
+   * Invalidates all caches (members, teams, and team memberships).
+   *
+   * <p>This method is primarily intended for testing purposes to force fresh fetches from the
+   * GitHub API. In production, the caches refresh automatically based on the configured refresh
+   * intervals.
+   *
+   * <p><b>Use Cases:</b>
+   *
+   * <ul>
+   *   <li>Testing error scenarios that require fresh API calls
+   *   <li>Manual cache clearing during debugging
+   *   <li>Forcing cache refresh after configuration changes
+   * </ul>
+   */
+  public void invalidateAll() {
+    if (membersCache != null) {
+      membersCache.invalidateAll();
+    }
+    if (teamsCache != null) {
+      teamsCache.invalidateAll();
+    }
+    if (teamMembershipCache != null) {
+      teamMembershipCache.invalidateAll();
+    }
+    log.debug("All GitHub caches invalidated (members, teams, team memberships)");
+  }
+
+  /**
+   * Invalidates the organization members cache.
+   *
+   * <p>This forces a fresh fetch of organization members on the next access. Team and team
+   * membership caches are not affected.
+   */
+  public void invalidateMembersCache() {
+    if (membersCache != null) {
+      membersCache.invalidateAll();
+      log.debug("GitHub members cache invalidated");
+    }
+  }
+
+  /**
+   * Invalidates the organization teams cache.
+   *
+   * <p>This forces a fresh fetch of organization teams on the next access. Members and team
+   * membership caches are not affected.
+   */
+  public void invalidateTeamsCache() {
+    if (teamsCache != null) {
+      teamsCache.invalidateAll();
+      log.debug("GitHub teams cache invalidated");
+    }
+  }
+
+  /**
+   * Invalidates the team memberships cache.
+   *
+   * <p>This forces a fresh fetch of team memberships on the next access. Members and teams caches
+   * are not affected.
+   */
+  public void invalidateTeamMembershipsCache() {
+    if (teamMembershipCache != null) {
+      teamMembershipCache.invalidateAll();
+      log.debug("GitHub team memberships cache invalidated");
+    }
+  }
+
+  /**
+   * Invalidates a specific team's membership cache.
+   *
+   * <p>This allows selective cache invalidation for a single team without affecting other cached
+   * data.
+   *
+   * @param teamSlug The team slug to invalidate
+   */
+  public void invalidateTeamMembership(String teamSlug) {
+    if (teamMembershipCache != null && teamSlug != null) {
+      teamMembershipCache.invalidate(teamSlug);
+      log.debug("GitHub team membership cache invalidated for team: {}", teamSlug);
+    }
+  }
+
+  /**
+   * Returns the current size of all caches combined.
+   *
+   * <p>This method is primarily intended for monitoring and testing purposes.
+   *
+   * @return Total number of cached entries across all caches
+   */
+  public long getCacheSize() {
+    long size = 0;
+    if (membersCache != null) {
+      size += membersCache.size();
+    }
+    if (teamsCache != null) {
+      size += teamsCache.size();
+    }
+    if (teamMembershipCache != null) {
+      size += teamMembershipCache.size();
+    }
+    return size;
   }
 }

@@ -286,24 +286,6 @@ class GithubTeamsUserRolesProviderTest {
   }
 
   @Test
-  void shouldHandleIOExceptionFromGitHub() throws Exception {
-    // Given
-    provider.afterPropertiesSet();
-
-    // Mock IOException when getting organization
-    when(gitHubClient.getOrganization("test-org")).thenThrow(new IOException("API error"));
-
-    ExternalUser externalUser = new ExternalUser().setId("user1");
-
-    // When
-    List<Role> roles = provider.loadRoles(externalUser);
-
-    // Then - Should handle gracefully and return empty roles
-    assertNotNull(roles);
-    assertTrue(roles.isEmpty());
-  }
-
-  @Test
   void shouldHandleNoTeams() throws Exception {
     // Given
     provider.afterPropertiesSet();
@@ -376,5 +358,342 @@ class GithubTeamsUserRolesProviderTest {
 
     // Then
     roles.forEach(role -> assertEquals(Role.Source.GITHUB_TEAMS, role.getSource()));
+  }
+
+  // ===== Error Handling Tests =====
+  // These tests verify the critical error handling behavior that prevents users from losing access
+  // during transient GitHub API errors.
+
+  @Test
+  void shouldReturnEmptySetFor404OrganizationNotFound() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+    provider.invalidateAll(); // Clear cache to force fresh fetch
+
+    // Mock 404 error (organization not found)
+    when(gitHubClient.getOrganization("test-org"))
+        .thenThrow(new GHFileNotFoundException("Organization not found"));
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then - Should return empty roles (org doesn't exist, no point retrying)
+    assertNotNull(roles);
+    assertTrue(roles.isEmpty());
+  }
+
+  @Test
+  void shouldThrowExceptionFor401Unauthorized() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+    provider.invalidateAll(); // Clear cache to force fresh fetch
+
+    // Mock 401 error (authentication failed)
+    when(gitHubClient.getOrganization("test-org")).thenThrow(new IOException("401 Unauthorized"));
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When & Then - Should throw RuntimeException to preserve cached values
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
+
+    assertTrue(
+        exception.getMessage().contains("Critical GitHub API error"),
+        "Exception message should contain 'Critical GitHub API error', but was: "
+            + exception.getMessage());
+  }
+
+  @Test
+  void shouldThrowExceptionFor403Forbidden() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+    provider.invalidateAll(); // Clear cache to force fresh fetch
+
+    // Mock 403 error (access forbidden)
+    when(gitHubClient.getOrganization("test-org")).thenThrow(new IOException("403 Forbidden"));
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When & Then - Should throw RuntimeException to preserve cached values
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
+
+    assertTrue(
+        exception.getMessage().contains("Critical GitHub API error"),
+        "Exception message should contain 'Critical GitHub API error', but was: "
+            + exception.getMessage());
+  }
+
+  @Test
+  void shouldThrowExceptionForRateLimitExceeded() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+    provider.invalidateAll(); // Clear cache to force fresh fetch
+
+    // Mock rate limit error
+    when(gitHubClient.getOrganization("test-org"))
+        .thenThrow(new IOException("API rate limit exceeded"));
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When & Then - Should throw RuntimeException to preserve cached values
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
+
+    assertTrue(
+        exception.getMessage().contains("Critical GitHub API error"),
+        "Exception message should contain 'Critical GitHub API error', but was: "
+            + exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnEmptySetForOtherIOExceptions() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+    provider.invalidateAll(); // Clear cache to force fresh fetch
+
+    // Mock generic IOException (network error, etc.)
+    when(gitHubClient.getOrganization("test-org")).thenThrow(new IOException("Connection timeout"));
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then - Should return empty roles for non-critical errors
+    assertNotNull(roles);
+    assertTrue(roles.isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptySetFor404TeamNotFound() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+    provider.invalidateAll(); // Clear cache to force fresh fetch
+
+    // Mock successful org members fetch
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
+
+    // Mock successful teams fetch, but team lookup throws 404
+    when(organization.getTeamBySlug("team-1"))
+        .thenThrow(new GHFileNotFoundException("Team not found"));
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Collections.emptyList());
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then - Should return org role only (team not found is acceptable)
+    assertNotNull(roles);
+    assertEquals(1, roles.size());
+    assertTrue(roles.stream().anyMatch(r -> r.getName().equals("test-org")));
+  }
+
+  @Test
+  void shouldThrowExceptionFor401WhenFetchingTeamMembers() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+    provider.invalidateAll(); // Clear cache to force fresh fetch
+
+    // Mock successful org members fetch
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
+
+    // Mock 401 error when fetching team members
+    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
+    when(team1.listMembers()).thenThrow(new IOException("401 Unauthorized"));
+
+    // Need to setup team-2 as well
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Collections.emptyList());
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When & Then - Should throw RuntimeException to preserve cached values
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
+
+    assertTrue(
+        exception.getMessage().contains("Critical GitHub API error"),
+        "Exception message should contain 'Critical GitHub API error', but was: "
+            + exception.getMessage());
+  }
+
+  @Test
+  void shouldPreserveCachedValuesOnTransientErrors() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // First call succeeds - populate cache
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
+    when(organization.getTeamBySlug("team-1")).thenReturn(team1);
+    when(team1.listMembers()).thenReturn(team1Members);
+    when(team1Members.toList()).thenReturn(Arrays.asList(user1));
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Collections.emptyList());
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // First call - cache population
+    List<Role> rolesBeforeError = provider.loadRoles(externalUser);
+    assertNotNull(rolesBeforeError);
+    assertEquals(2, rolesBeforeError.size()); // org + team1
+
+    // Verify that RuntimeException is thrown for 401 errors on fresh fetch
+    // This ensures cache can preserve stale values when underlying fetch fails
+    reset(gitHubClient);
+    lenient().when(gitHubClient.getOrganization("test-org")).thenReturn(organization);
+    provider.invalidateAll(); // Clear cache to force fresh fetch
+    when(gitHubClient.getOrganization("test-org")).thenThrow(new IOException("401 Unauthorized"));
+
+    // When - Attempt to fetch with error (bypassing cache)
+    // In production, Guava cache would catch this exception and serve stale data
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> provider.loadRoles(externalUser));
+
+    // Then - Exception is thrown, allowing cache layer to preserve old values
+    assertTrue(
+        exception.getMessage().contains("Critical GitHub API error"),
+        "Exception message should contain 'Critical GitHub API error', but was: "
+            + exception.getMessage());
+  }
+
+  @Test
+  void shouldHandleMixedErrorScenarios() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Mock successful org members fetch
+    when(organization.listMembers()).thenReturn(orgMembers);
+    when(orgMembers.toList()).thenReturn(Arrays.asList(user1));
+
+    // Mock one team with 404 (not found), one with success
+    when(organization.getTeamBySlug("team-1"))
+        .thenThrow(new GHFileNotFoundException("Team not found"));
+    when(organization.getTeamBySlug("team-2")).thenReturn(team2);
+    when(team2.listMembers()).thenReturn(team2Members);
+    when(team2Members.toList()).thenReturn(Arrays.asList(user1));
+
+    ExternalUser externalUser = new ExternalUser().setId("user1");
+
+    // When
+    List<Role> roles = provider.loadRoles(externalUser);
+
+    // Then - Should return org + team2 (team1 404 is ignored)
+    assertNotNull(roles);
+    assertEquals(2, roles.size());
+    assertTrue(roles.stream().anyMatch(r -> r.getName().equals("test-org")));
+    assertTrue(roles.stream().anyMatch(r -> r.getName().equals("team-2")));
+  }
+
+  @Test
+  void shouldHandle401ErrorMessageVariations() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Test various 401 error message formats
+    String[] errorMessages = {
+      "401 Unauthorized", "HTTP 401: Unauthorized", "Error 401 - Authentication failed", "401"
+    };
+
+    for (String errorMessage : errorMessages) {
+      // Reset the mock and invalidate cache
+      reset(gitHubClient);
+      lenient().when(gitHubClient.getOrganization("test-org")).thenReturn(organization);
+      provider.invalidateAll(); // Clear cache to force fresh fetch
+
+      // Mock error
+      IOException exception = new IOException(errorMessage);
+      when(gitHubClient.getOrganization("test-org")).thenThrow(exception);
+
+      ExternalUser externalUser = new ExternalUser().setId("user1");
+
+      // When & Then - Should throw RuntimeException for all 401 variations
+      RuntimeException runtimeException =
+          assertThrows(
+              RuntimeException.class,
+              () -> provider.loadRoles(externalUser),
+              "Failed for error message: " + errorMessage);
+
+      assertTrue(runtimeException.getMessage().contains("Critical GitHub API error"));
+    }
+  }
+
+  @Test
+  void shouldHandle403ErrorMessageVariations() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Test various 403 error message formats
+    String[] errorMessages = {
+      "403 Forbidden", "HTTP 403: Access denied", "Error 403 - Forbidden", "403"
+    };
+
+    for (String errorMessage : errorMessages) {
+      // Reset the mock and invalidate cache
+      reset(gitHubClient);
+      lenient().when(gitHubClient.getOrganization("test-org")).thenReturn(organization);
+      provider.invalidateAll(); // Clear cache to force fresh fetch
+
+      // Mock error
+      IOException exception = new IOException(errorMessage);
+      when(gitHubClient.getOrganization("test-org")).thenThrow(exception);
+
+      ExternalUser externalUser = new ExternalUser().setId("user1");
+
+      // When & Then - Should throw RuntimeException for all 403 variations
+      RuntimeException runtimeException =
+          assertThrows(
+              RuntimeException.class,
+              () -> provider.loadRoles(externalUser),
+              "Failed for error message: " + errorMessage);
+
+      assertTrue(runtimeException.getMessage().contains("Critical GitHub API error"));
+    }
+  }
+
+  @Test
+  void shouldHandleRateLimitErrorMessageVariations() throws Exception {
+    // Given
+    provider.afterPropertiesSet();
+
+    // Test various rate limit error message formats
+    String[] errorMessages = {
+      "API rate limit exceeded",
+      "api rate limit exceeded for user",
+      "API RATE LIMIT EXCEEDED",
+      "Rate limit exceeded"
+    };
+
+    for (String errorMessage : errorMessages) {
+      // Reset the mock and invalidate cache
+      reset(gitHubClient);
+      lenient().when(gitHubClient.getOrganization("test-org")).thenReturn(organization);
+      provider.invalidateAll(); // Clear cache to force fresh fetch
+
+      // Mock error
+      IOException exception = new IOException(errorMessage);
+      when(gitHubClient.getOrganization("test-org")).thenThrow(exception);
+
+      ExternalUser externalUser = new ExternalUser().setId("user1");
+
+      // When & Then - Should throw RuntimeException for all rate limit variations
+      RuntimeException runtimeException =
+          assertThrows(
+              RuntimeException.class,
+              () -> provider.loadRoles(externalUser),
+              "Failed for error message: " + errorMessage);
+
+      assertTrue(runtimeException.getMessage().contains("Critical GitHub API error"));
+    }
   }
 }
