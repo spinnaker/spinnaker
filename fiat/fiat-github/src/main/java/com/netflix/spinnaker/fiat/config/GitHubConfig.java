@@ -1,27 +1,28 @@
 package com.netflix.spinnaker.fiat.config;
 
-import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
-import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
-import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
-import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
+import com.netflix.spinnaker.kork.github.GitHubClientFactory;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Interceptor;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.jetbrains.annotations.NotNull;
+import org.kohsuke.github.GitHub;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /**
- * Converts the list of GitHub Configuration properties a collection of clients to access the GitHub
- * hosts
+ * Converts the list of GitHub Configuration properties to an authenticated GitHub client.
+ *
+ * <p>Uses hub4j/github-api library for GitHub interactions, which provides:
+ *
+ * <ul>
+ *   <li>Automatic pagination handling
+ *   <li>Built-in rate limit management
+ *   <li>Type-safe API with rich domain models
+ *   <li>Support for both PAT and GitHub App authentication
+ * </ul>
  */
 @Configuration
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "github")
@@ -30,31 +31,52 @@ public class GitHubConfig {
 
   @Autowired @Setter private GitHubProperties gitHubProperties;
 
-  @Bean
-  public GitHubClient gitHubClient(OkHttp3ClientConfiguration okHttpClientConfig) {
-    BasicAuthRequestInterceptor interceptor =
-        new BasicAuthRequestInterceptor().setAccessToken(gitHubProperties.getAccessToken());
+  @PostConstruct
+  public void validateConfiguration() {
+    gitHubProperties.validateAuthConfiguration();
 
-    return new Retrofit.Builder()
-        .baseUrl(RetrofitUtils.getBaseUrl(gitHubProperties.getBaseUrl()))
-        .client(okHttpClientConfig.createForRetrofit2().addInterceptor(interceptor).build())
-        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create())
-        .build()
-        .create(GitHubClient.class);
+    if (gitHubProperties.shouldUseGitHubApp()) {
+      log.info(
+          "GitHub App authentication enabled for organization: {} (method: {})",
+          gitHubProperties.getOrganization(),
+          gitHubProperties.getAuthMethod());
+      log.info(
+          "Benefits: Better rate limits (5000/hour vs 15000/hour), enhanced security, and detailed audit logs");
+    } else {
+      log.info(
+          "Personal Access Token authentication enabled for organization: {} (method: {})",
+          gitHubProperties.getOrganization(),
+          gitHubProperties.getAuthMethod());
+      log.warn(
+          "Consider migrating to GitHub App authentication for better rate limits (5000/hour vs 15000/hour) and enhanced security");
+    }
   }
 
-  @Setter
-  private static class BasicAuthRequestInterceptor implements Interceptor {
-
-    private String accessToken;
-
-    @Override
-    public @NotNull Response intercept(Chain chain) throws IOException {
-      // See docs at https://developer.github.com/v3/#authentication
-      Request request =
-          chain.request().newBuilder().addHeader("Authorization", "token " + accessToken).build();
-      return chain.proceed(request);
+  /**
+   * Creates an authenticated GitHub client using either GitHub App or PAT authentication.
+   *
+   * <p>The client is created via {@link GitHubClientFactory} which abstracts the authentication
+   * details and provides a unified interface for both authentication methods.
+   *
+   * @return Authenticated GitHub client from hub4j/github-api library
+   * @throws IOException if client creation or authentication fails
+   */
+  @Bean
+  public GitHub gitHubClient() throws IOException {
+    if (gitHubProperties.shouldUseGitHubApp()) {
+      log.info(
+          "Creating GitHub client with GitHub App (app: {}, installation: {})",
+          gitHubProperties.getAppId(),
+          gitHubProperties.getInstallationId());
+      return GitHubClientFactory.createWithGitHubApp(
+          gitHubProperties.getBaseUrl(),
+          gitHubProperties.getAppId(),
+          gitHubProperties.getPrivateKeyPath(),
+          gitHubProperties.getInstallationId());
+    } else {
+      log.info("Creating GitHub client with Personal Access Token");
+      return GitHubClientFactory.createWithPAT(
+          gitHubProperties.getBaseUrl(), gitHubProperties.getAccessToken());
     }
   }
 }
