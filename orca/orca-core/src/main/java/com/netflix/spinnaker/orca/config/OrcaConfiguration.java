@@ -19,10 +19,12 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.springframework.context.annotation.AnnotationConfigUtils.EVENT_LISTENER_FACTORY_BEAN_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.SerializerHookRegistry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
@@ -57,6 +59,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.pf4j.PluginManager;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -118,8 +121,14 @@ public class OrcaConfiguration {
   }
 
   @Bean(name = {"mapper", "objectMapper"})
-  public ObjectMapper mapper() {
-    return OrcaObjectMapper.getInstance();
+  public ObjectMapper mapper(Optional<SerializerHookRegistry> serializerModifier) {
+    ObjectMapper mapper = OrcaObjectMapper.getInstance();
+    if (serializerModifier.isPresent()) {
+      SimpleModule module = new SimpleModule();
+      module.setSerializerModifier(serializerModifier.get());
+      mapper.registerModule(module);
+    }
+    return mapper;
   }
 
   @Bean
