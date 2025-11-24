@@ -34,8 +34,13 @@ class GitlabArtifactConfiguration {
   private final GitlabArtifactProviderProperties gitlabArtifactProviderProperties;
 
   @Bean
+  OkHttpClient gitlabOkHttpClient() {
+    return new OkHttpClient();
+  }
+
+  @Bean
   public CredentialsTypeProperties<GitlabArtifactCredentials, GitlabArtifactAccount>
-      gitlabCredentialsProperties(OkHttpClient okHttpClient) {
+      gitlabCredentialsProperties(OkHttpClient gitlabOkHttpClient) {
     return CredentialsTypeProperties.<GitlabArtifactCredentials, GitlabArtifactAccount>builder()
         .type(GitlabArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(GitlabArtifactCredentials.class)
@@ -44,7 +49,7 @@ class GitlabArtifactConfiguration {
         .credentialsParser(
             a -> {
               try {
-                return new GitlabArtifactCredentials(a, okHttpClient);
+                return new GitlabArtifactCredentials(a, gitlabOkHttpClient);
               } catch (Exception e) {
                 log.warn("Failure instantiating Gitlab artifact account {}: ", a, e);
                 return null;

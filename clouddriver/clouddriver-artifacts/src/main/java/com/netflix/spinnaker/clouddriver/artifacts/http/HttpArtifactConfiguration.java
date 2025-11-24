@@ -38,8 +38,13 @@ class HttpArtifactConfiguration {
       HttpArtifactAccount.builder().name("no-auth-http-account").build();
 
   @Bean
+  OkHttpClient httpOkHttpClient() {
+    return new OkHttpClient();
+  }
+
+  @Bean
   public CredentialsTypeProperties<HttpArtifactCredentials, HttpArtifactAccount>
-      httpCredentialsProperties(OkHttpClient okHttpClient) {
+      httpCredentialsProperties(OkHttpClient httpOkHttpClient) {
     return CredentialsTypeProperties.<HttpArtifactCredentials, HttpArtifactAccount>builder()
         .type(HttpArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(HttpArtifactCredentials.class)
@@ -48,7 +53,7 @@ class HttpArtifactConfiguration {
         .credentialsParser(
             a -> {
               try {
-                return new HttpArtifactCredentials(a, okHttpClient);
+                return new HttpArtifactCredentials(a, httpOkHttpClient);
               } catch (Exception e) {
                 log.warn("Failure instantiating Http artifact account {}: ", a, e);
                 return null;
