@@ -35,15 +35,20 @@ class BitbucketArtifactConfiguration {
   private final BitbucketArtifactProviderProperties bitbucketArtifactProviderProperties;
 
   @Bean
+  OkHttpClient bitbucketOkHttpClient() {
+    return new OkHttpClient();
+  }
+
+  @Bean
   public CredentialsTypeProperties<BitbucketArtifactCredentials, BitbucketArtifactAccount>
-      bitbucketCredentialsProperties(OkHttpClient okHttpClient) {
+      bitbucketCredentialsProperties(OkHttpClient bitbucketOkHttpClient) {
     return CredentialsTypeProperties
         .<BitbucketArtifactCredentials, BitbucketArtifactAccount>builder()
         .type(BitbucketArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(BitbucketArtifactCredentials.class)
         .credentialsDefinitionClass(BitbucketArtifactAccount.class)
         .defaultCredentialsSource(bitbucketArtifactProviderProperties::getAccounts)
-        .credentialsParser(bc -> new BitbucketArtifactCredentials(bc, okHttpClient))
+        .credentialsParser(bc -> new BitbucketArtifactCredentials(bc, bitbucketOkHttpClient))
         .build();
   }
 }

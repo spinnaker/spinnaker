@@ -36,8 +36,13 @@ class GitHubArtifactConfiguration {
   private final GitHubArtifactProviderProperties gitHubArtifactProviderProperties;
 
   @Bean
+  OkHttpClient gitHubOkHttpClient() {
+    return new OkHttpClient();
+  }
+
+  @Bean
   public CredentialsTypeProperties<GitHubArtifactCredentials, GitHubArtifactAccount>
-      githubCredentialsProperties(OkHttpClient okHttpClient, ObjectMapper objectMapper) {
+      githubCredentialsProperties(OkHttpClient gitHubOkHttpClient, ObjectMapper objectMapper) {
     return CredentialsTypeProperties.<GitHubArtifactCredentials, GitHubArtifactAccount>builder()
         .type(GitHubArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(GitHubArtifactCredentials.class)
@@ -46,7 +51,7 @@ class GitHubArtifactConfiguration {
         .credentialsParser(
             a -> {
               try {
-                return new GitHubArtifactCredentials(a, okHttpClient, objectMapper);
+                return new GitHubArtifactCredentials(a, gitHubOkHttpClient, objectMapper);
               } catch (Exception e) {
                 log.warn("Failure instantiating GitHub artifact account {}: ", a, e);
                 return null;

@@ -35,8 +35,13 @@ class HelmArtifactConfiguration {
   private final HelmArtifactProviderProperties helmArtifactProviderProperties;
 
   @Bean
+  OkHttpClient helmOkHttpClient() {
+    return new OkHttpClient();
+  }
+
+  @Bean
   public CredentialsTypeProperties<HelmArtifactCredentials, HelmArtifactAccount>
-      helmCredentialsProperties(OkHttpClient okHttpClient) {
+      helmCredentialsProperties(OkHttpClient helmOkHttpClient) {
     return CredentialsTypeProperties.<HelmArtifactCredentials, HelmArtifactAccount>builder()
         .type(HelmArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(HelmArtifactCredentials.class)
@@ -45,7 +50,7 @@ class HelmArtifactConfiguration {
         .credentialsParser(
             a -> {
               try {
-                return new HelmArtifactCredentials(a, okHttpClient);
+                return new HelmArtifactCredentials(a, helmOkHttpClient);
               } catch (Exception e) {
                 log.warn("Failure instantiating Helm artifact account {}: ", a, e);
                 return null;

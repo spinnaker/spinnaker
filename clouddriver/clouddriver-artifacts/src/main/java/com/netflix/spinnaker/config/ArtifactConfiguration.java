@@ -24,7 +24,6 @@ import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import java.util.List;
 import java.util.stream.Collectors;
-import okhttp3.OkHttpClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -35,11 +34,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @ComponentScan("com.netflix.spinnaker.clouddriver.artifacts")
 public class ArtifactConfiguration {
-  @Bean
-  OkHttpClient okHttpClient() {
-    return new OkHttpClient();
-  }
-
   @Bean
   public ArtifactCredentialsRepository artifactCredentialsRepository(
       ApplicationContext applicationContext,
