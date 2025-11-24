@@ -25,7 +25,6 @@ import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
 import java.util.List;
 import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -34,7 +33,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
 @Configuration
-@EnableConfigurationProperties
 @EnableScheduling
 @Component
 @ComponentScan("com.netflix.spinnaker.clouddriver.artifacts")
