@@ -13,10 +13,10 @@ import com.netflix.spinnaker.echo.config.SlackConfig
 import com.netflix.spinnaker.echo.config.SlackLegacyProperties
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import groovy.json.JsonSlurper
+import org.apache.hc.core5.http.NameValuePair
+import org.apache.hc.core5.net.URLEncodedUtils
 
 import java.nio.charset.Charset
-import org.apache.http.NameValuePair
-import org.apache.http.client.utils.URLEncodedUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders

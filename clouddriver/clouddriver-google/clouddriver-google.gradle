@@ -37,7 +37,7 @@ dependencies {
   testImplementation "org.assertj:assertj-core"
   testImplementation "cglib:cglib-nodep"
   testImplementation "commons-fileupload:commons-fileupload:1.4"
-  testImplementation "org.apache.httpcomponents:httpmime"
+  testImplementation "org.apache.httpcomponents.client5:httpclient5"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.mockito:mockito-core"
