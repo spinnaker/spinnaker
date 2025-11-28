@@ -10,7 +10,7 @@ dependencies {
   implementation "com.fasterxml.jackson.core:jackson-databind"
   api 'software.amazon.awssdk:s3'
   api 'software.amazon.awssdk:sts'
-  implementation "org.apache.httpcomponents:httpclient"
+  implementation "org.apache.httpcomponents.client5:httpclient5"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
   implementation "org.springframework.security:spring-security-core"
   implementation 'org.apache.logging.log4j:log4j-api'
