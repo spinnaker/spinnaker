@@ -1,0 +1,6 @@
+dependencies {
+  implementation "com.squareup.okhttp3:okhttp"
+
+  testImplementation "commons-io:commons-io"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+}
