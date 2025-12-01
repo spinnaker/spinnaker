@@ -46,6 +46,8 @@ gradle.ext.includedCloudProviderProjects = icp.split(',')
   .toSet()
   .toList()
 
+gradle.ext.includedArtifactTypes = artifactTypes.split(',').collect{ ':clouddriver-artifacts:clouddriver-artifacts-' + it.toLowerCase() }
+
 include 'cats:cats-core',
   'cats:cats-redis',
   'cats:cats-test',
@@ -69,6 +71,7 @@ include 'cats:cats-core',
   'clouddriver-web'
 
 include(*gradle.ext.includedCloudProviderProjects)
+include(*gradle.ext.includedArtifactTypes)
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
