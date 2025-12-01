@@ -1,0 +1,6 @@
+dependencies {
+  implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-security"
+  implementation "com.squareup.retrofit2:retrofit"
+}
