@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
-import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 /**
  * TODO: This class duplicates many properties from DockerRegistryClient and
