@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -116,8 +115,11 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
     }
 
     if (!valuePaths.isEmpty()) {
-      command.add("--values");
-      command.add(valuePaths.stream().map(Path::toString).collect(Collectors.joining(",")));
+      valuePaths.forEach(
+          path -> {
+            command.add("--values");
+            command.add(path.toString());
+          });
     }
 
     result.setCommand(command);
