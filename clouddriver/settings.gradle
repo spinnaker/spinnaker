@@ -48,6 +48,13 @@ gradle.ext.includedCloudProviderProjects = icp.split(',')
 
 gradle.ext.includedArtifactTypes = artifactTypes.split(',').collect{ ':clouddriver-artifacts:clouddriver-artifacts-' + it.toLowerCase() }
 
+// clouddriver-kubernetes depends on clouddriver-artifacts-kubernetes, so if
+// it's enabled as a cloud provider, enable the artifact type as well
+if (gradle.ext.includedCloudProviderProjects.contains(':clouddriver-kubernetes') &&
+    !gradle.ext.includedArtifactTypes.contains(':clouddriver-artifacts:clouddriver-artifacts-kubernetes')) {
+  gradle.ext.includedArtifactTypes.add(':clouddriver-artifacts:clouddriver-artifacts-kubernetes')
+}
+
 include 'cats:cats-core',
   'cats:cats-redis',
   'cats:cats-test',
