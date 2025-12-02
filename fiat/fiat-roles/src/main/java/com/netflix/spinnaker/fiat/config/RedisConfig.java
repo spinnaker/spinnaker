@@ -4,11 +4,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool;
-import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,17 +19,6 @@ import redis.clients.jedis.*;
 @Configuration
 @ConditionalOnProperty("redis.connection")
 public class RedisConfig {
-
-  @Getter @Setter private static String clientName = defaultClientName();
-
-  private static String defaultClientName() {
-    try {
-      return InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e) {
-      return null;
-    }
-  }
-
   @Bean
   @ConfigurationProperties("redis")
   public GenericObjectPoolConfig redisPoolConfig() {
@@ -84,7 +69,7 @@ public class RedisConfig {
 
     return new InstrumentedJedisPool(
         registry,
-        new JedisPool(redisPoolConfig, host, port, timeout, password, database, clientName, isSSL),
+        new JedisPool(redisPoolConfig, host, port, timeout, password, database, null, isSSL),
         "fiat");
   }
 }
