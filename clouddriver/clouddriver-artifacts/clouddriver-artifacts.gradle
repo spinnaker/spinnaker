@@ -74,7 +74,6 @@ dependencies {
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
 
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-exceptions"
@@ -96,7 +95,6 @@ dependencies {
   implementation 'commons-io:commons-io:2.15.1'
   implementation "com.squareup.okhttp3:okhttp"
   implementation "org.apache.commons:commons-lang3"
-  implementation "org.apache.ivy:ivy:2.4.0"
   implementation "org.apache.maven:maven-resolver-provider:3.5.4"
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
