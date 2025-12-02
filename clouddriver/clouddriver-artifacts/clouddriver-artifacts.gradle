@@ -90,10 +90,9 @@ dependencies {
     // kotlin.
     transitive = false
   }
-  implementation "com.oracle.oci.sdk:oci-java-sdk-core"
-  implementation "com.sun.jersey:jersey-client:1.9.1"
   implementation 'commons-io:commons-io:2.15.1'
   implementation "com.squareup.okhttp3:okhttp"
+  implementation "commons-io:commons-io"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
