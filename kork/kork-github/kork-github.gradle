@@ -1,0 +1,39 @@
+apply plugin: "java-library"
+apply from: "$rootDir/../kotlin.gradle"
+apply from: "$rootDir/gradle/detekt.gradle"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  // hub4j/github-api for GitHub interactions
+  api "org.kohsuke:github-api:1.321"
+
+  // JWT for GitHub App authentication
+  implementation "io.jsonwebtoken:jjwt-api:0.11.5"
+  implementation "io.jsonwebtoken:jjwt-impl:0.11.5"
+  implementation "io.jsonwebtoken:jjwt-jackson:0.11.5"
+
+  // Bouncy Castle for PEM parsing
+  implementation "org.bouncycastle:bcpkix-jdk15on:1.70"
+
+  // Spring for configuration
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.springframework:spring-context"
+
+  // Logging
+  implementation "org.slf4j:slf4j-api"
+  implementation "com.google.guava:guava"
+
+  // Testing
+  testImplementation project(":kork-test")
+  testImplementation "org.junit.jupiter:junit-jupiter"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.mockito:mockito-junit-jupiter"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
+
+test {
+  useJUnitPlatform()
+}
