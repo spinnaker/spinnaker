@@ -75,7 +75,6 @@ dependencies {
   implementation project(":clouddriver-core")
 
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "io.spinnaker.kork:kork-exceptions"
