@@ -36,6 +36,35 @@ allprojects {
 }
 
 subprojects {
+  if (file("${projectDir}/src/integration/java").exists()) {
+
+    task integrationTest(type: Test) {
+      description = 'Runs artifacts integration tests.'
+      group = 'verification'
+
+      useJUnitPlatform()
+
+      environment "BUILD_DIR", buildDir
+      environment "GIT_WRAPPER", "${projectDir}/src/integration/resources/git-wrapper.sh"
+
+      testClassesDirs = sourceSets.integration.output.classesDirs
+      classpath = sourceSets.integration.runtimeClasspath
+      shouldRunAfter test
+
+
+      minHeapSize = "512m"
+      maxHeapSize = "${testJvmMaxMemory}"
+      maxParallelForks = 4
+
+      testlogger {
+        theme 'standard'
+        showStandardStreams true
+        showPassedStandardStreams false
+        showFailedStandardStreams true
+        showPassed false
+      }
+    }
+  }
   dependencies {
     implementation project(":clouddriver-artifacts")
   }
@@ -81,41 +110,4 @@ dependencies {
   testImplementation "org.testcontainers:testcontainers"
   testImplementation "org.testcontainers:localstack"
   testImplementation "com.squareup.retrofit2:converter-jackson"
-
-  integrationImplementation project(":clouddriver-web")
-  integrationImplementation project(":clouddriver-artifacts")
-  integrationImplementation "org.springframework.boot:spring-boot-starter-test"
-  integrationImplementation "org.testcontainers:testcontainers"
-  integrationImplementation "org.testcontainers:mysql"
-  integrationImplementation "org.testcontainers:junit-jupiter"
-  integrationImplementation "com.mysql:mysql-connector-j"
-  integrationImplementation "io.rest-assured:rest-assured"
-}
-
-
-task integrationTest(type: Test) {
-  description = 'Runs artifacts integration tests.'
-  group = 'verification'
-
-  useJUnitPlatform()
-
-  environment "BUILD_DIR", buildDir
-  environment "GIT_WRAPPER", "${project.rootDir.toString()}/clouddriver-artifacts/src/integration/resources/git-wrapper.sh"
-
-  testClassesDirs = sourceSets.integration.output.classesDirs
-  classpath = sourceSets.integration.runtimeClasspath
-  shouldRunAfter test
-
-
-  minHeapSize = "512m"
-  maxHeapSize = "${testJvmMaxMemory}"
-  maxParallelForks = 4
-
-  testlogger {
-    theme 'standard'
-    showStandardStreams true
-    showPassedStandardStreams false
-    showFailedStandardStreams true
-    showPassed false
-  }
 }
