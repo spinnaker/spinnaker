@@ -55,6 +55,13 @@ if (gradle.ext.includedCloudProviderProjects.contains(':clouddriver-kubernetes')
   gradle.ext.includedArtifactTypes.add(':clouddriver-artifacts:clouddriver-artifacts-kubernetes')
 }
 
+// clouddriver-cloudfoundry depends on clouddriver-artifacts-maven, so if
+// it's enabled as a cloud provider, enable the artifact type as well
+if (gradle.ext.includedCloudProviderProjects.contains(':clouddriver-cloudfoundry') &&
+    !gradle.ext.includedArtifactTypes.contains(':clouddriver-artifacts:clouddriver-artifacts-maven')) {
+  gradle.ext.includedArtifactTypes.add(':clouddriver-artifacts:clouddriver-artifacts-maven')
+}
+
 include 'cats:cats-core',
   'cats:cats-redis',
   'cats:cats-test',
