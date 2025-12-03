@@ -1,0 +1,24 @@
+dependencies {
+  implementation "software.amazon.awssdk:s3"
+  implementation "software.amazon.awssdk:apache-client"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spectator:spectator-ext-ipc"
+  implementation("com.netflix.spectator:spectator-ext-aws2") {
+    // exclude transitives to keep spectator's version of the aws sdk from
+    // overriding what we specify elsewhere.  It's not so much the aws sdk that
+    // causes problems, but its transitive dependencies -- jackson and then
+    // kotlin.
+    transitive = false
+  }
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "commons-io:commons-io"
+
+  testImplementation "io.spinnaker.kork:kork-aws"
+  testImplementation "io.spinnaker.kork:kork-test"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.testcontainers:testcontainers"
+  testImplementation "org.testcontainers:localstack"
+
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+}
