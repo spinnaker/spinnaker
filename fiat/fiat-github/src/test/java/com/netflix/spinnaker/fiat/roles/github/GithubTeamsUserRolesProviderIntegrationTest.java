@@ -104,10 +104,13 @@ class GithubTeamsUserRolesProviderIntegrationTest {
   void shouldLoadRolesForOrgMemberWithTeams() throws Exception {
     // Given - Stub all required GitHub API endpoints
     stubOrgEndpoint();
-    stubOrgMembersEndpoint(
-        "[" + userJson("alice") + ", " + userJson("bob") + "]");
+    stubOrgMembersEndpoint("[" + userJson("alice") + ", " + userJson("bob") + "]");
     stubOrgTeamsEndpoint(
-        "[" + teamJson("developers", "Developers", 1) + ", " + teamJson("admins", "Admins", 2) + "]");
+        "["
+            + teamJson("developers", "Developers", 1)
+            + ", "
+            + teamJson("admins", "Admins", 2)
+            + "]");
     stubTeamBySlugEndpoint("developers", teamJson("developers", "Developers", 1));
     stubTeamBySlugEndpoint("admins", teamJson("admins", "Admins", 2));
     // hub4j uses /organizations/{org_id}/team/{team_id}/members endpoint
@@ -123,9 +126,7 @@ class GithubTeamsUserRolesProviderIntegrationTest {
     assertNotNull(roles);
     assertEquals(2, roles.size()); // org + developers team
 
-    assertTrue(
-        roles.stream().anyMatch(r -> r.getName().equals(TEST_ORG)),
-        "Should have org role");
+    assertTrue(roles.stream().anyMatch(r -> r.getName().equals(TEST_ORG)), "Should have org role");
     assertTrue(
         roles.stream().anyMatch(r -> r.getName().equals("developers")),
         "Should have developers team role");
@@ -255,10 +256,8 @@ class GithubTeamsUserRolesProviderIntegrationTest {
   void shouldLoadRolesForMultipleUsers() throws Exception {
     // Given
     stubOrgEndpoint();
-    stubOrgMembersEndpoint(
-        "[" + userJson("alice") + ", " + userJson("bob") + "]");
-    stubOrgTeamsEndpoint(
-        "[" + teamJson("team-a", "Team A", 1) + "]");
+    stubOrgMembersEndpoint("[" + userJson("alice") + ", " + userJson("bob") + "]");
+    stubOrgTeamsEndpoint("[" + teamJson("team-a", "Team A", 1) + "]");
     stubTeamBySlugEndpoint("team-a", teamJson("team-a", "Team A", 1));
     stubTeamMembersEndpointById(1, "[" + userJson("alice") + "]");
 
@@ -313,8 +312,16 @@ class GithubTeamsUserRolesProviderIntegrationTest {
             + "\"permission\": \"pull\", "
             + "\"members_url\": \"%s/organizations/12345/team/%d/members{/member}\", "
             + "\"repositories_url\": \"%s/teams/%d/repos\", "
-            + "\"organization\": " + orgJson(TEST_ORG) + "}",
-        id, name, slug, wireMock.baseUrl(), id, wireMock.baseUrl(), id);
+            + "\"organization\": "
+            + orgJson(TEST_ORG)
+            + "}",
+        id,
+        name,
+        slug,
+        wireMock.baseUrl(),
+        id,
+        wireMock.baseUrl(),
+        id);
   }
 
   private static String rateLimitJson(int remaining, int limit) {
@@ -325,9 +332,16 @@ class GithubTeamsUserRolesProviderIntegrationTest {
             + "\"search\": {\"limit\": 30, \"remaining\": 30, \"reset\": %d, \"used\": 0},"
             + "\"graphql\": {\"limit\": 5000, \"remaining\": 5000, \"reset\": %d, \"used\": 0}"
             + "}, \"rate\": {\"limit\": %d, \"remaining\": %d, \"reset\": %d, \"used\": %d}}",
-        limit, remaining, resetTime, limit - remaining,
-        resetTime, resetTime,
-        limit, remaining, resetTime, limit - remaining);
+        limit,
+        remaining,
+        resetTime,
+        limit - remaining,
+        resetTime,
+        resetTime,
+        limit,
+        remaining,
+        resetTime,
+        limit - remaining);
   }
 
   // ===== Stubbing Helper Methods =====
