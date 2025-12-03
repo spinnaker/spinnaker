@@ -81,10 +81,22 @@ public class GitHubAppAuthenticator {
   }
 
   /**
-   * Returns an authenticated GitHub client using installation token. Handles token caching and
-   * automatic refresh.
+   * Returns an authenticated GitHub client using installation token.
    *
-   * @return Authenticated GitHub client
+   * <p><b>Important:</b> The returned {@link GitHub} client does NOT automatically refresh tokens.
+   * GitHub App installation tokens expire after 1 hour. This method handles token caching and will
+   * return a client with a valid token at the time of the call, but callers should:
+   *
+   * <ul>
+   *   <li>Call this method for each operation (or batch of operations) rather than caching the
+   *       client long-term
+   *   <li>Or implement their own refresh logic by calling {@link #getInstallationToken()} directly
+   * </ul>
+   *
+   * <p>For Spring applications, consider NOT using this as a singleton {@code @Bean}. Instead,
+   * inject the {@link GitHubAppAuthenticator} and call this method when needed.
+   *
+   * @return Authenticated GitHub client with a currently-valid token
    * @throws IOException if authentication fails
    */
   public GitHub getAuthenticatedClient() throws IOException {

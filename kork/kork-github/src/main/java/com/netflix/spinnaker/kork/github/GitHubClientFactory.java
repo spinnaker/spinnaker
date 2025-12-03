@@ -68,11 +68,16 @@ public class GitHubClientFactory {
    * <p>This method internally creates a {@link GitHubAppAuthenticator} to handle JWT generation and
    * installation token management.
    *
+   * <p><b>Warning:</b> GitHub App installation tokens expire after 1 hour. The returned client does
+   * NOT auto-refresh tokens. For long-running applications, consider using {@link
+   * #createAuthenticator(String, String, String, String)} and calling {@link
+   * GitHubAppAuthenticator#getAuthenticatedClient()} when needed to ensure fresh tokens.
+   *
    * @param baseUrl GitHub API base URL (e.g., "https://api.github.com" or GitHub Enterprise URL)
    * @param appId GitHub App ID
    * @param privateKeyPath Path to the PEM-encoded private key file
    * @param installationId GitHub App installation ID
-   * @return Authenticated GitHub client
+   * @return Authenticated GitHub client with a token valid at time of creation
    * @throws IOException if client creation or authentication fails
    */
   public static GitHub createWithGitHubApp(
@@ -102,5 +107,39 @@ public class GitHubClientFactory {
   public static GitHub createWithAuthenticator(GitHubAppAuthenticator authenticator)
       throws IOException {
     return authenticator.getAuthenticatedClient();
+  }
+
+  /**
+   * Creates a GitHub App authenticator for obtaining fresh tokens.
+   *
+   * <p>This is the recommended approach for long-running applications using GitHub App
+   * authentication. The authenticator handles token caching and automatic refresh.
+   *
+   * <p>Example usage:
+   *
+   * <pre>{@code
+   * // Create once at startup
+   * GitHubAppAuthenticator authenticator = GitHubClientFactory.createAuthenticator(
+   *     "https://api.github.com", "12345", "/path/to/key.pem", "67890");
+   *
+   * // Get a fresh client when needed (handles token refresh automatically)
+   * GitHub client = authenticator.getAuthenticatedClient();
+   * }</pre>
+   *
+   * @param baseUrl GitHub API base URL (e.g., "https://api.github.com" or GitHub Enterprise URL)
+   * @param appId GitHub App ID
+   * @param privateKeyPath Path to the PEM-encoded private key file
+   * @param installationId GitHub App installation ID
+   * @return Authenticator that can be used to create fresh GitHub clients
+   */
+  public static GitHubAppAuthenticator createAuthenticator(
+      String baseUrl, String appId, String privateKeyPath, String installationId) {
+    log.info(
+        "Creating GitHub App authenticator for: {} (app: {}, installation: {})",
+        baseUrl,
+        appId,
+        installationId);
+
+    return new GitHubAppAuthenticator(appId, privateKeyPath, installationId, baseUrl);
   }
 }
