@@ -439,10 +439,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
       if (remaining < limit * 0.1) {
         log.warn(
             "GitHub API rate limit is running low: {}/{} remaining ({}%). Resets at {}",
-            remaining,
-            limit,
-            (remaining * 100 / limit),
-            core.getResetDate());
+            remaining, limit, (remaining * 100 / limit), core.getResetDate());
       }
     } catch (IOException e) {
       log.debug("Could not fetch rate limit info after {}", operation, e);
