@@ -76,28 +76,17 @@ dependencies {
 
   implementation "com.netflix.frigga:frigga"
   implementation "io.spinnaker.kork:kork-annotations"
-  implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.kork:kork-docker"
   implementation "io.spinnaker.kork:kork-web"
-  implementation "com.netflix.spectator:spectator-api"
-  implementation "com.netflix.spectator:spectator-ext-ipc"
-  implementation("com.netflix.spectator:spectator-ext-aws2") {
-    // exclude transitives to keep spectator's version of the aws sdk from
-    // overriding what we specify elsewhere.  It's not so much the aws sdk that
-    // causes problems, but its transitive dependencies -- jackson and then
-    // kotlin.
-    transitive = false
-  }
   implementation 'commons-io:commons-io:2.15.1'
   implementation "com.squareup.okhttp3:okhttp"
+  implementation "commons-codec:commons-codec"
   implementation "commons-io:commons-io"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
-  implementation "software.amazon.awssdk:s3"
-  implementation "software.amazon.awssdk:apache-client"
 
   testImplementation "io.spinnaker.kork:kork-aws"
   testImplementation "org.mockito:mockito-core"
