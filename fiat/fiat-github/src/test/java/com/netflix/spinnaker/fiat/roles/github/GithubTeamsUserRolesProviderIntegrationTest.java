@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
