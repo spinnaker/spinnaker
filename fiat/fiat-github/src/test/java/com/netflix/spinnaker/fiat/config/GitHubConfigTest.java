@@ -114,8 +114,37 @@ class GitHubConfigTest {
     gitHubProperties.setPrivateKeyPath(tempPrivateKeyFile.toString());
     gitHubProperties.setInstallationId("67890");
 
-    // When & Then - Will fail to connect (no real GitHub API) but verifies factory is called
+    // validateConfiguration creates the authenticator
+    gitHubConfig.validateConfiguration();
+
+    // When & Then - Will fail to connect (no real GitHub API) but verifies authenticator is used
     assertThrows(IOException.class, () -> gitHubConfig.gitHubClient());
+  }
+
+  @Test
+  void shouldCreateAuthenticatorWhenUsingGitHubApp() {
+    // Given
+    gitHubProperties.setAppId("12345");
+    gitHubProperties.setPrivateKeyPath(tempPrivateKeyFile.toString());
+    gitHubProperties.setInstallationId("67890");
+
+    // When
+    gitHubConfig.validateConfiguration();
+
+    // Then - Authenticator should be created
+    assertNotNull(gitHubConfig.getGitHubAppAuthenticator());
+  }
+
+  @Test
+  void shouldNotCreateAuthenticatorWhenUsingPAT() {
+    // Given
+    gitHubProperties.setAccessToken("ghp_test_token");
+
+    // When
+    gitHubConfig.validateConfiguration();
+
+    // Then - Authenticator should be null for PAT auth
+    assertNull(gitHubConfig.getGitHubAppAuthenticator());
   }
 
   @Test
@@ -223,9 +252,9 @@ class GitHubConfigTest {
     gitHubProperties.setPrivateKeyPath("/nonexistent/path/private-key.pem");
     gitHubProperties.setInstallationId("67890");
 
-    // When & Then
+    // When & Then - Now fails during validateConfiguration since authenticator is created there
     RuntimeException exception =
-        assertThrows(RuntimeException.class, () -> gitHubConfig.gitHubClient());
+        assertThrows(RuntimeException.class, () -> gitHubConfig.validateConfiguration());
 
     assertTrue(exception.getMessage().contains("Failed to load GitHub App private key"));
   }
