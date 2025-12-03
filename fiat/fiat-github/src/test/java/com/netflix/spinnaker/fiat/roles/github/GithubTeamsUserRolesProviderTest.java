@@ -30,7 +30,33 @@ import org.kohsuke.github.*;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Tests for GithubTeamsUserRolesProvider using hub4j/github-api library. */
+/**
+ * Unit tests for GithubTeamsUserRolesProvider using hub4j/github-api library.
+ *
+ * <p><b>Testing Strategy:</b> These tests mock the {@link GitHub} client directly rather than using
+ * a mock HTTP server. This approach tests the provider's business logic (role assignment, caching,
+ * error handling) without testing the hub4j library's HTTP implementation.
+ *
+ * <p><b>Rationale:</b>
+ *
+ * <ul>
+ *   <li>hub4j/github-api is a mature, well-tested library with its own test suite
+ *   <li>Unit tests should be fast and deterministic - mocking at the client level achieves this
+ *   <li>This pattern is consistent with other tests in fiat (see ClouddriverApplicationLoaderTest)
+ * </ul>
+ *
+ * <p><b>Coverage:</b> These tests verify:
+ *
+ * <ul>
+ *   <li>Role assignment logic (org membership, team membership)
+ *   <li>Case-insensitive username handling
+ *   <li>Error handling (404, 401, 403, rate limits)
+ *   <li>Cache behavior and invalidation
+ *   <li>Multi-user batch loading
+ * </ul>
+ *
+ * @see GithubTeamsUserRolesProviderIntegrationTest for HTTP-level integration tests using WireMock
+ */
 @ExtendWith(MockitoExtension.class)
 class GithubTeamsUserRolesProviderTest {
 
