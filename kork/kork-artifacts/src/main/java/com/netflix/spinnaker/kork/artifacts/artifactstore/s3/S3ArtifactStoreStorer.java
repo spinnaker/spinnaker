@@ -27,7 +27,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Base64;
 import java.util.regex.Pattern;
 import lombok.extern.log4j.Log4j2;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;

@@ -108,7 +108,7 @@ public class HelmfileTemplateUtils extends HelmBakeTemplateUtils<HelmfileBakeMan
     }
 
     Map<String, Object> overrides = request.getOverrides();
-    if (!overrides.isEmpty()) {
+    if (overrides != null && !overrides.isEmpty()) {
       List<String> overrideList = buildOverrideList(overrides);
       command.add("--set");
       command.add(String.join(",", overrideList));
