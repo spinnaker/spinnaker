@@ -71,27 +71,10 @@ subprojects {
 }
 
 dependencies {
-  implementation project(":clouddriver-api")
-  implementation project(":clouddriver-core")
-
-  implementation "com.netflix.frigga:frigga"
-  implementation "io.spinnaker.kork:kork-annotations"
-  implementation "io.spinnaker.kork:kork-retrofit"
-  implementation "io.spinnaker.kork:kork-security"
-  implementation "io.spinnaker.kork:kork-docker"
   implementation "io.spinnaker.kork:kork-web"
-  implementation 'commons-io:commons-io:2.15.1'
   implementation "com.squareup.okhttp3:okhttp"
   implementation "commons-codec:commons-codec"
   implementation "commons-io:commons-io"
-  implementation "org.apache.commons:commons-lang3"
-  implementation "org.apache.groovy:groovy"
-  implementation "org.springframework.boot:spring-boot-actuator"
 
   testImplementation "io.spinnaker.kork:kork-aws"
-  testImplementation "org.mockito:mockito-core"
-  testImplementation "org.springframework.boot:spring-boot-starter-test"
-  testImplementation "org.testcontainers:testcontainers"
-  testImplementation "org.testcontainers:localstack"
-  testImplementation "com.squareup.retrofit2:converter-jackson"
 }
