@@ -229,9 +229,7 @@ class AuthenticationAwareTest : SubjectSpek<AuthenticationAware> ({
         val stage = pipeline.stages.first()!!
         MDC.put("foo", "bar")
         with(subject) { stage.withAuth {} }
-        // FIXME: expect the context to get restored
-        // assertThat(MDC.get("foo")).isEqualTo("bar")
-        assertThat(MDC.get("foo")).isNull()
+        assertThat(MDC.get("foo")).isEqualTo("bar")
       }
 
       it("when there is not an associated user") {
@@ -244,9 +242,7 @@ class AuthenticationAwareTest : SubjectSpek<AuthenticationAware> ({
         val stage = pipeline.stages.first()
         MDC.put("foo", "bar")
         with(subject) { stage.withAuth {} }
-        // FIXME: expect the context to get restored
-        // assertThat(MDC.get("foo")).isEqualTo("bar")
-        assertThat(MDC.get("foo")).isNull()
+        assertThat(MDC.get("foo")).isEqualTo("bar")
       }
     }
 })
