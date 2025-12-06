@@ -4,6 +4,7 @@ import com.netflix.spinnaker.orca.DefaultStageResolver
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution.LastModifiedDetails
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
@@ -13,11 +14,13 @@ import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode
 import org.jetbrains.spek.subject.SubjectSpek
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.slf4j.MDC
 import org.springframework.beans.factory.ObjectProvider
 import java.time.Instant
 import java.util.*
@@ -213,5 +216,33 @@ class AuthenticationAwareTest : SubjectSpek<AuthenticationAware> ({
             val stageUser = subject.retrieveAuthenticatedUser(mjp.stageByRef("8"))
             assertEquals(null, stageUser?.user)
         }
+    }
+
+    describe("StageExecution.withAuth restores the context on completion") {
+      it("when there is an associated user") {
+        val pipeline = pipeline {
+          stage {
+            type = "wait"
+          }
+        }
+        pipeline.authentication = PipelineExecution.AuthenticationDetails("test-user")
+        val stage = pipeline.stages.first()!!
+        MDC.put("foo", "bar")
+        with(subject) { stage.withAuth {} }
+        assertThat(MDC.get("foo")).isEqualTo("bar")
+      }
+
+      it("when there is not an associated user") {
+        val pipeline = pipeline {
+          stage {
+            type = "wait"
+          }
+        }
+
+        val stage = pipeline.stages.first()
+        MDC.put("foo", "bar")
+        with(subject) { stage.withAuth {} }
+        assertThat(MDC.get("foo")).isEqualTo("bar")
+      }
     }
 })
