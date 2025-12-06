@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Netflix, Inc.
+ * Copyright 2025 Razorpay.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,5 +142,64 @@ class GitHubClientFactoryTest {
 
     // Then - Client should be created (connection is lazy in hub4j)
     assertNotNull(client);
+  }
+
+  // ===== Tests for createAuthenticator =====
+
+  @Test
+  void shouldCreateAuthenticator() {
+    // When
+    GitHubAppAuthenticator authenticator =
+        GitHubClientFactory.createAuthenticator(
+            "https://api.github.com", "12345", tempPrivateKeyFile.toString(), "67890");
+
+    // Then
+    assertNotNull(authenticator);
+  }
+
+  @Test
+  void shouldCreateAuthenticatorForGitHubEnterprise() {
+    // When
+    GitHubAppAuthenticator authenticator =
+        GitHubClientFactory.createAuthenticator(
+            "https://github.company.com/api/v3", "12345", tempPrivateKeyFile.toString(), "67890");
+
+    // Then
+    assertNotNull(authenticator);
+  }
+
+  @Test
+  void shouldFailCreateAuthenticatorWithInvalidPrivateKeyPath() {
+    // When & Then
+    RuntimeException exception =
+        assertThrows(
+            RuntimeException.class,
+            () ->
+                GitHubClientFactory.createAuthenticator(
+                    "https://api.github.com", "12345", "/nonexistent/key.pem", "67890"));
+
+    assertTrue(exception.getMessage().contains("Failed to load GitHub App private key"));
+  }
+
+  @Test
+  void shouldCreateAuthenticatorThatCanGetClient() {
+    // Given
+    GitHubAppAuthenticator authenticator =
+        GitHubClientFactory.createAuthenticator(
+            "https://api.github.com", "12345", tempPrivateKeyFile.toString(), "67890");
+
+    // When & Then - Will fail to connect (no real GitHub API) but verifies authenticator works
+    assertThrows(IOException.class, () -> authenticator.getAuthenticatedClient());
+  }
+
+  @Test
+  void shouldCreateAuthenticatorThatCanGetToken() {
+    // Given
+    GitHubAppAuthenticator authenticator =
+        GitHubClientFactory.createAuthenticator(
+            "https://api.github.com", "12345", tempPrivateKeyFile.toString(), "67890");
+
+    // When & Then - Will fail to connect (no real GitHub API) but verifies authenticator works
+    assertThrows(IOException.class, () -> authenticator.getInstallationToken());
   }
 }
