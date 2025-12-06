@@ -50,7 +50,7 @@ tasks.withType(JavaCompile) {
 dependencies {
   errorprone("com.google.errorprone:error_prone_core:2.28.0")
   implementation project(":clouddriver-api")
-  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-artifacts:clouddriver-artifacts-kubernetes")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-configserver")
   implementation project(":cats:cats-core")

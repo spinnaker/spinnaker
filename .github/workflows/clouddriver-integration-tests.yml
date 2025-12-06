@@ -53,7 +53,7 @@ jobs:
     # Separating integration tests by provider allows to have separate logs
     - name: Amazon ECS Provider Integration Tests
       run: ./gradlew --build-cache :clouddriver:clouddriver-ecs:integrationTest
-    - name: Artifacts Integration Tests
-      run: ./gradlew --build-cache :clouddriver:clouddriver-artifacts:integrationTest
+    - name: Git Repo Artifacts Integration Tests
+      run: ./gradlew --build-cache :clouddriver:clouddriver-artifacts:clouddriver-artifacts-gitrepo:integrationTest
     - name: AWS EC2 Provider Integration Tests
       run: ./gradlew --build-cache :clouddriver:clouddriver-aws:integrationTest
