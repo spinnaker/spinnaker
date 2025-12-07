@@ -1,3 +1,5 @@
+package com.netflix.spinnaker.clouddriver.artifacts.docker;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -14,9 +16,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.netflix.spinnaker.clouddriver.artifacts.docker.HelmOciDockerArtifactAccount;
-import com.netflix.spinnaker.clouddriver.artifacts.docker.HelmOciDockerArtifactCredentials;
-import com.netflix.spinnaker.clouddriver.artifacts.docker.HelmOciFileSystem;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.model.DockerBearerToken;
