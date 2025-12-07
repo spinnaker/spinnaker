@@ -1,0 +1,4 @@
+dependencies {
+  implementation "com.squareup.okhttp3:okhttp"
+  implementation "org.apache.maven:maven-resolver-provider:3.5.4"
+}

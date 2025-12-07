@@ -56,4 +56,9 @@ dependencies {
   gradle.includedCloudProviderProjects.each {
     implementation project(":${it}")
   }
+
+  // Add each included artifact type as an implementation dependency
+  gradle.includedArtifactTypes.each {
+    implementation project(":${it}")
+  }
 }
