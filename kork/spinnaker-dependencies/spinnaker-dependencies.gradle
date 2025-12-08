@@ -32,8 +32,7 @@ ext {
     swagger          : "2.2.22",
     // 3.0.13 brings in 10.1.16, which introduce CVEs. Continue to pin till >=3.2.12.
     // See https://tomcat.apache.org/security-10.html for latest security fixes.
-    tomcat           : "10.1.33",
-    httpclient       : "4.5.14"
+    tomcat           : "10.1.33"
   ]
 }
 
@@ -172,7 +171,5 @@ dependencies {
     // Springdoc pulls in a newer Jackson version that is incompatible with the Snakeyaml bundled with Spring Boot 3.0.13.
     // To resolve the conflict, we’ve aligned the Jackson version with the one provided by Spring Boot 3.0.13.
     api("org.yaml:snakeyaml:1.33")
-    api("org.apache.httpcomponents:httpclient:${versions.httpclient}")
-    api("org.apache.httpcomponents:httpmime:${versions.httpclient}")
   }
 }
