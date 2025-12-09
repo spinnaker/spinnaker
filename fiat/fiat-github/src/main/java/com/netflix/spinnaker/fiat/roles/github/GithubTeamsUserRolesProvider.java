@@ -418,21 +418,28 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
         return;
       }
 
+      int limit = core.getLimit();
+      int remaining = core.getRemaining();
+
       log.debug(
           "GitHub rate limit after {}: {}/{} remaining, resets at {}",
           operation,
-          core.getRemaining(),
-          core.getLimit(),
+          remaining,
+          limit,
           core.getResetDate());
 
-      // Warn if rate limit is getting low
-      if (core.getRemaining() < core.getLimit() * 0.1) {
+      // Guard against division by zero - can happen in tests or unexpected API responses
+      if (limit <= 0) {
+        log.debug(
+            "Rate limit value is {} after {}, skipping percentage calculation", limit, operation);
+        return;
+      }
+
+      // Warn if rate limit is getting low (less than 10% remaining)
+      if (remaining < limit * 0.1) {
         log.warn(
             "GitHub API rate limit is running low: {}/{} remaining ({}%). Resets at {}",
-            core.getRemaining(),
-            core.getLimit(),
-            (core.getRemaining() * 100 / core.getLimit()),
-            core.getResetDate());
+            remaining, limit, (remaining * 100 / limit), core.getResetDate());
       }
     } catch (IOException e) {
       log.debug("Could not fetch rate limit info after {}", operation, e);
