@@ -15,7 +15,7 @@ dependencies {
   implementation "io.jsonwebtoken:jjwt-jackson:0.11.5"
 
   // Bouncy Castle for PEM parsing
-  implementation "org.bouncycastle:bcpkix-jdk15on:1.70"
+  implementation "org.bouncycastle:bcpkix-jdk18on"
 
   // Spring for configuration
   implementation "org.springframework.boot:spring-boot-autoconfigure"
