@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.bitbucket;
 
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -31,7 +32,8 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(BitbucketArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-class BitbucketArtifactConfiguration {
+@VisibleForTesting
+public class BitbucketArtifactConfiguration {
   private final BitbucketArtifactProviderProperties bitbucketArtifactProviderProperties;
 
   @Bean
