@@ -17,16 +17,16 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.netflix.spinnaker.clouddriver.artifacts.bitbucket.BitbucketArtifactConfiguration;
 import com.netflix.spinnaker.clouddriver.artifacts.helm.HelmArtifactConfiguration;
 import com.netflix.spinnaker.config.ArtifactConfiguration;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.context.Lifecycle;
 
 public class ArtifactConfigurationTest {
   private final ApplicationContextRunner runner =
@@ -41,15 +41,11 @@ public class ArtifactConfigurationTest {
 
   @Test
   void testArtifactConfiguration() {
-    Assertions.assertThrows(
-        IllegalStateException.class,
-        () ->
-            runner
-                .withPropertyValues(
-                    "artifacts.bitbucket.enabled: true",
-                    "artifacts.helm.enabled: true",
-                    "artifacts.http.enabled: true")
-                .run(Lifecycle::start),
-        "No qualifying bean of type 'okhttp3.OkHttpClient' available: expected single matching bean but found 3");
+    runner
+        .withPropertyValues(
+            "artifacts.bitbucket.enabled: true",
+            "artifacts.helm.enabled: true",
+            "artifacts.gitlab.enabled: true")
+        .run(ctx -> assertThat(ctx).hasSingleBean(DefaultOkHttpClientBuilderProvider.class));
   }
 }
