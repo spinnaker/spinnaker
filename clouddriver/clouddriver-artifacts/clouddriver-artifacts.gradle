@@ -77,4 +77,10 @@ dependencies {
   implementation "commons-io:commons-io"
 
   testImplementation "io.spinnaker.kork:kork-aws"
+  testImplementation "org.springframework.boot:spring-boot-test"
+  testImplementation project(":clouddriver-artifacts:clouddriver-artifacts-bitbucket")
+  testImplementation project(":clouddriver-artifacts:clouddriver-artifacts-helm")
+  testImplementation project(":clouddriver-artifacts:clouddriver-artifacts-http")
+
+
 }

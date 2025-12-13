@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.artifacts.http;
 
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,8 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(HttpArtifactProviderProperties.class)
 @RequiredArgsConstructor
 @Slf4j
-class HttpArtifactConfiguration {
+@VisibleForTesting
+public class HttpArtifactConfiguration {
   private final HttpArtifactProviderProperties httpArtifactProviderProperties;
   private final HttpArtifactAccount noAuthAccount =
       HttpArtifactAccount.builder().name("no-auth-http-account").build();
