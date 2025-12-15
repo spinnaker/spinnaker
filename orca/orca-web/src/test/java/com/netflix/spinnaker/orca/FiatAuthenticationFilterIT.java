@@ -19,17 +19,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.fiat.shared.AuthenticatedRequestAuthenticationConverter;
 import com.netflix.spinnaker.fiat.shared.FiatAuthenticationFilter;
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -88,24 +83,21 @@ class FiatAuthenticationFilterIT {
                   .header("X-SPINNAKER-USER", USER)
                   .accept(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
-          .andExpect(
-              content().string("anonymousUser")); // FIXME: this should be same as X-SPINNAKER-USER
+          .andExpect(content().string(USER));
     }
   }
 
   @Configuration
-  @EnableConfigurationProperties(FiatClientConfigurationProperties.class)
   static class TestSecurityConfig {
 
     @Bean
     SecurityFilterChain testSecurityFilterChain(
-        HttpSecurity http, FiatStatus fiatStatus, AuthenticationConverter authenticationConverter)
-        throws Exception {
+        HttpSecurity http, AuthenticationConverter authenticationConverter) throws Exception {
 
       http.csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
           .addFilterBefore(
-              new FiatAuthenticationFilter(fiatStatus, authenticationConverter),
+              new FiatAuthenticationFilter(authenticationConverter),
               AnonymousAuthenticationFilter.class)
           .addFilterBefore(new AuthenticatedRequestFilter(true), FiatAuthenticationFilter.class);
 
@@ -115,19 +107,6 @@ class FiatAuthenticationFilterIT {
     @Bean
     AuthenticationConverter authenticationConverter() {
       return new AuthenticatedRequestAuthenticationConverter();
-    }
-
-    @Bean
-    FiatStatus fiatStatus(
-        DynamicConfigService dynamicConfigService,
-        FiatClientConfigurationProperties fiatClientConfigurationProperties) {
-      return new FiatStatus(
-          new NoopRegistry(), dynamicConfigService, fiatClientConfigurationProperties);
-    }
-
-    @Bean
-    DynamicConfigService dynamicConfigService() {
-      return DynamicConfigService.NOOP;
     }
   }
 

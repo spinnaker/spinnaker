@@ -31,26 +31,21 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 @Slf4j
 public class FiatAuthenticationFilter extends HttpFilter {
 
-  private final FiatStatus fiatStatus;
   private final AuthenticationConverter authenticationConverter;
 
-  public FiatAuthenticationFilter(
-      FiatStatus fiatStatus, AuthenticationConverter authenticationConverter) {
-    this.fiatStatus = fiatStatus;
+  public FiatAuthenticationFilter(AuthenticationConverter authenticationConverter) {
     this.authenticationConverter = authenticationConverter;
   }
 
   @Override
   protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws IOException, ServletException {
+    SecurityContext ctx = SecurityContextHolder.createEmptyContext();
+    Authentication auth = authenticationConverter.convert(req);
+    ctx.setAuthentication(auth);
+    SecurityContextHolder.setContext(ctx);
+    log.debug("Set SecurityContext to user: {}", auth.getPrincipal().toString());
 
-    if (fiatStatus.isEnabled()) {
-      SecurityContext ctx = SecurityContextHolder.createEmptyContext();
-      Authentication auth = authenticationConverter.convert(req);
-      ctx.setAuthentication(auth);
-      SecurityContextHolder.setContext(ctx);
-      log.debug("Set SecurityContext to user: {}", auth.getPrincipal().toString());
-    }
     chain.doFilter(req, res);
   }
 }

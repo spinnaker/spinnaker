@@ -105,8 +105,7 @@ class OperationsControllerIT {
     assertThat(execution.getStages()).hasSize(1);
     assertThat(execution.getStages().get(0).getType()).isEqualTo("wait");
     assertThat(execution.getTrigger().getType()).isEqualTo("manual");
-    assertThat(execution.getAuthentication().getUser())
-        .isEqualTo("anonymousUser"); // FIXME: this should be same as X-SPINNAKER-USER
+    assertThat(execution.getAuthentication().getUser()).isEqualTo("rahul-chekuri");
   }
 
   @TestConfiguration
