@@ -43,6 +43,7 @@ public class FiatAuthenticationFilter extends HttpFilter {
   @Override
   protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws IOException, ServletException {
+
     if (fiatStatus.isEnabled()) {
       SecurityContext ctx = SecurityContextHolder.createEmptyContext();
       Authentication auth = authenticationConverter.convert(req);
