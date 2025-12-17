@@ -27,13 +27,11 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Base64;
 import java.util.regex.Pattern;
 import lombok.extern.log4j.Log4j2;
-import org.apache.hc.core5.http.HttpStatus;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 
@@ -151,21 +149,6 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
         ListObjectsV2Request.builder().bucket(bucket).prefix(uri.paths()).maxKeys(1).build();
 
     ListObjectsV2Response resp = s3Client.listObjectsV2(request);
-    return !resp.isTruncated();
-  }
-
-  /**
-   * S3's head object can only return 400, 403, and 404, and based on the HTTP status code, we will
-   * return the appropriate message back
-   */
-  private static String buildHeadObjectExceptionMessage(S3Exception e) {
-    switch (e.statusCode()) {
-      case HttpStatus.SC_FORBIDDEN:
-        return "Failed to query artifact due to IAM permissions either on the bucket or object";
-      case HttpStatus.SC_BAD_REQUEST:
-        return "Failed to query artifact due to invalid request";
-      default:
-        return String.format("Failed to query artifact: %d", e.statusCode());
-    }
+    return resp.hasContents();
   }
 }
