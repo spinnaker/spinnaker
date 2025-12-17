@@ -1,0 +1,6 @@
+dependencies {
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
+  implementation "org.apache.ivy:ivy:2.4.0"
+
+  testImplementation "commons-io:commons-io"
+}

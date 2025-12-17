@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -47,6 +48,8 @@ import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl;
 import java.io.IOException;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 public class OrcaObjectMapper {
   private OrcaObjectMapper() {}
@@ -87,6 +90,7 @@ public class OrcaObjectMapper {
     SimpleModule httpMethodModule = new SimpleModule();
     httpMethodModule.addSerializer(HttpMethod.class, new HttpMethodSerializer());
     httpMethodModule.addDeserializer(HttpMethod.class, new HttpMethodDeserializer());
+    httpMethodModule.addDeserializer(HttpStatusCode.class, new HttpStatusCodeDeserializer());
     instance.registerModule(httpMethodModule);
 
     return instance;
@@ -126,6 +130,65 @@ public class OrcaObjectMapper {
     @Override
     public HttpMethod deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
       return HttpMethod.valueOf(p.getText().toUpperCase());
+    }
+  }
+
+  /**
+   * Custom Jackson deserializer for {@link org.springframework.http.HttpStatusCode}.
+   *
+   * <p>Spring Framework 6 introduced {@code HttpStatusCode} as a numeric abstraction over HTTP
+   * status values. Unlike {@link org.springframework.http.HttpStatus}, it does not support symbolic
+   * string names (e.g. {@code "OK"}, {@code "CREATED"}) during deserialization.
+   *
+   * <p>This deserializer exists to maintain backward compatibility with previously persisted
+   * execution context data where HTTP status codes were stored as strings (for example, {@code
+   * "OK"}), while still supporting numeric representations (e.g. {@code 200}).
+   *
+   * <p>The deserializer supports the following input formats:
+   *
+   * <ul>
+   *   <li>Numeric status codes: {@code 200}
+   *   <li>String enum names: {@code "OK"}, {@code "NOT_FOUND"}
+   *   <li>Numeric strings: {@code "200"}
+   * </ul>
+   *
+   * <p>All valid inputs are normalized to {@link HttpStatusCode#valueOf(int)}.
+   */
+  static class HttpStatusCodeDeserializer extends JsonDeserializer<HttpStatusCode> {
+
+    @Override
+    public HttpStatusCode deserialize(JsonParser p, DeserializationContext ctxt)
+        throws IOException {
+
+      JsonNode node = p.getCodec().readTree(p);
+
+      // Case 1: numeric status code (200)
+      if (node.isInt()) {
+        return HttpStatusCode.valueOf(node.intValue());
+      }
+
+      // Case 2: string status code ("OK")
+      if (node.isTextual()) {
+        String text = node.textValue();
+
+        try {
+          // Try enum name (OK, CREATED, etc.)
+          HttpStatus status = HttpStatus.valueOf(text);
+          return HttpStatusCode.valueOf(status.value());
+        } catch (IllegalArgumentException ignored) {
+          // fall through
+        }
+
+        // Try numeric string ("200")
+        try {
+          return HttpStatusCode.valueOf(Integer.parseInt(text));
+        } catch (NumberFormatException ex) {
+          throw ctxt.weirdStringException(
+              text, HttpStatusCode.class, "Unrecognized HTTP status code");
+        }
+      }
+
+      throw ctxt.mappingException("Cannot deserialize HttpStatusCode from " + node);
     }
   }
 }
