@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.web.config
 
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilter
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.SerializerHookRegistry
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
