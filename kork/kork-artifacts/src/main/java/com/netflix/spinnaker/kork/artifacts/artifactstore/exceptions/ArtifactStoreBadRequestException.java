@@ -17,20 +17,16 @@ package com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions;
 
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /** Exception indicating a bad request to the artifact store. */
+@ResponseStatus(HttpStatus.BAD_REQUEST)
 public class ArtifactStoreBadRequestException extends SpinnakerException {
-
   public ArtifactStoreBadRequestException(String message) {
     super(message);
   }
 
   public ArtifactStoreBadRequestException(String message, Throwable cause) {
     super(message, cause);
-  }
-
-  @Override
-  public HttpStatus getStatus() {
-    return HttpStatus.BAD_REQUEST;
   }
 }
