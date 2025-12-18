@@ -106,4 +106,37 @@ class EvaluateVariablesStageSpec extends Specification {
     then:
     variablesCleaned == true
   }
+
+  void "Should eval variable correctly when summary already contain failed evaluations"() {
+    setup:
+    def summary = new ExpressionEvaluationSummary()
+    summary.add("#{someexpression}", null, "failed", RuntimeException)
+
+    def correctVars = [
+      [key: "a", value: 10, sourceValue: "{1+2+3+4}", description: null],
+      [key: "b", value: 24, sourceValue: "{1*2*3*4}", description: null],
+      [key: "product", value: 240, sourceValue: "{a * b}", description: "product of a(10) and b(24)"],
+      [key: "nonworking", value: 'this one should fail: ${a * c}', sourceValue: 'this one should fail: {a * c}', description: null]
+    ]
+
+    def stage = stage {
+      refId = "1"
+      type = "evaluateVariables"
+      context["variables"] = [
+        [key: "a", value: '${1+2+3+4}'],
+        [key: "b", value: '${1*2*3*4}'],
+        [key: "product", value: '${a * b}', description: 'product of a(${a}) and b(${b})'],
+        [key: "nonworking", value: 'this one should fail: ${a * c}']
+      ]
+    }
+
+    when:
+    def shouldContinue = evaluateVariablesStage.processExpressions(stage, contextParameterProcessor, summary)
+
+    then:
+    shouldContinue == false
+    stage.context.variables == correctVars
+    summary.totalEvaluated == 5
+    summary.failureCount == 2
+  }
 }
