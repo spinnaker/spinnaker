@@ -94,9 +94,25 @@ public class FiatAuthenticationConfig {
   }
 
   @Bean
+<<<<<<< HEAD
   FiatWebSecurityConfigurerAdapter fiatSecurityConfig(
       FiatStatus fiatStatus, AuthenticationConverter authenticationConverter) {
     return new FiatWebSecurityConfigurerAdapter(fiatStatus, authenticationConverter);
+=======
+  public SecurityFilterChain fiatSecurityFilterChain(
+      HttpSecurity http, AuthenticationConverter authenticationConverter) throws Exception {
+
+    http.servletApi(Customizer.withDefaults())
+        .exceptionHandling(Customizer.withDefaults())
+        .anonymous(Customizer.withDefaults())
+        .addFilterBefore(
+            new FiatAuthenticationFilter(authenticationConverter),
+            AnonymousAuthenticationFilter.class)
+        .csrf()
+        .disable();
+
+    return http.build();
+>>>>>>> 52d0968b46 (test(orca/web): reproduce anonymous pipeline trigger user (#7369))
   }
 
   @Bean
