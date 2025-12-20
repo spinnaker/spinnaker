@@ -96,14 +96,13 @@ public class FiatAuthenticationConfig {
 
   @Bean
   public SecurityFilterChain fiatSecurityFilterChain(
-      HttpSecurity http, FiatStatus fiatStatus, AuthenticationConverter authenticationConverter)
-      throws Exception {
+      HttpSecurity http, AuthenticationConverter authenticationConverter) throws Exception {
 
     http.servletApi(Customizer.withDefaults())
         .exceptionHandling(Customizer.withDefaults())
         .anonymous(Customizer.withDefaults())
         .addFilterBefore(
-            new FiatAuthenticationFilter(fiatStatus, authenticationConverter),
+            new FiatAuthenticationFilter(authenticationConverter),
             AnonymousAuthenticationFilter.class)
         .csrf()
         .disable();
