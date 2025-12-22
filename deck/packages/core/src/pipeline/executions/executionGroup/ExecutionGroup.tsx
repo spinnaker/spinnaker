@@ -154,10 +154,9 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
             .then((plan) => resolve(plan))
             .catch(() => resolve(config));
         } else {
-          PipelineConfigService.getPipelinesForApplication(this.props.application.name).then((pipelines) => {
-            const matching = pipelines.filter((pipeline) => pipeline.id == config.id);
-            resolve(matching[0]);
-          });
+          PipelineConfigService.getPipelineForApplication(this.props.application.name, config.name)
+            .then((pipeline) => resolve(pipeline))
+            .catch(() => resolve(config));
         }
       }),
     )
