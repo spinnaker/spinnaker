@@ -166,8 +166,9 @@ APPLICATION FAILED TO START
 
 Description:
 
-Parameter 0 of constructor in com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider required a single bean, but 5 were found:
+Parameter 0 of constructor in com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider required a single bean, but 6 were found:
 \t- bitbucketOkHttpClient: defined by method 'bitbucketOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/bitbucket/BitbucketArtifactConfiguration.class]
+\t- helmOciOkHttpClient: defined by method 'helmOciOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/docker/HelmOciArtifactConfiguration.class]
 \t- gitHubOkHttpClient: defined by method 'gitHubOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/github/GitHubArtifactConfiguration.class]
 \t- gitlabOkHttpClient: defined by method 'gitlabOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/gitlab/GitlabArtifactConfiguration.class]
 \t- helmOkHttpClient: defined by method 'helmOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/helm/HelmArtifactConfiguration.class]

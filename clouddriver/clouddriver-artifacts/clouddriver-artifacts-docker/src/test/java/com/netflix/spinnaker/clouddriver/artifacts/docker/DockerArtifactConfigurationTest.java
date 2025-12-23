@@ -21,8 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.ArtifactConfiguration;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
+import com.netflix.spinnaker.credentials.CredentialsRepository;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
@@ -42,18 +43,12 @@ public class DockerArtifactConfigurationTest {
         .withPropertyValues("kubernetes.enabled=true")
         .run(
             ctx -> {
-              // FIXME: expect the application context to start
-              // assertThat(ctx.getBeanNamesForType(CredentialsRepository.class))
-              //     .containsExactlyInAnyOrder(
-              //         "dockerArtifactCredentialsRepository",
-              //         "credentialsRepository.artifacts-helm-oci");
-              // assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
-              //     .containsExactly("helmOciOkHttpClient");
-              assertThat(ctx.getStartupFailure())
-                  .isNotNull()
-                  .hasRootCauseInstanceOf(NoSuchBeanDefinitionException.class)
-                  .hasRootCauseMessage(
-                      "No qualifying bean of type 'okhttp3.OkHttpClient' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}");
+              assertThat(ctx.getBeanNamesForType(CredentialsRepository.class))
+                  .containsExactlyInAnyOrder(
+                      "dockerArtifactCredentialsRepository",
+                      "credentialsRepository.artifacts-helm-oci");
+              assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
+                  .containsExactly("helmOciOkHttpClient");
             });
   }
 }
