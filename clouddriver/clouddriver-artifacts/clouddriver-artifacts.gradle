@@ -21,6 +21,7 @@ allprojects {
 
   dependencies {
     implementation project(":clouddriver-core")
+    implementation "com.squareup.okhttp3:okhttp"
     implementation "io.spinnaker.kork:kork-artifacts"
     implementation "io.spinnaker.kork:kork-credentials"
     implementation "org.springframework.boot:spring-boot-starter-web"
@@ -72,7 +73,6 @@ subprojects {
 
 dependencies {
   implementation "io.spinnaker.kork:kork-web"
-  implementation "com.squareup.okhttp3:okhttp"
   implementation "commons-codec:commons-codec"
   implementation "commons-io:commons-io"
 
