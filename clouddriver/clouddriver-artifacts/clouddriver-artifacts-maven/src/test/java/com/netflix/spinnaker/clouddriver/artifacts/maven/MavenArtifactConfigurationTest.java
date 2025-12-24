@@ -19,8 +19,9 @@ package com.netflix.spinnaker.clouddriver.artifacts.maven;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spinnaker.config.ArtifactConfiguration;
+import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
@@ -35,16 +36,10 @@ public class MavenArtifactConfigurationTest {
         .withPropertyValues("artifacts.maven.enabled=true")
         .run(
             ctx -> {
-              // FIXME: expect the application context to start
-              // assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
-              //     .containsExactly("mavenCredentialsProperties");
-              // assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
-              //     .containsExactly("mavenOkHttpClient");
-              assertThat(ctx.getStartupFailure())
-                  .isNotNull()
-                  .hasRootCauseInstanceOf(NoSuchBeanDefinitionException.class)
-                  .hasRootCauseMessage(
-                      "No qualifying bean of type 'okhttp3.OkHttpClient' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}");
+              assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
+                  .containsExactly("mavenCredentialsProperties");
+              assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
+                  .containsExactly("mavenOkHttpClient");
             });
   }
 }
