@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
@@ -29,8 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.ContainerLaunchException;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -61,12 +58,11 @@ public class MySqlContainerTest extends BaseContainerTest {
     jdbcUrl = String.format("jdbc:mysql://%s:%d/clouddriver", MYSQL_NETWORK_ALIAS, MYSQL_PORT);
     clouddriverContainer
         .dependsOn(mysql)
-        .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson());
-    // .start();
+        .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
+        .start();
 
-    // Only valid once the container has started
-    // Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(logger);
-    // clouddriverContainer.followOutput(logConsumer);
+    Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(logger);
+    clouddriverContainer.followOutput(logConsumer);
   }
 
   private String getSpringApplicationJson() throws JsonProcessingException {
@@ -145,35 +141,8 @@ public class MySqlContainerTest extends BaseContainerTest {
     }
   }
 
-  // FIXME: expect the container to start
-  //
-  // @Test
-  // void testHealthCheckWithMySql() throws Exception {
-  //   super.testHealthCheck();
-  // }
-
   @Test
-  void testFailToStart() {
-    assertThatThrownBy(() -> clouddriverContainer.start())
-        .isInstanceOf(ContainerLaunchException.class)
-        .hasMessage("Container startup failed for image " + dockerImageName.toString());
-    assertThat(clouddriverContainer.getLogs())
-        .contains(
-            """
-***************************
-APPLICATION FAILED TO START
-***************************
-
-Description:
-
-Parameter 0 of constructor in com.netflix.spinnaker.config.okhttp3.InsecureOkHttpClientBuilderProvider required a single bean, but 8 were found:
-\t- bitbucketOkHttpClient: defined by method 'bitbucketOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/bitbucket/BitbucketArtifactConfiguration.class]
-\t- helmOciOkHttpClient: defined by method 'helmOciOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/docker/HelmOciArtifactConfiguration.class]
-\t- gitHubOkHttpClient: defined by method 'gitHubOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/github/GitHubArtifactConfiguration.class]
-\t- gitlabOkHttpClient: defined by method 'gitlabOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/gitlab/GitlabArtifactConfiguration.class]
-\t- helmOkHttpClient: defined by method 'helmOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/helm/HelmArtifactConfiguration.class]
-\t- httpOkHttpClient: defined by method 'httpOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/http/HttpArtifactConfiguration.class]
-\t- jenkinsOkHttpClient: defined by method 'jenkinsOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/jenkins/JenkinsArtifactConfiguration.class]
-\t- mavenOkHttpClient: defined by method 'mavenOkHttpClient' in class path resource [com/netflix/spinnaker/clouddriver/artifacts/maven/MavenArtifactConfiguration.class]""");
+  void testHealthCheckWithMySql() throws Exception {
+    super.testHealthCheck();
   }
 }

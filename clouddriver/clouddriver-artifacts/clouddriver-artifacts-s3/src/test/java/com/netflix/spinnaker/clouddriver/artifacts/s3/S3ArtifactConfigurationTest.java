@@ -40,7 +40,8 @@ public class S3ArtifactConfigurationTest {
             ctx -> {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("s3CredentialsProperties");
-              assertThat(ctx).doesNotHaveBean(OkHttpClient.class);
+              assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
+                  .containsExactly("okHttpClient");
             });
   }
 }

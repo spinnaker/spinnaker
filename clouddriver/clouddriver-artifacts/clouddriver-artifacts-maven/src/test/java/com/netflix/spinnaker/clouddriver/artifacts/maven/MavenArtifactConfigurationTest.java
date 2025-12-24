@@ -39,7 +39,7 @@ public class MavenArtifactConfigurationTest {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("mavenCredentialsProperties");
               assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
-                  .containsExactly("mavenOkHttpClient");
+                  .containsExactlyInAnyOrder("mavenOkHttpClient", "okHttpClient");
             });
   }
 }

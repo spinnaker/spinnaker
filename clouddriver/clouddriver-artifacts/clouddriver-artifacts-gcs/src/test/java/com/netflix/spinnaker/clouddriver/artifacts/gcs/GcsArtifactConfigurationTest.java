@@ -39,7 +39,8 @@ public class GcsArtifactConfigurationTest {
             ctx -> {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("gcsCredentialsProperties");
-              assertThat(ctx).doesNotHaveBean(OkHttpClient.class);
+              assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
+                  .containsExactly("okHttpClient");
             });
   }
 }

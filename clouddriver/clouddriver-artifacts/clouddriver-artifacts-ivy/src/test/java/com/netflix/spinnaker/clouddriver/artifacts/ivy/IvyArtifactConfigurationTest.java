@@ -38,7 +38,8 @@ public class IvyArtifactConfigurationTest {
             ctx -> {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("ivyCredentialsProperties");
-              assertThat(ctx).doesNotHaveBean(OkHttpClient.class);
+              assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
+                  .containsExactly("okHttpClient");
             });
   }
 }

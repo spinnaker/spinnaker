@@ -39,7 +39,8 @@ public class OracleArtifactConfigurationTest {
             ctx -> {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("oracleCredentialsProperties");
-              assertThat(ctx).doesNotHaveBean(OkHttpClient.class);
+              assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
+                  .containsExactly("okHttpClient");
             });
   }
 }

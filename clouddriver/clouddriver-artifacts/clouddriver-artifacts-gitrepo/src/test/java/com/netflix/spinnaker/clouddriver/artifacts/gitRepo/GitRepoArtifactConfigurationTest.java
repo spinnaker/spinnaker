@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.netflix.spinnaker.clouddriver.config.LocalJobConfig;
 import com.netflix.spinnaker.config.ArtifactConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -42,6 +43,8 @@ public class GitRepoArtifactConfigurationTest {
                   .containsExactly("gitCredentialsProperties");
               assertThat(ctx.getBeanNamesForType(GitRepoFileSystem.class))
                   .containsExactly("gitRepoFileSystem");
+              assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
+                  .containsExactly("okHttpClient");
             });
   }
 }

@@ -36,7 +36,7 @@ public class EmbeddedArtifactConfigurationTest {
         ctx -> {
           assertThat(ctx.getBeanNamesForType(CredentialsRepository.class))
               .containsExactly("embeddedArtifactCredentialsRepository");
-          assertThat(ctx).doesNotHaveBean(OkHttpClient.class);
+          assertThat(ctx.getBeanNamesForType(OkHttpClient.class)).containsExactly("okHttpClient");
         });
   }
 }

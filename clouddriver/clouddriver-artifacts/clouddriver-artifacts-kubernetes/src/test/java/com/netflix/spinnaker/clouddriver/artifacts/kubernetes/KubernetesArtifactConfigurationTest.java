@@ -38,7 +38,8 @@ public class KubernetesArtifactConfigurationTest {
             ctx -> {
               assertThat(ctx.getBeanNamesForType(CredentialsRepository.class))
                   .containsExactly("kubernetesArtifactCredentialsRepository");
-              assertThat(ctx).doesNotHaveBean(OkHttpClient.class);
+              assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
+                  .containsExactly("okHttpClient");
             });
   }
 }

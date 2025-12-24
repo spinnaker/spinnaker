@@ -40,7 +40,7 @@ public class HelmArtifactConfigurationTest {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("helmCredentialsProperties");
               assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
-                  .containsExactly("helmOkHttpClient");
+                  .containsExactlyInAnyOrder("helmOkHttpClient", "okHttpClient");
             });
   }
 }

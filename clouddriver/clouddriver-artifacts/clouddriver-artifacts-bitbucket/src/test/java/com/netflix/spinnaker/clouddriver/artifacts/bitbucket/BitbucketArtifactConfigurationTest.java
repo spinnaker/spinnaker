@@ -40,7 +40,7 @@ public class BitbucketArtifactConfigurationTest {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("bitbucketCredentialsProperties");
               assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
-                  .containsExactly("bitbucketOkHttpClient");
+                  .containsExactlyInAnyOrder("bitbucketOkHttpClient", "okHttpClient");
             });
   }
 }

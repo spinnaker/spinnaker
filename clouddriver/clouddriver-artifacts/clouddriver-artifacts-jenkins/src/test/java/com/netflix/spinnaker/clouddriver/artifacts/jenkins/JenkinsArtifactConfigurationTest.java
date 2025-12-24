@@ -40,7 +40,7 @@ public class JenkinsArtifactConfigurationTest {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("jenkinsCredentialsProperties");
               assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
-                  .containsExactly("jenkinsOkHttpClient");
+                  .containsExactlyInAnyOrder("jenkinsOkHttpClient", "okHttpClient");
             });
   }
 }

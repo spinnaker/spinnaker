@@ -24,7 +24,6 @@ import com.netflix.spinnaker.config.ArtifactConfiguration;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
-import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
@@ -47,7 +46,6 @@ public class Front50ArtifactConfigurationTest {
                   OkHttpClientProvider.class,
                   DefaultOkHttpClientBuilderProvider.class,
                   OkHttpClientConfigurationProperties.class,
-                  RawOkHttpClientConfiguration.class,
                   Front50ArtifactConfigurationTest.TestConfig.class,
                   DefaultServiceClientProvider.class,
                   ObjectMapper.class,
@@ -61,7 +59,8 @@ public class Front50ArtifactConfigurationTest {
             ctx -> {
               assertThat(ctx.getBeanNamesForType(CredentialsRepository.class))
                   .containsExactly("front50ArtifactCredentialsRepository");
-              assertThat(ctx).hasSingleBean(OkHttpClient.class);
+              assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
+                  .containsExactly("okHttpClient");
             });
   }
 

@@ -39,7 +39,7 @@ public class HttpArtifactConfigurationTest {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("httpCredentialsProperties");
               assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
-                  .containsExactly("httpOkHttpClient");
+                  .containsExactlyInAnyOrder("httpOkHttpClient", "okHttpClient");
             });
   }
 }

@@ -40,7 +40,7 @@ public class GitlabArtifactConfigurationTest {
               assertThat(ctx.getBeanNamesForType(CredentialsTypeProperties.class))
                   .containsExactly("gitlabCredentialsProperties");
               assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
-                  .containsExactly("gitlabOkHttpClient");
+                  .containsExactlyInAnyOrder("gitlabOkHttpClient", "okHttpClient");
             });
   }
 }

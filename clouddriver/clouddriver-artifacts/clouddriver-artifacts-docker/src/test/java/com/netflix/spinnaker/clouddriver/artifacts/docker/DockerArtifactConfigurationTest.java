@@ -48,7 +48,7 @@ public class DockerArtifactConfigurationTest {
                       "dockerArtifactCredentialsRepository",
                       "credentialsRepository.artifacts-helm-oci");
               assertThat(ctx.getBeanNamesForType(OkHttpClient.class))
-                  .containsExactly("helmOciOkHttpClient");
+                  .containsExactlyInAnyOrder("helmOciOkHttpClient", "okHttpClient");
             });
   }
 }
