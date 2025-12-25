@@ -35,8 +35,13 @@ class JenkinsArtifactConfiguration {
   private final JenkinsProperties jenkinsProperties;
 
   @Bean
+  OkHttpClient jenkinsOkHttpClient() {
+    return new OkHttpClient();
+  }
+
+  @Bean
   public CredentialsTypeProperties<JenkinsArtifactCredentials, JenkinsArtifactAccount>
-      jenkinsCredentialsProperties(OkHttpClient okHttpClient) {
+      jenkinsCredentialsProperties(OkHttpClient jenkinsOkHttpClient) {
     return CredentialsTypeProperties.<JenkinsArtifactCredentials, JenkinsArtifactAccount>builder()
         .type(JenkinsArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(JenkinsArtifactCredentials.class)
@@ -52,7 +57,7 @@ class JenkinsArtifactConfiguration {
         .credentialsParser(
             a -> {
               try {
-                return new JenkinsArtifactCredentials(a, okHttpClient);
+                return new JenkinsArtifactCredentials(a, jenkinsOkHttpClient);
               } catch (Exception e) {
                 log.warn("Failure instantiating jenkins artifact account {}: ", a, e);
                 return null;
