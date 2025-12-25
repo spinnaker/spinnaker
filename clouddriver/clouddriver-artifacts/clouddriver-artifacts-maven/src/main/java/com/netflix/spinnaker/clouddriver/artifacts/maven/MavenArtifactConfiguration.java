@@ -34,8 +34,13 @@ class MavenArtifactConfiguration {
   private final MavenArtifactProviderProperties mavenArtifactProviderProperties;
 
   @Bean
+  OkHttpClient mavenOkHttpClient() {
+    return new OkHttpClient();
+  }
+
+  @Bean
   public CredentialsTypeProperties<MavenArtifactCredentials, MavenArtifactAccount>
-      mavenCredentialsProperties(OkHttpClient okHttpClient) {
+      mavenCredentialsProperties(OkHttpClient mavenOkHttpClient) {
     return CredentialsTypeProperties.<MavenArtifactCredentials, MavenArtifactAccount>builder()
         .type(MavenArtifactCredentials.CREDENTIALS_TYPE)
         .credentialsClass(MavenArtifactCredentials.class)
@@ -44,7 +49,7 @@ class MavenArtifactConfiguration {
         .credentialsParser(
             a -> {
               try {
-                return new MavenArtifactCredentials(a, okHttpClient);
+                return new MavenArtifactCredentials(a, mavenOkHttpClient);
               } catch (Exception e) {
                 log.warn("Failure instantiating maven artifact account {}: ", a, e);
                 return null;
