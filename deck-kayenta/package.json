@@ -10,7 +10,7 @@
   "typings": "build/dist/index.d.ts",
   "engines": {
     "node": ">=20.19.4",
-    "npm": ">=10.8.2",
+    "npm": ">=11.5.1",
     "yarn": ">=1.21.1"
   },
   "scripts": {
