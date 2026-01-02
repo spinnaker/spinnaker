@@ -20,7 +20,6 @@ import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonErrorContainer;
-import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpTransport;
@@ -144,15 +143,6 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
                     .setDomain(config.getDomain())
                     .setUserKey(email)
                     .buildHttpRequest();
-            HttpBackOffUnsuccessfulResponseHandler handler =
-                new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff());
-            handler.setBackOffRequired(
-                response -> {
-                  int code = response.getStatusCode();
-                  // 403 is Google's Rate limit exceeded response.
-                  return code == 403 || code / 100 == 5;
-                });
-            request.setUnsuccessfulResponseHandler(handler);
             batch.queue(request, Groups.class, GoogleJsonErrorContainer.class, callback);
 
           } catch (IOException ioe) {
@@ -160,13 +150,70 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
           }
         });
 
-    try {
-      batch.execute();
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
-    }
+    // Execute batch with retry logic for rate limiting and server errors
+    // Note: Individual request handlers don't work with BatchRequest, so we retry the entire batch
+    executeBatchWithRetry(batch);
 
     return emailGroupsMap;
+  }
+
+  /**
+   * Execute a batch request with exponential backoff retry for rate limiting (403) and server
+   * errors (5xx).
+   *
+   * @param batch the batch request to execute
+   * @throws RuntimeException if the batch fails after all retries
+   */
+  private void executeBatchWithRetry(BatchRequest batch) {
+    ExponentialBackOff backoff = new ExponentialBackOff();
+    long backoffTime = 0;
+    int attempt = 0;
+    final int maxAttempts = 3;
+
+    while (attempt < maxAttempts) {
+      attempt++;
+      try {
+        if (backoffTime > 0) {
+          log.debug("Backing off for {} ms before retry attempt {}", backoffTime, attempt);
+          Thread.sleep(backoffTime);
+        }
+
+        batch.execute();
+        return; // Success!
+
+      } catch (com.google.api.client.http.HttpResponseException e) {
+        int statusCode = e.getStatusCode();
+        boolean shouldRetry = (statusCode == 403 || statusCode / 100 == 5) && attempt < maxAttempts;
+
+        if (shouldRetry) {
+          try {
+            backoffTime = backoff.nextBackOffMillis();
+          } catch (IOException ioe) {
+            log.error("Failed to calculate backoff time", ioe);
+            throw new RuntimeException(ioe);
+          }
+          log.warn(
+              "Batch request failed with status {}: {}. Retrying (attempt {}/{}) after {} ms",
+              statusCode,
+              e.getMessage(),
+              attempt,
+              maxAttempts,
+              backoffTime);
+        } else {
+          log.error(
+              "Batch request failed with status {} after {} attempts: {}",
+              statusCode,
+              attempt,
+              e.getMessage());
+          throw new RuntimeException(e);
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Interrupted during batch retry backoff", e);
+      } catch (IOException ioe) {
+        throw new RuntimeException(ioe);
+      }
+    }
   }
 
   @Override
