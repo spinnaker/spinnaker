@@ -18,22 +18,20 @@ package com.netflix.spinnaker.kork.artifacts.artifactstore.s3;
 import static com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStore.ENFORCE_PERMS_KEY;
 
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDecorator;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreStorer;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURIBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Base64;
 import java.util.regex.Pattern;
 import lombok.extern.log4j.Log4j2;
-import org.apache.hc.core5.http.HttpStatus;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 
@@ -72,7 +70,7 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
    * provide the proper execution id
    */
   @Override
-  public Artifact store(Artifact artifact) {
+  public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
     String application = AuthenticatedRequest.getSpinnakerApplication().orElse(null);
     if (application == null) {
       log.warn("failed to retrieve application from request artifact={}", artifact.getName());
@@ -98,13 +96,16 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
     }
 
     ArtifactReferenceURI ref = uriBuilder.buildArtifactURI(application, artifact);
-    Artifact remoteArtifact =
-        artifact.toBuilder()
-            .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
-            .reference(ref.uri())
-            .build();
+    Artifact.ArtifactBuilder builder =
+        artifact.toBuilder().type(ArtifactTypes.REMOTE_BASE64.getMimeType()).reference(ref.uri());
 
+    for (ArtifactDecorator decorator : decorators) {
+      builder = decorator.decorate(builder);
+    }
+
+    Artifact remoteArtifact = builder.build();
     if (objectExists(ref)) {
+      log.debug("Artifact exists. No need to store. reference={}", ref.uri());
       return remoteArtifact;
     }
 
@@ -144,47 +145,10 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
    * dynamodb.
    */
   private boolean objectExists(ArtifactReferenceURI uri) {
-    HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucket).key(uri.paths()).build();
-    try {
-      s3Client.headObject(request);
-      log.debug("Artifact exists. No need to store. reference={}", uri.uri());
-      return true;
-    } catch (NoSuchKeyException e) {
-      // pretty gross that we need to use exceptions as control flow, but the
-      // java SDK doesn't have any other way of check if an object exists in s3
-      log.info("Artifact does not exist reference={}", uri.uri());
-      return false;
-    } catch (S3Exception e) {
-      int statusCode = e.statusCode();
-      log.error(
-          "Artifact store failed head object request statusCode={} reference={}",
-          statusCode,
-          uri.uri());
+    ListObjectsV2Request request =
+        ListObjectsV2Request.builder().bucket(bucket).prefix(uri.paths()).maxKeys(1).build();
 
-      if (statusCode != 0) {
-        // due to this being a HEAD request, there is no message giving a clear
-        // indication of what failed. Rather than seeing a useful message back
-        // to gate, we instead see just null. To alleviate this, we wrap the
-        // exception with a more meaningful message
-        throw new SpinnakerException(buildHeadObjectExceptionMessage(e), e);
-      }
-
-      throw new SpinnakerException("S3 head object failed", e);
-    }
-  }
-
-  /**
-   * S3's head object can only return 400, 403, and 404, and based on the HTTP status code, we will
-   * return the appropriate message back
-   */
-  private static String buildHeadObjectExceptionMessage(S3Exception e) {
-    switch (e.statusCode()) {
-      case HttpStatus.SC_FORBIDDEN:
-        return "Failed to query artifact due to IAM permissions either on the bucket or object";
-      case HttpStatus.SC_BAD_REQUEST:
-        return "Failed to query artifact due to invalid request";
-      default:
-        return String.format("Failed to query artifact: %d", e.statusCode());
-    }
+    ListObjectsV2Response resp = s3Client.listObjectsV2(request);
+    return resp.hasContents();
   }
 }
