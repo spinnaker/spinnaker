@@ -30,6 +30,10 @@ export class PipelineConfigService {
       });
   }
 
+  public static getPipelineForApplication(applicationName: string, pipelineName: string): PromiseLike<IPipeline> {
+    return REST('/applications').path(applicationName, 'pipelineConfigs', pipelineName).get();
+  }
+
   public static getStrategiesForApplication(applicationName: string): PromiseLike<IPipeline[]> {
     return REST('/applications')
       .path(applicationName, 'strategyConfigs')
