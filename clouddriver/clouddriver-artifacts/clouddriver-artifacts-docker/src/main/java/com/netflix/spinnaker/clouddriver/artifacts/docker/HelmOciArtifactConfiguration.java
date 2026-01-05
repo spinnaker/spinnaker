@@ -37,9 +37,14 @@ import org.springframework.context.annotation.Configuration;
 class HelmOciArtifactConfiguration {
 
   @Bean
+  OkHttpClient helmOciOkHttpClient() {
+    return new OkHttpClient();
+  }
+
+  @Bean
   public CredentialsTypeProperties<HelmOciDockerArtifactCredentials, HelmOciDockerArtifactAccount>
       helmOciDockerCredentialsProperties(
-          OkHttpClient okHttpClient,
+          OkHttpClient helmOciOkHttpClient,
           HelmOciFileSystem helmChartsFileSystem,
           ServiceClientProvider serviceClientProvider,
           HelmOciDockerArtifactProviderProperties helmOciDockerArtifactProviderProperties) {
@@ -53,7 +58,7 @@ class HelmOciArtifactConfiguration {
             a -> {
               try {
                 return new HelmOciDockerArtifactCredentials(
-                    a, okHttpClient, helmChartsFileSystem, serviceClientProvider);
+                    a, helmOciOkHttpClient, helmChartsFileSystem, serviceClientProvider);
               } catch (Exception e) {
                 log.warn("Failure instantiating Docker artifact account {}: ", a, e);
                 return null;
