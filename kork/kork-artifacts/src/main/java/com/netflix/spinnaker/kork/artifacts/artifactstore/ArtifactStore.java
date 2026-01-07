@@ -15,7 +15,11 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
+import com.netflix.spinnaker.kork.artifacts.artifactstore.filters.ApplicationStorageFilter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
@@ -28,20 +32,59 @@ public class ArtifactStore implements ArtifactStoreGetter, ArtifactStoreStorer {
 
   private final ArtifactStoreStorer artifactStoreStorer;
 
+  private final Map<String, List<ApplicationStorageFilter>> exclude;
+
   public ArtifactStore(
-      ArtifactStoreGetter artifactStoreGetter, ArtifactStoreStorer artifactStoreStorer) {
+      ArtifactStoreGetter artifactStoreGetter,
+      ArtifactStoreStorer artifactStoreStorer,
+      Map<String, List<ApplicationStorageFilter>> exclude) {
     this.artifactStoreGetter = artifactStoreGetter;
     this.artifactStoreStorer = artifactStoreStorer;
+    this.exclude = exclude;
   }
 
-  /** Store an artifact in the artifact store */
-  public Artifact store(Artifact artifact) {
-    return artifactStoreStorer.store(artifact);
+  public boolean shouldExclude(String type, String application) {
+    return application == null
+        || this.exclude.containsKey(type)
+            && this.exclude.get(type).stream().anyMatch((filter) -> filter.filter(application));
+  }
+
+  /**
+   * Store an artifact in the artifact store.
+   *
+   * <p>This method checks if the artifact should be excluded based on the current application
+   * context and the configured exclusion filters. If the artifact should be excluded, it will be
+   * returned unchanged. Otherwise, it will be stored using the configured artifact store
+   * implementation.
+   *
+   * <p>If the application context is null (i.e., no authenticated application is available), the
+   * original artifact will be returned without storing it, and a warning will be logged.
+   *
+   * @param artifact The artifact to store
+   * @param decorators Optional decorators to apply to the artifact before storing
+   * @return The stored artifact, or the original artifact if storage was skipped due to filtering
+   *     or if no application context is available
+   */
+  public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
+    String application = AuthenticatedRequest.getSpinnakerApplication().orElse(null);
+    if (application == null) {
+      log.warn("failed to retrieve application from request artifact={}", artifact.getName());
+      return artifact;
+    }
+
+    String type = artifact.getType();
+    if (this.exclude.containsKey(type)
+        && this.exclude.get(type).stream().anyMatch((filter) -> filter.filter(application))) {
+      log.debug(
+          "excluding artifact type for application type={} application={}", type, application);
+      return artifact;
+    }
+    return artifactStoreStorer.store(artifact, decorators);
   }
 
   /**
    * get is used to return an artifact with some id, while also decorating that artifact with any
-   * necessary fields needed which should be then be returned by the artifact store.
+   * necessary fields needed that should then be returned by the artifact store.
    */
   public Artifact get(ArtifactReferenceURI uri, ArtifactDecorator... decorators) {
     return artifactStoreGetter.get(uri, decorators);
