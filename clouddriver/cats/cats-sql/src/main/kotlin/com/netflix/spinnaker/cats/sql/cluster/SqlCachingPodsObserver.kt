@@ -195,6 +195,10 @@ class SqlCachingPodsObserver (
     log.debug("Pod count : {} and current pod's index : {}", podCount, podIndex)
   }
 
+  fun getPodIndex(): Int = podIndex
+
+  fun getPodCount(): Int = podCount
+
   override fun filter(agent: Agent) : Boolean{
     if(agent.providerName.equals(CoreProvider.PROVIDER_NAME)){
       return true
