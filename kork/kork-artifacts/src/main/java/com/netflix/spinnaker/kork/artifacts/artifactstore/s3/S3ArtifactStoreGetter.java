@@ -62,6 +62,7 @@ public class S3ArtifactStoreGetter implements ArtifactStoreGetter {
             .orElseThrow(
                 () -> new NoSuchElementException("Could not authenticate due to missing user id")));
 
+    log.debug("Attempting to get artifact reference={} s3Key={}", uri.uri(), uri.paths());
     GetObjectRequest request = GetObjectRequest.builder().bucket(bucket).key(uri.paths()).build();
 
     ResponseBytes<GetObjectResponse> resp = s3Client.getObjectAsBytes(request);
