@@ -250,7 +250,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
             .setDomain(config.getDomain())
             .setUserKey(email)
             .buildHttpRequest()
-            .setUnsuccessfulResponseHandler(getHttpBackOffUnsuccessfulResponseHandler())
+            .setUnsuccessfulResponseHandler(getGCPBackoffHandlerForGoogleApiRateLImitedCalls())
             .execute()
             .parseAs(Groups.class);
 
@@ -265,7 +265,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
               .setUserKey(email)
               .setPageToken(nextPageToken)
               .buildHttpRequest()
-              .setUnsuccessfulResponseHandler(getHttpBackOffUnsuccessfulResponseHandler())
+              .setUnsuccessfulResponseHandler(getGCPBackoffHandlerForGoogleApiRateLImitedCalls())
               .execute()
               .parseAs(Groups.class);
       groups.getGroups().addAll(nextPage.getGroups());
@@ -274,15 +274,15 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     return groups;
   }
 
-  private static HttpBackOffUnsuccessfulResponseHandler
-      getHttpBackOffUnsuccessfulResponseHandler() {
+  public static HttpBackOffUnsuccessfulResponseHandler
+      getGCPBackoffHandlerForGoogleApiRateLImitedCalls() {
     HttpBackOffUnsuccessfulResponseHandler handler =
         new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff());
     handler.setBackOffRequired(
         response -> {
           int code = response.getStatusCode();
           // 403 is Google's Rate limit exceeded response.
-          return code == 403 || code / 100 == 5;
+          return code == 403 || code == 429 || code / 100 == 5;
         });
     return handler;
   }

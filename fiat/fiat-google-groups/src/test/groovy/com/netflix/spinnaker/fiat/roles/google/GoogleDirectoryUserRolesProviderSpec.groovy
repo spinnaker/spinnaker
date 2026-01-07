@@ -1,9 +1,14 @@
 package com.netflix.spinnaker.fiat.roles.google
 
+import com.google.api.client.http.CreateFakeHttpResponse
+import com.google.api.client.http.HttpResponse
+import com.google.api.client.testing.http.HttpTesting
+import com.google.api.client.testing.http.MockHttpTransport
+import com.google.api.client.testing.http.MockLowLevelHttpResponse
+import com.google.api.services.directory.model.Group
+import com.google.api.services.directory.model.Groups
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.permissions.ExternalUser
-import com.google.api.services.directory.model.Group;
-import com.google.api.services.directory.model.Groups;
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -114,6 +119,23 @@ class GoogleDirectoryUserRolesProviderSpec extends Specification {
 
   }
 
+  @Unroll
+  def "verify that 403 and 429 and 500 errors trigger a retry"() {
+    given:
+    def retryHandler = new GoogleDirectoryUserRolesProvider().getGCPBackoffHandlerForGoogleApiRateLImitedCalls();
+
+     when:
+      def httpResponse = CreateFakeHttpResponse.create(mockResponseCode)
+      httpResponse.getStatusCode() >> mockResponseCode
+    then:
+    retryHandler.getBackOffRequired().isRequired(httpResponse) == isRequired
+    where:
+    mockResponseCode | isRequired
+    403              | true
+    429              | true
+    500              | true
+    200              | false
+  }
 
   @Unroll
   def "should parallel load groups as needed"() {
@@ -126,7 +148,7 @@ class GoogleDirectoryUserRolesProviderSpec extends Specification {
       protected Groups getGroupsFromEmail(String email) throws IOException {
         switch (email) {
           case "root@example.com":
-            return  new Groups(groups : [
+            return new Groups(groups: [
               new Group(email: "child1@example.com"),
               new Group(email: "child2@example.com")
             ])
