@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.cats.sql.cache
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
@@ -23,15 +24,22 @@ import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.cats.test.TestAgent
 import com.netflix.spinnaker.cats.test.TestProvider
+import com.netflix.spinnaker.cats.cluster.NoopShardingFilter
+import com.netflix.spinnaker.cats.cluster.ShardingFilter
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
 import com.netflix.spinnaker.config.SqlConstraints
 import com.netflix.spinnaker.config.SqlConstraintsInitializer
 import com.netflix.spinnaker.config.SqlConstraintsProperties
+import com.netflix.spinnaker.config.SqlUnknownAgentCleanupProperties
+import com.netflix.spinnaker.cats.sql.cluster.SqlCachingPodsObserver
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
+import io.mockk.mockk
+import java.util.concurrent.TimeUnit
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
@@ -76,7 +84,7 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
           that(selectAllRels()).describedAs("initial relationships").hasSize(2)
         }
 
-        subject.run()
+        subject().run()
 
         expect {
           that(selectAllResources()).describedAs("modified resources").hasSize(2)
@@ -89,7 +97,7 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
           fixture.providerAgents.removeIf { it.scope == "test" }
         }
 
-        before { subject.run() }
+        before { subject().run() }
 
         test("relationships referencing old data are deleted") {
           expectThat(selectAllResources())
@@ -110,8 +118,214 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
 
       test("error is not thrown when table does not exist for type for which agent is authoritative") {
         assertDoesNotThrow {
-          subject.run()
+          subject().run()
         }
+      }
+    }
+
+    context("sharding-aware cleanup") {
+      deriveFixture {
+        fixture.providerAgents.add(prodCachingAgent())
+        seedDatabase(includeTestAccount = true, includeProdAccount = true)
+        fixture
+      }
+
+      test("preserves other pods' data when sharding filter denies unknown agent") {
+        val shardingFilter = object : ShardingFilter {
+          override fun filter(agent: Agent): Boolean = agent.agentType.startsWith("prod/")
+        }
+
+        subject(shardingFilter = shardingFilter).run()
+
+        expectThat(selectAllResources()).hasSize(2)
+        expectThat(selectAllRels()).hasSize(2)
+      }
+
+      test("deletes unknown rows for handled accounts") {
+        val shardingFilter = object : ShardingFilter {
+          override fun filter(agent: Agent): Boolean =
+            agent.agentType.startsWith("prod/") || agent.agentType.startsWith("staging/")
+        }
+        seedDatabase(includeTestAccount = false, includeProdAccount = true, includeStagingAccount = true)
+
+        subject(shardingFilter = shardingFilter).run()
+
+        expectThat(selectAllResources()).hasSize(1)[0].isEqualTo("aws:instances:prod:us-east-1:i-abcd1234")
+      }
+    }
+
+    context("safety: sharding state unknown") {
+      deriveFixture {
+        fixture.providerAgents.add(prodCachingAgent())
+        seedDatabase(includeTestAccount = true, includeProdAccount = true)
+        fixture
+      }
+
+      test("skips run when sql sharding state is not established") {
+        val observer = mockk<SqlCachingPodsObserver>()
+        every { observer.filter(any()) } returns true
+        every { observer.getPodIndex() } returns -1
+        every { observer.getPodCount() } returns 0
+
+        subject(shardingFilter = observer).run()
+
+        expectThat(selectAllResources()).hasSize(2)
+        expectThat(selectAllRels()).hasSize(2)
+      }
+    }
+
+    context("empty registry") {
+      deriveFixture {
+        seedDatabase(includeTestAccount = true, includeProdAccount = true)
+        fixture
+      }
+
+      test("skips cleanup when no agents are registered") {
+        subject().run()
+
+        expectThat(selectAllResources()).hasSize(2)
+        expectThat(selectAllRels()).hasSize(2)
+      }
+    }
+
+    context("safety: sharding enabled but noop filter") {
+      deriveFixture {
+        fixture.providerAgents.add(prodCachingAgent())
+        seedDatabase(includeTestAccount = true, includeProdAccount = true)
+        fixture
+      }
+
+      test("skips run when sharding is enabled but noop filter is used") {
+        subject(shardingFilter = NoopShardingFilter(), shardingEnabled = true).run()
+
+        expectThat(selectAllResources()).hasSize(2)
+        expectThat(selectAllRels()).hasSize(2)
+      }
+    }
+
+    context("age guard, dry-run, exclusions") {
+      deriveFixture {
+        fixture.providerAgents.add(prodCachingAgent())
+        seedDatabase(includeTestAccount = true, includeProdAccount = true)
+        fixture
+      }
+
+      test("skips recent records when minRecordAgeSeconds is set") {
+        val props = defaultCleanupProperties().apply { minRecordAgeSeconds = 300 }
+        dslContext.update(table(defaultSqlNames().resourceTableName("instances")))
+          .set(field("last_updated"), System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(600))
+          .where(field("agent").eq("test/TestAgent"))
+          .execute()
+
+        subject(cleanupProperties = props).run()
+
+        expectThat(selectAllResources()).hasSize(1)[0].isEqualTo("aws:instances:prod:us-east-1:i-abcd1234")
+      }
+
+      test("does not delete when dryRun is enabled") {
+        val props = defaultCleanupProperties().apply { dryRun = true }
+
+        subject(cleanupProperties = props).run()
+
+        expectThat(selectAllResources()).hasSize(2)
+        expectThat(selectAllRels()).hasSize(2)
+      }
+
+      test("skips excluded data types") {
+        val props = defaultCleanupProperties().apply {
+          excludedDataTypes = listOf("instances")
+        }
+
+        subject(cleanupProperties = props).run()
+
+        expectThat(selectAllResources()).hasSize(2)
+        expectThat(selectAllRels()).hasSize(2)
+      }
+    }
+
+    context("batching, null timestamps, and wiring") {
+      deriveFixture {
+        fixture.providerAgents.add(prodCachingAgent())
+        seedDatabase(includeTestAccount = true, includeProdAccount = true)
+        fixture
+      }
+
+      test("uses delete batch size when cleaning multiple unknown rows") {
+        // Add additional unknown rows to force multiple batches
+        val now = System.currentTimeMillis()
+        val resourceTable = defaultSqlNames().resourceTableName("instances")
+        val relTable = defaultSqlNames().relTableName("instances")
+
+        listOf("i-extra1", "i-extra2").forEach { suffix ->
+          dslContext.insertInto(table(resourceTable))
+            .columns(
+              field("id"), field("agent"), field("application"), field("body_hash"), field("body"), field("last_updated")
+            )
+            .values(
+              "aws:instances:test:us-east-1:$suffix",
+              "test/TestAgent",
+              "myapp",
+              "",
+              "",
+              now
+            )
+            .execute()
+
+          dslContext.insertInto(table(relTable))
+            .columns(
+              field("uuid"),
+              field("id"),
+              field("rel_id"),
+              field("rel_agent"),
+              field("rel_type"),
+              field("last_updated")
+            )
+            .values(
+              ULID().nextULID(),
+              "aws:instances:test:us-east-1:$suffix",
+              "aws:serverGroups:myapp-test:test:us-east-1:myapp-test-v000",
+              "serverGroups:test/TestAgent",
+              "serverGroups",
+              now
+            )
+            .execute()
+        }
+
+        val props = defaultCleanupProperties().apply {
+          deleteBatchSize = 1
+          minRecordAgeSeconds = 0
+        }
+
+        subject(cleanupProperties = props).run()
+
+        expectThat(selectAllResources()).hasSize(1)[0].isEqualTo("aws:instances:prod:us-east-1:i-abcd1234")
+        expectThat(selectAllRels()).hasSize(1)[0].isEqualTo("aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000")
+      }
+
+      test("handles null last_updated on relationships when pruning unknown agents") {
+        dslContext.update(table(defaultSqlNames().relTableName("instances")))
+          .set(field("last_updated"), null as Long?)
+          .where(field("rel_agent").eq("serverGroups:test/TestAgent"))
+          .execute()
+
+        val props = defaultCleanupProperties().apply { minRecordAgeSeconds = 300 }
+
+        subject(cleanupProperties = props).run()
+
+        expectThat(selectAllResources()).hasSize(1)[0].isEqualTo("aws:instances:prod:us-east-1:i-abcd1234")
+        expectThat(selectAllRels()).hasSize(1)[0].isEqualTo("aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000")
+      }
+
+      test("poll and timeout use property overrides") {
+        val props = defaultCleanupProperties().apply {
+          pollIntervalSeconds = 7
+          timeoutSeconds = 9
+        }
+
+        val agent = subject(cleanupProperties = props)
+
+        expectThat(agent.getPollIntervalMillis()).isEqualTo(TimeUnit.SECONDS.toMillis(7))
+        expectThat(agent.getTimeoutMillis()).isEqualTo(TimeUnit.SECONDS.toMillis(9))
       }
     }
   }
@@ -131,9 +345,25 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
     )
     val registry = NoopRegistry()
 
-    val subject = SqlUnknownAgentCleanupAgent(StaticObjectProvider(providerRegistry), dslContext, registry, defaultSqlNames())
+    fun defaultCleanupProperties(): SqlUnknownAgentCleanupProperties =
+      SqlUnknownAgentCleanupProperties().apply { minRecordAgeSeconds = 0 }
 
-    fun seedDatabase(includeTestAccount: Boolean, includeProdAccount: Boolean) {
+    fun subject(
+      shardingFilter: ShardingFilter = AllowAllShardingFilter(),
+      cleanupProperties: SqlUnknownAgentCleanupProperties = defaultCleanupProperties(),
+      shardingEnabled: Boolean = false
+    ): SqlUnknownAgentCleanupAgent =
+      SqlUnknownAgentCleanupAgent(
+        StaticObjectProvider(providerRegistry),
+        dslContext,
+        registry,
+        defaultSqlNames(),
+        cleanupProperties,
+        shardingFilter,
+        shardingEnabled
+      )
+
+    fun seedDatabase(includeTestAccount: Boolean, includeProdAccount: Boolean, includeStagingAccount: Boolean = false) {
       defaultSqlNames().run {
         val resource = resourceTableName("instances")
         val rel = relTableName("instances")
@@ -166,6 +396,21 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
               .values(
                 "aws:instances:test:us-east-1:i-abcd1234",
                 "test/TestAgent",
+                "myapp",
+                "",
+                "",
+                System.currentTimeMillis()
+              )
+          } else {
+            it
+          }
+        }
+        .let {
+          if (includeStagingAccount) {
+            it
+              .values(
+                "aws:instances:staging:us-east-1:i-abcd1234",
+                "staging/TestAgent",
                 "myapp",
                 "",
                 "",
@@ -209,6 +454,21 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
                 "aws:instances:test:us-east-1:i-abcd1234",
                 "aws:serverGroups:myapp-test:test:us-east-1:myapp-test-v000",
                 "serverGroups:test/TestAgent",
+                "serverGroups",
+                System.currentTimeMillis()
+              )
+          } else {
+            it
+          }
+        }
+        .let {
+          if (includeStagingAccount) {
+            it
+              .values(
+                ULID().nextULID(),
+                "aws:instances:staging:us-east-1:i-abcd1234",
+                "aws:serverGroups:myapp-staging:staging:us-east-1:myapp-staging-v000",
+                "serverGroups:staging/TestAgent",
                 "serverGroups",
                 System.currentTimeMillis()
               )
@@ -282,5 +542,9 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
     override fun getObject(vararg args: Any?): ProviderRegistry = obj
     override fun getObject(): ProviderRegistry = obj
     override fun getIfAvailable(): ProviderRegistry = obj
+  }
+
+  private class AllowAllShardingFilter : ShardingFilter {
+    override fun filter(agent: Agent): Boolean = true
   }
 }
