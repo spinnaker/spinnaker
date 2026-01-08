@@ -135,6 +135,13 @@ class EvaluateVariablesStageSpec extends Specification {
 
     then:
     shouldContinue == false
+
+    // If the processDefaultEntries failure isn't accounted for properly, the
+    // first variable can be treated as failed to evaluate, even when it's
+    // correct.  Explicitly assert that the first variable is correct so it's
+    // easier to see when something isn't working than with assert on all
+    // variables.
+    stage.context.variables[0].value == correctVars[0].value
     stage.context.variables == correctVars
     summary.totalEvaluated == 5
     summary.failureCount == 1
