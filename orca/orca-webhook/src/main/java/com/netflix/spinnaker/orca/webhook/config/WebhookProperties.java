@@ -214,6 +214,8 @@ public class WebhookProperties {
     public String cancelEndpoint;
     public HttpMethod cancelMethod;
     public String cancelPayload;
+    public Integer waitBeforeMonitor;
+    public List<Integer> retryStatusCodes;
 
     public List<String> getPreconfiguredProperties() {
       return ALL_FIELDS.stream()
