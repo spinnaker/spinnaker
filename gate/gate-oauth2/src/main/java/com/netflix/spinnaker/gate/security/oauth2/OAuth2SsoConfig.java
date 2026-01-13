@@ -17,10 +17,14 @@ package com.netflix.spinnaker.gate.security.oauth2;
 
 import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
+import java.time.Duration;
 import java.util.HashMap;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -29,10 +33,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @SpinnakerAuthConfig
@@ -43,9 +53,17 @@ public class OAuth2SsoConfig {
   @Autowired private SpinnakerOAuth2UserInfoService customOAuth2UserService;
   @Autowired private SpinnakerOIDCUserInfoService oidcUserInfoService;
   @Autowired private DefaultCookieSerializer defaultCookieSerializer;
+  @Autowired private ClientRegistrationRepository clientRegistrationRepository;
+  @Autowired private OAuthUserInfoServiceHelper userInfoServiceHelper;
 
   @Autowired
   private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient;
+
+  @Value("${spring.security.oauth2.external-auth-token-filter.connect-timeout-ms:5000}")
+  private long connectTimeoutMs;
+
+  @Value("${spring.security.oauth2.external-auth-token-filter.read-timeout-ms:5000}")
+  private long readTimeoutMs;
 
   @Bean
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
@@ -69,7 +87,38 @@ public class OAuth2SsoConfig {
                     // OAuth2 provider)
                     .tokenEndpoint()
                     .accessTokenResponseClient(tokenResponseClient));
+
+    // Add external auth token filter if there is a registration ID
+    String registrationId = getFirstRegistrationId();
+    if (registrationId != null) {
+      RestTemplate restTemplate = createRestTemplateWithTimeouts();
+      ExternalAuthTokenFilter externalAuthTokenFilter =
+          new ExternalAuthTokenFilter(
+              clientRegistrationRepository, userInfoServiceHelper, registrationId, restTemplate);
+      httpSecurity.addFilterBefore(externalAuthTokenFilter, OAuth2LoginAuthenticationFilter.class);
+    }
+
     return httpSecurity.build();
+  }
+
+  private RestTemplate createRestTemplateWithTimeouts() {
+    return new RestTemplateBuilder()
+        .setConnectTimeout(Duration.ofMillis(connectTimeoutMs))
+        .setReadTimeout(Duration.ofMillis(readTimeoutMs))
+        .build();
+  }
+
+  private String getFirstRegistrationId() {
+    if (clientRegistrationRepository instanceof InMemoryClientRegistrationRepository inMemoryRepo) {
+      for (ClientRegistration registration : inMemoryRepo) {
+        return registration.getRegistrationId();
+      }
+    }
+    log.warn(
+        "ClientRegistrationRepository is not an InMemoryClientRegistrationRepository (found: {}). "
+            + "ExternalAuthTokenFilter will not be enabled.",
+        clientRegistrationRepository.getClass().getName());
+    return null;
   }
 
   /**
