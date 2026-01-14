@@ -108,5 +108,10 @@ class OAuth2ConfigurationTest {
     ClientRegistrationRepository clientRegistrationRepository() {
       return mock(ClientRegistrationRepository.class);
     }
+
+    @Bean
+    OAuthUserInfoServiceHelper oAuthUserInfoServiceHelper() {
+      return mock(OAuthUserInfoServiceHelper.class);
+    }
   }
 }
