@@ -61,6 +61,14 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
   private final RestTemplate restTemplate;
   private final String registrationId;
 
+  /**
+   * Constructs a new ExternalAuthTokenFilter.
+   *
+   * @param clientRegistrationRepository repository for looking up OAuth2 client registrations
+   * @param userInfoServiceHelper helper service for converting OAuth2 user info to Spinnaker users
+   * @param registrationId the OAuth2 client registration ID to use for authentication
+   * @param restTemplate the RestTemplate to use for making HTTP requests to the user-info endpoint
+   */
   public ExternalAuthTokenFilter(
       ClientRegistrationRepository clientRegistrationRepository,
       OAuthUserInfoServiceHelper userInfoServiceHelper,
@@ -72,6 +80,19 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
     this.restTemplate = restTemplate;
   }
 
+  /**
+   * Processes the HTTP request to authenticate users via external bearer tokens.
+   *
+   * <p>If the request contains a valid bearer token in the Authorization header and the user is not
+   * already authenticated, this method will attempt to authenticate by calling the configured
+   * user-info endpoint and establishing a security context.
+   *
+   * @param request the HTTP servlet request
+   * @param response the HTTP servlet response
+   * @param filterChain the filter chain to continue processing
+   * @throws ServletException if a servlet error occurs
+   * @throws IOException if an I/O error occurs
+   */
   @Override
   protected void doFilterInternal(
       @NotNull HttpServletRequest request,
@@ -100,6 +121,12 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
+  /**
+   * Extracts the bearer token from the Authorization header of the request.
+   *
+   * @param request the HTTP servlet request
+   * @return the bearer token if present and properly formatted, or {@code null} otherwise
+   */
   private String extractBearerToken(HttpServletRequest request) {
     String authHeader = request.getHeader(AUTHORIZATION_HEADER);
     if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
@@ -108,6 +135,16 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
     return null;
   }
 
+  /**
+   * Authenticates a user using the provided OAuth2 access token.
+   *
+   * <p>This method retrieves the client registration, fetches user information from the configured
+   * user-info endpoint, and creates an authenticated OAuth2AuthenticationToken.
+   *
+   * @param accessToken the OAuth2 access token to authenticate with
+   * @return an OAuth2AuthenticationToken if authentication succeeds, or {@code null} if
+   *     authentication fails due to missing configuration or invalid token
+   */
   private OAuth2AuthenticationToken authenticateWithToken(String accessToken) {
     ClientRegistration clientRegistration =
         clientRegistrationRepository.findByRegistrationId(registrationId);
@@ -141,6 +178,13 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
     return new OAuth2AuthenticationToken(oauth2User, oauth2User.getAuthorities(), registrationId);
   }
 
+  /**
+   * Fetches user information from the OAuth2 provider's user-info endpoint.
+   *
+   * @param userInfoUri the URI of the user-info endpoint
+   * @param accessToken the OAuth2 access token to use for authentication
+   * @return a map containing the user attributes, or {@code null} if the request fails
+   */
   private Map<String, Object> fetchUserInfo(String userInfoUri, String accessToken) {
     try {
       HttpHeaders headers = new HttpHeaders();
