@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * <p>These properties control the HTTP client timeouts when calling the OAuth2 user-info endpoint.
  */
-@ConfigurationProperties("security.oauth2.external-auth-token-filter")
+@ConfigurationProperties(prefix = "security.oauth2.external-auth-token-filter")
 @Data
 public class ExternalAuthTokenFilterConfigurationProperties {
 
