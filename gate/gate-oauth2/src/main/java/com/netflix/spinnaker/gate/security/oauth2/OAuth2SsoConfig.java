@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.gate.security.oauth2;
 
 import com.netflix.spinnaker.gate.config.AuthConfig;
@@ -22,8 +23,8 @@ import java.util.HashMap;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -47,6 +48,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableWebSecurity
 @SpinnakerAuthConfig
 @Conditional(OAuthConfigEnabled.class)
+@EnableConfigurationProperties(ExternalAuthTokenFilterConfigurationProperties.class)
 public class OAuth2SsoConfig {
 
   @Autowired private AuthConfig authConfig;
@@ -59,11 +61,8 @@ public class OAuth2SsoConfig {
   @Autowired
   private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> tokenResponseClient;
 
-  @Value("${spring.security.oauth2.external-auth-token-filter.connect-timeout-ms:5000}")
-  private long connectTimeoutMs;
-
-  @Value("${spring.security.oauth2.external-auth-token-filter.read-timeout-ms:5000}")
-  private long readTimeoutMs;
+  @Autowired
+  private ExternalAuthTokenFilterConfigurationProperties externalAuthTokenFilterProperties;
 
   @Bean
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
@@ -103,8 +102,9 @@ public class OAuth2SsoConfig {
 
   private RestTemplate createRestTemplateWithTimeouts() {
     return new RestTemplateBuilder()
-        .setConnectTimeout(Duration.ofMillis(connectTimeoutMs))
-        .setReadTimeout(Duration.ofMillis(readTimeoutMs))
+        .setConnectTimeout(
+            Duration.ofMillis(externalAuthTokenFilterProperties.getConnectTimeoutMs()))
+        .setReadTimeout(Duration.ofMillis(externalAuthTokenFilterProperties.getReadTimeoutMs()))
         .build();
   }
 

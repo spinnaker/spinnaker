@@ -113,5 +113,11 @@ class OAuth2ConfigurationTest {
     OAuthUserInfoServiceHelper oAuthUserInfoServiceHelper() {
       return mock(OAuthUserInfoServiceHelper.class);
     }
+
+    @Bean
+    ExternalAuthTokenFilterConfigurationProperties
+        externalAuthTokenFilterConfigurationProperties() {
+      return new ExternalAuthTokenFilterConfigurationProperties();
+    }
   }
 }
