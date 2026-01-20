@@ -51,6 +51,11 @@ on:
     paths:
       - 'deck/**'
 
+# https://docs.npmjs.com/trusted-publishers#github-actions-configuration
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
