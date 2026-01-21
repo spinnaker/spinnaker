@@ -19,12 +19,10 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.SessionService
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter;
-import org.apache.commons.lang3.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.access.prepost.PreAuthorize
@@ -129,7 +127,7 @@ class AuthController {
    */
   @Operation(summary = "Sync user roles")
   @RequestMapping(value = "/roles/sync", method = RequestMethod.POST)
-  @PreAuthorize("@authController.isAdmin()")
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   void sync() {
     permissionService.sync()
   }
@@ -139,7 +137,7 @@ class AuthController {
    */
   @Operation(summary = "Delete session cache")
   @RequestMapping(value = "/deleteSessionCache", method = RequestMethod.POST)
-  @PreAuthorize("@authController.isAdmin()")
+  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   void deleteSessionCache() {
     sessionService.deleteSpringSessions()
   }
@@ -179,11 +177,5 @@ class AuthController {
 
     return toURL.host == deckBaseUrl.host &&
         toURLPort == deckBaseUrlPort
-  }
-
-  boolean isAdmin() {
-    return permissionService.isAdmin(
-        AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-    )
   }
 }
