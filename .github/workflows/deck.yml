@@ -71,4 +71,3 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           gar-json-key: ${{ secrets.GAR_JSON_KEY }}
           gar-npm-password: ${{ secrets.GAR_NPM_PASSWORD }}
-          npm-auth-token: ${{ secrets.NPM_AUTH_TOKEN }}
