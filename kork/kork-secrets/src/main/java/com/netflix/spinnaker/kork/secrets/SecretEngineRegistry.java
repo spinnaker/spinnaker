@@ -16,28 +16,43 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class SecretEngineRegistry {
-  private final ObjectProvider<SecretEngine> secretEngines;
+  private final Iterable<SecretEngine> secretEngines;
+
+  @Autowired
+  public SecretEngineRegistry(ObjectProvider<SecretEngine> secretEngines) {
+    this.secretEngines = secretEngines;
+  }
+
+  @VisibleForTesting
+  public SecretEngineRegistry(Iterable<SecretEngine> secretEngines) {
+    this.secretEngines = secretEngines;
+  }
 
   public List<SecretEngine> getSecretEngineList() {
-    return secretEngines.orderedStream().collect(Collectors.toList());
+    List<SecretEngine> engines = new ArrayList<>();
+    for (SecretEngine engine : secretEngines) {
+      engines.add(engine);
+    }
+    return engines;
   }
 
   @Nullable
   public SecretEngine getEngine(String key) {
-    return secretEngines
-        .orderedStream()
-        .filter(secretEngine -> secretEngine.identifier().equals(key))
-        .findFirst()
-        .orElse(null);
+    for (SecretEngine engine : secretEngines) {
+      if (key.equals(engine.identifier())) {
+        return engine;
+      }
+    }
+    return null;
   }
 }

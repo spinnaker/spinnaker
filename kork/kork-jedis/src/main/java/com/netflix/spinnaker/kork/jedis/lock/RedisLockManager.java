@@ -25,6 +25,8 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.patterns.LongTaskTimer;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.lock.RefreshableLockManager;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
@@ -34,8 +36,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.Nonnull;
-import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

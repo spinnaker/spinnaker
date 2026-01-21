@@ -20,6 +20,7 @@ import com.netflix.spinnaker.q.metrics.MessageProcessing
 import com.netflix.spinnaker.q.metrics.MessagePushed
 import com.netflix.spinnaker.q.metrics.MessageRescheduled
 import com.netflix.spinnaker.q.metrics.MessageRetried
+import com.netflix.spinnaker.q.metrics.MessageRetryFailed
 import com.netflix.spinnaker.q.metrics.QueuePolled
 import com.netflix.spinnaker.q.metrics.QueueState
 import com.netflix.spinnaker.q.metrics.RetryPolled
@@ -161,38 +162,44 @@ class RedisClusterQueue(
         }
 
         fingerprints.forEach { fingerprint ->
-          val attempts = jedisCluster.hgetInt(attemptsKey, fingerprint)
-          jedisCluster.readMessageWithoutLock(fingerprint) { message ->
-            val maxAttempts = message.getAttribute<MaxAttemptsAttribute>()?.maxAttempts ?: 0
+          try {
+            val attempts = jedisCluster.hgetInt(attemptsKey, fingerprint)
+            jedisCluster.readMessageWithoutLock(fingerprint) { message ->
+              val maxAttempts = message.getAttribute<MaxAttemptsAttribute>()?.maxAttempts ?: 0
 
-            /* If maxAttempts attribute is set, let poll() handle max retry logic.
-               If not, check for attempts >= Queue.maxRetries - 1, as attemptsKey is now
-               only incremented when retrying unacked messages vs. by readMessage*() */
-            if (maxAttempts == 0 && attempts >= Queue.maxRetries - 1) {
-              log.warn("Message $fingerprint with payload $message exceeded max retries")
-              handleDeadMessage(message)
-              jedisCluster.removeMessage(fingerprint)
-              fire(MessageDead)
-            } else {
-              if (jedisCluster.zismember(queueKey, fingerprint)) {
-                jedisCluster
-                  .multi {
-                    zrem(unackedKey, fingerprint)
-                    zadd(queueKey, score(), fingerprint)
-                    hincrBy(attemptsKey, fingerprint, 1L)
-                  }
-                log.info(
-                  "Not retrying message $fingerprint because an identical message " +
-                    "is already on the queue"
-                )
-                fire(MessageDuplicate(message))
+              /* If maxAttempts attribute is set, let poll() handle max retry logic.
+                 If not, check for attempts >= Queue.maxRetries - 1, as attemptsKey is now
+                 only incremented when retrying unacked messages vs. by readMessage*() */
+              if (maxAttempts == 0 && attempts >= Queue.maxRetries - 1) {
+                log.warn("Message $fingerprint with payload $message exceeded max retries")
+                handleDeadMessage(message)
+                jedisCluster.removeMessage(fingerprint)
+                fire(MessageDead)
               } else {
-                log.warn("Retrying message $fingerprint after $attempts attempts")
-                jedisCluster.hincrBy(attemptsKey, fingerprint, 1L)
-                jedisCluster.requeueMessage(fingerprint)
-                fire(MessageRetried)
+                if (jedisCluster.zismember(queueKey, fingerprint)) {
+                  jedisCluster
+                    .multi {
+                      zrem(unackedKey, fingerprint)
+                      zadd(queueKey, score(), fingerprint)
+                      hincrBy(attemptsKey, fingerprint, 1L)
+                    }
+                  log.info(
+                    "Not retrying message $fingerprint because an identical message " +
+                      "is already on the queue"
+                  )
+                  fire(MessageDuplicate(message))
+                } else {
+                  log.warn("Retrying message $fingerprint after $attempts attempts")
+                  jedisCluster.hincrBy(attemptsKey, fingerprint, 1L)
+                  jedisCluster.requeueMessage(fingerprint)
+                  fire(MessageRetried)
+                }
               }
             }
+          } catch (e: Throwable) {
+            log.error("Caught unhandled exception while retrying unacked message $fingerprint." +
+              "Ignoring it and proceeding with the rest of the messages in the unacked queue.", e)
+            fire(MessageRetryFailed)
           }
         }
       }
@@ -360,11 +367,14 @@ class RedisClusterQueue(
   fun JedisCluster.multi(block: Transaction.() -> Unit) =
     getConnectionFromSlot(JedisClusterCRC16.getSlot(queueKey))
       .use { c ->
-        c.multi()
-          .let { tx ->
-            tx.block()
-            tx.exec()
-          }
+        // Send MULTI command to start a transaction
+        c.sendCommand(redis.clients.jedis.Protocol.Command.MULTI)
+        // Wrap the connection in a Transaction object
+        val tx = Transaction(c)
+        // Execute the block on the Transaction
+        tx.block()
+        // Commit the transaction
+        tx.exec()
       }
 
   private fun ackMessage(fingerprint: String) {

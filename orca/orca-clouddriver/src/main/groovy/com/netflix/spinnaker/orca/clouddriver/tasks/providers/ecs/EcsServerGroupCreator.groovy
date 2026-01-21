@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.yaml.YamlHelper
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
@@ -52,7 +53,7 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
   final private OortService oortService
   private final ContextParameterProcessor contextParameterProcessor
   private static final ThreadLocal<Yaml> yamlParser =
-      ThreadLocal.withInitial({ -> new Yaml(new SafeConstructor()) })
+      ThreadLocal.withInitial({ -> YamlHelper.newYamlSafeConstructor() })
 
   final String cloudProvider = "ecs"
   final boolean katoResultExpected = false

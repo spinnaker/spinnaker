@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.igor.codebuild
 
-import com.amazonaws.services.codebuild.AWSCodeBuildClient
-import com.amazonaws.services.codebuild.model.BatchGetBuildsRequest
-import com.amazonaws.services.codebuild.model.BatchGetBuildsResult
-import com.amazonaws.services.codebuild.model.Build
-import com.amazonaws.services.codebuild.model.BuildArtifacts
-import com.amazonaws.services.codebuild.model.ListProjectsRequest
-import com.amazonaws.services.codebuild.model.ListProjectsResult
-import com.amazonaws.services.codebuild.model.ProjectSortByType
-import com.amazonaws.services.codebuild.model.StartBuildRequest
-import com.amazonaws.services.codebuild.model.StartBuildResult
+import software.amazon.awssdk.services.codebuild.CodeBuildClient
+import software.amazon.awssdk.services.codebuild.model.BatchGetBuildsRequest
+import software.amazon.awssdk.services.codebuild.model.BatchGetBuildsResponse
+import software.amazon.awssdk.services.codebuild.model.Build
+import software.amazon.awssdk.services.codebuild.model.BuildArtifacts
+import software.amazon.awssdk.services.codebuild.model.ListProjectsRequest
+import software.amazon.awssdk.services.codebuild.model.ListProjectsResponse
+import software.amazon.awssdk.services.codebuild.model.ProjectSortByType
+import software.amazon.awssdk.services.codebuild.model.StartBuildRequest
+import software.amazon.awssdk.services.codebuild.model.StartBuildResponse
 import spock.lang.Specification
 
 class AwsCodeBuildAccountSpec extends Specification {
-  AWSCodeBuildClient client = Mock(AWSCodeBuildClient)
+  CodeBuildClient client = Mock(CodeBuildClient)
   AwsCodeBuildAccount awsCodeBuildAccount = new AwsCodeBuildAccount(client)
 
   def "startBuild starts a build and returns the result"() {
@@ -41,7 +41,7 @@ class AwsCodeBuildAccountSpec extends Specification {
     def result = awsCodeBuildAccount.startBuild(inputRequest)
 
     then:
-    1 * client.startBuild(inputRequest) >> new StartBuildResult().withBuild(mockOutputBuild)
+    1 * client.startBuild(inputRequest) >> StartBuildResponse.builder().build(mockOutputBuild).build()
     result == mockOutputBuild
   }
 
@@ -55,7 +55,7 @@ class AwsCodeBuildAccountSpec extends Specification {
     def result = awsCodeBuildAccount.getBuild(buildId)
 
     then:
-    1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
+    1 * client.batchGetBuilds(inputRequest) >>  BatchGetBuildsResponse.builder().builds(mockOutputBuild).build()
     result == mockOutputBuild
   }
 
@@ -69,7 +69,7 @@ class AwsCodeBuildAccountSpec extends Specification {
     def result = awsCodeBuildAccount.getArtifacts(buildId)
 
     then:
-    1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
+    1 * client.batchGetBuilds(inputRequest) >> BatchGetBuildsResponse.builder().builds(mockOutputBuild).build()
     result.size() == 0
   }
 
@@ -77,17 +77,16 @@ class AwsCodeBuildAccountSpec extends Specification {
     given:
     String buildId = "test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
     def inputRequest = getBatchGetBuildsInput(buildId)
-    def mockOutputBuild = getOutputBuild("test")
-    mockOutputBuild.setArtifacts(
-      new BuildArtifacts()
-        .withLocation("arn:aws:s3:::bucket/path/file.zip")
-    )
+    def mockOutputBuild = Build.builder()
+      .projectName("test")
+      .artifacts(BuildArtifacts.builder().location("arn:aws:s3:::bucket/path/file.zip").build())
+      .build()
 
     when:
     def result = awsCodeBuildAccount.getArtifacts(buildId)
 
     then:
-    1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
+    1 * client.batchGetBuilds(inputRequest) >> BatchGetBuildsResponse.builder().builds(mockOutputBuild).build()
     result.size() == 1
     result.get(0).getType() == "s3/object"
     result.get(0).getReference() == "s3://bucket/path/file.zip"
@@ -98,19 +97,19 @@ class AwsCodeBuildAccountSpec extends Specification {
     given:
     String buildId = "test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
     def inputRequest = getBatchGetBuildsInput(buildId)
-    def mockOutputBuild = getOutputBuild("test")
-    mockOutputBuild.setSecondaryArtifacts([
-      new BuildArtifacts()
-        .withLocation("arn:aws:s3:::bucket/path/file.zip"),
-      new BuildArtifacts()
-        .withLocation("arn:aws:s3:::another-bucket/another/path/file.zip"),
-    ])
+    def mockOutputBuild = Build.builder()
+      .projectName("test")
+      .secondaryArtifacts([
+        BuildArtifacts.builder().location("arn:aws:s3:::bucket/path/file.zip").build(),
+        BuildArtifacts.builder().location("arn:aws:s3:::another-bucket/another/path/file.zip").build()
+      ])
+      .build()
 
     when:
     def result = awsCodeBuildAccount.getArtifacts(buildId)
 
     then:
-    1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
+    1 * client.batchGetBuilds(inputRequest) >> BatchGetBuildsResponse.builder().builds(mockOutputBuild).build()
     result.size() == 2
     result.get(0).getType() == "s3/object"
     result.get(0).getReference() == "s3://bucket/path/file.zip"
@@ -124,21 +123,19 @@ class AwsCodeBuildAccountSpec extends Specification {
     given:
     String buildId = "test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
     def inputRequest = getBatchGetBuildsInput(buildId)
-    def mockOutputBuild = getOutputBuild("test")
-    mockOutputBuild.setArtifacts(
-      new BuildArtifacts()
-        .withLocation("arn:aws:s3:::bucket/path/file.zip")
-    )
-    mockOutputBuild.setSecondaryArtifacts([
-      new BuildArtifacts()
-        .withLocation("arn:aws:s3:::another-bucket/another/path/file.zip")
-    ])
+    def mockOutputBuild = Build.builder()
+      .projectName("test")
+      .artifacts(BuildArtifacts.builder().location("arn:aws:s3:::bucket/path/file.zip").build())
+      .secondaryArtifacts([
+        BuildArtifacts.builder().location("arn:aws:s3:::another-bucket/another/path/file.zip").build()
+      ])
+      .build()
 
     when:
     def result = awsCodeBuildAccount.getArtifacts(buildId)
 
     then:
-    1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
+    1 * client.batchGetBuilds(inputRequest) >> BatchGetBuildsResponse.builder().builds(mockOutputBuild).build()
     result.size() == 2
     result.get(0).getType() == "s3/object"
     result.get(0).getReference() == "s3://bucket/path/file.zip"
@@ -157,8 +154,8 @@ class AwsCodeBuildAccountSpec extends Specification {
     def result = awsCodeBuildAccount.getProjects()
 
     then:
-    1 * client.listProjects(new ListProjectsRequest().withSortBy(ProjectSortByType.NAME)) >> new ListProjectsResult().withProjects(firstPage).withNextToken("nextToken")
-    1 * client.listProjects(new ListProjectsRequest().withSortBy(ProjectSortByType.NAME).withNextToken("nextToken")) >> new ListProjectsResult().withProjects(secondPage)
+    1 * client.listProjects(ListProjectsRequest.builder().sortBy(ProjectSortByType.NAME).build()) >> ListProjectsResponse.builder().projects(firstPage).nextToken("nextToken").build()
+    1 * client.listProjects(ListProjectsRequest.builder().sortBy(ProjectSortByType.NAME).nextToken("nextToken").build()) >> ListProjectsResponse.builder().projects(secondPage).build()
     result.size() == 150
     result == (1..150).collect{ it.toString() }
   }
@@ -168,22 +165,26 @@ class AwsCodeBuildAccountSpec extends Specification {
     def result = awsCodeBuildAccount.getProjects()
 
     then:
-    1 * client.listProjects(new ListProjectsRequest().withSortBy(ProjectSortByType.NAME)) >> new ListProjectsResult().withProjects([])
+    1 * client.listProjects(ListProjectsRequest.builder().sortBy(ProjectSortByType.NAME).build()) >> ListProjectsResponse.builder().projects([]).build()
     result == []
   }
 
+
   private static StartBuildRequest getStartBuildInput(String projectName) {
-    return new StartBuildRequest()
-      .withProjectName(projectName);
+    return StartBuildRequest.builder()
+      .projectName(projectName)
+      .build()
   }
 
   private static BatchGetBuildsRequest getBatchGetBuildsInput(String... ids) {
-    return new BatchGetBuildsRequest()
-      .withIds(ids);
+    return BatchGetBuildsRequest.builder()
+      .ids(ids)
+      .build()
   }
 
   private static Build getOutputBuild(String projectName) {
-    return new Build()
-      .withProjectName(projectName);
+    return Build.builder()
+      .projectName(projectName)
+      .build()
   }
 }

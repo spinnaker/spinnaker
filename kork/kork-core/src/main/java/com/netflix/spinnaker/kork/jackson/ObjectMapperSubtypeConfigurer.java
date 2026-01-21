@@ -17,11 +17,10 @@ package com.netflix.spinnaker.kork.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.netflix.spinnaker.kork.ClassScanner;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -59,21 +58,8 @@ public class ObjectMapperSubtypeConfigurer {
   }
 
   private NamedType[] findSubtypes(Class<?> clazz, String pkg) {
-    ClassPathScanningCandidateComponentProvider provider =
-        new ClassPathScanningCandidateComponentProvider(false);
-    provider.addIncludeFilter(new AssignableTypeFilter(clazz));
-
-    return provider.findCandidateComponents(pkg).stream()
-        .map(
-            bean -> {
-              String beanClassName = bean.getBeanClassName();
-              if (beanClassName == null) {
-                return null;
-              }
-              Class<?> type =
-                  ClassUtils.resolveClassName(beanClassName, ClassUtils.getDefaultClassLoader());
-              return namedTypeParser.parse(type);
-            })
+    return ClassScanner.forBaseType(clazz).addLoadablePackage(pkg).scan().stream()
+        .map(namedTypeParser::parse)
         .filter(Objects::nonNull)
         .toArray(NamedType[]::new);
   }

@@ -19,7 +19,6 @@ apply from: "$rootDir/gradle/detekt.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 apply from: "$rootDir/gradle/spek.gradle"
 
-
 dependencies {
   api("de.huxhorn.sulky:de.huxhorn.sulky.ulid")
   api("io.spinnaker.kork:kork-artifacts")
@@ -30,7 +29,7 @@ dependencies {
   api("io.spinnaker.kork:kork-plugins")
   api("io.spinnaker.kork:kork-security")
   api("io.spinnaker.kork:kork-telemetry")
-  api("io.reactivex:rxjava")
+  api("io.reactivex.rxjava3:rxjava")
 
   api(project(":orca-api"))
   implementation("com.github.ben-manes.caffeine:guava")
@@ -50,9 +49,9 @@ dependencies {
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("org.apache.commons:commons-lang3")
-  implementation("org.apache.httpcomponents:httpclient")
-  implementation("javax.servlet:javax.servlet-api:4.0.1")
-  implementation("javax.validation:validation-api")
+  implementation("org.apache.httpcomponents.client5:httpclient5")
+  implementation("jakarta.servlet:jakarta.servlet-api")
+  implementation("jakarta.validation:jakarta.validation-api")
   implementation("com.jayway.jsonpath:json-path")
   implementation("org.yaml:snakeyaml")
   implementation("org.apache.groovy:groovy")
@@ -73,4 +72,10 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")
+}
+test {
+  useJUnitPlatform()
+}
+tasks.named('test') {
+  jvmArgs += "--add-opens=java.base/java.util=ALL-UNNAMED"
 }

@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.igor.artifacts;
 
 import com.netflix.spinnaker.igor.config.ArtifactTemplateProperties;
+import jakarta.annotation.PostConstruct;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

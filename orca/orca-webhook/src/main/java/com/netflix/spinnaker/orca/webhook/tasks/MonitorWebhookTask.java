@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -240,7 +240,7 @@ public class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
     webhookService.cancelWebhook(stage);
   }
 
-  private boolean shouldRetry(HttpStatus statusCode, WebhookStage.StageData stageData) {
+  private boolean shouldRetry(HttpStatusCode statusCode, WebhookStage.StageData stageData) {
     int status = statusCode.value();
     var retries = stageData.getRetries();
 

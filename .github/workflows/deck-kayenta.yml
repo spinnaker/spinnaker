@@ -26,6 +26,7 @@ on:
       - release-*
     paths:
       - 'deck-kayenta/**'
+      - '.github/workflows/deck-kayenta.yml'
 
   pull_request:
     branches:
@@ -33,12 +34,18 @@ on:
       - release-*
     paths:
       - 'deck-kayenta/**'
+      - '.github/workflows/deck-kayenta.yml'
+
+# https://docs.npmjs.com/trusted-publishers#github-actions-configuration
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/generic-build-publish
         with:
           project: deck-kayenta
@@ -52,4 +59,3 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           gar-json-key: ${{ secrets.GAR_JSON_KEY }}
           gar-npm-password: ${{ secrets.GAR_NPM_PASSWORD }}
-          npm-auth-token: ${{ secrets.NPM_AUTH_TOKEN }}

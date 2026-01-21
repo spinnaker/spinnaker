@@ -21,13 +21,13 @@ import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.echo.api.events.NotificationAgent;
 import com.netflix.spinnaker.echo.notification.ExtensionNotificationAgent;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
-import rx.Observable;
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
 
 /** responsible for sending events to classes that implement an EchoEventListener */
 @Slf4j
@@ -63,7 +63,7 @@ public class EventPropagator {
   }
 
   public void processEvent(Event event) {
-    Observable.from(eventListeners())
+    Observable.fromIterable(eventListeners())
         .map(
             listener ->
                 AuthenticatedRequest.propagate(

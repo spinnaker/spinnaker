@@ -22,6 +22,9 @@ import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
+import com.netflix.spinnaker.kork.plugins.config.ExtensionConfigCoordinates
+import com.netflix.spinnaker.kork.plugins.config.PluginConfigCoordinates
+import com.netflix.spinnaker.kork.plugins.config.SystemExtensionConfigCoordinates
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import com.netflix.spinnaker.kork.plugins.sdk.yaml.YamlResourceLoaderSdkFactory
 import dev.minutest.junit.JUnit5Minutests
@@ -55,7 +58,7 @@ class DependencyInjectionTest : JUnit5Minutests {
           every { pluginManager.whichPlugin(any()) } returns null
 
           val config = TheConfig()
-          every { configResolver.resolve(any(), any<Class<TheConfig>>()) } returns config
+          every { configResolver.resolve(any<SystemExtensionConfigCoordinates>(), any<Class<TheConfig>>()) } returns config
 
           expectThat(subject.create(ConfiguredSystemExtension::class.java))
             .isA<ConfiguredSystemExtension>().get { config }
@@ -76,7 +79,7 @@ class DependencyInjectionTest : JUnit5Minutests {
 
         test("with config") {
           val config = MyPlugin.ConfiguredExtension.TheConfig()
-          every { configResolver.resolve(any(), any<Class<MyPlugin.ConfiguredExtension.TheConfig>>()) } returns config
+          every { configResolver.resolve(any<ExtensionConfigCoordinates>(), any<Class<MyPlugin.ConfiguredExtension.TheConfig>>()) } returns config
 
           expectThat(subject.create(MyPlugin.ConfiguredExtension::class.java))
             .isA<MyPlugin.ConfiguredExtension>()
@@ -130,7 +133,7 @@ class DependencyInjectionTest : JUnit5Minutests {
         )
 
         val config = PluginConfig()
-        every { configResolver.resolve(any(), any<Class<PluginConfig>>()) } returns config
+        every { configResolver.resolve(any<PluginConfigCoordinates>(), any<Class<PluginConfig>>()) } returns config
 
         expectThat(subject.create(pluginWrapper))
           .isA<PluginWithConfig>()

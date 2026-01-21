@@ -49,7 +49,7 @@ class ArtifactDeserializerTest {
     }
 
     @Override
-    public Artifact store(Artifact artifact) {
+    public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
       inMemoryArtifactStore.put(artifact.getReference(), artifact);
       return artifact;
     }
@@ -83,7 +83,8 @@ class ArtifactDeserializerTest {
     ArtifactStore storage =
         new ArtifactStore(
             new InMemoryArtifactStoreGetter(inMemoryArtifactStore),
-            new InMemoryArtifactStoreStorer(inMemoryArtifactStore));
+            new InMemoryArtifactStoreStorer(inMemoryArtifactStore),
+            Map.of());
     ArtifactDeserializer deserializer = new ArtifactDeserializer(new ObjectMapper(), storage);
 
     // We avoid using an object mapper here since the Artifact class has a

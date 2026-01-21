@@ -26,8 +26,12 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import org.springframework.web.util.pattern.PathPatternParser
 import java.time.Clock
 
 private const val IPC_SERVER_METRIC = "controller.invocations"
@@ -36,7 +40,13 @@ private const val IPC_SERVER_METRIC = "controller.invocations"
 class DefaultConfiguration(
   val spectatorRegistry: Registry
 ) : WebMvcConfigurer {
-
+  override fun configurePathMatch(configurer: PathMatchConfigurer) {
+    // Keep PathPatternParser but allow an optional trailing “/”
+    val parser = PathPatternParser().apply {
+      isMatchOptionalTrailingSeparator = true   //  ⇦ key line
+    }
+    configurer.patternParser = parser
+  }
   /**
    * Enable controller metrics
    */
@@ -57,6 +67,14 @@ class DefaultConfiguration(
 
     val interceptor = MetricsInterceptor(spectatorRegistry, IPC_SERVER_METRIC, pathVarsToTag, queryParamsToTag, exclude)
     interceptorRegistry.addInterceptor(interceptor)
+  }
+
+  @Bean
+  fun noSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    http
+      .authorizeHttpRequests { it.anyRequest().permitAll() }
+      .csrf { it.disable() }
+    return http.build()
   }
 
   @Bean

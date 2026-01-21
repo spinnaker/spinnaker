@@ -67,7 +67,9 @@ class AccountDefinitionMapperTest {
     assertThat(account).isInstanceOf(TestAccount.class);
     assertThat(account.getName()).isEqualTo("bar");
     TestAccount testAccount = (TestAccount) account;
-    assertThat(testAccount.getData().get("password")).isEqualTo("hunter2");
+    // due to how noop secret engine works, it returns the key's, "k", value, when
+    // getSecretString is called. So we expect the returned value to be "v".
+    assertThat(testAccount.getData().get("password")).isEqualTo("v");
   }
 
   @Test

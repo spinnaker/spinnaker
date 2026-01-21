@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 /**
  * An exception used by the artifact store (de)serializers since the (de)serialize methods only
- * throw IOExceptions, and if any other exception is thrown jackson assumes it's some JSON error.
+ * throws IOExceptions, and if any other exception is thrown, jackson assumes it's some JSON error.
  */
 public class ArtifactStoreIOException extends IOException {
   public ArtifactStoreIOException(Exception e) {

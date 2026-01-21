@@ -22,8 +22,8 @@ import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.reactivex.rxjava3.core.Scheduler;
 import org.springframework.util.Assert;
-import rx.Scheduler;
 
 public class DefaultPipelineTemplateDAO extends StorageServiceSupport<PipelineTemplate>
     implements PipelineTemplateDAO {

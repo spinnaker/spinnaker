@@ -45,7 +45,7 @@ class DeleteSecurityGroupForceRefreshTaskSpec extends Specification {
 
     then:
     1 * task.cacheService.forceCacheUpdate(stage.context.cloudProvider, DeleteSecurityGroupForceRefreshTask.REFRESH_TYPE, _) >> {
-      String cloudProvider, String type, Map<String, ? extends Object> body ->
+      String cloudProvider, String type, Map<String, Object> body ->
 
       assert body.securityGroupName == config.securityGroupName
       assert body.vpcId == config.vpcId

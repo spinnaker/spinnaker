@@ -38,6 +38,7 @@ on:
       - 'echo/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/echo.yml'
 
   pull_request:
     branches:
@@ -47,12 +48,13 @@ on:
       - 'echo/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/echo.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/generic-build-publish
         with:
           project: echo

@@ -30,6 +30,9 @@ import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.functions.Predicate;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
-import rx.Observable;
-import rx.functions.Func1;
 
 @Component
 @ConditionalOnExpression(
@@ -53,12 +54,12 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private Func1<? super PipelineExecution, Boolean> filter =
+  private Predicate<? super PipelineExecution> filter =
       (PipelineExecution execution) ->
           execution.getStatus().isComplete()
               || Instant.ofEpochMilli(execution.getBuildTime())
                   .isBefore(Instant.now().minus(31, DAYS));
-  private Func1<? super PipelineExecution, ? extends Map> mapper =
+  private Function<? super PipelineExecution, ? extends Map> mapper =
       (PipelineExecution execution) -> {
         Map<String, Object> builder = new HashMap<>();
         builder.put("id", execution.getId());
@@ -139,8 +140,7 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent
   }
 
   private void cleanup(Observable<PipelineExecution> observable, String application, String type) {
-    List<? extends Map> executions =
-        observable.filter(filter).map(mapper).toList().toBlocking().single();
+    List<? extends Map> executions = observable.filter(filter).map(mapper).toList().blockingGet();
     executions.sort(comparing(a -> (Long) Optional.ofNullable(a.get("startTime")).orElse(0L)));
     if (executions.size() > threshold) {
       List<? extends Map> removingPipelineExecutions =

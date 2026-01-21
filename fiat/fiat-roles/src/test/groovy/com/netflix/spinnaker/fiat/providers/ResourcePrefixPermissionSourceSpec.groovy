@@ -53,8 +53,62 @@ class ResourcePrefixPermissionSourceSpec extends Specification {
         'NEW YORK'          | ["admins"]
         'GOTHAM-CRIMINALS'  | ["admins", "police"]
         'GOTHAM-JOKER'      | ["admins", "police", "batman"]
-        'foo-joker'         | ["admins", "batman"]
-        'foo-test'          | ["admins"]
+        'foo-joker'         | ["admins", "police", "batman"]
+        'foo-test'          | ["admins", "police"]
+    }
+
+    def "should match prefixes case-insensitively when aggregating"() {
+        given:
+        def source = new ResourcePrefixPermissionSource<Application>().setPrefixes([
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('*').setPermissions([
+                        (Authorization.CREATE): ['admins'] as Set
+                ]),
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('abc*').setPermissions([
+                        (Authorization.CREATE): ['readers'] as Set
+                ]),
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('ABC-EXACT').setPermissions([
+                        (Authorization.CREATE): ['exact-role'] as Set
+                ]),
+        ]).setResolutionStrategy(ResourcePrefixPermissionSource.ResolutionStrategy.AGGREGATE)
+
+        when:
+        def application = new Application().setName(applicationName)
+
+        then:
+        source.getPermissions(application).get(Authorization.CREATE) as Set == expectedCreatePermissions as Set
+
+        where:
+        applicationName | expectedCreatePermissions
+        'abc-app'       | ['admins', 'readers']
+        'AbC-eXaCt'     | ['admins', 'readers', 'exact-role']
+        'misc'          | ['admins']
+    }
+
+    def "should pick the most specific match case-insensitively"() {
+        given:
+        def source = new ResourcePrefixPermissionSource<Application>().setPrefixes([
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('*').setPermissions([
+                        (Authorization.CREATE): ['admins'] as Set
+                ]),
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('abc*').setPermissions([
+                        (Authorization.CREATE): ['readers'] as Set
+                ]),
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('ABC-EXACT').setPermissions([
+                        (Authorization.CREATE): ['exact-role'] as Set
+                ]),
+        ]).setResolutionStrategy(ResourcePrefixPermissionSource.ResolutionStrategy.MOST_SPECIFIC)
+
+        when:
+        def application = new Application().setName(applicationName)
+
+        then:
+        source.getPermissions(application).get(Authorization.CREATE) as Set == expectedCreatePermissions as Set
+
+        where:
+        applicationName | expectedCreatePermissions
+        'abc-app'       | ['readers']
+        'AbC-eXaCt'     | ['exact-role']
+        'misc'          | ['admins']
     }
 
     def "should apply the most specific permissions matching a resource if resolution strategy is most_specific"() {
@@ -89,6 +143,6 @@ class ResourcePrefixPermissionSourceSpec extends Specification {
         'GOTHAM-CRIMINALS'  | ["police"]
         'GOTHAM-JOKER'      | ["batman"]
         'foo-joker'         | ["batman"]
-        'foo-test'          | ["admins"]
+        'foo-test'          | ["police"]
     }
 }
