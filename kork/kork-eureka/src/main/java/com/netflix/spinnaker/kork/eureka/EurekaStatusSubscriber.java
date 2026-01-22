@@ -28,8 +28,8 @@ import com.netflix.spinnaker.kork.discovery.DiscoveryStatusPublisher;
 import com.netflix.spinnaker.kork.discovery.InstanceStatus;
 import com.netflix.spinnaker.kork.discovery.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
+import jakarta.annotation.PreDestroy;
 import java.util.Objects;
-import javax.annotation.PreDestroy;
 import org.springframework.context.ApplicationEventPublisher;
 
 public class EurekaStatusSubscriber implements DiscoveryStatusPublisher {

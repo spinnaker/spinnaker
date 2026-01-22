@@ -77,7 +77,7 @@ public class EvaluateVariablesStage extends ExpressionAwareStageDefinitionBuilde
     EvaluateVariablesStageContext context = stage.mapTo(EvaluateVariablesStageContext.class);
     StageContext augmentedContext = contextParameterProcessor.buildExecutionContext(stage);
     Map<String, Object> varSourceToEval = new HashMap<>();
-    int lastFailedCount = 0;
+    int lastFailedCount = summary.getFailureCount();
 
     List<Variable> variables =
         Optional.ofNullable(context.getVariables()).orElse(Collections.emptyList());

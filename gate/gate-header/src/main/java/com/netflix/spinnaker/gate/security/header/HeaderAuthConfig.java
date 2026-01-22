@@ -19,11 +19,7 @@ package com.netflix.spinnaker.gate.security.header;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.common.Header;
-import org.apache.catalina.Container;
-import org.apache.catalina.core.StandardHost;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.websocket.servlet.TomcatWebSocketServletWebServerCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,6 +27,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 /**
  * In combination with HeaderAuthConfigurerAdapter, authenticate the X-SPINNAKER-USER header using
@@ -81,6 +78,23 @@ public class HeaderAuthConfig {
     // HeaderAuthenticationDetailsSource takes care of this.
     requestHeaderAuthenticationFilter.setAuthenticationDetailsSource(
         new HeaderAuthenticationDetailsSource());
+
+    HttpSessionSecurityContextRepository securityContextRepository =
+        new HttpSessionSecurityContextRepository();
+
+    // Save the work to read and write session information.  Each request
+    // provides X-SPINNAKER-USER, and gate caches information from fiat, so
+    // there's no need for callers to support session cookies, and dealing with
+    // expiration, etc.
+    //
+    // With this, when services.fiat.legacyFallback is false, FiatSessionFilter
+    // doesn't ever do meaningful work because request.getSession() always returns
+    // null, so save some cycles by setting fiat.session-filter.enabled to false.
+    //
+    // When services.fiat.legacyFallback is true, FiatSessionFilter still
+    // invalidates the cache for the user.
+    securityContextRepository.setAllowSessionCreation(false);
+    requestHeaderAuthenticationFilter.setSecurityContextRepository(securityContextRepository);
     return requestHeaderAuthenticationFilter;
   }
 
@@ -120,28 +134,5 @@ public class HeaderAuthConfig {
   public AuthenticationManager authenticationManager(
       AuthenticationProvider authenticationProvider) {
     return new ProviderManager(authenticationProvider);
-  }
-
-  /**
-   * Inspired by https://github.com/spring-projects/spring-boot/issues/21257#issuecomment-745565376
-   * to customize tomcat exception handling, and specifically to generate json responses for
-   * exceptions that bubble up to tomcat / aren't handled by spring boot nor spring security.
-   */
-  @Bean
-  public TomcatWebSocketServletWebServerCustomizer errorValveCustomizer() {
-    return new TomcatWebSocketServletWebServerCustomizer() {
-      @Override
-      public void customize(TomcatServletWebServerFactory factory) {
-        factory.addContextCustomizers(
-            (context) -> {
-              Container parent = context.getParent();
-              if (parent instanceof StandardHost) {
-                ((StandardHost) parent)
-                    .setErrorReportValveClass(
-                        "com.netflix.spinnaker.gate.tomcat.SpinnakerTomcatErrorValve");
-              }
-            });
-      }
-    };
   }
 }

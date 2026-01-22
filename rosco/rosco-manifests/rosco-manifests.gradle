@@ -6,6 +6,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-core"
   implementation "commons-io:commons-io"
   implementation "org.apache.commons:commons-compress:1.21"
   implementation "org.yaml:snakeyaml"

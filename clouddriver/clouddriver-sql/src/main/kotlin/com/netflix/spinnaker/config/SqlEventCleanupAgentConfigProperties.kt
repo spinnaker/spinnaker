@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.config
 
 import java.time.Duration
-import javax.validation.constraints.Positive
+import jakarta.validation.constraints.Positive
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.validation.annotation.Validated
 

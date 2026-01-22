@@ -14,7 +14,8 @@ dependencies {
   implementation "io.spinnaker.kork:kork-sql"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"
   implementation "io.github.resilience4j:resilience4j-retry"
-  implementation "javax.validation:validation-api"
+  implementation "io.github.resilience4j:resilience4j-vavr"
+  implementation "jakarta.validation:jakarta.validation-api"
   implementation "org.jooq:jooq"
 
   testImplementation project(":keiko-tck")

@@ -73,7 +73,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.test.web.client.ExpectedCount.once
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 
 object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
@@ -480,7 +480,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
       whenever(repository.retrievePipelinesForPipelineConfigId(
         pipeline.pipelineConfigId,
-        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.from(listOf(runningPipeline))
+        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.fromIterable(listOf(runningPipeline))
     }
 
     afterGroup(::resetMocks)
@@ -527,7 +527,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
       whenever(repository.retrievePipelinesForPipelineConfigId(
         pipeline.pipelineConfigId,
-        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.from(listOf(runningPipeline))
+        ExecutionRepository.ExecutionCriteria().setPageSize(2).setStatuses(RUNNING))) doReturn Observable.fromIterable(listOf(runningPipeline))
     }
 
     afterGroup(::resetMocks)

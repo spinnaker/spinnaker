@@ -1,0 +1,4 @@
+dependencies {
+  implementation "com.google.apis:google-api-services-storage"
+  implementation "com.google.auth:google-auth-library-oauth2-http"
+}

@@ -28,40 +28,33 @@ import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreURISHA256Builder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.common.Header;
-import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.List;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.*;
 
 public class S3ArtifactStoreStorerTest {
   @Test
-  public void testExceptionPathOfObjectExists() {
+  public void testObjectExistsPath() {
     S3Client client = mock(S3Client.class);
-    when(client.headObject(any(HeadObjectRequest.class)))
-        .thenThrow(S3Exception.builder().statusCode(400).build());
+    when(client.listObjectsV2(any(ListObjectsV2Request.class)))
+        .thenReturn(ListObjectsV2Response.builder().build());
+
+    verify(client, times(0)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     AuthenticatedRequest.set(Header.APPLICATION, "my-application");
     S3ArtifactStoreStorer artifactStoreStorer =
         new S3ArtifactStoreStorer(client, "my-bucket", new ArtifactStoreURISHA256Builder(), null);
-    String expectedExceptionMessage = "Failed to query artifact due to invalid request";
-    SpinnakerException e =
-        Assertions.assertThrows(
-            SpinnakerException.class,
-            () -> {
-              artifactStoreStorer.store(
-                  Artifact.builder()
-                      .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
-                      .reference("aGVsbG8gd29ybGQK")
-                      .build());
-            });
-    assertEquals(expectedExceptionMessage, e.getMessage());
+    artifactStoreStorer.store(
+        Artifact.builder()
+            .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
+            .reference("aGVsbG8gd29ybGQK")
+            .build());
   }
 
   @ParameterizedTest(
@@ -69,6 +62,8 @@ public class S3ArtifactStoreStorerTest {
   @MethodSource("applicationsRegexArgs")
   void testApplicationsRegex(String application, String applicationsRegex, boolean enabled) {
     S3Client client = mock(S3Client.class);
+    when(client.listObjectsV2(any(ListObjectsV2Request.class)))
+        .thenReturn(ListObjectsV2Response.builder().contents(S3Object.builder().build()).build());
     AuthenticatedRequest.set(Header.APPLICATION, application);
     S3ArtifactStoreStorer artifactStoreStorer =
         new S3ArtifactStoreStorer(
@@ -79,7 +74,7 @@ public class S3ArtifactStoreStorerTest {
             .reference("aGVsbG8gd29ybGQK")
             .build());
     // If enabled, expect a call to check if the object exists in the artifact store
-    verify(client, times(enabled ? 1 : 0)).headObject(any(HeadObjectRequest.class));
+    verify(client, times(enabled ? 1 : 0)).listObjectsV2(any(ListObjectsV2Request.class));
     verifyNoMoreInteractions(client);
   }
 

@@ -19,11 +19,11 @@ import static java.lang.String.format;
 
 import com.netflix.spinnaker.front50.config.PluginVersionCleanupProperties;
 import com.netflix.spinnaker.moniker.Namer;
+import jakarta.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;

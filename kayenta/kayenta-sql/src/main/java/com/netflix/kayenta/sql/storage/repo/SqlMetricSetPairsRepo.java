@@ -17,7 +17,6 @@
 package com.netflix.kayenta.sql.storage.repo;
 
 import com.netflix.kayenta.sql.storage.model.SqlMetricSetPairs;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.CrudRepository;
 
-public interface SqlMetricSetPairsRepo
-    extends PagingAndSortingRepository<SqlMetricSetPairs, String> {}
+public interface SqlMetricSetPairsRepo extends CrudRepository<SqlMetricSetPairs, String> {}
