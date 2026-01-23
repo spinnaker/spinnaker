@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.applications.pipelines
 
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -59,9 +60,9 @@ class UpsertProjectStage implements StageDefinitionBuilder {
       def project = stage.mapTo("/project", Map)
 
       if (projectId.id) {
-        front50Service.updateProject(projectId.id, project)
+        Retrofit2SyncCall.executeCall(front50Service.updateProject(projectId.id, project))
       } else {
-        front50Service.createProject(project)
+        Retrofit2SyncCall.executeCall(front50Service.createProject(project))
       }
 
       def outputs = [
