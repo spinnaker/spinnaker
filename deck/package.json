@@ -1,14 +1,14 @@
 {
   "main": "./dist/bundle.js",
   "name": "deck",
-  "version": "0.0.0",
+  "version": "2025.4.1-rc1",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/spinnaker/spinnaker.git"
   },
   "publishConfig": {
-    "registry": "http://artifacts.netflix.com/api/npm/npm-local"
+    "registry": "https://registry.npmjs.org"
   },
   "engines": {
     "node": ">=14.21.3",

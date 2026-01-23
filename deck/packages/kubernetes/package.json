@@ -1,11 +1,16 @@
 {
   "name": "@spinnaker/kubernetes",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "license": "Apache-2.0",
-  "version": "0.6.2",
+  "version": "2025.4.1-rc1",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "clean": "shx rm -rf dist",

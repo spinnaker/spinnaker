@@ -1,10 +1,15 @@
 {
   "name": "@spinnaker/pluginsdk-peerdeps",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "description": "Provides package dependencies to plugin developers",
-  "version": "0.21.0",
+  "version": "2025.4.1-rc1",
   "license": "Apache-2.0",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "temp": "./convert-peerdeps.js --from-peerdeps --input package.json --output package.temp.json",

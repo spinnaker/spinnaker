@@ -1,6 +1,10 @@
 {
   "name": "spinnaker-deck-plugin-scaffold",
-  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
+  "version": "2025.4.1-rc1",
   "private": true,
   "module": "build/dist/index.js",
   "scripts": {
@@ -17,5 +21,8 @@
   "dependencies": {
     "@spinnaker/pluginsdk": "latest"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  }
 }

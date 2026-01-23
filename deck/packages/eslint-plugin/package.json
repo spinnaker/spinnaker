@@ -1,10 +1,15 @@
 {
   "name": "@spinnaker/eslint-plugin",
-  "version": "3.0.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
+  "version": "2025.4.1-rc1",
   "main": "index.js",
   "license": "Apache-2.0",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "create-rule": "create-rule.js",

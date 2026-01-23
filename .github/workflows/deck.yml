@@ -50,7 +50,10 @@ on:
       - release-*
     paths:
       - 'deck/**'
-
+permissions:
+  id-token: write
+  contents: write
+  
 jobs:
   build:
     runs-on: ubuntu-latest
