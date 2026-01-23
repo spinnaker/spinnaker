@@ -27,9 +27,9 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import retrofit.client.Header
-import retrofit.client.Response
-import retrofit.mime.TypedString
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.mock.Calls
 import spock.lang.Specification
 
 class KubernetesJobRunnerSpec extends Specification {
@@ -128,13 +128,7 @@ class KubernetesJobRunnerSpec extends Specification {
       return [manifests: [manifest]]
     }
     1 * oortService.fetchArtifact(_) >> {
-      return new Response(
-        "http://yoyo",
-        200,
-        "",
-        new ArrayList<Header>(),
-        new TypedString('{"metadata": {"name": "manifest"}}')
-      )
+      Calls.response(ResponseBody.create(MediaType.parse("application/json"), '{"metadata": {"name": "manifest"}}'))
     }
     1 * artifactUtils.getBoundArtifactForStage(_, _, _) >> {
       return Artifact.builder().build()

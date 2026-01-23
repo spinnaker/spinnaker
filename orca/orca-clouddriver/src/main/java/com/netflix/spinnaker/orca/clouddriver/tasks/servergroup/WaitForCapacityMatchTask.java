@@ -96,7 +96,10 @@ public class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
 
       if (serverGroupProperties.getResize().isMatchInstancesSize()) {
         splainer.add(
-            "checking if capacity matches (desired=${desired}, instances.size()=${instances.size()}) ");
+            "checking if capacity matches (desired="
+                + desired
+                + ", instances.size()="
+                + instances.size());
         if (desired == null || desired != instances.size()) {
           splainer.add(
               "short-circuiting out of WaitForCapacityMatchTask because expected and current capacity don't match}");

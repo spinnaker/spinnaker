@@ -17,11 +17,11 @@ import retrofit2.http.Query;
 public interface EchoService {
 
   @Headers("Accept: application/json")
-  @POST("/webhooks/{type}/{source}")
+  @POST("webhooks/{type}/{source}")
   Call<Map> webhooks(@Path("type") String type, @Path("source") String source, @Body Map event);
 
   @Headers("Accept: application/json")
-  @POST("/webhooks/cdevents/{source}")
+  @POST("webhooks/cdevents/{source}")
   Call<ResponseEntity<Void>> webhooks(
       @Path("source") String source,
       @Body CloudEvent cdevent,
@@ -32,7 +32,7 @@ public interface EchoService {
       @Header("Ce-Source") String cdSource);
 
   @Headers("Accept: application/json")
-  @POST("/webhooks/{type}/{source}")
+  @POST("webhooks/{type}/{source}")
   Call<Map> webhooks(
       @Path("type") String type,
       @Path("source") String source,
@@ -40,21 +40,21 @@ public interface EchoService {
       @Header("X-Hub-Signature") String gitHubSignature,
       @Header("X-Event-Key") String bitBucketEventType);
 
-  @GET("/validateCronExpression")
+  @GET("validateCronExpression")
   Call<Map> validateCronExpression(@Query("cronExpression") String cronExpression);
 
-  @GET("/pubsub/subscriptions")
+  @GET("pubsub/subscriptions")
   Call<List<Map<String, String>>> getPubsubSubscriptions();
 
-  @POST("/")
+  @POST(".")
   Call<Void> postEvent(@Body Map event);
 
-  @GET("/quietPeriod")
+  @GET("quietPeriod")
   Call<Map> getQuietPeriodState();
 
-  @GET("/installedPlugins")
+  @GET("installedPlugins")
   Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
 
-  @GET("/notifications/metadata")
+  @GET("notifications/metadata")
   Call<List> getNotificationTypeMetadata();
 }

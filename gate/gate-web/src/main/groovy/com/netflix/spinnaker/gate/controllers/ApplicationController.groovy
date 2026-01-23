@@ -119,9 +119,11 @@ class ApplicationController {
   List getPipelines(@PathVariable("application") String application,
                     @RequestParam(value = "limit", required = false) Integer limit,
                     @RequestParam(value = "statuses", required = false) String statuses,
-                    @RequestParam(value = "expand", required = false) Boolean expand) {
+                    @RequestParam(value = "expand", required = false) Boolean expand,
+                    @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
+                    @RequestParam(value = "pipelineLimit", required = false) Integer pipelineLimit) {
     def listLimit = limit ?: environment.getProperty(PIPELINE_EXECUTION_LIMIT, Integer, 10)
-    executionHistoryService.getPipelines(application, listLimit, statuses, expand)
+    executionHistoryService.getPipelines(application, listLimit, statuses, expand, pipelineNameFilter, pipelineLimit)
   }
 
   /**
@@ -138,22 +140,16 @@ class ApplicationController {
   @Operation(summary = "Retrieve a list of an application's pipeline configurations")
   @RequestMapping(value = "/{application}/pipelineConfigs", method = RequestMethod.GET)
   List getPipelineConfigsForApplication(@PathVariable("application") String application,
-                                        @RequestParam(required = false, value="pipelineNameFilter") String pipelineNameFilter) {
-    applicationService.getPipelineConfigsForApplication(application, pipelineNameFilter)
+                                        @RequestParam(required = false, value="pipelineNameFilter") String pipelineNameFilter,
+                                        @RequestParam(required = false, value="pipelineLimit") Integer pipelineLimit) {
+    applicationService.getPipelineConfigsForApplication(application, pipelineNameFilter, pipelineLimit)
   }
 
   @Operation(summary = "Retrieve a pipeline configuration")
   @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.GET)
   Map getPipelineConfig(
     @PathVariable("application") String application, @PathVariable("pipelineName") String pipelineName) {
-    def config = applicationService.getPipelineConfigsForApplication(application).find {
-      it.name == pipelineName
-    }
-    if (!config) {
-      log.warn("Pipeline config {} not found for application {}", value("pipeline", pipelineName), value('application', application))
-      throw new NotFoundException("Pipeline config (id: ${pipelineName}) not found for Application (id: ${application})")
-    }
-    config
+    applicationService.getPipelineConfigForApplication(application, pipelineName)
   }
 
   @Operation(summary = "Retrieve a list of an application's pipeline strategy configurations")

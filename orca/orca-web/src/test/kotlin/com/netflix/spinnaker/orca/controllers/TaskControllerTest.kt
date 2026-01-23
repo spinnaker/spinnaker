@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Netflix, Inc.
+ * Copyright 2024 Salesforce, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,246 +16,243 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.config.ExecutionCompressionProperties
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties
-import com.netflix.spinnaker.kork.sql.config.RetryProperties
-import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
-import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.config.TaskControllerConfigurationProperties.FailedStagesProperties
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
+import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.nhaarman.mockito_kotlin.mock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import org.jooq.exception.DataAccessException
-import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.table
-import org.junit.Assert.assertThrows
-import org.junit.jupiter.api.assertThrows
+import org.assertj.core.api.Assertions.assertThat
 import org.mockito.Mockito
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import strikt.api.expectCatching
-import strikt.api.expectThat
-import strikt.assertions.isA
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 
 class TaskControllerTest : JUnit5Minutests {
-  data class Fixture(val optimizeExecution: Boolean) {
+    data class Fixture(val runtests: Boolean) {
 
-    private val clock: Clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
-    val database: SqlTestUtil.TestDatabase = SqlTestUtil.initTcMysqlDatabase()!!
+        private val front50Service: Front50Service = mock()
+        private val executionMockRepository: ExecutionRepository = mock()
+        val taskControllerConfigurationProperties: TaskControllerConfigurationProperties = mock()
+        val failedStagesProperties: FailedStagesProperties = mock()
 
-    private val executionRepository: SqlExecutionRepository = SqlExecutionRepository(
-      partitionName = "test",
-      jooq = database.context,
-      mapper = OrcaObjectMapper.getInstance(),
-      retryProperties = RetryProperties(),
-      compressionProperties = ExecutionCompressionProperties(),
-      pipelineRefEnabled = false,
-      dataSource = mock()
-    )
+        private val taskController: TaskController = TaskController(
+            front50Service,
+            executionMockRepository,
+            mock(),
+            mock(),
+            listOf(mock()),
+            ContextParameterProcessor(),
+            mock(),
+            OrcaObjectMapper.getInstance(),
+            NoopRegistry(),
+            mock(),
+            taskControllerConfigurationProperties
+        )
 
-    private val taskControllerConfigurationProperties: TaskControllerConfigurationProperties = TaskControllerConfigurationProperties()
-      .apply {
-        optimizeExecutionRetrieval = optimizeExecution
-      }
+        init {
+          Mockito.`when`(taskControllerConfigurationProperties.failedStages).thenReturn(failedStagesProperties)
+        }
 
-    private val daysOfExecutionHistory: Long = taskControllerConfigurationProperties.daysOfExecutionHistory.toLong()
+        private fun createPipelineExecution(pipelineID: String, stageIds: List<String>, stageTypes: List<String>, stageStatuses: List<ExecutionStatus>, stageContext: List<Map<String, Any>>): PipelineExecutionImpl {
 
-    private val front50Service: Front50Service = mock()
+            val pipelineExecution = PipelineExecutionImpl(PIPELINE, "test-app")
+            pipelineExecution.id = pipelineID
 
-    private val taskController: TaskController = TaskController(
-      front50Service,
-      executionRepository,
-      mock(),
-      mock(),
-      listOf(mock()),
-      ContextParameterProcessor(),
-      mock(),
-      OrcaObjectMapper.getInstance(),
-      NoopRegistry(),
-      mock(),
-      taskControllerConfigurationProperties
-    )
+            for (index in stageIds.indices) {
+                val stage1 = StageExecutionImpl(pipelineExecution, stageTypes[index])
+                stage1.refId = stageIds[index]
+                stage1.id = stageIds[index]
+                stage1.status = stageStatuses[index]
+                stage1.context = stageContext[index]
+                pipelineExecution.stages.add(stage1)
+            }
 
-    val subject: MockMvc = MockMvcBuilders.standaloneSetup(taskController).build()
+            return pipelineExecution
+        }
 
-    fun setup() {
-      database.context
-        .insertInto(table("pipelines"),
-          listOf(
-            field("config_id"),
-            field("id"),
-            field("application"),
-            field("build_time"),
-            field("start_time"),
-            field("body"),
-            field("status")
-          ))
-        .values(
-          listOf(
-            "1",
-            "1-exec-id-1",
-            "test-app",
-            clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(120, ChronoUnit.MINUTES).toEpochMilli(),
-            clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(120, ChronoUnit.HOURS).toEpochMilli(),
-            "{\"id\": \"1-exec-id-1\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"1\"}",
-            "SUCCEEDED"
+        fun setupExecutionsInDb(pipelineID: String, stageIds: List<String>, stageTypes: List<String>, stageStatuses: List<ExecutionStatus>, stageContext: List<Map<String, Any>>) {
+          Mockito.`when`(executionMockRepository.retrieve(PIPELINE, pipelineID)).thenReturn(
+            createPipelineExecution(
+              pipelineID,
+              stageIds,
+              stageTypes,
+              stageStatuses,
+              stageContext
+            )
           )
-        )
-        .values(
-          listOf(
-            "1",
-            "1-exec-id-2",
-            "test-app",
-            clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(115, ChronoUnit.MINUTES).toEpochMilli(),
-            clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(115, ChronoUnit.MINUTES).toEpochMilli(),
-            "{\"id\": \"1-exec-id-2\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"1\"}",
-            "TERMINAL"
-          )
-        )
-        .values(
-          listOf(
-            "1",
-            "1-exec-id-3",
-            "test-app",
-            clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(114, ChronoUnit.MINUTES).toEpochMilli(),
-            clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(114, ChronoUnit.MINUTES).toEpochMilli(),
-            "{\"id\": \"1-exec-id-3\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"1\"}",
-            "RUNNING"
-          )
-        )
-        .values(
-          listOf(
-            "2",
-            "2-exec-id-1",
-            "test-app",
-            clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(2, ChronoUnit.HOURS).toEpochMilli(),
-            clock.instant().minus(daysOfExecutionHistory, ChronoUnit.DAYS).minus(2, ChronoUnit.HOURS).toEpochMilli(),
-            "{\"id\": \"2-exec-id-1\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"2\"}",
-            "NOT_STARTED"
-          )
-        )
-        .values(
-          listOf(
-            "3",
-            "3-exec-id-1",
-            "test-app-2",
-            clock.instant().minus(daysOfExecutionHistory + 1, ChronoUnit.DAYS).minus(2, ChronoUnit.HOURS).toEpochMilli(),
-            clock.instant().minus(daysOfExecutionHistory + 1, ChronoUnit.DAYS).minus(2, ChronoUnit.HOURS).toEpochMilli(),
-            "{\"id\": \"3-exec-id-1\", \"type\": \"PIPELINE\", \"pipelineConfigId\": \"3\"}",
-            "STOPPED"
-          )
-        )
-        .execute()
-      Mockito.`when`(front50Service.getPipelines("test-app", false,null))
-        .thenReturn(
-          listOf(
-            mapOf("id" to "1"),
-            mapOf("id" to "2"))
-        )
+        }
 
-      Mockito.`when`(front50Service.getStrategies("test-app"))
-        .thenReturn(listOf())
+        fun verifyFailedStagesAPI(rootPipeline: String, limit: Int, expectedOutput: List<String>) {
+            val failedStages =
+                taskController.getFailedStagesForPipelineExecution(rootPipeline, "", limit)
+
+            assertThat(failedStages.size).isEqualTo(expectedOutput.size)
+            assertThat(failedStages.map { it.stageId }).containsExactlyInAnyOrderElementsOf(expectedOutput)
+        }
     }
 
-    fun cleanUp() {
-      SqlTestUtil.cleanupDb(database.context)
+    fun tests() = rootContext<Fixture> {
+
+        context("test failedStages API") {
+            fixture {
+                Fixture(true)
+            }
+
+            test("TestCase1: returns empty list when pipeline not found") {
+                verifyFailedStagesAPI(
+                    "T1P", 1, listOf()
+                )
+            }
+
+            test("TestCase2: returns empty list when root pipeline has no failed stages") {
+                setupExecutionsInDb(
+                  "T2P",
+                  listOf("T2PS1", "T2PS2"),
+                  listOf("test", "test"),
+                  listOf(SUCCEEDED, SUCCEEDED),
+                  listOf(mapOf(), mapOf())
+                )
+                verifyFailedStagesAPI(
+                    "T2P", 1, listOf()
+                )
+            }
+
+            test("TestCase3: returns one o/f one failed leaf stage with limit 2") {
+                setupExecutionsInDb(
+                  "T3P",
+                  listOf("T3PS1", "T3PS2"),
+                  listOf("test", "test"),
+                  listOf(SUCCEEDED, TERMINAL),
+                  listOf(mapOf(), mapOf())
+                )
+
+                verifyFailedStagesAPI(
+                    "T3P", 2, listOf("T3PS2")
+                )
+            }
+
+            test("TestCase4a: returns one o/f two failed leaf stage with limit 1") {
+                setupExecutionsInDb(
+                  "T4P",
+                  listOf("T4PS1", "T4PS2"),
+                  listOf("test", "test"),
+                  listOf(TERMINAL, TERMINAL),
+                  listOf(mapOf(), mapOf())
+                )
+
+                verifyFailedStagesAPI(
+                    "T4P", 1, listOf("T4PS1")
+                )
+            }
+
+            test("TestCase4b: returns two o/f two failed leaf stages with limit 2") {
+                setupExecutionsInDb(
+                  "T4P",
+                  listOf("T4PS1", "T4PS2"),
+                  listOf("test", "test"),
+                  listOf(TERMINAL, TERMINAL),
+                  listOf(mapOf(), mapOf())
+                )
+
+                verifyFailedStagesAPI(
+                    "T4P", 2, listOf("T4PS1", "T4PS2")
+                )
+            }
+
+            test("TestCase5: returns all failed leaf stages in nested pipeline with limit 5") {
+                setupExecutionsInDb(
+                  "T5P",
+                  listOf("T5PS1", "T5PS2", "T5PS3"),
+                  listOf("test", "pipeline", "pipeline"),
+                  listOf(TERMINAL, SUCCEEDED, TERMINAL),
+                  listOf(
+                    mapOf(),
+                    mapOf("executionId" to "T5PS2P", "application" to "test-app"),
+                    mapOf("executionId" to "T5PS3P", "application" to "test-app")
+                  )
+                )
+
+                setupExecutionsInDb(
+                  "T5PS2P",
+                  listOf("T5PS2PS1"),
+                  listOf("test"),
+                  listOf(SUCCEEDED),
+                  listOf(mapOf())
+                )
+
+                setupExecutionsInDb(
+                  "T5PS3P",
+                  listOf("T5PS3PS1", "T5PS3PS2"),
+                  listOf("pipeline", "test"),
+                  listOf(TERMINAL, TERMINAL),
+                  listOf(
+                    mapOf("executionId" to "T5PS3PS1P", "application" to "test-app"), mapOf()
+                  )
+                )
+
+                setupExecutionsInDb(
+                  "T5PS3PS1P",
+                  listOf("T5PS3PS1PS1"),
+                  listOf("test"),
+                  listOf(TERMINAL),
+                  listOf(mapOf())
+                )
+
+                verifyFailedStagesAPI(
+                    "T5P", 5, listOf("T5PS1", "T5PS3PS1PS1", "T5PS3PS2")
+                )
+            }
+
+            listOf(true, false).forEach { onlyIncludeStagesThatFailedPipelines ->
+              test("TestCase6: When isOnlyIncludeStagesThatFailPipelines is $onlyIncludeStagesThatFailedPipelines, return proper stages") {
+                Mockito.`when`(failedStagesProperties.isOnlyIncludeStagesThatFailPipelines).thenReturn(onlyIncludeStagesThatFailedPipelines)
+                setupExecutionsInDb(
+                  "Test6",
+                  listOf(
+                    "Test6Stage1Terminal",
+                    "Test6Stage2StoppedCompleteOtherBranches",
+                    "Test6Stage3StoppedDontCompleteOtherBranches",
+                    "Test6Stage4FailedContinue"),
+                  listOf("test", "test", "test", "test"),
+                  listOf(TERMINAL, STOPPED, STOPPED, FAILED_CONTINUE),
+                  listOf(
+                    mapOf(),
+                    mapOf("completeOtherBranchesThenFail" to true),
+                    mapOf("completeOtherBranchesThenFail" to false),
+                    mapOf()
+                  )
+                )
+
+                if (onlyIncludeStagesThatFailedPipelines) {
+                  // don't include a status of STOPPED where completeOtherBranchesThenFail is true
+                  // or a FAILED_CONTINUE status
+                  verifyFailedStagesAPI(
+                    "Test6", 5, listOf("Test6Stage1Terminal", "Test6Stage2StoppedCompleteOtherBranches")
+                  )
+                } else {
+                  verifyFailedStagesAPI(
+                    "Test6", 5, listOf(
+                      "Test6Stage1Terminal",
+                      "Test6Stage2StoppedCompleteOtherBranches",
+                      "Test6Stage3StoppedDontCompleteOtherBranches",
+                      "Test6Stage4FailedContinue")
+                  )
+                }
+
+              }
+            }
+
+
+        }
     }
-  }
-
-  fun tests() = rootContext<Fixture> {
-    context("execution retrieval without optimization") {
-      fixture {
-        Fixture(false)
-      }
-
-      before { setup() }
-      after { cleanUp() }
-
-      test("retrieve executions with limit = 2 & expand = false") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get("/applications/test-app/pipelines?limit=2&expand=false")).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-2", "1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(3)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
-      }
-
-      test("retrieve executions with limit = 2 & expand = false with statuses") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get(
-          "/applications/test-app/pipelines?limit=2&expand=false&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED")
-        ).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(2)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
-      }
-    }
-
-    context("execution retrieval with optimization") {
-      fixture {
-        Fixture(true)
-      }
-
-      before { setup() }
-      after { cleanUp() }
-
-      test("retrieve executions with limit = 2 & expand = false") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get("/applications/test-app/pipelines?limit=2&expand=false")).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-2", "1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(3)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
-      }
-
-      test("retrieve executions with limit = 2 & expand = false with statuses") {
-        expectThat(database.context.fetchCount(table("pipelines"))).isEqualTo(5)
-        val response = subject.perform(get(
-          "/applications/test-app/pipelines?limit=2&expand=false&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED")
-        ).andReturn().response
-        val results = OrcaObjectMapper.getInstance().readValue(response.contentAsString, object : TypeReference<List<PipelineExecution>>() {})
-        val expectedOutput = listOf("1-exec-id-3","2-exec-id-1")
-        expectThat(results.size).isEqualTo(2)
-        results.forEach {
-          assert(it.id in expectedOutput)
-        }
-      }
-    }
-
-    context("test query having explicit query timeouts") {
-      fixture {
-        Fixture(true)
-      }
-
-      before { setup() }
-      after { cleanUp() }
-
-      test("it returns a DataAccessException on query timeout") {
-        expectCatching {
-          database.context.select(field("sleep(10)")).queryTimeout(1).execute()
-        }
-          .isFailure()
-          .isA<DataAccessException>()
-      }
-    }
-  }
 }

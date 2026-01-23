@@ -171,19 +171,6 @@ class SpinnakerRetrofit2ErrorHandleTest {
         .isEqualTo("Call return type must be parameterized as Call<Foo> or Call<? extends Foo>");
   }
 
-  @Test
-  void testWrongReturnTypeException() {
-
-    IllegalArgumentException illegalArgumentException =
-        catchThrowableOfType(
-            () -> retrofit2Service.testWrongReturnType().execute(), IllegalArgumentException.class);
-
-    assertThat(illegalArgumentException)
-        .hasMessage(
-            "Unable to create call adapter for interface com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofit2ErrorHandleTest$DummyWithExecute\n"
-                + "    for method Retrofit2Service.testWrongReturnType");
-  }
-
   interface Retrofit2Service {
     @retrofit2.http.GET("/retrofit2")
     Call<String> getRetrofit2();

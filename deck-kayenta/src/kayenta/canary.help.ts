@@ -73,6 +73,10 @@ const helpContents: { [key: string]: string } = {
     <p>When there is no value for a metric at a given point in time, it can either be ignored or assumed to be zero. The right choice depends on what is being measured. For example, when measuring successful attempts (like health checks) replacing missing values with zero may be appropriate.</p>
     <p>The default strategy for a given metric will be used if no strategy is selected.</p>
   `,
+  'canary.config.outlierStrategy': `
+    <p>When outliers are present in metric data, you can choose to either remove them or include them in the evaluation. The appropriate strategy depends on the metrics being assessed. For example, when measuring CPU or memory utilization, it might be appropriate to remove outliers that occur during startup times.</p> 
+    <p>If no strategy is chosen, the default strategy for the metric will be implemented.</p>
+  `,
   'canary.config.filterTemplate': `
     <p>Templates allow you to compose and parameterize advanced queries against your telemetry provider.</p>
     <p>Parameterized queries are hydrated by values provided in the canary stage. The <strong>project</strong>, <strong>resourceType</strong>, </string><strong>scope</strong>, and <strong>location</strong> variable bindings are implicitly available.</p>

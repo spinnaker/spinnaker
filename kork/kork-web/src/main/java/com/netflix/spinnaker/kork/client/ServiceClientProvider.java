@@ -22,10 +22,10 @@ import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.List;
 import okhttp3.Interceptor;
+import retrofit2.Converter;
 
 @NonnullByDefault
 public interface ServiceClientProvider {
-
   /**
    * Returns the concrete retrofit service client
    *
@@ -47,6 +47,18 @@ public interface ServiceClientProvider {
    */
   public <T> T getService(
       Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper);
+
+  /**
+   * Returns the concrete retrofit service client
+   *
+   * @param type retrofit interface type
+   * @param serviceEndpoint endpoint definition
+   * @param converterFactory custom converter factory for conversion
+   * @param <T> type of client , usually an interface with all the remote method definitions.
+   * @return the retrofit interface implementation
+   */
+  public <T> T getService(
+      Class<T> type, ServiceEndpoint serviceEndpoint, Converter.Factory converterFactory);
 
   /**
    * Returns the concrete retrofit service client

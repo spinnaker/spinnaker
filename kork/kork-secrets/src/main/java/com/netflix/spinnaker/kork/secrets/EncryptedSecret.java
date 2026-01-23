@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.experimental.Delegate;
 import lombok.extern.log4j.Log4j2;
 
 /**
@@ -42,23 +41,24 @@ import lombok.extern.log4j.Log4j2;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Log4j2
-public class EncryptedSecret {
+public class EncryptedSecret implements SecretReference {
 
   public static final String ENCRYPTED_STRING_PREFIX = "encrypted:";
   public static final String ENCRYPTED_FILE_PREFIX = "encryptedFile:";
-  private static final String ENCRYPTED_TAG_REGEX = ".+(![a-zA-Z0-9]+:.+)+";
-  private static final String ENCRYPTED_STRING_REGEX =
-      ENCRYPTED_STRING_PREFIX + ENCRYPTED_TAG_REGEX;
-  private static final String ENCRYPTED_FILE_REGEX = ENCRYPTED_FILE_PREFIX + ENCRYPTED_TAG_REGEX;
+  private static final SecretReferenceParser ENCRYPTED_STRING_PARSER =
+      new SecretUriReferenceParser(ENCRYPTED_STRING_PREFIX, "!", ":", SecretUriType.OPAQUE);
+  private static final SecretReferenceParser ENCRYPTED_FILE_PARSER =
+      new SecretUriReferenceParser(ENCRYPTED_FILE_PREFIX, "!", ":", SecretUriType.OPAQUE);
 
-  @Getter @Setter private String engineIdentifier;
-
-  @Getter private Map<String, String> params = new HashMap<>();
-
+  @Delegate private ParsedSecretReference reference;
   @Getter private boolean encryptedFile = false;
 
   EncryptedSecret(String secretConfig) {
     this.update(secretConfig);
+  }
+
+  public Map<String, String> getParams() {
+    return reference.getParameters();
   }
 
   /**
@@ -90,23 +90,8 @@ public class EncryptedSecret {
 
   protected void update(String secretConfig) {
     encryptedFile = isEncryptedFile(secretConfig);
-    String[] keyValues = secretConfig.split("!");
-    if (keyValues.length < 2) {
-      throw new InvalidSecretFormatException(
-          "Invalid encrypted secret format, must have at least one parameter");
-    }
-    for (int i = 0; i < keyValues.length; i++) {
-      String[] keyV = keyValues[i].split(":", 2);
-      if (keyV.length != 2) {
-        throw new InvalidSecretFormatException(
-            "Invalid encrypted secret format, keys and values must be delimited by ':'");
-      }
-      if (i == 0) {
-        this.engineIdentifier = keyV[1];
-      } else {
-        this.params.put(keyV[0], keyV[1]);
-      }
-    }
+    var parser = encryptedFile ? ENCRYPTED_FILE_PARSER : ENCRYPTED_STRING_PARSER;
+    reference = parser.parse(secretConfig);
   }
 
   /**
@@ -123,12 +108,10 @@ public class EncryptedSecret {
   }
 
   private static boolean matchesEncryptedStringSyntax(String secretConfig) {
-    return secretConfig.startsWith(ENCRYPTED_STRING_PREFIX)
-        && secretConfig.matches(ENCRYPTED_STRING_REGEX);
+    return ENCRYPTED_STRING_PARSER.matches(secretConfig);
   }
 
   private static boolean matchesEncryptedFileSyntax(String secretConfig) {
-    return secretConfig.toLowerCase().startsWith(ENCRYPTED_FILE_PREFIX.toLowerCase())
-        && secretConfig.matches(ENCRYPTED_FILE_REGEX);
+    return ENCRYPTED_FILE_PARSER.matches(secretConfig);
   }
 }

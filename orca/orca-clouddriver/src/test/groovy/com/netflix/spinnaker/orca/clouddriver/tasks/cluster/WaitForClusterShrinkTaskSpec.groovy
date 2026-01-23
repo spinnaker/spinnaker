@@ -22,13 +22,16 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.SUCCEEDED
-import static retrofit.RetrofitError.httpError
 
 class WaitForClusterShrinkTaskSpec extends Specification {
 
@@ -49,7 +52,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
     ])
 
     and:
-    oortService.getCluster(*_) >> clusterResponse(
+    oortService.getCluster(*_) >> Calls.response(clusterResponse(
       name: clusterName,
       serverGroups: [
         [
@@ -73,7 +76,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
           health: null
         ]
       ]
-    )
+    ))
 
     when:
     def result = task.execute(stage)
@@ -100,7 +103,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
     ])
 
     and:
-    oortService.getCluster(*_) >> clusterResponse(
+    oortService.getCluster(*_) >> Calls.response(clusterResponse(
       name: clusterName,
       serverGroups: [
         [
@@ -109,7 +112,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
           health: null
         ]
       ]
-    )
+    ))
 
     when:
     def result = task.execute(stage)
@@ -136,7 +139,7 @@ class WaitForClusterShrinkTaskSpec extends Specification {
     ])
 
     and:
-    oortService.getCluster(*_) >> { throw new SpinnakerHttpException(httpError("http://cloudriver", emptyClusterResponse(), null, null)) }
+    oortService.getCluster(*_) >> { throw makeSpinnakerHttpException(404) }
 
     when:
     def result = task.execute(stage)
@@ -151,12 +154,25 @@ class WaitForClusterShrinkTaskSpec extends Specification {
     oldServerGroup = "v391"
   }
 
-  Response clusterResponse(body) {
-    new Response("http://cloudriver", 200, "OK", [], new TypedByteArray("application/json", objectMapper.writeValueAsString(body).bytes))
+  ResponseBody clusterResponse(body) {
+    ResponseBody.create(MediaType.parse("application/json"), objectMapper.writeValueAsString(body).bytes)
   }
 
-  Response emptyClusterResponse() {
-    new Response("http://cloudriver", 404, "Not Found", [], null)
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
+    String url = "https://oort";
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), message))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.security;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import java.util.List;
 import lombok.Data;
@@ -26,6 +27,7 @@ public class ECSCredentialsConfig {
   List<Account> accounts;
 
   @Data
+  @JsonTypeName("ecs")
   public static class Account implements CredentialsDefinition {
     private String name;
     private String awsAccount;

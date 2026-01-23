@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.BUFFERED
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
@@ -77,7 +78,7 @@ import org.jooq.impl.DSL.timestampSub
 import org.jooq.impl.DSL.value
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 import java.io.ByteArrayOutputStream
 import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets
@@ -239,8 +240,14 @@ class SqlExecutionRepository(
       }
       if (execution.status == NOT_STARTED) {
         execution.status = ExecutionStatus.CANCELED
+      } else if (!execution.status.isComplete
+        && execution.stages.all { it.status.isComplete || it.status == NOT_STARTED }) {
+        // In some cases, a race condition could occur between a pipeline cancellation and completion.
+        // This could cause the pipeline status to be incorrectly updated to RUNNING even when there are
+        // no more stages to run, resulting in the pipeline remaining in the RUNNING state indefinitely.
+        // Explicitly setting the status to CANCELED here takes care of such race conditions.
+        execution.status = CANCELED
       }
-
       storeExecutionInternal(dslContext, execution)
     }
   }
@@ -408,8 +415,12 @@ class SqlExecutionRepository(
     selectExecution(jooq, type, id)
       ?: throw ExecutionNotFoundException("No $type found for $id")
 
+  override fun retrieve(type: ExecutionType, id: String, requireLatestVersion: Boolean) =
+    selectExecution(jooq, type, id, requireLatestVersion)
+      ?: throw ExecutionNotFoundException("No $type found for $id with requireLatestVersion: $requireLatestVersion")
+
   override fun retrieve(type: ExecutionType): Observable<PipelineExecution> =
-    Observable.from(
+    Observable.fromIterable(
       fetchExecutions { pageSize, cursor ->
         selectExecutions(type, pageSize, cursor)
       }
@@ -444,13 +455,13 @@ class SqlExecutionRepository(
         }
       )
 
-      return Observable.from(select.fetchExecutions())
+      return Observable.fromIterable(select.fetchExecutions())
     }
   }
 
   override fun retrievePipelinesForApplication(application: String): Observable<PipelineExecution> =
     withPool(readPoolName) {
-      Observable.from(
+      Observable.fromIterable(
         fetchExecutions { pageSize, cursor ->
           selectExecutions(PIPELINE, pageSize, cursor) {
             it.where(field("application").eq(application))
@@ -551,7 +562,15 @@ class SqlExecutionRepository(
       val baseQuery = jooq.select(field("config_id"), field("id"))
         .from(table)
         .where(baseQueryPredicate)
-         .orderBy(field("config_id"))
+        // ULIDs are ordered by time.  Assume id is a ULID since what gate's
+        // PipelineController.triggerViaEcho provides.  Currently (4-nov-26), the
+        // UI uses triggerViaEcho to invoke pipelines.  If there's no execution id
+        // provided (e.g. via gate's PipelineController.trigger method), a
+        // PipelineExecutionImpl constructor provides one.  If a non-ULID is
+        // provided somehow, mapLegacyId in this class ensures id is a ULID.
+        //
+        // Order the result by id to retrieve the newest executions
+         .orderBy(field("config_id"), field("id"))
          .fetch().intoGroups("config_id", "id")
 
         baseQuery.forEach {
@@ -574,14 +593,11 @@ class SqlExecutionRepository(
    * It executes the following query to get execution details for n executions at a time in a specific application
    *
    * SELECT id, body, compressed_body, compression_type, `partition`
-       FROM pipelines force index (`pipeline_application_idx`)
+       FROM pipelines
        left outer join
        pipelines_compressed_executions
        using (`id`)
-       WHERE (
-         application = "<myapp>" and
-         id in ('id1', 'id2', 'id3')
-       );
+       WHERE id in ('id1', 'id2', 'id3');
    *
    * it then gets all the stage information for all the executions returned from the above query.
    */
@@ -590,17 +606,13 @@ class SqlExecutionRepository(
     pipelineExecutions: List<String>,
     queryTimeoutSeconds: Int
   ): Collection<PipelineExecution> {
-    withPool(poolName) {
-      val baseQuery = jooq.select(selectExecutionFields(compressionProperties))
-        .from(
-          if (jooq.dialect() == SQLDialect.MYSQL) PIPELINE.tableName.forceIndex("pipeline_application_idx")
-          else PIPELINE.tableName
-        )
-        .leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
-        .where(
-          field("application").eq(application)
-            .and(field("id").`in`(*pipelineExecutions.toTypedArray()))
-        )
+    withPool(readPoolName) {
+      val selectFrom = jooq.select(selectExecutionFields(compressionProperties)).from(PIPELINE.tableName)
+      if (compressionProperties.enabled) {
+        selectFrom.leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
+      }
+      val baseQuery = selectFrom
+        .where(field("id").`in`(*pipelineExecutions.toTypedArray()))
         .queryTimeout(queryTimeoutSeconds) // add an explicit timeout so that the query doesn't run forever
         .fetch()
 
@@ -644,7 +656,7 @@ class SqlExecutionRepository(
         )
       }
 
-      return Observable.from(select.fetchExecutions())
+      return Observable.fromIterable(select.fetchExecutions())
     }
   }
 
@@ -652,7 +664,7 @@ class SqlExecutionRepository(
     application: String,
     criteria: ExecutionCriteria
   ): Observable<PipelineExecution> {
-    return Observable.from(retrieveOrchestrationsForApplication(application, criteria, NATURAL_ASC))
+    return Observable.fromIterable(retrieveOrchestrationsForApplication(application, criteria, NATURAL_ASC))
   }
 
   override fun retrieveOrchestrationsForApplication(
@@ -769,10 +781,10 @@ class SqlExecutionRepository(
       .setPageSize(100)
       .setStatuses(BUFFERED)
       .let { criteria ->
-        rx.Observable.merge(
+        Observable.merge(
           retrieve(ORCHESTRATION, criteria, partitionName),
           retrieve(PIPELINE, criteria, partitionName)
-        ).toList().toBlocking().single()
+        ).toList().blockingGet()
       }
 
   override fun retrieveAllApplicationNames(type: ExecutionType?): List<String> {
@@ -1305,6 +1317,19 @@ class SqlExecutionRepository(
     id: String
   ): PipelineExecution? {
     withPool(poolName) {
+      val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
+      return select.fetchExecution()
+    }
+  }
+
+  private fun selectExecution(
+    ctx: DSLContext,
+    type: ExecutionType,
+    id: String,
+    requireLatestVersion: Boolean
+  ): PipelineExecution? {
+    val selectPool = if (requireLatestVersion) poolName else readPoolName
+    withPool(selectPool) {
       val select = ctx.selectExecution(type, compressionProperties).where(id.toWhereCondition())
       return select.fetchExecution()
     }

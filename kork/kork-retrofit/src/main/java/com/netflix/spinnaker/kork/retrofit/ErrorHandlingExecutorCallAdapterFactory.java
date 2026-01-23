@@ -37,10 +37,24 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 /**
- * {@link retrofit.RetrofitError} and {@link retrofit.ErrorHandler} are no longer present in
- * retrofit2. So this class helps to achieve similar logic as retrofit and handle exceptions
- * globally in retrofit2. This can be achieved by setting this class as CallAdapterFactory at the
- * time of {@link Retrofit} client creation.
+ * A Retrofit {@link CallAdapter.Factory} that wraps calls to provide enhanced error handling.
+ *
+ * <p>This factory allows for consistent exception handling across synchronous and asynchronous
+ * Retrofit calls. It converts network, HTTP, and conversion errors into custom Spinnaker
+ * exceptions, making error handling more predictable and testable for clients.
+ *
+ * <p>If using asynchronous calls (i.e., {@code enqueue}), an {@link Executor} can be provided to
+ * specify the callback execution context. For synchronous calls (i.e., {@code execute}), the
+ * executor is not required.
+ *
+ * <p>Usage example:
+ *
+ * <pre>
+ *   Retrofit retrofit = new Retrofit.Builder()
+ *     .baseUrl("https://api.example.com/")
+ *     .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+ *     .build();
+ * </pre>
  */
 public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory {
 
@@ -75,11 +89,11 @@ public class ErrorHandlingExecutorCallAdapterFactory extends CallAdapter.Factory
   public CallAdapter<?, ?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
 
     /**
-     * Expected the raw class type from returnType to be {@link Call} class otherwise return null as
-     * it cannot be handled by this factory
+     * If the raw return type is not a {@link Call}, send it to {@link LegacySignatureCallAdapter}
+     * for immediate execution
      */
     if (getRawType(returnType) != Call.class) {
-      return null;
+      return new LegacySignatureCallAdapter(callbackExecutor, returnType, retrofit);
     }
 
     if (!(returnType instanceof ParameterizedType)) {

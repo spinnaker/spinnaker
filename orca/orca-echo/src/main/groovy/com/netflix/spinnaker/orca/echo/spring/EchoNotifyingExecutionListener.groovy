@@ -16,6 +16,11 @@
 package com.netflix.spinnaker.orca.echo.spring
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.histogram.PercentileTimer
+import com.netflix.spectator.api.patterns.IntervalCounter
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.echo.EchoService
@@ -28,6 +33,8 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
+import java.util.concurrent.TimeUnit
+
 import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPELINE
 
 @Slf4j
@@ -38,16 +45,31 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
   private final Front50Service front50Service
   private final ObjectMapper objectMapper
   private final ContextParameterProcessor contextParameterProcessor
+  private final Registry registry
+
+  // Echo Event Metrics
+  private final Id echoEventsMetricsBaseIdCounter;
+  private final Id echoEventsMetricsBaseIdTimer;
+  private final Id echoEventsMetricsBaseIdError;
 
   EchoNotifyingExecutionListener(
     EchoService echoService,
     Front50Service front50Service,
     ObjectMapper objectMapper,
-    ContextParameterProcessor contextParameterProcessor) {
+    ContextParameterProcessor contextParameterProcessor,
+    Registry registry
+  ) {
     this.echoService = echoService
     this.front50Service = front50Service
     this.objectMapper = objectMapper
     this.contextParameterProcessor = contextParameterProcessor
+    this.registry = registry
+
+    // Shared metrics base ids for Echo Event handling.
+    final String idPrefix = "echo.events";
+    this.echoEventsMetricsBaseIdCounter = this.registry.createId(idPrefix + ".count");
+    this.echoEventsMetricsBaseIdTimer = this.registry.createId(idPrefix + ".duration");
+    this.echoEventsMetricsBaseIdError = this.registry.createId(idPrefix + ".error");
   }
 
   @Override
@@ -59,18 +81,33 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
         if (execution.type == PIPELINE) {
           addApplicationNotifications(execution)
         }
+
+        final long startTimeNanos = registry.clock().monotonicTime();
+
         AuthenticatedRequest.allowAnonymous({
-          echoService.recordEvent(
-            details: [
-              source     : "orca",
-              type       : "orca:${execution.type}:starting".toString(),
-              application: execution.application,
-            ],
-            content: buildContent(execution)
+          Retrofit2SyncCall.execute(
+            echoService.recordEvent([
+              details: [
+                source     : "orca",
+                type       : "orca:${execution.type}:starting".toString(),
+                application: execution.application,
+              ],
+              content: buildContent(execution)
+            ] as Map)
           )
         })
+
+        // Echo Event Metrics
+        final long durationInNanos = registry.clock().monotonicTime() - startTimeNanos;
+        IntervalCounter.get(registry, echoEventsMetricsBaseIdCounter.withTag("execution", "before")).increment();
+        PercentileTimer.get(registry, echoEventsMetricsBaseIdTimer.withTag("execution", "before")).record(durationInNanos, TimeUnit.NANOSECONDS);
+
+        log.debug(
+          "Event processing success - before: durationInNanos={}, executionId={}",
+          durationInNanos, execution.getId());
       }
     } catch (Exception e) {
+      IntervalCounter.get(registry, echoEventsMetricsBaseIdError.withTag("execution", "before")).increment();
       log.error("Failed to send pipeline start event: ${execution?.id}", e)
     }
   }
@@ -87,18 +124,33 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
         if (execution.type == PIPELINE) {
           addApplicationNotifications(execution)
         }
+
+        final long startTimeNanos = registry.clock().monotonicTime();
+
         AuthenticatedRequest.allowAnonymous({
-          echoService.recordEvent(
-            details: [
-              source     : "orca",
-              type       : "orca:${execution.type}:${wasSuccessful ? "complete" : "failed"}".toString(),
-              application: execution.application,
-            ],
-            content: buildContent(execution)
+          Retrofit2SyncCall.execute(
+            echoService.recordEvent([
+              details: [
+                source     : "orca",
+                type       : "orca:${execution.type}:${wasSuccessful ? "complete" : "failed"}".toString(),
+                application: execution.application,
+              ],
+              content: buildContent(execution)
+            ] as Map)
           )
         })
+
+        // Echo Event Metrics
+        final long durationInNanos = registry.clock().monotonicTime() - startTimeNanos;
+        IntervalCounter.get(registry, echoEventsMetricsBaseIdCounter.withTag("execution", "after")).increment();
+        PercentileTimer.get(registry, echoEventsMetricsBaseIdTimer.withTag("execution", "after")).record(durationInNanos, TimeUnit.NANOSECONDS);
+
+        log.debug(
+            "Event processing success - after: durationInNanos={}, executionId={}",
+            durationInNanos, execution.getId());
       }
     } catch (Exception e) {
+      IntervalCounter.get(registry, echoEventsMetricsBaseIdError.withTag("execution", "after")).increment();
       log.error("Failed to send pipeline end event: ${execution?.id}", e)
     }
   }
@@ -124,11 +176,11 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
     ApplicationNotifications notifications
     if (user) {
       notifications = AuthenticatedRequest.runAs(user, pipeline.authentication.allowedAccounts ?: [] as Collection<String>, {
-        front50Service.getApplicationNotifications(pipeline.application)
+        Retrofit2SyncCall.execute(front50Service.getApplicationNotifications(pipeline.application))
       }).call()
     } else {
       notifications = AuthenticatedRequest.allowAnonymous({
-        front50Service.getApplicationNotifications(pipeline.application)
+        Retrofit2SyncCall.execute(front50Service.getApplicationNotifications(pipeline.application))
       })
     }
 

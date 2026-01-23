@@ -37,6 +37,8 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testImplementation("org.mockito:mockito-junit-jupiter")
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
 }
 
 test {

@@ -38,6 +38,7 @@ on:
       - 'keel/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/keel.yml'
 
   pull_request:
     branches:
@@ -47,12 +48,13 @@ on:
       - 'keel/**'
       - 'fiat/**'
       - 'kork/**'
+      - '.github/workflows/keel.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/generic-build-publish
         with:
           project: keel

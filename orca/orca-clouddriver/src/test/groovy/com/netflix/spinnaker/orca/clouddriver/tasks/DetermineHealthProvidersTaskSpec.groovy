@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -45,7 +46,7 @@ class DetermineHealthProvidersTaskSpec extends Specification {
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", stageContext)
 
     if (application) {
-      1 * front50Service.get(application.name) >> application
+      1 * front50Service.get(application.name) >> Calls.response(application)
     }
 
     when:

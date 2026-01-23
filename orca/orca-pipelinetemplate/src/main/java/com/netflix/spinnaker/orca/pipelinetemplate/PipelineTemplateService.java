@@ -99,9 +99,7 @@ public class PipelineTemplateService {
       try {
         return executionRepository
             .retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
-            .toSingle()
-            .toBlocking()
-            .value();
+            .blockingFirst();
       } catch (NoSuchElementException e) {
         throw new ExecutionNotFoundException(
             "No pipeline execution could be found for config id "

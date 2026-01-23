@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
@@ -42,7 +43,7 @@ class DisableCanaryTask implements CloudProviderAware, Task {
   @Override
   TaskResult execute(@Nonnull StageExecution stage) {
     try {
-      def canary = mineService.getCanary(stage.context.canary.id)
+      def canary = Retrofit2SyncCall.execute(mineService.getCanary(stage.context.canary.id))
       if (canary.health?.health == 'UNHEALTHY' || stage.context.unhealthy != null) {
         // If unhealthy, already disabled in MonitorCanaryTask
         return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([

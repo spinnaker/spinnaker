@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Unroll
+import io.reactivex.rxjava3.core.Observable
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -53,7 +54,7 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
         status = s
       }
 
-      filter.call(pipeline) == (s == ExecutionStatus.SUCCEEDED)
+      filter.test(pipeline) == (s == ExecutionStatus.SUCCEEDED)
     }
   }
 
@@ -76,7 +77,7 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
     ).mapper
 
     expect:
-    with(mapper.call(pipeline)) {
+    with(mapper.apply(pipeline)) {
       id == "ID1"
       startTime == 1000
       pipelineConfigId == "P1"
@@ -92,7 +93,7 @@ class TopApplicationPipelineExecutionCleanupPollingNotificationAgentSpec extends
 
     def executionRepository = Mock(ExecutionRepository) {
       1 * retrieveAllApplicationNames(_, _) >> ["app1"]
-      1 * retrieveOrchestrationsForApplication("app1", _) >> rx.Observable.from(orchestrations)
+      1 * retrieveOrchestrationsForApplication("app1", _) >> Observable.fromIterable(orchestrations)
     }
     def pipelineDependencyCleanupOperator = Mock(PipelineDependencyCleanupOperator)
     def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(

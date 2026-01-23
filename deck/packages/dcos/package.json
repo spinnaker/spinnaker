@@ -21,7 +21,7 @@
     "@spinnaker/core": "^0.29.1",
     "@spinnaker/docker": "^0.0.147",
     "angular": "1.6.10",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "ngimport": "0.6.1",
     "rxjs": "6.6.7"
   },

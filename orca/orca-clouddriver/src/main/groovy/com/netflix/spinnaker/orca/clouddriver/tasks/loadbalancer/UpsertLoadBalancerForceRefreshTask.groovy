@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -30,8 +31,7 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
+import retrofit2.Response
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -109,23 +109,21 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     stage.context.targets.each { Map target ->
       target.availabilityZones.keySet().each { String region ->
         Response response = retrySupport.retry({
-          cacheService.forceCacheUpdate(
-            cloudProvider,
-            REFRESH_TYPE,
-            [loadBalancerName: target.name,
-             region          : region,
-             account         : target.credentials,
-             loadBalancerType: stage.context.loadBalancerType]
-          )
+          Retrofit2SyncCall.executeCall(
+              cacheService.forceCacheUpdate(
+                cloudProvider,
+                REFRESH_TYPE,
+                [loadBalancerName: target.name,
+                 region          : region,
+                 account         : target.credentials,
+                 loadBalancerType: stage.context.loadBalancerType] as Map
+          ))
         }, 3, 1000, false)
 
-        if (response != null && response.status != HttpURLConnection.HTTP_OK) {
+        if (response != null && response.code() != HttpURLConnection.HTTP_OK) {
           requestStatuses.add(false)
 
-          Map<String, Object> responseBody = mapper.readValue(
-            ((TypedByteArray) response.getBody()).getBytes(),
-            new TypeReference<Map<String, Object>>() {}
-          )
+          Map<String, Object> responseBody = mapper.readValue(response.body().byteStream(), new TypeReference<Map<String, Object>>() {})
 
           if (responseBody?.cachedIdentifiersByType?.loadBalancers) {
             context.refreshState.refreshIds.addAll(
@@ -151,7 +149,7 @@ public class UpsertLoadBalancerForceRefreshTask implements CloudProviderAware, R
     String cloudProvider = getCloudProvider(stage)
 
     Collection<Map> pendingCacheUpdates = retrySupport.retry({
-      cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE)
+      Retrofit2SyncCall.execute(cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE))
     }, 3, 1000, false)
 
     if (!pendingCacheUpdates.isEmpty() && !context.refreshState.seenPendingCacheUpdates) {

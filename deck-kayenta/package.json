@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/kayenta",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -8,9 +8,12 @@
   },
   "module": "build/dist/index.js",
   "typings": "build/dist/index.d.ts",
+  "files": [
+    "build/dist"
+  ],
   "engines": {
-    "node": ">=12.14.1",
-    "npm": ">=6.13.4",
+    "node": ">=20.19.4",
+    "npm": ">=11.5.1",
     "yarn": ">=1.21.1"
   },
   "scripts": {
@@ -158,6 +161,6 @@
     "utf-8-validate": "5.0.3"
   },
   "optionalDependencies": {
-    "fsevents": "1.2.11"
+    "fsevents": "2.3.3"
   }
 }

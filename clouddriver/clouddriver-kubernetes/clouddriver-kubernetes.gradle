@@ -50,7 +50,7 @@ tasks.withType(JavaCompile) {
 dependencies {
   errorprone("com.google.errorprone:error_prone_core:2.28.0")
   implementation project(":clouddriver-api")
-  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-artifacts:clouddriver-artifacts-kubernetes")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-configserver")
   implementation project(":cats:cats-core")
@@ -103,6 +103,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation "org.apache.groovy:groovy-templates"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  integrationImplementation 'org.springframework.security:spring-security-test'
 
   integrationImplementation project(":clouddriver-web")
   integrationImplementation "org.springframework.boot:spring-boot-starter-test"
@@ -125,9 +126,17 @@ task integrationTest(type: Test) {
   group = 'verification'
 
   environment "IT_BUILD_HOME", "$project.buildDir/it"
+  inputs.property("IT_BUILD_HOME", "$project.buildDir/it")
+
   environment "IMAGE", project.getProperties().get("kubernetes-image")
+  inputs.property("IMAGE", project.getProperties().get("kubernetes-image"))
+
   environment "KUBECTL_VERSION", project.getProperties().get("kubectl-version")
+  inputs.property("KUBECTL_VERSION", project.getProperties().get("kubectl-version"))
+
   environment "KUBERNETES_VERSION", project.getProperties().get("kubernetes-version")
+  inputs.property("KUBERNETES_VERSION", project.getProperties().get("kubernetes-version"))
+
   useJUnitPlatform()
 
   testClassesDirs = sourceSets.integration.output.classesDirs
@@ -137,8 +146,8 @@ task integrationTest(type: Test) {
   testlogger {
     theme 'standard'
     showStandardStreams true
-    showPassedStandardStreams false
+    showPassedStandardStreams true
     showFailedStandardStreams true
-    showPassed false
+    showPassed true
   }
 }

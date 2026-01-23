@@ -19,7 +19,7 @@ package com.netflix.kayenta.azure.security;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.netflix.kayenta.security.AccountCredentials;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

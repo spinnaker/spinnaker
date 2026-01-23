@@ -70,11 +70,15 @@ class QueueMetricsPublisher(
       is MessagePushed -> event.counter.increment()
       is MessageAcknowledged -> event.counter.increment()
       is MessageRetried -> event.counter.increment()
+      is MessageRetryFailed -> event.counter.increment()
       is MessageDead -> event.counter.increment()
       is MessageDuplicate -> event.counter.increment()
       is LockFailed -> event.counter.increment()
       is MessageRescheduled -> event.counter.increment()
       is MessageNotFound -> event.counter.increment()
+      is HandlerThrewError -> registry.counter("queue.handler.error",
+        "messageType", event.payload.javaClass.simpleName).increment()
+      NoHandlerCapacity -> registry.counter("queue.capacity.error").increment()
     }
   }
 
@@ -97,6 +101,13 @@ class QueueMetricsPublisher(
    */
   private val MessageRetried.counter: Counter
     get() = registry.counter("queue.retried.messages")
+
+  /**
+   * Count of messages that failed retry. This does not imply retries of unique
+   * messages, so the count will keep getting incremented every time the same message retry fails.
+   */
+  private val MessageRetryFailed.counter: Counter
+    get() = registry.counter("queue.retried.messages.failed")
 
   /**
    * Count of messages that have exceeded [Queue.maxRetries] retry

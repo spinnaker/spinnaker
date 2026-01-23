@@ -1,0 +1,100 @@
+[
+  {
+    "serverGroups": [],
+    "account": "k8s-local",
+    "name": "ingress backend",
+    "namespace": "dev",
+    "displayName": "backend",
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "ingress",
+    "labels": {
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "ingress backend"
+    },
+    "createdTime": 1753738693000,
+    "region": "dev",
+    "cloudProvider": "kubernetes",
+    "type": "kubernetes"
+  },
+  {
+    "serverGroups": [
+      {
+        "name": "replicaSet backend-65b97dd546",
+        "account": "k8s-local",
+        "region": "dev",
+        "isDisabled": false,
+        "detachedInstances": [],
+        "instances": [
+          {
+            "id": "6a3797eb-4fc2-4098-92af-6d3c13049fc5",
+            "name": "pod backend-65b97dd546-kkw8d",
+            "zone": "dev",
+            "health": {
+              "state": "Up",
+              "source": "Container backend",
+              "type": "kubernetes/container",
+              "platform": "platform"
+            }
+          },
+          {
+            "id": "2fba55f3-cea2-4c4d-972d-4830844e2425",
+            "name": "pod backend-65b97dd546-vb8qf",
+            "zone": "dev",
+            "health": {
+              "state": "Up",
+              "source": "Container backend",
+              "type": "kubernetes/container",
+              "platform": "platform"
+            }
+          }
+        ],
+        "cloudProvider": "kubernetes"
+      }
+    ],
+    "account": "k8s-local",
+    "name": "service backend",
+    "namespace": "dev",
+    "displayName": "backend",
+    "apiVersion": "v1",
+    "kind": "service",
+    "labels": {
+      "app": "backend",
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "service backend"
+    },
+    "createdTime": 1753738693000,
+    "region": "dev",
+    "cloudProvider": "kubernetes",
+    "type": "kubernetes"
+  },
+  {
+    "serverGroups": [],
+    "account": "k8s-local",
+    "name": "service statefulset",
+    "namespace": "dev",
+    "displayName": "statefulset",
+    "apiVersion": "v1",
+    "kind": "service",
+    "labels": {
+      "app": "statefulset",
+      "app.kubernetes.io/managed-by": "spinnaker",
+      "app.kubernetes.io/name": "kubernetesapp"
+    },
+    "moniker": {
+      "app": "kubernetesapp",
+      "cluster": "service statefulset"
+    },
+    "createdTime": 1753738693000,
+    "region": "dev",
+    "cloudProvider": "kubernetes",
+    "type": "kubernetes"
+  }
+]

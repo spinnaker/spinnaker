@@ -107,5 +107,8 @@ pull_request_rules:
         add: ["auto merged"]
 priority_rules:
   - name: priority for queue `default`
-    conditions: []
-    priority: 2750
+    conditions:
+      - not:
+          and:
+            - label=no-squash
+    priority: 2250

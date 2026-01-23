@@ -21,6 +21,7 @@ import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.AmazonEC2
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import org.apache.http.Header
 import org.apache.http.HttpEntity
@@ -38,8 +39,9 @@ class AmazonClientProviderSpec extends Specification {
       getCredentials() >> new BasicAWSCredentials('foo', 'bar')
   }
 
-  @Shared NetflixAmazonCredentials credentialsWithEdda = new NetflixAmazonCredentials(TestCredential.named('test', [edda: 'foo']), credentialsProvider)
-  @Shared NetflixAmazonCredentials credentialsNoEdda = new NetflixAmazonCredentials(TestCredential.named('test'), credentialsProvider)
+  @Shared AwsConfigurationProperties awsConfigurationProperties = new AwsConfigurationProperties()
+  @Shared NetflixAmazonCredentials credentialsWithEdda = new NetflixAmazonCredentials(TestCredential.named('test', [edda: 'foo']), credentialsProvider, awsConfigurationProperties)
+  @Shared NetflixAmazonCredentials credentialsNoEdda = new NetflixAmazonCredentials(TestCredential.named('test'), credentialsProvider, awsConfigurationProperties)
 
   void "client proxies to edda when available"() {
     setup:

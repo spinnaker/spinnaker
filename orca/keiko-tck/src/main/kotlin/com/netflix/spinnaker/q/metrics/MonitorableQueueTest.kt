@@ -24,6 +24,7 @@ import com.netflix.spinnaker.time.MutableClock
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.argumentCaptor
 import com.nhaarman.mockito_kotlin.atLeastOnce
+import com.nhaarman.mockito_kotlin.doThrow
 import com.nhaarman.mockito_kotlin.isA
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
@@ -38,6 +39,7 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
+import java.lang.RuntimeException
 
 /**
  * An compatibility test for implementations of [MonitorableQueue].
@@ -358,7 +360,7 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
       }
 
       on("failing to acknowledge the message ${Queue.maxRetries} times") {
-        (1..Queue.maxRetries).forEach {
+        (1..Queue.maxRetries).forEach { _ ->
           queue!!.poll { _, _ -> }
           clock.incrementBy(queue!!.ackTimeout)
           triggerRedeliveryCheck.invoke(queue!!)
@@ -383,6 +385,48 @@ abstract class MonitorableQueueTest<out Q : MonitorableQueue>(
             assertThat(orphaned).isEqualTo(0)
           }
         }
+      }
+    }
+
+    given("failed messages are ignored when retrying") {
+      beforeGroup(::startQueue)
+      afterGroup(::stopQueue)
+      afterGroup(::resetMocks)
+
+      beforeGroup {
+        queue!!.push(TestMessage("a"))
+        queue!!.push(TestMessage("b"))
+        queue!!.push(TestMessage("c"))
+        // throwing an exception when publishing the retry event since this is the only way to
+        // actually cause an exception when retrying a message
+        doThrow(RuntimeException()).doNothing().doNothing().`when`(publisher).publishEvent(MessageRetried)
+      }
+
+      on("polling for messages") {
+        repeat(3) {
+          queue!!.poll { _, _ -> }
+        }
+      }
+
+      it("all messages are unacknowledged") {
+        with(queue!!.readState()) {
+          softly {
+            assertThat(depth).isEqualTo(0)
+            assertThat(unacked).isEqualTo(3)
+            assertThat(ready).isEqualTo(0)
+          }
+        }
+      }
+
+      on("checking for unacknowledged message") {
+        clock.incrementBy(queue!!.ackTimeout)
+        triggerRedeliveryCheck.invoke(queue!!)
+        clock.incrementBy(queue!!.ackTimeout)
+      }
+
+      it("fires retry failed event for all messages that failed retry") {
+        verify(publisher, times(1)).publishEvent(MessageRetryFailed)
+        verify(publisher, times(3)).publishEvent(MessageRetried)
       }
     }
   }

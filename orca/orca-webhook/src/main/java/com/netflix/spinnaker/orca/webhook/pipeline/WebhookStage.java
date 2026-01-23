@@ -33,9 +33,11 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -44,14 +46,21 @@ public class WebhookStage implements StageDefinitionBuilder {
 
   private final MonitorWebhookTask monitorWebhookTask;
 
+  private final WebhookProperties webhookProperties;
+
   @Autowired
-  public WebhookStage(MonitorWebhookTask monitorWebhookTask) {
+  public WebhookStage(MonitorWebhookTask monitorWebhookTask, WebhookProperties webhookProperties) {
     this.monitorWebhookTask = monitorWebhookTask;
+    this.webhookProperties = webhookProperties;
   }
 
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     StageData stageData = stage.mapTo(StageData.class);
+
+    if (webhookProperties.isRequireAccount() && StringUtils.isBlank(stageData.account)) {
+      throw new UserException("account is required");
+    }
 
     if (stageData.monitorOnly && !stageData.waitForCompletion) {
       throw new UserException(
@@ -90,6 +99,7 @@ public class WebhookStage implements StageDefinitionBuilder {
     public WebhookProperties.StatusUrlResolution statusUrlResolution;
     public String statusUrlJsonPath;
     public boolean monitorOnly;
+    public String account;
 
     @JsonFormat(with = {JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES})
     public HttpMethod method = HttpMethod.POST;
@@ -143,7 +153,7 @@ public class WebhookStage implements StageDefinitionBuilder {
     private String error;
     private Map<String, String> headers;
     private Object body;
-    private HttpStatus statusCode;
+    private HttpStatusCode statusCode;
     private Integer statusCodeValue;
     private String progressMessage;
     private Number percentComplete;

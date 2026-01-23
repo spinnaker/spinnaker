@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -33,6 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.Nonnull
+
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 @Component
 @Slf4j
@@ -65,8 +69,9 @@ class StartPipelineTask implements Task {
     Boolean isStrategy = stage.context.pipelineParameters?.strategy ?: false
     String pipelineId = isStrategy ? stage.context.pipelineId : stage.context.pipeline
 
-    List<Map<String, Object>> pipelines = isStrategy ? front50Service.getStrategies(application) : front50Service.getPipelines(application, false)
-    Map<String, Object> pipelineConfig = pipelines.find { it.id == pipelineId }
+    Map<String, Object> pipelineConfig = isStrategy
+      ? Retrofit2SyncCall.execute(front50Service.getStrategies(application)).find { it.id == pipelineId }
+      : getPipelineById(pipelineId)
 
     if (!pipelineConfig) {
       throw new ConfigurationException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} cannot be located (${pipelineId})")
@@ -136,5 +141,25 @@ class StartPipelineTask implements Task {
     }
 
     return null
+  }
+
+
+  /**
+   * Fetches a pipeline from front50 if it exists.
+   * Returns a null if the pipeline doesn't exist in front50
+   * @param id id of the pipeline to be fetched from front50
+   * @return fetched pipeline if it exists, null otherwise
+   */
+  private Map<String, Object> getPipelineById(String id) {
+    try {
+      return Retrofit2SyncCall.execute(front50Service.getPipeline(id))
+    } catch (SpinnakerHttpException e) {
+      // Return a null if pipeline with the id not found
+      if (e.responseCode == HTTP_NOT_FOUND) {
+        log.debug("Existing pipeline with id {} not found. Returning null.", id)
+        return null
+      }
+      throw e
+    }
   }
 }

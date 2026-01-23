@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.config;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerOkClientProvider;
 import com.netflix.spinnaker.clouddriver.docker.registry.config.DockerRegistryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.docker.registry.config.DockerRegistryConfigurationProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.docker.registry.health.DockerRegistryHealthIndicator;
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.credentials.definition.BasicCredentialsLoader;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.poller.Poller;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
+import com.netflix.spinnaker.kork.docker.service.DockerOkClientProvider;
 import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -110,6 +110,7 @@ public class DockerRegistryConfiguration {
                 .insecureRegistry(a.getInsecureRegistry())
                 .repositories(a.getRepositories())
                 .skip(a.getSkip())
+                .helmOciRepositories(a.getHelmOciRepositories())
                 .permissions(a.getPermissions().build())
                 .dockerOkClientProvider(dockerOkClientProvider)
                 .serviceClientProvider(serviceClientProvider)

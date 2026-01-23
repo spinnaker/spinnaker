@@ -6,7 +6,8 @@ import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import java.util.Collection;
 import java.util.Map;
-import retrofit.client.Response;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
 
 /**
  * Wrapper around {@link KatoRestService} which selects an endpoint based on {@link
@@ -22,69 +23,67 @@ public class DelegatingKatoRestService extends DelegatingClouddriverService<Kato
   }
 
   @Override
-  public TaskId requestOperations(
-      String clientRequestId, Collection<? extends Map<String, Map>> operations) {
+  public Call<TaskId> requestOperations(
+      String clientRequestId, Collection<Map<String, Map>> operations) {
     return getService().requestOperations(clientRequestId, operations);
   }
 
   @Override
-  public TaskId requestOperations(
-      String clientRequestId,
-      String cloudProvider,
-      Collection<? extends Map<String, Map>> operations) {
-    return getService().requestOperations(clientRequestId, cloudProvider, operations);
+  public Call<TaskId> requestOperations(
+      String cloudProvider, String clientRequestId, Collection<Map<String, Map>> operations) {
+    return getService().requestOperations(cloudProvider, clientRequestId, operations);
   }
 
   @Override
-  public Response submitOperation(
+  public Call<ResponseBody> submitOperation(
       String clientRequestId,
       String cloudProvider,
       String operationName,
       OperationContext operation) {
-    return getService().submitOperation(clientRequestId, cloudProvider, operationName, operation);
+    return getService().submitOperation(cloudProvider, operationName, clientRequestId, operation);
   }
 
   @Override
-  public TaskId updateTask(String cloudProvider, String id, Map details) {
+  public Call<TaskId> updateTask(String cloudProvider, String id, Map details) {
     return getService().updateTask(cloudProvider, id, details);
   }
 
   @Override
-  public TaskId restartTaskViaOperations(
-      String cloudProvider, String id, Collection<? extends Map<String, Map>> operations) {
+  public Call<TaskId> restartTaskViaOperations(
+      String cloudProvider, String id, Collection<Map<String, Map>> operations) {
     return getService().restartTaskViaOperations(cloudProvider, id, operations);
   }
 
   @Override
-  public Response collectJob(String app, String account, String region, String id) {
+  public Call<ResponseBody> collectJob(String app, String account, String region, String id) {
     return getService().collectJob(app, account, region, id);
   }
 
   @Override
-  public Response cancelJob(String app, String account, String region, String id) {
+  public Call<ResponseBody> cancelJob(String app, String account, String region, String id) {
     return getService().cancelJob(app, account, region, id);
   }
 
   @Override
-  public Map<String, Object> getFileContents(
+  public Call<Map<String, Object>> getFileContents(
       String app, String account, String region, String id, String fileName) {
     return getService().getFileContents(app, account, region, id, fileName);
   }
 
   @Override
-  public Map<String, Object> getFileContentsFromKubernetesPod(
+  public Call<Map<String, Object>> getFileContentsFromKubernetesPod(
       String app, String account, String namespace, String podName, String fileName) {
     return getService()
         .getFileContentsFromKubernetesPod(app, account, namespace, podName, fileName);
   }
 
   @Override
-  public Task lookupTask(String id) {
+  public Call<Task> lookupTask(String id) {
     return getService().lookupTask(id);
   }
 
   @Override
-  public TaskId resumeTask(String id) {
+  public Call<TaskId> resumeTask(String id) {
     return getService().resumeTask(id);
   }
 }

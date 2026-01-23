@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ReflectionUtils;
 
 /** Factory for shared instances of AWS SDK clients. */
@@ -114,6 +115,7 @@ public class AwsSdkClientSupplier {
     return new RateLimitingRequestHandler(rateLimitCounter, limiter);
   }
 
+  @Slf4j
   private static class SdkClientCacheLoader extends CacheLoader<AmazonClientKey<?>, Object> {
     private final RetryPolicy retryPolicy;
     private final List<RequestHandler2> requestHandlers;
@@ -153,8 +155,13 @@ public class AwsSdkClientSupplier {
           .withCredentials(key.awsCredentialsProvider)
           .withClientConfiguration(clientConfiguration);
       getRequestHandlers(key).ifPresent(builder::withRequestHandlers);
-      builder.withRegion(
-          key.getRegion().orElseGet(() -> new SpinnakerAwsRegionProvider().getRegion()));
+      String regionToUse =
+          key.getRegion()
+              .orElseGet(
+                  () ->
+                      new SpinnakerAwsRegionProvider(key.getAwsCredentialsProvider()).getRegion());
+      log.debug("SdkClientCacheLoader.load: key: '{}', region: '{}'", key, regionToUse);
+      builder.withRegion(regionToUse);
 
       return builder.build();
     }

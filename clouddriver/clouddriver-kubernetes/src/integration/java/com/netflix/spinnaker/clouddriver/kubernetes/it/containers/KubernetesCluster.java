@@ -48,7 +48,7 @@ public class KubernetesCluster {
 
   private static KubernetesCluster INSTANCE;
   private static final String IMAGE = System.getenv("IMAGE");
-  private static final String KIND_VERSION = "0.20.0";
+  private static final String KIND_VERSION = "0.29.0";
   private static final String KUBECTL_VERSION = System.getenv("KUBECTL_VERSION");
   private static final Path IT_BUILD_HOME = Paths.get(System.getenv("IT_BUILD_HOME"));
   private static final Path KUBECFG_PATH = Paths.get(IT_BUILD_HOME.toString(), "kubecfg.yml");
@@ -141,7 +141,11 @@ public class KubernetesCluster {
     Files.createDirectories(IT_BUILD_HOME);
     String os = "linux";
     String arch = "amd64";
-    // TODO: Support running tests in other os/archs
+
+    if (System.getProperty("os.arch").toLowerCase().equals("aarch64")) {
+      arch = "arm64";
+    }
+
     if (System.getProperty("os.name").toLowerCase().contains("mac")) {
       os = "darwin";
     }

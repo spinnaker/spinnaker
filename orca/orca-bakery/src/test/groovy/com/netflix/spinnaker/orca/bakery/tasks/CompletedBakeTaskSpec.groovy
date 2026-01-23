@@ -26,8 +26,11 @@ import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -40,17 +43,12 @@ class CompletedBakeTaskSpec extends Specification {
 
   @Shared PipelineExecutionImpl pipeline = pipeline()
 
-  @Shared notFoundError = new SpinnakerHttpException(RetrofitError.httpError(
-    null,
-    new Response("http://bakery", HTTP_NOT_FOUND, "Not Found", [], null),
-    null,
-    null
-  ))
+  @Shared notFoundError = makeSpinnakerHttpException(HTTP_NOT_FOUND)
 
   def "finds the AMI and artifact created by a bake"() {
     given:
     def bakery = Stub(BakeryService) {
-      lookupBake(region, bakeId) >> new Bake(id: bakeId, ami: ami, artifact: artifact)
+      lookupBake(region, bakeId) >> Calls.response(new Bake(id: bakeId, ami: ami, artifact: artifact))
     }
 
     task.bakerySelector = Mock(BakerySelector)
@@ -112,5 +110,23 @@ class CompletedBakeTaskSpec extends Specification {
     region = "us-west-1"
     bakeId = "b-5af233wjj78mwt2f420wt8ey3w"
   }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+
+    String url = "https://bakery";
+
+    retrofit2.Response retrofit2Response =
+        retrofit2.Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)}
 
 }

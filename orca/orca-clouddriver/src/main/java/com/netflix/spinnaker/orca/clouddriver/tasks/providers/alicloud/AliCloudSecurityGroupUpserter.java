@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.alicloud;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.MortService;
 import com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup;
@@ -81,12 +82,13 @@ public class AliCloudSecurityGroupUpserter implements SecurityGroupUpserter, Clo
       return false;
     }
     SecurityGroup securityGroup =
-        mortService.getSecurityGroup(
-            upsertedSecurityGroup.getAccountName(),
-            cloudProvider,
-            upsertedSecurityGroup.getName(),
-            upsertedSecurityGroup.getRegion(),
-            upsertedSecurityGroup.getVpcId());
+        Retrofit2SyncCall.execute(
+            mortService.getSecurityGroup(
+                upsertedSecurityGroup.getAccountName(),
+                cloudProvider,
+                upsertedSecurityGroup.getName(),
+                upsertedSecurityGroup.getRegion(),
+                upsertedSecurityGroup.getVpcId()));
 
     if (upsertedSecurityGroup.getName().equals(securityGroup.getName())) {
       return true;

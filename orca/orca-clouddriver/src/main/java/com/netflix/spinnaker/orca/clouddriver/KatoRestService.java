@@ -6,14 +6,15 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import io.github.resilience4j.retry.annotation.Retry;
 import java.util.Collection;
 import java.util.Map;
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.DELETE;
-import retrofit.http.GET;
-import retrofit.http.PATCH;
-import retrofit.http.POST;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.DELETE;
+import retrofit2.http.GET;
+import retrofit2.http.PATCH;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 /**
  * An interface to the Kato REST API for Amazon cloud. See {@link
@@ -22,59 +23,59 @@ import retrofit.http.Query;
 public interface KatoRestService {
   /** @deprecated Use {@code /{cloudProvider}/ops} instead */
   @Deprecated
-  @POST("/ops")
-  TaskId requestOperations(
+  @POST("ops")
+  Call<TaskId> requestOperations(
       @Query("clientRequestId") String clientRequestId,
-      @Body Collection<? extends Map<String, Map>> operations);
+      @Body Collection<Map<String, Map>> operations);
 
-  @POST("/{cloudProvider}/ops")
-  TaskId requestOperations(
-      @Query("clientRequestId") String clientRequestId,
+  @POST("{cloudProvider}/ops")
+  Call<TaskId> requestOperations(
       @Path("cloudProvider") String cloudProvider,
-      @Body Collection<? extends Map<String, Map>> operations);
-
-  @POST("/{cloudProvider}/ops/{operationName}")
-  Response submitOperation(
       @Query("clientRequestId") String clientRequestId,
+      @Body Collection<Map<String, Map>> operations);
+
+  @POST("{cloudProvider}/ops/{operationName}")
+  Call<ResponseBody> submitOperation(
       @Path("cloudProvider") String cloudProvider,
       @Path("operationName") String operationName,
+      @Query("clientRequestId") String clientRequestId,
       @Body OperationContext operation);
 
-  @PATCH("/{cloudProvider}/task/{id}")
-  TaskId updateTask(
+  @PATCH("{cloudProvider}/task/{id}")
+  Call<TaskId> updateTask(
       @Path("cloudProvider") String cloudProvider, @Path("id") String id, @Body Map details);
 
-  @POST("/{cloudProvider}/task/{id}/restart")
+  @POST("{cloudProvider}/task/{id}/restart")
   @Retry(name = "katoRetrofitServiceWriter")
-  TaskId restartTaskViaOperations(
+  Call<TaskId> restartTaskViaOperations(
       @Path("cloudProvider") String cloudProvider,
       @Path("id") String id,
-      @Body Collection<? extends Map<String, Map>> operations);
+      @Body Collection<Map<String, Map>> operations);
 
-  @GET("/applications/{app}/jobs/{account}/{region}/{id}")
-  Response collectJob(
+  @GET("applications/{app}/jobs/{account}/{region}/{id}")
+  Call<ResponseBody> collectJob(
       @Path("app") String app,
       @Path("account") String account,
       @Path("region") String region,
       @Path("id") String id);
 
-  @DELETE("/applications/{app}/jobs/{account}/{location}/{id}")
-  Response cancelJob(
+  @DELETE("applications/{app}/jobs/{account}/{location}/{id}")
+  Call<ResponseBody> cancelJob(
       @Path("app") String app,
       @Path("account") String account,
       @Path("location") String region,
       @Path("id") String id);
 
-  @GET("/applications/{app}/jobs/{account}/{region}/{id}/{fileName}")
-  Map<String, Object> getFileContents(
+  @GET("applications/{app}/jobs/{account}/{region}/{id}/{fileName}")
+  Call<Map<String, Object>> getFileContents(
       @Path("app") String app,
       @Path("account") String account,
       @Path("region") String region,
       @Path("id") String id,
       @Path("fileName") String fileName);
 
-  @GET("/applications/{app}/kubernetes/pods/{account}/{namespace}/{podName}/{fileName}")
-  Map<String, Object> getFileContentsFromKubernetesPod(
+  @GET("applications/{app}/kubernetes/pods/{account}/{namespace}/{podName}/{fileName}")
+  Call<Map<String, Object>> getFileContentsFromKubernetesPod(
       @Path("app") String app,
       @Path("account") String account,
       @Path("namespace") String namespace,
@@ -85,10 +86,10 @@ public interface KatoRestService {
    * This should _only_ be called if there is a problem retrieving the Task from
    * CloudDriverTaskStatusService (ie. a clouddriver replica).
    */
-  @GET("/task/{id}")
-  Task lookupTask(@Path("id") String id);
+  @GET("task/{id}")
+  Call<Task> lookupTask(@Path("id") String id);
 
-  @POST("/task/{id}:resume")
+  @POST("task/{id}:resume")
   @Retry(name = "katoRetrofitServiceWriter")
-  TaskId resumeTask(@Path("id") String id);
+  Call<TaskId> resumeTask(@Path("id") String id);
 }

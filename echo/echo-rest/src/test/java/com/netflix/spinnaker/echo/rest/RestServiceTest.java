@@ -26,9 +26,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import java.util.Map;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterEach;
@@ -39,6 +39,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
+import retrofit2.http.Url;
 
 public class RestServiceTest {
   WireMockServer wireMockServer;
@@ -53,7 +54,7 @@ public class RestServiceTest {
     port = wireMockServer.port();
     WireMock.configureFor("localhost", port);
 
-    stubFor(post(urlEqualTo("/api/")).willReturn(aResponse().withStatus(200)));
+    stubFor(post(urlEqualTo("/api")).willReturn(aResponse().withStatus(200)));
 
     stubFor(post(urlEqualTo("/")).willReturn(aResponse().withStatus(200)));
 
@@ -75,7 +76,7 @@ public class RestServiceTest {
   }
 
   @Test
-  void testRetService_withPostMappingSingleSlash() {
+  void testRestService_withPostMappingSingleSlash() {
 
     Retrofit2SyncCall.execute(restService.recordEvent(Map.of()));
 
@@ -86,12 +87,15 @@ public class RestServiceTest {
   }
 
   @Test
-  void testRetService_withPostMappingDot() {
+  void testRestService_withPostMappingDot() {
 
-    Retrofit2SyncCall.execute(restService.recordEvent2(Map.of()));
+    Retrofit2SyncCall.execute(restService.recordEvent2(baseUrl, Map.of()));
 
-    // @POST(".") rightly results in calling "http://localhost:<port>/api/"
-    verify(1, postRequestedFor(urlEqualTo("/api/")));
+    // The configuration specifies http://localhost:<port>/api (with no trailing
+    // slash), so verify that the request used that URL, and not one with a
+    // trailing slash.
+    verify(0, postRequestedFor(urlEqualTo("/api/")));
+    verify(1, postRequestedFor(urlEqualTo("/api")));
     verify(0, postRequestedFor(urlEqualTo("/")));
   }
 
@@ -99,7 +103,7 @@ public class RestServiceTest {
     @POST("/")
     Call<Void> recordEvent(@Body Map<String, Object> event);
 
-    @POST(".")
-    Call<Void> recordEvent2(@Body Map<String, Object> event);
+    @POST
+    Call<Void> recordEvent2(@Url String url, @Body Map<String, Object> event);
   }
 }

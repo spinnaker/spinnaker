@@ -16,18 +16,16 @@
 
 package com.netflix.spinnaker.igor.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
-import com.netflix.spinnaker.igor.history.EchoConverterFactory
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.igor.history.EchoService
-import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 
 /**
  * history service configuration
@@ -49,7 +47,7 @@ class EchoConfig {
         new Retrofit.Builder()
             .baseUrl(RetrofitUtils.getBaseUrl(address))
             .client(okHttpClientConfig.createForRetrofit2().build())
-            .addConverterFactory(EchoConverterFactory.create())
+            .addConverterFactory(CustomConverterFactory.create())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .build()
             .create(EchoService)

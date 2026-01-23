@@ -27,7 +27,7 @@ import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.CachingSchema
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.CachingSchemaUtil
 
-import javax.inject.Provider
+import jakarta.inject.Provider
 
 class TitusCachingProvider implements SearchableProvider, EurekaAwareProvider {
 

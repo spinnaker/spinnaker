@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toMap;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.ami.AppVersion;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
@@ -84,14 +85,27 @@ public class AmazonImageFinder implements ImageFinder {
       List<String> warningsCollector) {
     StageData stageData = (StageData) stage.mapTo(StageData.class);
 
+    if (stageData.regions == null) {
+      stageData.regions = Collections.emptyList();
+    }
+
+    // Clouddriver supports filtering on one region, so if there's only one
+    // region specified, provide it.  This improves performance by having
+    // clouddriver do a more efficient search, with less data over the wire, and
+    // less filtering work to do here.  It also reduces the chances of running
+    // into clouddriver's max search results threshold.  When that happens,
+    // clouddriver might actually have the image we're looking for, but might
+    // discard it.
+    String regionToFind =
+        stageData.regions.size() == 1 ? stageData.regions.iterator().next() : null;
     List<AmazonImage> allMatchedImages =
-        oortService
-            .findImage(
-                getCloudProvider(),
-                packageName,
-                stageData.imageOwnerAccount,
-                null,
-                prefixTags(tags))
+        Retrofit2SyncCall.execute(
+                oortService.findImage(
+                    getCloudProvider(),
+                    packageName,
+                    stageData.imageOwnerAccount,
+                    regionToFind,
+                    prefixTags(tags)))
             .stream()
             .map(image -> objectMapper.convertValue(image, AmazonImage.class))
             .filter(image -> image.tagsByImageId != null && image.tagsByImageId.size() != 0)

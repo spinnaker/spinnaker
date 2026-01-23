@@ -30,6 +30,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.clouddriver.kubernetes.it.containers.KubernetesCluster;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import java.io.IOException;
@@ -46,7 +47,6 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.testcontainers.utility.ComparableVersion;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 public abstract class KubeTestUtils {
 
@@ -56,7 +56,7 @@ public abstract class KubeTestUtils {
     ResourceLoader resourceLoader = new DefaultResourceLoader();
     try {
       InputStream is = resourceLoader.getResource(file).getInputStream();
-      Yaml yaml = new Yaml(new SafeConstructor());
+      Yaml yaml = YamlHelper.newYamlSafeConstructor();
       Iterable<Object> contentIterable = yaml.loadAll(is);
       List<Map<String, Object>> content =
           StreamSupport.stream(contentIterable.spliterator(), false)

@@ -26,18 +26,17 @@ import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.netflix.kayenta.datadog.config.DatadogConfiguration;
 import com.netflix.kayenta.datadog.service.DatadogRemoteService;
 import com.netflix.kayenta.datadog.service.DatadogTimeSeries;
 import com.netflix.kayenta.model.DatadogMetricDescriptorsResponse;
 import com.netflix.kayenta.retrofit.config.RemoteService;
 import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
-import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +45,7 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.netty.MockServer;
 import org.slf4j.LoggerFactory;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /** TDD for https://github.com/spinnaker/kayenta/issues/684 */
 public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
@@ -72,19 +72,25 @@ public class DatadogSecretsDoNotLeakWhenApiCalledFunctionalTest {
     listAppender.start();
 
     RetrofitClientFactory retrofitClientFactory = new RetrofitClientFactory();
-    retrofitClientFactory.retrofitLogLevel = "BASIC";
-    retrofitClientFactory.createRetrofitLogger =
-        (type) -> {
-          return new Slf4jRetrofitLogger(mockLogger);
-        };
+
+    HttpLoggingInterceptor.Logger customLogger = mockLogger::info;
+
+    HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor(customLogger);
+    interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+
+    OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+
+    Logger retrofitLogger = (Logger) LoggerFactory.getLogger(HttpLoggingInterceptor.class);
+    retrofitLogger.addAppender(listAppender);
+    listAppender.start();
 
     objectMapper = new ObjectMapper();
     datadogRemoteService =
-        DatadogConfiguration.createDatadogRemoteService(
-            retrofitClientFactory,
-            objectMapper,
+        retrofitClientFactory.createClient(
+            DatadogRemoteService.class,
+            JacksonConverterFactory.create(objectMapper),
             new RemoteService().setBaseUrl("http://localhost:" + mockServer.getPort()),
-            new OkHttpClient());
+            client);
   }
 
   @AfterEach

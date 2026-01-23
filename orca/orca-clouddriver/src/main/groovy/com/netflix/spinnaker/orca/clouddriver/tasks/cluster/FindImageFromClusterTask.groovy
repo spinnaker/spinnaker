@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -141,7 +142,7 @@ class FindImageFromClusterTask implements CloudProviderAware, RetryableTask {
 
     Map<Location, List<Map<String, Object>>> imageSummaries = config.requiredLocations.collectEntries { location ->
       try {
-        def lookupResults = oortService.getServerGroupSummary(
+        def lookupResults = Retrofit2SyncCall.execute(oortService.getServerGroupSummary(
           config.application,
           account,
           config.cluster,
@@ -149,7 +150,7 @@ class FindImageFromClusterTask implements CloudProviderAware, RetryableTask {
           location.value,
           config.selectionStrategy.toString(),
           SUMMARY_TYPE,
-          config.onlyEnabled.toString())
+          config.onlyEnabled.toString()))
         List<Map<String, Object>> summaries = (List<Map<String, Object>>) lookupResults.summaries
         summaries?.forEach {
           imageNames << (String) it.imageName
@@ -196,7 +197,7 @@ class FindImageFromClusterTask implements CloudProviderAware, RetryableTask {
         throw new IllegalStateException("Missing image on ${deploymentDetailTemplate}")
       }
 
-      List<Map> images = oortService.findImage(cloudProvider, searchNames[0] + '*', account, null, null)
+      List<Map> images = Retrofit2SyncCall.execute(oortService.findImage(cloudProvider, searchNames[0] + '*', account, null, Map.of()))
       resolveFromBaseImageName(images, missingLocations, imageSummaries, deploymentDetailTemplate, config, stage.execution.id)
 
       def unresolved = imageSummaries.findResults { it.value == null ? it.key : null }
@@ -204,7 +205,7 @@ class FindImageFromClusterTask implements CloudProviderAware, RetryableTask {
         if (cloudProvider == 'aws') {
           // fallback to look it default bake account; the deploy operation will execute the allowLaunchOperation to share
           // the image into the target account
-          List<Map> defaultImages = oortService.findImage(cloudProvider, searchNames[0] + '*', defaultBakeAccount, null, null)
+          List<Map> defaultImages = Retrofit2SyncCall.execute(oortService.findImage(cloudProvider, searchNames[0] + '*', defaultBakeAccount, null, Map.of()))
           resolveFromBaseImageName(defaultImages, missingLocations, imageSummaries, deploymentDetailTemplate, config, stage.execution.id)
           unresolved = imageSummaries.findResults { it.value == null ? it.key : null }
         }

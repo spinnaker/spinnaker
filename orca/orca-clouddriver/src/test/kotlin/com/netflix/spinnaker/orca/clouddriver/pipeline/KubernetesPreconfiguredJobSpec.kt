@@ -28,10 +28,12 @@ import io.mockk.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.http.MediaType
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
+import retrofit2.mock.Calls
 import strikt.api.expect
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
@@ -72,9 +74,10 @@ class KubernetesPreconfiguredJobSpec : JUnit5Minutests {
           }
           """.trimIndent()
 
-        every { katoRestService.requestOperations(any(), any(), any()) } returns TaskId("1")
+        every { katoRestService.requestOperations(any(), any(), any()) } returns Calls.response(TaskId("1"))
 
         val resp = subject.post("/orchestrate") {
+          with(csrf())
           contentType = MediaType.APPLICATION_JSON
           content = pipeline
         }.andReturn().response
@@ -85,7 +88,7 @@ class KubernetesPreconfiguredJobSpec : JUnit5Minutests {
             .contains("\"ref\":\"/pipelines")
         }
 
-        verify(timeout = 2000) { katoRestService.requestOperations(any(), "kubernetes", match { it.toString().contains("alias=preconfiguredJob") }) }
+        verify(timeout = 2000) { katoRestService.requestOperations("kubernetes", any(), match { it.toString().contains("alias=preconfiguredJob") }) }
       }
     }
   }

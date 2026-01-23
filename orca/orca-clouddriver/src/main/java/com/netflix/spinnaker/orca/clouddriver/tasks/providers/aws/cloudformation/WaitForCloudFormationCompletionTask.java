@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -49,7 +50,8 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
       Map task = ((List<Map>) stage.getContext().get("kato.tasks")).iterator().next();
       Map result = ((List<Map>) task.get("resultObjects")).iterator().next();
       String stackId = (String) result.get("stackId");
-      Map<String, ?> stack = (Map<String, Object>) oortService.getCloudFormationStack(stackId);
+      Map<String, Object> stack =
+          Retrofit2SyncCall.execute(oortService.getCloudFormationStack(stackId));
       log.info(
           "Received cloud formation stackId "
               + stackId

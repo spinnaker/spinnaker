@@ -27,7 +27,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.alicloud.controllers.AliCloudImageController.Image;
 import com.netflix.spinnaker.clouddriver.alicloud.controllers.AliCloudImageController.LookupOptions;
 import java.util.*;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;

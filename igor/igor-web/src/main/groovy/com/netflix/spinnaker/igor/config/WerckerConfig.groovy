@@ -13,15 +13,14 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
 import com.netflix.spinnaker.igor.service.BuildServices
-import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.igor.wercker.WerckerCache
 import com.netflix.spinnaker.igor.wercker.WerckerClient
 import com.netflix.spinnaker.igor.wercker.WerckerService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import okhttp3.OkHttpClient
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -30,7 +29,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 
 import java.util.concurrent.TimeUnit
 
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 import retrofit2.Retrofit
 

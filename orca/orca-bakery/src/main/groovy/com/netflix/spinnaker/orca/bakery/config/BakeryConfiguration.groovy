@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.orca.bakery.BakerySelector
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import retrofit.RequestInterceptor
 
 import java.text.SimpleDateFormat
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -28,21 +29,14 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.RestAdapter
-import retrofit.RestAdapter.LogLevel
-import retrofit.client.Client
-import retrofit.converter.JacksonConverter
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
-import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import([OrcaConfiguration, RetrofitConfiguration])
@@ -55,13 +49,9 @@ import static retrofit.Endpoints.newFixedEndpoint
 @EnableConfigurationProperties(BakeryConfigurationProperties)
 class BakeryConfiguration {
 
-  @Autowired Client retrofitClient
-  @Autowired LogLevel retrofitLogLevel
-  @Autowired RequestInterceptor spinnakerRequestInterceptor
-
   @Bean
-  BakeryService bakery(@Value('${bakery.base-url}') String bakeryBaseUrl) {
-    return buildService(bakeryBaseUrl)
+  BakeryService bakery(@Value('${bakery.base-url}') String bakeryBaseUrl, ServiceClientProvider serviceClientProvider) {
+    return buildService(bakeryBaseUrl, serviceClientProvider)
   }
 
   static ObjectMapper bakeryConfiguredObjectMapper() {
@@ -73,26 +63,20 @@ class BakeryConfiguration {
 
   }
 
-  BakeryService buildService(String url) {
-    return new RestAdapter.Builder()
-      .setEndpoint(newFixedEndpoint(url))
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setConverter(new JacksonConverter(bakeryConfiguredObjectMapper()))
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new RetrofitSlf4jLog(BakeryService))
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .build()
-      .create(BakeryService)
+  BakeryService buildService(String url, ServiceClientProvider serviceClientProvider) {
+    return serviceClientProvider.getService(
+        BakeryService,
+        new DefaultServiceEndpoint("bakery", url),
+        CustomConverterFactory.create(bakeryConfiguredObjectMapper()));
   }
 
   @Bean
   BakerySelector bakerySelector(BakeryService bakery,
-                                BakeryConfigurationProperties bakeryConfigurationProperties) {
+                                BakeryConfigurationProperties bakeryConfigurationProperties, ServiceClientProvider serviceClientProvider) {
     return new BakerySelector(
       bakery,
       bakeryConfigurationProperties,
-      { url -> buildService(url as String) }
+      { url -> buildService(url as String, serviceClientProvider) }
     )
   }
 }

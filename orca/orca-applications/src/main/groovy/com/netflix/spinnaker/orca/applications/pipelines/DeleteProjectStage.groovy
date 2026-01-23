@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.applications.pipelines
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -49,7 +50,7 @@ class DeleteProjectStage implements StageDefinitionBuilder {
         throw new UnsupportedOperationException("Unable to modify projects, front50 has not been enabled. Fix this by setting front50.enabled: true")
       }
       def projectId = stage.mapTo("/project", Front50Service.Project)
-      front50Service.deleteProject(projectId.id)
+      Retrofit2SyncCall.executeCall(front50Service.deleteProject(projectId.id))
 
       def outputs = [
         "notification.type": "deleteproject"

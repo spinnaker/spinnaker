@@ -23,15 +23,16 @@ import com.hubspot.jinjava.interpret.TemplateSyntaxException;
 import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.tree.TagNode;
 import com.hubspot.jinjava.util.HelperStringTokenizer;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import org.springframework.http.HttpStatus;
 
 public class PipelineIdTag implements Tag {
   private static final String APPLICATION = "application";
@@ -81,13 +82,36 @@ public class PipelineIdTag implements Tag {
     name = checkContext(name, context);
 
     final String appName = application;
-    List<Map<String, Object>> pipelines =
+    final String finalName = name;
+
+    Map<String, Object> pipeline =
         AuthenticatedRequest.allowAnonymous(
-            () ->
-                Optional.ofNullable(front50Service.getPipelines(appName, false))
-                    .orElse(Collections.emptyList()));
-    Map<String, Object> result = findPipeline(pipelines, application, name);
-    return (String) result.get("id");
+            () -> {
+              try {
+                return Retrofit2SyncCall.execute(
+                    front50Service.getPipeline(appName, finalName, false));
+              } catch (SpinnakerHttpException e) {
+                // throw a custom error for not found, otherwise re-throw
+                if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
+                  throw TemplateRenderException.fromError(
+                      new Error()
+                          .withMessage(
+                              String.format(
+                                  "Failed to find pipeline ID with name '%s' in application '%s'",
+                                  finalName, appName)));
+                }
+                throw e;
+              }
+            });
+    String pipelineId = (String) pipeline.get("id");
+    if (pipelineId == null) {
+      throw TemplateRenderException.fromError(
+          new Error()
+              .withMessage(
+                  String.format(
+                      "Pipeline with name '%s' in application '%s' has no id", name, application)));
+    }
+    return pipelineId;
   }
 
   private String checkContext(String param, Context context) {
@@ -98,21 +122,6 @@ public class PipelineIdTag implements Tag {
     }
 
     return param;
-  }
-
-  private Map<String, Object> findPipeline(
-      List<Map<String, Object>> pipelines, String application, String pipelineName) {
-    return pipelines.stream()
-        .filter(p -> p.get(NAME).equals(pipelineName))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                TemplateRenderException.fromError(
-                    new Error()
-                        .withMessage(
-                            String.format(
-                                "Failed to find pipeline ID with name '%s' in application '%s'",
-                                pipelineName, application))));
   }
 
   @Override

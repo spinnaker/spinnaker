@@ -25,9 +25,11 @@ import com.netflix.spinnaker.orca.clouddriver.model.Instance
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedInput
+import okhttp3.MediaType
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -65,25 +67,6 @@ class AbstractInstancesCheckTaskSpec extends Specification {
   CloudDriverService cloudDriverService = Mock()
 
   @Subject task = new TestInstancesCheckTask(cloudDriverService: cloudDriverService, hasSucceededSpy: hasSucceededSpy)
-
-  Closure<Response> constructResponse = { int status, String body ->
-    new Response("", status, "", [], new TypedInput() {
-      @Override
-      String mimeType() {
-        return null
-      }
-
-      @Override
-      long length() {
-        return 0
-      }
-
-      @Override
-      InputStream "in"() throws IOException {
-        new ByteArrayInputStream(body.getBytes());
-      }
-    })
-  }
 
   void "should be provided with health provider names"() {
 
@@ -228,12 +211,7 @@ ModelUtils.serverGroup([
         return new ServerGroup("name": serverGroupName)
       }
 
-      throw new SpinnakerHttpException(RetrofitError.httpError(
-        null,
-        new Response("http://clouddriver", statusCode, "", [], null),
-        null,
-        null
-      ))
+      throw makeSpinnakerHttpException(statusCode)
     }
 
     serverGroups.size() == expectedServerGroupCount
@@ -245,5 +223,24 @@ ModelUtils.serverGroup([
     "app-v002"      | 404        | true                 || 0                        || true
     "app-v002"      | 404        | false                || 0                        || true
     "app-v003"      | 500        | false                || 0                        || true       // a non-404 should just rethrow the exception
+  }
+
+  static SpinnakerHttpException makeSpinnakerHttpException(int status) {
+
+    String url = "https://clouddriver";
+
+    Response retrofit2Response =
+        Response.error(
+            status,
+            ResponseBody.create(
+                MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"))
+
+    Retrofit retrofit =
+        new Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+
+    return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
 }

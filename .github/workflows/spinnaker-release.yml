@@ -18,7 +18,7 @@ jobs:
   check-preconditions:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -68,7 +68,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -86,12 +86,14 @@ jobs:
     uses: ./.github/workflows/clouddriver.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   deck:
     needs: version
     uses: ./.github/workflows/deck.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   deck-kayenta:
     needs: version
@@ -104,60 +106,70 @@ jobs:
     uses: ./.github/workflows/echo.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   fiat:
     needs: version
     uses: ./.github/workflows/fiat.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   front50:
     needs: version
     uses: ./.github/workflows/front50.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   gate:
     needs: version
     uses: ./.github/workflows/gate.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   halyard:
     needs: version
     uses: ./.github/workflows/halyard.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   igor:
     needs: version
     uses: ./.github/workflows/igor.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   kayenta:
     needs: version
     uses: ./.github/workflows/kayenta.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   keel:
     needs: version
     uses: ./.github/workflows/keel.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   orca:
     needs: version
     uses: ./.github/workflows/orca.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   rosco:
     needs: version
     uses: ./.github/workflows/rosco.yml
     secrets: inherit
     with:
+      publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
   spin:
     needs: version
@@ -177,7 +189,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [version, clouddriver, deck, deck-kayenta, echo, fiat, front50, gate, halyard, igor, kayenta, keel, orca, rosco, spin, libs]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Write release build tag
         uses: ./.github/actions/version
         with:

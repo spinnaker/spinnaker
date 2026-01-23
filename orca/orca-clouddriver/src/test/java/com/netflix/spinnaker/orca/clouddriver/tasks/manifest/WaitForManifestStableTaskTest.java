@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
+import retrofit2.mock.Calls;
 
 final class WaitForManifestStableTaskTest {
   private static final String UNSTABLE_MESSAGE = "manifest is unstable";
@@ -53,7 +54,7 @@ final class WaitForManifestStableTaskTest {
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
-        .thenReturn(manifestBuilder().stable(true).failed(true).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(true).build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.TERMINAL);
@@ -70,7 +71,7 @@ final class WaitForManifestStableTaskTest {
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
-        .thenReturn(manifestBuilder().stable(false).failed(true).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(false).failed(true).build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.TERMINAL);
@@ -87,7 +88,7 @@ final class WaitForManifestStableTaskTest {
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
-        .thenReturn(manifestBuilder().stable(false).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(false).failed(false).build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.RUNNING);
@@ -104,7 +105,7 @@ final class WaitForManifestStableTaskTest {
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
-        .thenReturn(manifestBuilder().stable(true).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.SUCCEEDED);
@@ -121,7 +122,7 @@ final class WaitForManifestStableTaskTest {
         createStageWithManifests(ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)));
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
-        .thenReturn(manifestBuilder().build());
+        .thenReturn(Calls.response(manifestBuilder().build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.RUNNING);
@@ -139,9 +140,9 @@ final class WaitForManifestStableTaskTest {
             ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1, MANIFEST_2)));
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
-        .thenReturn(manifestBuilder().stable(true).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, false))
-        .thenReturn(manifestBuilder().stable(false).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(false).failed(false).build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.RUNNING);
@@ -150,7 +151,7 @@ final class WaitForManifestStableTaskTest {
 
     verify(oortService, times(0)).getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false);
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, false))
-        .thenReturn(manifestBuilder().stable(true).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
 
     result =
         task.execute(
@@ -172,9 +173,9 @@ final class WaitForManifestStableTaskTest {
             ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1, MANIFEST_2)));
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
-        .thenReturn(manifestBuilder().stable(true).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, false))
-        .thenReturn(manifestBuilder().stable(false).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(false).failed(false).build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.RUNNING);
@@ -184,7 +185,7 @@ final class WaitForManifestStableTaskTest {
     reset(oortService);
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, false))
-        .thenReturn(manifestBuilder().stable(true).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
 
     result =
         task.execute(
@@ -208,9 +209,9 @@ final class WaitForManifestStableTaskTest {
             ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1, MANIFEST_2)));
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
-        .thenReturn(manifestBuilder().stable(false).failed(true).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(false).failed(true).build()));
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, false))
-        .thenReturn(manifestBuilder().stable(false).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(false).failed(false).build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.RUNNING);
@@ -221,7 +222,7 @@ final class WaitForManifestStableTaskTest {
     reset(oortService);
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, false))
-        .thenReturn(manifestBuilder().stable(true).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
 
     result =
         task.execute(
@@ -247,9 +248,9 @@ final class WaitForManifestStableTaskTest {
             ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1, MANIFEST_2)));
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_1, false))
-        .thenReturn(manifestBuilder().stable(false).failed(true).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(false).failed(true).build()));
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, false))
-        .thenReturn(manifestBuilder().build());
+        .thenReturn(Calls.response(manifestBuilder().build()));
 
     TaskResult result = task.execute(myStage);
     AssertionsForClassTypes.assertThat(result.getStatus()).isEqualTo(ExecutionStatus.RUNNING);
@@ -259,7 +260,7 @@ final class WaitForManifestStableTaskTest {
     reset(oortService);
 
     when(oortService.getManifest(ACCOUNT, NAMESPACE, MANIFEST_2, false))
-        .thenReturn(manifestBuilder().stable(true).failed(false).build());
+        .thenReturn(Calls.response(manifestBuilder().stable(true).failed(false).build()));
 
     result =
         task.execute(

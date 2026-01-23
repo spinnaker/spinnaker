@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -46,9 +47,11 @@ public class UpsertDeliveryConfigTask implements Task {
 
     DeliveryConfig savedConfig;
     if (configExists(deliveryConfig.getId())) {
-      savedConfig = front50Service.updateDeliveryConfig(deliveryConfig.getId(), deliveryConfig);
+      savedConfig =
+          Retrofit2SyncCall.execute(
+              front50Service.updateDeliveryConfig(deliveryConfig.getId(), deliveryConfig));
     } else {
-      savedConfig = front50Service.createDeliveryConfig(deliveryConfig);
+      savedConfig = Retrofit2SyncCall.execute(front50Service.createDeliveryConfig(deliveryConfig));
     }
 
     Map<String, Object> outputs = new HashMap<>();
@@ -63,7 +66,7 @@ public class UpsertDeliveryConfigTask implements Task {
       return false;
     }
     try {
-      front50Service.getDeliveryConfig(id);
+      Retrofit2SyncCall.executeCall(front50Service.getDeliveryConfig(id));
       return true;
     } catch (SpinnakerHttpException e) {
       if (Arrays.asList(404, 403, 401).contains(e.getResponseCode())) {

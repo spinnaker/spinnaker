@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -45,8 +46,9 @@ public class MonitorAwsCodeBuildTask extends RetryableIgorTask<AwsCodeBuildStage
   @Nonnull
   public TaskResult tryExecute(@Nonnull AwsCodeBuildStageDefinition stageDefinition) {
     AwsCodeBuildExecution execution =
-        igorService.getAwsCodeBuildExecution(
-            stageDefinition.getAccount(), getBuildId(stageDefinition.getBuildInfo().getArn()));
+        Retrofit2SyncCall.execute(
+            igorService.getAwsCodeBuildExecution(
+                stageDefinition.getAccount(), getBuildId(stageDefinition.getBuildInfo().getArn())));
     Map<String, Object> context = new HashMap<>();
     context.put("buildInfo", execution);
     return TaskResult.builder(execution.getStatus().getExecutionStatus()).context(context).build();

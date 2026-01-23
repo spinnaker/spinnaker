@@ -18,8 +18,8 @@ package com.netflix.spinnaker.echo.config
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.bearychat.BearychatService
-import com.netflix.spinnaker.echo.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 

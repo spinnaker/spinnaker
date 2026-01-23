@@ -26,6 +26,7 @@ import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.exceptions.UserException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -44,11 +45,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
+import retrofit2.Response;
 
 /**
  * Save a pipeline-scoped Fiat Service Account. The roles from this service account are used for
@@ -154,9 +156,10 @@ public class SaveServiceAccountTask implements RetryableTask {
 
     // Creating a service account with an existing name will overwrite it
     // i.e. perform an update for our use case
-    Response response = front50Service.saveServiceAccount(svcAcct);
+    Response<ResponseBody> response =
+        Retrofit2SyncCall.executeCall(front50Service.saveServiceAccount(svcAcct));
 
-    if (response.getStatus() != HttpStatus.OK.value()) {
+    if (response.code() != HttpStatus.OK.value()) {
       return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
     }
 

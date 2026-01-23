@@ -16,30 +16,39 @@
 
 package com.netflix.spinnaker.okhttp;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.DefaultServiceEndpoint;
+import com.netflix.spinnaker.config.OkHttpClientComponents;
 import com.netflix.spinnaker.config.ServiceEndpoint;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
+import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientConfiguration;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import retrofit2.Call;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -47,11 +56,13 @@ import retrofit2.http.Query;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
     classes = {
-      OkHttpClient.class,
-      OkHttpClientConfigurationProperties.class,
+      OkHttpClientComponents.class,
+      RawOkHttpClientConfiguration.class,
       OkHttpClientProvider.class,
       DefaultOkHttpClientBuilderProvider.class,
-      Retrofit2EncodeCorrectionInterceptor.class
+      Retrofit2EncodeCorrectionInterceptor.class,
+      TaskExecutorBuilder.class,
+      NoopRegistry.class
     })
 public class Retrofit2EncodeCorrectionInterceptorTest {
 
@@ -94,7 +105,8 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
   @Test
   public void testWithoutEncodingCorrection() throws IOException {
     OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, true /* skipEncodeCorrection */);
+        removeEncodeCorrectionInterceptor(okHttpClientProvider.getClient(endpoint));
+
     Retrofit2Service service = getRetrofit2Service(endpoint.getBaseUrl(), okHttpClient);
     service.getRequest(PATH_VAL, QUERY_PARAM1, QUERY_PARAM2, QUERY_PARAM3).execute();
     LoggedRequest requestReceived = wireMock.getAllServeEvents().get(0).getRequest();
@@ -119,8 +131,7 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Test
   public void testWithEncodingCorrection() throws IOException {
-    OkHttpClient okHttpClient =
-        okHttpClientProvider.getClient(endpoint, false /* skipEncodeCorrection */);
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
     Retrofit2Service service = getRetrofit2Service(endpoint.getBaseUrl(), okHttpClient);
     service.getRequest(PATH_VAL, QUERY_PARAM1, QUERY_PARAM2, QUERY_PARAM3).execute();
     wireMock.verify(getRequestedFor(urlEqualTo(EXPECTED_URL)));
@@ -131,6 +142,97 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
     assertThat(queryParams[0]).isEqualTo(ENCODED_QUERY_PARAM1);
     assertThat(queryParams[1]).isEqualTo(ENCODED_QUERY_PARAM2);
     assertThat(queryParams[2]).isEqualTo("");
+  }
+
+  @Test
+  public void testRepeatingQueryParams() throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    List<String> qry1List =
+        List.of("/*/action", "/*/build", "/*/property[not(parameterDefinition)");
+    String qry2 = "qryVal2";
+    List<String> qry3List = List.of("foo", "bar");
+    String expectedUrl =
+        "/test/get?qry1="
+            + encodedString("/*/action")
+            + "&qry1="
+            + encodedString("/*/build")
+            + "&qry1="
+            + encodedString("/*/property[not(parameterDefinition)")
+            + "&qry2="
+            + encodedString("qryVal2")
+            + "&qry3="
+            + encodedString("foo")
+            + "&qry3="
+            + encodedString("bar");
+
+    List<String> expectedResponse =
+        Stream.concat(Stream.concat(qry1List.stream(), qry3List.stream()), Stream.of(qry2))
+            .toList();
+
+    // return all the received query param values as list
+    wireMock.stubFor(
+        get(expectedUrl)
+            .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
+
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
+    QueryParamTestService service =
+        new Retrofit.Builder()
+            .baseUrl(endpoint.getBaseUrl())
+            .client(okHttpClient)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+            .create(QueryParamTestService.class);
+
+    List<String> result =
+        service.getQueryParamTestRequest(qry1List, qry2, qry3List).execute().body();
+
+    assertThat(result).hasSize(6);
+    assertThat(result).containsAll(expectedResponse);
+  }
+
+  @Test
+  public void testRepeatingQueryParams_withinUrl() throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    List<String> qry1List =
+        List.of("/*/action", "/*/build", "/*/property[not(parameterDefinition)");
+    String qry2 = "qryVal2";
+    List<String> qry3List = List.of("foo", "bar");
+    String expectedUrl =
+        "/test/get?qry1="
+            + encodedString("/*/action")
+            + "&qry1="
+            + encodedString("/*/build")
+            + "&qry1="
+            + encodedString("/*/property[not(parameterDefinition)")
+            + "&qry2="
+            + encodedString("qryVal2")
+            + "&qry3="
+            + encodedString("foo")
+            + "&qry3="
+            + encodedString("bar");
+
+    List<String> expectedResponse =
+        Stream.concat(Stream.concat(qry1List.stream(), qry3List.stream()), Stream.of(qry2))
+            .toList();
+
+    // return all the received query param values as list
+    wireMock.stubFor(
+        get(expectedUrl)
+            .willReturn(aResponse().withBody(objectMapper.writeValueAsBytes(expectedResponse))));
+
+    OkHttpClient okHttpClient = okHttpClientProvider.getClient(endpoint);
+    QueryParamTestService service =
+        new Retrofit.Builder()
+            .baseUrl(endpoint.getBaseUrl())
+            .client(okHttpClient)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build()
+            .create(QueryParamTestService.class);
+
+    List<String> result = service.getQueryParamTestRequest2().execute().body();
+
+    assertThat(result).hasSize(6);
+    assertThat(result).containsAll(expectedResponse);
   }
 
   private Retrofit2Service getRetrofit2Service(String baseUrl, OkHttpClient okHttpClient) {
@@ -161,6 +263,17 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
     return params;
   }
 
+  private OkHttpClient removeEncodeCorrectionInterceptor(OkHttpClient okHttpClient) {
+    OkHttpClient.Builder builder = okHttpClient.newBuilder();
+    builder.interceptors().clear();
+
+    okHttpClient.interceptors().stream()
+        .filter(interceptor -> !(interceptor instanceof Retrofit2EncodeCorrectionInterceptor))
+        .forEach(builder::addInterceptor);
+
+    return builder.build();
+  }
+
   interface Retrofit2Service {
     @GET("test/{path}/get")
     Call<Void> getRequest(
@@ -168,5 +281,17 @@ public class Retrofit2EncodeCorrectionInterceptorTest {
         @Query(value = "qry1", encoded = true) String qry1,
         @Query(value = "qry2", encoded = true) String qry2,
         @Query(value = "qry3", encoded = true) String qry3);
+  }
+
+  interface QueryParamTestService {
+    @GET("test/get")
+    Call<List<String>> getQueryParamTestRequest(
+        @Query(value = "qry1", encoded = true) List<String> qry1,
+        @Query(value = "qry2", encoded = true) String qry2,
+        @Query(value = "qry3", encoded = true) List<String> qry3);
+
+    @GET(
+        "test/get?qry1=/*/action&qry1=/*/build&qry1=/*/property[not(parameterDefinition)&qry2=qryVal2&qry3=foo&qry3=bar")
+    Call<List<String>> getQueryParamTestRequest2();
   }
 }

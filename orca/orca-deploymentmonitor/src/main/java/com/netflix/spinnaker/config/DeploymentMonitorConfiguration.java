@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.config;
 
+import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.client.Client;
 
 @Configuration
 @ConditionalOnProperty(value = "monitored-deploy.enabled")
@@ -33,14 +31,8 @@ import retrofit.client.Client;
 public class DeploymentMonitorConfiguration {
   @Bean
   DeploymentMonitorServiceProvider deploymentMonitorServiceProvider(
-      MonitoredDeployConfigurationProperties config,
-      Client retrofitClient,
-      RestAdapter.LogLevel retrofitLogLevel,
-      RequestInterceptor spinnakerRequestInterceptor) {
+      MonitoredDeployConfigurationProperties config, ServiceClientProvider serviceClientProvider) {
     return new DeploymentMonitorServiceProvider(
-        retrofitClient,
-        retrofitLogLevel,
-        spinnakerRequestInterceptor,
-        config.getDeploymentMonitors());
+        serviceClientProvider, config.getDeploymentMonitors());
   }
 }

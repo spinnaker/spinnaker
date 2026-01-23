@@ -26,6 +26,7 @@ import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.providers.metrics.GraphiteCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.graphite.canary.GraphiteCanaryScope;
 import com.netflix.kayenta.graphite.model.GraphiteResults;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -46,15 +46,26 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.configuration.ObjectPostProcessorConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @Configuration
-@ComponentScan({"com.netflix.kayenta.retrofit.config"})
-class TestConfig {}
+@ComponentScan({"com.netflix.kayenta.retrofit.config", "com.netflix.spinnaker.config"})
+class TestConfig {
+  @Bean
+  public ObjectPostProcessor<Object> objectPostProcessor(AutowireCapableBeanFactory beanFactory) {
+    return new ObjectPostProcessorConfiguration().objectPostProcessor(beanFactory);
+  }
+}
 
 @Builder
 @ToString
@@ -68,7 +79,8 @@ class CanaryMetricConfigWithResults {
 }
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {TestConfig.class})
+@ContextConfiguration(
+    classes = {TestConfig.class, TaskExecutorBuilder.class, AuthenticationConfiguration.class})
 public class IntegrationTest {
 
   @Autowired private ResourceLoader resourceLoader;

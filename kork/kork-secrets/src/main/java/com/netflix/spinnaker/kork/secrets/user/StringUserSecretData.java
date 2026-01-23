@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import lombok.RequiredArgsConstructor;
 
-@NonnullByDefault
 @RequiredArgsConstructor
 // not using @UserSecretType as this is an unstructured type
 // see StringUserSecretSerde
@@ -28,6 +26,11 @@ public class StringUserSecretData implements UserSecretData {
 
   @Override
   public String getSecretString(String key) {
+    return data;
+  }
+
+  @Override
+  public String getSecretString() {
     return data;
   }
 }

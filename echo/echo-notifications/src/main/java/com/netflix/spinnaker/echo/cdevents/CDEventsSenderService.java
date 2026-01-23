@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.echo.cdevents;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
-import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import io.cloudevents.CloudEvent;
 import java.io.IOException;

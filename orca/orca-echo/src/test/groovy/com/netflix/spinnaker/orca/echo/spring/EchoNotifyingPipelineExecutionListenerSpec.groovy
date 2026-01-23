@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.echo.spring
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -27,6 +29,7 @@ import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications.Notific
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.slf4j.MDC
+import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -40,9 +43,10 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
   def objectMapper = new ObjectMapper()
 
   @Shared ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
+  @Shared Registry registry = new DefaultRegistry()
 
   @Subject
-  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor)
+  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor, registry)
 
   @Shared
   ApplicationNotifications notifications = new ApplicationNotifications()
@@ -89,18 +93,19 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
   void "sends events with expected type to Echo"() {
     given:
     def pipeline = PipelineExecutionImpl.newPipeline("myapp")
+    front50Service.getApplicationNotifications("myapp") >> { return Calls.response(notifications)}
 
     when:
     echoListener.beforeExecution(null, pipeline)
 
     then:
-    1 * echoService.recordEvent({ it.details.type == "orca:pipeline:starting"})
+    1 * echoService.recordEvent({ it.details.type == "orca:pipeline:starting"}) >> Calls.response(null)
 
     when:
     echoListener.afterExecution(null, pipeline, ExecutionStatus.SUCCEEDED, true)
 
     then:
-    1 * echoService.recordEvent({ it.details.type == "orca:pipeline:complete"})
+    1 * echoService.recordEvent({ it.details.type == "orca:pipeline:complete"}) >> Calls.response(null)
   }
 
   void "adds notifications to pipeline on beforeExecution"() {
@@ -112,8 +117,8 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
 
     then:
     pipeline.notifications == [slackPipes]
-    1 * front50Service.getApplicationNotifications("myapp") >> notifications
-    1 * echoService.recordEvent(_)
+    1 * front50Service.getApplicationNotifications("myapp") >> Calls.response(notifications)
+    1 * echoService.recordEvent(_) >> Calls.response(null)
     0 * _
   }
 
@@ -126,8 +131,8 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
 
     then:
     pipeline.notifications == [slackPipes]
-    1 * front50Service.getApplicationNotifications("myapp") >> notifications
-    1 * echoService.recordEvent(_)
+    1 * front50Service.getApplicationNotifications("myapp") >> Calls.response(notifications)
+    1 * echoService.recordEvent(_) >> Calls.response(null)
     0 * _
   }
 
@@ -149,8 +154,8 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
     pipeline.notifications.size() == 2
     pipeline.notifications.when.containsAll(["pipeline.started", "pipeline.completed"], ["pipeline.failed"])
     pipeline.notifications.extraField.containsAll("extra", null)
-    1 * front50Service.getApplicationNotifications("myapp") >> notifications
-    1 * echoService.recordEvent(_)
+    1 * front50Service.getApplicationNotifications("myapp") >> Calls.response(notifications)
+    1 * echoService.recordEvent(_) >> Calls.response(null)
     0 * _
   }
 
@@ -172,8 +177,8 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
     pipeline.notifications.size() == 2
     pipeline.notifications.when.containsAll(["pipeline.started", "pipeline.completed"], ["pipeline.failed"])
     pipeline.notifications.extraField.containsAll("extra", null)
-    1 * front50Service.getApplicationNotifications("myapp") >> notificationsWithSpel
-    1 * echoService.recordEvent(_)
+    1 * front50Service.getApplicationNotifications("myapp") >> Calls.response(notificationsWithSpel)
+    1 * echoService.recordEvent(_) >> Calls.response(null)
     0 * _
   }
 
@@ -186,8 +191,8 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
 
     then:
     pipeline.notifications == []
-    1 * front50Service.getApplicationNotifications("myapp") >> null
-    1 * echoService.recordEvent(_)
+    1 * front50Service.getApplicationNotifications("myapp") >> Calls.response(null)
+    1 * echoService.recordEvent(_) >> Calls.response(null)
     0 * _
   }
 
@@ -207,8 +212,8 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
     then:
     pipeline.notifications.size() == 1
     pipeline.notifications[0].when == ["pipeline.started", "pipeline.completed"]
-    1 * front50Service.getApplicationNotifications("myapp") >> null
-    1 * echoService.recordEvent(_)
+    1 * front50Service.getApplicationNotifications("myapp") >> Calls.response(null)
+    1 * echoService.recordEvent(_) >> Calls.response(null)
     0 * _
   }
 
@@ -226,9 +231,9 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
     1 * front50Service.getApplicationNotifications("myapp") >> {
       assert MDC.get(Header.USER.header) == "user@schibsted.com"
       assert MDC.get(Header.ACCOUNTS.header).split(",").toList().toSorted() == ["anotheraccount", "someaccount"]
-      return notifications
+      return Calls.response(notifications)
     }
-    1 * echoService.recordEvent(_)
+    1 * echoService.recordEvent(_) >> Calls.response(null)
   }
 
   def "handles cases with multiple notifications of the same type"() {
@@ -255,7 +260,7 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
     pipeline.notifications.size() == 2
     pipeline.notifications.containsAll(notification1, notification2)
 
-    1 * front50Service.getApplicationNotifications("myapp") >> notifications
-    1 * echoService.recordEvent(_)
+    1 * front50Service.getApplicationNotifications("myapp") >> Calls.response(notifications)
+    1 * echoService.recordEvent(_) >> Calls.response(null)
   }
 }

@@ -17,17 +17,16 @@
 package com.netflix.spinnaker.orca.front50.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.events.ExecutionEvent
 import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.spring.DependentPipelineExecutionListener
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,14 +37,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.Endpoint
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.util.concurrent.TimeUnit
-
-import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
@@ -62,35 +57,23 @@ class Front50Configuration {
   @Autowired
   OkHttpClientProvider clientProvider
 
-  @Autowired
-  RestAdapter.LogLevel retrofitLogLevel
-
-  @Autowired
-  RequestInterceptor spinnakerRequestInterceptor
-
   @Bean
-  Endpoint front50Endpoint(Front50ConfigurationProperties front50ConfigurationProperties) {
-    newFixedEndpoint(front50ConfigurationProperties.getBaseUrl())
-  }
-
-  @Bean
-  Front50Service front50Service(Endpoint front50Endpoint, ObjectMapper mapper, Front50ConfigurationProperties front50ConfigurationProperties) {
-    OkHttpClient okHttpClient = clientProvider.getClient(new DefaultServiceEndpoint("front50", front50Endpoint.getUrl()));
+  Front50Service front50Service(ObjectMapper mapper, Front50ConfigurationProperties front50ConfigurationProperties) {
+    String baseUrl = RetrofitUtils.getBaseUrl(front50ConfigurationProperties.baseUrl)
+    OkHttpClient okHttpClient = clientProvider.getClient(new DefaultServiceEndpoint("front50", baseUrl));
     okHttpClient = okHttpClient.newBuilder()
         .readTimeout(front50ConfigurationProperties.okhttp.readTimeoutMs, TimeUnit.MILLISECONDS)
         .writeTimeout(front50ConfigurationProperties.okhttp.writeTimeoutMs, TimeUnit.MILLISECONDS)
         .connectTimeout(front50ConfigurationProperties.okhttp.connectTimeoutMs, TimeUnit.MILLISECONDS)
-        .build();
-    new RestAdapter.Builder()
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setEndpoint(front50Endpoint)
-      .setClient(new Ok3Client(okHttpClient))
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new RetrofitSlf4jLog(Front50Service))
-      .setConverter(new JacksonConverter(mapper))
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .build()
-      .create(Front50Service)
+        .build()
+
+    return new Retrofit.Builder()
+        .baseUrl(baseUrl)
+        .client(okHttpClient)
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create(mapper))
+        .build()
+        .create(Front50Service)
   }
 
   @Bean

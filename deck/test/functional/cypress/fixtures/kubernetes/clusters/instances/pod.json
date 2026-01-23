@@ -1,0 +1,40 @@
+{
+  "health": [
+    {
+      "state": "Up",
+      "source": "Pod",
+      "type": "kubernetes/pod",
+      "platform": "platform"
+    },
+    {
+      "state": "Up",
+      "source": "Container backend",
+      "type": "kubernetes/container",
+      "platform": "platform"
+    }
+  ],
+  "account": "k8s-local",
+  "name": "13b19f7c-568e-4970-8c16-17de7111515a",
+  "humanReadableName": "pod backend-65b97dd546-vb8qf",
+  "namespace": "dev",
+  "displayName": "backend-65b97dd546-vb8qf",
+  "apiVersion": "v1",
+  "kind": "pod",
+  "labels": {
+    "app": "backend",
+    "app.kubernetes.io/managed-by": "spinnaker",
+    "app.kubernetes.io/name": "kubernetes",
+    "custom-label": "custom-value",
+    "pod-template-hash": "55f76f8479"
+  },
+  "moniker": {
+    "app": "kubernetesapp",
+    "cluster": "deployment backend"
+  },
+  "createdTime": 1753320449000,
+  "zone": "dev",
+  "cloudProvider": "kubernetes",
+  "healthState": "Up",
+  "providerType": "kubernetes",
+  "insightActions": []
+}

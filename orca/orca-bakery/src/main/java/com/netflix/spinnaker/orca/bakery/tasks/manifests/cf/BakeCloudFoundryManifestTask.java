@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.bakery.tasks.manifests.cf;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -116,7 +117,8 @@ public class BakeCloudFoundryManifestTask implements RetryableTask {
             resolvedInputArtifacts.subList(1, resolvedInputArtifacts.size()),
             outputArtifactName);
 
-    Artifact result = bakery.bakeManifest(request.getTemplateRenderer(), request);
+    Artifact result =
+        Retrofit2SyncCall.execute(bakery.bakeManifest(request.getTemplateRenderer(), request));
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("artifacts", Collections.singleton(result));

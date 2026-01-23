@@ -17,23 +17,42 @@
 package com.netflix.spinnaker.orca.bakery.api
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.config.DefaultServiceClientProvider
+import com.netflix.spinnaker.orca.bakery.api.manifests.kustomize.KustomizeBakeManifestRequest
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.bakery.tasks.manifests.BakeManifestContext
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import retrofit.RequestInterceptor
+import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.ApplicationContext
 import spock.lang.Specification
 import spock.lang.Subject
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static com.google.common.net.HttpHeaders.LOCATION
 import static java.net.HttpURLConnection.*
-import static retrofit.RestAdapter.LogLevel.FULL
 
+import com.netflix.spinnaker.orca.test.Retrofit2TestConfig
+
+@SpringBootTest(
+    classes = [Retrofit2TestConfig],
+    webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class BakeryServiceSpec extends Specification {
 
   static WireMockServer wireMockServer = new WireMockServer(0)
 
-  @Subject BakeryService bakery
+  @Subject
+  BakeryService bakery
+
+  @Autowired
+  ApplicationContext applicationContext
+
+  @Autowired
+  DefaultServiceClientProvider serviceClientProvider
 
   private static final region = "us-west-1"
   private static final bake = BakeRequest.Default.copyWith(user: "rfletcher", packageName: "orca")
@@ -55,16 +74,84 @@ class BakeryServiceSpec extends Specification {
   }
 
   def setup() {
-    bakery = new BakeryConfiguration(
-      retrofitClient: new Ok3Client(),
-      retrofitLogLevel: FULL,
-      spinnakerRequestInterceptor: Mock(RequestInterceptor)
-    )
-      .buildService(wireMockServer.url("/"))
+    bakery = new BakeryConfiguration()
+        .buildService(wireMockServer.url("/"), serviceClientProvider)
   }
 
   def cleanupSpec() {
     wireMockServer.stop()
+  }
+
+  def "should receive specific BakeManifestRequest when baking a manifest"() {
+    given:
+    def type = "KUSTOMIZE"
+    def bakeManifestPath = "/api/v2/manifest/bake/$type"
+    def inputArtifactPassed = Artifact.builder().name("my-manifest").type("embedded/base64").reference("ZGF0YQ==").build()
+    def outputArtifactNamePassed = "baked-manifest"
+    def stageJson = """
+          {
+            "expectedArtifacts": [
+              {
+                "defaultArtifact": {
+                  "customKind": true,
+                  "id": "bd95dd08-58a3-4012-9db5-4c4cde176e0b"
+                },
+                "displayName": "rare-gecko-67",
+                "id": "ea011068-f42e-4df0-8cf0-2fad1a6fc47b",
+                "matchArtifact": {
+                  "artifactAccount": "embedded-artifact",
+                  "id": "86c1ef35-0b8a-4892-a60a-82759d8aa6ab",
+                  "name": "hi",
+                  "type": "embedded/base64"
+                },
+                "useDefaultArtifact": false,
+                "usePriorArtifact": false
+              }
+            ],
+            "inputArtifacts": [
+              {
+                "account": "no-auth-http-account",
+                "artifact": {
+                  "artifactAccount": "no-auth-http-account",
+                  "id": "c4d18108-2b3b-40b1-ba82-d22ce17e708b",
+                  "reference": "kustomizefile.yml",
+                  "type": "http/file"
+                },
+                "id": null
+              }
+            ],
+            "isNew": true,
+            "name": "BakeManifest",
+            "outputName": "resolvedartifact",
+            "kustomizeFilePath": "kustomizefile.yml",
+            "type": "createBakeManifest",
+            "environment": "prod",
+            "includeCRDs": "true",
+            "templateRenderer": "KUSTOMIZE",
+            "namespace": "test"
+          }
+          """
+
+    StageExecutionImpl stage = new StageExecutionImpl();
+    stage.setContext(mapper.readValue(stageJson, Map.class));
+    BakeManifestContext context = stage.mapTo(BakeManifestContext.class);
+    def kustomizeBakeManifestRequest = new KustomizeBakeManifestRequest(context, inputArtifactPassed, outputArtifactNamePassed);
+    stubFor(
+        post(bakeManifestPath)
+            .willReturn(
+                aResponse()
+                    .withStatus(HTTP_OK)
+                    .withBody(mapper.writeValueAsString(inputArtifactPassed))
+            )
+    )
+
+    when:
+    Retrofit2SyncCall.execute(bakery.bakeManifest(type, kustomizeBakeManifestRequest))
+
+    then:
+    verify(
+        postRequestedFor(urlPathEqualTo(bakeManifestPath))
+            .withRequestBody(equalTo(mapper.writeValueAsString(kustomizeBakeManifestRequest))))
   }
 
   def "can lookup a bake status"() {
@@ -92,7 +179,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect:
-    with(bakery.lookupStatus(region, statusId)) {
+    with(Retrofit2SyncCall.execute(bakery.lookupStatus(region, statusId))) {
       id == statusId
       state == BakeStatus.State.COMPLETED
       resourceId == bakeId
@@ -111,11 +198,11 @@ class BakeryServiceSpec extends Specification {
     )
 
     when:
-    bakery.lookupStatus(region, statusId)
+    Retrofit2SyncCall.execute(bakery.lookupStatus(region, statusId))
 
     then:
     def ex = thrown(SpinnakerHttpException)
-    ex.response.status == HTTP_NOT_FOUND
+    ex.responseCode == HTTP_NOT_FOUND
   }
 
   def "should return status of newly created bake"() {
@@ -141,7 +228,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake, null)) {
+    with(Retrofit2SyncCall.execute(bakery.createBake(region, bake, null))) {
       id == statusId
       state == BakeStatus.State.PENDING
       resourceId == bakeId
@@ -180,7 +267,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake, null)) {
+    with(Retrofit2SyncCall.execute(bakery.createBake(region, bake, null))) {
       id == statusId
       state == BakeStatus.State.RUNNING
       resourceId == bakeId
@@ -207,7 +294,7 @@ class BakeryServiceSpec extends Specification {
     )
 
     expect:
-    with(bakery.lookupBake(region, bakeId)) {
+    with(Retrofit2SyncCall.execute(bakery.lookupBake(region, bakeId))) {
       id == bakeId
       ami == "ami"
     }

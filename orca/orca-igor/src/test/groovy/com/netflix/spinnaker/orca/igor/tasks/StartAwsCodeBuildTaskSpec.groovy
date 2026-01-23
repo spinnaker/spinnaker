@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
+import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -51,7 +52,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * igorService.startAwsCodeBuild(ACCOUNT, _) >> igorResponse
+    1 * igorService.startAwsCodeBuild(ACCOUNT, _) >> Calls.response(igorResponse)
     result.status == ExecutionStatus.SUCCEEDED
     result.context.buildInfo.arn == igorResponse.arn
   }
@@ -71,7 +72,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
     1 * igorService.startAwsCodeBuild(ACCOUNT, {
       it.get("sourceLocationOverride") == null
       it.get("sourceTypeOverride") == null
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   @Unroll
@@ -97,7 +98,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
       it.get("sourceLocationOverride") == sourceLocation
       it.get("sourceTypeOverride") == sourceType
       it.get("sourceVersion") == "master"
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
 
     where:
     artifactType | artifactReference                          | sourceType  | sourceLocation
@@ -128,7 +129,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
     1 * igorService.startAwsCodeBuild(ACCOUNT, {
       it.get("sourceLocationOverride") == "https://github.com/codebuild/repo.git"
       it.get("sourceTypeOverride") == "GITHUB_ENTERPRISE"
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   def "should use sourceType if type couldn't be inferred"() {
@@ -153,7 +154,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
     1 * igorService.startAwsCodeBuild(ACCOUNT, {
       it.get("sourceLocationOverride") == "http://enterprise.com/repo.git"
       it.get("sourceTypeOverride") == "GITHUB_ENTERPRISE"
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   def "should throw exception if artifact type is unknown"() {
@@ -242,7 +243,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
     1 * artifactUtils.getBoundArtifactForStage(stage, ARTIFACT_ID, null) >> artifact
     1 * igorService.startAwsCodeBuild(ACCOUNT, {
       it.get("sourceVersion") == "not-master"
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   def "should correctly append image, buildspec and env vars"() {
@@ -267,7 +268,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
       ]
       it.get("imageOverride") == "alpine"
       it.get("buildspecOverride") == "ls"
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   def "should not append buildspec or image when it's empty string"() {
@@ -288,7 +289,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
     1 * igorService.startAwsCodeBuild(ACCOUNT, {
       it.get("imageOverride") == null
       it.get("buildspecOverride") == null
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   def "should override secondary sources along with versions"() {
@@ -366,7 +367,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
               sourceVersion: "master",
           ],
       ]
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   def "should not override secondary source version if not given"() {
@@ -424,7 +425,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
               sourceVersion: "master",
           ],
       ]
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   def "should override secondary sources version"() {
@@ -451,7 +452,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
           sourceIdentifier: "secondary_source",
           sourceVersion: "main",
       ]]
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   def "should combine secondary sources and versions"() {
@@ -540,7 +541,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
               sourceVersion: "main",
           ]
       ]
-    }) >> igorResponse
+    }) >> Calls.response(igorResponse)
   }
 
   def getDefaultContext(Boolean sourceOverride = true) {

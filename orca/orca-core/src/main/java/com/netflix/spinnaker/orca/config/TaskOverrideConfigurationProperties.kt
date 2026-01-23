@@ -1,13 +1,11 @@
 package com.netflix.spinnaker.orca.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 
 /**
  * Task override configuration to use while planning stages.
  */
 @ConfigurationProperties("task-overrides")
-@ConstructorBinding
 public class TaskOverrideConfigurationProperties(
   /**
    * list of task overrides.
@@ -15,7 +13,6 @@ public class TaskOverrideConfigurationProperties(
   public var overrideDefinitions: List<TaskOverrideDefinition> = listOf()
 ) {
 
-  @ConstructorBinding
   public class TaskOverrideDefinition(
     /**
      * Candidate stage in which we are looking to replace task definition

@@ -24,6 +24,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
@@ -262,13 +263,13 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
      * @return list of all manifest already deployed to the cluster
      */
     ImmutableList<String> getOldManifestNames(DeployedManifest dm) {
-      return oortService
-          .getClusterManifests(
-              dm.getAccount(),
-              dm.getNamespace(),
-              REPLICA_SET,
-              dm.getApplication(),
-              dm.getClusterName())
+      return Retrofit2SyncCall.execute(
+              oortService.getClusterManifests(
+                  dm.getAccount(),
+                  dm.getNamespace(),
+                  REPLICA_SET,
+                  dm.getApplication(),
+                  dm.getClusterName()))
           .stream()
           .filter(m -> !m.getFullResourceName().equals(dm.getManifestName()))
           .map(ManifestCoordinates::getFullResourceName)
@@ -300,7 +301,8 @@ public class DeployManifestStage extends ExpressionAwareStageDefinitionBuilder {
      * @return true, if manifest was not deployed correctly and waits to get stable, false otherwise
      */
     boolean previousDeploymentNeitherStableNorFailed(String account, String location, String name) {
-      var oldManifest = this.oortService.getManifest(account, location, name, false);
+      var oldManifest =
+          Retrofit2SyncCall.execute(this.oortService.getManifest(account, location, name, false));
 
       Map<String, Double> statusSpec =
           (Map<String, Double>) oldManifest.getManifest().getOrDefault("status", emptyMap());

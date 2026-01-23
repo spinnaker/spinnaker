@@ -21,6 +21,8 @@ import com.netflix.spinnaker.config.DefaultServiceClientProvider
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.docker.model.DockerBearerToken
+import com.netflix.spinnaker.kork.docker.service.DockerBearerTokenService
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
@@ -138,7 +140,7 @@ class DockerBearerTokenServiceSpec extends Specification {
     setup:
       def authenticateHeader = "realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
     when:
-      DockerBearerToken token = tokenService.getToken(REPOSITORY1, authenticateHeader)
+    DockerBearerToken token = tokenService.getToken(REPOSITORY1, authenticateHeader)
 
     then:
       token.token.length() > 0
@@ -159,7 +161,7 @@ class DockerBearerTokenServiceSpec extends Specification {
     setup:
       def passwordFile = new File("src/test/resources/password.txt")
       def username = "username"
-      def passwordContents = new BufferedReader(new FileReader(passwordFile)).getText()
+      def passwordContents = new BufferedReader(new FileReader(passwordFile)).getText().trim()
     when:
       def fileTokenService = new DockerBearerTokenService(username, passwordFile, serviceClientProvider)
 
