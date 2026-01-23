@@ -34,6 +34,8 @@ on:
       - release-*
     paths:
       - 'deck-kayenta/**'
+      - '.github/workflows/deck-kayenta.yml'
+
 permissions:
   id-token: write
   contents: write
