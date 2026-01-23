@@ -47,7 +47,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
   @Test
   public void basicAdminCheck() throws Exception {
     when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
-    HttpResponse<String> response = callGateWithPath("/admin/", "GET");
+    HttpResponse<String> response = callGateWithPath("/admin", "GET");
     assertNotNull(response);
     assertThat(response.statusCode()).isEqualTo(200);
     Map<String, Object> responseData = new ObjectMapper().readValue(response.body(), Map.class);

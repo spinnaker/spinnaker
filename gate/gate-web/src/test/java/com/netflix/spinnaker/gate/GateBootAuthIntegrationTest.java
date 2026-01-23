@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(
