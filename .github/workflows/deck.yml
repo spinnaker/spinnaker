@@ -50,6 +50,12 @@ on:
       - release-*
     paths:
       - 'deck/**'
+      - '.github/workflows/deck.yml'
+
+# https://docs.npmjs.com/trusted-publishers#github-actions-configuration
+permissions:
+  id-token: write
+  contents: write
 
 jobs:
   build:
