@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/eslint-plugin",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "3.0.2",
   "main": "index.js",
   "license": "Apache-2.0",
