@@ -33,6 +33,12 @@ on:
       - release-*
     paths:
       - 'deck-kayenta/**'
+      - '.github/workflows/deck-kayenta.yml'
+
+# https://docs.npmjs.com/trusted-publishers#github-actions-configuration
+permissions:
+  id-token: write
+  contents: write
 
 # https://docs.npmjs.com/trusted-publishers#github-actions-configuration
 permissions:
