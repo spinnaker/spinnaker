@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/amazon",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "license": "Apache-2.0",
   "version": "0.14.5",
   "module": "dist/index.js",

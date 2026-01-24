@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/mocks",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "1.0.7",
   "module": "dist/index.js",
   "typings": "dist/index.d.ts",
