@@ -12,6 +12,9 @@
   },
   "module": "build/dist/index.js",
   "typings": "build/dist/index.d.ts",
+  "files": [
+    "build/dist"
+  ],
   "engines": {
     "node": ">=20.19.4",
     "npm": ">=10.8.2",
