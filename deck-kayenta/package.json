@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/kayenta",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "2.6.0",
   "license": "Apache-2.0",
   "repository": {
@@ -8,6 +12,9 @@
   },
   "module": "build/dist/index.js",
   "typings": "build/dist/index.d.ts",
+  "files": [
+    "build/dist"
+  ],
   "engines": {
     "node": ">=20.19.4",
     "npm": ">=11.5.1",
