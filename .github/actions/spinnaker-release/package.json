@@ -1,5 +1,9 @@
 {
   "name": "spinnaker-release",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "1.0.0",
   "description": "Github Action for generating a Spinnaker release",
   "main": "index.js",
