@@ -53,14 +53,11 @@ on:
       - 'deck/**'
       - '.github/workflows/deck.yml'
 
-<<<<<<< HEAD
-=======
 # https://docs.npmjs.com/trusted-publishers#github-actions-configuration
 permissions:
   id-token: write
   contents: write
 
->>>>>>> 4a1dafc454 (fix(deck): Attempt two of fixing deck publishing (#7406))
 jobs:
   build:
     runs-on: ubuntu-latest
