@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/kubernetes",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "license": "Apache-2.0",
   "version": "0.6.2",
   "module": "dist/index.js",
