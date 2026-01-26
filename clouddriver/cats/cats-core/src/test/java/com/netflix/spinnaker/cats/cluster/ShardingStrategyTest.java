@@ -71,33 +71,6 @@ class ShardingStrategyTest {
     }
 
     @Test
-    @DisplayName("Handles Integer.MIN_VALUE hashCode correctly")
-    void integerMinValueHashCode() {
-      // Create a key that would have problematic behavior with abs()
-      // Integer.MIN_VALUE % n can be negative, and abs(Integer.MIN_VALUE) == Integer.MIN_VALUE
-      // We use a crafted string that exercises this edge case
-      String key = createKeyWithHashCode(Integer.MIN_VALUE);
-
-      // This should NOT throw and should return a valid bucket
-      int owner = strategy.computeOwner(key, 3);
-      assertThat(owner)
-          .describedAs("Integer.MIN_VALUE hash must produce valid bucket [0, totalPods)")
-          .isBetween(0, 2);
-    }
-
-    @Test
-    @DisplayName("Handles hash code that causes negative modulo")
-    void negativeModuloResult() {
-      // Test with a key where hash % podCount would be negative
-      // -5 % 3 = -2 in Java
-      String key = createKeyWithHashCode(-5);
-      int owner = strategy.computeOwner(key, 3);
-      assertThat(owner)
-          .describedAs("Negative modulo result must be corrected to positive")
-          .isBetween(0, 2);
-    }
-
-    @Test
     @DisplayName("Same key always maps to same bucket")
     void deterministicMapping() {
       String key = "deterministic-test-key";
@@ -122,24 +95,103 @@ class ShardingStrategyTest {
         assertThat(count).isGreaterThan(0);
       }
     }
+  }
+
+  /**
+   * Tests for the modulo formula edge cases. Since we cannot control String.hashCode(), these tests
+   * verify the formula directly: ((hash % podCount) + podCount) % podCount
+   */
+  @Nested
+  @DisplayName("Modulo Formula Edge Case Tests")
+  class ModuloFormulaEdgeCaseTests {
 
     /**
-     * Creates a wrapper object that returns the specified hash code. This is used to test edge
-     * cases with specific hash values.
+     * Applies the same modulo formula used by ModuloShardingStrategy. This isolates the formula for
+     * direct edge-case testing since we cannot control String.hashCode().
      */
-    private String createKeyWithHashCode(int desiredHash) {
-      // We can't easily create a String with a specific hashCode,
-      // so we'll use a custom approach with the strategy's actual computation
-      // For testing purposes, we verify the formula handles the edge case:
-      // ((hash % podCount) + podCount) % podCount
+    private int applyModuloFormula(int hash, int podCount) {
+      if (podCount <= 1) {
+        return 0;
+      }
+      return ((hash % podCount) + podCount) % podCount;
+    }
 
-      // Simulate what happens with the problematic hash
-      int podCount = 3;
-      int result = ((desiredHash % podCount) + podCount) % podCount;
-      assertThat(result).isBetween(0, podCount - 1);
+    @Test
+    @DisplayName("Formula handles Integer.MIN_VALUE correctly")
+    void formulaHandlesIntegerMinValue() {
+      // Integer.MIN_VALUE is problematic because:
+      // 1. Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE (overflow)
+      // 2. Integer.MIN_VALUE % n can be negative
+      int result = applyModuloFormula(Integer.MIN_VALUE, 3);
 
-      // Return a dummy key - the actual test is the assertion above
-      return "test-key-" + desiredHash;
+      assertThat(result)
+          .describedAs("Integer.MIN_VALUE must produce valid bucket [0, podCount)")
+          .isBetween(0, 2);
+
+      // Verify across multiple pod counts
+      for (int podCount = 2; podCount <= 10; podCount++) {
+        int bucket = applyModuloFormula(Integer.MIN_VALUE, podCount);
+        assertThat(bucket)
+            .describedAs("Integer.MIN_VALUE with %d pods", podCount)
+            .isBetween(0, podCount - 1);
+      }
+    }
+
+    @Test
+    @DisplayName("Formula handles negative hash codes correctly")
+    void formulaHandlesNegativeHashes() {
+      // Test several negative values including edge cases
+      int[] negativeHashes = {-1, -2, -3, -5, -100, -999, Integer.MIN_VALUE + 1};
+
+      for (int hash : negativeHashes) {
+        for (int podCount = 2; podCount <= 5; podCount++) {
+          int result = applyModuloFormula(hash, podCount);
+          assertThat(result)
+              .describedAs("Hash %d with %d pods must be in [0, %d)", hash, podCount, podCount)
+              .isBetween(0, podCount - 1);
+        }
+      }
+    }
+
+    @Test
+    @DisplayName("Formula handles zero hash code correctly")
+    void formulaHandlesZeroHash() {
+      for (int podCount = 2; podCount <= 10; podCount++) {
+        int result = applyModuloFormula(0, podCount);
+        assertThat(result)
+            .describedAs("Zero hash with %d pods", podCount)
+            .isEqualTo(0);
+      }
+    }
+
+    @Test
+    @DisplayName("Formula is deterministic")
+    void formulaIsDeterministic() {
+      int hash = -12345;
+      int podCount = 7;
+      int first = applyModuloFormula(hash, podCount);
+      int second = applyModuloFormula(hash, podCount);
+      int third = applyModuloFormula(hash, podCount);
+
+      assertThat(first).isEqualTo(second).isEqualTo(third);
+    }
+
+    @Test
+    @DisplayName("Formula matches actual strategy for real strings")
+    void formulaMatchesActualStrategy() {
+      ModuloShardingStrategy strategy = new ModuloShardingStrategy();
+      String[] testKeys = {"account-1", "prod/us-east-1/Agent", "test", "", "a"};
+
+      for (String key : testKeys) {
+        int hash = key.hashCode();
+        for (int podCount = 2; podCount <= 5; podCount++) {
+          int formulaResult = applyModuloFormula(hash, podCount);
+          int strategyResult = strategy.computeOwner(key, podCount);
+          assertThat(strategyResult)
+              .describedAs("Strategy must match formula for key '%s' with %d pods", key, podCount)
+              .isEqualTo(formulaResult);
+        }
+      }
     }
   }
 
