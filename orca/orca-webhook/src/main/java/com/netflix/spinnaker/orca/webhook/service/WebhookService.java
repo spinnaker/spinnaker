@@ -29,8 +29,10 @@ import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -198,6 +200,10 @@ public class WebhookService {
   public RestTemplateData getRestTemplateData(
       WebhookTaskType taskType, StageExecution stageExecution) {
     String destinationUrl = null;
+    var sensitiveHeaders =
+        findPreconfiguredWebhook(stageExecution.getType())
+            .map(WebhookProperties.PreconfiguredWebhook::getSensitiveHeaders)
+            .orElse(new HashMap<>());
     for (RestTemplateProvider provider : restTemplateProviders) {
       WebhookStage.StageData stageData =
           (WebhookStage.StageData) stageExecution.mapTo(provider.getStageDataType());
@@ -221,7 +227,7 @@ public class WebhookService {
         headers =
             webhookAccountProcessor.get().getHeaders(stageData.account, accountDetails, headersMap);
       } else {
-        headers = buildHttpHeaders(headersMap);
+        headers = buildHttpHeaders(headersMap, sensitiveHeaders);
       }
       HttpMethod httpMethod = HttpMethod.GET;
       HttpEntity<Object> payloadEntity = null;
@@ -288,6 +294,12 @@ public class WebhookService {
     return webhookProperties.getPreconfigured().stream()
         .filter(WebhookProperties.PreconfiguredWebhook::isEnabled)
         .collect(Collectors.toList());
+  }
+
+  public Optional<WebhookProperties.PreconfiguredWebhook> findPreconfiguredWebhook(String type) {
+    return webhookProperties.getPreconfigured().stream()
+        .filter(webhook -> Objects.equals(type, webhook.getType()) && webhook.isEnabled())
+        .findFirst();
   }
 
   /**
@@ -382,10 +394,18 @@ public class WebhookService {
     return combinedHeaders;
   }
 
-  private static HttpHeaders buildHttpHeaders(Map<String, Object> headersMap) {
+  private static HttpHeaders buildHttpHeaders(
+      Map<String, Object> customHeaders, Map<String, List<String>> sensitiveHeaders) {
     HttpHeaders headers = new HttpHeaders();
-    if (headersMap != null) {
-      headersMap.forEach(
+    addHeadersIfNotBlacklisted(customHeaders, headers);
+    addHeadersIfNotBlacklisted(new HashMap<>(sensitiveHeaders), headers);
+    return headers;
+  }
+
+  private static void addHeadersIfNotBlacklisted(
+      Map<String, Object> customHeaders, HttpHeaders headers) {
+    if (customHeaders != null) {
+      customHeaders.forEach(
           (key, value) -> {
             if (headerDenyList.contains(key.toUpperCase())) {
               return;
@@ -397,7 +417,6 @@ public class WebhookService {
             }
           });
     }
-    return headers;
   }
 
   public enum WebhookTaskType {

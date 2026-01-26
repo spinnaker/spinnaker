@@ -47,7 +47,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
     preconfiguredWebhookStage.taskGraph(stage, builder)
 
     then:
-    1 * webhookService.preconfiguredWebhooks >> [createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1")]
+    1 * webhookService.findPreconfiguredWebhook("webhook_1") >> Optional.of(
+        createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1"))
     stage.context == [
       url: "a",
       customHeaders: ["header": ["value1"]],
@@ -105,7 +106,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
     preconfiguredWebhookStage.taskGraph(stage, builder)
 
     then:
-    1 * webhookService.preconfiguredWebhooks >> [new WebhookProperties.PreconfiguredWebhook(label: "Webhook #1", description: "Description #1", type: "webhook_1")]
+    1 * webhookService.findPreconfiguredWebhook("webhook_1") >> Optional.of(
+        new WebhookProperties.PreconfiguredWebhook(label: "Webhook #1", description: "Description #1", type: "webhook_1"))
     stage.context == [
       url: "a",
       customHeaders: ["header": ["value1"]],
