@@ -224,8 +224,12 @@ public class WebhookService {
               : stageData.customHeaders;
 
       if (webhookAccountProcessor.isPresent()) {
+        Map<String, Object> combinedHeaders =
+            combineCustomAndSensitiveHeaders(headersMap, sensitiveHeaders);
         headers =
-            webhookAccountProcessor.get().getHeaders(stageData.account, accountDetails, headersMap);
+            webhookAccountProcessor
+                .get()
+                .getHeaders(stageData.account, accountDetails, combinedHeaders);
       } else {
         headers = buildHttpHeaders(headersMap, sensitiveHeaders);
       }
@@ -355,6 +359,28 @@ public class WebhookService {
         throw new IllegalArgumentException(
             "unknown match strategy " + allowedRequest.getMatchStrategy());
     }
+  }
+
+  /**
+   * Combine custom headers with sensitive headers. Sensitive headers are added to the combined map
+   * only if they are not null and not empty. Note that sensitive headers take precedence over
+   * custom headers in case of key collisions.
+   *
+   * @param customHeaders the custom headers map
+   * @param sensitiveHeaders the sensitive headers map
+   * @return a combined map of headers
+   */
+  private Map<String, Object> combineCustomAndSensitiveHeaders(
+      Map<String, Object> customHeaders, Map<String, List<String>> sensitiveHeaders) {
+    Map<String, Object> combinedHeaders =
+        new HashMap<>(customHeaders != null ? customHeaders : Map.of());
+    sensitiveHeaders.forEach(
+        (key, value) -> {
+          if (value != null && !value.isEmpty()) {
+            combinedHeaders.put(key, value);
+          }
+        });
+    return combinedHeaders;
   }
 
   /**
