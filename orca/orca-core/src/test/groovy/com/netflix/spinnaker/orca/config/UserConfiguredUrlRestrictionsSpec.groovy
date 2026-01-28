@@ -226,7 +226,39 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
     "ISTIO_META_MESH_ID" | "istio.mesh"    | "http://fluffy.kittens.istiozmesh"     | true
     "RANDOM_ENV_VAR"     | "kittens"       | "http://fluffy.kittens"                | true
   }
+  @Unroll
+  def 'validate when authority is used to try to bypass validation'() {
+    given:
+    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("example.com").build())
 
+    when:
+    config.validateURI(uri)
+
+    then:
+    thrown(IllegalArgumentException.class)
+
+    where:
+    uri << [
+      'https://example.com:badpassword@host_with_underscore.com'
+    ]
+  }
+  @Unroll
+  def 'validate when authority is used to try to bypass validation'() {
+    given:
+    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("host_with_underscore.com").build())
+
+    when:
+    URI validatedUri = config.validateURI(uri)
+
+    then:
+    noExceptionThrown()
+    validatedUri
+
+    where:
+    uri << [
+      'https://example.com:badpassword@host_with_underscore.com'
+    ]
+  }
   @Unroll
   def 'excludes based on arbitrary extra patterns'() {
     given:
