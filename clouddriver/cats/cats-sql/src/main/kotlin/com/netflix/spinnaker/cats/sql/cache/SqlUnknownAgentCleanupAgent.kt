@@ -68,11 +68,15 @@ class SqlUnknownAgentCleanupAgent(
       return
     }
 
+    // Safety: If sharding is enabled but we got the fallback NoopShardingFilter (which allows all),
+    // we risk deleting records that belong to other pods. Skip until proper filter is available.
     if (shardingEnabled && shardingFilter is NoopShardingFilter) {
       log.warn("Cache sharding is enabled but NoopShardingFilter is in use; skipping cleanup run")
       return
     }
 
+    // Safety: SqlCachingPodsObserver needs time to discover peer pods via database heartbeat.
+    // Until topology is established, we don't know which records belong to this pod.
     if (shardingFilter is SqlCachingPodsObserver) {
       if (shardingFilter.getPodIndex() < 0 || shardingFilter.getPodCount() == 0) {
         log.warn("Sharding state not established (podIndex < 0 or podCount == 0); skipping cleanup run")
@@ -90,6 +94,8 @@ class SqlUnknownAgentCleanupAgent(
       agentDataTypes.forEachIndexed { i, dataType ->
         if (cleanupProperties.excludedDataTypes.contains(dataType)) {
           log.debug("Skipping data type '{}' because it is excluded", dataType)
+          // Kotlin: return@forEachIndexed is a labeled return that acts like "continue" in a forEach loop.
+          // It returns from the lambda (skipping this iteration) rather than from the enclosing function.
           return@forEachIndexed
         }
         log.info("Scanning '$dataType' (${i + 1}/$numDataTypes) cache records to cleanup")
@@ -129,6 +135,7 @@ class SqlUnknownAgentCleanupAgent(
       return
     }
 
+    // Select fields: [id/uuid, agent/rel_agent, last_updated] - indices are 1-based in JDBC ResultSet
     val fieldsToSelect = cacheTable.fields + field("last_updated")
     val rs = jooq.select(*fieldsToSelect)
       .from(table(tableName))
@@ -139,29 +146,40 @@ class SqlUnknownAgentCleanupAgent(
     val idsToClean = mutableListOf<String>()
     val skippedMissingLastUpdated = mutableListOf<String>()
     val now = System.currentTimeMillis()
+    // Records older than cutoffTime are eligible for cleanup
     val cutoffTime = now - TimeUnit.SECONDS.toMillis(cleanupProperties.minRecordAgeSeconds)
     while (rs.next()) {
+      // Column 2 is "agent" (RESOURCE) or "rel_agent" (RELATIONSHIP)
       val agentType = processRelAgentTypeValue(rs.getString(2))
       if (state.agentTypes.contains(agentType)) {
         continue
       }
 
+      // Column 3 is "last_updated" timestamp
       val lastUpdated = rs.getLong(3)
       if (cleanupProperties.minRecordAgeSeconds > 0) {
+        // JDBC returns 0 for NULL columns; wasNull() tells us if the column was actually NULL.
+        // Skip records with missing timestamps to avoid deleting newly-inserted data.
         val missing = rs.wasNull() || lastUpdated <= 0L
         if (missing) {
           skippedMissingLastUpdated.add(rs.getString(1))
           continue
         }
+        // Skip records younger than minRecordAgeSeconds to allow for replication lag
+        // and avoid race conditions with agents that are still starting up.
         if (lastUpdated > cutoffTime) {
           continue
         }
       }
 
+      // Sharding check: Only delete records for agents this pod is responsible for.
+      // We wrap the agentType in a stub Agent because ShardingFilter.filter() expects an Agent,
+      // and it uses the agentType to hash-partition cleanup work across pods.
       if (!shardingFilter.filter(CleanupStubAgent(agentType))) {
         continue
       }
 
+      // Column 1 is "id" (RESOURCE) or "uuid" (RELATIONSHIP) - the primary key
       idsToClean.add(rs.getString(1))
       cleanedAgentTypes.add(agentType)
     }
@@ -208,10 +226,14 @@ class SqlUnknownAgentCleanupAgent(
       if (it.size == 1) {
         agentType
       } else {
-        // Gross little hack here for Eureka agents.
+        // Eureka agents use URLs as their agent type (e.g., "http://eureka:8080/health").
+        // These contain colons that aren't prefixes, so return as-is.
         if (agentType.startsWith("http://") || agentType.startsWith("https://")) {
           agentType
         } else {
+          // rel_agent format is "dataType:account/AgentName" (e.g., "instances:prod/InstanceAgent").
+          // We need just "account/AgentName", so drop the first segment and rejoin the rest.
+          // Rejoining with ":" handles edge cases where the agent name itself contains colons.
           it.subList(1, it.size).joinToString(":")
         }
       }
@@ -278,6 +300,14 @@ class SqlUnknownAgentCleanupAgent(
   override fun getTimeoutMillis(): Long = TimeUnit.SECONDS.toMillis(cleanupProperties.timeoutSeconds)
   override fun getAgentType(): String = javaClass.simpleName
 
+  /**
+   * Minimal Agent implementation used to query the ShardingFilter.
+   *
+   * The sharding filter determines pod ownership by hashing the account name
+   * extracted from agentType (e.g., "prod/MyAgent" -> "prod"). This stub
+   * allows us to check if a given agentType belongs to this pod without
+   * having a real agent instance.
+   */
   private inner class CleanupStubAgent(private val agentType: String) : Agent {
     override fun getAgentType(): String = agentType
     override fun getProviderName(): String = "cleanup-check"
