@@ -243,7 +243,7 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
     ]
   }
   @Unroll
-  def 'validate when authority is used to try to bypass validation'() {
+  def 'validate when authority incorrectly errors on an underscore valid host'() {
     given:
     UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("host_with_underscore.com").build())
 
