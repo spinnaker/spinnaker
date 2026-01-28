@@ -47,4 +47,3 @@ public class ModuloShardingStrategy implements ShardingStrategy {
     return NAME;
   }
 }
-

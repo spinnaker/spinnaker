@@ -158,9 +158,7 @@ class ShardingStrategyTest {
     void formulaHandlesZeroHash() {
       for (int podCount = 2; podCount <= 10; podCount++) {
         int result = applyModuloFormula(0, podCount);
-        assertThat(result)
-            .describedAs("Zero hash with %d pods", podCount)
-            .isEqualTo(0);
+        assertThat(result).describedAs("Zero hash with %d pods", podCount).isEqualTo(0);
       }
     }
 
@@ -388,4 +386,3 @@ class ShardingStrategyTest {
     }
   }
 }
-

@@ -46,4 +46,3 @@ public interface ShardingKeyExtractor {
    */
   String getName();
 }
-

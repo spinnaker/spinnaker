@@ -40,4 +40,3 @@ public interface ShardingStrategy {
    */
   String getName();
 }
-

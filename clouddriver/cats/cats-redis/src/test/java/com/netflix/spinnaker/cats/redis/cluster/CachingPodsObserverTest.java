@@ -105,8 +105,7 @@ class CachingPodsObserverTest {
 
       Agent coreAgent =
           createAgent(
-              "CoreCachingAgent",
-              "com.netflix.spinnaker.clouddriver.core.provider.CoreProvider");
+              "CoreCachingAgent", "com.netflix.spinnaker.clouddriver.core.provider.CoreProvider");
 
       assertThat(observer.filter(coreAgent))
           .describedAs("CoreProvider agents should always pass")
@@ -135,9 +134,7 @@ class CachingPodsObserverTest {
       assertThat(observer.getPodIndex()).isEqualTo(0);
 
       Agent agent = createAgent("prod/us-east-1/ClusterCachingAgent", "aws");
-      assertThat(observer.filter(agent))
-          .describedAs("Single pod should pass all agents")
-          .isTrue();
+      assertThat(observer.filter(agent)).describedAs("Single pod should pass all agents").isTrue();
     }
   }
 
@@ -430,4 +427,3 @@ class CachingPodsObserverTest {
     }
   }
 }
-
