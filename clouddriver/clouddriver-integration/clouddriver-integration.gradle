@@ -25,4 +25,9 @@ test {
 
   // Run the tests when the docker image changes
   inputs.property 'fullDockerImageName', System.getenv('FULL_DOCKER_IMAGE_NAME')
+
+  // Make the artifactTypes project property configured at build time (e.g. in
+  // clouddriver/gradle.properties) available available as a system property so
+  // tests (e.g. MySqlContainerTest) can enable them at run time.
+  systemProperty "artifactTypes", project.findProperty("artifactTypes")
 }

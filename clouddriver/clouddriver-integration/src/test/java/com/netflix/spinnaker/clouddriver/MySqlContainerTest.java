@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,8 +84,50 @@ public class MySqlContainerTest extends BaseContainerTest {
             "false",
             "sql.migration",
             migration);
+    Map<String, Object> allProperties = new HashMap<>();
+    String artifactTypes = System.getProperty("artifactTypes", "");
+    if (artifactTypes.contains("bitbucket")) {
+      allProperties.put("artifacts.bitbucket.enabled", "true");
+    }
+    if (artifactTypes.contains("docker") || artifactTypes.contains("kubernetes")) {
+      allProperties.put("kubernetes.enabled", "true");
+    }
+    if (artifactTypes.contains("gcs")) {
+      allProperties.put("artifacts.gcs.enabled", "true");
+    }
+    if (artifactTypes.contains("github")) {
+      allProperties.put("artifacts.github.enabled", "true");
+    }
+    if (artifactTypes.contains("gitlab")) {
+      allProperties.put("artifacts.gitlab.enabled", "true");
+    }
+    if (artifactTypes.contains("git-repo")) {
+      allProperties.put("artifacts.git-repo.enabled", "true");
+    }
+    if (artifactTypes.contains("helm")) {
+      allProperties.put("artifacts.helm.enabled", "true");
+    }
+    if (artifactTypes.contains("http")) {
+      allProperties.put("artifacts.http.enabled", "true");
+    }
+    if (artifactTypes.contains("ivy")) {
+      allProperties.put("artifacts.ivy.enabled", "true");
+    }
+    if (artifactTypes.contains("jenkins")) {
+      allProperties.put("jenkins.enabled", "true");
+    }
+    if (artifactTypes.contains("maven")) {
+      allProperties.put("artifacts.maven.enabled", "true");
+    }
+    if (artifactTypes.contains("oracle")) {
+      allProperties.put("artifacts.oracle.enabled", "true");
+    }
+    if (artifactTypes.contains("s3")) {
+      allProperties.put("artifacts.s3.enabled", "true");
+    }
+    allProperties.putAll(properties);
     ObjectMapper mapper = new ObjectMapper();
-    return mapper.writeValueAsString(properties);
+    return mapper.writeValueAsString(allProperties);
   }
 
   @AfterAll

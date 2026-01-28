@@ -1,106 +1,80 @@
 plugins {
-  id 'com.adarshr.test-logger' version '2.1.0'
+  id 'com.adarshr.test-logger' version '2.1.0' apply false
+}
+allprojects {
+  apply plugin: 'com.adarshr.test-logger'
+  tasks.compileGroovy.enabled = false
+  sourceSets {
+    main {
+      java.srcDirs = ['src/main/java']
+    }
+    integration {
+      java.srcDirs = ["src/integration/java"]
+      resources.srcDirs = ["src/integration/resources"]
+    }
+  }
+
+  configurations {
+    integrationImplementation.extendsFrom testImplementation
+    integrationRuntime.extendsFrom testRuntime
+  }
+
+  dependencies {
+    implementation project(":clouddriver-core")
+    implementation "com.squareup.okhttp3:okhttp"
+    implementation "io.spinnaker.kork:kork-artifacts"
+    implementation "io.spinnaker.kork:kork-credentials"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+
+    testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+    testImplementation "org.assertj:assertj-core"
+    testImplementation "org.junit-pioneer:junit-pioneer:0.3.0"
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation "org.junit.jupiter:junit-jupiter-params"
+    testImplementation "org.springframework.boot:spring-boot-test"
+    testImplementation "ru.lanwen.wiremock:wiremock-junit5:1.2.0"
+  }
 }
 
-tasks.compileGroovy.enabled = false
-sourceSets {
-  main {
-    java.srcDirs = ['src/main/java']
-  }
-  integration {
-    java.srcDirs = ["src/integration/java"]
-    resources.srcDirs = ["src/integration/resources"]
-  }
-}
+subprojects {
+  if (file("${projectDir}/src/integration/java").exists()) {
 
-configurations {
-  integrationImplementation.extendsFrom testImplementation
-  integrationRuntime.extendsFrom testRuntime
+    task integrationTest(type: Test) {
+      description = 'Runs artifacts integration tests.'
+      group = 'verification'
+
+      useJUnitPlatform()
+
+      environment "BUILD_DIR", buildDir
+      environment "GIT_WRAPPER", "${projectDir}/src/integration/resources/git-wrapper.sh"
+
+      testClassesDirs = sourceSets.integration.output.classesDirs
+      classpath = sourceSets.integration.runtimeClasspath
+      shouldRunAfter test
+
+
+      minHeapSize = "512m"
+      maxHeapSize = "${testJvmMaxMemory}"
+      maxParallelForks = 4
+
+      testlogger {
+        theme 'standard'
+        showStandardStreams true
+        showPassedStandardStreams false
+        showFailedStandardStreams true
+        showPassed false
+      }
+    }
+  }
+  dependencies {
+    implementation project(":clouddriver-artifacts")
+  }
 }
 
 dependencies {
-  implementation project(":clouddriver-api")
-  implementation project(":clouddriver-core")
-
-  implementation "com.amazonaws:aws-java-sdk-s3"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-  implementation "com.google.apis:google-api-services-storage"
-  implementation 'com.google.auth:google-auth-library-oauth2-http'
-  implementation "com.netflix.frigga:frigga"
-  implementation "io.spinnaker.kork:kork-artifacts"
-  implementation "io.spinnaker.kork:kork-credentials"
-  implementation "io.spinnaker.kork:kork-annotations"
-  implementation "io.spinnaker.kork:kork-exceptions"
-  implementation "io.spinnaker.kork:kork-retrofit"
-  implementation "io.spinnaker.kork:kork-security"
-  implementation "io.spinnaker.kork:kork-docker"
   implementation "io.spinnaker.kork:kork-web"
-  implementation "com.netflix.spectator:spectator-api"
-  implementation("com.netflix.spectator:spectator-ext-aws") {
-    // exclude transitives to keep spectator's version of the aws sdk from
-    // overriding what we specify elsewhere.  It's not so much the aws sdk that
-    // causes problems, but its transitive dependencies -- jackson and then
-    // kotlin.
-    transitive = false
-  }
-  implementation "com.oracle.oci.sdk:oci-java-sdk-core"
-  implementation "com.sun.jersey:jersey-client:1.9.1"
-  implementation 'commons-io:commons-io:2.15.1'
-  implementation "com.squareup.okhttp3:okhttp"
-  implementation "org.apache.commons:commons-lang3"
-  implementation "org.apache.ivy:ivy:2.4.0"
-  implementation "org.apache.maven:maven-resolver-provider:3.5.4"
-  implementation "org.apache.groovy:groovy"
-  implementation "org.springframework.boot:spring-boot-actuator"
-  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "commons-codec:commons-codec"
+  implementation "commons-io:commons-io"
 
-  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "io.spinnaker.kork:kork-aws"
-  testImplementation "org.assertj:assertj-core"
-  testImplementation "org.junit-pioneer:junit-pioneer:0.3.0"
-  testImplementation "org.junit.jupiter:junit-jupiter-api"
-  testImplementation "org.junit.jupiter:junit-jupiter-params"
-  testImplementation "org.mockito:mockito-core"
-  testImplementation "org.springframework.boot:spring-boot-starter-test"
-  testImplementation "org.testcontainers:testcontainers"
-  testImplementation "org.testcontainers:localstack"
-  testImplementation "ru.lanwen.wiremock:wiremock-junit5:1.2.0"
-  testImplementation "com.squareup.retrofit2:converter-jackson"
-
-  integrationImplementation project(":clouddriver-web")
-  integrationImplementation project(":clouddriver-artifacts")
-  integrationImplementation "org.springframework.boot:spring-boot-starter-test"
-  integrationImplementation "org.testcontainers:testcontainers"
-  integrationImplementation "org.testcontainers:mysql"
-  integrationImplementation "org.testcontainers:junit-jupiter"
-  integrationImplementation "com.mysql:mysql-connector-j"
-  integrationImplementation "io.rest-assured:rest-assured"
-}
-
-task integrationTest(type: Test) {
-  description = 'Runs artifacts integration tests.'
-  group = 'verification'
-
-  useJUnitPlatform()
-
-  environment "BUILD_DIR", buildDir
-  environment "GIT_WRAPPER", "${project.rootDir.toString()}/clouddriver-artifacts/src/integration/resources/git-wrapper.sh"
-
-  testClassesDirs = sourceSets.integration.output.classesDirs
-  classpath = sourceSets.integration.runtimeClasspath
-  shouldRunAfter test
-
-
-  minHeapSize = "512m"
-  maxHeapSize = "${testJvmMaxMemory}"
-  maxParallelForks = 4
-
-  testlogger {
-    theme 'standard'
-    showStandardStreams true
-    showPassedStandardStreams false
-    showFailedStandardStreams true
-    showPassed false
-  }
 }

@@ -34,7 +34,9 @@ public interface OrcaService {
       @Path("application") String app,
       @Query("limit") Integer limit,
       @Query("statuses") String statuses,
-      @Query("expand") Boolean expand);
+      @Query("expand") Boolean expand,
+      @Query("pipelineNameFilter") String pipelineNameFilter,
+      @Query("pipelineLimit") Integer pipelineLimit);
 
   @Headers("Accept: application/json")
   @GET("projects/{projectId}/pipelines")
@@ -67,6 +69,12 @@ public interface OrcaService {
       @Query("limit") Integer limit,
       @Query("statuses") String statuses,
       @Query("expand") boolean expand);
+
+  @GET("/pipelines/failedStages")
+  Call<List<Object>> getFailedStagesForPipelineExecution(
+      @Query("executionId") String executionId,
+      @Query("deckOrigin") String deckOrigin,
+      @Query("limit") Integer limit);
 
   @Headers("Accept: application/json")
   @GET("applications/{application}/pipelines/search")

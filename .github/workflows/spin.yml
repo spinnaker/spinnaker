@@ -39,7 +39,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/version
         id: version
@@ -59,7 +59,7 @@ jobs:
           distribution: zulu
           cache: ${{ !env.ACT && 'gradle' || '' }}
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -70,7 +70,7 @@ jobs:
         run: ./gradlew :spin:gateapi
 
       - name: Ensure code formatting and style is consistent
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.1.0
           working-directory: spin
@@ -130,4 +130,5 @@ jobs:
           release-train: ${{ steps.version.outputs.release-train}}
           build-url: ${{ steps.version.outputs.build-url }}
           push: ${{ github.event_name != 'pull_request' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           gar-json-key: ${{ secrets.GAR_JSON_KEY }}

@@ -28,7 +28,7 @@ import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
 import com.netflix.spinnaker.orca.front50.Front50Service
 
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -49,7 +49,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import retrofit2.mock.Calls
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -618,7 +618,7 @@ class OperationsControllerSpec extends Specification {
     given:
     def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution",
                                    "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses",
-                                   "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload"]
+                                   "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload", "waitBeforeMonitor", "retryStatusCodes"]
 
     when:
     def preconfiguredWebhooks = controller.preconfiguredWebhooks()
@@ -638,7 +638,7 @@ class OperationsControllerSpec extends Specification {
     given:
     def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution",
                                    "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses",
-                                   "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload"]
+                                   "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload", "waitBeforeMonitor", "retryStatusCodes"]
     executionLauncher.start(*_) >> { ExecutionType type, Map config ->
       mapper.convertValue(config, PipelineExecutionImpl)
     }
@@ -670,7 +670,7 @@ class OperationsControllerSpec extends Specification {
     given:
     def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution",
                                    "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses",
-                                   "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload"]
+                                   "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload", "waitBeforeMonitor", "retryStatusCodes"]
     executionLauncher.start(*_) >> { ExecutionType type, Map config ->
       mapper.convertValue(config, PipelineExecutionImpl)
     }
@@ -772,7 +772,7 @@ class OperationsControllerSpec extends Specification {
       url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
       failFastStatusCodes: [500, 501], waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.webhookResponse,
       statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h", parameters: null, parameterData: null,
-      permissions: permissions, signalCancellation: true, cancelEndpoint: "i", cancelMethod: HttpMethod.POST, cancelPayload: "j"
+      permissions: permissions, signalCancellation: true, cancelEndpoint: "i", cancelMethod: HttpMethod.POST, cancelPayload: "j", waitBeforeMonitor: 5, retryStatusCodes: [404]
     )
   }
 }

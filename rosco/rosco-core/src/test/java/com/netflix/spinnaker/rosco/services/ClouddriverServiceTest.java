@@ -71,7 +71,7 @@ public class ClouddriverServiceTest {
   @Autowired ClouddriverService clouddriverService;
 
   static String WM_CORRECT_ENDPOINT =
-      "/api/artifacts/fetch/"; // since the baseUrl has /api/ at the end.
+      "/api/artifacts/fetch"; // since the baseUrl has /api/ at the end.
   static String WM_CORRECT_URL;
 
   @DynamicPropertySource

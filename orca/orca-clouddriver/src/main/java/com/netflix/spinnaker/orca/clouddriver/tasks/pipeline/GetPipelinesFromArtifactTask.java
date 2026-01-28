@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -39,6 +40,7 @@ import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -105,26 +107,34 @@ public class GetPipelinesFromArtifactTask implements Task {
         appNames.stream()
             .flatMap(
                 appName -> {
-                  final List<Map<String, Object>> existingAppPipelines =
-                      Retrofit2SyncCall.execute(front50Service.getPipelines(appName));
                   final List<Map> specifiedAppPipelines = finalPipelinesFromArtifact.get(appName);
                   return specifiedAppPipelines.stream()
                       .map(
                           p -> {
                             final Map<String, Object> pipeline = p;
                             pipeline.put("application", appName);
-                            final Optional<Map<String, Object>> matchedExistingPipeline =
-                                existingAppPipelines.stream()
-                                    .filter(
-                                        existingPipeline ->
-                                            existingPipeline
-                                                .get("name")
-                                                .equals(pipeline.get("name")))
-                                    .findFirst();
-                            matchedExistingPipeline.ifPresent(
-                                matchedPipeline -> {
-                                  pipeline.put("id", matchedPipeline.get("id"));
-                                });
+                            Map<String, Object> matchedExistingPipeline = null;
+                            String pipelineNameStr = null;
+                            Object pipelineName = pipeline.get("name");
+                            if (pipelineName instanceof String) {
+                              pipelineNameStr = (String) pipelineName;
+                              try {
+                                matchedExistingPipeline =
+                                    Retrofit2SyncCall.execute(
+                                        front50Service.getPipeline(
+                                            appName, pipelineNameStr, true /* refresh */));
+                              } catch (SpinnakerHttpException e) {
+                                // Ignore "not found" errors, but re-throw anything else
+                                if (e.getResponseCode() != HttpStatus.NOT_FOUND.value()) {
+                                  throw e;
+                                }
+                              }
+                            }
+                            // double-check that the name matches
+                            if ((matchedExistingPipeline != null)
+                                && pipelineNameStr.equals(matchedExistingPipeline.get("name"))) {
+                              pipeline.put("id", matchedExistingPipeline.get("id"));
+                            }
                             return pipeline;
                           })
                       .filter(pipeline -> !pipeline.isEmpty());

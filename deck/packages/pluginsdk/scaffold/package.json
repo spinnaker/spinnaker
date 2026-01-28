@@ -1,5 +1,9 @@
 {
   "name": "spinnaker-deck-plugin-scaffold",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "1.0.0",
   "private": true,
   "module": "build/dist/index.js",

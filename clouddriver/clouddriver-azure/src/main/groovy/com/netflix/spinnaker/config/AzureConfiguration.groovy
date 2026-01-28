@@ -19,7 +19,6 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.clouddriver.azure.config.AzureConfigurationProperties
 import com.netflix.spinnaker.clouddriver.azure.health.AzureHealthIndicator
-import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentialsInitializer
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -27,7 +26,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @Configuration
@@ -35,7 +33,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableScheduling
 @ConditionalOnProperty('azure.enabled')
 @ComponentScan(["com.netflix.spinnaker.clouddriver.azure"])
-@Import([ AzureCredentialsInitializer ])
 class AzureConfiguration {
   @Bean
   @ConfigurationProperties("azure")

@@ -30,7 +30,6 @@ import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 class EnabledPipelineValidatorSpec extends Specification {
 
@@ -45,7 +44,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([])
+    0 * front50Service._
 
     notThrown(PipelineValidationFailed)
 
@@ -56,31 +55,33 @@ class EnabledPipelineValidatorSpec extends Specification {
     }
   }
 
+  def "fails when getPipeline responds with 500 to all attempts"() {
+    given:
+    SpinnakerHttpException spinnakerHttpException = makeSpinnakerHttpException(500)
+
+    when:
+    validator.checkRunnable(execution)
+
+    then:
+    3 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw spinnakerHttpException }
+    0 * front50Service._
+
+    // checkRunnable is documented to throw a PipelineValidationFailed exception
+    // if the pipeline can not run.  In this case, we're not sure that the
+    // pipeline can not run.  So, is it better to swallow this exception?  I'd
+    // say it's better to allow it to bubble up and let some higher level code
+    // decide how to handle it.
+    def e = thrown(SpinnakerHttpException)
+    e == spinnakerHttpException
+
+    where:
+    execution = pipeline {
+      application = "whatever"
+      pipelineConfigId = "1337"
+    }
+  }
+
   def "allows enabled pipeline to run"() {
-    when:
-    validator.checkRunnable(execution)
-
-    then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ])
-    0 * _
-
-    notThrown(PipelineValidationFailed)
-
-    when:
-    validator.checkRunnable(execution)
-
-    then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ])
-    0 * _
-
-    notThrown(PipelineValidationFailed)
-
     when:
     validator.checkRunnable(execution)
 
@@ -103,18 +104,6 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
-    1 * front50Service.getPipelines(execution.application, false) >> Calls.response([
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
-    ])
-    0 * _
-
-    thrown(EnabledPipelineValidator.PipelineIsDisabled)
-
-    when:
-    validator.checkRunnable(execution)
-
-    then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> Calls.response(
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true])
     0 * _
@@ -129,15 +118,15 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def "allows enabled strategy to run"() {
-    given:
-    front50Service.getStrategies(execution.application) >> Calls.response([
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ])
-
     when:
     validator.checkRunnable(execution)
 
     then:
+    1 * front50Service.getStrategies(execution.application) >> Calls.response([
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
+    ])
+    0 * front50Service._
+
     notThrown(PipelineValidationFailed)
 
     where:
@@ -150,15 +139,15 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def "prevents disabled strategy from running"() {
-    given:
-    front50Service.getStrategies(execution.application) >> Calls.response([
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
-    ])
-
     when:
     validator.checkRunnable(execution)
 
     then:
+    1 * front50Service.getStrategies(execution.application) >> Calls.response([
+        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
+    ])
+    0 * front50Service._
+
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
 
     where:
@@ -176,6 +165,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     1 * front50Service.getPipeline(execution.pipelineConfigId) >> Calls.response([id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false])
+    0 * front50Service._
 
     notThrown(PipelineValidationFailed)
 
@@ -188,21 +178,23 @@ class EnabledPipelineValidatorSpec extends Specification {
   }
 
   def notFoundError() {
-    String url = "https://localhost";
+    makeSpinnakerHttpException(404)
+  }
 
+  static SpinnakerHttpException makeSpinnakerHttpException(int status, String message = "{ \"message\": \"arbitrary message\" }") {
+    String url = "https://front50";
     Response retrofit2Response =
         Response.error(
-            HTTP_NOT_FOUND,
+            status,
             ResponseBody.create(
-                MediaType.parse("application/json"), "{\"error\":\"Not Found\"}"))
+                MediaType.parse("application/json"), message))
 
     Retrofit retrofit =
         new Retrofit.Builder()
             .baseUrl(url)
             .addConverterFactory(JacksonConverterFactory.create())
-            .build()
+            .build();
 
     return new SpinnakerHttpException(retrofit2Response, retrofit)
   }
-
 }

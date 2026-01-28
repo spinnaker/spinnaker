@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.echo.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
@@ -41,7 +42,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-
 
 @Configuration
 @Import([RetrofitConfiguration])
@@ -77,12 +77,15 @@ class EchoConfiguration {
     EchoService echoService,
     Front50Service front50Service,
     ObjectMapper objectMapper,
-    ContextParameterProcessor contextParameterProcessor) {
-    new EchoNotifyingExecutionListener(
+    ContextParameterProcessor contextParameterProcessor,
+    Registry registry
+  ) {
+    return new EchoNotifyingExecutionListener(
       echoService,
       front50Service,
       objectMapper,
-      contextParameterProcessor
+      contextParameterProcessor,
+      registry
     )
   }
 

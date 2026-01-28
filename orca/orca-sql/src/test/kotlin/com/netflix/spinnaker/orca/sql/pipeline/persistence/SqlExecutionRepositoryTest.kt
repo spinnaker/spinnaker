@@ -48,6 +48,7 @@ import org.testcontainers.DockerClientFactory
 import java.lang.System.currentTimeMillis
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
 import javax.sql.DataSource
+import io.reactivex.rxjava3.core.Observable
 
 class SqlExecutionRepositoryTest : JUnit5Minutests {
 
@@ -235,6 +236,8 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
 
         val actualPipelineExecution = sqlExecutionRepositoryNoCompression.retrieve(testType, pipelineId)
         assertThat(actualPipelineExecution).isEqualTo(pipelineExecution)
+        val actualPipelineExecutions = sqlExecutionRepositoryNoCompression.retrievePipelineExecutionDetailsForApplication(testApplication, listOf(pipelineId), 10 /* arbitrary timeout */)
+        assertThat(actualPipelineExecutions.single()).isEqualTo(pipelineExecution)
 
         // Make sure is calculated on retrieve as well
         assertThat(actualPipelineExecution.size.get()).isEqualTo(expectedPipelineExecutionSize)
@@ -309,7 +312,7 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         sqlExecutionRepository.store(pipelineExecution2)
 
         val observable = sqlExecutionRepository.retrievePipelinesForApplication("application-2")
-        val executions = observable.toList().toBlocking().single()
+        val executions = observable.toList().blockingGet()
         assertThat(executions.map(PipelineExecution::getApplication).single()).isEqualTo("application-2")
       }
     }

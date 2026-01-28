@@ -33,7 +33,7 @@ import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
 
-import javax.el.MethodNotFoundException
+import jakarta.el.MethodNotFoundException
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 

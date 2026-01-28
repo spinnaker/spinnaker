@@ -197,7 +197,7 @@ class FindImageFromClusterTask implements CloudProviderAware, RetryableTask {
         throw new IllegalStateException("Missing image on ${deploymentDetailTemplate}")
       }
 
-      List<Map> images = Retrofit2SyncCall.execute(oortService.findImage(cloudProvider, searchNames[0] + '*', account, null, null))
+      List<Map> images = Retrofit2SyncCall.execute(oortService.findImage(cloudProvider, searchNames[0] + '*', account, null, Map.of()))
       resolveFromBaseImageName(images, missingLocations, imageSummaries, deploymentDetailTemplate, config, stage.execution.id)
 
       def unresolved = imageSummaries.findResults { it.value == null ? it.key : null }
@@ -205,7 +205,7 @@ class FindImageFromClusterTask implements CloudProviderAware, RetryableTask {
         if (cloudProvider == 'aws') {
           // fallback to look it default bake account; the deploy operation will execute the allowLaunchOperation to share
           // the image into the target account
-          List<Map> defaultImages = Retrofit2SyncCall.execute(oortService.findImage(cloudProvider, searchNames[0] + '*', defaultBakeAccount, null, null))
+          List<Map> defaultImages = Retrofit2SyncCall.execute(oortService.findImage(cloudProvider, searchNames[0] + '*', defaultBakeAccount, null, Map.of()))
           resolveFromBaseImageName(defaultImages, missingLocations, imageSummaries, deploymentDetailTemplate, config, stage.execution.id)
           unresolved = imageSummaries.findResults { it.value == null ? it.key : null }
         }

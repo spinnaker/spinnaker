@@ -35,14 +35,13 @@ dependencies {
   implementation "io.cloudevents:cloudevents-json-jackson:3.0.0"
   implementation ("dev.cdevents:cdevents-sdk-java:0.3.1")
   testImplementation project(":echo-test")
-  testImplementation("com.icegreen:greenmail:1.5.14") {
-    exclude group: "com.sun.mail", module: "javax.mail"
+  testImplementation("com.icegreen:greenmail:2.0.1") {
+    exclude group: "com.sun.mail", module: "jakarta.mail"
   }
-  testImplementation "org.apache.httpcomponents:httpclient"
+  testImplementation "org.apache.httpcomponents.client5:httpclient5"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
-  testImplementation "com.github.tomakehurst:wiremock-jre8"
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "org.assertj:assertj-core"
   annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"

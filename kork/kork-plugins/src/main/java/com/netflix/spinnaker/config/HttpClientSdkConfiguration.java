@@ -34,9 +34,9 @@ import com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal.DefaultOkHttp3
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
+import jakarta.inject.Provider;
 import java.util.ArrayList;
 import java.util.List;
-import javax.inject.Provider;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;

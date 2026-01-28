@@ -26,9 +26,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Streams;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConverter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.BindArtifact;
@@ -38,11 +43,7 @@ import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluat
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -52,14 +53,13 @@ import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /** This class handles resolving a list of manifests and associated artifacts. */
 @Component
 @NonnullByDefault
 public class ManifestEvaluator implements CloudProviderAware {
   private static final ThreadLocal<Yaml> yamlParser =
-      ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
+      ThreadLocal.withInitial(() -> YamlHelper.newYamlSafeConstructor());
   private static final ObjectMapper objectMapper = OrcaObjectMapper.getInstance();
 
   private final ArtifactUtils artifactUtils;
@@ -185,9 +185,49 @@ public class ManifestEvaluator implements CloudProviderAware {
     return manifestArtifact;
   }
 
-  private ImmutableList<Map<Object, Object>> getSpelEvaluatedManifests(
-      ImmutableList<Map<Object, Object>> unevaluatedManifests, StageExecution stage) {
-    Map<String, Object> processorInput = ImmutableMap.of("manifests", unevaluatedManifests);
+  /**
+   * This expands manifests to allow for SpEL evaluation of its contents.
+   *
+   * @param unevaluatedManifests
+   * @return list of expanded manifests
+   * @param <T>
+   */
+  private <T> List<T> expandManifests(ImmutableList<T> unevaluatedManifests) {
+    List<T> resolved = new ArrayList<>(unevaluatedManifests);
+    // Fetch any remote artifact to be evaluated by SpEL
+    for (int i = 0; i < unevaluatedManifests.size(); i++) {
+      T v = unevaluatedManifests.get(i);
+      if (v instanceof Map) {
+        Map<Object, Object> m = (Map<Object, Object>) v;
+        Object typeObj = m.get("type");
+        Object refObj = m.get("reference");
+        if (typeObj == null || refObj == null) {
+          // Any stored-like entities contains both a type and reference.
+          break;
+        }
+        if (!(typeObj instanceof String && refObj instanceof String)) {
+          // not a type we can understand to expand
+          break;
+        }
+
+        if (!ArtifactTypes.isRemote((String) typeObj)) {
+          // not a stored entity, no need to retrieve.
+          continue;
+        }
+
+        Artifact artifact =
+            ArtifactStore.getInstance().get(ArtifactReferenceURI.parse((String) refObj));
+        resolved.set(i, ArtifactStoreConverter.to(objectMapper, artifact));
+      }
+    }
+
+    return resolved;
+  }
+
+  private <T> ImmutableList<Map<Object, Object>> getSpelEvaluatedManifests(
+      ImmutableList<T> unevaluatedManifests, StageExecution stage) {
+    Map<String, Object> processorInput =
+        ImmutableMap.of("manifests", expandManifests(unevaluatedManifests));
 
     Map<String, Object> processorResult =
         contextParameterProcessor.process(

@@ -22,4 +22,6 @@ dependencies {
   implementation "org.apache.commons:commons-lang3"
   implementation "com.google.api-client:google-api-client"
   implementation "com.google.apis:google-api-services-admin-directory"
+  testImplementation "org.slf4j:slf4j-simple"
+
 }

@@ -47,3 +47,7 @@ dependencies {
   testImplementation("org.assertj:assertj-core")
   testImplementation("com.squareup.retrofit2:converter-jackson")
 }
+
+test {
+  useJUnitPlatform()
+}

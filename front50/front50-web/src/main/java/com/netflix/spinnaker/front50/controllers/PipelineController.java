@@ -202,6 +202,7 @@ public class PipelineController {
   public List<Pipeline> listByApplication(
       @PathVariable(value = "application") String application,
       @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
+      @RequestParam(value = "pipelineLimit", required = false) Integer pipelineLimit,
       @RequestParam(required = false, value = "refresh", defaultValue = "true") boolean refresh,
       @RequestParam(required = false, value = "enabledPipelines") Boolean enabledPipelines) {
     List<Pipeline> pipelines =
@@ -209,7 +210,7 @@ public class PipelineController {
             pipelineDAO.getPipelinesByApplication(application, pipelineNameFilter, refresh));
 
     if (enabledPipelines == null) {
-      return sortPipelines(pipelines);
+      return sortPipelines(pipelines, pipelineLimit);
     }
 
     Predicate<Pipeline> pipelinePredicate =
@@ -225,12 +226,14 @@ public class PipelineController {
     List<Pipeline> retval =
         pipelines.stream().filter(pipelinePredicate).collect(Collectors.toList());
 
+    List<Pipeline> sortedAndLimited = sortPipelines(retval, pipelineLimit);
+
     log.debug("returning {} of {} total pipeline(s)", retval.size(), pipelines.size());
 
-    return sortPipelines(retval);
+    return sortedAndLimited;
   }
 
-  private List<Pipeline> sortPipelines(List<Pipeline> pipelines) {
+  private List<Pipeline> sortPipelines(List<Pipeline> pipelines, Integer pipelineLimit) {
     pipelines.sort(
         (p1, p2) -> {
           if (p1.getIndex() != null && p2.getIndex() == null) {
@@ -249,13 +252,20 @@ public class PipelineController {
               .compareToIgnoreCase(Optional.ofNullable(p2.getName()).orElse(p2.getId()));
         });
 
+    if ((pipelineLimit != null) && (pipelineLimit < pipelines.size())) {
+      pipelines = pipelines.subList(0, pipelineLimit);
+    }
+
+    List<Pipeline> copiedPipelines = new ArrayList<>();
     int i = 0;
     for (Pipeline p : pipelines) {
-      p.setIndex(i);
+      Pipeline copied = p.clone();
+      copied.setIndex(i);
+      copiedPipelines.add(copied);
       i++;
     }
 
-    return pipelines;
+    return copiedPipelines;
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")

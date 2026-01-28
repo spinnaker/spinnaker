@@ -475,7 +475,7 @@ func authenticateOAuth2(output func(string), httpClient *http.Client, endpoint s
 			}
 		}
 		OAuth2.CachedToken = newToken
-		err = login(httpClient, endpoint, newToken.AccessToken)
+		err = login(httpClient, endpoint, auth.OAuth2.Provider, newToken.AccessToken)
 		if err != nil {
 			return false, err
 		}
@@ -501,7 +501,7 @@ func authenticateGoogleServiceAccount(httpClient *http.Client, endpoint string, 
 	}
 
 	if gsa.CachedToken != nil && gsa.CachedToken.Valid() {
-		return false, login(httpClient, endpoint, gsa.CachedToken.AccessToken)
+		return false, login(httpClient, endpoint, "google", gsa.CachedToken.AccessToken)
 	}
 	gsa.CachedToken = nil
 
@@ -524,7 +524,7 @@ func authenticateGoogleServiceAccount(httpClient *http.Client, endpoint string, 
 		return false, err
 	}
 
-	if err := login(httpClient, endpoint, token.AccessToken); err != nil {
+	if err := login(httpClient, endpoint, "google", token.AccessToken); err != nil {
 		return false, err
 	}
 
@@ -532,8 +532,13 @@ func authenticateGoogleServiceAccount(httpClient *http.Client, endpoint string, 
 	return true, nil
 }
 
-func login(httpClient *http.Client, endpoint string, accessToken string) error {
-	loginReq, err := http.NewRequest("GET", endpoint+"/login", nil)
+func login(httpClient *http.Client, endpoint string, provider string, accessToken string) error {
+	loginURL := endpoint + "/login"
+	if provider != "" {
+		// OAuth endpoints changed post 2025.2 and now require specifying a provider
+		loginURL = endpoint + "/login/oauth2/code/" + provider
+	}
+	loginReq, err := http.NewRequest("GET", loginURL, nil)
 	if err != nil {
 		return err
 	}

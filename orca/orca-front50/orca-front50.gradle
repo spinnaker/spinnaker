@@ -43,6 +43,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-junit-jupiter")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")

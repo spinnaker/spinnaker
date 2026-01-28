@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.halyard.core.job.v1;
 
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,9 +28,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.*;
-import rx.Scheduler;
-import rx.functions.Action0;
-import rx.schedulers.Schedulers;
 
 @Slf4j
 public class JobExecutorLocal extends JobExecutor {
@@ -64,9 +63,9 @@ public class JobExecutorLocal extends JobExecutor {
     scheduler
         .createWorker()
         .schedule(
-            new Action0() {
+            new Runnable() {
               @Override
-              public void call() {
+              public void run() {
                 PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr, stdIn);
                 CommandLine commandLine;
 

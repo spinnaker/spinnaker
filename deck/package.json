@@ -5,14 +5,14 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/spinnaker/deck.git"
+    "url": "https://github.com/spinnaker/spinnaker.git"
   },
   "publishConfig": {
     "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
   "engines": {
     "node": ">=20.19.4",
-    "npm": ">=10.8.2",
+    "npm": ">=11.5.1",
     "yarn": ">=1.21.1"
   },
   "private": true,
@@ -55,7 +55,7 @@
     "karma-super-dots-reporter": "0.2.0",
     "karma-webpack": "5.0.0",
     "kleur": "^4.1.4",
-    "lerna": "^4.0.0",
+    "lerna": "^9.0.0",
     "prettier": "2.1.2",
     "prompts": "^2.4.1",
     "rimraf": "2.6.1",

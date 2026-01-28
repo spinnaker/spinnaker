@@ -11,7 +11,7 @@ dependencies {
   implementation "com.google.guava:guava"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.squareup.retrofit2:converter-jackson"
-  implementation "org.apache.commons:commons-compress:1.21"
+  implementation "org.apache.commons:commons-compress:$commonsCompressVersion"
   implementation "commons-io:commons-io"
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
@@ -36,7 +36,7 @@ dependencies {
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.security:spring-security-test"
-  testImplementation "com.github.tomakehurst:wiremock-jre8"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "io.spinnaker.kork:kork-core"
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
 

@@ -28,6 +28,9 @@ task modules(type: YarnTask) {
   dependsOn "yarn"
 
   yarnCommand = ["modules"]
+  environment = [
+    "NODE_ENV": "production",
+  ]
 }
 
 task eslintPluginCompile(type: YarnTask) {

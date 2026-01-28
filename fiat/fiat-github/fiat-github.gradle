@@ -5,10 +5,14 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.apache.commons:commons-lang3"
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.squareup.retrofit2:converter-jackson"
   implementation "io.spinnaker.kork:kork-web"
-  implementation "io.spinnaker.kork:kork-retrofit"
-  implementation "javax.validation:validation-api"
+  implementation "io.spinnaker.kork:kork-github"
+  implementation "jakarta.validation:jakarta.validation-api"
+  implementation "jakarta.annotation:jakarta.annotation-api"
 
-  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+  testImplementation "org.junit.jupiter:junit-jupiter"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.mockito:mockito-junit-jupiter"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone:2.35.1"
 }

@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/pluginsdk-peerdeps",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "description": "Provides package dependencies to plugin developers",
   "version": "0.21.0",
   "license": "Apache-2.0",

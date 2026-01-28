@@ -22,7 +22,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ExecutionsController {
@@ -163,5 +167,32 @@ public class ExecutionsController {
                 size,
                 reverse,
                 expand));
+  }
+
+  @Operation(
+      summary =
+          "Retrieves the subset of pipeline stages in a failed state. "
+              + "For stages which are nested pipelines the execution graph is traversed and failed child stages are also returned. "
+              + "An empty list is returned if no failed stages map to the given pipeline execution id.")
+  @RequestMapping(value = "/executions/failedStages", method = RequestMethod.GET)
+  List<Object> getFailedStagesForPipelineExecution(
+      @Parameter(description = "Pipeline execution id for which to retrieve failed stages.")
+          @RequestParam(value = "executionId")
+          String executionId,
+      @Parameter(
+              description =
+                  "The Deck UI origin to use for building the pipeline execution URL for failing stages. "
+                      + "If not set then only the path is generated and returned, i.e. the part after scheme://host:port.")
+          @RequestParam(value = "deckOrigin", required = false)
+          String deckOrigin,
+      @Parameter(
+              description =
+                  "The maximum number of nested pipeline executions to return for failing stages. The default value is 1.")
+          @RequestParam(value = "limit", defaultValue = "1")
+          Integer limit) {
+    return Retrofit2SyncCall.execute(
+        orcaServiceSelector
+            .select()
+            .getFailedStagesForPipelineExecution(executionId, deckOrigin, limit));
   }
 }

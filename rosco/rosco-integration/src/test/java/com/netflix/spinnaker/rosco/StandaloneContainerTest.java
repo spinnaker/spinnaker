@@ -662,7 +662,7 @@ class StandaloneContainerTest {
     String scenarioName = "artifacts";
     String scenarioTwo = "externalValuesFile";
     wmClouddriver.stubFor(
-        WireMock.put(urlPathEqualTo("/artifacts/fetch/"))
+        WireMock.put(urlPathEqualTo("/artifacts/fetch"))
             .inScenario(scenarioName)
             .whenScenarioStateIs(Scenario.STARTED)
             .willReturn(aResponse().withStatus(200).withBody(createGzippedTarballFromPath(tempDir)))
@@ -677,7 +677,7 @@ class StandaloneContainerTest {
       inputArtifacts.add(valuesArtifact);
 
       wmClouddriver.stubFor(
-          WireMock.put(urlPathEqualTo("/artifacts/fetch/"))
+          WireMock.put(urlPathEqualTo("/artifacts/fetch"))
               .inScenario(scenarioName)
               .whenScenarioStateIs(scenarioTwo)
               .willReturn(
@@ -718,7 +718,7 @@ class StandaloneContainerTest {
     // Verify that clouddriver was called the expected number of times
     wmClouddriver.verify(
         exactly(1 + (addExternalValuesFile ? 1 : 0)),
-        putRequestedFor(urlPathEqualTo("/artifacts/fetch/")));
+        putRequestedFor(urlPathEqualTo("/artifacts/fetch")));
 
     // Verify that the response from rosco is as expected
     TypeReference<Map<String, Object>> artifactType = new TypeReference<>() {};

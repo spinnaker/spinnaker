@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/kayenta",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "2.6.0",
   "license": "Apache-2.0",
   "repository": {
@@ -8,9 +12,12 @@
   },
   "module": "build/dist/index.js",
   "typings": "build/dist/index.d.ts",
+  "files": [
+    "build/dist"
+  ],
   "engines": {
     "node": ">=20.19.4",
-    "npm": ">=10.8.2",
+    "npm": ">=11.5.1",
     "yarn": ">=1.21.1"
   },
   "scripts": {
@@ -37,7 +44,7 @@
     "bootstrap": "3.4.1",
     "class-autobind-decorator": "^2.2.1",
     "human-readable-ids": "^1.0.4",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "lodash-decorators": "4.5.0",
     "lodash-es": "4.17.21",
     "memoize-one": "^4.0.2",

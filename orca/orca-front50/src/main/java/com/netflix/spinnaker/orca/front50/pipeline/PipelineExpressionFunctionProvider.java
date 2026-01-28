@@ -23,12 +23,14 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.SpelHelperFunctionException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -151,6 +153,14 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
     return (String) pipeline.get("id");
   }
 
+  /**
+   * Query front50 for a pipeline in an application
+   *
+   * @param functionName the name of the SpEL function (for logging)
+   * @param applicationName the application
+   * @param pipelineName the pipeline name
+   * @return the pipeline, or null if not found
+   */
   private static Map<String, Object> searchForPipelineInApplication(
       String functionName, String applicationName, String pipelineName) {
     if (front50Service == null) {
@@ -162,11 +172,21 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
     try {
       RetrySupport retrySupport = new RetrySupport();
       return retrySupport.retry(
-          () ->
-              Retrofit2SyncCall.execute(front50Service.getPipelines(applicationName)).stream()
-                  .filter(p -> pipelineName.equals(p.getOrDefault("name", null)))
-                  .findFirst()
-                  .orElse(null),
+          // It's arguable whether refresh=true is really required.  That's
+          // what the previous call to query for all applications did, so keep
+          // that behavior.
+          () -> {
+            try {
+              return Retrofit2SyncCall.execute(
+                  front50Service.getPipeline(applicationName, pipelineName, true /* refresh */));
+            } catch (SpinnakerHttpException e) {
+              // return null when not found, otherwise re-throw
+              if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
+                return null;
+              }
+              throw e;
+            }
+          },
           3,
           1000,
           true);

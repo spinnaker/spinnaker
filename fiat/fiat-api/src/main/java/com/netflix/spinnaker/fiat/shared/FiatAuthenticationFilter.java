@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -31,25 +31,21 @@ import org.springframework.security.web.authentication.AuthenticationConverter;
 @Slf4j
 public class FiatAuthenticationFilter extends HttpFilter {
 
-  private final FiatStatus fiatStatus;
   private final AuthenticationConverter authenticationConverter;
 
-  public FiatAuthenticationFilter(
-      FiatStatus fiatStatus, AuthenticationConverter authenticationConverter) {
-    this.fiatStatus = fiatStatus;
+  public FiatAuthenticationFilter(AuthenticationConverter authenticationConverter) {
     this.authenticationConverter = authenticationConverter;
   }
 
   @Override
   protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws IOException, ServletException {
-    if (fiatStatus.isEnabled()) {
-      SecurityContext ctx = SecurityContextHolder.createEmptyContext();
-      Authentication auth = authenticationConverter.convert(req);
-      ctx.setAuthentication(auth);
-      SecurityContextHolder.setContext(ctx);
-      log.debug("Set SecurityContext to user: {}", auth.getPrincipal().toString());
-    }
+    SecurityContext ctx = SecurityContextHolder.createEmptyContext();
+    Authentication auth = authenticationConverter.convert(req);
+    ctx.setAuthentication(auth);
+    SecurityContextHolder.setContext(ctx);
+    log.debug("Set SecurityContext to user: {}", auth.getPrincipal().toString());
+
     chain.doFilter(req, res);
   }
 }
