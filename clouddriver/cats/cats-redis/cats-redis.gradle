@@ -16,4 +16,27 @@ dependencies {
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.testcontainers:junit-jupiter"
+  testImplementation "org.testcontainers:testcontainers"
+}
+
+test {
+  useJUnitPlatform {
+    excludeTags 'stress'
+  }
+  // Parallel execution support: each test class has its own Redis container
+  // Conservative fork count to balance speed vs memory (14 containers possible)
+  maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+  // Increase heap for parallel container execution
+  maxHeapSize = '2g'
+}
+
+tasks.register('stressTest', Test) {
+  description = 'Runs stress tests (long-running, excluded from default test task)'
+  group = 'verification'
+  useJUnitPlatform {
+    includeTags 'stress'
+  }
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
 }

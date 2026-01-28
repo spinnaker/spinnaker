@@ -34,8 +34,10 @@ class RedisConfigurationProperties {
   @Canonical
   static class AgentConfiguration {
     String enabledPattern = ".*"
+    String disabledPattern = ""
     Integer maxConcurrentAgents
     Integer agentLockAcquisitionIntervalSeconds
+    List<String> disabledAgents = []
   }
 
   @NestedConfigurationProperty
@@ -44,11 +46,20 @@ class RedisConfigurationProperties {
   @NestedConfigurationProperty
   final AgentConfiguration agent = new AgentConfiguration()
 
+  @Canonical
+  static class SchedulerProperties {
+    String type = 'default'
+    boolean enabled = true // This 'enabled' is for the scheduler config block.
+                           // The @ConditionalOnExpression in AgentSchedulerConfig
+                           // still uses a separate 'redis.scheduler.enabled' property.
+    int parallelism = -1
+  }
+
+  @NestedConfigurationProperty
+  final SchedulerProperties scheduler = new SchedulerProperties() // New nested scheduler properties
+
   String connection = "redis://localhost:6379"
   String connectionPrevious = null
 
   int timeout = 2000
-
-  String scheduler = 'default'
-  int parallelism = -1
 }
