@@ -14,7 +14,7 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.CompletableFuture
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * Memory-based cache for Front50 data.

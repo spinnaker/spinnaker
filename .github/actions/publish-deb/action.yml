@@ -36,6 +36,7 @@ runs:
       with:
         credentials_json: ${{ inputs.gar-json-key }}
 
+## Note that GHCR which we use for docker DOES NOT support debian artifacts at this time!  as such... we continue to publish debian to GAR
     - name: Publish apt packages to Google Artifact Registry
       env:
         ORG_GRADLE_PROJECT_version: ${{ inputs.version }}

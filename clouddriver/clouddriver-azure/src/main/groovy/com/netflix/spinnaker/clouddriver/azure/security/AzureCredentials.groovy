@@ -54,22 +54,33 @@ class AzureCredentials {
     this.configuredAzureEnvironment = configuredAzureEnvironment
     this.useSshPublicKey = useSshPublicKey
 
-    def token = AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey, this.configuredAzureEnvironment)
-    def azureProfile = AzureBaseClient.getAzureProfile(this.configuredAzureEnvironment)
-
-    resourceManagerClient = new AzureResourceManagerClient(this.subscriptionId, token, azureProfile)
-
-    networkClient = new AzureNetworkClient(this.subscriptionId, token, azureProfile)
-
-    computeClient = new AzureComputeClient(this.subscriptionId, token, azureProfile)
-
-    storageClient = new AzureStorageClient(this.subscriptionId, token, azureProfile)
-
+    // Initialize clients - authentication happens lazily to avoid blocking startup with bad credentials (like AWS/Google)
+    def token = null
+    def azureProfile = null
+    
     try {
-      registerProviders()
+      token = AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey, this.configuredAzureEnvironment)
+      azureProfile = AzureBaseClient.getAzureProfile(this.configuredAzureEnvironment)
     } catch (Exception e) {
-      log.error("Failed to register providers with AzureResourceManagerClient", e)
-      throw e
+      log.warn("Failed to initialize Azure credentials for account. Will retry on first use.", e)
+    }
+
+    resourceManagerClient = token ? new AzureResourceManagerClient(this.subscriptionId, token, azureProfile) : null
+
+    networkClient = token ? new AzureNetworkClient(this.subscriptionId, token, azureProfile) : null
+
+    computeClient = token ? new AzureComputeClient(this.subscriptionId, token, azureProfile) : null
+
+    storageClient = token ? new AzureStorageClient(this.subscriptionId, token, azureProfile) : null
+
+    // Register providers only if authentication succeeded
+    if (token) {
+      try {
+        registerProviders()
+      } catch (Exception e) {
+        log.error("Failed to register providers with AzureResourceManagerClient", e)
+        // Don't throw - allow clouddriver to start even if registration fails
+      }
     }
   }
 

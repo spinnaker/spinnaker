@@ -71,8 +71,8 @@ dependencies {
     implementation "io.projectreactor:reactor-core"
     implementation "com.google.code.gson:gson"
     implementation "com.google.guava:guava"
-    implementation "javax.inject:javax.inject:1"
-    implementation "javax.validation:validation-api"
+    implementation "jakarta.inject:jakarta.inject-api:2.0.1"
+    implementation "jakarta.validation:jakarta.validation-api"
 
     runtimeOnly "io.spinnaker.kork:kork-runtime"
 
@@ -85,6 +85,6 @@ dependencies {
     testImplementation "org.assertj:assertj-core"
 
     testImplementation "com.squareup.retrofit2:retrofit-mock"
-    testImplementation "com.github.tomakehurst:wiremock-jre8"
     testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+    testImplementation "com.netflix.spectator:spectator-reg-micrometer"
 }

@@ -5,14 +5,18 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   implementation project(":kork-annotations")
+  implementation project(":kork-aws")
   implementation project(":kork-exceptions")
   implementation project(":kork-security")
   implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation platform('software.amazon.awssdk:bom')
   api 'software.amazon.awssdk:s3'
   api 'software.amazon.awssdk:sts'
-  implementation "org.apache.httpcomponents:httpclient"
+  implementation "org.apache.httpcomponents.client5:httpclient5"
   implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.springframework.boot:spring-boot-starter-validation"
   implementation "org.springframework.security:spring-security-core"
+  implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'org.apache.logging.log4j:log4j-api'
   api "com.hubspot.jinjava:jinjava"
 

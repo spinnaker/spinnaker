@@ -29,17 +29,17 @@ import org.springframework.boot.autoconfigure.session.DefaultCookieSerializerCus
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SecuritySamlProperties.class)
@@ -49,7 +49,7 @@ public class SAMLConfiguration {
   @SpinnakerAuthConfig
   @RequiredArgsConstructor
   @ConditionalOnProperty("saml.enabled")
-  public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+  public static class WebSecurityConfig {
     private final SecuritySamlProperties properties;
     private final AuthConfig authConfig;
     private final ObjectProvider<UserIdentifierExtractor> userIdentifierExtractorProvider;
@@ -98,17 +98,19 @@ public class SAMLConfiguration {
       return new InMemoryRelyingPartyRegistrationRepository(registration);
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
+    @Order(2)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       authConfig.configure(http);
       var authenticationProvider = new OpenSaml4AuthenticationProvider();
       authenticationProvider.setResponseAuthenticationConverter(responseAuthenticationConverter());
-      http.rememberMe(Customizer.withDefaults())
-          .saml2Login(
+      return http.saml2Login(
               saml ->
                   saml.authenticationManager(new ProviderManager(authenticationProvider))
                       .loginProcessingUrl(properties.getLoginProcessingUrl())
-                      .relyingPartyRegistrationRepository(relyingPartyRegistrationRepository()));
+                      .relyingPartyRegistrationRepository(relyingPartyRegistrationRepository()))
+          .build();
     }
   }
 }

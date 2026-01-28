@@ -151,11 +151,11 @@ class ApplicationService {
   }
 
   List<Map> getPipelineConfigsForApplication(String app) {
-    return getPipelineConfigsForApplication(app, null);
+    return getPipelineConfigsForApplication(app, null, null);
   }
 
-  List<Map> getPipelineConfigsForApplication(String app, String pipelineNameFilter) {
-    return Retrofit2SyncCall.execute(front50Service.getPipelineConfigsForApplication(app, pipelineNameFilter, true))
+  List<Map> getPipelineConfigsForApplication(String app, String pipelineNameFilter, Integer pipelineLimit) {
+    return Retrofit2SyncCall.execute(front50Service.getPipelineConfigsForApplication(app, pipelineNameFilter, pipelineLimit, true))
   }
 
   /**
@@ -196,17 +196,17 @@ class ApplicationService {
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() == HttpStatus.NOT_FOUND.value()) {
         log.info("front50 returned no pipeline with id ${pipelineNameOrId}")
-        throw e.newInstance("Pipeline configuration not found (id: ${pipelineNameOrId}): " + e.getMessage())
+        throw e.newInstance("Pipeline configuration not found (nameOrId: ${pipelineNameOrId} in application ${app}): " + e.getMessage())
       }
       throw e
     }
 
     // If we get here, the query by id returned a pipeline whose id didn't match
     // what we asked for.
-    throw new NotFoundException("Pipeline configuration not found (id: ${pipelineNameOrId})")
+    throw new NotFoundException("Pipeline configuration not found (nameOrId: ${pipelineNameOrId} in application ${app})")
   }
 
-  List<Map> getStrategyConfigsForApplication(String app) {
+  List<Map<String, Object>> getStrategyConfigsForApplication(String app) {
     return Retrofit2SyncCall.execute(front50Service.getStrategyConfigs(app))
   }
 

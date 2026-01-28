@@ -33,6 +33,15 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Login to GHCR
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      # use service account flow defined at: https://github.com/docker/login-action#service-account-based-authentication-1
+      with:
+        registry: ghcr.io
+        username:  spinnaker
+        password:  ${{ inputs.github-token }}
+
     - name: Login to GAR
       if: github.event_name != 'pull_request'
       uses: docker/login-action@v3
@@ -48,7 +57,7 @@ runs:
         if [[ '${{ hashFiles(format('{0}/Dockerfile.slim', inputs.project)) }}' != '' ]]; then
           echo "has-slim=true" >> $GITHUB_ENV
         fi
-        
+
         if [[ '${{ hashFiles(format('{0}/Dockerfile.ubuntu', inputs.project)) }}' != '' ]]; then
           echo "has-ubuntu=true" >> $GITHUB_ENV
         fi
@@ -90,8 +99,12 @@ runs:
         tags: |
           "${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.version }}"
           "${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.release-train }}-latest"
+          "ghcr.io/spinnaker/${{ inputs.project }}:${{ inputs.version }}"
+          "ghcr.io/spinnaker/${{ inputs.project }}:${{ inputs.release-train }}-latest"
         labels: |
           "org.opencontainers.image.source=https://github.com/spinnaker/spinnaker"
+          "org.opencontainers.image.license=Apache-2.0"
+          "org.opencontainers.image.documentaion=https://spinnaker.io/docs/
           "org.opencontainers.image.revision=${{ github.sha }}"
           "org.opencontainers.image.version=${{ inputs.version }}"
           "io.spinnaker.ci-build=${{ inputs.build-url }}"
@@ -115,8 +128,13 @@ runs:
           "${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.version }}"
           "${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.version }}-slim"
           "${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.release-train }}-latest"
+          "ghcr.io/spinnaker/${{ inputs.project }}:${{ inputs.version }}"
+          "ghcr.io/spinnaker/${{ inputs.project }}:${{ inputs.version }}-slim"
+          "ghcr.io/spinnaker/${{ inputs.project }}:${{ inputs.release-train }}-latest"
         labels: |
           "org.opencontainers.image.source=https://github.com/spinnaker/spinnaker"
+          "org.opencontainers.image.license=Apache-2.0"
+          "org.opencontainers.image.documentaion=https://spinnaker.io/docs/
           "org.opencontainers.image.revision=${{ github.sha }}"
           "org.opencontainers.image.version=${{ inputs.version }}"
           "io.spinnaker.ci-build=${{ inputs.build-url }}"
@@ -138,8 +156,11 @@ runs:
           github_token=${{ inputs.github-token }}
         tags: |
           "${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.version }}-ubuntu"
+          "ghcr.io/spinnaker/${{ inputs.project }}:${{ inputs.version }}-ubuntu"
         labels: |
           "org.opencontainers.image.source=https://github.com/spinnaker/spinnaker"
+          "org.opencontainers.image.license=Apache-2.0"
+          "org.opencontainers.image.documentaion=https://spinnaker.io/docs/
           "org.opencontainers.image.revision=${{ github.sha }}"
           "org.opencontainers.image.version=${{ inputs.version }}"
           "io.spinnaker.ci-build=${{ inputs.build-url }}"
@@ -151,18 +172,18 @@ runs:
         echo "### Docker Publishing" >> "$GITHUB_STEP_SUMMARY"
         echo "| Type | Image SHA | Tag |" >> "$GITHUB_STEP_SUMMARY"
         echo "| --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
-        
+
         if [[ '${{ env.has-standard }}' == 'true' ]]; then
           echo "| __Standard__ | ${{ steps.docker-standard.outputs.imageid }} | ${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.version }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "|  |  | ${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.release-train }}-latest |" >> "$GITHUB_STEP_SUMMARY"
         fi
-        
+
         if [[ '${{ env.has-slim }}' == 'true' ]]; then
           echo "| __Slim__ | ${{ steps.docker-slim.outputs.imageid }} | ${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.version }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "|  |  | ${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.version }}-slim |" >> "$GITHUB_STEP_SUMMARY"
           echo "|  |  | ${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.release-train }}-latest |" >> "$GITHUB_STEP_SUMMARY"
         fi
-        
+
         if [[ '${{ env.has-ubuntu }}' == 'true' ]]; then
           echo "| __Ubuntu__ | ${{ steps.docker-ubuntu.outputs.imageid }} | ${{ inputs.container-registry }}/${{ inputs.project }}:${{ inputs.version }}-ubuntu |" >> "$GITHUB_STEP_SUMMARY"
         fi

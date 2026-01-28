@@ -393,7 +393,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
       }
 
       // First cull threads in the WORKING set that have been there too long (TIMEOUT time).
-      Set<String> oldKeys = jedis.zrangeByScore(WORKING_SET, "-inf", score(jedis, NOW));
+      Set<String> oldKeys = Set.copyOf(jedis.zrangeByScore(WORKING_SET, "-inf", score(jedis, NOW)));
       for (String key : oldKeys) {
         // Ignore result, since if this agent was released between now and the above jedis call, our
         // work was done

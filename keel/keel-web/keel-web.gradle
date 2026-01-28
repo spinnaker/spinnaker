@@ -46,7 +46,7 @@ dependencies {
   implementation("io.swagger.core.v3:swagger-annotations")
   implementation("org.apache.maven:maven-artifact:3.6.3")
   implementation("io.spinnaker.kork:kork-plugins")
-  implementation("com.slack.api:bolt-servlet:1.6.0")
+  implementation("com.slack.api:bolt-jakarta-servlet:1.45.3")
   implementation("com.graphql-java:graphql-java-extended-scalars:16.0.1")
 
   // DGS dependencies

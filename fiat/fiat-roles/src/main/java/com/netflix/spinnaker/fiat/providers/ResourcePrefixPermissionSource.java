@@ -68,8 +68,7 @@ public class ResourcePrefixPermissionSource<T extends Resource.AccessControlled>
       }
 
       String prefixWithoutStar = prefix.substring(0, prefix.length() - 1);
-      prefixWithoutStar = prefixWithoutStar.toUpperCase();
-      return resource.getName().startsWith(prefixWithoutStar);
+      return resource.getName().toUpperCase().startsWith(prefixWithoutStar.toUpperCase());
     }
   }
 

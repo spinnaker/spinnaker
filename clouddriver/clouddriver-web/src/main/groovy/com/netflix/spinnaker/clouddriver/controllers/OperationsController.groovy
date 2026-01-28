@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController
 
 import javax.annotation.Nonnull
 import javax.annotation.Nullable
-import javax.annotation.PreDestroy
+import jakarta.annotation.PreDestroy
 import javax.naming.OperationNotSupportedException
 import java.util.concurrent.TimeUnit
 

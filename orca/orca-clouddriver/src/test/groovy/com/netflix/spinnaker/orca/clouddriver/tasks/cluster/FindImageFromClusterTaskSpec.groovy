@@ -215,7 +215,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
       throw makeSpinnakerHttpException(404)
     }
-    findCalls * oortService.findImage(cloudProvider, "ami-012-name-ebs*", "test", null, null) >> Calls.response(imageSearchResult)
+    findCalls * oortService.findImage(cloudProvider, "ami-012-name-ebs*", "test", null, Collections.emptyMap()) >> Calls.response(imageSearchResult)
     findCalls * regionCollector.getRegionsFromChildStages(stage) >> regionCollectorResponse
 
     assertNorth(result.outputs?.deploymentDetails?.find {
@@ -294,7 +294,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
       throw makeSpinnakerHttpException(404)
     }
-    1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null, null) >> Calls.response(imageSearchResult)
+    1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null, Map.of()) >> Calls.response(imageSearchResult)
     assertNorth(result.outputs?.deploymentDetails?.find {
       it.region == "north"
     } as Map, [imageName: "ami-012-name-ebs"])
@@ -357,8 +357,8 @@ class FindImageFromClusterTaskSpec extends Specification {
       "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
       throw makeSpinnakerHttpException(404)
     }
-    1 * oortService.findImage("aws", "ami-012-name-ebs*", "test", null, null) >> Calls.response(null)
-    1 * oortService.findImage("aws", "ami-012-name-ebs*", "bakery", null, null) >> Calls.response(imageSearchResult)
+    1 * oortService.findImage("aws", "ami-012-name-ebs*", "test", null, Map.of()) >> Calls.response(null)
+    1 * oortService.findImage("aws", "ami-012-name-ebs*", "bakery", null, Map.of()) >> Calls.response(imageSearchResult)
     assertNorth(result.outputs?.deploymentDetails?.find {
       it.region == "north"
     } as Map, [imageName: "ami-012-name-ebs"])

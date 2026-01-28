@@ -18,11 +18,14 @@ package com.netflix.spinnaker.kork.artifacts.model;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.kork.annotations.FieldsAreNullableByDefault;
 import com.netflix.spinnaker.kork.annotations.MethodsReturnNonnullByDefault;
+import com.netflix.spinnaker.kork.artifacts.model.validation.ExpectsArtifactReference;
+import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -43,13 +46,17 @@ import lombok.extern.jackson.Jacksonized;
 @JsonDeserialize(builder = Artifact.ArtifactBuilder.class)
 // Use camelCase regardless of the ObjectMapper configuration. (Detailed comment in ArtifactTest.)
 @JsonNaming
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public final class Artifact {
   private final String type;
   private final boolean customKind;
   private final String name;
   private final String version;
   private final String location;
+
+  @NotNull(groups = ExpectsArtifactReference.class, message = "artifact reference was not set")
   private final String reference;
+
   @Nonnull private final Map<String, Object> metadata;
   private final String artifactAccount;
   private final String provenance;
