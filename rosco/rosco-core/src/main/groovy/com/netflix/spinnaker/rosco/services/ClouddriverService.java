@@ -27,7 +27,7 @@ import retrofit2.http.PUT;
 import retrofit2.http.Query;
 
 public interface ClouddriverService {
-  @PUT("artifacts/fetch/")
+  @PUT("artifacts/fetch")
   Call<ResponseBody> fetchArtifact(@Body Artifact artifact);
 
   @GET("aws/images/find")

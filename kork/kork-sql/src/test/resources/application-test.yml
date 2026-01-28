@@ -1,12 +1,16 @@
 spring:
-  profiles: test
+  config:
+    activate:
+      on-profile: test
 
 sql:
   enabled: false
 
 ---
 spring:
-  profiles: twodialects
+  config:
+    activate:
+      on-profile: twodialects
 
 sql:
   enabled: true
@@ -35,7 +39,9 @@ sql:
 ---
 
 spring:
-  profiles: singledialect
+  config:
+    activate:
+      on-profile: singledialect
 
 sql:
   enabled: true

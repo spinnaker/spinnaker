@@ -12,6 +12,7 @@ protobuf {
 
 dependencies {
   implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-artifacts:clouddriver-artifacts-maven")
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")
@@ -41,6 +42,7 @@ dependencies {
   implementation "com.squareup.retrofit2:converter-protobuf:2.8.1"
   implementation "commons-io:commons-io"
   implementation "io.github.resilience4j:resilience4j-retry"
+  implementation "io.github.resilience4j:resilience4j-vavr"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.cloud:spring-cloud-context"

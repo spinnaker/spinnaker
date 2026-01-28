@@ -1,5 +1,9 @@
 {
   "name": "update-monorepo",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "1.0.0",
   "description": "Github Action for updating the Spinnaker monorepo by pulling from individual repos",
   "main": "index.js",

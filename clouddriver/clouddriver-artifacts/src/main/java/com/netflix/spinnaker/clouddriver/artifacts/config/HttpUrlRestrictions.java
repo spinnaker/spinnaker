@@ -31,6 +31,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
@@ -60,6 +61,7 @@ import org.springframework.security.web.util.matcher.IpAddressMatcher;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Slf4j
 public class HttpUrlRestrictions {
 
   @Builder.Default
@@ -223,6 +225,7 @@ public class HttpUrlRestrictions {
     } catch (IllegalArgumentException iae) {
       throw iae;
     } catch (Exception ex) {
+      log.error("HttpUrlRestrictions Exception: {}", ex.getMessage(), ex);
       throw new IllegalArgumentException("URI not valid: " + url, ex);
     }
   }

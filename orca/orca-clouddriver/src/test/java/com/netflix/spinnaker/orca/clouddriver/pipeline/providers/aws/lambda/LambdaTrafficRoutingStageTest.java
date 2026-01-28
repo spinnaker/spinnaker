@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.lambda;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.StageResolver;
@@ -82,6 +83,7 @@ public class LambdaTrafficRoutingStageTest extends OrcaFixture {
         this.mockMvc
             .perform(
                 MockMvcRequestBuilders.post("/orchestrate")
+                    .with(csrf())
                     .content(content)
                     .contentType(MediaType.APPLICATION_JSON))
             .andReturn();

@@ -16,10 +16,10 @@
 
 package com.netflix.kayenta.atlas.model;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
-import javax.validation.constraints.NotNull;
 import lombok.*;
 
 @Builder

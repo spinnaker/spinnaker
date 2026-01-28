@@ -18,7 +18,7 @@ apply plugin: "java-library"
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
-  api "io.reactivex:rxjava"
+  api "io.reactivex.rxjava3:rxjava"
   api "com.netflix.spectator:spectator-api"
   api "com.google.apis:google-api-services-monitoring"
 

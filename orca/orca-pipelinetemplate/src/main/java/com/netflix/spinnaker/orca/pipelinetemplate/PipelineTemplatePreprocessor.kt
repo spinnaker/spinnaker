@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateError
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.SchemaVersionHandler
 import com.netflix.spinnaker.orca.pipelinetemplate.v2schema.model.V2PipelineTemplate
 import javax.annotation.Nonnull
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.annotation.Order

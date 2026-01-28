@@ -140,14 +140,16 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent>
           user,
           application,
           trigger.getParent().getName());
-      registry.counter(
-          "trigger.errors.accessdenied",
-          "application",
-          application,
-          "user",
-          user,
-          "pipeline",
-          trigger.getParent().getName());
+      registry
+          .counter(
+              "trigger.errors.accessdenied",
+              "application",
+              application,
+              "user",
+              user,
+              "pipeline",
+              trigger.getParent().getName())
+          .increment();
     }
     return hasPermission;
   }

@@ -21,8 +21,15 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TI
 import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -39,6 +46,10 @@ import com.netflix.spinnaker.orca.jackson.mixin.TriggerMixin;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl;
+import java.io.IOException;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 public class OrcaObjectMapper {
   private OrcaObjectMapper() {}
@@ -71,8 +82,20 @@ public class OrcaObjectMapper {
 
     instance.registerModule(module);
 
+    // Custom (de)serializers added to ensure HttpMethod values are always uppercase.
+    // This restores the behavior that existed before Spring Boot 3 upgrade:
+    // previously, HttpMethod values were serialized as uppercase globally.
+    // Using a custom serializer/deserializer ensures consistency for all JSON
+    // (de)serialization across Orca, including tests and persisted payloads.
+    SimpleModule httpMethodModule = new SimpleModule();
+    httpMethodModule.addSerializer(HttpMethod.class, new HttpMethodSerializer());
+    httpMethodModule.addDeserializer(HttpMethod.class, new HttpMethodDeserializer());
+    httpMethodModule.addDeserializer(HttpStatusCode.class, new HttpStatusCodeDeserializer());
+    instance.registerModule(httpMethodModule);
+
     return instance;
   }
+
   /**
    * Return an ObjectMapper instance that can be reused. Do not change the configuration of this
    * instance as it will be shared across the entire application, use {@link #newInstance()}
@@ -82,5 +105,90 @@ public class OrcaObjectMapper {
    */
   public static ObjectMapper getInstance() {
     return INSTANCE;
+  }
+
+  /**
+   * Custom Jackson serializer for {@link HttpMethod}.
+   *
+   * <p>Converts the enum value to an uppercase string (e.g., {@code GET}).
+   */
+  static class HttpMethodSerializer extends JsonSerializer<HttpMethod> {
+    @Override
+    public void serialize(HttpMethod value, JsonGenerator gen, SerializerProvider serializer)
+        throws IOException {
+      gen.writeString(value.name().toUpperCase());
+    }
+  }
+
+  /**
+   * Custom Jackson deserializer for {@link HttpMethod}.
+   *
+   * <p>Converts JSON strings (e.g., {@code get}, {@code Get}, {@code GET}) into uppercase before
+   * resolving the corresponding {@link HttpMethod}.
+   */
+  static class HttpMethodDeserializer extends JsonDeserializer<HttpMethod> {
+    @Override
+    public HttpMethod deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+      return HttpMethod.valueOf(p.getText().toUpperCase());
+    }
+  }
+
+  /**
+   * Custom Jackson deserializer for {@link org.springframework.http.HttpStatusCode}.
+   *
+   * <p>Spring Framework 6 introduced {@code HttpStatusCode} as a numeric abstraction over HTTP
+   * status values. Unlike {@link org.springframework.http.HttpStatus}, it does not support symbolic
+   * string names (e.g. {@code "OK"}, {@code "CREATED"}) during deserialization.
+   *
+   * <p>This deserializer exists to maintain backward compatibility with previously persisted
+   * execution context data where HTTP status codes were stored as strings (for example, {@code
+   * "OK"}), while still supporting numeric representations (e.g. {@code 200}).
+   *
+   * <p>The deserializer supports the following input formats:
+   *
+   * <ul>
+   *   <li>Numeric status codes: {@code 200}
+   *   <li>String enum names: {@code "OK"}, {@code "NOT_FOUND"}
+   *   <li>Numeric strings: {@code "200"}
+   * </ul>
+   *
+   * <p>All valid inputs are normalized to {@link HttpStatusCode#valueOf(int)}.
+   */
+  static class HttpStatusCodeDeserializer extends JsonDeserializer<HttpStatusCode> {
+
+    @Override
+    public HttpStatusCode deserialize(JsonParser p, DeserializationContext ctxt)
+        throws IOException {
+
+      JsonNode node = p.getCodec().readTree(p);
+
+      // Case 1: numeric status code (200)
+      if (node.isInt()) {
+        return HttpStatusCode.valueOf(node.intValue());
+      }
+
+      // Case 2: string status code ("OK")
+      if (node.isTextual()) {
+        String text = node.textValue();
+
+        try {
+          // Try enum name (OK, CREATED, etc.)
+          HttpStatus status = HttpStatus.valueOf(text);
+          return HttpStatusCode.valueOf(status.value());
+        } catch (IllegalArgumentException ignored) {
+          // fall through
+        }
+
+        // Try numeric string ("200")
+        try {
+          return HttpStatusCode.valueOf(Integer.parseInt(text));
+        } catch (NumberFormatException ex) {
+          throw ctxt.weirdStringException(
+              text, HttpStatusCode.class, "Unrecognized HTTP status code");
+        }
+      }
+
+      throw ctxt.mappingException("Cannot deserialize HttpStatusCode from " + node);
+    }
   }
 }

@@ -72,46 +72,36 @@ public class AuthConfig {
   }
 
   public void configure(HttpSecurity http) throws Exception {
-    http.requestMatcher(requestMatcherProvider.requestMatcher())
-        .authorizeRequests(
-            registry -> {
-              registry
-                  // https://github.com/spring-projects/spring-security/issues/11055#issuecomment-1098061598 suggests
-                  //
-                  // filterSecurityInterceptorOncePerRequest(false)
-                  //
-                  // until spring boot 3.0.  Since
-                  //
-                  // .antMatchers("/error").permitAll()
-                  //
-                  // permits unauthorized access to /error, filterSecurityInterceptorOncePerRequest
-                  // isn't relevant.
-                  .antMatchers("/error")
+    http.securityMatcher(requestMatcherProvider.requestMatcher())
+        .authorizeHttpRequests(
+            authz -> {
+              authz
+                  .requestMatchers("/error")
                   .permitAll()
-                  .antMatchers("/favicon.ico")
+                  .requestMatchers("/favicon.ico")
                   .permitAll()
-                  .antMatchers(HttpMethod.OPTIONS, "/**")
+                  .requestMatchers(HttpMethod.OPTIONS, "/**")
                   .permitAll()
-                  .antMatchers(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL)
+                  .requestMatchers(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL)
                   .permitAll()
-                  .antMatchers("/auth/user")
+                  .requestMatchers("/auth/user")
                   .permitAll()
-                  .antMatchers("/plugins/deck/**")
+                  .requestMatchers("/plugins/deck/**")
                   .permitAll();
-              var webhooks = registry.antMatchers(HttpMethod.POST, "/webhooks/**");
+              var webhooks = authz.requestMatchers(HttpMethod.POST, "/webhooks/**");
               if (webhookDefaultAuthEnabled) {
                 webhooks.authenticated();
               } else {
                 webhooks.permitAll();
               }
-              registry
-                  .antMatchers(HttpMethod.POST, "/notifications/callbacks/**")
+              authz
+                  .requestMatchers(HttpMethod.POST, "/notifications/callbacks/**")
                   .permitAll()
-                  .antMatchers(HttpMethod.POST, "/managed/notifications/callbacks/**")
+                  .requestMatchers(HttpMethod.POST, "/managed/notifications/callbacks/**")
                   .permitAll()
-                  .antMatchers("/health")
+                  .requestMatchers("/health")
                   .permitAll()
-                  .antMatchers("/**")
+                  .requestMatchers("/**")
                   .authenticated();
             })
         .logout(

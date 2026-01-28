@@ -127,7 +127,7 @@ class GateSpringSecurity5OAuth2ProfileFactoryTest {
             .getGoogle()
             .get("redirect-uri"));
     assertEquals(
-        "\"https://my-real-gate-address.com:8084/login\"",
+        "https://my-real-gate-address.com:8084/login",
         config
             .getSpring()
             .getSecurity()

@@ -87,6 +87,35 @@ artifact-store:
     bucket: some-artifact-store-bucket
 ```
 
+### Enabled for some Application
+
+The `applicationsRegex` has since been deprecated. Please rely on `filters` instead.
+
+`applicationsRegex` can be used to allow certain applications to use the artifact store.
+By setting this field, this will limit both manifest and artifact storage.
+
+```yaml
+artifactStore:
+  type: s3
+  applicationsRegex: ".*-dev""
+```
+
+### Filtering by Application
+
+With the new manifest storage feature, we have also enabled a new way of filtering based on an artifact type to make filtering on what gets stored more flexible.
+```yaml
+artifactStore:
+  type: s3
+  filters:
+    - type: "embedded/base64" # filter based on an artifact type
+      value: "do-not-artifact-store" # filter an application by the name of 'do-not-artifact-store'
+    - type: "embedded/manifest/base64" # filter based on an artifact type
+      value: "(?!.*-dev$).*" # filter any application that does not end with '-dev'
+    - type: "embedded/manifest/base64"
+      value: "donot" # filter any application named 'donot'
+```
+When filtering is evaluated to true, that application will skip any storage for that artifact type.
+
 ### Rosco and Helm
 
 If any pipelines are passing artifact references to bake stages as a parameter,
