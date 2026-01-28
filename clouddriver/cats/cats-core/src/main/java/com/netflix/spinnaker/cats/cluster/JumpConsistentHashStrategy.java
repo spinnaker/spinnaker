@@ -24,8 +24,8 @@ import com.google.common.hash.Hashing;
  * <p>Unlike modulo hashing where ~n/(n+1) keys move when scaling, Jump only moves ~1/(n+1). For
  * example, scaling 10→11 pods moves ~9% of keys vs ~90% with modulo.
  *
- * <p>Uses murmur3_128 for key hashing, then Guava's consistentHash() for bucket assignment.
- * Buckets must be numbered sequentially (0 to n-1).
+ * <p>Uses murmur3_128 for key hashing, then Guava's consistentHash() for bucket assignment. Buckets
+ * must be numbered sequentially (0 to n-1).
  *
  * @see <a href="https://arxiv.org/abs/1406.2294">Jump Consistent Hash (Lamping & Veach, 2014)</a>
  */
@@ -48,4 +48,3 @@ public class JumpConsistentHashStrategy implements ShardingStrategy {
     return NAME;
   }
 }
-

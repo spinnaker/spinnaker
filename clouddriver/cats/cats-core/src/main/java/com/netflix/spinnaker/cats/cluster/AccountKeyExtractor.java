@@ -56,4 +56,3 @@ public class AccountKeyExtractor implements ShardingKeyExtractor {
     return NAME;
   }
 }
-

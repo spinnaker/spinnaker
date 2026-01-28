@@ -67,4 +67,3 @@ public class RegionKeyExtractor implements ShardingKeyExtractor {
     return NAME;
   }
 }
-

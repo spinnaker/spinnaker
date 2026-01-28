@@ -95,7 +95,7 @@ class SqlCachingPodsObserver(
   @Volatile
   private var podIndex: Int = -1
 
-  private var ttlSeconds = dynamicConfigService.getConfig(Long::class.java, "cache-sharding.replica-ttl-seconds", 60)
+  private val ttlSeconds = dynamicConfigService.getConfig(Long::class.java, "cache-sharding.replica-ttl-seconds", 60)
 
   companion object {
     private val POOL_NAME = ConnectionPools.CACHE_WRITER.value
@@ -173,7 +173,7 @@ class SqlCachingPodsObserver(
 
   override fun run() {
     try {
-      refreshHeartbeat(TimeUnit.SECONDS.toMillis(60))
+      refreshHeartbeat(TimeUnit.SECONDS.toMillis(ttlSeconds))
     } catch (t: Throwable) {
       log.error("Failed to manage replicas heartbeat", t)
     }
@@ -320,6 +320,6 @@ class SqlCachingPodsObserver(
 
   /** Triggers a heartbeat refresh. Visible for testing. */
   internal fun triggerHeartbeat() {
-    refreshHeartbeat(TimeUnit.SECONDS.toMillis(60))
+    refreshHeartbeat(TimeUnit.SECONDS.toMillis(ttlSeconds))
   }
 }

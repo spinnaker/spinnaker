@@ -46,4 +46,3 @@ public class AgentTypeKeyExtractor implements ShardingKeyExtractor {
     return NAME;
   }
 }
-
