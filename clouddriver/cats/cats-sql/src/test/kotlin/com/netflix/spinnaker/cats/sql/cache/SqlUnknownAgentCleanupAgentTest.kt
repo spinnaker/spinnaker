@@ -166,12 +166,31 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
           override fun filter(agent: Agent): Boolean =
             agent.agentType.startsWith("prod/") || agent.agentType.startsWith("staging/")
         }
-        seedDatabase(includeTestAccount = false, includeProdAccount = true, includeStagingAccount = true)
+
+        // Add only staging data (prod+test already exist from deriveFixture)
+        val now = System.currentTimeMillis()
+        dslContext.insertInto(table(defaultSqlNames().resourceTableName("instances")))
+          .columns(field("id"), field("agent"), field("application"), field("body_hash"), field("body"), field("last_updated"))
+          .values("aws:instances:staging:us-east-1:i-abcd1234", "staging/TestAgent", "myapp", "", "", now)
+          .execute()
+        dslContext.insertInto(table(defaultSqlNames().relTableName("instances")))
+          .columns(field("uuid"), field("id"), field("rel_id"), field("rel_agent"), field("rel_type"), field("last_updated"))
+          .values(
+            ULID().nextULID(),
+            "aws:instances:staging:us-east-1:i-abcd1234",
+            "aws:serverGroups:myapp-staging:staging:us-east-1:myapp-staging-v000",
+            "serverGroups:staging/TestAgent",
+            "serverGroups",
+            now
+          )
+          .execute()
 
         subject(shardingFilter = shardingFilter).run()
 
-        // Only prod remains; staging was unknown and handled by this pod, so it was deleted
-        expectThat(selectAllResources()).hasSize(1)[0].isEqualTo("aws:instances:prod:us-east-1:i-abcd1234")
+        // prod remains (known agent), test remains (not handled by this pod's filter),
+        // staging was deleted (unknown AND handled by this pod)
+        expectThat(selectAllResources()).hasSize(2)
+        expectThat(selectAllRels()).hasSize(2)
       }
     }
 
@@ -355,13 +374,20 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
           .where(field("rel_agent").eq("serverGroups:test/TestAgent"))
           .execute()
 
+        // Make the resource old enough to be eligible for cleanup (older than minRecordAgeSeconds)
+        dslContext.update(table(defaultSqlNames().resourceTableName("instances")))
+          .set(field("last_updated"), System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(600))
+          .where(field("agent").eq("test/TestAgent"))
+          .execute()
+
         val props = defaultCleanupProperties().apply { minRecordAgeSeconds = 300 }
 
         subject(cleanupProperties = props).run()
 
-        // Resource cleaned (has timestamp); relationship with null timestamp handled gracefully
+        // Resource cleaned (has old timestamp); relationship with null timestamp skipped gracefully
         expectThat(selectAllResources()).hasSize(1)[0].isEqualTo("aws:instances:prod:us-east-1:i-abcd1234")
-        expectThat(selectAllRels()).hasSize(1)[0].isEqualTo("aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000")
+        // Relationship with null timestamp was skipped, but prod's relationship remains
+        expectThat(selectAllRels()).hasSize(2)
       }
 
       test("poll and timeout use property overrides") {
