@@ -417,7 +417,7 @@ class AgentAcquisitionServiceTest {
         Long waitingSetSize = jedis.zcard("waiting");
         if (waitingSetSize != null && waitingSetSize > 0) {
           // If waiting set has entries, verify this specific agent is not in it
-          Set<String> waitingAgents = jedis.zrange("waiting", 0, -1);
+          List<String> waitingAgents = jedis.zrange("waiting", 0, -1);
           assertThat(waitingAgents)
               .describedAs("Waiting set should not contain disabled agent")
               .doesNotContain("disabled-agent");
@@ -1771,7 +1771,7 @@ class AgentAcquisitionServiceTest {
 
       // Verify all 1000 agents in WAITING_SET after concurrent registration
       try (Jedis jedis = jedisPool.getResource()) {
-        Set<String> waitingAgents = jedis.zrange("waiting", 0, -1);
+        List<String> waitingAgents = jedis.zrange("waiting", 0, -1);
         // Verify all registered agents are in waiting set
         // Note: Due to concurrent registration, some agents might overwrite others if same type
         // But we should have at least the expected count of distinct agents
@@ -4242,7 +4242,7 @@ class AgentAcquisitionServiceTest {
       // Verify no duplicate agents in WORKING_SET (confirms atomic acquisition)
       try (Jedis jedis = jedisPool.getResource()) {
         // Get all agents in working set
-        Set<String> workingAgents = jedis.zrange("working", 0, -1);
+        List<String> workingAgents = jedis.zrange("working", 0, -1);
 
         // Verify no duplicates (each agent should appear only once)
         Set<String> uniqueAgents = new HashSet<>(workingAgents);
@@ -4258,7 +4258,7 @@ class AgentAcquisitionServiceTest {
         // Verify all 3 agents were acquired (they might be in working or back in waiting if
         // completed)
         int agentsInWorking = workingAgents.size();
-        Set<String> waitingAgents = jedis.zrange("waiting", 0, -1);
+        List<String> waitingAgents = jedis.zrange("waiting", 0, -1);
         int agentsInWaiting = waitingAgents.size();
 
         // Total agents in Redis should be at least 3 (they might be in working or waiting)
@@ -4404,7 +4404,7 @@ class AgentAcquisitionServiceTest {
       // Check immediately after acquisition, before agents complete
       try (Jedis jedis = jedisPool.getResource()) {
         // Get all agents in working set
-        Set<String> workingAgents = jedis.zrange("working", 0, -1);
+        List<String> workingAgents = jedis.zrange("working", 0, -1);
 
         // Verify no duplicates (each agent should appear only once)
         Set<String> uniqueAgents = new HashSet<>(workingAgents);
@@ -4420,7 +4420,7 @@ class AgentAcquisitionServiceTest {
         // Verify all 3 agents were acquired (they might be in working or back in waiting if
         // completed)
         int agentsInWorking = workingAgents.size();
-        Set<String> waitingAgents = jedis.zrange("waiting", 0, -1);
+        List<String> waitingAgents = jedis.zrange("waiting", 0, -1);
         int agentsInWaiting = waitingAgents.size();
 
         // Total agents in Redis should be at least 3 (they might be in working or waiting)
@@ -4545,11 +4545,11 @@ class AgentAcquisitionServiceTest {
       // Check Redis state immediately after acquisition to determine order
       try (Jedis jedis = jedisPool.getResource()) {
         // Get agents in WORKING_SET ordered by score (lowest first)
-        java.util.Set<redis.clients.jedis.Tuple> workingAgents =
+        java.util.List<redis.clients.jedis.resps.Tuple> workingAgents =
             jedis.zrangeWithScores("working", 0, -1);
 
         // Extract agent names in score order
-        for (redis.clients.jedis.Tuple tuple : workingAgents) {
+        for (redis.clients.jedis.resps.Tuple tuple : workingAgents) {
           String agentName = tuple.getElement();
           if (java.util.Arrays.asList(agentNames).contains(agentName)) {
             acquisitionOrder.add(agentName);
@@ -5410,7 +5410,7 @@ class AgentAcquisitionServiceTest {
       try (Jedis jedis = jedisPool.getResource()) {
         boolean stillInWaiting = jedis.zscore("waiting", "overdue-agent") != null;
         String currentScoreString = String.valueOf(TestFixtures.nowSeconds());
-        Set<String> readyAgents =
+        List<String> readyAgents =
             jedis.zrangeByScore("waiting", 0, Double.parseDouble(currentScoreString));
         boolean overdueAgentIsReady = readyAgents.contains("overdue-agent");
 

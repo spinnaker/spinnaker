@@ -30,7 +30,7 @@ import com.netflix.spinnaker.cats.agent.AgentExecution;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.ShardingFilter;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -444,7 +444,7 @@ class LifecycleBehaviorTest {
             () -> {
               try (Jedis jedis = jedisPool.getResource()) {
                 // Check if agent is in waiting set (completion processed)
-                Set<String> waitingAgents = jedis.zrange("waiting", 0, -1);
+                List<String> waitingAgents = jedis.zrange("waiting", 0, -1);
                 return waitingAgents != null && waitingAgents.contains("racing-agent");
               }
             },
@@ -453,8 +453,8 @@ class LifecycleBehaviorTest {
 
         // Then - Agent MUST be in waiting set for restart
         try (Jedis jedis = jedisPool.getResource()) {
-          Set<String> waitingAgents = jedis.zrange("waiting", 0, -1);
-          Set<String> workingAgents = jedis.zrange("working", 0, -1);
+          List<String> waitingAgents = jedis.zrange("waiting", 0, -1);
+          List<String> workingAgents = jedis.zrange("working", 0, -1);
           long waitingSize = jedis.zcard("waiting");
           long workingSize = jedis.zcard("working");
 
@@ -622,7 +622,7 @@ class LifecycleBehaviorTest {
         }
 
         try (Jedis jedis = jedisPool.getResource()) {
-          Set<String> agentsInWaitz = jedis.zrange("waiting", 0, -1);
+          List<String> agentsInWaitz = jedis.zrange("waiting", 0, -1);
 
           assertThat(agentsInWaitz)
               .describedAs("Active agents should be re-queued in waiting")

@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -293,14 +292,14 @@ class BatchOperationsTest {
         // Wait for async Redis operations using polling
         waitForCondition(
             () -> {
-              Set<String> waiting = jedis.zrange("waiting", 0, -1);
+              List<String> waiting = jedis.zrange("waiting", 0, -1);
               return waiting != null && waiting.size() >= 10;
             },
             1000,
             50);
 
         // Verify all 10 agents are in waiting set
-        Set<String> waitingAgents = jedis.zrange("waiting", 0, -1);
+        List<String> waitingAgents = jedis.zrange("waiting", 0, -1);
         assertThat(waitingAgents.size())
             .describedAs("All 10 agents should be in WAITING_SET. Found: " + waitingAgents.size())
             .isGreaterThanOrEqualTo(10);
@@ -348,7 +347,7 @@ class BatchOperationsTest {
           () -> {
             // Check if agents have been acquired (moved to WORKING_SET or active count > 0)
             try (Jedis jedis = jedisPool.getResource()) {
-              Set<String> working = jedis.zrange("working", 0, -1);
+              List<String> working = jedis.zrange("working", 0, -1);
               return working != null && !working.isEmpty();
             }
           },
@@ -1651,7 +1650,7 @@ class BatchOperationsTest {
       }
 
       batchSvc.repopulateIfDue(1L);
-      Set<String> batchWaiting;
+      List<String> batchWaiting;
       try (Jedis j = parityJedisPool.getResource()) {
         batchWaiting = j.zrange("waiting", 0, -1);
         assertThat(batchWaiting).containsExactlyInAnyOrder("repop-min-a1", "repop-min-a2");
@@ -1660,7 +1659,7 @@ class BatchOperationsTest {
       }
 
       fbSvc.repopulateIfDue(1L);
-      Set<String> fbWaiting;
+      List<String> fbWaiting;
       try (Jedis j = parityJedisPool.getResource()) {
         fbWaiting = j.zrange("waiting", 0, -1);
         assertThat(fbWaiting).containsExactlyInAnyOrder("repop-min-a1", "repop-min-a2");

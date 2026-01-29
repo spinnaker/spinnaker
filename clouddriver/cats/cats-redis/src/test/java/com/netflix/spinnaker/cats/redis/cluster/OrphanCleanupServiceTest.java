@@ -36,7 +36,6 @@ import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.ShardingFilter;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -1745,7 +1744,7 @@ class OrphanCleanupServiceTest {
 
       // THEN: Newly registered agents should be preserved, stale ones should be cleaned
       try (var jedis = jedisPool.getResource()) {
-        Set<String> remainingAgents = jedis.zrange("waiting", 0, -1);
+        List<String> remainingAgents = jedis.zrange("waiting", 0, -1);
 
         // The key business logic: agents that were re-registered should still be present
         // because they got fresh scores that are not considered orphaned
@@ -1799,7 +1798,7 @@ class OrphanCleanupServiceTest {
         long agentCount = jedis.zcard("waiting");
         assertThat(agentCount).as("All registered agents should be present in Redis").isEqualTo(3);
 
-        Set<String> agentNames = jedis.zrange("waiting", 0, -1);
+        List<String> agentNames = jedis.zrange("waiting", 0, -1);
         assertThat(agentNames)
             .as("Agent names should match registered agents")
             .containsExactlyInAnyOrder("test-agent-1", "test-agent-2", "test-agent-3");

@@ -1023,13 +1023,13 @@ class RedisScriptManagerTest {
         jedis.zadd("waiting", currentTimeSeconds + 10, "test-agent-2");
 
         // Get all scores from WAITING set
-        java.util.Set<redis.clients.jedis.Tuple> waitingAgents =
+        java.util.List<redis.clients.jedis.resps.Tuple> waitingAgents =
             jedis.zrangeByScoreWithScores("waiting", 0, Double.MAX_VALUE);
 
         // Verify all scores are in seconds format (not milliseconds)
         assertThat(waitingAgents).isNotEmpty();
 
-        for (redis.clients.jedis.Tuple agent : waitingAgents) {
+        for (redis.clients.jedis.resps.Tuple agent : waitingAgents) {
           long score = (long) agent.getScore();
           String agentName = agent.getElement();
 
@@ -1074,13 +1074,13 @@ class RedisScriptManagerTest {
         jedis.zadd("waiting", currentTimeMillis, "milliseconds-agent");
 
         // Verify we can detect the inconsistency
-        java.util.Set<redis.clients.jedis.Tuple> allAgents =
+        java.util.List<redis.clients.jedis.resps.Tuple> allAgents =
             jedis.zrangeByScoreWithScores("waiting", 0, Double.MAX_VALUE);
 
         boolean hasSecondsFormat = false;
         boolean hasMillisecondsFormat = false;
 
-        for (redis.clients.jedis.Tuple agent : allAgents) {
+        for (redis.clients.jedis.resps.Tuple agent : allAgents) {
           long score = (long) agent.getScore();
           if (score < 1700000000000L) {
             hasSecondsFormat = true;

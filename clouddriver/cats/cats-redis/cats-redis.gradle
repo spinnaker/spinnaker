@@ -6,9 +6,9 @@ dependencies {
   implementation "org.apache.groovy:groovy"
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "io.spinnaker.kork:kork-jedis"
-  implementation "redis.clients:jedis"
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "javax.annotation:javax.annotation-api"
+  // Explicit version required: kork-bom constraint doesn't propagate in CI (version resolves to empty)
+  implementation "javax.annotation:javax.annotation-api:1.3.2"
 
   testImplementation project(":cats:cats-test")
   testImplementation "io.spinnaker.kork:kork-jedis-test"

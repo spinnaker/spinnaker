@@ -50,7 +50,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
-import redis.clients.jedis.Tuple;
+import redis.clients.jedis.resps.Tuple;
 
 /**
  * Service that acquires agents from Redis and executes them using atomic operations.
@@ -581,7 +581,7 @@ public class AgentAcquisitionService {
               batchSize > 0
                   ? Math.max(8, Math.min(64, batchSize))
                   : 64; // Default window size when batch size is unbounded
-          Set<Tuple> earliest =
+          List<Tuple> earliest =
               jedis.zrangeByScoreWithScores(WAITING_SET, "-inf", currentScore, 0, window);
           long eligibleReady = 0L;
           if (earliest != null) {
@@ -666,7 +666,7 @@ public class AgentAcquisitionService {
               batchSizeForWindow > 0
                   ? Math.max(8, Math.min(64, batchSizeForWindow))
                   : 64; // Default window size when batch size is unbounded
-          Set<Tuple> oldestWindow =
+          List<Tuple> oldestWindow =
               jedis.zrangeByScoreWithScores(WAITING_SET, "-inf", currentScore, 0, window);
           long nowSecForDiagnostics;
           try {
@@ -823,7 +823,7 @@ public class AgentAcquisitionService {
         currentScore = score(jedis, 0L, nowMsCached);
 
         // Use offset to skip already-tried agents when continuing after filtered chunks
-        Set<String> readyChunk =
+        List<String> readyChunk =
             jedis.zrangeByScore(WAITING_SET, "-inf", currentScore, chunkOffset, chunkSize);
 
         if (readyChunk == null || readyChunk.isEmpty()) {
@@ -1184,7 +1184,7 @@ public class AgentAcquisitionService {
       if (currentScoreSeconds == Long.MAX_VALUE) {
         return null; // No scores can be > MAX_VALUE
       }
-      Set<Tuple> futureAgents =
+      List<Tuple> futureAgents =
           jedis.zrangeByScoreWithScores(
               WAITING_SET, String.valueOf(currentScoreSeconds + 1), "+inf", 0, window);
       Long earliestFutureLocalScore = null;
@@ -1250,7 +1250,7 @@ public class AgentAcquisitionService {
    */
   private int saturatePoolBatch(
       Jedis jedis,
-      Set<String> readyAgents,
+      Collection<String> readyAgents,
       int maxToAcquire,
       Semaphore maxConcurrentSemaphore,
       Set<AgentWorker> workersToSubmit,
@@ -1661,7 +1661,7 @@ public class AgentAcquisitionService {
    */
   private int saturatePoolIndividual(
       Jedis jedis,
-      Set<String> readyAgents,
+      Collection<String> readyAgents,
       int maxToAcquire,
       Semaphore maxConcurrentSemaphore,
       Set<AgentWorker> workersToSubmit,
@@ -2312,7 +2312,7 @@ public class AgentAcquisitionService {
 
       // For small sets, just get everything
       if (setSize <= sampleSize) {
-        Set<String> all = jedis.zrange(WAITING_SET, 0, -1);
+        List<String> all = jedis.zrange(WAITING_SET, 0, -1);
         if (all != null) {
           sampled.addAll(all);
         }
@@ -2322,7 +2322,7 @@ public class AgentAcquisitionService {
       // For larger sets, sample with random offset
       long maxOffset = Math.max(0, setSize - sampleSize);
       long randomOffset = (long) (Math.random() * (maxOffset + 1));
-      Set<String> window = jedis.zrange(WAITING_SET, randomOffset, randomOffset + sampleSize - 1);
+      List<String> window = jedis.zrange(WAITING_SET, randomOffset, randomOffset + sampleSize - 1);
       if (window != null) {
         sampled.addAll(window);
       }
@@ -2691,8 +2691,8 @@ public class AgentAcquisitionService {
         // Fallback 2: Full-set scan
         log.warn("Lua presence check failed, falling back to full-set scan", luaEx);
         Pipeline pipeline = jedis.pipelined();
-        Response<Set<String>> waitingAgents = pipeline.zrange(WAITING_SET, 0, -1);
-        Response<Set<String>> workingAgents = pipeline.zrange(WORKING_SET, 0, -1);
+        Response<List<String>> waitingAgents = pipeline.zrange(WAITING_SET, 0, -1);
+        Response<List<String>> workingAgents = pipeline.zrange(WORKING_SET, 0, -1);
         pipeline.sync();
         Set<String> allAgents = new HashSet<>(waitingAgents.get());
         allAgents.addAll(workingAgents.get());

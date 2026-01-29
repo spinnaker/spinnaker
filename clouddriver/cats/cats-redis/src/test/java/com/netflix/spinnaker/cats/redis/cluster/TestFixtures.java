@@ -849,7 +849,8 @@ public final class TestFixtures {
    * @return JedisPool configured for localhost
    */
   public static JedisPool createLocalhostJedisPool() {
-    return new JedisPool(new JedisPoolConfig(), "localhost");
+    // Jedis 4.x requires explicit host/port - single-string constructor interprets as URI
+    return new JedisPool(new JedisPoolConfig(), "localhost", 6379);
   }
 
   // ============================================================================

@@ -23,15 +23,14 @@ import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.redis.cluster.support.ScriptResults;
 import java.net.InetAddress;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.LongAdder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Tuple;
 import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.resps.Tuple;
 
 /**
  * Service that detects and cleans up orphaned agents from crashed instances.
@@ -351,7 +350,7 @@ public class OrphanCleanupService {
             break;
           }
 
-          Set<Tuple> all = jedis.zrangeByScoreWithScores(setName, 0, cutoffScore);
+          List<Tuple> all = jedis.zrangeByScoreWithScores(setName, 0, cutoffScore);
           if (all == null || all.isEmpty()) {
             if (log.isDebugEnabled()) {
               log.debug(
@@ -430,7 +429,7 @@ public class OrphanCleanupService {
             break;
           }
 
-          Set<Tuple> page = jedis.zrangeByScoreWithScores(setName, 0, cutoffScore, 0, pageSize);
+          List<Tuple> page = jedis.zrangeByScoreWithScores(setName, 0, cutoffScore, 0, pageSize);
           if (page == null || page.isEmpty()) {
             if (log.isDebugEnabled()) {
               log.debug(
@@ -510,7 +509,7 @@ public class OrphanCleanupService {
             break;
           }
 
-          Set<Tuple> page =
+          List<Tuple> page =
               jedis.zrangeByScoreWithScores(setName, 0, cutoffScore, offset, pageSize);
           if (page == null || page.isEmpty()) {
             if (log.isDebugEnabled()) {

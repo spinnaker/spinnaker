@@ -1582,7 +1582,7 @@ public class PrioritySchedulerIntegrationTest {
             // Check if at least one agent has been acquired
             try (Jedis jedis = jedisPool.getResource()) {
               // Check if any agent is in WORKING_SET
-              Set<String> working = jedis.zrange("working", 0, -1);
+              List<String> working = jedis.zrange("working", 0, -1);
               return working != null && !working.isEmpty();
             }
           },
@@ -1718,7 +1718,7 @@ public class PrioritySchedulerIntegrationTest {
             // Check if at least one agent has been acquired
             try (Jedis jedis = jedisPool.getResource()) {
               // Check if any agent is in WORKING_SET
-              Set<String> working = jedis.zrange("working", 0, -1);
+              List<String> working = jedis.zrange("working", 0, -1);
               return working != null && !working.isEmpty();
             }
           },
@@ -3579,16 +3579,16 @@ public class PrioritySchedulerIntegrationTest {
       // Poison agent should be rescheduled (not lost) - check both sets with deterministic polling
       String waitingSet = schedProps.getKeys().getWaitingSet();
       String workingSet = schedProps.getKeys().getWorkingSet();
-      java.util.concurrent.atomic.AtomicReference<Set<String>> waitingSnapshot =
-          new java.util.concurrent.atomic.AtomicReference<>(java.util.Collections.emptySet());
-      java.util.concurrent.atomic.AtomicReference<Set<String>> workingSnapshot =
-          new java.util.concurrent.atomic.AtomicReference<>(java.util.Collections.emptySet());
+      java.util.concurrent.atomic.AtomicReference<List<String>> waitingSnapshot =
+          new java.util.concurrent.atomic.AtomicReference<>(java.util.Collections.emptyList());
+      java.util.concurrent.atomic.AtomicReference<List<String>> workingSnapshot =
+          new java.util.concurrent.atomic.AtomicReference<>(java.util.Collections.emptyList());
       boolean poisonAgentFound =
           waitForCondition(
               () -> {
                 try (Jedis j = chaosJedisPool.getResource()) {
-                  Set<String> waiting = j.zrange(waitingSet, 0, -1);
-                  Set<String> working = j.zrange(workingSet, 0, -1);
+                  List<String> waiting = j.zrange(waitingSet, 0, -1);
+                  List<String> working = j.zrange(workingSet, 0, -1);
                   waitingSnapshot.set(waiting);
                   workingSnapshot.set(working);
                   return waiting.contains("poison-agent") || working.contains("poison-agent");
@@ -3769,8 +3769,8 @@ public class PrioritySchedulerIntegrationTest {
       try (Jedis j = chaosJedisPool.getResource()) {
         String waitingSet = schedProps.getKeys().getWaitingSet();
         String workingSet = schedProps.getKeys().getWorkingSet();
-        Set<String> waiting = j.zrange(waitingSet, 0, -1);
-        Set<String> working = j.zrange(workingSet, 0, -1);
+        List<String> waiting = j.zrange(waitingSet, 0, -1);
+        List<String> working = j.zrange(workingSet, 0, -1);
 
         // Sets should be disjoint
         Set<String> intersection = new java.util.HashSet<>(waiting);
@@ -3968,7 +3968,7 @@ public class PrioritySchedulerIntegrationTest {
             () -> {
               // Check if agents have been acquired (in WORKING_SET or active)
               try (Jedis jedis = jedisPool.getResource()) {
-                Set<String> working = jedis.zrange("working", 0, -1);
+                List<String> working = jedis.zrange("working", 0, -1);
                 return working != null && !working.isEmpty();
               }
             },
@@ -3991,7 +3991,7 @@ public class PrioritySchedulerIntegrationTest {
             () -> {
               // Check if agents have been requeued (not in WORKING_SET anymore)
               try (Jedis jedis = jedisPool.getResource()) {
-                Set<String> working = jedis.zrange("working", 0, -1);
+                List<String> working = jedis.zrange("working", 0, -1);
                 return working == null || working.isEmpty();
               }
             },
@@ -4920,7 +4920,7 @@ public class PrioritySchedulerIntegrationTest {
             // Check if failure processed: agent in waiting set, permit released
             try (Jedis j = edgeCasesJedisPool.getResource()) {
               String waitingSet = schedProps.getKeys().getWaitingSet();
-              Set<String> waiting = j.zrange(waitingSet, 0, -1);
+              List<String> waiting = j.zrange(waitingSet, 0, -1);
               return waiting != null
                   && waiting.contains("failing-agent")
                   && semaphore.availablePermits() == 1;
@@ -4933,7 +4933,7 @@ public class PrioritySchedulerIntegrationTest {
       // THEN: Failed agent preserved in WAITZ for retry
       try (Jedis j = edgeCasesJedisPool.getResource()) {
         String waitingSet = schedProps.getKeys().getWaitingSet();
-        Set<String> waiting = j.zrange(waitingSet, 0, -1);
+        List<String> waiting = j.zrange(waitingSet, 0, -1);
         assertThat(waiting).contains("failing-agent");
       }
       assertThat(semaphore.availablePermits()).isEqualTo(1);
@@ -6049,14 +6049,14 @@ public class PrioritySchedulerIntegrationTest {
         String WORKING_KEY = schedProps1.getKeys().getWorkingSet();
 
         // Wait for state to settle using polling helper
-        java.util.concurrent.atomic.AtomicReference<Set<String>> waitingRef =
+        java.util.concurrent.atomic.AtomicReference<List<String>> waitingRef =
             new java.util.concurrent.atomic.AtomicReference<>();
-        java.util.concurrent.atomic.AtomicReference<Set<String>> workingRef =
+        java.util.concurrent.atomic.AtomicReference<List<String>> workingRef =
             new java.util.concurrent.atomic.AtomicReference<>();
         waitForCondition(
             () -> {
-              Set<String> w = j.zrange(WAITING_KEY, 0, -1);
-              Set<String> wo = j.zrange(WORKING_KEY, 0, -1);
+              List<String> w = j.zrange(WAITING_KEY, 0, -1);
+              List<String> wo = j.zrange(WORKING_KEY, 0, -1);
               waitingRef.set(w);
               workingRef.set(wo);
               int completing1 = Math.max(0, acquisitionService1.getCompletionQueueSize());
@@ -6074,8 +6074,8 @@ public class PrioritySchedulerIntegrationTest {
             },
             2000,
             50);
-        Set<String> waiting = waitingRef.get();
-        Set<String> working = workingRef.get();
+        List<String> waiting = waitingRef.get();
+        List<String> working = workingRef.get();
 
         if (waiting == null || working == null) {
           waiting = j.zrange(WAITING_KEY, 0, -1);

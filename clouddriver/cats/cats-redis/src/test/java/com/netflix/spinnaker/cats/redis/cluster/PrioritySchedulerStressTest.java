@@ -380,8 +380,8 @@ class PrioritySchedulerStressTest {
       String WORKING_KEY = schedProps.getKeys().getWorkingSet();
       long endBy = System.currentTimeMillis() + 1000L;
       boolean settled = false;
-      java.util.Set<String> waiting = null;
-      java.util.Set<String> working = null;
+      java.util.List<String> waiting = null;
+      java.util.List<String> working = null;
       int registered = params.numAgents;
       int sumSets = 0;
       int completing = 0;
@@ -864,8 +864,8 @@ class PrioritySchedulerStressTest {
       String WORKING_KEY = schedProps.getKeys().getWorkingSet();
       long endBy = System.currentTimeMillis() + 1000L;
       boolean settled = false;
-      java.util.Set<String> waiting = null;
-      java.util.Set<String> working = null;
+      java.util.List<String> waiting = null;
+      java.util.List<String> working = null;
       int registered = params.numAgents;
       int sumSets = 0;
       int completing = 0;
