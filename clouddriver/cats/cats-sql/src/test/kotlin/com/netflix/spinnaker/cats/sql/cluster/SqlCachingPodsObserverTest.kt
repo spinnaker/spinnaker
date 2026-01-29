@@ -88,6 +88,10 @@ class SqlCachingPodsObserverTest : JUnit5Minutests {
         val pod0Observer = createObserver("pod-0", ModuloShardingStrategy(), AccountKeyExtractor())
         val pod1Observer = createObserver("pod-1", ModuloShardingStrategy(), AccountKeyExtractor())
 
+        // Refresh heartbeats so all observers see each other
+        pod0Observer.triggerHeartbeat()
+        pod1Observer.triggerHeartbeat()
+
         // Verify both pods see 2 pods
         expectThat(pod0Observer.getPodCount()).isEqualTo(2)
         expectThat(pod1Observer.getPodCount()).isEqualTo(2)
@@ -121,6 +125,10 @@ class SqlCachingPodsObserverTest : JUnit5Minutests {
         cleanupReplicaTable()
         val pod0Observer = createObserver("pod-a", JumpConsistentHashStrategy(), AccountKeyExtractor())
         val pod1Observer = createObserver("pod-b", JumpConsistentHashStrategy(), AccountKeyExtractor())
+
+        // Refresh heartbeats so all observers see each other
+        pod0Observer.triggerHeartbeat()
+        pod1Observer.triggerHeartbeat()
 
         // Verify both pods see 2 pods
         expectThat(pod0Observer.getPodCount()).isEqualTo(2)
