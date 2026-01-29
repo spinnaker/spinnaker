@@ -77,7 +77,7 @@ public class OrphanCleanupService {
       ThreadLocal.withInitial(java.util.ArrayList::new);
   private static final ThreadLocal<java.util.List<String>> REUSABLE_ATTEMPTED_INVALID =
       ThreadLocal.withInitial(java.util.ArrayList::new);
-  private static final ThreadLocal<java.util.List<redis.clients.jedis.Tuple>> REUSABLE_ORPHAN_LIST =
+  private static final ThreadLocal<java.util.List<Tuple>> REUSABLE_ORPHAN_LIST =
       ThreadLocal.withInitial(java.util.ArrayList::new);
   private static final ThreadLocal<java.util.Set<String>> REUSABLE_STRING_SET =
       ThreadLocal.withInitial(java.util.HashSet::new);
