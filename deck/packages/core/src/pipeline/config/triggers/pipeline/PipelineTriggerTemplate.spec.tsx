@@ -487,8 +487,8 @@ describe('<PipelineTriggerTemplate />', () => {
     // the old request can return after the new one and show the wrong executions.
     // Fix would involve something like tracking which request is current and ignoring stale responses.
     it('late-arriving response overwrites current state (known issue)', async () => {
-      let resolveFirst: (value: IExecution[]) => void;
-      let resolveSecond: (value: IExecution[]) => void;
+      let resolveFirst: (value: IExecution[]) => void = () => {};
+      let resolveSecond: (value: IExecution[]) => void = () => {};
 
       const firstPromise = new Promise<IExecution[]>((resolve) => {
         resolveFirst = resolve;
@@ -513,7 +513,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
       // Pipeline-2 response arrives first (as expected)
       const pipeline2Executions = [createExecution('exec-p2-1', 1)];
-      resolveSecond!(pipeline2Executions);
+      resolveSecond(pipeline2Executions);
       await Promise.resolve();
       wrapper.update();
 
@@ -521,7 +521,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
       // Pipeline-1 response arrives late - this is the problem
       const pipeline1Executions = [createExecution('exec-p1-1', 1)];
-      resolveFirst!(pipeline1Executions);
+      resolveFirst(pipeline1Executions);
       await Promise.resolve();
       wrapper.update();
 
@@ -531,7 +531,7 @@ describe('<PipelineTriggerTemplate />', () => {
     });
 
     it('maintains loading state until promise resolves', async () => {
-      let resolvePromise: (value: IExecution[]) => void;
+      let resolvePromise: (value: IExecution[]) => void = () => {};
       const pendingPromise = new Promise<IExecution[]>((resolve) => {
         resolvePromise = resolve;
       });
@@ -548,7 +548,7 @@ describe('<PipelineTriggerTemplate />', () => {
       expect(wrapper.state('executionsLoading')).toBe(true);
       expect(wrapper.find('Spinner').exists()).toBe(true);
 
-      resolvePromise!([execution1]);
+      resolvePromise([execution1]);
       await Promise.resolve();
       wrapper.update();
 
