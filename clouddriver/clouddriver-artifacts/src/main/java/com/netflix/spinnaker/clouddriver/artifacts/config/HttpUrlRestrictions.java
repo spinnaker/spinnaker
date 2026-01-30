@@ -31,11 +31,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-<<<<<<< HEAD
-=======
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
->>>>>>> 7c47379062 (fix(validation): Fixes some url validation handling on underscores (#7428))
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.util.ObjectUtils;
