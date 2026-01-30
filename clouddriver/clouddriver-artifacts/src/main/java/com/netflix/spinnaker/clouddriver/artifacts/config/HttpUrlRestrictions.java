@@ -31,7 +31,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
