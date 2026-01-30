@@ -1892,15 +1892,35 @@ public class AgentAcquisitionService {
     RunState runState = runStates.get(agentType);
 
     if (runState != null && runState.permitHeld.get()) {
-      // Agent is currently executing with a permit held - cancel future but DEFER activeAgents
-      // cleanup to the worker's finally block. This prevents permit_mismatch where we remove
-      // from activeAgents before the permit is released.
+      // Agent has a permit held. Two cases:
+      // 1. Worker started (runState.started=true): defer cleanup to worker's finally block
+      // 2. Worker NOT started: cancel() will prevent it from running, so WE must release permit
       if (future != null) {
-        future.cancel(false);
+        boolean cancelled = future.cancel(false);
+        if (cancelled && !runState.started.get()) {
+          // Task was queued but never started - worker will never run, so we must release permit
+          RunState removed = runStates.remove(agentType);
+          if (removed != null && removed.permitHeld.compareAndSet(true, false)) {
+            if (maxConcurrentSemaphoreRef != null) {
+              maxConcurrentSemaphoreRef.release();
+              log.debug("Released permit for {} (cancelled before worker started)", agentType);
+            }
+            // Also clean up activeAgents since worker won't do it
+            String removedScore = activeAgents.remove(agentType);
+            if (removedScore != null) {
+              activeAgentMapSize.decrementAndGet();
+            }
+          }
+        } else {
+          log.debug(
+              "Unregister deferred: agent {} worker already started, cleanup deferred to finally",
+              agentType);
+        }
+      } else {
+        log.debug(
+            "Unregister deferred: agent {} has permit held but no future, cleanup deferred",
+            agentType);
       }
-      log.debug(
-          "Unregister deferred: agent {} has permit held, cleanup deferred to worker finally",
-          agentType);
     } else {
       // No permit held - safe to remove from activeAgents immediately
       boolean wasActive = activeAgents.remove(agentType) != null;
