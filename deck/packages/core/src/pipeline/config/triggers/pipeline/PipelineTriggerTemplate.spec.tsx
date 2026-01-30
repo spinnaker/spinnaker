@@ -20,21 +20,18 @@ describe('<PipelineTriggerTemplate />', () => {
   let addBuildInfoSpy: jasmine.Spy;
 
   // Higher buildNumber = older execution (used for buildTime calculation)
-  const createExecution = (
-    id: string,
-    buildNumber: number,
-    overrides: Partial<IExecution> = {},
-  ): IExecution => ({
-    id,
-    application: 'test-app',
-    buildTime: Date.now() - buildNumber * 1000,
-    status: 'SUCCEEDED',
-    pipelineConfigId: 'source-pipeline-id',
-    name: 'Source Pipeline',
-    stages: [],
-    trigger: { type: 'manual' } as any,
-    ...overrides,
-  } as IExecution);
+  const createExecution = (id: string, buildNumber: number, overrides: Partial<IExecution> = {}): IExecution =>
+    ({
+      id,
+      application: 'test-app',
+      buildTime: Date.now() - buildNumber * 1000,
+      status: 'SUCCEEDED',
+      pipelineConfigId: 'source-pipeline-id',
+      name: 'Source Pipeline',
+      stages: [],
+      trigger: { type: 'manual' } as any,
+      ...overrides,
+    } as IExecution);
 
   const execution1 = createExecution('exec-1', 1); // most recent
   const execution2 = createExecution('exec-2', 2);
@@ -42,14 +39,15 @@ describe('<PipelineTriggerTemplate />', () => {
 
   // pipeline = source pipeline config ID that this trigger watches
   // parentPipelineId = specific execution ID to pre-select (used in re-runs)
-  const createPipelineTrigger = (pipelineId: string, parentPipelineId?: string): IPipelineTrigger => ({
-    enabled: true,
-    type: 'pipeline',
-    application: 'source-app',
-    pipeline: pipelineId,
-    parentPipelineId,
-    status: ['successful'],
-  } as IPipelineTrigger);
+  const createPipelineTrigger = (pipelineId: string, parentPipelineId?: string): IPipelineTrigger =>
+    ({
+      enabled: true,
+      type: 'pipeline',
+      application: 'source-app',
+      pipeline: pipelineId,
+      parentPipelineId,
+      status: ['successful'],
+    } as IPipelineTrigger);
 
   // The component MUTATES command.extraFields and command.triggerInvalid directly.
   // This is the interface contract with ManualPipelineExecutionModal.
@@ -94,9 +92,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       expect(wrapper.find('Spinner').exists()).toBe(true);
     });
@@ -107,9 +103,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       // await Promise.resolve() flushes the microtask queue, allowing the
       // component's promise callbacks to execute before we check state
@@ -125,9 +119,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -142,9 +134,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -165,9 +155,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const command = createCommand(trigger);
 
       // mount() needed to access instance methods and component state
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -206,9 +194,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -230,9 +216,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -253,9 +237,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id', 'non-existent-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -270,9 +252,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id', 'exec-2');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -306,9 +286,7 @@ describe('<PipelineTriggerTemplate />', () => {
 
       const command = createCommand(trigger);
 
-      shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       // The component MUTATES the trigger object to populate these fields
       expect(trigger.application).toBe('parent-app');
@@ -326,9 +304,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -351,9 +327,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const command = createCommand(trigger);
       command.triggerInvalid = true; // Start with invalid
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -369,9 +343,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -393,13 +365,13 @@ describe('<PipelineTriggerTemplate />', () => {
     it('handles trigger with undefined pipeline gracefully', async () => {
       getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
 
-      const trigger = {
+      const trigger = ({
         enabled: true,
         type: 'pipeline',
         application: 'source-app',
         pipeline: undefined,
         status: ['successful'],
-      } as unknown as IPipelineTrigger;
+      } as unknown) as IPipelineTrigger;
 
       const command = createCommand(trigger);
 
@@ -417,9 +389,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -441,9 +411,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -464,21 +432,14 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
 
       const options = wrapper.find('TetheredSelect').prop('options') as Array<{ value: string }>;
       expect(options.length).toBe(4);
-      expect(options.map((o) => o.value)).toEqual([
-        'exec-success',
-        'exec-failed',
-        'exec-running',
-        'exec-canceled',
-      ]);
+      expect(options.map((o) => o.value)).toEqual(['exec-success', 'exec-failed', 'exec-running', 'exec-canceled']);
     });
   });
 
@@ -502,9 +463,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       // User switches to pipeline-2 before pipeline-1 request finishes
       const newTrigger = createPipelineTrigger('pipeline-2');
@@ -541,9 +500,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       expect(wrapper.state('executionsLoading')).toBe(true);
       expect(wrapper.find('Spinner').exists()).toBe(true);
@@ -582,9 +539,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -608,10 +563,7 @@ describe('<PipelineTriggerTemplate />', () => {
     });
 
     it('loads new executions when pipeline changes', async () => {
-      const pipeline1Executions = [
-        createExecution('p1-exec-1', 1),
-        createExecution('p1-exec-2', 2),
-      ];
+      const pipeline1Executions = [createExecution('p1-exec-1', 1), createExecution('p1-exec-2', 2)];
 
       const pipeline2Executions = [
         createExecution('p2-exec-1', 1),
@@ -627,9 +579,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -659,9 +609,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -684,9 +632,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -728,9 +674,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('pipeline-1');
       const command = createCommand(trigger);
 
-      const wrapper = mount(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -756,9 +700,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -768,18 +710,14 @@ describe('<PipelineTriggerTemplate />', () => {
     });
 
     it('renders all executions as dropdown options', async () => {
-      const manyExecutions = Array.from({ length: 15 }, (_, i) =>
-        createExecution(`exec-${i}`, i),
-      );
+      const manyExecutions = Array.from({ length: 15 }, (_, i) => createExecution(`exec-${i}`, i));
 
       getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(manyExecutions));
 
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
@@ -795,9 +733,7 @@ describe('<PipelineTriggerTemplate />', () => {
       const trigger = createPipelineTrigger('source-pipeline-id');
       const command = createCommand(trigger);
 
-      const wrapper = shallow(
-        <PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />,
-      );
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
 
       await Promise.resolve();
       wrapper.update();
