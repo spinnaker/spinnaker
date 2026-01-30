@@ -105,6 +105,18 @@ public interface OrcaService {
       @Body String ignored);
 
   @Headers("Accept: application/json")
+  @PUT("/admin/forceCancelExecution")
+  Call<Map> forceCancelPipeline(
+      @Query("executionId") String executionId,
+      @Query("executionType") String executionType,
+      @Query("canceledBy") String canceledBy);
+
+  @Headers("Accept: application/json")
+  @POST("/admin/queue/hydrate")
+  Call<Map> rehydrateExecution(
+      @Query("executionId") String executionId, @Query("dryRun") boolean dryRun);
+
+  @Headers("Accept: application/json")
   @PUT("pipelines/{id}/pause")
   Call<Void> pausePipeline(@Path("id") String id, @Body String ignored);
 
