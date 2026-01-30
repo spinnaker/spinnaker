@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.build
 
+import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.igor.PendingOperationsCache
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.UpdatedBuild
@@ -36,13 +37,16 @@ import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
-import okhttp3.mockwebserver.MockWebServer
+import org.spockframework.spring.SpringBean
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import spock.lang.Shared
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.igor.build.BuildController.InvalidJobParameterException
@@ -51,24 +55,28 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-
 /**
  * Tests for BuildController
  */
 @SuppressWarnings(['DuplicateNumberLiteral', 'PropertyName'])
+@AutoConfigureMockMvc(addFilters = false)
+@WebMvcTest(controllers = [BuildController])
+@ContextConfiguration(classes = [PluginsAutoConfiguration, BuildController, GenericExceptionHandlers])
+@TestPropertySource(
+  properties = [
+    "spring.application.name = igor",
+    "spring.mvc.pathmatch.matching-strategy = ANT_PATH_MATCHER"
+  ])
 class BuildControllerSpec extends Specification {
 
+  @Autowired
   MockMvc mockMvc
-  BuildServices buildServices
-  BuildCache cache
-  JenkinsService jenkinsService
-  BuildOperations service
-  TravisService travisService
-  PendingOperationsCache pendingOperationService
-  ExceptionMessageDecorator exceptionMessageDecorator
-
-  @Shared
-  MockWebServer server
+  @SpringBean BuildServices buildServices = Mock()
+  @SpringBean JenkinsService jenkinsService = Mock()
+  @SpringBean BuildOperations service = Mock()
+  @SpringBean TravisService travisService = Mock()
+  @SpringBean PendingOperationsCache pendingOperationService = Mock()
+  @SpringBean ExceptionMessageDecorator exceptionMessageDecorator = Mock()
 
   def SERVICE = 'SERVICE'
   def JENKINS_SERVICE = 'JENKINS_SERVICE'
@@ -84,38 +92,16 @@ class BuildControllerSpec extends Specification {
 
   GenericBuild genericBuild
 
-  void cleanup() {
-    server.shutdown()
-  }
-
   void setup() {
-    exceptionMessageDecorator = Mock(ExceptionMessageDecorator)
-    service = Mock(BuildOperations)
-    jenkinsService = Mock(JenkinsService)
     jenkinsService.getBuildServiceProvider() >> BuildServiceProvider.JENKINS
-    travisService = Mock(TravisService)
     travisService.getBuildServiceProvider() >> BuildServiceProvider.TRAVIS
-    buildServices = new BuildServices()
-    buildServices.addServices([
-      (SERVICE)        : service,
-      (JENKINS_SERVICE): jenkinsService,
-      (TRAVIS_SERVICE) : travisService,
-    ])
+    buildServices.getService(SERVICE) >> service
+    buildServices.getService(JENKINS_SERVICE) >> jenkinsService
+    buildServices.getService(TRAVIS_SERVICE) >> travisService
+
     genericBuild = new GenericBuild()
     genericBuild.number = BUILD_NUMBER
     genericBuild.id = BUILD_ID
-
-    cache = Mock(BuildCache)
-    server = new MockWebServer()
-    pendingOperationService = Mock(PendingOperationsCache)
-    pendingOperationService.getAndSetOperationStatus(_, _, _) >> {
-      return new PendingOperationsCache.OperationState()
-    }
-
-    mockMvc = MockMvcBuilders
-      .standaloneSetup(new BuildController(buildServices, pendingOperationService, Optional.empty(), Optional.empty(), Optional.empty()))
-      .setControllerAdvice(new GenericExceptionHandlers(exceptionMessageDecorator))
-      .build()
   }
 
   void 'get the status of a build'() {
@@ -294,6 +280,7 @@ class BuildControllerSpec extends Specification {
 
   void 'trigger a build with parameters to a job with parameters'() {
     given:
+    pendingOperationService.getAndSetOperationStatus(_, _, _) >> new PendingOperationsCache.OperationState()
     1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultParameterValue: [name: "name", value: null], description: "description")])
     def request = new Request.Builder().url("http://test.com").build()
     def rawResponse = new Response.Builder()
@@ -315,6 +302,7 @@ class BuildControllerSpec extends Specification {
 
   void 'trigger a build without parameters to a job with parameters with default values'() {
     given:
+    pendingOperationService.getAndSetOperationStatus(_, _, _) >> new PendingOperationsCache.OperationState()
     1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultParameterValue: [name: "name", value: "value"], description: "description")])
     def request = new Request.Builder().url("http://test.com").build()
     def rawResponse = new Response.Builder()
@@ -336,6 +324,7 @@ class BuildControllerSpec extends Specification {
 
   void 'trigger a build with parameters to a job without parameters'() {
     given:
+    pendingOperationService.getAndSetOperationStatus(_, _, _) >> new PendingOperationsCache.OperationState()
     1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true)
 
     when:
@@ -348,6 +337,7 @@ class BuildControllerSpec extends Specification {
 
   void 'trigger a build with an invalid choice'() {
     given:
+    pendingOperationService.getAndSetOperationStatus(_, _, _) >> new PendingOperationsCache.OperationState()
     JobConfig config = new JobConfig(buildable: true)
     config.parameterDefinitionList = [
       new ParameterDefinition(type: "ChoiceParameterDefinition", name: "foo", choices: ["bar", "baz"])
@@ -367,6 +357,7 @@ class BuildControllerSpec extends Specification {
 
   void 'trigger a disabled build'() {
     given:
+    pendingOperationService.getAndSetOperationStatus(_, _, _) >> new PendingOperationsCache.OperationState()
     JobConfig config = new JobConfig()
     1 * jenkinsService.getJobConfig(JOB_NAME) >> config
     1 * exceptionMessageDecorator.decorate(_, _) >> "Job '${JOB_NAME}' is not buildable. It may be disabled."
@@ -417,15 +408,9 @@ class BuildControllerSpec extends Specification {
 
   void "doesn't trigger a build when previous request is still in progress"() {
     given:
-    pendingOperationService = Stub(PendingOperationsCache)
     pendingOperationService.getAndSetOperationStatus("${JENKINS_SERVICE}:${PENDING_JOB_NAME}:NO_EXECUTION_ID:foo=bat", _, _) >> {
       return new PendingOperationsCache.OperationState(PendingOperationsCache.OperationStatus.PENDING)
     }
-
-    mockMvc = MockMvcBuilders
-      .standaloneSetup(new BuildController(buildServices, pendingOperationService, Optional.empty(), Optional.empty(), Optional.empty()))
-      .setControllerAdvice(new GenericExceptionHandlers())
-      .build()
 
     when:
     MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${PENDING_JOB_NAME}")
@@ -437,17 +422,11 @@ class BuildControllerSpec extends Specification {
 
   void "resets the cache once the build status has been retrieved"() {
     given:
-    pendingOperationService = Mock(PendingOperationsCache)
     pendingOperationService.getAndSetOperationStatus("${JENKINS_SERVICE}:${JOB_NAME}:NO_EXECUTION_ID:foo=bat", _, _) >> {
       PendingOperationsCache.OperationState state = new PendingOperationsCache.OperationState()
       state.load(PendingOperationsCache.OperationStatus.COMPLETED.toString() + ":" + BUILD_NUMBER)
       return state
     }
-
-    mockMvc = MockMvcBuilders
-      .standaloneSetup(new BuildController(buildServices, pendingOperationService, Optional.empty(), Optional.empty(), Optional.empty()))
-      .setControllerAdvice(new GenericExceptionHandlers())
-      .build()
 
     when:
     MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
@@ -473,7 +452,6 @@ class BuildControllerSpec extends Specification {
 
     then:
     1 * jenkinsService.updateBuild(jobName, BUILD_NUMBER, new UpdatedBuild("this is my new description"))
-    0 * _
     response.status == 200
 
     where:

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.configserver.autoconfig;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Condition;

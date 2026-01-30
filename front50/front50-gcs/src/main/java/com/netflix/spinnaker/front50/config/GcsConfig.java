@@ -37,6 +37,7 @@ import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collections;
@@ -50,7 +51,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
-import rx.schedulers.Schedulers;
 
 @Configuration
 @ConditionalOnExpression("${spinnaker.gcs.enabled:false}")

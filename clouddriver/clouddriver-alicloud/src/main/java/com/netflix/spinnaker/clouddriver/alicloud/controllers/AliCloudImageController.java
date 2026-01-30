@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.alicloud.cache.Keys;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import groovy.util.logging.Slf4j;
 import java.util.*;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.igor.tasks;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -35,7 +36,6 @@ import lombok.RequiredArgsConstructor;
 import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -47,7 +47,7 @@ public class StartGoogleCloudBuildTask implements Task {
 
   private final RetrySupport retrySupport = new RetrySupport();
   private static final ThreadLocal<Yaml> yamlParser =
-      ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
+      ThreadLocal.withInitial(() -> YamlHelper.newYamlSafeConstructor());
 
   @Override
   @Nonnull

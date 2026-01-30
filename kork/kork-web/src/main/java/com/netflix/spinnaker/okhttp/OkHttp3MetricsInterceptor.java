@@ -18,8 +18,8 @@ package com.netflix.spinnaker.okhttp;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
+import jakarta.inject.Provider;
 import java.io.IOException;
-import javax.inject.Provider;
 import okhttp3.Response;
 
 public class OkHttp3MetricsInterceptor extends MetricsInterceptor implements okhttp3.Interceptor {

@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.clouddriver.config;
 
 import com.netflix.spinnaker.kork.annotations.Alpha;
+import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;

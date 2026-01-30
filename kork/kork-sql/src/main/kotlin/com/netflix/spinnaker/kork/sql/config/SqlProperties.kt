@@ -18,9 +18,9 @@ package com.netflix.spinnaker.kork.sql.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.validation.annotation.Validated
 import java.sql.Connection
-import javax.validation.Constraint
-import javax.validation.ConstraintValidator
-import javax.validation.ConstraintValidatorContext
+import jakarta.validation.Constraint
+import jakarta.validation.ConstraintValidator
+import jakarta.validation.ConstraintValidatorContext
 import kotlin.reflect.KClass
 
 /**

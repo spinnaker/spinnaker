@@ -25,6 +25,7 @@ import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.reactivex.rxjava3.core.Scheduler;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import rx.Scheduler;
 
 public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implements PipelineDAO {
   private static final Logger log = LoggerFactory.getLogger(DefaultPipelineDAO.class);

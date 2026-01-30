@@ -20,12 +20,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
-import org.yaml.snakeyaml.representer.Representer;
 
 public class AnsiFormatUtils {
   private static ThreadLocal<Yaml> yamlParser =
@@ -55,7 +54,7 @@ public class AnsiFormatUtils {
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
     options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
 
-    return new Yaml(new SafeConstructor(), new Representer(), options);
+    return YamlHelper.newYamlDumperOptions(options);
   }
 
   private static ObjectMapper getObjectMapper() {

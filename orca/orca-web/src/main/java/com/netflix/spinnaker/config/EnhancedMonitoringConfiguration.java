@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
-import rx.schedulers.Schedulers;
 
 @Configuration
 @EnableConfigurationProperties(EnhancedMonitoringConfigurationProperties.class)
@@ -85,8 +85,7 @@ public class EnhancedMonitoringConfiguration {
                         .setStatuses(ExecutionStatus.RUNNING))
                 .subscribeOn(Schedulers.io())
                 .toList()
-                .toBlocking()
-                .single();
+                .blockingGet();
         orchestrationCountPerApplication.get(application).set(executions.size());
       } catch (Exception e) {
         log.error(
