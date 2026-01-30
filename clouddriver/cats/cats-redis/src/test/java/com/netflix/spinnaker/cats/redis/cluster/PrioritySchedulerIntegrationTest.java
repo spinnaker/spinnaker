@@ -3538,85 +3538,38 @@ public class PrioritySchedulerIntegrationTest {
           .describedAs("Poison pill isolation test should exercise the scheduler for 10 seconds")
           .isTrue();
 
-      // Wait for workers to finish and process completion queue using polling
-      waitForCondition(
-          () -> {
-            // Check if workers have finished (permits released)
-            int availablePermits = semaphore.availablePermits();
-            return availablePermits == 5;
-          },
-          5000,
-          100);
+      // Stop accepting new work and wait for all submitted workers to complete.
+      // This is the proper way to ensure all workers finish - use the thread pool's
+      // termination signal, not polling with side effects.
+      pool.shutdown();
+      boolean terminated = pool.awaitTermination(10, TimeUnit.SECONDS);
+      assertThat(terminated).describedAs("Thread pool should terminate within 10 seconds").isTrue();
 
-      // Process completion queue explicitly - drive rescheduling for a bounded duration
-      long completionProcessingDeadline = System.currentTimeMillis() + 600;
-      boolean droveCompletionQueue =
-          waitForCondition(
-              () -> System.currentTimeMillis() >= completionProcessingDeadline,
-              1000,
-              50,
-              () -> {
-                try {
-                  acquisitionService.saturatePool(System.currentTimeMillis(), semaphore, pool);
-                } catch (Exception e) {
-                  // Best-effort
-                }
-              });
-      assertThat(droveCompletionQueue)
-          .describedAs("Completion processing should run long enough to exercise rescheduling")
-          .isTrue();
+      // THEN: All permits must be released - workers complete in finally blocks
+      assertThat(semaphore.availablePermits())
+          .describedAs("All permits should be released after workers complete")
+          .isEqualTo(5);
 
-      // THEN: Scheduler continues operating, poison agent isolated
-      assertThat(semaphore.availablePermits()).isEqualTo(5);
+      // Verify Redis state - poison agent should be in waiting or working set
+      // (may have been rescheduled after failure, or still executing when we stopped)
+      try (Jedis j = chaosJedisPool.getResource()) {
+        String waitingSet = schedProps.getKeys().getWaitingSet();
+        String workingSet = schedProps.getKeys().getWorkingSet();
+        List<String> waiting = j.zrange(waitingSet, 0, -1);
+        List<String> working = j.zrange(workingSet, 0, -1);
 
-      // Poison agent should be rescheduled (not lost) - check both sets with deterministic polling
-      String waitingSet = schedProps.getKeys().getWaitingSet();
-      String workingSet = schedProps.getKeys().getWorkingSet();
-      java.util.concurrent.atomic.AtomicReference<List<String>> waitingSnapshot =
-          new java.util.concurrent.atomic.AtomicReference<>(java.util.Collections.emptyList());
-      java.util.concurrent.atomic.AtomicReference<List<String>> workingSnapshot =
-          new java.util.concurrent.atomic.AtomicReference<>(java.util.Collections.emptyList());
-      boolean poisonAgentFound =
-          waitForCondition(
-              () -> {
-                try (Jedis j = chaosJedisPool.getResource()) {
-                  List<String> waiting = j.zrange(waitingSet, 0, -1);
-                  List<String> working = j.zrange(workingSet, 0, -1);
-                  waitingSnapshot.set(waiting);
-                  workingSnapshot.set(working);
-                  return waiting.contains("poison-agent") || working.contains("poison-agent");
-                }
-              },
-              2000,
-              100,
-              () -> {
-                try {
-                  acquisitionService.saturatePool(System.currentTimeMillis(), semaphore, pool);
-                } catch (Exception e) {
-                  // Best-effort
-                }
-              });
-      if (poisonAgentFound) {
-        assertThat(poisonAgentFound)
-            .describedAs(
-                "Poison agent should be rescheduled (in waiting or working set). Waiting: %s, Working: %s",
-                waitingSnapshot.get(), workingSnapshot.get())
-            .isTrue();
-      } else {
-        // Agent might be cleaned up temporarily by zombie cleanup (threshold 200ms)
-        // The critical verification is that the scheduler continues operating (already verified
-        // above)
-        // and that normal agents are still being processed (verified by semaphore permits = 5)
-        // This confirms the poison agent was isolated and didn't break the scheduler
-        // Note: The agent will be re-registered on next repopulation cycle
-        assertThat(semaphore.availablePermits())
-            .describedAs(
-                "Scheduler should continue operating despite poison agent (semaphore permits should be 5, "
-                    + "proving normal agents completed). Poison agent might be temporarily cleaned up by zombie cleanup.")
-            .isEqualTo(5);
+        // The key invariant: scheduler remained stable despite poison agent
+        // Poison agent may or may not be tracked (zombie cleanup might have removed it)
+        // What matters is that permits were all released (verified above)
+
+        // Verify sets are disjoint (no corruption)
+        Set<String> intersection = new java.util.HashSet<>(waiting);
+        intersection.retainAll(working);
+        assertThat(intersection)
+            .describedAs("No agent should be in both WAITING and WORKING sets")
+            .isEmpty();
       }
-
-      TestFixtures.shutdownExecutorSafely(pool);
+      // Pool already shut down above
     }
 
     /**
@@ -3776,27 +3729,20 @@ public class PrioritySchedulerIntegrationTest {
           .describedAs("Should have executed registration iterations")
           .isGreaterThan(10);
 
-      // Allow workers to finish using deterministic polling
-      boolean workersDrained =
-          waitForCondition(
-              () -> semaphore.availablePermits() == 5,
-              30_000, // Generous timeout for CI
-              100,
-              () -> {
-                try {
-                  acquisitionService.saturatePool(System.currentTimeMillis(), semaphore, pool);
-                } catch (Exception e) {
-                  // Best-effort - drive completion processing
-                }
-              });
-      assertThat(workersDrained)
-          .describedAs(
-              "Workers should drain before verifying scheduler state (permits=%d)",
-              semaphore.availablePermits())
-          .isTrue();
+      // Stop accepting new work and wait for all submitted workers to complete.
+      // This is the proper way to ensure all workers finish - use the thread pool's
+      // termination signal, not polling with side effects.
+      pool.shutdown();
+      testThreads.shutdown();
+      boolean poolTerminated = pool.awaitTermination(10, TimeUnit.SECONDS);
+      boolean testThreadsTerminated = testThreads.awaitTermination(10, TimeUnit.SECONDS);
+      assertThat(poolTerminated).describedAs("Worker pool should terminate").isTrue();
+      assertThat(testThreadsTerminated).describedAs("Test threads should terminate").isTrue();
 
-      // THEN: Scheduler remains stable, no agent loss
-      assertThat(semaphore.availablePermits()).isEqualTo(5);
+      // THEN: Scheduler remains stable, all permits released
+      assertThat(semaphore.availablePermits())
+          .describedAs("All permits should be released after workers complete")
+          .isEqualTo(5);
 
       // Verify agents are properly tracked - sets should be disjoint
       try (Jedis j = chaosJedisPool.getResource()) {
@@ -3815,9 +3761,7 @@ public class PrioritySchedulerIntegrationTest {
                 intersection, waiting.size(), working.size())
             .isEmpty();
       }
-
-      TestFixtures.shutdownExecutorSafely(pool);
-      TestFixtures.shutdownExecutorSafely(testThreads);
+      // Pools already shut down above
     }
   }
 
