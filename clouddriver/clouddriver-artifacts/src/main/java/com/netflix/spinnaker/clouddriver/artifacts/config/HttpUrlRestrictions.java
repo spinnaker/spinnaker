@@ -32,8 +32,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
+import org.springframework.util.ObjectUtils;
 
 /**
  * A set of restrictions and validations of the restrictions. These in combination provide some
@@ -154,9 +156,9 @@ public class HttpUrlRestrictions {
         .noneMatch(restriction -> new IpAddressMatcher(restriction).matches(host));
   }
 
-  public URI validateURI(URI url) throws IllegalArgumentException {
+  public URI validateURI(HttpUrl url) throws IllegalArgumentException {
     try {
-      URI u = url.normalize();
+      URI u = url.uri().normalize();
       if (!u.isAbsolute()) {
         throw new IllegalArgumentException("non absolute URI " + url);
       }
@@ -166,21 +168,9 @@ public class HttpUrlRestrictions {
 
       // fallback to `getAuthority()` in the event that the hostname contains an underscore and
       // `getHost()` returns null
-      String host = u.getHost();
-      if (host == null) {
-        String authority = u.getAuthority();
-        if (authority != null) {
-          // Don't attempt to colon-substring ipv6 addresses
-          if (InetAddresses.isInetAddress(authority)) {
-            host = authority;
-          } else {
-            int portIndex = authority.indexOf(":");
-            host = (portIndex > -1) ? authority.substring(0, portIndex) : authority;
-          }
-        }
-      }
+      String host = url.host();
 
-      if (host == null || host.isEmpty()) {
+      if (ObjectUtils.isEmpty(host)) {
         throw new IllegalArgumentException("Unable to determine host for the url provided " + url);
       }
 
@@ -190,9 +180,6 @@ public class HttpUrlRestrictions {
       }
 
       // Strip ipv6 brackets if present
-      // InetAddress.getHost() retains them, but other code doesn't quite understand
-      host = host.replace("[", "").replace("]", "");
-
       if (InetAddresses.isInetAddress(host) && rejectVerbatimIps) {
         throw new IllegalArgumentException("Verbatim IP addresses are not allowed");
       }
