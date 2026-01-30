@@ -166,6 +166,39 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
         'https://[fd12:3456:789a:1::1]:8080'
     ]
   }
+  @Unroll
+  def 'validate when authority is used to try to bypass validation'() {
+    given:
+    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("example.com").build())
+
+    when:
+    config.validateURI(uri)
+
+    then:
+    thrown(IllegalArgumentException.class)
+
+    where:
+    uri << [
+        'https://example.com:badpassword@host_with_underscore.com'
+    ]
+  }
+  @Unroll
+  def 'validate when authority is used to try to bypass validation'() {
+    given:
+    UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("host_with_underscore.com").build())
+
+    when:
+    URI validatedUri = config.validateURI(uri)
+
+    then:
+    noExceptionThrown()
+    validatedUri
+
+    where:
+    uri << [
+        'https://example.com:badpassword@host_with_underscore.com'
+    ]
+  }
 
   @Unroll
   def 'allows verbatim IP addresses if configured'() {
@@ -186,8 +219,10 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
         'https://192.168.0.1',
         'http://172.16.0.1',
         'http://10.0.0.1',
-        'https://fd12:3456:789a:1::1',
-        'https://fc12:3456:789a:1::1',
+      // IPV6 when using HttpUrl - which we use for validation - requires the ipv6 raw addresses to be quoted correctly.  OTherwise you get into some dangerous parsing issues
+      'https://example.com:badpassword@[fd12:3456:789a:1::1]:8080',
+//        'https://fd12:3456:789a:1::1',
+//        'https://fc12:3456:789a:1::1',
         'https://[fd12:3456:789a:1::1]:8080',
         'https://[fc12:3456:789a:1::1]:8080'
     ]
