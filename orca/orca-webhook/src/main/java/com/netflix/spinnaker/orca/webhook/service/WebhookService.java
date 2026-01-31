@@ -29,8 +29,10 @@ import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.pipeline.WebhookStage;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -198,6 +200,10 @@ public class WebhookService {
   public RestTemplateData getRestTemplateData(
       WebhookTaskType taskType, StageExecution stageExecution) {
     String destinationUrl = null;
+    var sensitiveHeaders =
+        findPreconfiguredWebhook(stageExecution.getType())
+            .map(WebhookProperties.PreconfiguredWebhook::getSensitiveHeaders)
+            .orElse(new HashMap<>());
     for (RestTemplateProvider provider : restTemplateProviders) {
       WebhookStage.StageData stageData =
           (WebhookStage.StageData) stageExecution.mapTo(provider.getStageDataType());
@@ -218,10 +224,14 @@ public class WebhookService {
               : stageData.customHeaders;
 
       if (webhookAccountProcessor.isPresent()) {
+        Map<String, Object> combinedHeaders =
+            combineCustomAndSensitiveHeaders(headersMap, sensitiveHeaders);
         headers =
-            webhookAccountProcessor.get().getHeaders(stageData.account, accountDetails, headersMap);
+            webhookAccountProcessor
+                .get()
+                .getHeaders(stageData.account, accountDetails, combinedHeaders);
       } else {
-        headers = buildHttpHeaders(headersMap);
+        headers = buildHttpHeaders(headersMap, sensitiveHeaders);
       }
       HttpMethod httpMethod = HttpMethod.GET;
       HttpEntity<Object> payloadEntity = null;
@@ -290,6 +300,12 @@ public class WebhookService {
         .collect(Collectors.toList());
   }
 
+  public Optional<WebhookProperties.PreconfiguredWebhook> findPreconfiguredWebhook(String type) {
+    return webhookProperties.getPreconfigured().stream()
+        .filter(webhook -> Objects.equals(type, webhook.getType()) && webhook.isEnabled())
+        .findFirst();
+  }
+
   /**
    * Return the allow list entry corresponding to the given httpMethod + uri, or empty if there's no
    * corresponding entry. If the allowed requests is disabled altogether, return empty.
@@ -346,6 +362,28 @@ public class WebhookService {
   }
 
   /**
+   * Combine custom headers with sensitive headers. Sensitive headers are added to the combined map
+   * only if they are not null and not empty. Note that sensitive headers take precedence over
+   * custom headers in case of key collisions.
+   *
+   * @param customHeaders the custom headers map
+   * @param sensitiveHeaders the sensitive headers map
+   * @return a combined map of headers
+   */
+  private Map<String, Object> combineCustomAndSensitiveHeaders(
+      Map<String, Object> customHeaders, Map<String, List<String>> sensitiveHeaders) {
+    Map<String, Object> combinedHeaders =
+        new HashMap<>(customHeaders != null ? customHeaders : Map.of());
+    sensitiveHeaders.forEach(
+        (key, value) -> {
+          if (value != null && !value.isEmpty()) {
+            combinedHeaders.put(key, value);
+          }
+        });
+    return combinedHeaders;
+  }
+
+  /**
    * Combine additional headers that ProvidedIdRequestFilter put in the MDC with custom headers.
    * Note that headers from the MDC take precedence, in a strict way. In other words, headers
    * specified as additional ONLY come from the MDC. If they're present in customHeaders, they're
@@ -382,10 +420,18 @@ public class WebhookService {
     return combinedHeaders;
   }
 
-  private static HttpHeaders buildHttpHeaders(Map<String, Object> headersMap) {
+  private static HttpHeaders buildHttpHeaders(
+      Map<String, Object> customHeaders, Map<String, List<String>> sensitiveHeaders) {
     HttpHeaders headers = new HttpHeaders();
-    if (headersMap != null) {
-      headersMap.forEach(
+    addHeadersIfNotBlacklisted(customHeaders, headers);
+    addHeadersIfNotBlacklisted(new HashMap<>(sensitiveHeaders), headers);
+    return headers;
+  }
+
+  private static void addHeadersIfNotBlacklisted(
+      Map<String, Object> customHeaders, HttpHeaders headers) {
+    if (customHeaders != null) {
+      customHeaders.forEach(
           (key, value) -> {
             if (headerDenyList.contains(key.toUpperCase())) {
               return;
@@ -397,7 +443,6 @@ public class WebhookService {
             }
           });
     }
-    return headers;
   }
 
   public enum WebhookTaskType {
