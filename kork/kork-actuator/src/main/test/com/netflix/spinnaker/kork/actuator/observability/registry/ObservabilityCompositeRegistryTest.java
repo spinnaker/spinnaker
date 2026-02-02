@@ -23,10 +23,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,5 +76,56 @@ public class ObservabilityCompositeRegistryTest {
         List.of(customizer));
 
     verify(customizer, times(2)).customize(any(), any());
+  }
+
+  @Test
+  public void test_that_each_supplier_is_invoked_exactly_once() {
+    AtomicInteger invocationCount = new AtomicInteger(0);
+    Supplier<RegistryConfigWrapper> countingSupplier =
+        () -> {
+          invocationCount.incrementAndGet();
+          return RegistryConfigWrapper.builder()
+              .meterRegistry(new SimpleMeterRegistry())
+              .meterRegistryConfig(new MeterRegistryConfig())
+              .build();
+        };
+
+    new ObservabilityCompositeRegistry(Clock.SYSTEM, List.of(countingSupplier), List.of());
+
+    assertEquals(
+        "Supplier should be called exactly once to avoid duplicate registry creation",
+        1,
+        invocationCount.get());
+  }
+
+  @Test
+  public void test_that_multiple_suppliers_are_each_invoked_exactly_once() {
+    AtomicInteger supplier1Count = new AtomicInteger(0);
+    AtomicInteger supplier2Count = new AtomicInteger(0);
+
+    Supplier<RegistryConfigWrapper> supplier1 =
+        () -> {
+          supplier1Count.incrementAndGet();
+          return RegistryConfigWrapper.builder()
+              .meterRegistry(new SimpleMeterRegistry())
+              .meterRegistryConfig(new MeterRegistryConfig())
+              .build();
+        };
+
+    Supplier<RegistryConfigWrapper> supplier2 =
+        () -> {
+          supplier2Count.incrementAndGet();
+          return RegistryConfigWrapper.builder()
+              .meterRegistry(new LoggingMeterRegistry())
+              .meterRegistryConfig(new MeterRegistryConfig())
+              .build();
+        };
+
+    var composite =
+        new ObservabilityCompositeRegistry(Clock.SYSTEM, List.of(supplier1, supplier2), List.of());
+
+    assertEquals("First supplier should be called exactly once", 1, supplier1Count.get());
+    assertEquals("Second supplier should be called exactly once", 1, supplier2Count.get());
+    assertEquals("Composite should have 2 registries", 2, composite.getRegistries().size());
   }
 }

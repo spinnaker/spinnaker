@@ -363,4 +363,91 @@ public class ObservabilityConfigurationContextTest {
           assertTrue(hasProm && hasDd);
         });
   }
+
+  @Test
+  public void test_prometheus_endpoint_not_created_when_prometheus_disabled() {
+    ApplicationContextRunner runner =
+        new ApplicationContextRunner()
+            .withConfiguration(
+                AutoConfigurations.of(
+                    ConfigurationPropertiesAutoConfiguration.class,
+                    MetricsAutoConfiguration.class,
+                    CompositeMeterRegistryAutoConfiguration.class))
+            .withUserConfiguration(ObservabilityConfiguration.class)
+            .withPropertyValues(
+                "observability.enabled=true",
+                "spring.application.name=test-service",
+                "observability.config.metrics.prometheus.enabled=false",
+                "observability.config.metrics.datadog.enabled=true",
+                "observability.config.metrics.datadog.api-key=TEST_API_KEY")
+            .withBean(Clock.class, () -> Clock.SYSTEM);
+
+    runner.run(
+        context -> {
+          assertFalse(
+              "PrometheusScrapeEndpoint should not be created when prometheus is disabled",
+              context.containsBean("prometheusScrapeEndpoint"));
+          assertFalse(
+              "CollectorRegistry should not be created when prometheus is disabled",
+              context.containsBean("collectorRegistry"));
+        });
+  }
+
+  @Test
+  public void test_prometheus_endpoint_created_when_prometheus_enabled() {
+    ApplicationContextRunner runner =
+        new ApplicationContextRunner()
+            .withConfiguration(
+                AutoConfigurations.of(
+                    ConfigurationPropertiesAutoConfiguration.class,
+                    MetricsAutoConfiguration.class,
+                    CompositeMeterRegistryAutoConfiguration.class))
+            .withUserConfiguration(ObservabilityConfiguration.class)
+            .withPropertyValues(
+                "observability.enabled=true",
+                "spring.application.name=test-service",
+                "observability.config.metrics.prometheus.enabled=true")
+            .withBean(Clock.class, () -> Clock.SYSTEM);
+
+    runner.run(
+        context -> {
+          assertTrue(
+              "PrometheusScrapeEndpoint should be created when prometheus is enabled",
+              context.containsBean("prometheusScrapeEndpoint"));
+          assertTrue(
+              "CollectorRegistry should be created when prometheus is enabled",
+              context.containsBean("collectorRegistry"));
+        });
+  }
+
+  @Test
+  public void test_prometheus_endpoint_not_created_when_override_primary_registry_false() {
+    ApplicationContextRunner runner =
+        new ApplicationContextRunner()
+            .withConfiguration(
+                AutoConfigurations.of(
+                    ConfigurationPropertiesAutoConfiguration.class,
+                    MetricsAutoConfiguration.class,
+                    CompositeMeterRegistryAutoConfiguration.class))
+            .withUserConfiguration(ObservabilityConfiguration.class)
+            .withPropertyValues(
+                "observability.enabled=true",
+                "spring.application.name=test-service",
+                "observability.config.metrics.prometheus.enabled=true",
+                "observability.config.override-primary-registry=false")
+            .withBean(Clock.class, () -> Clock.SYSTEM);
+
+    runner.run(
+        context -> {
+          // Endpoint should not be created when override-primary-registry is false
+          // to avoid collision with Spring Boot's prometheus endpoint
+          assertFalse(
+              "PrometheusScrapeEndpoint should not be created when override-primary-registry=false",
+              context.containsBean("prometheusScrapeEndpoint"));
+          // CollectorRegistry and supplier are still created for prometheus to work
+          assertTrue(
+              "CollectorRegistry should still be created",
+              context.containsBean("collectorRegistry"));
+        });
+  }
 }
