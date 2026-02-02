@@ -8,7 +8,7 @@ inputs:
     required: true
   node-version:
     description: Node version to set up
-    default: 20.19.4
+    default: "24.13.0"
 
 runs:
   using: "composite"
@@ -17,13 +17,6 @@ runs:
       if: hashFiles(format('{0}/package.json', inputs.project)) != ''
       with:
         node-version: ${{ inputs.node-version }}
-
-    # OIDC publishing requires >=11.5.1. We currently use Node 20.19.4 which ships with 10.8.2.
-    # Once we upgrade to Node >=24 we can remove this step.
-    - name: Update npm
-      if: hashFiles(format('{0}/package.json', inputs.project)) != ''
-      shell: bash
-      run: npm install -g npm@11.5.1
 
     - name: Find yarn cache directory
       if: hashFiles(format('{0}/package.json', inputs.project)) != '' && !env.ACT
