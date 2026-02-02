@@ -43,35 +43,21 @@ public class ObservabilityCompositeRegistry extends CompositeMeterRegistry {
       Clock clock,
       Collection<Supplier<RegistryConfigWrapper>> registrySuppliers,
       Collection<RegistryCustomizer> meterRegistryCustomizers) {
-    this(
-        clock,
-        ((Supplier<List<MeterRegistry>>)
-                () -> {
-                  List<MeterRegistry> enabledRegistries =
-                      registrySuppliers.stream()
-                          .map(Supplier::get)
-                          .filter(Objects::nonNull)
-                          .map(RegistryConfigWrapper::getMeterRegistry)
-                          .collect(Collectors.toList());
+    // Collect wrappers once to avoid invoking suppliers multiple times.
+    // Each supplier may create new registries and start background threads on each call.
+    this(clock, registrySuppliers, meterRegistryCustomizers, collectWrappers(registrySuppliers));
+  }
 
-                  // If no registries are enabled, default to SimpleMeterRegistry for Spectator
-                  // compatibility with the Spinnaker monitoring daemon.
-                  if (enabledRegistries.isEmpty()) {
-                    log.warn(
-                        "No observability registries enabled, defaulting to SimpleMeterRegistry "
-                            + "for Spectator compatibility.");
-                    enabledRegistries =
-                        List.of(new SimpleMeterRegistry(SimpleConfig.DEFAULT, clock));
-                  }
-                  return enabledRegistries;
-                })
-            .get());
+  private ObservabilityCompositeRegistry(
+      Clock clock,
+      Collection<Supplier<RegistryConfigWrapper>> registrySuppliers,
+      Collection<RegistryCustomizer> meterRegistryCustomizers,
+      List<RegistryConfigWrapper> wrappers) {
+    super(clock, extractRegistries(wrappers, clock));
 
-    // Create map of registries to config for customization
+    // Build config map from cached wrappers (not re-invoking suppliers)
     var registryToConfigMap =
-        registrySuppliers.stream()
-            .map(Supplier::get)
-            .filter(Objects::nonNull)
+        wrappers.stream()
             .collect(
                 Collectors.toMap(
                     w -> w.getMeterRegistry().getClass().getSimpleName(),
@@ -88,6 +74,27 @@ public class ObservabilityCompositeRegistry extends CompositeMeterRegistry {
                               .orElse(new MeterRegistryConfig());
                       registryCustomizer.customize(meterRegistry, config);
                     }));
+  }
+
+  private static List<RegistryConfigWrapper> collectWrappers(
+      Collection<Supplier<RegistryConfigWrapper>> registrySuppliers) {
+    return registrySuppliers.stream()
+        .map(Supplier::get)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  private static List<MeterRegistry> extractRegistries(
+      List<RegistryConfigWrapper> wrappers, Clock clock) {
+    if (wrappers.isEmpty()) {
+      log.warn(
+          "No observability registries enabled, defaulting to SimpleMeterRegistry "
+              + "for Spectator compatibility.");
+      return List.of(new SimpleMeterRegistry(SimpleConfig.DEFAULT, clock));
+    }
+    return wrappers.stream()
+        .map(RegistryConfigWrapper::getMeterRegistry)
+        .collect(Collectors.toList());
   }
 
   public ObservabilityCompositeRegistry(Clock clock, Iterable<MeterRegistry> registries) {
