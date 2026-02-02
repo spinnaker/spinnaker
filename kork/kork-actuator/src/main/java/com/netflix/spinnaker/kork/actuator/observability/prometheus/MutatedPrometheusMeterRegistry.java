@@ -15,18 +15,21 @@
  */
 
 /*
- * This file uses the source code from https://github.com/micrometer-metrics/micrometer/pull/2653
- * imported in the 1.3.5 micrometer-core lib licensed under the Apache 2.0 license.
+ * FORK RATIONALE:
+ * This class is a fork of Micrometer's PrometheusMeterRegistry that includes fixes from
+ * https://github.com/micrometer-metrics/micrometer/pull/2653 which were not yet merged
+ * when this code was originally written for the Armory Observability Plugin.
  *
- * Licensed under the Apache License, Version 2.0 (the "License") you may not use this file
- * except in compliance with the License. You may obtain a copy of the License at
+ * The key modifications allow metrics with the same name but different tag sets to be
+ * properly handled without causing duplicate HELP/TYPE declarations in the Prometheus
+ * scrape output. This is essential for Spinnaker services that emit metrics with
+ * optional/varying tags.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * TODO: Evaluate if this fork is still needed with newer Micrometer versions and
+ * consider migrating to the upstream PrometheusMeterRegistry if the fixes have been merged.
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
- * limitations under the License.
+ * Original source: micrometer-core 1.3.5, Apache 2.0 License
+ * See: https://github.com/micrometer-metrics/micrometer
  */
 package com.netflix.spinnaker.kork.actuator.observability.prometheus;
 
@@ -100,10 +103,6 @@ public class MutatedPrometheusMeterRegistry extends MeterRegistry {
     this.prometheusConfig = config;
   }
 
-  private static List<String> tagValues(Meter.Id id) {
-    return stream(id.getTagsAsIterable().spliterator(), false).map(Tag::getValue).collect(toList());
-  }
-
   /**
    * @return Content that should be included in the response body for an endpoint designated for
    *     Prometheus to scrape from.
@@ -161,7 +160,6 @@ public class MutatedPrometheusMeterRegistry extends MeterRegistry {
             scale,
             prometheusConfig.histogramFlavor(),
             exemplarSampler);
-    List<String> tagValues = tagValues(id);
     applyToCollector(
         id,
         (collector) -> {
@@ -255,7 +253,6 @@ public class MutatedPrometheusMeterRegistry extends MeterRegistry {
             pauseDetector,
             prometheusConfig.histogramFlavor(),
             exemplarSampler);
-    List<String> tagValues = tagValues(id);
     applyToCollector(
         id,
         (collector) -> {
@@ -344,9 +341,7 @@ public class MutatedPrometheusMeterRegistry extends MeterRegistry {
   @SuppressWarnings("unchecked")
   @Override
   protected <T> Gauge newGauge(Meter.Id id, @Nullable T obj, ToDoubleFunction<T> valueFunction) {
-    // MutatedMicrometerCollector collector = collectorByName(id);
     Gauge gauge = new DefaultGauge(id, obj, valueFunction);
-    List<String> tagValues = tagValues(id);
     applyToCollector(
         id,
         (collector) -> {
@@ -365,9 +360,7 @@ public class MutatedPrometheusMeterRegistry extends MeterRegistry {
 
   @Override
   protected LongTaskTimer newLongTaskTimer(Meter.Id id) {
-    // MutatedMicrometerCollector collector = collectorByName(id);
     LongTaskTimer ltt = new DefaultLongTaskTimer(id, clock);
-    List<String> tagValues = tagValues(id);
     applyToCollector(
         id,
         (collector) -> {
@@ -399,11 +392,9 @@ public class MutatedPrometheusMeterRegistry extends MeterRegistry {
       ToLongFunction<T> countFunction,
       ToDoubleFunction<T> totalTimeFunction,
       TimeUnit totalTimeFunctionUnit) {
-    // MutatedMicrometerCollector collector = collectorByName(id);
     FunctionTimer ft =
         new CumulativeFunctionTimer<>(
             id, obj, countFunction, totalTimeFunction, totalTimeFunctionUnit, getBaseTimeUnit());
-    List<String> tagValues = tagValues(id);
     applyToCollector(
         id,
         (collector) -> {
@@ -431,9 +422,7 @@ public class MutatedPrometheusMeterRegistry extends MeterRegistry {
   @Override
   protected <T> FunctionCounter newFunctionCounter(
       Meter.Id id, T obj, ToDoubleFunction<T> countFunction) {
-    // MutatedMicrometerCollector collector = collectorByName(id);
     FunctionCounter fc = new CumulativeFunctionCounter<>(id, obj, countFunction);
-    List<String> tagValues = tagValues(id);
     applyToCollector(
         id,
         (collector) -> {
@@ -465,9 +454,6 @@ public class MutatedPrometheusMeterRegistry extends MeterRegistry {
         promType = Collector.Type.SUMMARY;
         break;
     }
-
-    // MutatedMicrometerCollector collector = collectorByName(id);
-    List<String> tagValues = tagValues(id);
 
     final Collector.Type finalPromType = promType;
     applyToCollector(
