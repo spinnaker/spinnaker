@@ -4638,7 +4638,7 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha1-FQStJSMVjKpA20onh8sBQRmU6k8=
 
-fsevents@2.3.3:
+fsevents@2.3.3, fsevents@~2.3.2:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.3.tgz#cac6407785d03675a2a5e1a5305c697b347d90d6"
   integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
@@ -8743,19 +8743,19 @@ rollup-pluginutils@^2.8.2:
   dependencies:
     estree-walker "^0.6.1"
 
-rollup@2.45.2:
-  version "2.45.2"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.45.2.tgz#8fb85917c9f35605720e92328f3ccbfba6f78b48"
-  integrity sha512-kRRU7wXzFHUzBIv0GfoFFIN3m9oteY4uAsKllIpQDId5cfnkWF2J130l+27dzDju0E6MScKiV0ZM5Bw8m4blYQ==
-  optionalDependencies:
-    fsevents "~2.3.1"
-
 rollup@^0.34.7:
   version "0.34.13"
   resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.34.13.tgz#a211cdde31f96cb39e7cb4e35becb15ddc3efa19"
   integrity sha1-ohHN3jH5bLOefLTjW+yxXdw++hk=
   dependencies:
     source-map-support "^0.4.0"
+
+rollup@^2.79.0:
+  version "2.79.2"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.79.2.tgz#f150e4a5db4b121a21a747d762f701e5e9f49090"
+  integrity sha512-fS6iqSPZDs3dr/y7Od6y5nha8dW1YnbgtsyotCVvoFGKbERG++CVRFv1meyGDE1SNItQA8BrnCw7ScdAhRJ3XQ==
+  optionalDependencies:
+    fsevents "~2.3.2"
 
 roughjs-es5@0.1.0:
   version "0.1.0"
