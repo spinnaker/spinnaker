@@ -8,9 +8,10 @@ project in 2025.
 
 **Breaking Change Notice:** If migrating from the Armory Observability Plugin,
 note the following configuration changes:
-- Endpoint: `/actuator/prometheus` -> `/actuator/prometheus`
-- Property: `recommended-filters-enabled` -> `recommended-filters-enabled`
-- Configuration prefix: `spinnaker.extensibility.plugins.armory.observability-plugin.config` -> `observability.config`
+- Endpoint: `/actuator/aop-prometheus` → `/actuator/prometheus`
+- Property: `armory-recommended-filters-enabled` → `recommended-filters-enabled`
+- Configuration prefix: `spinnaker.extensibility.plugins.Armory.ObservabilityPlugin.config` → `observability.config`
+- Tag `lib` value: `aop` → `kork-observability`
 
 ---
 
