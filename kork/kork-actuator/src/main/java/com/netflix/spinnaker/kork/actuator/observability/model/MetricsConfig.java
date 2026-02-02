@@ -25,5 +25,5 @@ public class MetricsConfig {
   private MetricsPrometheusConfig prometheus = new MetricsPrometheusConfig();
   private MetricsNewRelicConfig newrelic = new MetricsNewRelicConfig();
   private MetricsDatadogConfig datadog = new MetricsDatadogConfig();
-  private boolean armoryRecommendedFiltersEnabled = false;
+  private boolean recommendedFiltersEnabled = false;
 }

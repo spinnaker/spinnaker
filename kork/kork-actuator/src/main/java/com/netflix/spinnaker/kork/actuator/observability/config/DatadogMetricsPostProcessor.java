@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.actuator.observability.config;
 
 import java.util.Properties;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MutablePropertySources;
@@ -27,7 +28,7 @@ public class DatadogMetricsPostProcessor implements EnvironmentPostProcessor {
 
   @Override
   public void postProcessEnvironment(
-      ConfigurableEnvironment environment, org.springframework.boot.SpringApplication application) {
+      ConfigurableEnvironment environment, SpringApplication application) {
     MutablePropertySources propertySources = environment.getPropertySources();
     Properties props = new Properties();
 

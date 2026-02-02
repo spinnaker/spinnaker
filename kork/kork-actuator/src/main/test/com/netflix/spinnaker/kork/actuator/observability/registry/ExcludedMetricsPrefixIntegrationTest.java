@@ -44,8 +44,8 @@ public class ExcludedMetricsPrefixIntegrationTest {
 
     runner.run(
         context -> {
-          ArmoryObservabilityCompositeRegistry composite =
-              context.getBean(ArmoryObservabilityCompositeRegistry.class);
+          ObservabilityCompositeRegistry composite =
+              context.getBean(ObservabilityCompositeRegistry.class);
           PrometheusScrapeEndpoint endpoint = context.getBean(PrometheusScrapeEndpoint.class);
 
           composite.counter("foo_metric").increment();

@@ -19,9 +19,10 @@ package com.netflix.spinnaker.kork.actuator.observability.model;
 import lombok.Builder;
 import lombok.Data;
 
+/** Metadata about the running application environment used for default metric tags. */
 @Data
 @Builder
-public class ArmoryEnvironmentMetadata {
+public class EnvironmentMetadata {
   private final String applicationName;
   private final String ossAppVersion;
 }

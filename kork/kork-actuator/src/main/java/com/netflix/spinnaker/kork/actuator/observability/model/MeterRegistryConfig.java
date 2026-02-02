@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MeterRegistryConfig {
-  private boolean armoryRecommendedFiltersEnabled = false;
+  private boolean recommendedFiltersEnabled = false;
   private boolean defaultTagsDisabled = false;
 
   private List<String> excludedMetricsPrefix;

@@ -28,7 +28,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
-public class ArmoryRecommendedFiltersIntegrationTest {
+public class RecommendedFiltersIntegrationTest {
 
   @Test
   public void test_recommended_filters_deny_controller_invocations_and_tags_are_snake_cased() {
@@ -41,14 +41,14 @@ public class ArmoryRecommendedFiltersIntegrationTest {
                 "observability.enabled=true",
                 "spring.application.name=test-service",
                 "observability.config.metrics.prometheus.enabled=true",
-                // Enable Armory recommended filters for the Prometheus registry
-                "observability.config.metrics.prometheus.registry.armory-recommended-filters-enabled=true")
+                // Enable recommended filters for the Prometheus registry
+                "observability.config.metrics.prometheus.registry.recommended-filters-enabled=true")
             .withBean(Clock.class, () -> Clock.SYSTEM);
 
     runner.run(
         context -> {
-          ArmoryObservabilityCompositeRegistry composite =
-              context.getBean(ArmoryObservabilityCompositeRegistry.class);
+          ObservabilityCompositeRegistry composite =
+              context.getBean(ObservabilityCompositeRegistry.class);
           PrometheusScrapeEndpoint endpoint = context.getBean(PrometheusScrapeEndpoint.class);
 
           // This metric should be denied by the recommended filter

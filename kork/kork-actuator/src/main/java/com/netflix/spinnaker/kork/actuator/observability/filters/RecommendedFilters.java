@@ -21,15 +21,19 @@ import static com.netflix.spinnaker.kork.actuator.observability.filters.Filters.
 import io.micrometer.core.instrument.config.MeterFilter;
 import java.util.List;
 
-public class ArmoryRecommendedFilters {
+/**
+ * Curated list of filters/transformations to reduce DPM (data points per minute) and metrics time
+ * series cardinality.
+ *
+ * <p>These filters are recommended for production deployments to reduce observability platform
+ * costs. The list may be updated between versions without major version bumps.
+ */
+public class RecommendedFilters {
 
-  /*
-   * Curated list of filters/transformations that Armory uses internally to reduce DPM / metrics TS cardinality.
-   * This list is not guaranteed to have backwards compatibility with Sym versioning of the plugin.
-   * What I mean by that is that I will add and remove things to this list that you might rely on without major versioning the plugin.
-   *
-   * TODO implement pattern that allows for users to pick and choose named filters and not rely on the curated list.
+  /**
+   * Recommended filters that reduce metric cardinality by denying legacy controller invocation
+   * metrics in favor of standard Spring {@code http.server.requests} metrics.
    */
-  public static List<MeterFilter> ARMORY_RECOMMENDED_FILTERS =
+  public static List<MeterFilter> RECOMMENDED_FILTERS =
       List.of(DENY_CONTROLLER_INVOCATIONS_METRICS);
 }

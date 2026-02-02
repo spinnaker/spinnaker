@@ -40,8 +40,8 @@ public class DefaultTagsDisabledIntegrationTest {
 
     runner.run(
         context -> {
-          ArmoryObservabilityCompositeRegistry composite =
-              context.getBean(ArmoryObservabilityCompositeRegistry.class);
+          ObservabilityCompositeRegistry composite =
+              context.getBean(ObservabilityCompositeRegistry.class);
           PrometheusScrapeEndpoint endpoint = context.getBean(PrometheusScrapeEndpoint.class);
 
           // create a simple counter

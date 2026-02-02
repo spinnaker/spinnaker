@@ -67,7 +67,7 @@ public class PrometheusScrapeEndpointFunctionalTest {
     var expectedScrapeResource =
         this.getClass()
             .getClassLoader()
-            .getResource("io/armory/plugin/observability/prometheus/expected-scrape.txt");
+            .getResource("observability/prometheus/expected-scrape.txt");
     var expectedContent = Files.readString(Path.of(expectedScrapeResource.toURI()));
 
     var responseEntity = sut.scrape();
@@ -79,10 +79,7 @@ public class PrometheusScrapeEndpointFunctionalTest {
     assertEquals(expectedContent, responseEntity.getBody());
   }
 
-  /**
-   * https://github.com/armory-plugins/armory-observability-plugin/issues/3 This test ensures we can
-   * produce the desired prometheus payload.
-   */
+  /** This test ensures we can produce the desired prometheus payload. */
   @Test
   public void test_that_the_prometheus_registry_can_handle_tags_that_are_sometimes_absent()
       throws Exception {
@@ -90,7 +87,7 @@ public class PrometheusScrapeEndpointFunctionalTest {
         this.getClass()
             .getClassLoader()
             .getResource(
-                "io/armory/plugin/observability/prometheus/expected-scrape-with-2-counters-different-tags.txt");
+                "observability/prometheus/expected-scrape-with-2-counters-different-tags.txt");
 
     var expectedContent = Files.readString(Path.of(expectedScrapeResource.toURI()));
 

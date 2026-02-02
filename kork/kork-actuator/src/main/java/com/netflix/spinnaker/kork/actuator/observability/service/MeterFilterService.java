@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.actuator.observability.service;
 
-import static com.netflix.spinnaker.kork.actuator.observability.filters.ArmoryRecommendedFilters.ARMORY_RECOMMENDED_FILTERS;
+import static com.netflix.spinnaker.kork.actuator.observability.filters.RecommendedFilters.RECOMMENDED_FILTERS;
 
 import com.netflix.spinnaker.kork.actuator.observability.model.MeterRegistryConfig;
 import io.micrometer.core.instrument.config.MeterFilter;
@@ -43,9 +43,9 @@ public class MeterFilterService {
   public List<MeterFilter> getMeterFilters(MeterRegistryConfig meterRegistryConfig) {
     List<MeterFilter> meterFilters = new ArrayList<>();
 
-    if (meterRegistryConfig.isArmoryRecommendedFiltersEnabled()) {
-      log.info("Armory Recommended filters are enabled returning those");
-      meterFilters.addAll(ARMORY_RECOMMENDED_FILTERS);
+    if (meterRegistryConfig.isRecommendedFiltersEnabled()) {
+      log.info("Recommended filters are enabled, adding to meter filters");
+      meterFilters.addAll(RECOMMENDED_FILTERS);
     }
 
     if (!CollectionUtils.isEmpty(meterRegistryConfig.getExcludedMetricsPrefix())) {

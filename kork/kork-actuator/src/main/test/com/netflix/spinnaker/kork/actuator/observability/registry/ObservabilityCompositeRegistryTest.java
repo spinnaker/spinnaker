@@ -30,7 +30,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ArmoryObservabilityCompositeRegistryTest {
+public class ObservabilityCompositeRegistryTest {
 
   @Before
   public void before() {
@@ -38,10 +38,10 @@ public class ArmoryObservabilityCompositeRegistryTest {
   }
 
   @Test
-  public void test_that_ArmoryObservabilityCompositeRegistry_uses_supplied_registries() {
+  public void test_that_ObservabilityCompositeRegistry_uses_supplied_registries() {
     var registry = new LoggingMeterRegistry();
     var sut =
-        new ArmoryObservabilityCompositeRegistry(
+        new ObservabilityCompositeRegistry(
             Clock.SYSTEM,
             List.of(() -> RegistryConfigWrapper.builder().meterRegistry(registry).build()),
             List.of());
@@ -52,20 +52,20 @@ public class ArmoryObservabilityCompositeRegistryTest {
 
   @Test
   public void
-      test_that_ArmoryObservabilityCompositeRegistry_uses_a_simple_registry_when_no_registries_are_enabled() {
+      test_that_ObservabilityCompositeRegistry_uses_a_simple_registry_when_no_registries_are_enabled() {
     var sut =
-        new ArmoryObservabilityCompositeRegistry(Clock.SYSTEM, List.of(() -> null), List.of());
+        new ObservabilityCompositeRegistry(Clock.SYSTEM, List.of(() -> null), List.of());
     assertEquals(1, sut.getRegistries().size());
     assertEquals(SimpleMeterRegistry.class, sut.getRegistries().toArray()[0].getClass());
   }
 
   @Test
   public void
-      test_that_ArmoryObservabilityCompositeRegistry_calls_the_registry_customizers_for_each_enabled_registry() {
+      test_that_ObservabilityCompositeRegistry_calls_the_registry_customizers_for_each_enabled_registry() {
     var customizer = mock(RegistryCustomizer.class);
     var registry = new LoggingMeterRegistry();
     var registry2 = new SimpleMeterRegistry();
-    new ArmoryObservabilityCompositeRegistry(
+    new ObservabilityCompositeRegistry(
         Clock.SYSTEM,
         List.of(
             () -> RegistryConfigWrapper.builder().meterRegistry(registry).build(),

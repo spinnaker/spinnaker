@@ -71,7 +71,7 @@ public class PrometheusScrapeControllerIntegrationTest {
     var promConfigTemplateResource =
         this.getClass()
             .getClassLoader()
-            .getResource("io/armory/plugin/observability/prometheus/prom-config-template.yml");
+            .getResource("observability/prometheus/prom-config-template.yml");
     var promConfigTemplateContent = Files.readString(Path.of(promConfigTemplateResource.toURI()));
     var processedTemplate =
         promConfigTemplateContent.replace("@@_PORT_@@", String.valueOf(mockServerRule.getPort()));
@@ -95,10 +95,7 @@ public class PrometheusScrapeControllerIntegrationTest {
     Optional.ofNullable(prometheus).ifPresent(GenericContainer::stop);
   }
 
-  /**
-   * https://github.com/armory-plugins/armory-observability-plugin/issues/3 This test ensures we
-   * prometheus can consume our expected payload.
-   */
+  /** This test ensures prometheus can consume our expected payload. */
   @Test
   public void
       test_that_prometheus_can_scrape_a_payload_with_2_counters_with_that_have_the_same_name_but_different_tags()
@@ -110,7 +107,7 @@ public class PrometheusScrapeControllerIntegrationTest {
         this.getClass()
             .getClassLoader()
             .getResource(
-                "io/armory/plugin/observability/prometheus/expected-scrape-with-2-counters-different-tags.txt");
+                "observability/prometheus/expected-scrape-with-2-counters-different-tags.txt");
 
     var expectedContent = Files.readString(Path.of(expectedScrapeResource.toURI()));
 

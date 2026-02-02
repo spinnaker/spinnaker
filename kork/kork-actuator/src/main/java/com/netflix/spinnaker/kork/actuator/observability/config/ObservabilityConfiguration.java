@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kork.actuator.observability.prometheus.PrometheusRe
 import com.netflix.spinnaker.kork.actuator.observability.prometheus.PrometheusScrapeEndpoint;
 import com.netflix.spinnaker.kork.actuator.observability.registry.AddDefaultTagsRegistryCustomizer;
 import com.netflix.spinnaker.kork.actuator.observability.registry.AddFiltersRegistryCustomizer;
-import com.netflix.spinnaker.kork.actuator.observability.registry.ArmoryObservabilityCompositeRegistry;
+import com.netflix.spinnaker.kork.actuator.observability.registry.ObservabilityCompositeRegistry;
 import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryConfigWrapper;
 import com.netflix.spinnaker.kork.actuator.observability.registry.RegistryCustomizer;
 import com.netflix.spinnaker.kork.actuator.observability.service.MeterFilterService;
@@ -72,11 +72,11 @@ public class ObservabilityConfiguration {
 
   @Bean
   public TagsService tagsService(
-      ObservabilityConfigurationProperties observabilityConfigurationProperites,
+      ObservabilityConfigurationProperties observabilityConfigurationProperties,
       VersionResolver versionResolver,
       @Value("${spring.application.name:#{null}}") String springInjectedApplicationName) {
     return new TagsService(
-        observabilityConfigurationProperites, versionResolver, springInjectedApplicationName);
+        observabilityConfigurationProperties, versionResolver, springInjectedApplicationName);
   }
 
   @Bean
@@ -115,11 +115,11 @@ public class ObservabilityConfiguration {
       name = "observability.config.override-primary-registry",
       havingValue = "true",
       matchIfMissing = true)
-  public ArmoryObservabilityCompositeRegistry armoryObservabilityCompositeRegistry(
+  public ObservabilityCompositeRegistry observabilityCompositeRegistry(
       Clock clock,
       Collection<Supplier<RegistryConfigWrapper>> registrySuppliers,
       Collection<RegistryCustomizer> meterRegistryCustomizers) {
-    return new ArmoryObservabilityCompositeRegistry(
+    return new ObservabilityCompositeRegistry(
         clock, registrySuppliers, meterRegistryCustomizers);
   }
 

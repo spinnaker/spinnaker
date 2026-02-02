@@ -32,12 +32,14 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * This is the registry that Micrometer/Spectator will use. It will collect all of the enabled
- * registries, if none are enabled it will default to a Simple Registry w/ default settings.
+ * Composite meter registry that collects all enabled metric registries (Prometheus, Datadog, New
+ * Relic). If no registries are enabled, it falls back to a SimpleMeterRegistry for Spectator
+ * compatibility.
  */
 @Slf4j
-public class ArmoryObservabilityCompositeRegistry extends CompositeMeterRegistry {
-  public ArmoryObservabilityCompositeRegistry(
+public class ObservabilityCompositeRegistry extends CompositeMeterRegistry {
+
+  public ObservabilityCompositeRegistry(
       Clock clock,
       Collection<Supplier<RegistryConfigWrapper>> registrySuppliers,
       Collection<RegistryCustomizer> meterRegistryCustomizers) {
@@ -52,12 +54,12 @@ public class ArmoryObservabilityCompositeRegistry extends CompositeMeterRegistry
                           .map(RegistryConfigWrapper::getMeterRegistry)
                           .collect(Collectors.toList());
 
-                  // If none of the registries that this plugin provides are enabled, we will
-                  // default to the simple registry and assume that Spectator with the spinnaker
-                  // monitoring daemon will be used.
-                  if (enabledRegistries.size() == 0) {
+                  // If no registries are enabled, default to SimpleMeterRegistry for Spectator
+                  // compatibility with the Spinnaker monitoring daemon.
+                  if (enabledRegistries.isEmpty()) {
                     log.warn(
-                        "None of the supported Armory Observability Plugin registries where enabled defaulting a Simple Meter Registry which Spectator will use.");
+                        "No observability registries enabled, defaulting to SimpleMeterRegistry "
+                            + "for Spectator compatibility.");
                     enabledRegistries =
                         List.of(new SimpleMeterRegistry(SimpleConfig.DEFAULT, clock));
                   }
@@ -65,7 +67,7 @@ public class ArmoryObservabilityCompositeRegistry extends CompositeMeterRegistry
                 })
             .get());
 
-    // Create map of registries to config
+    // Create map of registries to config for customization
     var registryToConfigMap =
         registrySuppliers.stream()
             .map(Supplier::get)
@@ -88,7 +90,7 @@ public class ArmoryObservabilityCompositeRegistry extends CompositeMeterRegistry
                     }));
   }
 
-  public ArmoryObservabilityCompositeRegistry(Clock clock, Iterable<MeterRegistry> registries) {
+  public ObservabilityCompositeRegistry(Clock clock, Iterable<MeterRegistry> registries) {
     super(clock, registries);
   }
 }

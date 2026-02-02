@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.prometheus.MutatedPrometheusMeterRegistry;
 import com.netflix.spinnaker.kork.actuator.observability.prometheus.PrometheusScrapeEndpoint;
-import com.netflix.spinnaker.kork.actuator.observability.registry.ArmoryObservabilityCompositeRegistry;
+import com.netflix.spinnaker.kork.actuator.observability.registry.ObservabilityCompositeRegistry;
 import com.netflix.spinnaker.kork.actuator.observability.service.TagsService;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -60,7 +60,7 @@ public class ObservabilityConfigurationContextTest {
           assertNotNull(context.getBean(ObservabilityConfigurationProperties.class));
           assertNotNull(context.getBean(TagsService.class));
           assertNotNull(context.getBean(PrometheusScrapeEndpoint.class));
-          assertNotNull(context.getBean(ArmoryObservabilityCompositeRegistry.class));
+          assertNotNull(context.getBean(ObservabilityCompositeRegistry.class));
         });
   }
 
@@ -91,7 +91,7 @@ public class ObservabilityConfigurationContextTest {
     runner.run(
         context -> {
           // Our composite should not be present
-          assertFalse(context.containsBean("armoryObservabilityCompositeRegistry"));
+          assertFalse(context.containsBean("observabilityCompositeRegistry"));
 
           // Boot should provide Datadog registry bean
           DatadogMeterRegistry dd = context.getBean(DatadogMeterRegistry.class);
@@ -130,7 +130,7 @@ public class ObservabilityConfigurationContextTest {
     runner.run(
         context -> {
           // Our composite should not be present
-          assertFalse(context.containsBean("armoryObservabilityCompositeRegistry"));
+          assertFalse(context.containsBean("observabilityCompositeRegistry"));
 
           // Boot should provide Prometheus registry bean
           PrometheusMeterRegistry prom = context.getBean(PrometheusMeterRegistry.class);
@@ -163,7 +163,7 @@ public class ObservabilityConfigurationContextTest {
     runner.run(
         context -> {
           // Composite registry should not be present when override is explicitly false
-          assertFalse(context.containsBean("armoryObservabilityCompositeRegistry"));
+          assertFalse(context.containsBean("observabilityCompositeRegistry"));
           // Other observability beans should still be wired
           assertNotNull(context.getBean(ObservabilityConfigurationProperties.class));
           assertNotNull(context.getBean(TagsService.class));
@@ -188,8 +188,8 @@ public class ObservabilityConfigurationContextTest {
 
     runner.run(
         context -> {
-          ArmoryObservabilityCompositeRegistry composite =
-              context.getBean(ArmoryObservabilityCompositeRegistry.class);
+          ObservabilityCompositeRegistry composite =
+              context.getBean(ObservabilityCompositeRegistry.class);
           boolean hasPrometheus =
               composite.getRegistries().stream()
                   .anyMatch(r -> r instanceof MutatedPrometheusMeterRegistry);
@@ -215,8 +215,8 @@ public class ObservabilityConfigurationContextTest {
 
     runner.run(
         context -> {
-          ArmoryObservabilityCompositeRegistry composite =
-              context.getBean(ArmoryObservabilityCompositeRegistry.class);
+          ObservabilityCompositeRegistry composite =
+              context.getBean(ObservabilityCompositeRegistry.class);
           // When all registries are disabled, the composite should still contain exactly one
           // registry
           // (SimpleMeterRegistry). We cannot refer to SimpleMeterRegistry class from here without
@@ -248,7 +248,7 @@ public class ObservabilityConfigurationContextTest {
               tagsService.getDefaultTags().stream()
                   .collect(Collectors.toMap(Tag::getKey, Tag::getValue, (a, b) -> a));
           assertEquals("my-app", tagsAsMap.get(TagsService.SPIN_SVC));
-          assertEquals("aop", tagsAsMap.get(TagsService.LIB));
+          assertEquals("kork-observability", tagsAsMap.get(TagsService.LIB));
           // version tag may be resolved or not; presence is optional in unit env
         });
   }
@@ -273,8 +273,8 @@ public class ObservabilityConfigurationContextTest {
 
     runner.run(
         context -> {
-          ArmoryObservabilityCompositeRegistry composite =
-              context.getBean(ArmoryObservabilityCompositeRegistry.class);
+          ObservabilityCompositeRegistry composite =
+              context.getBean(ObservabilityCompositeRegistry.class);
           boolean hasDatadog =
               composite.getRegistries().stream()
                   .anyMatch(r -> r instanceof io.micrometer.datadog.DatadogMeterRegistry);
@@ -302,8 +302,8 @@ public class ObservabilityConfigurationContextTest {
 
     runner.run(
         context -> {
-          ArmoryObservabilityCompositeRegistry composite =
-              context.getBean(ArmoryObservabilityCompositeRegistry.class);
+          ObservabilityCompositeRegistry composite =
+              context.getBean(ObservabilityCompositeRegistry.class);
           boolean hasNewRelic =
               composite.getRegistries().stream()
                   .anyMatch(r -> r.getClass().getName().contains("NewRelicRegistry"));
@@ -323,7 +323,7 @@ public class ObservabilityConfigurationContextTest {
         context -> {
           assertFalse(context.containsBean("observabilityConfigurationProperties"));
           assertFalse(context.containsBean("prometheusScrapeEndpoint"));
-          assertFalse(context.containsBean("armoryObservabilityCompositeRegistry"));
+          assertFalse(context.containsBean("observabilityCompositeRegistry"));
         });
   }
 
@@ -347,8 +347,8 @@ public class ObservabilityConfigurationContextTest {
 
     runner.run(
         context -> {
-          ArmoryObservabilityCompositeRegistry composite =
-              context.getBean(ArmoryObservabilityCompositeRegistry.class);
+          ObservabilityCompositeRegistry composite =
+              context.getBean(ObservabilityCompositeRegistry.class);
           boolean hasProm =
               composite.getRegistries().stream()
                   .anyMatch(

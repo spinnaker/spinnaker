@@ -41,10 +41,10 @@ public class MeterFilterServiceTest {
 
   @Test
   public void
-      test_that_getMeterFilters_returns_a_non_empty_list_of_filters_when_armory_recommendations_are_enabled() {
+      test_that_getMeterFilters_returns_a_non_empty_list_of_filters_when_recommendations_are_enabled() {
     var filters =
         sut.getMeterFilters(
-            MeterRegistryConfig.builder().armoryRecommendedFiltersEnabled(true).build());
+            MeterRegistryConfig.builder().recommendedFiltersEnabled(true).build());
     assertNotNull(filters);
     assertTrue(filters.size() > 0);
   }
@@ -61,12 +61,12 @@ public class MeterFilterServiceTest {
   }
 
   @Test
-  public void test_that_getMeterFilters_combines_armory_recommendations_with_excluded_metrics() {
+  public void test_that_getMeterFilters_combines_recommendations_with_excluded_metrics() {
     List<String> excludedPrefixes = List.of("metric1", "metric2", "metric3");
     var filters =
         sut.getMeterFilters(
             MeterRegistryConfig.builder()
-                .armoryRecommendedFiltersEnabled(true)
+                .recommendedFiltersEnabled(true)
                 .excludedMetricsPrefix(excludedPrefixes)
                 .build());
     assertNotNull(filters);
