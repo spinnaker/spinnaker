@@ -97,11 +97,17 @@ public class ObservabilityConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty(
+      name = "observability.config.metrics.prometheus.enabled",
+      havingValue = "true")
   public CollectorRegistry collectorRegistry() {
     return new CollectorRegistry();
   }
 
   @Bean
+  @ConditionalOnProperty(
+      name = "observability.config.metrics.prometheus.enabled",
+      havingValue = "true")
   public PrometheusRegistrySupplier prometheusRegistrySupplier(
       ObservabilityConfigurationProperties pluginConfig,
       CollectorRegistry collectorRegistry,
@@ -124,6 +130,13 @@ public class ObservabilityConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty(
+      name = "observability.config.metrics.prometheus.enabled",
+      havingValue = "true")
+  @ConditionalOnProperty(
+      name = "observability.config.override-primary-registry",
+      havingValue = "true",
+      matchIfMissing = true)
   public PrometheusScrapeEndpoint prometheusScrapeEndpoint(CollectorRegistry collectorRegistry) {
     return new PrometheusScrapeEndpoint(collectorRegistry);
   }
