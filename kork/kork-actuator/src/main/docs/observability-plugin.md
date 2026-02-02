@@ -1,5 +1,18 @@
-# Observability Plugin
+# Observability Module
 
+## Attribution
+
+This module was originally developed as the **Armory Observability Plugin**
+by [Armory, Inc.](https://armory.io) and donated to the Spinnaker open-source
+project in 2025.
+
+**Breaking Change Notice:** If migrating from the Armory Observability Plugin,
+note the following configuration changes:
+- Endpoint: `/actuator/prometheus` -> `/actuator/prometheus`
+- Property: `recommended-filters-enabled` -> `recommended-filters-enabled`
+- Configuration prefix: `spinnaker.extensibility.plugins.armory.observability-plugin.config` -> `observability.config`
+
+---
 
 ## Overview
 The observability functionality in `kork-actuator` provides Micrometer-based metrics collection and export for Prometheus, Datadog, and New Relic. It also applies common tags and optional filters to help manage metric cardinality.
@@ -12,7 +25,7 @@ This document describes how to enable and configure it safely. Configuration key
 All properties use the `observability` prefix. Spring Boot’s relaxed binding lets you use hyphen-case in YAML (e.g., `step-in-seconds`) for camelCase fields (`stepInSeconds`).
 
 
-### Enable the Plugin
+### Enable the Module
 ```yaml
 observability:
   enabled: true  # Required to activate
@@ -34,13 +47,13 @@ observability:
         step-in-seconds: 30
         descriptions: false
         registry:
-          armory-recommended-filters-enabled: true
+          recommended-filters-enabled: true
           default-tags-disabled: false
           excluded-metrics-prefix:
             - jvm.gc
 ```
 
-- **Scrape endpoint**: `/actuator/aop-prometheus`
+- **Scrape endpoint**: `/actuator/prometheus`
 - Ensure Spring Boot Actuator web exposure includes the endpoint id. Optionally, you can remap the path or serve on a dedicated management port:
 
 ```yaml
@@ -48,9 +61,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,aop-prometheus
+        include: health,info,prometheus
       path-mapping:
-        aop-prometheus: armory-observability/metrics
+        prometheus: observability/metrics
   # Optional: run actuator on a separate port
   server:
     port: 9006
@@ -120,7 +133,7 @@ Added by `TagsService` unless disabled per provider via `registry.default-tags-d
 - `ossSpinSvcVer` : Application version (from `META-INF/build-info.properties` when present)
 - `version` : Resolved version (falls back to resolver when available)
 - `hostname` : System hostname
-- `lib` : `aop` (library identifier)
+- `lib` : `kork-observability` (library identifier)
 
 Disable per provider:
 ```yaml
@@ -132,7 +145,7 @@ User-supplied `additional-tags` are merged with the defaults.
 
 ## Filters
 
-### Armory Recommended Filters
+### Recommended Filters
 Enable to reduce metric cardinality by removing legacy Spinnaker controller metrics in favor of standard Spring metrics (e.g., `http.server.requests`). Specifically includes `deny-controller-invocations`.
 ```yaml
 observability:
@@ -140,7 +153,7 @@ observability:
     metrics:
       <provider>:
         registry:
-          armory-recommended-filters-enabled: true
+          recommended-filters-enabled: true
 ```
 
 ### Custom Prefix Exclusions
@@ -163,16 +176,16 @@ observability:
 If a service includes `kork-actuator`, enabling `observability.enabled=true` activates the configuration.
 
 ### Spectator compatibility
-The composite registry (`ArmoryObservabilityCompositeRegistry`) collects all enabled registries. If none are enabled, it falls back to `SimpleMeterRegistry`, which maintains compatibility with Spectator-based setups.
+The composite registry (`ObservabilityCompositeRegistry`) collects all enabled registries. If none are enabled, it falls back to `SimpleMeterRegistry`, which maintains compatibility with Spectator-based setups.
 
 
 ## Migration from Spinnaker Monitoring Daemon
-When moving from the Spinnaker Monitoring Daemon to this plugin:
-- **Scrape path**: Switch to `/actuator/aop-prometheus` (or your custom mapping).
+When moving from the Spinnaker Monitoring Daemon to this module:
+- **Scrape path**: Switch to `/actuator/prometheus` (or your custom mapping).
 - **Metric names/types**: Micrometer’s Prometheus registry uses naming and types that differ from the monitoring daemon (for example, `summary` metrics, and standardized `http.server.requests`). Review and update dashboards and alerts accordingly.
 - **Controller metrics**: Prefer `http.server.requests`. If you previously relied on `controller.invocations`, enable recommended filters or adjust dashboards.
-- **Actuator exposure**: Ensure `management.endpoints.web.exposure.include` contains `aop-prometheus`.
-- **Disable old pipeline**: Remove monitoring-daemon scraping or port exposure for services where the new plugin is used to avoid duplicate ingestion and extra costs.
+- **Actuator exposure**: Ensure `management.endpoints.web.exposure.include` contains `prometheus`.
+- **Disable old pipeline**: Remove monitoring-daemon scraping or port exposure for services where this module is enabled to avoid duplicate ingestion and extra costs.
 
 
 ## Troubleshooting
@@ -190,14 +203,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,aop-prometheus
+        include: health,info,prometheus
 ```
-- If you remapped the path, confirm `management.endpoints.web.path-mapping.aop-prometheus` matches your scrape config.
+- If you remapped the path, confirm `management.endpoints.web.path-mapping.prometheus` matches your scrape config.
 
 
 ## Security Considerations
 - **API Keys**: Use environment variables or a secrets manager; never commit credentials.
-- **Endpoint Access**: Restrict `/actuator/aop-prometheus` via Spring Security or network policy.
+- **Endpoint Access**: Restrict `/actuator/prometheus` via Spring Security or network policy.
 - **Sensitive Metrics**: Use filters to exclude metrics that may contain PII.
 - **Transport**: Use TLS when metrics traverse untrusted networks.
 
@@ -205,7 +218,7 @@ management:
 ## Performance Tuning
 - **Scrape/step alignment**: Set `step-in-seconds` to align with your scrape interval.
 - **Prefix exclusions**: Use `excluded-metrics-prefix` to reduce high-cardinality metrics.
-- **Recommended filters**: Enable `armory-recommended-filters-enabled` to reduce DPM and unnecessary series.
+- **Recommended filters**: Enable `recommended-filters-enabled` to reduce DPM and unnecessary series.
 
 
 ## Package Structure
