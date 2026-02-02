@@ -11,7 +11,7 @@
     "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
   "engines": {
-    "node": ">=20.19.4",
+    "node": ">=24.13.0",
     "npm": ">=11.5.1",
     "yarn": ">=1.21.1"
   },

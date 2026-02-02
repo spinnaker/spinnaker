@@ -29,7 +29,7 @@
     "@rollup/plugin-url": "^6.0.0",
     "@svgr/rollup": "^6.3.1",
     "@types/react": "~16.14.0",
-    "rollup": "^2.35.1",
+    "rollup": "^2.79.0",
     "typescript": "5.0.4"
   },
   "dependencies": {
