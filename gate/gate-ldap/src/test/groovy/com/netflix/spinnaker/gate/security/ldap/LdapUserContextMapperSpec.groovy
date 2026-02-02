@@ -40,12 +40,13 @@ class LdapUserContextMapperSpec extends Specification {
 
     and:
     details instanceof User
-    (details as User).username == "joe"
-    (details as User).email == "joe.dohn@test.com"
-    (details as User).firstName == "Joe"
-    (details as User).lastName == "Dohn"
-    ((details as User).roles as Set) == (["admin", "dev", "viewer"] as Set)
-    (details as User).allowedAccounts == (["acc1", "acc2"] as Set)
+    def user = details as User
+    user.username == "joe"
+    user.email == "joe.dohn@test.com"
+    user.firstName == "Joe"
+    user.lastName == "Dohn"
+    (user.roles as Set) == (["admin", "dev", "viewer"] as Set)
+    user.allowedAccounts == (["acc1", "acc2"] as Set)
   }
 
   def "sanitizeRoles should remove ROLE_ prefix and lower-case; empty string is preserved"() {
@@ -67,7 +68,8 @@ class LdapUserContextMapperSpec extends Specification {
 
     then:
     1 * permissionService.loginWithRoles("joe", ["", "admin"] as Set)
-    ((details as User).roles as Set) == (["", "admin"] as Set)
+    def user = details as User
+    (user.roles as Set) == (["", "admin"] as Set)
   }
 
   def "mapUserToContext should throw UnsupportedOperationException"() {
