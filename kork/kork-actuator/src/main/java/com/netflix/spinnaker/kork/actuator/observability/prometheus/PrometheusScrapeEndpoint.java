@@ -23,22 +23,24 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Enumeration;
-import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
+import org.springframework.boot.actuate.endpoint.web.annotation.WebEndpoint;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Port of PrometheusScrapeEndpoint but rather than being an web endpoint that won't work with
- * plugins, it will be an endpoint
+ * Custom Prometheus scrape endpoint for the observability module.
  *
- * <p>See:
- * https://github.com/spring-projects/spring-boot/blob/cd1baf18fe9ec71c11d7d131d6f1a417ec0c00e2/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/metrics/export/prometheus/PrometheusScrapeEndpoint.java
+ * <p>Provides a dedicated endpoint at /actuator/prometheus for Prometheus to scrape metrics. This
+ * implementation uses a separate CollectorRegistry to avoid conflicts with Spring Boot's default
+ * Prometheus auto-configuration.
+ *
+ * @see <a
+ *     href="https://github.com/spring-projects/spring-boot/blob/main/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/metrics/export/prometheus/PrometheusScrapeEndpoint.java">Spring
+ *     Boot PrometheusScrapeEndpoint</a>
  */
-// If you use WebEndpoint instead of Endpoint, the plugin throws class def not found error with PF4j
-// ¯\_(ツ)_/¯
-@Endpoint(id = "aop-prometheus")
+@WebEndpoint(id = "prometheus")
 public class PrometheusScrapeEndpoint {
 
   private final CollectorRegistry collectorRegistry;
@@ -60,7 +62,6 @@ public class PrometheusScrapeEndpoint {
 
       var responseHeaders = new HttpHeaders();
       responseHeaders.set("Content-Type", TextFormat.CONTENT_TYPE_004);
-      TextFormat.write004(writer, samples);
 
       return new ResponseEntity<>(writer.toString(), responseHeaders, HttpStatus.OK);
     } catch (IOException ex) {
