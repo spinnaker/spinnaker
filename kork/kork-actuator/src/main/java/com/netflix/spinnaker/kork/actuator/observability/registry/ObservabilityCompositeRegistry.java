@@ -45,12 +45,11 @@ public class ObservabilityCompositeRegistry extends CompositeMeterRegistry {
       Collection<RegistryCustomizer> meterRegistryCustomizers) {
     // Collect wrappers once to avoid invoking suppliers multiple times.
     // Each supplier may create new registries and start background threads on each call.
-    this(clock, registrySuppliers, meterRegistryCustomizers, collectWrappers(registrySuppliers));
+    this(clock, meterRegistryCustomizers, collectWrappers(registrySuppliers));
   }
 
   private ObservabilityCompositeRegistry(
       Clock clock,
-      Collection<Supplier<RegistryConfigWrapper>> registrySuppliers,
       Collection<RegistryCustomizer> meterRegistryCustomizers,
       List<RegistryConfigWrapper> wrappers) {
     super(clock, extractRegistries(wrappers, clock));
