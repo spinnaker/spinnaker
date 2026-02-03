@@ -13,6 +13,10 @@ on:
         required: true
       spinnaker-previous-version:
         description: Override the previous version used for changelog generation (picks the last patch version if unset)
+permissions:
+  id-token: write
+  contents: write
+  packages: write
 
 jobs:
   check-preconditions:
