@@ -28,7 +28,18 @@ import org.junit.Test;
 
 public class TagsServiceTest {
 
-  private VersionResolver noOpVersionResolver = appName -> null;
+  private VersionResolver noOpVersionResolver =
+      new VersionResolver() {
+        @Override
+        public String resolve(String serviceName) {
+          return null;
+        }
+
+        @Override
+        public int getOrder() {
+          return 0;
+        }
+      };
 
   @Test
   public void test_default_tags_include_lib_tag() {
@@ -78,7 +89,18 @@ public class TagsServiceTest {
 
   @Test
   public void test_version_resolved_from_resolver_when_build_props_missing() {
-    VersionResolver mockResolver = appName -> "1.2.3";
+    VersionResolver mockResolver =
+        new VersionResolver() {
+          @Override
+          public String resolve(String serviceName) {
+            return "1.2.3";
+          }
+
+          @Override
+          public int getOrder() {
+            return 0;
+          }
+        };
     var props = new ObservabilityConfigurationProperties();
     var tagsService = new TagsService(props, mockResolver, "test-app");
 
