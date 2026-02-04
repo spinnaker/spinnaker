@@ -21,6 +21,7 @@ import static lombok.EqualsAndHashCode.Include;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -57,8 +58,8 @@ public class AccountsConfiguration {
     @Include private Boolean enabled;
     @Include private List<CredentialsConfig.Region> regions;
     @Include private List<String> defaultSecurityGroups;
-    private List<String> requiredGroupMembership;
-    @Include private Permissions.Builder permissions;
+    private List<String> requiredGroupMembership = new ArrayList<>();
+    @Include private Permissions.Builder permissions = new Permissions.Builder();
     @Include private String edda;
     @Include private Boolean eddaEnabled;
     @Include private Boolean lambdaEnabled;
@@ -74,6 +75,7 @@ public class AccountsConfiguration {
     @Include private String externalId;
     @Include private List<CredentialsConfig.LifecycleHook> lifecycleHooks;
     @Include private boolean allowPrivateThirdPartyImages;
+    @Include private String managingAccountProfile;
 
     public String getName() {
       return name;
@@ -279,6 +281,14 @@ public class AccountsConfiguration {
 
     public void setLambdaEnabled(Boolean lambdaEnabled) {
       this.lambdaEnabled = lambdaEnabled;
+    }
+
+    public String getManagingAccountProfile() {
+      return managingAccountProfile;
+    }
+
+    public void setManagingAccountProfile(String managingAccountProfile) {
+      this.managingAccountProfile = managingAccountProfile;
     }
   }
 

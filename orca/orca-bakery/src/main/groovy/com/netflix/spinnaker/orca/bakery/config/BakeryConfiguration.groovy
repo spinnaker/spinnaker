@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.bakery.config
 
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
 import com.netflix.spinnaker.orca.bakery.BakerySelector
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -63,7 +64,10 @@ class BakeryConfiguration {
   }
 
   BakeryService buildService(String url, ServiceClientProvider serviceClientProvider) {
-    return serviceClientProvider.getService(BakeryService, new DefaultServiceEndpoint("bakery", url), bakeryConfiguredObjectMapper());
+    return serviceClientProvider.getService(
+        BakeryService,
+        new DefaultServiceEndpoint("bakery", url),
+        CustomConverterFactory.create(bakeryConfiguredObjectMapper()));
   }
 
   @Bean

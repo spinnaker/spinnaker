@@ -1,0 +1,80 @@
+[
+  {
+    "account": "k8s-local",
+    "stack": "*",
+    "detail": "*",
+    "applications": [
+      {
+        "application": "kubernetesapp",
+        "clusters": [
+          {
+            "region": "dev",
+            "builds": [
+              {
+                "buildNumber": "0",
+                "deployed": 1754952734000,
+                "images": ["nginx:1.27.3", "mysql", "nginx", "registry.k8s.io/nginx-slim:0.24", "nginx:latest"]
+              }
+            ],
+            "instanceCounts": {
+              "total": 8,
+              "up": 8,
+              "down": 0,
+              "unknown": 0,
+              "outOfService": 0,
+              "starting": 0
+            },
+            "lastPush": 1754952734000
+          },
+          {
+            "region": "prod",
+            "builds": [
+              {
+                "buildNumber": "0",
+                "deployed": 1754974311000,
+                "images": ["nginx:1.27.3", "mysql", "nginx", "registry.k8s.io/nginx-slim:0.24", "nginx:latest"]
+              }
+            ],
+            "instanceCounts": {
+              "total": 8,
+              "up": 8,
+              "down": 0,
+              "unknown": 0,
+              "outOfService": 0,
+              "starting": 0
+            },
+            "lastPush": 1754974311000
+          },
+          {
+            "region": "test",
+            "builds": [
+              {
+                "buildNumber": "0",
+                "deployed": 1754974162000,
+                "images": ["nginx:1.27.3", "mysql", "nginx", "registry.k8s.io/nginx-slim:0.24", "nginx:latest"]
+              }
+            ],
+            "instanceCounts": {
+              "total": 8,
+              "up": 8,
+              "down": 0,
+              "unknown": 0,
+              "outOfService": 0,
+              "starting": 0
+            },
+            "lastPush": 1754974162000
+          }
+        ],
+        "lastPush": 1754974311000
+      }
+    ],
+    "instanceCounts": {
+      "total": 24,
+      "up": 24,
+      "down": 0,
+      "unknown": 0,
+      "outOfService": 0,
+      "starting": 0
+    }
+  }
+]

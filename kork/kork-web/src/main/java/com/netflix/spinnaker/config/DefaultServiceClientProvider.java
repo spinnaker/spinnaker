@@ -27,6 +27,7 @@ import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.util.List;
 import okhttp3.Interceptor;
 import org.springframework.stereotype.Component;
+import retrofit2.Converter;
 
 /** Provider that returns a suitable service client capable of making http calls. */
 @NonnullByDefault
@@ -44,29 +45,13 @@ public class DefaultServiceClientProvider implements ServiceClientProvider {
 
   @Override
   public <T> T getService(Class<T> type, ServiceEndpoint serviceEndpoint) {
-    return getService(type, serviceEndpoint, RetrofitVersion.RETROFIT2);
-  }
-
-  @Override
-  public <T> T getService(Class<T> type, ServiceEndpoint serviceEndpoint, RetrofitVersion version) {
-    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint, version);
-    return serviceClientFactory.create(type, serviceEndpoint, objectMapper);
+    return getService(type, serviceEndpoint, objectMapper);
   }
 
   @Override
   public <T> T getService(
       Class<T> type, ServiceEndpoint serviceEndpoint, ObjectMapper objectMapper) {
-    return getService(type, serviceEndpoint, objectMapper, RetrofitVersion.RETROFIT2);
-  }
-
-  @Override
-  public <T> T getService(
-      Class<T> type,
-      ServiceEndpoint serviceEndpoint,
-      ObjectMapper objectMapper,
-      RetrofitVersion version) {
-    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint, version);
-    return serviceClientFactory.create(type, serviceEndpoint, objectMapper);
+    return getService(type, serviceEndpoint, objectMapper, List.of());
   }
 
   @Override
@@ -75,24 +60,20 @@ public class DefaultServiceClientProvider implements ServiceClientProvider {
       ServiceEndpoint serviceEndpoint,
       ObjectMapper objectMapper,
       List<Interceptor> interceptors) {
-    return getService(type, serviceEndpoint, objectMapper, interceptors, RetrofitVersion.RETROFIT2);
+    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint);
+    return serviceClientFactory.create(type, serviceEndpoint, objectMapper, interceptors);
   }
 
   @Override
   public <T> T getService(
-      Class<T> type,
-      ServiceEndpoint serviceEndpoint,
-      ObjectMapper objectMapper,
-      List<Interceptor> interceptors,
-      RetrofitVersion version) {
-    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint, version);
-    return serviceClientFactory.create(type, serviceEndpoint, objectMapper, interceptors);
+      Class<T> type, ServiceEndpoint serviceEndpoint, Converter.Factory converterFactory) {
+    ServiceClientFactory serviceClientFactory = findProvider(type, serviceEndpoint);
+    return serviceClientFactory.create(type, serviceEndpoint, converterFactory);
   }
 
-  private ServiceClientFactory findProvider(
-      Class<?> type, ServiceEndpoint service, RetrofitVersion version) {
+  private ServiceClientFactory findProvider(Class<?> type, ServiceEndpoint service) {
     return serviceClientFactories.stream()
-        .filter(provider -> provider.supports(type, service, version))
+        .filter(provider -> provider.supports(type, service))
         .findFirst()
         .orElseThrow(
             () ->

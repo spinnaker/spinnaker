@@ -34,6 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.model.StageContext;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,7 +54,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rx.schedulers.Schedulers;
 
 @Component
 @NonnullByDefault
@@ -303,8 +303,7 @@ public class ArtifactUtils {
         .retrievePipelinesForPipelineConfigId(pipelineId, criteria)
         .subscribeOn(Schedulers.io())
         .toList()
-        .toBlocking()
-        .single()
+        .blockingGet()
         .stream()
         .min(startTimeOrId);
   }

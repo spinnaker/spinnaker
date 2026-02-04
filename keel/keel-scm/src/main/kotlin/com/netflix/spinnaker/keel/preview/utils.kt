@@ -6,7 +6,6 @@ import com.netflix.spinnaker.keel.api.DependencyType.LOAD_BALANCER
 import com.netflix.spinnaker.keel.api.DependencyType.SECURITY_GROUP
 import com.netflix.spinnaker.keel.api.DependencyType.TARGET_GROUP
 import com.netflix.spinnaker.keel.api.Dependent
-import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec.ApplicationLoadBalancerOverride
@@ -16,7 +15,6 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.titus.TitusClusterSpec
-import com.netflix.spinnaker.keel.core.name
 import org.apache.commons.codec.digest.DigestUtils
 import kotlin.reflect.KClass
 import kotlin.reflect.full.instanceParameter
@@ -35,9 +33,9 @@ internal fun <T : ResourceSpec> T.withDependencies(specClass: KClass<out T>, dep
     // otherwise, we attempt to copy the spec with dependencies updated if it's a data class
     else -> {
       val copy = specClass.memberFunctions.first { it.name == "copy" }
-      val instanceParam = copy?.instanceParameter
-      val dependsOnParam = copy?.parameters.first { it.name == "dependsOn" }
-      return if (copy != null && instanceParam != null && dependsOnParam != null) {
+      val instanceParam = copy.instanceParameter
+      val dependsOnParam = copy.parameters.first { it.name == "dependsOn" }
+      return if (instanceParam != null) {
         copy.callBy(mapOf(instanceParam to this, dependsOnParam to dependencies)) as T
       } else {
         this

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.gate.security.header;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails;
 

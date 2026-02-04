@@ -1,0 +1,29 @@
+{
+  "id": "f3f65cb5-ef8c-4355-9c55-50e020b77ace",
+  "name": "kubernetesproject",
+  "email": "sbws@google.com",
+  "config": {
+    "pipelineConfigs": [
+      {
+        "application": "kubernetesapp",
+        "pipelineConfigId": "da637be2-8219-4fb4-a118-aa685837ebdd"
+      },
+      {
+        "application": "kubernetesapp",
+        "pipelineConfigId": "0583a83a-45d3-43a7-821e-474fc238e2a4"
+      }
+    ],
+    "applications": ["kubernetesapp"],
+    "clusters": [
+      {
+        "account": "k8s-local",
+        "stack": "*",
+        "detail": "*",
+        "applications": null
+      }
+    ]
+  },
+  "updateTs": 1754974367823,
+  "createTs": 1754951618057,
+  "lastModifiedBy": "anonymous"
+}

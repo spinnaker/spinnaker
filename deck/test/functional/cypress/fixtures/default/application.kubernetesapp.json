@@ -1,0 +1,18 @@
+{
+  "attributes": {
+    "accounts": "k8s-local",
+    "cloudProviders": "kubernetes",
+    "createTs": "1745287538586",
+    "dataSources": { "disabled": [], "enabled": [] },
+    "email": "sbws@google.com",
+    "instancePort": 80,
+    "lastModifiedBy": "anonymous",
+    "name": "kubernetesapp",
+    "trafficGuards": [],
+    "providerSettings": {},
+    "updateTs": "1745287538586",
+    "user": "[anonymous]"
+  },
+  "clusters": {},
+  "name": "kubernetesapp"
+}

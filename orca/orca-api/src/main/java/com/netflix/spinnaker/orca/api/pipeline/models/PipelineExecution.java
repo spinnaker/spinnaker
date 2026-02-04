@@ -38,6 +38,10 @@ public interface PipelineExecution {
 
   void setId(String id);
 
+  String getRootId();
+
+  void setRootId(String rootId);
+
   String getApplication();
 
   void setApplication(String application);
@@ -151,6 +155,14 @@ public interface PipelineExecution {
    * implementation (e.g. characters/bytes), if available.
    */
   Optional<Long> getTotalSize();
+
+  /**
+   * If provided-id-request-filter.enabled is true, this contains the additional headers that have
+   * non-empty values from the http request that initiated the pipeline execution.
+   */
+  Map<String, String> getAdditionalHeaders();
+
+  void setAdditionalHeaders(Map<String, String> additionalHeaders);
 
   // -------
 

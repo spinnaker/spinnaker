@@ -30,6 +30,8 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.config.RetrofitConfiguration;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientBuilderProvider;
+import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.config.okhttp3.RawOkHttpClientFactory;
 import com.netflix.spinnaker.front50.config.EchoConfiguration;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
@@ -38,14 +40,12 @@ import com.netflix.spinnaker.front50.model.plugins.PluginEventType;
 import com.netflix.spinnaker.front50.model.plugins.PluginInfo;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactoryAutoConfiguration;
-import com.netflix.spinnaker.kork.retrofit.RetrofitServiceFactoryAutoConfiguration;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
-import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
+import java.util.Collections;
 import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -58,7 +58,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import retrofit.RequestInterceptor;
 
 @SpringBootTest(
     classes = {
@@ -67,13 +66,11 @@ import retrofit.RequestInterceptor;
       DynamicConfigService.NoopDynamicConfig.class,
       StorageServiceConfigurationProperties.class,
       NoopRegistry.class,
-      RetrofitServiceFactoryAutoConfiguration.class,
       Retrofit2ServiceFactoryAutoConfiguration.class,
       RetrofitConfiguration.class,
       Retrofit2ConfigurationProperties.class,
       OkHttp3MetricsInterceptor.class,
       RawOkHttpClientFactory.class,
-      RetrofitConfigurationProperties.class,
       OkHttpClientConfigurationProperties.class,
       OkHttpMetricsInterceptorProperties.class,
       ObjectMapper.class,
@@ -130,23 +127,20 @@ public class EchoServiceTest {
           .create(okHttpClientConfigurationProperties, interceptors, httpTracing);
     }
 
-    // SpinnakerRequestInterceptor is not needed for retrofit2 client but due to the way retrofit1
-    // and retrofit2
-    // specific beans are mixed up in kork, this is needed for now. Once the beans are separated
-    // this can be removed
-    @Bean
-    public RequestInterceptor spinnakerRequestInterceptor() {
-      return new SpinnakerRequestInterceptor(false);
-    }
-
     @Bean
     public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
-      return new SpinnakerRequestHeaderInterceptor(false);
+      return new SpinnakerRequestHeaderInterceptor(
+          false /* propagateSpinnakerHeaders */, Collections.emptyList() /* additionalHeaders */);
     }
 
     @Bean
     public Retrofit2EncodeCorrectionInterceptor retrofit2EncodeCorrectionInterceptor() {
       return new Retrofit2EncodeCorrectionInterceptor();
+    }
+
+    @Bean
+    public OkHttpClientProvider okHttpClientProvider(List<OkHttpClientBuilderProvider> providers) {
+      return new OkHttpClientProvider(providers);
     }
   }
 }

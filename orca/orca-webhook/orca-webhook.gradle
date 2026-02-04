@@ -20,6 +20,7 @@ apply from: "$rootDir/gradle/groovy.gradle"
 dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-api"))
+  implementation(project(":orca-clouddriver"))
   implementation("io.spinnaker.kork:kork-core")
   implementation("io.spinnaker.kork:kork-retrofit")
   implementation("io.spinnaker.kork:kork-web")
@@ -33,11 +34,13 @@ dependencies {
   implementation("net.logstash.logback:logstash-logback-encoder")
 
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("io.spinnaker.kork:kork-test")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.bouncycastle:bcpkix-jdk18on")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation("org.mockito:mockito-core")
   testImplementation("org.springframework:spring-test")
   testImplementation("org.springframework.boot:spring-boot-test")
@@ -46,7 +49,7 @@ dependencies {
 
   implementation("io.spinnaker.fiat:fiat-api")
   implementation("io.spinnaker.fiat:fiat-core")
-  implementation("org.apache.httpcomponents:httpclient")
+  implementation("org.apache.httpcomponents.client5:httpclient5")
   implementation("org.springframework.security:spring-security-config")
   implementation("org.springframework.security:spring-security-core")
   implementation("org.springframework.security:spring-security-web")

@@ -33,9 +33,10 @@ import com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal.CompositeOkHtt
 import com.netflix.spinnaker.kork.plugins.sdk.httpclient.internal.DefaultOkHttp3ClientFactory;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
+import jakarta.inject.Provider;
 import java.util.ArrayList;
 import java.util.List;
-import javax.inject.Provider;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
@@ -62,13 +63,23 @@ public class HttpClientSdkConfiguration {
                 "ok-http-client.interceptor", Bindable.of(OkHttpMetricsInterceptorProperties.class))
             .orElse(new OkHttpMetricsInterceptorProperties());
 
+    Retrofit2ConfigurationProperties retrofit2ConfigurationProperties =
+        Binder.get(environment)
+            .bind("retrofit2", Bindable.of(Retrofit2ConfigurationProperties.class))
+            .orElse(new Retrofit2ConfigurationProperties());
+
     List<OkHttp3ClientFactory> factories = new ArrayList<>(okHttpClientFactories);
     OkHttp3MetricsInterceptor okHttp3MetricsInterceptor =
         new OkHttp3MetricsInterceptor(registry, okHttpMetricsInterceptorProperties);
-    factories.add(new DefaultOkHttp3ClientFactory(okHttp3MetricsInterceptor));
+    factories.add(
+        new DefaultOkHttp3ClientFactory(
+            okHttp3MetricsInterceptor, retrofit2ConfigurationProperties.getLogLevel()));
 
     OkHttp3ClientConfiguration config =
-        new OkHttp3ClientConfiguration(okHttpClientProperties, okHttp3MetricsInterceptor);
+        new OkHttp3ClientConfiguration(
+            okHttpClientProperties,
+            okHttp3MetricsInterceptor,
+            retrofit2ConfigurationProperties.getLogLevel());
 
     KotlinModule kotlinModule = new KotlinModule.Builder().build();
 

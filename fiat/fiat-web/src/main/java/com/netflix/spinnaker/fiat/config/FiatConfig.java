@@ -40,12 +40,12 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @Import({RetrofitConfig.class, PluginsAutoConfiguration.class})
 @EnableConfigurationProperties(FiatServerConfigurationProperties.class)
-public class FiatConfig extends WebMvcConfigurerAdapter {
+public class FiatConfig implements WebMvcConfigurer {
 
   @Autowired private Registry registry;
 
@@ -60,7 +60,6 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-    super.configureContentNegotiation(configurer);
     configurer.favorPathExtension(false).defaultContentType(MediaType.APPLICATION_JSON);
   }
 

@@ -24,7 +24,7 @@ dependencies {
   implementation project(":clouddriver-security")
   implementation project(":clouddriver-saga")
 
-  implementation "javax.inject:javax.inject:1"
+  implementation "jakarta.inject:jakarta.inject-api:2.0.1"
   implementation "com.amazonaws:aws-java-sdk"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
@@ -42,9 +42,9 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.squareup.retrofit2:converter-jackson"
-  implementation "io.reactivex:rxjava"
-  implementation "org.apache.httpcomponents:httpclient"
-  implementation "org.apache.httpcomponents:httpcore"
+  implementation "io.reactivex.rxjava3:rxjava"
+  implementation "org.apache.httpcomponents.client5:httpclient5"
+  implementation "org.apache.httpcomponents.core5:httpcore5"
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -57,12 +57,15 @@ dependencies {
   testImplementation "cglib:cglib-nodep"
   testImplementation "com.natpryce:hamkrest"
   testImplementation "com.google.guava:guava"
+  testImplementation "uk.org.webcompere:system-stubs-core:2.1.6"
+  testImplementation "uk.org.webcompere:system-stubs-jupiter:2.1.6"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework:spring-test"
+  testImplementation "org.testcontainers:testcontainers"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
 
   integrationImplementation project(":clouddriver-web")

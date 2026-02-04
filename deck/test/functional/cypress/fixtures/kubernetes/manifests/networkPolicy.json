@@ -1,0 +1,102 @@
+{
+  "account": "k8s-local",
+  "name": "networkPolicy backend-security-policy",
+  "location": "dev",
+  "moniker": {
+    "app": "kubernetesapp",
+    "cluster": "networkPolicy backend-security-policy"
+  },
+  "manifest": {
+    "metadata": {
+      "annotations": {
+        "artifact.spinnaker.io/location": "dev",
+        "artifact.spinnaker.io/name": "backend-security-policy",
+        "artifact.spinnaker.io/type": "kubernetes/networkPolicy",
+        "artifact.spinnaker.io/version": "",
+        "deployment-info.details.html.spinnaker.io": "<dl class=\"dl-horizontal dl-narrow\">\n  <div class=\"item\"><span>Account:</span> {{ account }}</div>\n  <div class=\"item\"><span>Display Name:</span> {{ displayName }}</div>\n</dl>\n",
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"networking.k8s.io/v1\",\"kind\":\"NetworkPolicy\",\"metadata\":{\"annotations\":{\"artifact.spinnaker.io/location\":\"dev\",\"artifact.spinnaker.io/name\":\"backend-security-policy\",\"artifact.spinnaker.io/type\":\"kubernetes/networkPolicy\",\"artifact.spinnaker.io/version\":\"\",\"deployment-info.details.html.spinnaker.io\":\"\\u003cdl class=\\\"dl-horizontal dl-narrow\\\"\\u003e\\n  \\u003cdiv class=\\\"item\\\"\\u003e\\u003cspan\\u003eAccount:\\u003c/span\\u003e {{ account }}\\u003c/div\\u003e\\n  \\u003cdiv class=\\\"item\\\"\\u003e\\u003cspan\\u003eApplication Name:\\u003c/span\\u003e {{ app }}\\u003c/div\\u003e\\n  \\u003cdiv class=\\\"item\\\"\\u003e\\u003cspan\\u003eDisplay Name:\\u003c/span\\u003e {{ displayName }}\\u003c/div\\u003e\\n\\u003c/dl\\u003e\\n\",\"moniker.spinnaker.io/application\":\"kubernetesapp\",\"moniker.spinnaker.io/cluster\":\"networkPolicy backend-security-policy\"},\"labels\":{\"app.kubernetes.io/managed-by\":\"spinnaker\",\"app.kubernetes.io/name\":\"kubernetesapp\"},\"name\":\"backend-security-policy\",\"namespace\":\"dev\"},\"spec\":{\"egress\":[{\"ports\":[{\"port\":3306,\"protocol\":\"TCP\"}],\"to\":[{\"podSelector\":{\"matchLabels\":{\"role\":\"db\"}}}]}],\"ingress\":[{\"from\":[{\"podSelector\":{\"matchLabels\":{\"role\":\"frontend\"}}}],\"ports\":[{\"port\":80,\"protocol\":\"TCP\"}]}],\"podSelector\":{\"matchLabels\":{\"app\":\"backend\"}},\"policyTypes\":[\"Ingress\",\"Egress\"]}}\n",
+        "moniker.spinnaker.io/application": "kubernetesapp",
+        "moniker.spinnaker.io/cluster": "networkPolicy backend-security-policy"
+      },
+      "creationTimestamp": "2025-07-28T21:38:13Z",
+      "generation": 1,
+      "labels": {
+        "app.kubernetes.io/managed-by": "spinnaker",
+        "app.kubernetes.io/name": "kubernetesapp"
+      },
+      "name": "backend-security-policy",
+      "namespace": "dev",
+      "resourceVersion": "246173",
+      "uid": "906ee0c9-e47d-4bdf-9a82-7c1d6f150991"
+    },
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "NetworkPolicy",
+    "spec": {
+      "egress": [
+        {
+          "ports": [
+            {
+              "port": 3306,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "podSelector": {
+                "matchLabels": {
+                  "role": "db"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "ingress": [
+        {
+          "from": [
+            {
+              "podSelector": {
+                "matchLabels": {
+                  "role": "frontend"
+                }
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 80,
+              "protocol": "TCP"
+            }
+          ]
+        }
+      ],
+      "podSelector": {
+        "matchLabels": {
+          "app": "backend"
+        }
+      },
+      "policyTypes": [
+        "Ingress",
+        "Egress"
+      ]
+    }
+  },
+  "status": {
+    "stable": {
+      "state": true
+    },
+    "paused": {
+      "state": false
+    },
+    "available": {
+      "state": true
+    },
+    "failed": {
+      "state": false
+    }
+  },
+  "artifacts": [],
+  "events": [],
+  "warnings": [],
+  "metrics": []
+}

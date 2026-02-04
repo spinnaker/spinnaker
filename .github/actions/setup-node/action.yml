@@ -8,15 +8,15 @@ inputs:
     required: true
   node-version:
     description: Node version to set up
-    default: 14.21.3
+    default: "24.13.0"
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       if: hashFiles(format('{0}/package.json', inputs.project)) != ''
       with:
-        node-version: ${{ inputs.node-version  }}
+        node-version: ${{ inputs.node-version }}
 
     - name: Find yarn cache directory
       if: hashFiles(format('{0}/package.json', inputs.project)) != '' && !env.ACT

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -31,8 +30,6 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
-import com.netflix.spinnaker.gate.filters.ProvidedIdRequestFilter
-import com.netflix.spinnaker.gate.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
 import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
 import com.netflix.spinnaker.gate.filters.ResetAuthenticatedRequestFilter
@@ -43,6 +40,8 @@ import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilter
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector
@@ -50,11 +49,16 @@ import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.apache.catalina.Container
+import org.apache.catalina.Context
+import org.apache.catalina.core.StandardHost
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.websocket.servlet.TomcatWebSocketServletWebServerCustomizer
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -64,9 +68,6 @@ import org.springframework.http.converter.json.AbstractJackson2HttpMessageConver
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.util.CollectionUtils
 import org.springframework.web.client.RestTemplate
-import retrofit.Endpoint
-
-import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
 @Configuration
@@ -178,7 +179,7 @@ class GateConfig {
 
       List<ServiceSelector> selectors = []
       endpoints.each { sourceApp, url ->
-        def service = buildService("clouddriver",  ClouddriverService, newFixedEndpoint(url))
+        def service = buildService("clouddriver",  ClouddriverService, url)
         selectors << new ByUserOriginSelector(service, 2, ['origin': (Object) sourceApp])
       }
 
@@ -240,7 +241,6 @@ class GateConfig {
       def noSslCustomizationProps = props.clone()
       noSslCustomizationProps.keyStore = null
       noSslCustomizationProps.trustStore = null
-      def okHttpClient = new OkHttp3ClientConfiguration(noSslCustomizationProps, interceptor).create().build()
       createClient "kayenta", KayentaService
     } else {
       createClient "kayenta", KayentaService
@@ -266,18 +266,18 @@ class GateConfig {
       return null
     }
 
-    Endpoint endpoint = serviceConfiguration.getServiceEndpoint(serviceName, dynamicName)
+    String endpoint = serviceConfiguration.getServiceEndpoint(serviceName, dynamicName)
 
     buildService(serviceName, type, endpoint)
   }
 
-  private <T> T buildService(String serviceName, Class<T> type, Endpoint endpoint) {
+  private <T> T buildService(String serviceName, Class<T> type, String endpoint) {
     ObjectMapper objectMapper = objectMapperBuilder.build() as ObjectMapper
     if(serviceName.equals("echo")) {
       objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
       objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, false)
     }
-    serviceClientProvider.getService(type, new DefaultServiceEndpoint(serviceName, endpoint.url), objectMapper)
+    serviceClientProvider.getService(type, new DefaultServiceEndpoint(serviceName, endpoint), objectMapper)
   }
 
   private <T> SelectableService createClientSelector(String serviceName, Class<T> type) {
@@ -292,7 +292,7 @@ class GateConfig {
           buildService(
             serviceName,
             type,
-            newFixedEndpoint(it.baseUrl)),
+            it.baseUrl),
           it.priority,
           it.config)
 
@@ -381,5 +381,28 @@ class GateConfig {
                                                   FiatService fiatService,
                                                   FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatPermissionEvaluator(registry, fiatService, fiatClientConfigurationProperties, fiatStatus)
+  }
+
+  /**
+   * Inspired by https://github.com/spring-projects/spring-boot/issues/21257#issuecomment-745565376
+   * to customize tomcat exception handling, and specifically to generate json responses for
+   * exceptions that bubble up to tomcat / aren't handled by spring boot nor spring security.
+   */
+  @Bean
+  public TomcatWebSocketServletWebServerCustomizer errorValveCustomizer() {
+    return new TomcatWebSocketServletWebServerCustomizer() {
+      @Override
+      public void customize(TomcatServletWebServerFactory factory) {
+        factory.addContextCustomizers(
+            (Context context) -> {
+              Container parent = context.getParent();
+              if (parent instanceof StandardHost) {
+                ((StandardHost) parent)
+                    .setErrorReportValveClass(
+                        "com.netflix.spinnaker.gate.tomcat.SpinnakerTomcatErrorValve");
+              }
+            });
+      }
+    };
   }
 }

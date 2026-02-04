@@ -29,7 +29,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 
 import java.util.concurrent.TimeUnit
 
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 import retrofit2.Retrofit
 

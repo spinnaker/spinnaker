@@ -17,25 +17,28 @@
 package com.netflix.kayenta.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-
+import org.springframework.security.web.SecurityFilterChain;
 // TODO: If we choose to use fiat, this needs to be removed.
 //
 // This allows anything through without authentication or csrf protection.
 //
+
 @ConditionalOnProperty(
     value = "kayenta.security.enabled",
     havingValue = "true",
     matchIfMissing = true)
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
+public class WebSecurityConfig {
+
+  @Bean
+  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf().disable();
-    http.authorizeRequests().anyRequest().permitAll();
+    http.authorizeHttpRequests().anyRequest().permitAll();
+    return http.build();
   }
 }

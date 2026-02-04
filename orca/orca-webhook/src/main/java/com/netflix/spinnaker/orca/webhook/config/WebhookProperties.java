@@ -102,6 +102,30 @@ public class WebhookProperties {
   /** True to enable audit logging */
   private boolean auditLoggingEnabled = false;
 
+  /** True to enable logging via an okhttp EventListener */
+  private boolean eventLoggingEnabled = false;
+
+  /**
+   * Whether the okhttp EventListener is verbose or not. Only relevant if eventLoggingEnabled is
+   * true
+   */
+  private boolean eventLoggingVerbose = false;
+
+  /** True to require an account property in webhook stage configurations */
+  private boolean requireAccount = false;
+
+  /**
+   * True to validate the account property in webhook stage configurations, if the account property
+   * is present.
+   */
+  private boolean validateAccount = false;
+
+  /**
+   * True to include additional headers that ProvidedIdRequestFilter puts in the MDC in outgoing
+   * http requests. Only relevant if ProvidedIdRequestFilter is enabled.
+   */
+  private boolean includeAdditionalHeaders = false;
+
   @Data
   @NoArgsConstructor
   public static class TrustSettings {
@@ -126,14 +150,36 @@ public class WebhookProperties {
     private String identityCertPem;
   }
 
+  /** Match strategies for the allow list */
+  public enum MatchStrategy {
+    /** The url must start with the urlPrefix property to be considered valid. */
+    STARTS_WITH,
+
+    /** The url must match the urlPattern property to be considered valid. */
+    PATTERN_MATCHES;
+  }
+
   @Data
   @NoArgsConstructor
   public static class AllowedRequest {
+
     /** The allowed http method(s) (e.g. GET, POST, PUT) */
     private List<String> httpMethods;
 
+    /** The match strategy to use */
+    private MatchStrategy matchStrategy = MatchStrategy.STARTS_WITH;
+
     /** The url must start with this string to be considered valid. */
     private String urlPrefix;
+
+    /** The url must match this pattern to be considered valid */
+    private String urlPattern;
+
+    /**
+     * Whether it's safe to retry requests to urls that match. GET requests are always considered
+     * safe, but this enables retries of other methods as well.
+     */
+    private boolean safeToRetry;
   }
 
   @Data
@@ -168,6 +214,8 @@ public class WebhookProperties {
     public String cancelEndpoint;
     public HttpMethod cancelMethod;
     public String cancelPayload;
+    public Integer waitBeforeMonitor;
+    public List<Integer> retryStatusCodes;
 
     public List<String> getPreconfiguredProperties() {
       return ALL_FIELDS.stream()

@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.gate.filters;
 
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * An HttpFilter that ensures the AuthenticatedRequest is cleared at the end of every request.

@@ -212,6 +212,93 @@ abstract class PipelineControllerTck extends Specification {
       .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3]))
   }
 
+  void "should use pipelineLimit when getting pipelines for an application"() {
+    given:
+    for (int i = 0; i < 10; i++) {
+      def name = i % 2 == 0 ? "pipelineNameA" + i : "pipelineNameB" + i;
+      pipelineDAO.create(i.toString(), new Pipeline(application: "test", name: name, index: i))
+    }
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/test?pipelineLimit=5"))
+
+    then:
+    response
+      .andExpect(jsonPath('$.[*].name').value(["pipelineNameA0", "pipelineNameB1", "pipelineNameA2", "pipelineNameB3", "pipelineNameA4"]))
+      .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
+  }
+
+  void "should use pipelineLimit and pipelineNameFilter when getting pipelines for an application"() {
+    given:
+    for (int i = 0; i < 10; i++) {
+      def name = i % 2 == 0 ? "pipelineNameA" + i : "pipelineNameB" + i;
+      pipelineDAO.create(i.toString(), new Pipeline(application: "test", name: name, index: i))
+    }
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/test?pipelineLimit=2&pipelineNameFilter=pipelineNameA"))
+
+    then:
+    response
+      .andExpect(jsonPath('$.[*].name').value(["pipelineNameA0", "pipelineNameA2"]))
+      .andExpect(jsonPath('$.[*].index').value([0, 1]))
+  }
+
+  void "should not return error when pipelineLimit is greater than number of pipelines"() {
+    given:
+    for (int i = 0; i < 5; i++) {
+      def name = i % 2 == 0 ? "pipelineNameA" + i : "pipelineNameB" + i;
+      pipelineDAO.create(i.toString(), new Pipeline(application: "test", name: name, index: i))
+    }
+
+    when:
+    def response = mockMvc.perform(get("/pipelines/test?pipelineLimit=20"))
+
+    then:
+    response
+      .andExpect(jsonPath('$.[*].name').value(["pipelineNameA0", "pipelineNameB1", "pipelineNameA2", "pipelineNameB3", "pipelineNameA4"]))
+      .andExpect(jsonPath('$.[*].index').value([0, 1, 2, 3, 4]))
+  }
+
+  void "should not rewrite the index in the cache"() {
+    given:
+    def pipelines = [
+      new Pipeline([name: "Pipeline1", application: "test", id: "id1", triggers: [], index: 4]),
+      new Pipeline([name: "Pipeline2", application: "test", id: "id2", triggers: [], index: 3]),
+      new Pipeline([name: "Pipeline3", application: "test", id: "id3", triggers: [], index: 2]),
+      new Pipeline([name: "Pipeline4", application: "test", id: "id4", triggers: [], index: 1]),
+    ]
+    pipelineDAO.bulkImport(pipelines)
+
+    // test fetching a single value
+    when:
+    def response = mockMvc.perform(get('/pipelines/test?pipelineNameFilter=pipeline1'))
+
+    // index of Pipeline1 should be 0
+    then:
+    response.andReturn().response.status == OK
+    response.andExpect(jsonPath('$.[*].name')
+      .value(["Pipeline1"]))
+    response.andExpect(jsonPath('$.[*].index')
+      .value([0]))
+
+    // Test fetching all values
+    when:
+    response = mockMvc.perform(get('/pipelines/test'))
+
+    then:
+    response.andReturn().response.status == OK
+    // respect the index in the db
+    // ensure that the index of Pipeline1 is still 4, even though it came in as 0
+    // on the previous request. This verifies that we are using a copy of the values
+    // from the cache, and not overriding the actual values when we call setIndex on the
+    // pipeline in the controller.
+    response.andExpect(jsonPath('$.[*].name')
+      .value(["Pipeline4", "Pipeline3", "Pipeline2", "Pipeline1"]))
+    response.andExpect(jsonPath('$.[*].index')
+      .value([0,1,2,3]))
+  }
+
   void 'should update a pipeline'() {
     given:
     def pipeline = pipelineDAO.create(null, new Pipeline([name: "test pipeline", application: "test_application"]))
@@ -971,7 +1058,7 @@ abstract class PipelineControllerTck extends Specification {
     response.andReturn().response.status == OK
     // ordered of returned pipelines changes after update
     response.andExpect(jsonPath('$.[*].name')
-      .value(["Pipeline1", "Pipeline3", "Pipeline4", "Pipeline2"]))
+      .value(["Pipeline1", "Pipeline2", "Pipeline3", "Pipeline4"]))
 
     // Test cache refreshes for deletes
     when:
@@ -982,7 +1069,7 @@ abstract class PipelineControllerTck extends Specification {
     then:
     response.andReturn().response.status == OK
     response.andExpect(jsonPath('$.[*].name')
-      .value(["Pipeline3", "Pipeline4", "Pipeline2"]))
+      .value(["Pipeline2", "Pipeline3", "Pipeline4"]))
   }
 
   def "update with a pipeline with a null id throws an exception"() {

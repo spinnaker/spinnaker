@@ -49,8 +49,8 @@ public interface OortService {
       @Path("account") String account,
       @Path("cluster") String cluster,
       @Path("serverGroup") String serverGroup,
-      @Query("region") String region,
-      @Path("cloudProvider") String cloudProvider);
+      @Path("cloudProvider") String cloudProvider,
+      @Query("region") String region);
 
   @GET("applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
   Call<List<ServerGroup>> getServerGroupsFromClusterTyped(
@@ -141,7 +141,7 @@ public interface OortService {
       @Path("region") String region,
       @Path("instanceId") String instanceId);
 
-  @PUT("artifacts/fetch/")
+  @PUT("artifacts/fetch")
   Call<ResponseBody> fetchArtifact(@Body Artifact artifact);
 
   @GET("{provider}/loadBalancers/{account}/{region}/{name}")
@@ -177,8 +177,8 @@ public interface OortService {
   @GET("tags")
   Call<List<Map>> getEntityTags(@QueryMap Map parameters);
 
-  @GET("aws/cloudFormation/stacks/{stackId}")
-  Call<Map> getCloudFormationStack(@Path(value = "stackId", encoded = true) String stackId);
+  @GET("aws/cloudFormation/stacks/stack")
+  Call<Map<String, Object>> getCloudFormationStack(@Query("stackId") String stackId);
 
   @GET("servicebroker/{account}/serviceInstance")
   Call<Map<String, Object>> getServiceInstance(
@@ -189,4 +189,8 @@ public interface OortService {
 
   @GET("credentials")
   Call<List<Map<String, Object>>> getCredentials(@Query("expand") boolean expand);
+
+  @GET("/credentials/{account}/authorized")
+  Call<Map<String, Object>> getCredentialsAuthorized(
+      @Path("account") String account, @Query("expand") boolean expand);
 }

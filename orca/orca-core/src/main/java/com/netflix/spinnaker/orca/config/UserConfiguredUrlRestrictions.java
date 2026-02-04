@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import okhttp3.HttpUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
@@ -206,17 +207,24 @@ public class UserConfiguredUrlRestrictions {
   }
 
   boolean isValidIpAddress(String host) {
-    var matcher = new IpAddressMatcher(host);
-    return rejectedIps.stream().noneMatch(matcher::matches);
+    return rejectedIps.stream()
+        .noneMatch(
+            restriction -> {
+              return new IpAddressMatcher(restriction).matches(host);
+            });
   }
 
   boolean isIpAddress(String host) {
     return InetAddresses.isInetAddress(host);
   }
 
-  public URI validateURI(String url) throws IllegalArgumentException {
+  public URI validateURI(String uri) throws IllegalArgumentException {
+    return validateURI(HttpUrl.parse(uri));
+  }
+
+  public URI validateURI(HttpUrl url) throws IllegalArgumentException {
     try {
-      URI u = URI.create(url).normalize();
+      URI u = url.uri().normalize();
       if (!u.isAbsolute()) {
         throw new IllegalArgumentException("non absolute URI " + url);
       }
@@ -226,19 +234,7 @@ public class UserConfiguredUrlRestrictions {
 
       // fallback to `getAuthority()` in the event that the hostname contains an underscore and
       // `getHost()` returns null
-      String host = u.getHost();
-      if (host == null) {
-        String authority = u.getAuthority();
-        if (authority != null) {
-          // Don't attempt to colon-substring ipv6 addresses
-          if (isIpAddress(authority)) {
-            host = authority;
-          } else {
-            int portIndex = authority.indexOf(":");
-            host = (portIndex > -1) ? authority.substring(0, portIndex) : authority;
-          }
-        }
-      }
+      String host = url.host();
 
       if (host == null || host.isEmpty()) {
         throw new IllegalArgumentException("Unable to determine host for the url provided " + url);

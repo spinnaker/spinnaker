@@ -133,7 +133,7 @@ class V2BakeryControllerWithClouddriverServiceTest {
     // isn't important since we're verifying headers in the request to
     // clouddriver.
     wm.stubFor(
-        WireMock.put(urlMatching("/artifacts/fetch/"))
+        WireMock.put(urlMatching("/artifacts/fetch"))
             .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody("success")));
 
     String userValue = "some user";
@@ -150,7 +150,7 @@ class V2BakeryControllerWithClouddriverServiceTest {
 
     // verifing request to clouddriver contains header passing to rosco
     wm.verify(
-        putRequestedFor(urlEqualTo("/artifacts/fetch/"))
+        putRequestedFor(urlEqualTo("/artifacts/fetch"))
             .withHeader(USER.getHeader(), equalTo(userValue)));
   }
 }

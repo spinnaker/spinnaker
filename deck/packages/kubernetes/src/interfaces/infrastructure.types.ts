@@ -1,6 +1,7 @@
 import type {
   IInstance,
   ILoadBalancer,
+  IManifest,
   IMoniker,
   ISecurityGroupDetail,
   IServerGroup,
@@ -23,6 +24,10 @@ export interface IKubernetesInstance extends IInstance, IKubernetesResource {
 
 export interface IKubernetesLoadBalancer extends ILoadBalancer, IKubernetesResource {}
 
+export interface IKubernetesLoadBalancerView extends IKubernetesLoadBalancer {
+  manifest: IManifest;
+}
+
 export interface IKubernetesSecurityGroup extends ISecurityGroupDetail, IKubernetesResource {
   account: string;
   moniker: IMoniker;
@@ -32,4 +37,15 @@ export interface IKubernetesServerGroup extends IServerGroup, IKubernetesResourc
   disabled: boolean;
 }
 
+export interface IKubernetesServerGroupView extends IKubernetesServerGroup {
+  manifest: IManifest;
+}
+
 export interface IKubernetesServerGroupManager extends IServerGroupManager, IKubernetesResource {}
+
+export type IAnyKubernetesResource =
+  | IKubernetesServerGroup
+  | IKubernetesInstance
+  | IKubernetesLoadBalancer
+  | IKubernetesSecurityGroup
+  | IKubernetesServerGroupManager;

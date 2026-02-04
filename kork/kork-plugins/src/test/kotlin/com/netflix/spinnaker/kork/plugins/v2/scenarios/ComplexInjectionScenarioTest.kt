@@ -35,7 +35,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isSuccess
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * Demonstrates that a plugin that injects a service bean can also be injected into a different service bean.

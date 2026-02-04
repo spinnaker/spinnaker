@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/core",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "license": "Apache-2.0",
   "version": "0.29.1",
   "module": "dist/index.js",
@@ -54,7 +58,7 @@
     "jquery-textcomplete": "1.6.1",
     "js-worker-search": "npm:js-worker-search-uuid-fix@^1.4.2",
     "js-yaml": "3.13.1",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "lodash-decorators": "4.5.0",
     "luxon": "1.23.0",
     "memoize-one": "6.0.0",

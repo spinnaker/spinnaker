@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.stereotype.Component
-import rx.Scheduler
-import rx.schedulers.Schedulers
+import io.reactivex.rxjava3.core.Scheduler
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 /**
  * Logic related to operating zombie pipeline executions.
@@ -70,8 +70,7 @@ class ZombieExecutionService(
       .filter { hasBeenAroundAWhile(it, minimumInactivity) }
       .filter(this::queueHasNoMessages)
       .toList()
-      .toBlocking()
-      .first()
+      .blockingGet()
   }
 
   /**

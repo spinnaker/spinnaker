@@ -6,6 +6,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-core"
   implementation "commons-io:commons-io"
   implementation "org.apache.commons:commons-compress:1.21"
   implementation "org.yaml:snakeyaml"
@@ -19,5 +20,4 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   testImplementation "com.squareup.retrofit2:converter-jackson"
-  testCompileOnly "com.squareup.retrofit:retrofit"
 }

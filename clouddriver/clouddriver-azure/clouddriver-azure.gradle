@@ -8,6 +8,7 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
+  implementation "io.spinnaker.kork:kork-credentials"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "org.apache.groovy:groovy"

@@ -1,11 +1,15 @@
 {
   "name": "@spinnaker/functionaltests",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "1.0.0",
   "description": "",
   "private": true,
   "scripts:comment": "These scripts expect that Deck is built ('yarn build' from the root package)",
   "scripts": {
-    "build": "cd ../../ && npm run build",
+    "build": "dotenvx run -f .env.functional --quiet -- npm --prefix ../../ run build",
     "preview": "vite preview",
     "cypress:run": "cypress run",
     "cypress:open": "cypress open",
@@ -17,6 +21,7 @@
   "license": "Apache 2.0",
   "devDependencies": {
     "@cypress/code-coverage": "^3.14.0",
+    "@dotenvx/dotenvx": "^1.49.0",
     "concurrently": "8.2.2",
     "cypress": "12.17.4",
     "start-server-and-test": "2.0.0",

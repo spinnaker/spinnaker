@@ -32,6 +32,3 @@ management:
 backup:
   google:
     enabled: false
-
-retrofit:
-  logLevel: BASIC

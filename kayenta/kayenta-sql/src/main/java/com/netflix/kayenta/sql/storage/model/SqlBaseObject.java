@@ -16,9 +16,9 @@
 
 package com.netflix.kayenta.sql.storage.model;
 
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 import java.time.Instant;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
 import lombok.Data;
 
 @Data

@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpClientComponents;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.webhook.service.WebhookService;
 import java.util.HashMap;
@@ -67,6 +68,12 @@ public class MtlsConfigurationKeystoreTest extends MtlsConfigurationTestBase {
       props.setInsecureSkipHostnameVerification(true);
 
       return props;
+    }
+
+    @Bean
+    ProvidedIdRequestFilterConfigurationProperties
+        providedIdRequestFilterConfigurationProperties() {
+      return new ProvidedIdRequestFilterConfigurationProperties();
     }
   }
 

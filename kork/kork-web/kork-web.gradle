@@ -25,10 +25,9 @@ dependencies {
   api "com.fasterxml.jackson.core:jackson-annotations"
   api "com.squareup.okhttp3:logging-interceptor"
   api "com.squareup.okhttp3:okhttp"
-  api "com.squareup.retrofit:retrofit"
 
   implementation "com.google.guava:guava"
-  implementation "javax.inject:javax.inject:1"
+  implementation "jakarta.inject:jakarta.inject-api:2.0.1"
   implementation("com.netflix.spectator:spectator-web-spring") {
     // exclude transitives since this brings in a newer version of spring (boot)
     // dependencies than we're compatible with (2.2.x for spring boot and 5.2.x
@@ -36,10 +35,12 @@ dependencies {
     transitive = false
   }
   implementation "io.zipkin.brave:brave-instrumentation-okhttp3"
+  implementation "com.squareup.retrofit2:retrofit"
 
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
 
   runtimeOnly "org.hibernate.validator:hibernate-validator"
+  runtimeOnly("org.springframework.boot:spring-boot-properties-migrator")
 
   testImplementation project(":kork-test")
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
@@ -54,6 +55,5 @@ dependencies {
   testImplementation testFixtures(project(":kork-crypto"))
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"
-  testImplementation "com.jakewharton.retrofit:retrofit1-okhttp3-client"
   testImplementation "com.squareup.retrofit2:converter-jackson"
 }

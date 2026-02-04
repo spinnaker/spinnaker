@@ -1,0 +1,8 @@
+dependencies {
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "com.squareup.okhttp3:okhttp"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "org.apache.maven:maven-resolver-provider:3.5.4"
+
+  testImplementation "commons-io:commons-io"
+}

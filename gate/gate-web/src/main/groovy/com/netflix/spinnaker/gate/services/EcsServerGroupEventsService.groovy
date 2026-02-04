@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -31,6 +32,8 @@ class EcsServerGroupEventsService {
   }
 
   List getServerGroupEvents(String application, String account, String serverGroupName, String region, String cloudProvider) {
-    clouddriver.getServerGroupEvents(application, account, serverGroupName, region, cloudProvider)
+    Retrofit2SyncCall.execute(
+      clouddriver.getServerGroupEvents(application, account, serverGroupName, region, cloudProvider)
+    )
   }
 }

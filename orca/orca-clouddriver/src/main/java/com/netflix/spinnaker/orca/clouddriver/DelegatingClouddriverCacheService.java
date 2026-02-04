@@ -37,7 +37,7 @@ public class DelegatingClouddriverCacheService
 
   @Override
   public Call<ResponseBody> forceCacheUpdate(
-      String cloudProvider, String type, Map<String, ?> data) {
+      String cloudProvider, String type, Map<String, Object> data) {
     return getService().forceCacheUpdate(cloudProvider, type, data);
   }
 

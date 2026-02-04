@@ -36,6 +36,7 @@ dependencies {
 
   testImplementation("io.spinnaker.kork:kork-jedis-test")
   testImplementation("io.spinnaker.kork:kork-retrofit")
+  testImplementation("io.spinnaker.kork:kork-test")
   testImplementation(project(":orca-api-tck"))
   testImplementation(project(":orca-retrofit"))
   testImplementation(project(":orca-test-kotlin"))
@@ -44,4 +45,9 @@ dependencies {
   testImplementation(project(":orca-echo"))
   testImplementation("org.apache.groovy:groovy")
   testImplementation("org.assertj:assertj-core")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
+}
+
+test {
+  useJUnitPlatform()
 }

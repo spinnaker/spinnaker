@@ -34,8 +34,10 @@ class PreconfiguredWebhookStageSpec extends Specification {
   def builder = new TaskNode.Builder()
   MonitorWebhookTask monitorWebhookTask = Mock(MonitorWebhookTask)
 
+  WebhookProperties webhookProperties = new WebhookProperties()
+
   @Subject
-  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, null, monitorWebhookTask)
+  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, null, monitorWebhookTask, webhookProperties)
 
   def "Context should be taken from PreconfiguredWebhookProperties"() {
     given:
@@ -66,7 +68,10 @@ class PreconfiguredWebhookStageSpec extends Specification {
       signalCancellation: true,
       cancelEndpoint: "i",
       cancelMethod: HttpMethod.POST,
-      cancelPayload: "j"
+      cancelPayload: "j",
+      retryStatusCodes: [404],
+      waitBeforeMonitor: 5,
+      waitTime: 5
     ]
   }
 
@@ -91,7 +96,9 @@ class PreconfiguredWebhookStageSpec extends Specification {
       signalCancellation: true,
       cancelEndpoint: "i",
       cancelMethod: HttpMethod.POST,
-      cancelPayload: "j"
+      cancelPayload: "j",
+      retryStatusCodes: null,
+      waitBeforeMonitor: null
     ])
 
     when:
@@ -119,7 +126,9 @@ class PreconfiguredWebhookStageSpec extends Specification {
       signalCancellation: true,
       cancelEndpoint: "i",
       cancelMethod: HttpMethod.POST,
-      cancelPayload: "j"
+      cancelPayload: "j",
+      retryStatusCodes: null,
+      waitBeforeMonitor: null
     ]
   }
 
@@ -130,7 +139,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
       label: label, description: description, type: type, url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
       failFastStatusCodes: [500, 501], waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.locationHeader,
       statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h",
-      signalCancellation: true, cancelEndpoint: "i", cancelMethod: HttpMethod.POST, cancelPayload: "j"
+      signalCancellation: true, cancelEndpoint: "i", cancelMethod: HttpMethod.POST, cancelPayload: "j", retryStatusCodes: [404], waitBeforeMonitor: 5
     )
   }
 }

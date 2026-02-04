@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
-import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import com.netflix.spinnaker.kork.secrets.SecretEngineRegistry;
+import com.netflix.spinnaker.kork.secrets.UnsupportedSecretEngineException;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-@NonnullByDefault
 public class UserSecretManager {
   private final SecretEngineRegistry registry;
 
@@ -42,15 +42,27 @@ public class UserSecretManager {
    *
    * @param reference parsed user secret reference to fetch
    * @return the decrypted user secret
+   * @throws UnsupportedSecretEngineException if the secret reference does not have a corresponding
+   *     secret engine
+   * @throws UnsupportedUserSecretEngineException if the secret engine does not support user secrets
+   * @throws MissingUserSecretMetadataException if the secret is missing its {@link
+   *     UserSecretMetadata}
+   * @throws InvalidUserSecretMetadataException if the secret has metadata that cannot be parsed
+   * @throws InvalidSecretFormatException if the secret reference has other validation errors
+   * @throws SecretDecryptionException if the secret reference cannot be fetched
    */
   public UserSecret getUserSecret(UserSecretReference reference) {
     String engineIdentifier = reference.getEngineIdentifier();
     SecretEngine engine = registry.getEngine(engineIdentifier);
     if (engine == null) {
-      throw new SecretDecryptionException("Unknown secret engine identifier: " + engineIdentifier);
+      throw new UnsupportedSecretEngineException(engineIdentifier);
     }
     engine.validate(reference);
-    return engine.decrypt(reference);
+    try {
+      return engine.decrypt(reference);
+    } catch (UnsupportedOperationException e) {
+      throw new UnsupportedSecretEngineException(engineIdentifier);
+    }
   }
 
   /**
@@ -59,12 +71,15 @@ public class UserSecretManager {
    *
    * @param reference parsed external secret reference to fetch
    * @return the decrypted external secret
+   * @throws SecretDecryptionException if the external secret does not have a corresponding secret
+   *     engine or cannot be fetched
+   * @throws InvalidSecretFormatException if the external secret reference is invalid
    */
   public byte[] getExternalSecret(EncryptedSecret reference) {
     String engineIdentifier = reference.getEngineIdentifier();
     SecretEngine engine = registry.getEngine(engineIdentifier);
     if (engine == null) {
-      throw new SecretDecryptionException("Unknown secret engine identifier: " + engineIdentifier);
+      throw new UnsupportedSecretEngineException(engineIdentifier);
     }
     engine.validate(reference);
     return engine.decrypt(reference);
@@ -76,6 +91,9 @@ public class UserSecretManager {
    *
    * @param reference parsed external secret reference to fetch
    * @return the decrypted external secret string
+   * @throws SecretDecryptionException if the external secret does not have a corresponding secret
+   *     engine or cannot be fetched
+   * @throws InvalidSecretFormatException if the external secret reference is invalid
    */
   public String getExternalSecretString(EncryptedSecret reference) {
     return new String(getExternalSecret(reference), StandardCharsets.UTF_8);

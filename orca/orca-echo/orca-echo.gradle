@@ -25,12 +25,19 @@ dependencies {
   implementation(project(":orca-dry-run"))
   implementation("io.spinnaker.kork:kork-core")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
-  implementation("javax.validation:validation-api")
   implementation("io.spinnaker.fiat:fiat-core")
   implementation("io.spinnaker.fiat:fiat-api")
+  implementation("jakarta.validation:jakarta.validation-api")
   implementation("io.spinnaker.kork:kork-retrofit")
 
+  testImplementation("io.spinnaker.kork:kork-retrofit2")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("org.springframework:spring-test")
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 }
 

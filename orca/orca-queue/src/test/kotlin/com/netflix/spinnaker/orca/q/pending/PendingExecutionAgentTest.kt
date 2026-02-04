@@ -37,7 +37,7 @@ import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.subject.SubjectSpek
-import rx.Observable
+import io.reactivex.rxjava3.core.Observable
 
 internal object PendingExecutionAgentTest : SubjectSpek<PendingExecutionAgent>({
   val clusterLock: NotificationClusterLock = mock()

@@ -41,8 +41,10 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -50,7 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 public class Daemon {
@@ -1232,7 +1233,12 @@ public class Daemon {
   }
 
   static <C, T> DaemonTask<C, T> getTask(String uuid) {
-    return getService().getTask(uuid);
+    try {
+      return objectMapper.readValue(
+          getService().getTask(uuid).string(), new TypeReference<DaemonTask<C, T>>() {});
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to parse response for the task with UUID: " + uuid, e);
+    }
   }
 
   public static void interruptTask(String uuid) {
@@ -1481,7 +1487,7 @@ public class Daemon {
         .baseUrl(RetrofitUtils.getBaseUrl(GlobalOptions.getGlobalOptions().getDaemonEndpoint()))
         .client(okHttpClient)
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
-        .addConverterFactory(JacksonConverterFactory.create(getObjectMapper()))
+        .addConverterFactory(CustomConverterFactory.create(getObjectMapper()))
         .build()
         .create(DaemonService.class);
   }

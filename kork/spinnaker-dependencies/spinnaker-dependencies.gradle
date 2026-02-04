@@ -9,31 +9,30 @@ ext {
     arrow            : "0.13.2",
     aws              : "1.12.261",
     awsv2            : "2.23.7",
-    bouncycastle     : "1.77",
+    bouncycastle     : "1.81", // fixes CVE-2024-34447
     brave            : "5.12.3",
     gcp              : "26.34.0",
     groovy           : "4.0.15",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
-    // spring boot 2.7.18 specifies logback 1.2.12.  Pin to 1.2.13 to resolve
+    log4j            : "2.25.1",
+    log4jKotlin      : "1.5.0",
+    // spring boot 3.0.13 specifies logback 1.4.11.  Pin to 1.4.14 to resolve
     // CVE-2023-6378 and CVE-2023-6481 until spring boot 3.1.7 which brings in
     // 1.4.14.  See https://logback.qos.ch/news.html#1.3.12.
-    logback          : "1.2.13",
+    logback          : "1.4.14",
     protobuf         : "3.25.2",
-    okhttp3          : "4.9.3",
-    openapi          : "1.8.0",
-    restassured      : "5.2.1", // spring boot 2.7.18 brings rest-assured 4.5.1. It uses groovy 3. Keep until spring boot >=3.0.13
-    retrofit         : "1.9.0",
+    openapi          : "2.2.0",
     retrofit2        : "2.8.1",
     spectator        : "1.0.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
-    springBoot       : "2.7.18",
-    springCloud      : "2021.0.8",
+    springBoot       : "3.0.13",
+    springCloud      : "2022.0.5",
     swagger          : "2.2.22",
-    // 9.0.107, which fixes all CVEs to date (18-jul-25). Continue to pin.
-    // See https://tomcat.apache.org/security-9.html for latest security fixes.
-    tomcat           : "9.0.107"
+    // 3.0.13 brings in 10.1.16, which introduce CVEs. Continue to pin till >=3.2.12.
+    // See https://tomcat.apache.org/security-10.html for latest security fixes.
+    tomcat           : "10.1.33"
   ]
 }
 
@@ -46,30 +45,22 @@ dependencies {
    * For example, `junit-bom` and `jackson-bom` will win out over the versions of JUnit and Jackson
    * specified by `spring-boot-dependencies`.
    */
-   // Log4shell safeguard.  Per analysis, log4j-core is not included in dependencies, but this would prevent transitive inclusion of it by extension
-   // platforms.   Doing 2.16.0 which completely removes message lookups AND sets jndi to disabled by default
-   // 2.16.0 is subject to CVE-2021-45105.  2.17.0 is subject to CVE-2021-44832, so use >= 2.17.1.
-  api(platform("org.apache.logging.log4j:log4j-bom:2.20.0"))
-
   // Springdoc includes a newer version of Jackson, which conflicts with the SnakeYaml pin below
-  // Jackson 2.15+ requires SnakeYaml 2.x, last Jackson version with SnakeYaml 1.31 compat is 2.14.0
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.14.0"))
-
+  // Jackson 2.15+ requires SnakeYaml 2.x, last Jackson version with SnakeYaml 1.33 compat is 2.14.3
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.14.3"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform(libs.kotlin.bom))
+  api(platform("org.junit:junit-bom:5.9.0")) // until spring boot >= 3.0.0
   api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
-  api(platform("org.apache.groovy:groovy-bom:${versions.groovy}")) // until upgrade of spring boot >= 3.0.13
-  api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}")) {
-    exclude group: "org.codehaus.groovy", module: "*" // until upgrade of spring boot >= 3.0.13
-  }
+  api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
   api(platform("com.google.cloud:libraries-bom:${versions.gcp}"))
   api(platform("software.amazon.awssdk:bom:${versions.awsv2}"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))
-  api(platform("org.spockframework:spock-bom:2.3-groovy-4.0"))
+  api(platform("org.spockframework:spock-bom:2.4-M1-groovy-4.0"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:3.21.0"))
   api(platform("org.testcontainers:testcontainers-bom:1.19.8"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
@@ -85,18 +76,6 @@ dependencies {
     api("ch.qos.logback:logback-access:${versions.logback}") {
        force = true
     }
-    api("io.rest-assured:xml-path:${versions.restassured}") {
-      force = true
-    }
-    api("io.rest-assured:json-path:${versions.restassured}") {
-      force = true
-    }
-    api("io.rest-assured:rest-assured:${versions.restassured}") {
-      force = true
-    }
-    api("io.rest-assured:rest-assured-common:${versions.restassured}") {
-      force = true
-    }
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:2.4.1")
     api("com.google.apis:google-api-services-admin-directory:directory_v1-rev20240429-2.0.0")
@@ -111,7 +90,6 @@ dependencies {
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:33.0.0-jre")
     api("com.hubspot.jinjava:jinjava:2.7.1")
-    api("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
     api("com.jayway.jsonpath:json-path:2.9.0") // until spring boot >= 3.1.9 or 3.2.3
     api("com.jcraft:jsch:${versions.jsch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
@@ -120,11 +98,13 @@ dependencies {
     api("com.netflix.archaius:archaius-core:0.7.7")
     api("com.netflix.awsobjectmapper:awsobjectmapper:${versions.aws}")
     api("com.netflix.dyno:dyno-jedis:1.7.2")
-    api("com.netflix.eureka:eureka-client:1.10.17")
+    api("com.netflix.eureka:eureka-client")
     api("com.netflix.frigga:frigga:0.24.0")
     api("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
     api("com.netflix.spectator:spectator-api:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-aws:${versions.spectator}")
+    api("com.netflix.spectator:spectator-ext-aws2:${versions.spectator}")
+    api("com.netflix.spectator:spectator-ext-ipc:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-gc:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-jvm:${versions.spectator}")
     api("com.netflix.spectator:spectator-nflx-plugin:${versions.spectator}")
@@ -134,19 +114,10 @@ dependencies {
     api("com.nimbusds:nimbus-jose-jwt:9.37.2")
     api("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
     api("com.nhaarman:mockito-kotlin:1.6.0")
-    api("com.ninja-squad:springmockk:2.0.3")
-    api("com.squareup.okhttp3:logging-interceptor:${versions.okhttp3}")
-    api("com.squareup.okhttp3:mockwebserver:${versions.okhttp3}")
-    api("com.squareup.okhttp3:okhttp-sse:${versions.okhttp3}")
-    api("com.squareup.okhttp3:okhttp-urlconnection:${versions.okhttp3}")
-    api("com.squareup.okhttp3:okhttp:${versions.okhttp3}")
+    api("com.ninja-squad:springmockk:4.0.2")  //Compatible with Spring boot 3.x and Java 17+ https://github.com/Ninja-Squad/springmockk?tab=readme-ov-file#versions-compatibility
     api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit-mock:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit:${versions.retrofit2}")
-    api("com.squareup.retrofit:converter-jackson:${versions.retrofit}")
-    api("com.squareup.retrofit:converter-simplexml:${versions.retrofit}")
-    api("com.squareup.retrofit:retrofit-mock:${versions.retrofit}")
-    api("com.squareup.retrofit:retrofit:${versions.retrofit}")
     api("com.sun.xml.bind:jaxb-core:2.3.0.1")
     api("com.sun.xml.bind:jaxb-impl:2.3.2")
     api("com.vdurmont:semver4j:3.1.0")
@@ -157,13 +128,13 @@ dependencies {
     api("de.danielbechler:java-object-diff:0.95")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
-    api("io.mockk:mockk:1.12.4")
+    api("io.mockk:mockk:1.13.17")
     api("io.swagger.core.v3:swagger-annotations:${versions.swagger}")
     api("io.swagger.core.v3:swagger-core:${versions.swagger}")
-    api("javax.annotation:javax.annotation-api:1.3.2")
     api("javax.xml.bind:jaxb-api:2.3.1")
     api("net.logstash.logback:logstash-logback-encoder:4.11")
     api("org.apache.commons:commons-exec:1.3")
+    api("org.apache.logging.log4j:log4j-api-kotlin:${versions.log4jKotlin}")
     api("org.bitbucket.b_c:jose4j:0.9.4")
     //  from BC 1.71, module names changed from *-jdk15on to *-jdk18on
     // due to this change, some of the modules in downstream services like clouddriver, gate would fall back to
@@ -187,31 +158,8 @@ dependencies {
     }
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.10.0")
-    // pf4j:3.10.0 brings in slf4j-api:2.0.6 which is not compatible with logback 1.2.x.
-    // And the upgraded logback version(1.3.8) is becoming incompatible with SpringBoot's LogbackLoggingSystem:
-    // java.lang.NoClassDefFoundError at LogbackLoggingSystem.java:293
-    // Hence pinning slf4j-api at 1.7.36 which spring boot 2.7.18 brings in.
-    api("org.slf4j:slf4j-api"){
-      version {
-        strictly("1.7.36")
-      }
-    }
     api("org.pf4j:pf4j-update:2.3.0")
-
-    // Spring boot 2.7.18 brings in snakeyaml 1.30, which fails to parse yaml (including some
-    // k8s manifests).  See https://github.com/spring-projects/spring-boot/issues/30159#issuecomment-1125969155.
-    // It's safe to upgrade beyond 1.29 with spring boot >= 2.6.12 (see
-    // https://github.com/spring-projects/spring-boot/issues/32228#issue-136185850.0). However,
-    // snakeyaml 1.32 has a feature to restrict the size of incoming data to 3
-    // MB by default, and spring boot versions < 3.0.7 are not equipped to
-    // modify this limit.  Use 1.31 in order to avoid file size limitation till
-    // upgrade >= 3.0.7 and to resolve CVE-2022-25857 and CVE-2022-38749.  See
-    // https://bitbucket.org/snakeyaml/snakeyaml/issues/547/restrict-the-size-of-incoming-data
-    // and https://bitbucket.org/snakeyaml/snakeyaml/pull-requests/22.
-    api("org.yaml:snakeyaml:1.31")
-    api("org.springdoc:springdoc-openapi-webmvc-core:${versions.openapi}")
-    api("org.springdoc:springdoc-openapi-kotlin:${versions.openapi}")
-    api("org.springdoc:springdoc-openapi-ui:${versions.openapi}")
+    api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.openapi}")
     api("org.springframework.boot:spring-boot-configuration-processor:${versions.springBoot}")
     api("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.3.12.RELEASE")
     api("org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE")
@@ -220,5 +168,8 @@ dependencies {
     api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
+    // Springdoc pulls in a newer Jackson version that is incompatible with the Snakeyaml bundled with Spring Boot 3.0.13.
+    // To resolve the conflict, we’ve aligned the Jackson version with the one provided by Spring Boot 3.0.13.
+    api("org.yaml:snakeyaml:1.33")
   }
 }

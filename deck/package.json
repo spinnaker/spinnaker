@@ -5,31 +5,31 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/spinnaker/deck.git"
+    "url": "https://github.com/spinnaker/spinnaker.git"
   },
   "publishConfig": {
     "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
   "engines": {
-    "node": ">=14.21.3",
-    "npm": ">=6.14.18",
+    "node": ">=24.13.0",
+    "npm": ">=11.5.1",
     "yarn": ">=1.21.1"
   },
   "private": true,
   "scripts": {
     "clean": "lerna run clean --parallel",
     "fixup": "scripts/monorepo_fixup.sh",
-    "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --mode=production --config packages/app/webpack.config.js",
+    "build": "NODE_OPTIONS='--max_old_space_size=8192 --openssl-legacy-provider' webpack --bail --mode=production --config packages/app/webpack.config.js",
     "lint": "eslint --max-warnings=0 --ext js,jsx,ts,tsx packages",
     "start": "sh ./start.sh",
-    "start-dev-server": "webpack-dev-server --config packages/app/webpack.config.js --mode=development",
+    "start-dev-server": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --config packages/app/webpack.config.js --mode=development",
     "dev:experimental": "cd packages/app && npm run dev:experimental",
-    "test": "karma start",
+    "test": "NODE_OPTIONS=--openssl-legacy-provider karma start",
     "modules": "./scripts/buildModules.js",
     "prettier": "prettier --write 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
     "prettier:check": "prettier --check 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
-    "functional": "npm run build && cd test/functional && yarn && npm run test",
-    "functional:debug": "npm run build && cd test/functional && yarn && npm run open",
+    "functional": "cd test/functional && yarn && npm run build && npm run test",
+    "functional:debug": "cd test/functional && yarn && npm run build && npm run open",
     "storybook": "start-storybook -p 9001"
   },
   "devDependencies": {
@@ -55,7 +55,7 @@
     "karma-super-dots-reporter": "0.2.0",
     "karma-webpack": "5.0.0",
     "kleur": "^4.1.4",
-    "lerna": "^4.0.0",
+    "lerna": "^9.0.0",
     "prettier": "2.1.2",
     "prompts": "^2.4.1",
     "rimraf": "2.6.1",
@@ -63,7 +63,7 @@
     "yargs": "^17.0.1"
   },
   "optionalDependencies": {
-    "fsevents": "1.2.11"
+    "fsevents": "2.3.2"
   },
   "resolutionsPurpose": "This temporarily chooses the right versions of these libs, which are specified in both deck AND deck-kayenta",
   "resolutions": {

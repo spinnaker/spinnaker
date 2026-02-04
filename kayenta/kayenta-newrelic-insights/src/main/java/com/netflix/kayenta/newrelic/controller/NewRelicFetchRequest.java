@@ -19,10 +19,10 @@ package com.netflix.kayenta.newrelic.controller;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 import lombok.*;
 
 @Data
