@@ -50,9 +50,13 @@ public class ObservabilityConfigurationContextTest {
                     ConfigurationPropertiesAutoConfiguration.class,
                     MetricsAutoConfiguration.class,
                     CompositeMeterRegistryAutoConfiguration.class))
-            .withUserConfiguration(ObservabilityConfiguration.class)
+            .withUserConfiguration(
+                ObservabilityConfiguration.class,
+                ObservabilityConfiguration.PrometheusScrapeEndpointConfiguration.class)
             .withPropertyValues(
-                "observability.enabled=true", "spring.application.name=test-service")
+                "observability.enabled=true",
+                "observability.config.metrics.prometheus.enabled=true",
+                "spring.application.name=test-service")
             .withBean(Clock.class, () -> Clock.SYSTEM);
 
     runner.run(

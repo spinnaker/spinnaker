@@ -129,16 +129,21 @@ public class ObservabilityConfiguration {
         clock, registrySuppliers, meterRegistryCustomizers);
   }
 
-  @Bean
+  /** Nested configuration to combine multiple ConditionalOnProperty conditions. */
+  @Configuration
   @ConditionalOnProperty(
       name = "observability.config.metrics.prometheus.enabled",
       havingValue = "true")
-  @ConditionalOnProperty(
-      name = "observability.config.override-primary-registry",
-      havingValue = "true",
-      matchIfMissing = true)
-  public PrometheusScrapeEndpoint prometheusScrapeEndpoint(CollectorRegistry collectorRegistry) {
-    return new PrometheusScrapeEndpoint(collectorRegistry);
+  public static class PrometheusScrapeEndpointConfiguration {
+
+    @Bean
+    @ConditionalOnProperty(
+        name = "observability.config.override-primary-registry",
+        havingValue = "true",
+        matchIfMissing = true)
+    public PrometheusScrapeEndpoint prometheusScrapeEndpoint(CollectorRegistry collectorRegistry) {
+      return new PrometheusScrapeEndpoint(collectorRegistry);
+    }
   }
 
   @Bean
