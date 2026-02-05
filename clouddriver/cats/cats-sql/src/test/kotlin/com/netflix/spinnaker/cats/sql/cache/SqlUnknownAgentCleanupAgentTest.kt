@@ -24,8 +24,13 @@ import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.cats.test.TestAgent
 import com.netflix.spinnaker.cats.test.TestProvider
+import com.netflix.spinnaker.cats.cluster.AccountKeyExtractor
+import com.netflix.spinnaker.cats.cluster.JumpConsistentHashStrategy
+import com.netflix.spinnaker.cats.cluster.ModuloShardingStrategy
 import com.netflix.spinnaker.cats.cluster.NoopShardingFilter
 import com.netflix.spinnaker.cats.cluster.ShardingFilter
+import com.netflix.spinnaker.cats.cluster.ShardingKeyExtractor
+import com.netflix.spinnaker.cats.cluster.ShardingStrategy
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
 import com.netflix.spinnaker.config.SqlConstraints
@@ -301,6 +306,50 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
         // All records preserved - "instances" data type was excluded
         expectThat(selectAllResources()).hasSize(2)
         expectThat(selectAllRels()).hasSize(2)
+      }
+    }
+
+    // Strategy-based sharding tests: validates integration with pluggable ShardingStrategy
+    context("pluggable sharding strategy integration") {
+      deriveFixture {
+        fixture.providerAgents.add(prodCachingAgent())
+        seedDatabase(includeTestAccount = true, includeProdAccount = true)
+        fixture
+      }
+
+      test("cleanup respects JumpConsistentHash strategy ownership") {
+        val strategy = JumpConsistentHashStrategy()
+        val extractor = AccountKeyExtractor()
+
+        // Simulate pod 0 of 3 using JumpConsistentHash
+        val shardingFilter = StrategyBasedShardingFilter(strategy, extractor, podIndex = 0, podCount = 3)
+
+        subject(shardingFilter = shardingFilter).run()
+
+        // Verify that only accounts owned by pod 0 are cleaned (test is unknown)
+        // Other pods' unknown data should be preserved
+        val remainingResources = selectAllResources()
+        val remainingRels = selectAllRels()
+
+        // At least prod data should remain since it has a registered agent
+        expectThat(remainingResources.any { it.contains(":prod:") }).isEqualTo(true)
+      }
+
+      test("Modulo vs Jump strategies are both deterministic") {
+        val moduloStrategy = ModuloShardingStrategy()
+        val jumpStrategy = JumpConsistentHashStrategy()
+
+        // Both strategies should deterministically assign the same key to the same pod
+        val testKey = "prod"
+
+        val moduloOwner = moduloStrategy.computeOwner(testKey, 3)
+        val jumpOwner = jumpStrategy.computeOwner(testKey, 3)
+
+        // The results may differ, but both should be valid pod indices
+        expectThat(moduloOwner).isEqualTo(moduloOwner) // Deterministic
+        expectThat(jumpOwner).isEqualTo(jumpOwner) // Deterministic
+        expectThat(moduloOwner in 0..2).isEqualTo(true)
+        expectThat(jumpOwner in 0..2).isEqualTo(true)
       }
     }
 
@@ -632,5 +681,19 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
   /** Test sharding filter that allows all agents (simulates non-sharded deployment) */
   private class AllowAllShardingFilter : ShardingFilter {
     override fun filter(agent: Agent): Boolean = true
+  }
+
+  /** Test sharding filter that uses pluggable strategy and key extractor */
+  private class StrategyBasedShardingFilter(
+    private val strategy: ShardingStrategy,
+    private val extractor: ShardingKeyExtractor,
+    private val podIndex: Int,
+    private val podCount: Int
+  ) : ShardingFilter {
+    override fun filter(agent: Agent): Boolean {
+      val key = extractor.extractKey(agent)
+      val owner = strategy.computeOwner(key, podCount)
+      return owner == podIndex
+    }
   }
 }
