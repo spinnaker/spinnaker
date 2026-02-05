@@ -106,8 +106,7 @@ public class RetrofitClientFactory {
 
     @Override
     public Response intercept(Chain chain) throws IOException {
-      Request request =
-          chain.request().newBuilder().addHeader("Authorization", credential).build();
+      Request request = chain.request().newBuilder().addHeader("Authorization", credential).build();
       return chain.proceed(request);
     }
   }
@@ -135,10 +134,6 @@ public class RetrofitClientFactory {
     return okHttp3ClientBuilder
         // Add interceptor to proactively send Authorization header on all requests
         .addInterceptor(new AuthorizationInterceptor(credential))
-        // Keep authenticator as fallback for 401-based authentication flows
-        .authenticator(
-            (route, response) ->
-                response.request().newBuilder().addHeader("Authorization", credential).build())
         .build();
   }
 
