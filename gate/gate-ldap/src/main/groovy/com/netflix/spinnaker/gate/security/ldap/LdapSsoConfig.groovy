@@ -116,6 +116,8 @@ class LdapSsoConfig {
 
       return new User(username: username,
         email: ctx.getStringAttribute("mail"),
+        firstName: ctx.getStringAttribute("givenName"),
+        lastName: ctx.getStringAttribute("sn"),
         roles: roles,
         allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
     }
