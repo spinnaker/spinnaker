@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.cats.provider;
 
+import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
+import org.springframework.cache.annotation.Cacheable;
 
 /**
  * A ProviderRegistry has multiple providers, and provides access to the ProviderCaches for each
@@ -31,4 +34,24 @@ public interface ProviderRegistry {
   Collection<Cache> getProviderCaches();
 
   ProviderCache getProviderCache(String providerName);
+
+  @Cacheable(cacheNames = "agentForAgentType", key = "#agentType")
+  default Agent getAgentForProviderName(String agentType) {
+    // agentType is essentially the ID.  IN MOST cases this is tied to the account//cacheType
+    // operation.  E.g. "    "${account.name}/${region}/${this.class.simpleName}""
+    // but a FEW agents are "global" such as the "SqlAccountCleanupAgent".  These urn in the "Core"
+    // provider.  FINDING the right provider is a bit of a challenge.
+    AtomicReference<Agent> foundAgent = new AtomicReference<>();
+    getProviders().stream()
+        .forEach(
+            provider ->
+                provider.getAgents().parallelStream()
+                    .forEach(
+                        agent -> {
+                          if (agent.getAgentType().equals(agentType)) {
+                            foundAgent.set(agent);
+                          }
+                        }));
+    return foundAgent.get();
+  }
 }
