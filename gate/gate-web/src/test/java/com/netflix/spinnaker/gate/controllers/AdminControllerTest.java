@@ -59,7 +59,9 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     setupOrcaMock();
     when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
     HttpResponse<String> response =
-        callGateWithPath("/admin/zombie/kill/randomExecutionId/PIPELINE", "POST");
+        callGateWithPath(
+            "/admin/executions/forceCancel?executionId=randomExecutionId&executionType=PIPELINE",
+            "PUT");
     assertNotNull(response);
     assertThat(response.statusCode()).isEqualTo(200);
   }
@@ -69,7 +71,8 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     setupOrcaMock();
     when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
     HttpResponse<String> response =
-        callGateWithPath("/admin/zombie/hydrate/randomExecutionId/false", "POST");
+        callGateWithPath(
+            "/admin/executions/hydrate?executionId=randomExecutionId&dryRun=false", "POST");
     assertNotNull(response);
     assertThat(response.statusCode()).isEqualTo(200);
   }
@@ -78,7 +81,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
   public void verifyPermissionsDeniedIfNotAdmin() throws Exception {
     when(fiatPermissionEvaluator.isAdmin()).then(invocation -> false);
     HttpResponse<String> response =
-        callGateWithPath("/admin/zombie/kill/randomExecutionId/PIPELINE", "POST");
+        callGateWithPath("/admin/executions/forceCancel?executionId=randomExecutionId", "PUT");
     assertNotNull(response);
     assertThat(response.statusCode()).isEqualTo(403);
   }
