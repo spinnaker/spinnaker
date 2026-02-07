@@ -58,4 +58,7 @@ runs:
         NODE_ENV: production
       shell: bash
       working-directory: ${{ inputs.project }}
-      run: npm publish
+      ## We have to do this... since otherwise "latest" tag is applied, and backports
+      ## then fail because they'll be on older versions... and you can't tag an older
+      ## semver version as "latest".  NPM rejects it.
+      run: npm publish --tag ${{ inputs.version }}
