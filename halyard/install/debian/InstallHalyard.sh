@@ -3,8 +3,7 @@
 set -e
 
 SPINNAKER_REPOSITORY_URL="https://us-apt.pkg.dev/projects/spinnaker-community"
-SPINNAKER_DOCKER_REGISTRY="us-docker.pkg.dev/spinnaker-community/docker"
-SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
+SPINNAKER_DOCKER_REGISTRY="ghcr.io/spinnaker"
 CONFIG_BUCKET="halconfig"
 
 # We can only currently support limited releases
@@ -65,11 +64,6 @@ function process_args() {
         SPINNAKER_DOCKER_REGISTRY="$1"
         shift
         ;;
-      --spinnaker-gce-project)
-        echo "spinnaker-gce-project"
-        SPINNAKER_GCE_PROJECT="$1"
-        shift
-        ;;
       --config-bucket)
         echo "config-bucket"
         CONFIG_BUCKET="$1"
@@ -123,7 +117,6 @@ spinnaker:
   artifacts:
     debianRepository: $SPINNAKER_REPOSITORY_URL
     dockerRegistry: $SPINNAKER_DOCKER_REGISTRY
-    googleImageProject: $SPINNAKER_GCE_PROJECT
   config:
     input:
       bucket: $CONFIG_BUCKET
@@ -171,8 +164,8 @@ usage: $0 [-y] [--version=<version>]
                                        is stored in.
 
     --download-with-gsutil          If specifying a GCS bucket using
-                                    --halyard-bucket-base-url, this flag causes the 
-                                    install script to rely on gsutil and its 
+                                    --halyard-bucket-base-url, this flag causes the
+                                    install script to rely on gsutil and its
                                     authentication to fetch the Halyard JAR.
 
     --config-bucket <name>          The bucket the your Bill of Materials and
@@ -185,10 +178,6 @@ usage: $0 [-y] [--version=<version>]
     --spinnaker-registry <url>      Obtain Spinnaker docker images from <url>
                                     rather than the default registry, which is
                                     $SPINNAKER_DOCKER_REGISTRY.
-
-    --spinnaker-gce-project <name>  Obtain Spinnaker GCE images from <url>
-                                    rather than the default project, which is
-                                    $SPINNAKER_GCE_PROJECT.
 
     --version <version>             Specify the exact version of Halyard to
                                     install.
