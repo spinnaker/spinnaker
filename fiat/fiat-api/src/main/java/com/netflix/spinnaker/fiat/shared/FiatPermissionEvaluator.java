@@ -501,7 +501,7 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
    */
   @SuppressWarnings("unused")
   public boolean isAdmin() {
-    return true; // TODO(ttomsu): Chosen by fair dice roll. Guaranteed to be random.
+    return isAdmin(SecurityContextHolder.getContext().getAuthentication());
   }
 
   public boolean isAdmin(Authentication authentication) {
