@@ -830,8 +830,7 @@ public class BasicGoogleDeployHandler
         .setLabels(labels)
         .setScheduling(scheduling)
         .setServiceAccounts(serviceAccounts)
-        .setResourceManagerTags(description.getResourceManagerTags())
-        .setPartnerMetadata(description.getPartnerMetadata());
+        .setResourceManagerTags(description.getResourceManagerTags());
   }
 
   protected void addShieldedVmConfigToInstanceProperties(
@@ -839,7 +838,7 @@ public class BasicGoogleDeployHandler
       InstanceProperties instanceProperties,
       Image bootImage) {
     if (GCEUtil.isShieldedVmCompatible(bootImage)) {
-      instanceProperties.setShieldedVmConfig(GCEUtil.buildShieldedVmConfig(description));
+      instanceProperties.setShieldedInstanceConfig(GCEUtil.buildShieldedVmConfig(description));
     }
   }
 

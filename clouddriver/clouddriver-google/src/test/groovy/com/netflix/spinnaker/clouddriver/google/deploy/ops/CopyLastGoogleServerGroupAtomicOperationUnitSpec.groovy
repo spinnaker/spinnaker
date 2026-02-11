@@ -23,7 +23,7 @@ import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Scheduling
-import com.google.api.services.compute.model.ShieldedVmConfig
+import com.google.api.services.compute.model.ShieldedInstanceConfig
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository

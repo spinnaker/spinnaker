@@ -87,7 +87,7 @@ final class RegionGoogleServerGroupManagers implements GoogleServerGroupManagers
   public GoogleComputeOperationRequest<ComputeRequest<Operation>> update(
       InstanceGroupManager content) throws IOException {
     return requestFactory.wrapOperationRequest(
-        managers.update(credentials.getProject(), region, instanceGroupName, content),
+        managers.patch(credentials.getProject(), region, instanceGroupName, content),
         "update",
         region);
   }

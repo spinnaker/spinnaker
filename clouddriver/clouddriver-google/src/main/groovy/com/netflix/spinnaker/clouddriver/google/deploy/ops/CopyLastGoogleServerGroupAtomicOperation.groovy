@@ -246,7 +246,7 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
           ? description.canIpForward
           : ancestorInstanceProperties.canIpForward
 
-      def shieldedVmConfig = ancestorInstanceProperties.shieldedVmConfig
+      def shieldedVmConfig = ancestorInstanceProperties.shieldedInstanceConfig
 
       if (shieldedVmConfig) {
         newDescription.enableSecureBoot =

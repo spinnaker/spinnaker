@@ -1506,10 +1506,6 @@ public class BasicGoogleDeployHandlerTest {
     mockDescription.setAcceleratorConfigs(List.of(new AcceleratorConfig()));
     mockDescription.setCanIpForward(true);
     mockDescription.setResourceManagerTags(Map.of("resource-tag-key", "resource-tag-value"));
-    mockDescription.setPartnerMetadata(
-        Map.of(
-            "partner-metadata-key",
-            new StructuredEntries().setEntries(Map.of("entries", new Object()))));
 
     InstanceProperties result =
         basicGoogleDeployHandler.buildInstancePropertiesFromInput(
@@ -1535,7 +1531,6 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(scheduling, result.getScheduling());
     assertEquals(serviceAccounts, result.getServiceAccounts());
     assertEquals(mockDescription.getResourceManagerTags(), result.getResourceManagerTags());
-    assertEquals(mockDescription.getPartnerMetadata(), result.getPartnerMetadata());
   }
 
   @Test
@@ -1552,7 +1547,6 @@ public class BasicGoogleDeployHandlerTest {
     mockDescription.setAcceleratorConfigs(Collections.emptyList());
     mockDescription.setCanIpForward(false);
     mockDescription.setResourceManagerTags(Collections.emptyMap());
-    mockDescription.setPartnerMetadata(Collections.emptyMap());
 
     InstanceProperties result =
         basicGoogleDeployHandler.buildInstancePropertiesFromInput(
@@ -1578,7 +1572,6 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(scheduling, result.getScheduling());
     assertEquals(serviceAccounts, result.getServiceAccounts());
     assertTrue(result.getResourceManagerTags().isEmpty());
-    assertTrue(result.getPartnerMetadata().isEmpty());
   }
 
   @Test
@@ -1595,7 +1588,6 @@ public class BasicGoogleDeployHandlerTest {
     mockDescription.setAcceleratorConfigs(null);
     mockDescription.setCanIpForward(false);
     mockDescription.setResourceManagerTags(Collections.emptyMap());
-    mockDescription.setPartnerMetadata(Collections.emptyMap());
 
     InstanceProperties result =
         basicGoogleDeployHandler.buildInstancePropertiesFromInput(
@@ -1621,14 +1613,13 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(scheduling, result.getScheduling());
     assertEquals(serviceAccounts, result.getServiceAccounts());
     assertTrue(result.getResourceManagerTags().isEmpty());
-    assertTrue(result.getPartnerMetadata().isEmpty());
   }
 
   @Test
   void addShieldedVmConfigToInstanceProperties_shieldedVmCompatible_configAdded() {
     InstanceProperties instanceProperties = new InstanceProperties();
     Image bootImage = new Image();
-    ShieldedVmConfig shieldedVmConfig = new ShieldedVmConfig();
+    ShieldedInstanceConfig shieldedVmConfig = new ShieldedInstanceConfig();
 
     mockedGCEUtil.when(() -> GCEUtil.isShieldedVmCompatible(bootImage)).thenReturn(true);
     mockedGCEUtil
@@ -1637,7 +1628,7 @@ public class BasicGoogleDeployHandlerTest {
 
     basicGoogleDeployHandler.addShieldedVmConfigToInstanceProperties(
         mockDescription, instanceProperties, bootImage);
-    assertEquals(shieldedVmConfig, instanceProperties.getShieldedVmConfig());
+    assertEquals(shieldedVmConfig, instanceProperties.getShieldedInstanceConfig());
   }
 
   @Test
@@ -1649,7 +1640,7 @@ public class BasicGoogleDeployHandlerTest {
 
     basicGoogleDeployHandler.addShieldedVmConfigToInstanceProperties(
         mockDescription, instanceProperties, bootImage);
-    assertNull(instanceProperties.getShieldedVmConfig());
+    assertNull(instanceProperties.getShieldedInstanceConfig());
   }
 
   @Test

@@ -633,7 +633,7 @@ class GCEUtil {
 
     def networkInterface = instanceTemplateProperties.networkInterfaces[0]
     def serviceAccountEmail = instanceTemplateProperties.serviceAccounts?.getAt(0)?.email
-    def shieldedVmConfig = instanceTemplateProperties.shieldedVmConfig
+    def shieldedVmConfig = instanceTemplateProperties.shieldedInstanceConfig
 
     return new BaseGoogleInstanceDescription(
       image: image,
@@ -939,8 +939,8 @@ class GCEUtil {
     return scheduling
   }
 
-  static ShieldedVmConfig buildShieldedVmConfig(BaseGoogleInstanceDescription description) {
-    def shieldedVmConfig = new ShieldedVmConfig()
+  static ShieldedInstanceConfig buildShieldedVmConfig(BaseGoogleInstanceDescription description) {
+    def shieldedVmConfig = new ShieldedInstanceConfig()
 
     if (description.enableSecureBoot != null) {
       shieldedVmConfig.enableSecureBoot = description.enableSecureBoot

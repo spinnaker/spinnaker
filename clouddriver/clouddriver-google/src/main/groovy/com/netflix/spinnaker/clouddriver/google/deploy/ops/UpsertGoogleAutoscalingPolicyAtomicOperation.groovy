@@ -153,20 +153,20 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         GCEUtil.buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(serverGroup.autoHealingPolicy)
 
       def regionalRequest = { List<InstanceGroupManagerAutoHealingPolicy> policy ->
-        def request = new RegionInstanceGroupManagersSetAutoHealingRequest().setAutoHealingPolicies(policy)
+        def content = new InstanceGroupManager().setAutoHealingPolicies(policy)
         def autoHealingOp = timeExecute(
-          compute.regionInstanceGroupManagers().setAutoHealingPolicies(project, region, serverGroupName, request),
-          "compute.regionInstanceGroupManagers.setAutoHealingPolicies",
+          compute.regionInstanceGroupManagers().patch(project, region, serverGroupName, content),
+          "compute.regionInstanceGroupManagers.patch",
           GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, region)
         googleOperationPoller.waitForRegionalOperation(compute, project, region,
           autoHealingOp.getName(), null, task, "autoHealing policy ${policy} for server group $serverGroupName", BASE_PHASE)
       }
 
       def zonalRequest = { List<InstanceGroupManagerAutoHealingPolicy> policy ->
-        def request = new InstanceGroupManagersSetAutoHealingRequest().setAutoHealingPolicies(policy)
+        def content = new InstanceGroupManager().setAutoHealingPolicies(policy)
         def autoHealingOp = timeExecute(
-          compute.instanceGroupManagers().setAutoHealingPolicies(project, zone, serverGroupName, request),
-          "compute.instanceGroupManagers.setAutoHealingPolicies",
+          compute.instanceGroupManagers().patch(project, zone, serverGroupName, content),
+          "compute.instanceGroupManagers.patch",
           GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, zone)
         googleOperationPoller.waitForZonalOperation(compute, project, zone,
           autoHealingOp.getName(), null, task, "autoHealing policy ${policy} for server group $serverGroupName", BASE_PHASE)

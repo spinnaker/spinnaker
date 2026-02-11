@@ -107,7 +107,7 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       def scheduling = new Scheduling(automaticRestart: SCHEDULING_AUTOMATIC_RESTART,
                                       onHostMaintenance: SCHEDULING_ON_HOST_MAINTENANCE,
                                       preemptible: SCHEDULING_PREEMPTIBLE)
-      def shieldedVmConfig = new ShieldedVmConfig(enableSecureBoot: SHIELDEDVMCONFIG_ENABLE_SECURE_BOOT,
+      def shieldedVmConfig = new ShieldedInstanceConfig(enableSecureBoot: SHIELDEDVMCONFIG_ENABLE_SECURE_BOOT,
                                                   enableVtpm: SHIELDEDVMCONFIG_ENABLE_VTPM,
                                                   enableIntegrityMonitoring: SHIELDEDVMCONFIG_ENABLE_INTEGRITY_MONITORING)
       def disk = new AttachedDisk(autoDelete: DISK_AUTO_DELETE,

@@ -218,8 +218,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
         instanceTemplateProperties.setCanIpForward(canIpForward)
       }
 
-      if (overriddenProperties.shieldedVmConfig) {
-        instanceTemplateProperties.setShieldedVmConfig(description.shieldedVmConfig)
+      if (overriddenProperties.shieldedInstanceConfig) {
+        instanceTemplateProperties.setShieldedInstanceConfig(GCEUtil.buildShieldedVmConfig(description))
       }
 
       // Override the instance template's metadata if instanceMetadata was specified.

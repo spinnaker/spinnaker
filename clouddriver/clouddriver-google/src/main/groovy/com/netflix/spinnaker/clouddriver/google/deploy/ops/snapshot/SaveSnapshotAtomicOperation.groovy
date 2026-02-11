@@ -263,8 +263,8 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
         instanceTemplateMap.metadata[item.key] = item.value
       }
     }
-    if (instanceTemplate.properties.shieldedVmConfig) {
-      addShieldedVmConfigToInstanceTemplateMap(instanceTemplate.properties.shieldedVmConfig as ShieldedVmConfig, instanceTemplateMap)
+    if (instanceTemplate.properties.shieldedInstanceConfig) {
+      addShieldedVmConfigToInstanceTemplateMap(instanceTemplate.properties.shieldedInstanceConfig as ShieldedInstanceConfig, instanceTemplateMap)
     }
     numInstanceTemplates++
     resourceMap.google_compute_instance_template[instanceTemplate.name as String] = instanceTemplateMap
@@ -286,7 +286,7 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
     return null
   }
 
-  private Void addShieldedVmConfigToInstanceTemplateMap(ShieldedVmConfig shieldedVmConfig, Map instanceTemplateMap) {
+  private Void addShieldedVmConfigToInstanceTemplateMap(ShieldedInstanceConfig shieldedVmConfig, Map instanceTemplateMap) {
     instanceTemplateMap.shielded_vm_config = [:]
     if (shieldedVmConfig.enableSecureBoot != null) {
       instanceTemplateMap.shielded_vm_config.enable_secure_boot = shieldedVmConfig.enableSecureBoot
@@ -671,7 +671,7 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
       }
     }
     if (instancePropertiesMap.shieldedVmConfig) {
-      instanceProperties.shieldedVmConfig = convertMapToShieldedVmConfig(instancePropertiesMap.shieldedVmConfig as Map)
+      instanceProperties.shieldedInstanceConfig = convertMapToShieldedVmConfig(instancePropertiesMap.shieldedVmConfig as Map)
     }
     return instanceProperties
   }
@@ -708,9 +708,9 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
     return scheduling
   }
 
-  private ShieldedVmConfig convertMapToShieldedVmConfig(Map shieldedVmConfigMap) {
+  private ShieldedInstanceConfig convertMapToShieldedVmConfig(Map shieldedVmConfigMap) {
 
-    ShieldedVmConfig shieldedVmConfig = new ShieldedVmConfig()
+    ShieldedInstanceConfig shieldedVmConfig = new ShieldedInstanceConfig()
 
     shieldedVmConfig.enableSecureBoot = shieldedVmConfigMap.enableSecureBoot as Boolean
     shieldedVmConfig.enableVtpm = shieldedVmConfigMap.enableVtpm as Boolean

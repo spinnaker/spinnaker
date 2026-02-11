@@ -85,7 +85,7 @@ final class ZoneGoogleServerGroupManagers implements GoogleServerGroupManagers {
   public GoogleComputeOperationRequest<ComputeRequest<Operation>> update(
       InstanceGroupManager content) throws IOException {
     return requestFactory.wrapOperationRequest(
-        managers.update(credentials.getProject(), zone, instanceGroupName, content),
+        managers.patch(credentials.getProject(), zone, instanceGroupName, content),
         "update",
         zone);
   }
