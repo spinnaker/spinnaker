@@ -48,6 +48,8 @@ import com.google.api.services.compute.model.AutoscalingPolicyScaleInControl;
 import com.google.api.services.compute.model.AutoscalingPolicyScalingSchedule;
 import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.Instance;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
@@ -93,6 +95,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.Sc
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.ScalingSchedule;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstances;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
@@ -674,6 +677,39 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       serverGroup.setZones(ImmutableSet.of(zone));
       serverGroup.setRegion(credentials.regionFromZone(zone));
     }
+    GoogleInstanceFlexibilityPolicy flexPolicy =
+        convertInstanceFlexibilityPolicy(manager.getInstanceFlexibilityPolicy());
+    if (flexPolicy != null) {
+      serverGroup.setInstanceFlexibilityPolicy(flexPolicy);
+    }
+  }
+
+  @Nullable
+  private static GoogleInstanceFlexibilityPolicy convertInstanceFlexibilityPolicy(
+      @Nullable InstanceGroupManagerInstanceFlexibilityPolicy gcePolicy) {
+    if (gcePolicy == null || gcePolicy.getInstanceSelections() == null) {
+      return null;
+    }
+    Map<String, GoogleInstanceFlexibilityPolicy.InstanceSelection> selections =
+        gcePolicy.getInstanceSelections().entrySet().stream()
+            .filter(entry -> entry.getKey() != null)
+            .filter(entry -> entry.getValue() != null)
+            .collect(
+                toImmutableMap(
+                    Map.Entry::getKey,
+                    entry -> {
+                      InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection gceSel =
+                          entry.getValue();
+                      GoogleInstanceFlexibilityPolicy.InstanceSelection sel =
+                          new GoogleInstanceFlexibilityPolicy.InstanceSelection();
+                      sel.setRank(gceSel.getRank());
+                      sel.setMachineTypes(gceSel.getMachineTypes());
+                      return sel;
+                    }));
+    if (selections.isEmpty()) {
+      return null;
+    }
+    return new GoogleInstanceFlexibilityPolicy(selections);
   }
 
   private static ImmutableList<String> getZones(@Nullable DistributionPolicy distributionPolicy) {
@@ -926,6 +962,12 @@ public abstract class AbstractGoogleServerGroupCachingAgent
               .map(AutoscalerStatusDetails::getMessage)
               .filter(Objects::nonNull)
               .collect(toImmutableList()));
+    }
+    if (autoscaler.getStatus() != null) {
+      serverGroup.setAutoscalerStatus(autoscaler.getStatus());
+    }
+    if (autoscaler.getRecommendedSize() != null) {
+      serverGroup.setRecommendedSize(autoscaler.getRecommendedSize());
     }
   }
 
