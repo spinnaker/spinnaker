@@ -324,4 +324,69 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
       def e = thrown(GoogleResourceIllegalStateException)
       e.message == "Required instance template not found for server group: ${SERVER_GROUP_NAME}"
   }
+
+  void "should deserialize shielded config from v1-shaped map key"() {
+    setup:
+      def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
+
+    when:
+      def instanceProperties = operation.convertMapToInstanceProperties([
+        shieldedInstanceConfig: [
+          enableSecureBoot: true,
+          enableVtpm: false,
+          enableIntegrityMonitoring: true
+        ]
+      ])
+
+    then:
+      instanceProperties.shieldedInstanceConfig != null
+      instanceProperties.shieldedInstanceConfig.enableSecureBoot
+      !instanceProperties.shieldedInstanceConfig.enableVtpm
+      instanceProperties.shieldedInstanceConfig.enableIntegrityMonitoring
+  }
+
+  void "should deserialize shielded config from legacy map key for backwards compatibility"() {
+    setup:
+      def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
+
+    when:
+      def instanceProperties = operation.convertMapToInstanceProperties([
+        shieldedVmConfig: [
+          enableSecureBoot: false,
+          enableVtpm: true,
+          enableIntegrityMonitoring: false
+        ]
+      ])
+
+    then:
+      instanceProperties.shieldedInstanceConfig != null
+      !instanceProperties.shieldedInstanceConfig.enableSecureBoot
+      instanceProperties.shieldedInstanceConfig.enableVtpm
+      !instanceProperties.shieldedInstanceConfig.enableIntegrityMonitoring
+  }
+
+  void "should prefer v1 shieldedInstanceConfig when both keys are present"() {
+    setup:
+      def operation = new SaveSnapshotAtomicOperation(new SaveSnapshotDescription())
+
+    when:
+      def instanceProperties = operation.convertMapToInstanceProperties([
+        shieldedInstanceConfig: [
+          enableSecureBoot: true,
+          enableVtpm: false,
+          enableIntegrityMonitoring: true
+        ],
+        shieldedVmConfig: [
+          enableSecureBoot: false,
+          enableVtpm: true,
+          enableIntegrityMonitoring: false
+        ]
+      ])
+
+    then:
+      instanceProperties.shieldedInstanceConfig != null
+      instanceProperties.shieldedInstanceConfig.enableSecureBoot
+      !instanceProperties.shieldedInstanceConfig.enableVtpm
+      instanceProperties.shieldedInstanceConfig.enableIntegrityMonitoring
+  }
 }

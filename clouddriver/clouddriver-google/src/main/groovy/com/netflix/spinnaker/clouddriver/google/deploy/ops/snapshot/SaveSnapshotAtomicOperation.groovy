@@ -670,8 +670,10 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
         instanceProperties.serviceAccounts.add(convertMapToServiceAccount(serviceAccountMap))
       }
     }
-    if (instancePropertiesMap.shieldedVmConfig) {
-      instanceProperties.shieldedInstanceConfig = convertMapToShieldedVmConfig(instancePropertiesMap.shieldedVmConfig as Map)
+    Map shieldedConfigMap =
+      (instancePropertiesMap.shieldedInstanceConfig ?: instancePropertiesMap.shieldedVmConfig) as Map
+    if (shieldedConfigMap) {
+      instanceProperties.shieldedInstanceConfig = convertMapToShieldedVmConfig(shieldedConfigMap)
     }
     return instanceProperties
   }
