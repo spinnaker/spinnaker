@@ -41,6 +41,8 @@ import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary;
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection;
 import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
 import com.google.api.services.compute.model.Metadata;
@@ -76,6 +78,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -220,6 +223,52 @@ class AbstractGoogleServerGroupCachingAgentTest {
     assertThat(serverGroup.getZones())
         .containsExactlyInAnyOrder("fakezone1", "fakezone2", "fakezone3");
     assertThat(serverGroup.getDistributionPolicy().getTargetShape()).isEqualTo("ANY");
+  }
+
+  @Test
+  void serverGroupProperties_mapInstanceFlexibilityPolicyAndIgnoreMalformedEntries() {
+    Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection>
+        instanceSelections = new HashMap<>();
+    instanceSelections.put(
+        "preferred",
+        new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+            .setRank(1)
+            .setMachineTypes(ImmutableList.of("n2-standard-8")));
+    instanceSelections.put("malformed", null);
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("myServerGroup")
+            .setRegion(REGION_URL)
+            .setInstanceFlexibilityPolicy(
+                new InstanceGroupManagerInstanceFlexibilityPolicy()
+                    .setInstanceSelections(instanceSelections));
+
+    Compute compute =
+        new StubComputeFactory().setInstanceGroupManagers(instanceGroupManager).create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(compute, ImmutableList.of(instanceGroupManager));
+
+    CacheResult cacheResult = cachingAgent.loadData(inMemoryProviderCache());
+    GoogleServerGroup serverGroup = getOnlyServerGroup(cacheResult);
+
+    assertThat(serverGroup.getInstanceFlexibilityPolicy()).isNotNull();
+    assertThat(serverGroup.getInstanceFlexibilityPolicy().getInstanceSelections())
+        .containsOnlyKeys("preferred");
+    assertThat(
+            serverGroup
+                .getInstanceFlexibilityPolicy()
+                .getInstanceSelections()
+                .get("preferred")
+                .getRank())
+        .isEqualTo(1);
+    assertThat(
+            serverGroup
+                .getInstanceFlexibilityPolicy()
+                .getInstanceSelections()
+                .get("preferred")
+                .getMachineTypes())
+        .containsExactly("n2-standard-8");
   }
 
   @Test
@@ -699,6 +748,8 @@ class AbstractGoogleServerGroupCachingAgentTest {
             .setTarget("myServerGroup")
             .setAutoscalingPolicy(
                 new AutoscalingPolicy().setMinNumReplicas(101).setMaxNumReplicas(202))
+            .setStatus("ACTIVE")
+            .setRecommendedSize(181)
             .setStatusDetails(
                 ImmutableList.of(
                     new AutoscalerStatusDetails().setMessage("message1"),
@@ -719,6 +770,8 @@ class AbstractGoogleServerGroupCachingAgentTest {
     assertThat(serverGroup.getAsg())
         .containsOnly(entry("minSize", 101), entry("maxSize", 202), entry("desiredCapacity", 303));
     assertThat(serverGroup.getAutoscalingMessages()).containsExactly("message1", "message2");
+    assertThat(serverGroup.getAutoscalerStatus()).isEqualTo("ACTIVE");
+    assertThat(serverGroup.getRecommendedSize()).isEqualTo(181);
   }
 
   @Test
