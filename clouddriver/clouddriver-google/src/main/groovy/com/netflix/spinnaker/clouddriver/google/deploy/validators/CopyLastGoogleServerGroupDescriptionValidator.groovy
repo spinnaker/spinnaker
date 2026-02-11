@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
@@ -35,6 +36,9 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
 
   @Autowired
   private GoogleConfiguration.DeployDefaults googleDeployDefaults
+
+  @Autowired(required = false)
+  GoogleClusterProvider googleClusterProvider
 
   @Override
   void validate(List priorDescriptions, BasicGoogleDeployDescription description, ValidationErrors errors) {
@@ -68,23 +72,26 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
         "partnerMetadata is not supported under the stable v1 compute API and will not be propagated to GCE.")
     }
 
-    if (description.instanceFlexibilityPolicy?.instanceSelections) {
+    def effectiveDescription = resolveEffectiveDescription(description)
+    if (effectiveDescription.instanceFlexibilityPolicy?.instanceSelections) {
       // Instance flexibility policy is only supported for regional MIGs.
-      if (!description.regional) {
+      if (!effectiveDescription.regional) {
         errors.rejectValue("instanceFlexibilityPolicy",
           "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.requiresRegional",
           "Instance flexibility policy is only supported for regional server groups.")
       }
 
       // Instance flexibility policy is incompatible with EVEN target distribution shape.
-      if (description.distributionPolicy?.targetShape == "EVEN") {
+      // Regional MIG defaults to EVEN when targetShape is not explicitly provided.
+      def targetShape = effectiveDescription.distributionPolicy?.targetShape?.trim()
+      if (!targetShape || targetShape.equalsIgnoreCase("EVEN")) {
         errors.rejectValue("instanceFlexibilityPolicy",
           "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
           "Instance flexibility policy cannot be used with EVEN target distribution shape.")
       }
 
       // Validate instance selection entries are well-formed.
-      def selections = description.instanceFlexibilityPolicy.getInstanceSelections()
+      def selections = effectiveDescription.instanceFlexibilityPolicy.getInstanceSelections()
       if (selections.containsValue(null)) {
         errors.rejectValue("instanceFlexibilityPolicy",
           "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.nullSelection",
@@ -106,5 +113,36 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
           "Each instance selection must specify at least one machine type.")
       }
     }
+  }
+
+  private BasicGoogleDeployDescription resolveEffectiveDescription(BasicGoogleDeployDescription description) {
+    if (!googleClusterProvider
+      || !description?.accountName
+      || !description?.source?.region
+      || !description?.source?.serverGroupName) {
+      return description
+    }
+
+    def ancestorServerGroup = googleClusterProvider.getServerGroup(
+      description.accountName,
+      description.source.region,
+      description.source.serverGroupName)
+    if (!ancestorServerGroup) {
+      return description
+    }
+
+    BasicGoogleDeployDescription effectiveDescription = description.clone()
+    effectiveDescription.regional =
+      description.regional != null ? description.regional : ancestorServerGroup.regional
+    effectiveDescription.distributionPolicy =
+      description.distributionPolicy != null
+        ? description.distributionPolicy
+        : ancestorServerGroup.distributionPolicy
+    effectiveDescription.instanceFlexibilityPolicy =
+      description.instanceFlexibilityPolicy != null
+        ? description.instanceFlexibilityPolicy
+        : ancestorServerGroup.instanceFlexibilityPolicy
+
+    return effectiveDescription
   }
 }

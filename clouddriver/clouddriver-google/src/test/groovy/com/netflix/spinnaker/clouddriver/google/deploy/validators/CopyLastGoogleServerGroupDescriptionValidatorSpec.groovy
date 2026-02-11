@@ -19,10 +19,12 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler
 import spock.lang.Shared
@@ -42,6 +44,8 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
   @Shared
   CopyLastGoogleServerGroupDescriptionValidator validator
 
+  GoogleClusterProvider googleClusterProvider
+
   void setupSpec() {
     def googleDeployDefaults = new GoogleConfiguration.DeployDefaults()
     validator = new CopyLastGoogleServerGroupDescriptionValidator(googleDeployDefaults: googleDeployDefaults)
@@ -50,6 +54,11 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
     def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).credentials(new FakeGoogleCredentials()).build()
     credentialsRepo.save(credentials)
     validator.credentialsRepository = credentialsRepo
+  }
+
+  void setup() {
+    googleClusterProvider = Mock(GoogleClusterProvider)
+    validator.googleClusterProvider = googleClusterProvider
   }
 
   void "pass validation with minimal description inputs"() {
@@ -148,6 +157,29 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
                              "Instance flexibility policy cannot be used with EVEN target distribution shape.")
   }
 
+  void "instance flexibility policy with omitted target shape fails validation due to implicit EVEN default"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
+      selection.setRank(1)
+      selection.setMachineTypes(["n2-standard-8"])
+      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
+      flexPolicy.setInstanceSelections(["preferred": selection])
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(
+        accountName: ACCOUNT_NAME,
+        instanceFlexibilityPolicy: flexPolicy,
+        regional: true,
+        region: REGION
+      ), errors)
+
+    then:
+      1 * errors.rejectValue("instanceFlexibilityPolicy",
+                             "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
+                             "Instance flexibility policy cannot be used with EVEN target distribution shape.")
+  }
+
   void "partnerMetadata is rejected under v1 API"() {
     setup:
       def errors = Mock(ValidationErrors)
@@ -227,5 +259,83 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue("instanceFlexibilityPolicy",
                              "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.negativeRank",
                              "Each instance selection rank must be zero or greater.")
+  }
+
+  void "inherited flexibility with EVEN target shape fails validation"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def ancestorServerGroup = buildAncestorServerGroupWithFlexibilityPolicy("EVEN")
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        accountName: ACCOUNT_NAME
+      )
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * googleClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      1 * errors.rejectValue("instanceFlexibilityPolicy",
+                             "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
+                             "Instance flexibility policy cannot be used with EVEN target distribution shape.")
+  }
+
+  void "inherited flexibility with omitted target shape fails validation due to implicit EVEN default"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def ancestorServerGroup = buildAncestorServerGroupWithFlexibilityPolicy(null)
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        accountName: ACCOUNT_NAME
+      )
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * googleClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      1 * errors.rejectValue("instanceFlexibilityPolicy",
+                             "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
+                             "Instance flexibility policy cannot be used with EVEN target distribution shape.")
+  }
+
+  void "request distribution policy override takes precedence over inherited EVEN shape"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def ancestorServerGroup = buildAncestorServerGroupWithFlexibilityPolicy("EVEN")
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        accountName: ACCOUNT_NAME,
+        regional: true,
+        distributionPolicy: new GoogleDistributionPolicy(
+          zones: ["us-central1-a"],
+          targetShape: "BALANCED"
+        )
+      )
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * googleClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      0 * errors._
+  }
+
+  private static GoogleServerGroup.View buildAncestorServerGroupWithFlexibilityPolicy(String targetShape) {
+    def selection = new GoogleInstanceFlexibilityPolicy.InstanceSelection()
+    selection.setRank(1)
+    selection.setMachineTypes(["n2-standard-8"])
+    def flexibilityPolicy = new GoogleInstanceFlexibilityPolicy()
+    flexibilityPolicy.setInstanceSelections(["preferred": selection])
+    return new GoogleServerGroup(
+      name: ANCESTOR_SERVER_GROUP_NAME,
+      regional: true,
+      region: REGION,
+      asg: [desiredCapacity: 2],
+      distributionPolicy: targetShape != null
+        ? new GoogleDistributionPolicy(zones: ["us-central1-a", "us-central1-b"], targetShape: targetShape)
+        : null,
+      instanceFlexibilityPolicy: flexibilityPolicy
+    ).view
   }
 }

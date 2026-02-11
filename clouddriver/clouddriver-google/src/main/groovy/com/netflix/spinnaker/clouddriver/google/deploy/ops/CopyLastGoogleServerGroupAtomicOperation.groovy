@@ -69,6 +69,7 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
   @Override
   DeploymentResult operate(List priorOutputs) {
     BasicGoogleDeployDescription newDescription = cloneAndOverrideDescription()
+    validateInstanceFlexibilityPolicyConstraints(newDescription)
 
     def credentials = newDescription.credentials
     def project = credentials.project
@@ -87,6 +88,43 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
                                   "New server group = $newServerGroupName in ${isRegional ? region : zone}."
 
     result
+  }
+
+  private static void validateInstanceFlexibilityPolicyConstraints(
+      BasicGoogleDeployDescription description) {
+    def selections = description.instanceFlexibilityPolicy?.instanceSelections
+    if (!selections) {
+      return
+    }
+
+    if (!description.regional) {
+      throw new IllegalArgumentException(
+          "Instance flexibility policy is only supported for regional server groups.")
+    }
+
+    def targetShape = description.distributionPolicy?.targetShape?.trim()
+    if (!targetShape || targetShape.equalsIgnoreCase("EVEN")) {
+      throw new IllegalArgumentException(
+          "Instance flexibility policy cannot be used with EVEN target distribution shape.")
+    }
+
+    if (selections.containsValue(null)) {
+      throw new IllegalArgumentException(
+          "Instance flexibility policy must not contain null selection entries.")
+    }
+
+    if (selections.values().any { it != null && it.rank == null }) {
+      throw new IllegalArgumentException("Each instance selection must specify rank.")
+    }
+
+    if (selections.values().any { it != null && it.rank != null && it.rank < 0 }) {
+      throw new IllegalArgumentException("Each instance selection rank must be zero or greater.")
+    }
+
+    if (selections.values().any { it != null && !it.machineTypes }) {
+      throw new IllegalArgumentException(
+          "Each instance selection must specify at least one machine type.")
+    }
   }
 
   private BasicGoogleDeployDescription cloneAndOverrideDescription() {

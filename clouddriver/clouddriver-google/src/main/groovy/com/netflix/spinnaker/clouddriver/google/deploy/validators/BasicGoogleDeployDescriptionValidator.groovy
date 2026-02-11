@@ -96,7 +96,9 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
       }
 
       // Instance flexibility policy is incompatible with EVEN target distribution shape.
-      if (description.distributionPolicy?.targetShape == "EVEN") {
+      // Regional MIG defaults to EVEN when targetShape is not explicitly provided.
+      def targetShape = description.distributionPolicy?.targetShape?.trim()
+      if (!targetShape || targetShape.equalsIgnoreCase("EVEN")) {
         errors.rejectValue("instanceFlexibilityPolicy",
           "basicGoogleDeployDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
           "Instance flexibility policy cannot be used with EVEN target distribution shape.")

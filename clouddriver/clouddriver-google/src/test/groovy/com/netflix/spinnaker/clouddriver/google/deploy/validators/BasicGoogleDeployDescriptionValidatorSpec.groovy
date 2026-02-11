@@ -500,6 +500,28 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                              "Instance flexibility policy cannot be used with EVEN target distribution shape.")
   }
 
+  void "instance flexibility policy with omitted target shape fails validation due to implicit EVEN default"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
+      selection.setRank(1)
+      selection.setMachineTypes(["n2-standard-8"])
+      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
+      flexPolicy.setInstanceSelections(["preferred": selection])
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(
+        instanceFlexibilityPolicy: flexPolicy,
+        regional: true,
+        region: REGION
+      ), errors)
+
+    then:
+      1 * errors.rejectValue("instanceFlexibilityPolicy",
+                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
+                             "Instance flexibility policy cannot be used with EVEN target distribution shape.")
+  }
+
   void "instance flexibility policy on regional server group with BALANCED shape passes validation"() {
     setup:
       def errors = Mock(ValidationErrors)
