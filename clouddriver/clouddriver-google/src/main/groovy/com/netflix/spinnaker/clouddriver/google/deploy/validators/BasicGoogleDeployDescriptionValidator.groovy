@@ -79,5 +79,51 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     helper.validateAutoscalingPolicy(description.autoscalingPolicy)
 
     helper.validateAutoHealingPolicy(description.autoHealingPolicy)
+
+    // partnerMetadata is not supported under the stable v1 compute API.
+    if (description.partnerMetadata) {
+      errors.rejectValue("partnerMetadata",
+        "basicGoogleDeployDescription.partnerMetadata.notSupportedInV1",
+        "partnerMetadata is not supported under the stable v1 compute API and will not be propagated to GCE.")
+    }
+
+    if (description.instanceFlexibilityPolicy?.instanceSelections) {
+      // Instance flexibility policy is only supported for regional MIGs.
+      if (!description.regional) {
+        errors.rejectValue("instanceFlexibilityPolicy",
+          "basicGoogleDeployDescription.instanceFlexibilityPolicy.requiresRegional",
+          "Instance flexibility policy is only supported for regional server groups.")
+      }
+
+      // Instance flexibility policy is incompatible with EVEN target distribution shape.
+      if (description.distributionPolicy?.targetShape == "EVEN") {
+        errors.rejectValue("instanceFlexibilityPolicy",
+          "basicGoogleDeployDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
+          "Instance flexibility policy cannot be used with EVEN target distribution shape.")
+      }
+
+      // Validate instance selection entries are well-formed.
+      def selections = description.instanceFlexibilityPolicy.getInstanceSelections()
+      if (selections.containsValue(null)) {
+        errors.rejectValue("instanceFlexibilityPolicy",
+          "basicGoogleDeployDescription.instanceFlexibilityPolicy.nullSelection",
+          "Instance flexibility policy must not contain null selection entries.")
+      }
+      if (selections.values().any { it != null && it.rank == null }) {
+        errors.rejectValue("instanceFlexibilityPolicy",
+          "basicGoogleDeployDescription.instanceFlexibilityPolicy.missingRank",
+          "Each instance selection must specify rank.")
+      }
+      if (selections.values().any { it != null && it.rank != null && it.rank < 0 }) {
+        errors.rejectValue("instanceFlexibilityPolicy",
+          "basicGoogleDeployDescription.instanceFlexibilityPolicy.negativeRank",
+          "Each instance selection rank must be zero or greater.")
+      }
+      if (selections.values().any { it != null && !it.machineTypes }) {
+        errors.rejectValue("instanceFlexibilityPolicy",
+          "basicGoogleDeployDescription.instanceFlexibilityPolicy.emptyMachineTypes",
+          "Each instance selection must specify at least one machine type.")
+      }
+    }
   }
 }
