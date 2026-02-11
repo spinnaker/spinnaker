@@ -227,8 +227,8 @@ class AbstractGoogleServerGroupCachingAgentTest {
 
   @Test
   void serverGroupProperties_mapInstanceFlexibilityPolicyAndIgnoreMalformedEntries() {
-    Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection>
-        instanceSelections = new HashMap<>();
+    Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> instanceSelections =
+        new HashMap<>();
     instanceSelections.put(
         "preferred",
         new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()

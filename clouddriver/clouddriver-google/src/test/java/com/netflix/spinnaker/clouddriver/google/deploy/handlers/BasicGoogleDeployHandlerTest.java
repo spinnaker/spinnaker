@@ -2277,13 +2277,18 @@ public class BasicGoogleDeployHandlerTest {
         description, instanceGroupManager);
 
     assertNotNull(instanceGroupManager.getInstanceFlexibilityPolicy());
-    assertEquals(1, instanceGroupManager.getInstanceFlexibilityPolicy().getInstanceSelections().size());
+    assertEquals(
+        1, instanceGroupManager.getInstanceFlexibilityPolicy().getInstanceSelections().size());
     assertTrue(
-        instanceGroupManager.getInstanceFlexibilityPolicy().getInstanceSelections().containsKey(
-            "preferred"));
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .containsKey("preferred"));
     assertFalse(
-        instanceGroupManager.getInstanceFlexibilityPolicy().getInstanceSelections().containsKey(
-            "malformed"));
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .containsKey("malformed"));
     assertEquals(
         Integer.valueOf(1),
         instanceGroupManager

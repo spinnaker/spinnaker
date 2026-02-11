@@ -65,10 +65,7 @@ public class InstanceTemplates {
     return new PaginatedComputeRequestImpl<>(
         pageToken ->
             requestFactory.wrapRequest(
-                computeApi
-                    .list(credentials.getProject())
-                    .setPageToken(pageToken),
-                "list"),
+                computeApi.list(credentials.getProject()).setPageToken(pageToken), "list"),
         InstanceTemplateList::getNextPageToken,
         InstanceTemplateList::getItems);
   }
