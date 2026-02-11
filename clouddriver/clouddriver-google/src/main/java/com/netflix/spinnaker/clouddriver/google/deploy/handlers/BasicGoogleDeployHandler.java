@@ -29,6 +29,8 @@ import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
 import com.google.api.services.compute.model.FixedOrPercent;
 import com.google.api.services.compute.model.Image;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
 import com.google.api.services.compute.model.InstanceProperties;
@@ -1102,6 +1104,32 @@ public class BasicGoogleDeployHandler
           || StringUtils.isNotBlank(distributionPolicy.getTargetShape())) {
         instanceGroupManager.setDistributionPolicy(distributionPolicy);
       }
+    }
+    setInstanceFlexibilityPolicyToInstanceGroup(description, instanceGroupManager);
+  }
+
+  protected void setInstanceFlexibilityPolicyToInstanceGroup(
+      BasicGoogleDeployDescription description, InstanceGroupManager instanceGroupManager) {
+    if (description.getInstanceFlexibilityPolicy() != null
+        && description.getInstanceFlexibilityPolicy().getInstanceSelections() != null
+        && !description.getInstanceFlexibilityPolicy().getInstanceSelections().isEmpty()) {
+      InstanceGroupManagerInstanceFlexibilityPolicy flexPolicy =
+          new InstanceGroupManagerInstanceFlexibilityPolicy();
+      Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> selections =
+          description.getInstanceFlexibilityPolicy().getInstanceSelections().entrySet().stream()
+              .filter(entry -> entry.getValue() != null)
+              .collect(
+                  Collectors.toMap(
+                      Map.Entry::getKey,
+                      entry ->
+                          new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+                              .setRank(entry.getValue().getRank())
+                              .setMachineTypes(entry.getValue().getMachineTypes())));
+      flexPolicy.setInstanceSelections(selections);
+      instanceGroupManager.setInstanceFlexibilityPolicy(flexPolicy);
+      log.info(
+          "Configured instance flexibility policy with {} selection groups",
+          selections.size());
     }
   }
 
