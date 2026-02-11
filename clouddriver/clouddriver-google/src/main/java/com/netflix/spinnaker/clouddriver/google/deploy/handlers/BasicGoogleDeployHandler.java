@@ -29,10 +29,10 @@ import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
 import com.google.api.services.compute.model.FixedOrPercent;
 import com.google.api.services.compute.model.Image;
-import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicy;
-import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection;
 import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
 import com.google.api.services.compute.model.Metadata;
@@ -1128,8 +1128,7 @@ public class BasicGoogleDeployHandler
       flexPolicy.setInstanceSelections(selections);
       instanceGroupManager.setInstanceFlexibilityPolicy(flexPolicy);
       log.info(
-          "Configured instance flexibility policy with {} selection groups",
-          selections.size());
+          "Configured instance flexibility policy with {} selection groups", selections.size());
     }
   }
 
