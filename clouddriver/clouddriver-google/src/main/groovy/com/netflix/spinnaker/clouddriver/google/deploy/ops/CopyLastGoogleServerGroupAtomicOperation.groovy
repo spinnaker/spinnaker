@@ -133,6 +133,10 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
       description.distributionPolicy != null ?
         description.distributionPolicy :
         ancestorServerGroup.distributionPolicy
+    newDescription.instanceFlexibilityPolicy =
+      description.instanceFlexibilityPolicy != null ?
+        description.instanceFlexibilityPolicy :
+        ancestorServerGroup.instanceFlexibilityPolicy
     newDescription.selectZones = description.selectZones ?: ancestorServerGroup.selectZones
 
     def ancestorInstanceTemplate = ancestorServerGroup.launchConfig.instanceTemplate
