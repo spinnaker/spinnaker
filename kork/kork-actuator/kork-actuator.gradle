@@ -54,18 +54,6 @@ dependencies {
   testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
 }
 
-sourceSets {
-  test {
-    java {
-      srcDirs = ['src/test/java', 'src/main/test']
-    }
-    resources {
-      // Ensure test resources under src/main/test/resources are on the classpath
-      srcDirs += ['src/main/test/resources']
-    }
-  }
-}
-
 test {
   useJUnitPlatform()
 }
