@@ -31,12 +31,34 @@ All properties use the `observability` prefix. Spring Boot’s relaxed binding l
 observability:
   enabled: true  # Required to activate
   config:
+    # Default true: observability owns the primary MeterRegistry
+    override-primary-registry: true
     metrics:
       # Additional common tags added to every meter
       additional-tags:
         environment: production
         team: platform
 ```
+
+### Primary Registry Ownership
+
+`observability.config.override-primary-registry` controls which system owns the primary
+`MeterRegistry`:
+
+- `true` (default): `ObservabilityCompositeRegistry` is primary and Boot push exporters are disabled to avoid duplicate export paths.
+- `false`: Spring Boot owns primary registry/exporters (for supported providers) and observability-specific composite wiring is skipped.
+
+```yaml
+observability:
+  config:
+    override-primary-registry: false
+```
+
+Provider notes when `override-primary-registry: false`:
+
+- **Prometheus**: use Spring Boot's Prometheus exporter and endpoint ownership.
+- **Datadog**: use Spring Boot's Datadog exporter.
+- **New Relic**: not supported in this mode; startup fails fast if `observability.config.metrics.newrelic.enabled=true`.
 
 ### Prometheus
 ```yaml
@@ -193,9 +215,16 @@ When moving from the Spinnaker Monitoring Daemon to this module:
 
 ### Metrics not appearing
 - **Check** `observability.enabled=true`.
+- **Check** `observability.config.override-primary-registry` is set for your intended ownership model.
 - **Verify** provider-specific `enabled: true`.
 - **Validate** API keys (Datadog/New Relic) are present and non-empty.
 - **Inspect logs** for initialization errors from suppliers or the composite registry.
+
+If you configure both:
+- `observability.config.override-primary-registry=false`
+- `observability.config.metrics.newrelic.enabled=true`
+
+the application fails fast by design because New Relic currently depends on observability-owned composite registry wiring.
 
 ### Endpoint not found
 - Ensure Actuator web exposure includes the endpoint id:
@@ -213,6 +242,7 @@ management:
 - **API Keys**: Use environment variables or a secrets manager; never commit credentials.
 - **Endpoint Access**: Restrict `/actuator/prometheus` via Spring Security or network policy.
 - **Sensitive Metrics**: Use filters to exclude metrics that may contain PII.
+- **Tags**: Do not place secrets/PII in `observability.config.metrics.additional-tags`.
 - **Transport**: Use TLS when metrics traverse untrusted networks.
 
 
