@@ -34,6 +34,6 @@ public class RecommendedFilters {
    * Recommended filters that reduce metric cardinality by denying legacy controller invocation
    * metrics in favor of standard Spring {@code http.server.requests} metrics.
    */
-  public static List<MeterFilter> RECOMMENDED_FILTERS =
+  public static final List<MeterFilter> RECOMMENDED_FILTERS =
       List.of(DENY_CONTROLLER_INVOCATIONS_METRICS);
 }

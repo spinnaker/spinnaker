@@ -43,8 +43,7 @@ public class MeterFilterServiceTest {
   public void
       test_that_getMeterFilters_returns_a_non_empty_list_of_filters_when_recommendations_are_enabled() {
     var filters =
-        sut.getMeterFilters(
-            MeterRegistryConfig.builder().recommendedFiltersEnabled(true).build());
+        sut.getMeterFilters(MeterRegistryConfig.builder().recommendedFiltersEnabled(true).build());
     assertNotNull(filters);
     assertTrue(filters.size() > 0);
   }

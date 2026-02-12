@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.actuator.observability.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.Properties;
 import org.junit.Test;
@@ -30,6 +31,7 @@ public class PrometheusMetricsPostProcessorTest {
   public void setsManagementPropertyWhenEnabledTrueWithCompositeOptOut() {
     ConfigurableEnvironment env = new StandardEnvironment();
     Properties p = new Properties();
+    p.setProperty("observability.enabled", "true");
     p.setProperty("observability.config.metrics.prometheus.enabled", "true");
     // Opt-out from composite so Boot can own the exporter
     p.setProperty("observability.config.override-primary-registry", "false");
@@ -45,6 +47,7 @@ public class PrometheusMetricsPostProcessorTest {
   public void setsManagementPropertyDisabledWhenCompositeOverrideEnabled() {
     ConfigurableEnvironment env = new StandardEnvironment();
     Properties p = new Properties();
+    p.setProperty("observability.enabled", "true");
     p.setProperty("observability.config.metrics.prometheus.enabled", "true");
     // Default is override-primary-registry=true; set explicitly for clarity
     p.setProperty("observability.config.override-primary-registry", "true");
@@ -60,6 +63,7 @@ public class PrometheusMetricsPostProcessorTest {
   public void setsManagementPropertyWhenEnabledFalse() {
     ConfigurableEnvironment env = new StandardEnvironment();
     Properties p = new Properties();
+    p.setProperty("observability.enabled", "true");
     p.setProperty("observability.config.metrics.prometheus.enabled", "false");
     env.getPropertySources().addFirst(new PropertiesPropertySource("test", p));
 
@@ -67,5 +71,43 @@ public class PrometheusMetricsPostProcessorTest {
         .postProcessEnvironment(env, new SpringApplication(Object.class));
 
     assertEquals("false", env.getProperty("management.metrics.export.prometheus.enabled"));
+  }
+
+  @Test
+  public void setsManagementPropertyToFalseWhenProviderFlagMissing() {
+    ConfigurableEnvironment env = new StandardEnvironment();
+    Properties p = new Properties();
+    p.setProperty("observability.enabled", "true");
+    env.getPropertySources().addFirst(new PropertiesPropertySource("test", p));
+
+    new PrometheusMetricsPostProcessor()
+        .postProcessEnvironment(env, new SpringApplication(Object.class));
+
+    assertEquals("false", env.getProperty("management.metrics.export.prometheus.enabled"));
+  }
+
+  @Test
+  public void doesNotSetManagementPropertyWhenObservabilityDisabled() {
+    ConfigurableEnvironment env = new StandardEnvironment();
+
+    new PrometheusMetricsPostProcessor()
+        .postProcessEnvironment(env, new SpringApplication(Object.class));
+
+    assertNull(env.getProperty("management.metrics.export.prometheus.enabled"));
+  }
+
+  @Test
+  public void keepsExplicitManagementPropertyValueWhenAlreadyConfigured() {
+    ConfigurableEnvironment env = new StandardEnvironment();
+    Properties p = new Properties();
+    p.setProperty("observability.enabled", "true");
+    p.setProperty("observability.config.metrics.prometheus.enabled", "false");
+    p.setProperty("management.metrics.export.prometheus.enabled", "true");
+    env.getPropertySources().addFirst(new PropertiesPropertySource("test", p));
+
+    new PrometheusMetricsPostProcessor()
+        .postProcessEnvironment(env, new SpringApplication(Object.class));
+
+    assertEquals("true", env.getProperty("management.metrics.export.prometheus.enabled"));
   }
 }

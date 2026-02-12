@@ -89,7 +89,8 @@ public class ObservabilityConfigurationContextTest {
                 // ApplicationContextRunner does not invoke EnvironmentPostProcessors, so emulate
                 // the effect of DatadogMetricsPostProcessor here
                 "management.metrics.export.datadog.enabled=true",
-                "management.metrics.export.datadog.api-key=TEST_API_KEY")
+                "management.metrics.export.datadog.api-key=TEST_API_KEY",
+                "management.datadog.metrics.export.api-key=TEST_API_KEY")
             .withBean(Clock.class, () -> Clock.SYSTEM);
 
     runner.run(
@@ -171,6 +172,37 @@ public class ObservabilityConfigurationContextTest {
           // Other observability beans should still be wired
           assertNotNull(context.getBean(ObservabilityConfigurationProperties.class));
           assertNotNull(context.getBean(TagsService.class));
+        });
+  }
+
+  @Test
+  public void test_newrelic_with_override_primary_registry_false_fails_fast() {
+    ApplicationContextRunner runner =
+        new ApplicationContextRunner()
+            .withConfiguration(
+                AutoConfigurations.of(
+                    ConfigurationPropertiesAutoConfiguration.class,
+                    MetricsAutoConfiguration.class,
+                    CompositeMeterRegistryAutoConfiguration.class))
+            .withUserConfiguration(ObservabilityConfiguration.class)
+            .withPropertyValues(
+                "observability.enabled=true",
+                "observability.config.override-primary-registry=false",
+                "observability.config.metrics.newrelic.enabled=true",
+                "observability.config.metrics.newrelic.api-key=TEST_API_KEY")
+            .withBean(Clock.class, () -> Clock.SYSTEM);
+
+    runner.run(
+        context -> {
+          Throwable startupFailure = context.getStartupFailure();
+          assertNotNull(
+              "Expected startup failure for unsupported New Relic + override-primary-registry=false",
+              startupFailure);
+          assertTrue(
+              "Expected clear validation message",
+              throwableContains(
+                  startupFailure,
+                  "observability.config.metrics.newrelic.enabled=true is not supported"));
         });
   }
 
@@ -453,5 +485,16 @@ public class ObservabilityConfigurationContextTest {
               "CollectorRegistry should still be created",
               context.containsBean("collectorRegistry"));
         });
+  }
+
+  private static boolean throwableContains(Throwable throwable, String expectedSubstring) {
+    Throwable current = throwable;
+    while (current != null) {
+      if (current.getMessage() != null && current.getMessage().contains(expectedSubstring)) {
+        return true;
+      }
+      current = current.getCause();
+    }
+    return false;
   }
 }

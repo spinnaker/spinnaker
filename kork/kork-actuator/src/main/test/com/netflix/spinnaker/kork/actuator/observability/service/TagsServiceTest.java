@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.actuator.observability.service;
 
 import static org.junit.Assert.*;
 
-import com.netflix.spinnaker.kork.actuator.observability.model.MetricsConfig;
 import com.netflix.spinnaker.kork.actuator.observability.model.ObservabilityConfigurationProperties;
 import com.netflix.spinnaker.kork.actuator.observability.version.VersionResolver;
 import io.micrometer.core.instrument.Tag;

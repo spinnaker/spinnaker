@@ -56,8 +56,7 @@ public class ObservabilityCompositeRegistryTest {
   @Test
   public void
       test_that_ObservabilityCompositeRegistry_uses_a_simple_registry_when_no_registries_are_enabled() {
-    var sut =
-        new ObservabilityCompositeRegistry(Clock.SYSTEM, List.of(() -> null), List.of());
+    var sut = new ObservabilityCompositeRegistry(Clock.SYSTEM, List.of(() -> null), List.of());
     assertEquals(1, sut.getRegistries().size());
     assertEquals(SimpleMeterRegistry.class, sut.getRegistries().toArray()[0].getClass());
   }

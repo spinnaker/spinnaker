@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -97,6 +98,20 @@ public class ObservabilityConfiguration {
   }
 
   @Bean
+  public InitializingBean overridePrimaryRegistryCompatibilityValidator(
+      ObservabilityConfigurationProperties observabilityConfigurationProperties,
+      @Value("${observability.config.override-primary-registry:true}") boolean overridePrimary) {
+    return () -> {
+      if (!overridePrimary
+          && observabilityConfigurationProperties.getMetrics().getNewrelic().isEnabled()) {
+        throw new IllegalStateException(
+            "observability.config.metrics.newrelic.enabled=true is not supported when "
+                + "observability.config.override-primary-registry=false");
+      }
+    };
+  }
+
+  @Bean
   @ConditionalOnProperty(
       name = "observability.config.metrics.prometheus.enabled",
       havingValue = "true")
@@ -125,8 +140,7 @@ public class ObservabilityConfiguration {
       Clock clock,
       Collection<Supplier<RegistryConfigWrapper>> registrySuppliers,
       Collection<RegistryCustomizer> meterRegistryCustomizers) {
-    return new ObservabilityCompositeRegistry(
-        clock, registrySuppliers, meterRegistryCustomizers);
+    return new ObservabilityCompositeRegistry(clock, registrySuppliers, meterRegistryCustomizers);
   }
 
   /** Nested configuration to combine multiple ConditionalOnProperty conditions. */

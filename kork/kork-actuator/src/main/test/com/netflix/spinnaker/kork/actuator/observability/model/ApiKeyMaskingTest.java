@@ -42,7 +42,8 @@ public class ApiKeyMaskingTest {
 
     String json = objectMapper.writeValueAsString(config);
 
-    assertFalse("API key should not appear in JSON output", json.contains("secret-datadog-api-key"));
+    assertFalse(
+        "API key should not appear in JSON output", json.contains("secret-datadog-api-key"));
     assertFalse(
         "Application key should not appear in JSON output",
         json.contains("secret-application-key"));
@@ -62,7 +63,8 @@ public class ApiKeyMaskingTest {
 
     assertFalse(
         "API key should not appear in JSON output", json.contains("secret-newrelic-api-key"));
-    assertTrue("URI should appear in JSON output", json.contains("https://metric-api.newrelic.com"));
+    assertTrue(
+        "URI should appear in JSON output", json.contains("https://metric-api.newrelic.com"));
   }
 
   @Test
