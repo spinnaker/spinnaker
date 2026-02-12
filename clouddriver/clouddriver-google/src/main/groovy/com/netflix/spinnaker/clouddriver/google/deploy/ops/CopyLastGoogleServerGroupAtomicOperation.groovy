@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
+import com.netflix.spinnaker.clouddriver.google.deploy.validators.InstanceFlexibilityPolicyValidationSupport
 import org.springframework.beans.factory.annotation.Autowired
 
 class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<DeploymentResult> {
@@ -92,39 +93,8 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
 
   private static void validateInstanceFlexibilityPolicyConstraints(
       BasicGoogleDeployDescription description) {
-    def selections = description.instanceFlexibilityPolicy?.instanceSelections
-    if (!selections) {
-      return
-    }
-
-    if (!description.regional) {
-      throw new IllegalArgumentException(
-          "Instance flexibility policy is only supported for regional server groups.")
-    }
-
-    def targetShape = description.distributionPolicy?.targetShape?.trim()
-    if (!targetShape || targetShape.equalsIgnoreCase("EVEN")) {
-      throw new IllegalArgumentException(
-          "Instance flexibility policy cannot be used with EVEN target distribution shape.")
-    }
-
-    if (selections.containsValue(null)) {
-      throw new IllegalArgumentException(
-          "Instance flexibility policy must not contain null selection entries.")
-    }
-
-    if (selections.values().any { it != null && it.rank == null }) {
-      throw new IllegalArgumentException("Each instance selection must specify rank.")
-    }
-
-    if (selections.values().any { it != null && it.rank != null && it.rank < 0 }) {
-      throw new IllegalArgumentException("Each instance selection rank must be zero or greater.")
-    }
-
-    if (selections.values().any { it != null && !it.machineTypes }) {
-      throw new IllegalArgumentException(
-          "Each instance selection must specify at least one machine type.")
-    }
+    InstanceFlexibilityPolicyValidationSupport.throwFirstIssue(
+      InstanceFlexibilityPolicyValidationSupport.validate(description))
   }
 
   private BasicGoogleDeployDescription cloneAndOverrideDescription() {

@@ -73,46 +73,11 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
     }
 
     def effectiveDescription = resolveEffectiveDescription(description)
-    if (effectiveDescription.instanceFlexibilityPolicy?.instanceSelections) {
-      // Instance flexibility policy is only supported for regional MIGs.
-      if (!effectiveDescription.regional) {
-        errors.rejectValue("instanceFlexibilityPolicy",
-          "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.requiresRegional",
-          "Instance flexibility policy is only supported for regional server groups.")
-      }
-
-      // Instance flexibility policy is incompatible with EVEN target distribution shape.
-      // Regional MIG defaults to EVEN when targetShape is not explicitly provided.
-      def targetShape = effectiveDescription.distributionPolicy?.targetShape?.trim()
-      if (!targetShape || targetShape.equalsIgnoreCase("EVEN")) {
-        errors.rejectValue("instanceFlexibilityPolicy",
-          "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
-          "Instance flexibility policy cannot be used with EVEN target distribution shape.")
-      }
-
-      // Validate instance selection entries are well-formed.
-      def selections = effectiveDescription.instanceFlexibilityPolicy.getInstanceSelections()
-      if (selections.containsValue(null)) {
-        errors.rejectValue("instanceFlexibilityPolicy",
-          "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.nullSelection",
-          "Instance flexibility policy must not contain null selection entries.")
-      }
-      if (selections.values().any { it != null && it.rank == null }) {
-        errors.rejectValue("instanceFlexibilityPolicy",
-          "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.missingRank",
-          "Each instance selection must specify rank.")
-      }
-      if (selections.values().any { it != null && it.rank != null && it.rank < 0 }) {
-        errors.rejectValue("instanceFlexibilityPolicy",
-          "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.negativeRank",
-          "Each instance selection rank must be zero or greater.")
-      }
-      if (selections.values().any { it != null && !it.machineTypes }) {
-        errors.rejectValue("instanceFlexibilityPolicy",
-          "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy.emptyMachineTypes",
-          "Each instance selection must specify at least one machine type.")
-      }
-    }
+    InstanceFlexibilityPolicyValidationSupport.rejectIssues(
+      errors,
+      "instanceFlexibilityPolicy",
+      "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy",
+      InstanceFlexibilityPolicyValidationSupport.validate(effectiveDescription))
   }
 
   private BasicGoogleDeployDescription resolveEffectiveDescription(BasicGoogleDeployDescription description) {
