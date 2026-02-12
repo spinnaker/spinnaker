@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.kork.actuator.observability.prometheus;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.restassured.http.ContentType;
 import java.nio.file.Files;
@@ -31,11 +31,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockserver.client.MockServerClient;
-import org.mockserver.junit.MockServerRule;
+import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.slf4j.Logger;
@@ -46,6 +46,7 @@ import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.MountableFile;
 
+@ExtendWith(MockServerExtension.class)
 public class PrometheusScrapeControllerIntegrationTest {
   private static final String PROMETHEUS_IMAGE = "prom/prometheus:v2.53.3";
   private static final long SCRAPE_WAIT_TIMEOUT_MILLIS = 30_000L;
@@ -53,14 +54,17 @@ public class PrometheusScrapeControllerIntegrationTest {
 
   Logger log = LoggerFactory.getLogger(getClass());
 
-  @Rule public MockServerRule mockServerRule = new MockServerRule(this);
-
-  MockServerClient mockServerClient;
+  private final MockServerClient mockServerClient;
 
   GenericContainer prometheus;
 
+  PrometheusScrapeControllerIntegrationTest(MockServerClient mockServerClient) {
+    this.mockServerClient = mockServerClient;
+  }
+
   public void startPrometheus() throws Exception {
-    Testcontainers.exposeHostPorts(mockServerRule.getPort());
+    int mockServerPort = mockServerClient.remoteAddress().getPort();
+    Testcontainers.exposeHostPorts(mockServerPort);
     var prometheusWaitStrategy =
         new HttpWaitStrategy()
             .forPath("/status")
@@ -78,7 +82,7 @@ public class PrometheusScrapeControllerIntegrationTest {
             .getResource("observability/prometheus/prom-config-template.yml");
     var promConfigTemplateContent = Files.readString(Path.of(promConfigTemplateResource.toURI()));
     var processedTemplate =
-        promConfigTemplateContent.replace("@@_PORT_@@", String.valueOf(mockServerRule.getPort()));
+        promConfigTemplateContent.replace("@@_PORT_@@", String.valueOf(mockServerPort));
     Files.writeString(promConfig, processedTemplate, StandardOpenOption.WRITE);
     assertTrue(promConfig.toFile().setReadable(true, false));
 
@@ -94,7 +98,7 @@ public class PrometheusScrapeControllerIntegrationTest {
     prometheus.start();
   }
 
-  @After
+  @AfterEach
   public void after() {
     Optional.ofNullable(prometheus).ifPresent(GenericContainer::stop);
   }
