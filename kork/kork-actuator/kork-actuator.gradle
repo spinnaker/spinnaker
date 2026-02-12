@@ -47,7 +47,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.boot:spring-boot-starter-actuator"
   testImplementation "org.mockito:mockito-core"
-  testImplementation "org.testcontainers:testcontainers:1.14.3"
+  testImplementation "org.testcontainers:testcontainers"
   testImplementation 'io.rest-assured:rest-assured:4.3.0'
   testImplementation "org.mock-server:mockserver-client-java:5.10.0"
   testImplementation "org.mock-server:mockserver-junit-rule:5.10.0"
