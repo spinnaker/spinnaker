@@ -36,11 +36,6 @@ public class PrometheusMetricsPostProcessor implements EnvironmentPostProcessor 
   @Override
   public void postProcessEnvironment(
       ConfigurableEnvironment environment, SpringApplication application) {
-    // No-op unless observability is explicitly enabled.
-    if (!Boolean.parseBoolean(environment.getProperty(OBSERVABILITY_ENABLED, "false"))) {
-      return;
-    }
-
     // Respect explicit management.metrics settings from the application/operator.
     if (environment.containsProperty(MANAGEMENT_PROMETHEUS_ENABLED)) {
       return;
@@ -48,6 +43,15 @@ public class PrometheusMetricsPostProcessor implements EnvironmentPostProcessor 
 
     MutablePropertySources propertySources = environment.getPropertySources();
     Properties props = new Properties();
+
+    // When observability is not enabled, explicitly disable Boot's Prometheus exporter to prevent
+    // auto-configuration from activating just because the micrometer-registry-prometheus JAR is on
+    // the classpath (it ships transitively via kork-actuator).
+    if (!Boolean.parseBoolean(environment.getProperty(OBSERVABILITY_ENABLED, "false"))) {
+      props.setProperty(MANAGEMENT_PROMETHEUS_ENABLED, "false");
+      propertySources.addFirst(new PropertiesPropertySource(PROPERTY_SOURCE_NAME, props));
+      return;
+    }
 
     boolean promEnabled =
         Boolean.parseBoolean(environment.getProperty(OBSERVABILITY_PROMETHEUS_ENABLED, "false"));

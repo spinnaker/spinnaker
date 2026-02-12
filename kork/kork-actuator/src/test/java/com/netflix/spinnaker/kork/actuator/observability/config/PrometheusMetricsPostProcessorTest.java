@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.kork.actuator.observability.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import java.util.Properties;
 import org.junit.Test;
@@ -87,13 +86,13 @@ public class PrometheusMetricsPostProcessorTest {
   }
 
   @Test
-  public void doesNotSetManagementPropertyWhenObservabilityDisabled() {
+  public void disablesBootExporterWhenObservabilityDisabled() {
     ConfigurableEnvironment env = new StandardEnvironment();
 
     new PrometheusMetricsPostProcessor()
         .postProcessEnvironment(env, new SpringApplication(Object.class));
 
-    assertNull(env.getProperty("management.metrics.export.prometheus.enabled"));
+    assertEquals("false", env.getProperty("management.metrics.export.prometheus.enabled"));
   }
 
   @Test

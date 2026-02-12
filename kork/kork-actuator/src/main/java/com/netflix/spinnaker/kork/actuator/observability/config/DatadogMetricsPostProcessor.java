@@ -36,11 +36,6 @@ public class DatadogMetricsPostProcessor implements EnvironmentPostProcessor {
   @Override
   public void postProcessEnvironment(
       ConfigurableEnvironment environment, SpringApplication application) {
-    // No-op unless observability is explicitly enabled.
-    if (!Boolean.parseBoolean(environment.getProperty(OBSERVABILITY_ENABLED, "false"))) {
-      return;
-    }
-
     // Respect explicit management.metrics settings from the application/operator.
     if (environment.containsProperty(MANAGEMENT_DATADOG_ENABLED)) {
       return;
@@ -48,6 +43,15 @@ public class DatadogMetricsPostProcessor implements EnvironmentPostProcessor {
 
     MutablePropertySources propertySources = environment.getPropertySources();
     Properties props = new Properties();
+
+    // When observability is not enabled, explicitly disable Boot's Datadog exporter to prevent
+    // auto-configuration from activating just because the micrometer-registry-datadog JAR is on
+    // the classpath (it ships transitively via kork-actuator).
+    if (!Boolean.parseBoolean(environment.getProperty(OBSERVABILITY_ENABLED, "false"))) {
+      props.setProperty(MANAGEMENT_DATADOG_ENABLED, "false");
+      propertySources.addFirst(new PropertiesPropertySource(PROPERTY_SOURCE_NAME, props));
+      return;
+    }
 
     boolean datadogEnabled =
         Boolean.parseBoolean(environment.getProperty(OBSERVABILITY_DATADOG_ENABLED, "false"));
