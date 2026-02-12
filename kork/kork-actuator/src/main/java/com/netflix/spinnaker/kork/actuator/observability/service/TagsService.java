@@ -151,8 +151,7 @@ public class TagsService {
     return tags.entrySet().stream()
         .map(
             tag -> {
-              log.info(
-                  "Adding default tag {}: {} to default tags list.", tag.getKey(), tag.getValue());
+              log.debug("Adding default tag key {} to default tags list.", tag.getKey());
               return Tag.of(tag.getKey(), tag.getValue());
             })
         .collect(Collectors.toList());

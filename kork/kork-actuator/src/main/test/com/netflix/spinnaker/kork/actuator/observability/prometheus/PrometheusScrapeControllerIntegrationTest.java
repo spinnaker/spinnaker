@@ -20,6 +20,7 @@ import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import io.restassured.http.ContentType;
 import java.nio.file.Files;
@@ -46,6 +47,9 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.MountableFile;
 
 public class PrometheusScrapeControllerIntegrationTest {
+  private static final String PROMETHEUS_IMAGE = "prom/prometheus:v2.53.3";
+  private static final long SCRAPE_WAIT_TIMEOUT_MILLIS = 30_000L;
+  private static final long SCRAPE_POLL_INTERVAL_MILLIS = 1_000L;
 
   Logger log = LoggerFactory.getLogger(getClass());
 
@@ -80,7 +84,7 @@ public class PrometheusScrapeControllerIntegrationTest {
 
     // Start Prometheus
     prometheus =
-        new GenericContainer("prom/prometheus:latest")
+        new GenericContainer(PROMETHEUS_IMAGE)
             .withLogConsumer(logConsumer)
             .withExposedPorts(9090)
             .withCopyFileToContainer(
@@ -121,10 +125,14 @@ public class PrometheusScrapeControllerIntegrationTest {
 
     // Make sure that prometheus was able to scrape our mocked expected controller response
     // that has 2 counters with different tag combinations
-    do {
-      Thread.sleep(1000);
-    } while (mockServerClient.retrieveRecordedRequests(HttpRequest.request("/prometheus")).length
-        < 1);
+    long waitDeadline = System.currentTimeMillis() + SCRAPE_WAIT_TIMEOUT_MILLIS;
+    while (mockServerClient.retrieveRecordedRequests(HttpRequest.request("/prometheus")).length
+        < 1) {
+      if (System.currentTimeMillis() >= waitDeadline) {
+        fail("Timed out waiting for Prometheus to scrape /prometheus from the mock server");
+      }
+      Thread.sleep(SCRAPE_POLL_INTERVAL_MILLIS);
+    }
 
     var response =
         given()
