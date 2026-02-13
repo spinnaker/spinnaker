@@ -189,9 +189,10 @@ angular
       };
 
       const prepareShieldedVmConfig = () => {
-        if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.shieldedVmConfig')) {
-          const shieldedVmConfig = this.serverGroup.launchConfig.instanceTemplate.properties.shieldedVmConfig;
-
+        const shieldedVmConfig =
+          _.get(this.serverGroup, 'launchConfig.instanceTemplate.properties.shieldedInstanceConfig') ||
+          _.get(this.serverGroup, 'launchConfig.instanceTemplate.properties.shieldedVmConfig');
+        if (shieldedVmConfig) {
           this.serverGroup.shieldedVmConfig = {
             enableSecureBoot: shieldedVmConfig.enableSecureBoot ? 'On' : 'Off',
             enableVtpm: shieldedVmConfig.enableVtpm ? 'On' : 'Off',
