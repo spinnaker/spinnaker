@@ -22,8 +22,12 @@ package com.netflix.spinnaker.cats.cluster;
  * <p>This is the legacy/default strategy. It provides even distribution but reshuffles nearly all
  * keys when the pod count changes (scale up/down events).
  *
- * <p><b>Note:</b> This implementation uses a safe modulo calculation that correctly handles
- * negative hash codes, including the edge case of {@link Integer#MIN_VALUE}.
+ * <p><b>Compatibility note:</b> This strategy intentionally preserves the historical ownership
+ * mapping used by existing deployments: {@code abs(hash % totalPods)}. This means the default
+ * strategy remains stable across upgrades.
+ *
+ * <p>For a canonical modulo strategy that always returns a positive remainder via {@code ((hash %
+ * totalPods) + totalPods) % totalPods}, use {@link CanonicalModuloShardingStrategy}.
  */
 public class ModuloShardingStrategy implements ShardingStrategy {
 
@@ -35,11 +39,10 @@ public class ModuloShardingStrategy implements ShardingStrategy {
       return 0;
     }
     int hash = key.hashCode();
-    // Safe modulo to handle negative hash codes correctly.
-    // The expression ((hash % totalPods) + totalPods) % totalPods ensures:
-    // 1. Result is always in range [0, totalPods-1]
-    // 2. Works correctly for Integer.MIN_VALUE (which abs() does not)
-    return ((hash % totalPods) + totalPods) % totalPods;
+    // Legacy compatibility: keep the historical mapping used by prior sharding behavior.
+    // This intentionally differs from canonical positive modulo to avoid unexpected reassignment
+    // churn for users staying on the default strategy.
+    return Math.abs(hash % totalPods);
   }
 
   @Override

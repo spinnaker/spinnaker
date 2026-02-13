@@ -82,6 +82,24 @@ class ShardingStrategyTest {
     }
 
     @Test
+    @DisplayName("Matches legacy abs(hash % pods) behavior")
+    void matchesLegacyFormulaForRealStrings() {
+      String[] testKeys = {"account-1", "prod/us-east-1/Agent", "test", "", "a"};
+
+      for (String key : testKeys) {
+        int hash = key.hashCode();
+        for (int podCount = 2; podCount <= 5; podCount++) {
+          int legacyResult = Math.abs(hash % podCount);
+          int strategyResult = strategy.computeOwner(key, podCount);
+          assertThat(strategyResult)
+              .describedAs(
+                  "Legacy modulo must be preserved for key '%s' with %d pods", key, podCount)
+              .isEqualTo(legacyResult);
+        }
+      }
+    }
+
+    @Test
     @DisplayName("Different keys distribute across buckets")
     void distributesAcrossBuckets() {
       int[] bucketCounts = new int[5];
@@ -98,18 +116,33 @@ class ShardingStrategyTest {
   }
 
   /**
-   * Tests for the modulo formula edge cases. Since we cannot control String.hashCode(), these tests
-   * verify the formula directly: ((hash % podCount) + podCount) % podCount
+   * Tests for the canonical modulo strategy edge cases.
+   *
+   * <p>We keep these tests separate from ModuloShardingStrategy to make the behavioral split
+   * explicit:
+   *
+   * <ul>
+   *   <li>ModuloShardingStrategy keeps legacy compatibility behavior
+   *   <li>CanonicalModuloShardingStrategy uses positive remainder arithmetic
+   * </ul>
    */
   @Nested
-  @DisplayName("Modulo Formula Edge Case Tests")
-  class ModuloFormulaEdgeCaseTests {
+  @DisplayName("CanonicalModuloShardingStrategy Tests")
+  class CanonicalModuloShardingStrategyTests {
+
+    private final CanonicalModuloShardingStrategy strategy = new CanonicalModuloShardingStrategy();
+
+    @Test
+    @DisplayName("Returns correct name")
+    void returnsCorrectName() {
+      assertThat(strategy.getName()).isEqualTo("canonical-modulo");
+    }
 
     /**
-     * Applies the same modulo formula used by ModuloShardingStrategy. This isolates the formula for
-     * direct edge-case testing since we cannot control String.hashCode().
+     * Applies the same canonical modulo formula used by CanonicalModuloShardingStrategy. This
+     * isolates the formula for direct edge-case testing since we cannot control String.hashCode().
      */
-    private int applyModuloFormula(int hash, int podCount) {
+    private int applyCanonicalModuloFormula(int hash, int podCount) {
       if (podCount <= 1) {
         return 0;
       }
@@ -122,7 +155,7 @@ class ShardingStrategyTest {
       // Integer.MIN_VALUE is problematic because:
       // 1. Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE (overflow)
       // 2. Integer.MIN_VALUE % n can be negative
-      int result = applyModuloFormula(Integer.MIN_VALUE, 3);
+      int result = applyCanonicalModuloFormula(Integer.MIN_VALUE, 3);
 
       assertThat(result)
           .describedAs("Integer.MIN_VALUE must produce valid bucket [0, podCount)")
@@ -130,7 +163,7 @@ class ShardingStrategyTest {
 
       // Verify across multiple pod counts
       for (int podCount = 2; podCount <= 10; podCount++) {
-        int bucket = applyModuloFormula(Integer.MIN_VALUE, podCount);
+        int bucket = applyCanonicalModuloFormula(Integer.MIN_VALUE, podCount);
         assertThat(bucket)
             .describedAs("Integer.MIN_VALUE with %d pods", podCount)
             .isBetween(0, podCount - 1);
@@ -145,7 +178,7 @@ class ShardingStrategyTest {
 
       for (int hash : negativeHashes) {
         for (int podCount = 2; podCount <= 5; podCount++) {
-          int result = applyModuloFormula(hash, podCount);
+          int result = applyCanonicalModuloFormula(hash, podCount);
           assertThat(result)
               .describedAs("Hash %d with %d pods must be in [0, %d)", hash, podCount, podCount)
               .isBetween(0, podCount - 1);
@@ -157,7 +190,7 @@ class ShardingStrategyTest {
     @DisplayName("Formula handles zero hash code correctly")
     void formulaHandlesZeroHash() {
       for (int podCount = 2; podCount <= 10; podCount++) {
-        int result = applyModuloFormula(0, podCount);
+        int result = applyCanonicalModuloFormula(0, podCount);
         assertThat(result).describedAs("Zero hash with %d pods", podCount).isEqualTo(0);
       }
     }
@@ -167,26 +200,26 @@ class ShardingStrategyTest {
     void formulaIsDeterministic() {
       int hash = -12345;
       int podCount = 7;
-      int first = applyModuloFormula(hash, podCount);
-      int second = applyModuloFormula(hash, podCount);
-      int third = applyModuloFormula(hash, podCount);
+      int first = applyCanonicalModuloFormula(hash, podCount);
+      int second = applyCanonicalModuloFormula(hash, podCount);
+      int third = applyCanonicalModuloFormula(hash, podCount);
 
       assertThat(first).isEqualTo(second).isEqualTo(third);
     }
 
     @Test
-    @DisplayName("Formula matches actual strategy for real strings")
+    @DisplayName("Formula matches canonical strategy for real strings")
     void formulaMatchesActualStrategy() {
-      ModuloShardingStrategy strategy = new ModuloShardingStrategy();
       String[] testKeys = {"account-1", "prod/us-east-1/Agent", "test", "", "a"};
 
       for (String key : testKeys) {
         int hash = key.hashCode();
         for (int podCount = 2; podCount <= 5; podCount++) {
-          int formulaResult = applyModuloFormula(hash, podCount);
+          int formulaResult = applyCanonicalModuloFormula(hash, podCount);
           int strategyResult = strategy.computeOwner(key, podCount);
           assertThat(strategyResult)
-              .describedAs("Strategy must match formula for key '%s' with %d pods", key, podCount)
+              .describedAs(
+                  "Canonical strategy must match formula for key '%s' with %d pods", key, podCount)
               .isEqualTo(formulaResult);
         }
       }
