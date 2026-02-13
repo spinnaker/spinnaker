@@ -161,6 +161,24 @@ describe('Service: gceServerGroupCommandBuilder', function () {
     expect(command.enableIntegrityMonitoring).toBe(true);
   });
 
+  it('prefers shieldedInstanceConfig when both shielded keys exist', function () {
+    const serverGroup = buildServerGroup('shieldedVmConfig', {
+      enableSecureBoot: false,
+      enableVtpm: true,
+      enableIntegrityMonitoring: true,
+    });
+    serverGroup.launchConfig.instanceTemplate.properties.shieldedInstanceConfig = {
+      enableSecureBoot: true,
+      enableVtpm: false,
+      enableIntegrityMonitoring: false,
+    };
+    const command = resolve(builder.buildServerGroupCommandFromExisting({ name: 'myapp', attributes: {} }, serverGroup));
+
+    expect(command.enableSecureBoot).toBe(true);
+    expect(command.enableVtpm).toBe(false);
+    expect(command.enableIntegrityMonitoring).toBe(false);
+  });
+
   it('strips partnerMetadata from pipeline-derived commands', function () {
     const command = resolve(
       builder.buildServerGroupCommandFromPipeline(

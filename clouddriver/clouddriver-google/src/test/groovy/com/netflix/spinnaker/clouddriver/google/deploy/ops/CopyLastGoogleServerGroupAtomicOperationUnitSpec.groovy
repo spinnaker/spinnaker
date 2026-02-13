@@ -332,6 +332,63 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       }, _) >> deploymentResult
   }
 
+  void "operation preserves unspecified shielded overrides from ancestor config"() {
+    setup:
+      def ancestorShieldedConfig = new ShieldedInstanceConfig(
+        enableSecureBoot: true,
+        enableVtpm: false,
+        enableIntegrityMonitoring: true
+      )
+      def ancestorInstanceProperties = new InstanceProperties(
+        machineType: INSTANCE_TYPE,
+        minCpuPlatform: MIN_CPU_PLATFORM,
+        disks: attachedDisks,
+        networkInterfaces: [networkInterface],
+        canIpForward: false,
+        metadata: instanceMetadata,
+        tags: tags,
+        labels: LABELS,
+        scheduling: scheduling,
+        serviceAccounts: serviceAccount,
+        shieldedInstanceConfig: ancestorShieldedConfig
+      )
+      def ancestorInstanceTemplate = new InstanceTemplate(
+        name: INSTANCE_TEMPLATE_NAME,
+        properties: ancestorInstanceProperties
+      )
+      def ancestorServerGroup = new GoogleServerGroup(
+        name: ANCESTOR_SERVER_GROUP_NAME,
+        zone: ZONE,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCERS, desiredCapacity: 2],
+        launchConfig: [instanceTemplate: ancestorInstanceTemplate]
+      ).view
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        region: REGION,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials,
+        enableSecureBoot: false
+      )
+      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      1 * basicGoogleDeployHandlerMock.handle({
+        it.enableSecureBoot == false &&
+          it.enableVtpm == false &&
+          it.enableIntegrityMonitoring == true
+      }, _) >> deploymentResult
+  }
+
   void "operation builds description based on ancestor server group; overrides instanceMetadata and userData"() {
     setup:
       def newInstanceMetadata = ["differentKey": "differentValue"]

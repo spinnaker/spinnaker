@@ -350,6 +350,34 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
       0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
   }
 
+  void "validation falls back cleanly when googleClusterProvider is unavailable"() {
+    setup:
+      validator.googleClusterProvider = null
+      def errors = Mock(ValidationErrors)
+      def selection = new GoogleInstanceFlexibilityPolicy.InstanceSelection()
+      selection.setRank(1)
+      selection.setMachineTypes(["n2-standard-8"])
+      def flexibilityPolicy = new GoogleInstanceFlexibilityPolicy()
+      flexibilityPolicy.setInstanceSelections(["preferred": selection])
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        accountName: ACCOUNT_NAME,
+        regional: true,
+        region: REGION,
+        instanceFlexibilityPolicy: flexibilityPolicy,
+        distributionPolicy: new GoogleDistributionPolicy(
+          zones: ["us-central1-a"],
+          targetShape: "BALANCED"
+        )
+      )
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
+  }
+
   private static GoogleServerGroup.View buildAncestorServerGroupWithFlexibilityPolicy(String targetShape) {
     def selection = new GoogleInstanceFlexibilityPolicy.InstanceSelection()
     selection.setRank(1)
