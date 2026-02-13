@@ -40,6 +40,7 @@ import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import java.sql.SQLException
+import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -111,7 +112,7 @@ class SqlCachingPodsObserver(
      */
     @JvmStatic
     fun createStrategy(name: String): ShardingStrategy {
-      return when (name.lowercase()) {
+      return when (name.lowercase(Locale.ROOT)) {
         "canonical-modulo" -> CanonicalModuloShardingStrategy()
         "jump" -> JumpConsistentHashStrategy()
         // Keep modulo as the compatibility default for existing installations.
@@ -124,7 +125,7 @@ class SqlCachingPodsObserver(
      */
     @JvmStatic
     fun createKeyExtractor(name: String): ShardingKeyExtractor {
-      return when (name.lowercase()) {
+      return when (name.lowercase(Locale.ROOT)) {
         "agent" -> AgentTypeKeyExtractor()
         "region" -> RegionKeyExtractor()
         else -> AccountKeyExtractor()
@@ -230,8 +231,10 @@ class SqlCachingPodsObserver(
       }
     } catch (e: DataIntegrityViolationException) {
       log.error("Unexpected DataIntegrityViolationException", e)
+      throw e
     } catch (e: SQLException) {
       log.error("Unexpected sql exception while trying to acquire agent lock", e)
+      throw e
     }
   }
 
@@ -247,27 +250,19 @@ class SqlCachingPodsObserver(
           val expiry = existingReplicas.getLong(LAST_HEARTBEAT_TIME)
           val podId = existingReplicas.getString(POD_ID)
           if (now > expiry) {
-            try {
-              jooq.deleteFrom(table(replicasTable))
-                .where(
-                  DSL.field(POD_ID).eq(podId)
-                    .and(DSL.field(LAST_HEARTBEAT_TIME).eq(expiry))
-                )
-                .execute()
-              log.info("Deleted expired entry having id : {} and expiry millis : {}", podId, expiry)
-            } catch (e: SQLException) {
-              // this exception can be safely ignored as other pod might have succeeded
-              log.info(
-                "Unable to delete replica entry ${existingReplicas.getString(POD_ID)} with expiry " +
-                  "$expiry, at the moment.",
-                e
+            jooq.deleteFrom(table(replicasTable))
+              .where(
+                DSL.field(POD_ID).eq(podId)
+                  .and(DSL.field(LAST_HEARTBEAT_TIME).eq(expiry))
               )
-            }
+              .execute()
+            log.info("Deleted expired entry having id : {} and expiry millis : {}", podId, expiry)
           }
         }
       }
     } catch (e: SQLException) {
       log.error("Unexpected sql exception while trying to get replica records : ", e)
+      throw e
     }
   }
 

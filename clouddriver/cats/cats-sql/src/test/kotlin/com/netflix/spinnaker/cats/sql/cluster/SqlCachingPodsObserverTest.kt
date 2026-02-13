@@ -43,6 +43,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isTrue
+import java.util.Locale
 import java.util.concurrent.Executors
 
 /**
@@ -80,6 +81,21 @@ class SqlCachingPodsObserverTest : JUnit5Minutests {
       test("createStrategy keeps modulo as default fallback") {
         val strategy = SqlCachingPodsObserver.createStrategy("unexpected-value")
         expectThat(strategy.name).isEqualTo("modulo")
+      }
+
+      test("factory parsing is locale-stable for uppercase names") {
+        val previousDefault = Locale.getDefault()
+        try {
+          Locale.setDefault(Locale.forLanguageTag("tr-TR"))
+
+          val strategy = SqlCachingPodsObserver.createStrategy("CANONICAL-MODULO")
+          val keyExtractor = SqlCachingPodsObserver.createKeyExtractor("REGION")
+
+          expectThat(strategy.name).isEqualTo("canonical-modulo")
+          expectThat(keyExtractor.name).isEqualTo("region")
+        } finally {
+          Locale.setDefault(previousDefault)
+        }
       }
     }
 

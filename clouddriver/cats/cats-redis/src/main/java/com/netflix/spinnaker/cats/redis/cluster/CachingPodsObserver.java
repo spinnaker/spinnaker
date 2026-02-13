@@ -33,6 +33,7 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -189,7 +190,7 @@ public class CachingPodsObserver implements ShardingFilter, Runnable {
   }
 
   private ShardingStrategy createStrategy(String name) {
-    switch (name.toLowerCase()) {
+    switch (name.toLowerCase(Locale.ROOT)) {
       case "canonical-modulo":
         return new CanonicalModuloShardingStrategy();
       case "jump":
@@ -202,7 +203,7 @@ public class CachingPodsObserver implements ShardingFilter, Runnable {
   }
 
   private ShardingKeyExtractor createKeyExtractor(String name) {
-    switch (name.toLowerCase()) {
+    switch (name.toLowerCase(Locale.ROOT)) {
       case "agent":
         return new AgentTypeKeyExtractor();
       case "region":

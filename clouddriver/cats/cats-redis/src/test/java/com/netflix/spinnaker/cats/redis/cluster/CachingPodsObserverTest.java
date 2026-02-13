@@ -32,9 +32,11 @@ import com.netflix.spinnaker.cats.cluster.ShardingKeyExtractor;
 import com.netflix.spinnaker.cats.cluster.ShardingStrategy;
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -441,6 +443,39 @@ class CachingPodsObserverTest {
 
       assertThat(jumpRegionObserver.getStrategyName()).isEqualTo("jump");
       assertThat(jumpRegionObserver.getKeyExtractorName()).isEqualTo("region");
+    }
+
+    @Test
+    @DisplayName("Factory parsing is locale-stable for uppercase names")
+    void factoryParsingIsLocaleStableForUppercaseNames() throws Exception {
+      Locale previousDefault = Locale.getDefault();
+      try {
+        Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+
+        CachingPodsObserver observer =
+            new CachingPodsObserver(
+                redisClientDelegate,
+                createNodeIdentity("locale-test-pod"),
+                60,
+                new ModuloShardingStrategy(),
+                new AccountKeyExtractor());
+
+        Method createStrategy =
+            CachingPodsObserver.class.getDeclaredMethod("createStrategy", String.class);
+        createStrategy.setAccessible(true);
+        ShardingStrategy strategy =
+            (ShardingStrategy) createStrategy.invoke(observer, "CANONICAL-MODULO");
+        assertThat(strategy.getName()).isEqualTo("canonical-modulo");
+
+        Method createKeyExtractor =
+            CachingPodsObserver.class.getDeclaredMethod("createKeyExtractor", String.class);
+        createKeyExtractor.setAccessible(true);
+        ShardingKeyExtractor keyExtractor =
+            (ShardingKeyExtractor) createKeyExtractor.invoke(observer, "REGION");
+        assertThat(keyExtractor.getName()).isEqualTo("region");
+      } finally {
+        Locale.setDefault(previousDefault);
+      }
     }
   }
 }
