@@ -552,6 +552,36 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
   }
 
+  void "instance flexibility policy accepts machine type URLs that match instanceType"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
+      selection.setRank(1)
+      selection.setMachineTypes(["zones/us-central1-a/machineTypes/n2-standard-8"])
+      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
+      flexPolicy.setInstanceSelections(["preferred": selection])
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(
+        application: APPLICATION,
+        image: IMAGE,
+        instanceType: "n2-standard-8",
+        targetSize: TARGET_SIZE,
+        regional: true,
+        region: REGION,
+        accountName: ACCOUNT_NAME,
+        disks: [DISK_PD_STANDARD],
+        instanceFlexibilityPolicy: flexPolicy,
+        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
+          zones: ["us-central1-a", "us-central1-b"],
+          targetShape: "BALANCED"
+        )
+      ), errors)
+
+    then:
+      0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
+  }
+
   void "partnerMetadata is rejected under v1 API"() {
     setup:
       def errors = Mock(ValidationErrors)

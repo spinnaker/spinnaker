@@ -18,9 +18,13 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 final class InstanceFlexibilityPolicyValidationSupport {
   private InstanceFlexibilityPolicyValidationSupport() {}
+  private static final Logger log =
+    LoggerFactory.getLogger(InstanceFlexibilityPolicyValidationSupport)
 
   static final String REQUIRES_REGIONAL_CODE = "requiresRegional"
   static final String INCOMPATIBLE_WITH_EVEN_SHAPE_CODE = "incompatibleWithEvenShape"
@@ -28,6 +32,9 @@ final class InstanceFlexibilityPolicyValidationSupport {
   static final String MISSING_RANK_CODE = "missingRank"
   static final String NEGATIVE_RANK_CODE = "negativeRank"
   static final String EMPTY_MACHINE_TYPES_CODE = "emptyMachineTypes"
+  static final String INSTANCE_TYPE_NOT_IN_SELECTIONS_WARNING =
+    "instanceType '{}' is not present in any instanceFlexibilityPolicy.instanceSelections.machineTypes. " +
+      "MIG flexibility selections may never directly use the template machine type."
 
   static final String REQUIRES_REGIONAL_MESSAGE =
     "Instance flexibility policy is only supported for regional server groups."
@@ -78,7 +85,40 @@ final class InstanceFlexibilityPolicyValidationSupport {
       issues.add(new ValidationIssue(EMPTY_MACHINE_TYPES_CODE, EMPTY_MACHINE_TYPES_MESSAGE))
     }
 
+    warnIfInstanceTypeMissingFromSelections(description, selections)
+
     return issues
+  }
+
+  private static void warnIfInstanceTypeMissingFromSelections(
+    BasicGoogleDeployDescription description,
+    Map<String, ?> selections) {
+    def normalizedInstanceType = normalizeMachineType(description.instanceType)
+    if (!normalizedInstanceType) {
+      return
+    }
+
+    boolean foundInSelections = selections.values().any { selection ->
+      selection?.machineTypes?.any { machineType ->
+        normalizedInstanceType.equalsIgnoreCase(normalizeMachineType(machineType))
+      }
+    }
+
+    if (!foundInSelections) {
+      log.warn(INSTANCE_TYPE_NOT_IN_SELECTIONS_WARNING, description.instanceType)
+    }
+  }
+
+  private static String normalizeMachineType(String machineType) {
+    if (!machineType) {
+      return null
+    }
+    String trimmed = machineType.trim()
+    if (!trimmed) {
+      return null
+    }
+    int lastSlash = trimmed.lastIndexOf('/')
+    return lastSlash >= 0 ? trimmed.substring(lastSlash + 1) : trimmed
   }
 
   static void rejectIssues(

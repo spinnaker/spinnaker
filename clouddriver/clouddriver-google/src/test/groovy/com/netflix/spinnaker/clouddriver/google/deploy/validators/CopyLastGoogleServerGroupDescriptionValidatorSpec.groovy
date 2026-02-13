@@ -321,6 +321,35 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
       0 * errors._
   }
 
+  void "instance type mismatch with flexibility policy does not fail copy validation"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def selection = new GoogleInstanceFlexibilityPolicy.InstanceSelection()
+      selection.setRank(1)
+      selection.setMachineTypes(["zones/us-central1-a/machineTypes/n2-standard-8"])
+      def flexibilityPolicy = new GoogleInstanceFlexibilityPolicy()
+      flexibilityPolicy.setInstanceSelections(["preferred": selection])
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        accountName: ACCOUNT_NAME,
+        regional: true,
+        region: REGION,
+        instanceType: "f1-micro",
+        instanceFlexibilityPolicy: flexibilityPolicy,
+        distributionPolicy: new GoogleDistributionPolicy(
+          zones: ["us-central1-a"],
+          targetShape: "BALANCED"
+        )
+      )
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * googleClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> null
+      0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
+  }
+
   private static GoogleServerGroup.View buildAncestorServerGroupWithFlexibilityPolicy(String targetShape) {
     def selection = new GoogleInstanceFlexibilityPolicy.InstanceSelection()
     selection.setRank(1)
