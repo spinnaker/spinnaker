@@ -95,7 +95,6 @@ import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -125,7 +124,6 @@ public class BasicGoogleDeployHandlerTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
     mockDescription = new BasicGoogleDeployDescription();
     mockCredentials = mock(GoogleNamedAccountCredentials.class);
     mockTask = mock(Task.class);
@@ -1623,7 +1621,7 @@ public class BasicGoogleDeployHandlerTest {
 
     mockedGCEUtil.when(() -> GCEUtil.isShieldedVmCompatible(bootImage)).thenReturn(true);
     mockedGCEUtil
-        .when(() -> GCEUtil.buildShieldedVmConfig(mockDescription))
+        .when(() -> GCEUtil.buildShieldedInstanceConfig(mockDescription))
         .thenReturn(shieldedVmConfig);
 
     basicGoogleDeployHandler.addShieldedVmConfigToInstanceProperties(

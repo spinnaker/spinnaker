@@ -258,23 +258,25 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
           ? description.canIpForward
           : ancestorInstanceProperties.canIpForward
 
-      def shieldedVmConfig = ancestorInstanceProperties.shieldedInstanceConfig
+      // Dual-key fallback: try v1 key first, then legacy beta key for backward compat
+      // with server groups cached before the v1 migration.
+      def shieldedInstanceConfig = ancestorInstanceProperties.shieldedInstanceConfig ?: ancestorInstanceProperties.shieldedVmConfig
 
-      if (shieldedVmConfig) {
+      if (shieldedInstanceConfig) {
         newDescription.enableSecureBoot =
           description.enableSecureBoot != null
             ? description.enableSecureBoot
-            : shieldedVmConfig.enableSecureBoot
+            : shieldedInstanceConfig.enableSecureBoot
 
         newDescription.enableVtpm =
           description.enableVtpm != null
             ? description.enableVtpm
-            : shieldedVmConfig.enableVtpm
+            : shieldedInstanceConfig.enableVtpm
 
         newDescription.enableIntegrityMonitoring =
           description.enableIntegrityMonitoring != null
             ? description.enableIntegrityMonitoring
-            : shieldedVmConfig.enableIntegrityMonitoring
+            : shieldedInstanceConfig.enableIntegrityMonitoring
       }
     }
 

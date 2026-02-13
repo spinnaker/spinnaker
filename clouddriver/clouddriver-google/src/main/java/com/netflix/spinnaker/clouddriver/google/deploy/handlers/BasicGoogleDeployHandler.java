@@ -840,7 +840,8 @@ public class BasicGoogleDeployHandler
       InstanceProperties instanceProperties,
       Image bootImage) {
     if (GCEUtil.isShieldedVmCompatible(bootImage)) {
-      instanceProperties.setShieldedInstanceConfig(GCEUtil.buildShieldedVmConfig(description));
+      instanceProperties.setShieldedInstanceConfig(
+          GCEUtil.buildShieldedInstanceConfig(description));
     }
   }
 
@@ -1133,7 +1134,7 @@ public class BasicGoogleDeployHandler
           new InstanceGroupManagerInstanceFlexibilityPolicy();
       flexPolicy.setInstanceSelections(selections);
       instanceGroupManager.setInstanceFlexibilityPolicy(flexPolicy);
-      log.info(
+      log.debug(
           "Configured instance flexibility policy with {} selection groups", selections.size());
     }
   }

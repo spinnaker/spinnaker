@@ -222,7 +222,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
           || overriddenProperties.containsKey("enableVtpm")
           || overriddenProperties.containsKey("enableIntegrityMonitoring")) {
         instanceTemplateProperties.setShieldedInstanceConfig(
-          GCEUtil.buildShieldedVmConfig(newDescription))
+          GCEUtil.buildShieldedInstanceConfig(newDescription))
       }
 
       // Override the instance template's metadata if instanceMetadata was specified.

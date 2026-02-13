@@ -939,22 +939,22 @@ class GCEUtil {
     return scheduling
   }
 
-  static ShieldedInstanceConfig buildShieldedVmConfig(BaseGoogleInstanceDescription description) {
-    def shieldedVmConfig = new ShieldedInstanceConfig()
+  static ShieldedInstanceConfig buildShieldedInstanceConfig(BaseGoogleInstanceDescription description) {
+    def shieldedInstanceConfig = new ShieldedInstanceConfig()
 
     if (description.enableSecureBoot != null) {
-      shieldedVmConfig.enableSecureBoot = description.enableSecureBoot
+      shieldedInstanceConfig.enableSecureBoot = description.enableSecureBoot
     }
 
     if (description.enableVtpm != null) {
-      shieldedVmConfig.enableVtpm = description.enableVtpm
+      shieldedInstanceConfig.enableVtpm = description.enableVtpm
     }
 
     if (description.enableIntegrityMonitoring != null) {
-      shieldedVmConfig.enableIntegrityMonitoring = description.enableIntegrityMonitoring
+      shieldedInstanceConfig.enableIntegrityMonitoring = description.enableIntegrityMonitoring
     }
 
-    return shieldedVmConfig
+    return shieldedInstanceConfig
   }
 
   static void updateStatusAndThrowNotFoundException(String errorMsg, Task task, String phase) {
