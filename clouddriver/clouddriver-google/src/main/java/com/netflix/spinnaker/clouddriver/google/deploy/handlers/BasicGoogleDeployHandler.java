@@ -1113,11 +1113,12 @@ public class BasicGoogleDeployHandler
     if (description.getInstanceFlexibilityPolicy() != null
         && description.getInstanceFlexibilityPolicy().getInstanceSelections() != null
         && !description.getInstanceFlexibilityPolicy().getInstanceSelections().isEmpty()) {
-      InstanceGroupManagerInstanceFlexibilityPolicy flexPolicy =
-          new InstanceGroupManagerInstanceFlexibilityPolicy();
       Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> selections =
           description.getInstanceFlexibilityPolicy().getInstanceSelections().entrySet().stream()
+              .filter(entry -> entry.getKey() != null)
               .filter(entry -> entry.getValue() != null)
+              .filter(entry -> entry.getValue().getRank() != null)
+              .filter(entry -> !CollectionUtils.isEmpty(entry.getValue().getMachineTypes()))
               .collect(
                   Collectors.toMap(
                       Map.Entry::getKey,
@@ -1125,6 +1126,11 @@ public class BasicGoogleDeployHandler
                           new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
                               .setRank(entry.getValue().getRank())
                               .setMachineTypes(entry.getValue().getMachineTypes())));
+      if (selections.isEmpty()) {
+        return;
+      }
+      InstanceGroupManagerInstanceFlexibilityPolicy flexPolicy =
+          new InstanceGroupManagerInstanceFlexibilityPolicy();
       flexPolicy.setInstanceSelections(selections);
       instanceGroupManager.setInstanceFlexibilityPolicy(flexPolicy);
       log.info(

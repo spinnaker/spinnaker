@@ -2249,6 +2249,18 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testSetInstanceFlexibilityPolicyToInstanceGroup_nullPolicy_doesNotModifyInstanceGroup() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setInstanceFlexibilityPolicy(null);
+
+    basicGoogleDeployHandler.setInstanceFlexibilityPolicyToInstanceGroup(
+        description, instanceGroupManager);
+
+    assertNull(instanceGroupManager.getInstanceFlexibilityPolicy());
+  }
+
+  @Test
   void testSetInstanceFlexibilityPolicyToInstanceGroup_mapsValidSelectionsOnly() {
     InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
     BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
@@ -2267,6 +2279,18 @@ public class BasicGoogleDeployHandlerTest {
         selections = new HashMap<>();
     selections.put("preferred", selection);
     selections.put("malformed", null);
+    selections.put(
+        "missingRank",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(null, List.of("n2-standard-16")));
+    selections.put(
+        "missingMachineTypes",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(2, null));
+    selections.put(
+        "emptyMachineTypes",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(3, Collections.emptyList()));
 
     com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy flexPolicy =
         new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy();
@@ -2303,6 +2327,42 @@ public class BasicGoogleDeployHandlerTest {
             .getInstanceSelections()
             .get("preferred")
             .getMachineTypes());
+  }
+
+  @Test
+  void
+      testSetInstanceFlexibilityPolicyToInstanceGroup_allMalformedSelections_doesNotModifyInstanceGroup() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        selections = new HashMap<>();
+    selections.put("nullSelection", null);
+    selections.put(
+        "missingRank",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(null, List.of("n2-standard-8")));
+    selections.put(
+        "missingMachineTypes",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(1, null));
+    selections.put(
+        "emptyMachineTypes",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(2, Collections.emptyList()));
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy flexPolicy =
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(selections);
+    description.setInstanceFlexibilityPolicy(flexPolicy);
+
+    basicGoogleDeployHandler.setInstanceFlexibilityPolicyToInstanceGroup(
+        description, instanceGroupManager);
+
+    assertNull(instanceGroupManager.getInstanceFlexibilityPolicy());
   }
 
   private GoogleLoadBalancerView mockLoadBalancer(GoogleLoadBalancerType loadBalancerType) {
