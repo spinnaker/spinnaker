@@ -333,6 +333,7 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
 
         // At least prod data should remain since it has a registered agent
         expectThat(remainingResources.any { it.contains(":prod:") }).isEqualTo(true)
+        expectThat(remainingRels.any { it.contains(":prod:") }).isEqualTo(true)
       }
 
       test("Modulo vs Jump strategies are both deterministic") {
@@ -342,14 +343,16 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
         // Both strategies should deterministically assign the same key to the same pod
         val testKey = "prod"
 
-        val moduloOwner = moduloStrategy.computeOwner(testKey, 3)
-        val jumpOwner = jumpStrategy.computeOwner(testKey, 3)
+        val moduloOwnerFirst = moduloStrategy.computeOwner(testKey, 3)
+        val moduloOwnerSecond = moduloStrategy.computeOwner(testKey, 3)
+        val jumpOwnerFirst = jumpStrategy.computeOwner(testKey, 3)
+        val jumpOwnerSecond = jumpStrategy.computeOwner(testKey, 3)
 
         // The results may differ, but both should be valid pod indices
-        expectThat(moduloOwner).isEqualTo(moduloOwner) // Deterministic
-        expectThat(jumpOwner).isEqualTo(jumpOwner) // Deterministic
-        expectThat(moduloOwner in 0..2).isEqualTo(true)
-        expectThat(jumpOwner in 0..2).isEqualTo(true)
+        expectThat(moduloOwnerFirst).isEqualTo(moduloOwnerSecond)
+        expectThat(jumpOwnerFirst).isEqualTo(jumpOwnerSecond)
+        expectThat(moduloOwnerFirst in 0..2).isEqualTo(true)
+        expectThat(jumpOwnerFirst in 0..2).isEqualTo(true)
       }
     }
 

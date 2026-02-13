@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -352,20 +353,18 @@ class ShardingDistributionTest {
     @Test
     @DisplayName("Same account different regions can go to different pods")
     void sameAccountDifferentRegions() {
-      // With region-level keys, same account can be split across pods
-      String key1 = "prod-aws/us-east-1";
-      String key2 = "prod-aws/us-west-2";
-      String key3 = "prod-aws/eu-west-1";
+      // With region-level keys, the same account can be split across pods.
+      // We use a broader fixed sample to avoid no-op assertions and ensure the behavior is
+      // meaningfully exercised with deterministic inputs.
+      HashSet<Integer> owners = new HashSet<>();
+      for (int i = 0; i < 20; i++) {
+        String key = "prod-aws/region-" + i;
+        owners.add(jumpStrategy.computeOwner(key, 5));
+      }
 
-      int owner1 = jumpStrategy.computeOwner(key1, 5);
-      int owner2 = jumpStrategy.computeOwner(key2, 5);
-      int owner3 = jumpStrategy.computeOwner(key3, 5);
-
-      // At least some should be different (probabilistically)
-      // This test documents the behavior that region-level sharding enables distribution
-      assertThat(List.of(owner1, owner2, owner3))
+      assertThat(owners.size())
           .describedAs("Different regions of same account can map to different pods")
-          .isNotNull();
+          .isGreaterThan(1);
     }
   }
 
