@@ -186,9 +186,16 @@ class SqlCachingPodsObserver(
   }
 
   private fun refreshHeartbeat(newTtl: Long) {
-    recordHeartbeat(newTtl)
-    deleteExpiredReplicas()
-    updatePodState()
+    try {
+      recordHeartbeat(newTtl)
+      deleteExpiredReplicas()
+      updatePodState()
+    } catch (t: Throwable) {
+      // Fail open if any heartbeat step fails unexpectedly (for example, jOOQ DataAccessException).
+      // This prevents stale topology values from continuing to route work incorrectly.
+      log.error("Failed to refresh sharding heartbeat state", t)
+      resetToFailOpenState()
+    }
   }
 
   private fun recordHeartbeat(newTtl: Long) {
@@ -284,10 +291,16 @@ class SqlCachingPodsObserver(
       }
     } catch (e: SQLException) {
       log.error("Failed to fetch live pods count ${e.message}")
+      // Fail open if topology cannot be queried. Clearing state avoids stale routing decisions
+      // that could continue assigning work based on an outdated pod index/count snapshot.
+      resetToFailOpenState()
+      return
     }
     if (counter == 0 || index == -1) {
       log.error("No caching pod heartbeat records detected. Sharding logic can't be applied!!!!")
-      // Don't throw - allow degraded mode with pass-through
+      // Fail open when topology is not established: reset state so filter() returns pass-through
+      // instead of using stale values from a previous successful heartbeat.
+      resetToFailOpenState()
       return
     }
     podCount = counter
@@ -327,5 +340,10 @@ class SqlCachingPodsObserver(
   /** Triggers a heartbeat refresh. Visible for testing. */
   internal fun triggerHeartbeat() {
     refreshHeartbeat(TimeUnit.SECONDS.toMillis(ttlSeconds))
+  }
+
+  private fun resetToFailOpenState() {
+    podCount = 0
+    podIndex = -1
   }
 }

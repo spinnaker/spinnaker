@@ -95,6 +95,28 @@ class SqlCachingPodsObserverTest : JUnit5Minutests {
       }
     }
 
+    context("Degraded mode state handling") {
+      test("heartbeat query failure clears stale pod state") {
+        cleanupReplicaTable()
+        val observer = createObserver("pod-state-reset", ModuloShardingStrategy(), AccountKeyExtractor())
+
+        // Establish a valid initial state first.
+        expectThat(observer.getPodCount()).isGreaterThan(0)
+        expectThat(observer.getPodIndex() >= 0).isTrue()
+
+        // Force heartbeat SQL operations to fail. This simulates transient DB/table failures.
+        dslContext.execute("DROP TABLE caching_replicas")
+        observer.triggerHeartbeat()
+
+        // Regression check: failed refresh must clear old topology state to avoid stale routing.
+        expectThat(observer.getPodCount()).isEqualTo(0)
+        expectThat(observer.getPodIndex()).isEqualTo(-1)
+
+        // Restore table for subsequent tests and shared cleanup hooks.
+        createReplicaTable()
+      }
+    }
+
     context("Modulo strategy partitioning") {
       test("two pods partition agents correctly") {
         cleanupReplicaTable()
@@ -279,8 +301,7 @@ class SqlCachingPodsObserverTest : JUnit5Minutests {
         .set(SQLDialect.MYSQL)
     )
 
-    init {
-      // Create the caching_replicas table
+    fun createReplicaTable() {
       dslContext.execute(
         """
         CREATE TABLE IF NOT EXISTS caching_replicas (
@@ -291,7 +312,14 @@ class SqlCachingPodsObserverTest : JUnit5Minutests {
       )
     }
 
+    init {
+      createReplicaTable()
+    }
+
     fun cleanupReplicaTable() {
+      // Some tests intentionally drop the table to validate degraded behavior.
+      // Recreate first so global after-hooks can always clean deterministically.
+      createReplicaTable()
       dslContext.deleteFrom(DSL.table("caching_replicas")).execute()
     }
 
