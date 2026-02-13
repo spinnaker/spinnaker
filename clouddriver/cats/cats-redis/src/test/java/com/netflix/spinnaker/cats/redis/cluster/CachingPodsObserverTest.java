@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.cluster.AccountKeyExtractor;
 import com.netflix.spinnaker.cats.cluster.AgentTypeKeyExtractor;
+import com.netflix.spinnaker.cats.cluster.CanonicalModuloShardingStrategy;
 import com.netflix.spinnaker.cats.cluster.JumpConsistentHashStrategy;
 import com.netflix.spinnaker.cats.cluster.ModuloShardingStrategy;
 import com.netflix.spinnaker.cats.cluster.NodeIdentity;
@@ -408,6 +409,22 @@ class CachingPodsObserverTest {
 
       assertThat(moduloAccountObserver.getStrategyName()).isEqualTo("modulo");
       assertThat(moduloAccountObserver.getKeyExtractorName()).isEqualTo("account");
+
+      // Clear Redis for new observer
+      try (Jedis jedis = jedisPool.getResource()) {
+        jedis.flushAll();
+      }
+
+      CachingPodsObserver canonicalModuloObserver =
+          new CachingPodsObserver(
+              redisClientDelegate,
+              createNodeIdentity("test-pod-canonical"),
+              60,
+              new CanonicalModuloShardingStrategy(),
+              new AccountKeyExtractor());
+
+      assertThat(canonicalModuloObserver.getStrategyName()).isEqualTo("canonical-modulo");
+      assertThat(canonicalModuloObserver.getKeyExtractorName()).isEqualTo("account");
 
       // Clear Redis for new observer
       try (Jedis jedis = jedisPool.getResource()) {

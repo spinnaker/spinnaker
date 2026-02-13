@@ -18,6 +18,7 @@ package com.netflix.spinnaker.cats.sql.cluster
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.cluster.AccountKeyExtractor
 import com.netflix.spinnaker.cats.cluster.AgentTypeKeyExtractor
+import com.netflix.spinnaker.cats.cluster.CanonicalModuloShardingStrategy
 import com.netflix.spinnaker.cats.cluster.JumpConsistentHashStrategy
 import com.netflix.spinnaker.cats.cluster.ModuloShardingStrategy
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
@@ -67,6 +68,18 @@ class SqlCachingPodsObserverTest : JUnit5Minutests {
         val agent = createAgent("CoreCachingAgent", CoreProvider.PROVIDER_NAME)
 
         expectThat(observer.filter(agent)).isTrue()
+      }
+    }
+
+    context("Strategy factory selection") {
+      test("createStrategy maps canonical-modulo correctly") {
+        val strategy = SqlCachingPodsObserver.createStrategy("canonical-modulo")
+        expectThat(strategy.name).isEqualTo("canonical-modulo")
+      }
+
+      test("createStrategy keeps modulo as default fallback") {
+        val strategy = SqlCachingPodsObserver.createStrategy("unexpected-value")
+        expectThat(strategy.name).isEqualTo("modulo")
       }
     }
 
@@ -228,6 +241,12 @@ class SqlCachingPodsObserverTest : JUnit5Minutests {
 
         expectThat(moduloAccountObserver.getStrategyName()).isEqualTo("modulo")
         expectThat(moduloAccountObserver.getKeyExtractorName()).isEqualTo("account")
+
+        cleanupReplicaTable()
+        val canonicalAccountObserver = createObserver("test-pod-canonical", CanonicalModuloShardingStrategy(), AccountKeyExtractor())
+
+        expectThat(canonicalAccountObserver.getStrategyName()).isEqualTo("canonical-modulo")
+        expectThat(canonicalAccountObserver.getKeyExtractorName()).isEqualTo("account")
 
         cleanupReplicaTable()
         val jumpRegionObserver = createObserver("test-pod-2", JumpConsistentHashStrategy(), RegionKeyExtractor())

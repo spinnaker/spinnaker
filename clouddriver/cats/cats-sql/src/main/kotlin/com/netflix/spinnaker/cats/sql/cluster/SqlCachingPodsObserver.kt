@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.cluster.AccountKeyExtractor
 import com.netflix.spinnaker.cats.cluster.AgentTypeKeyExtractor
+import com.netflix.spinnaker.cats.cluster.CanonicalModuloShardingStrategy
 import com.netflix.spinnaker.cats.cluster.JumpConsistentHashStrategy
 import com.netflix.spinnaker.cats.cluster.ModuloShardingStrategy
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
@@ -67,7 +68,10 @@ import java.util.concurrent.TimeUnit
  *
  * ## Configuration Options
  *
- * - `cache-sharding.strategy`: Hashing strategy - "modulo" (default) or "jump"
+ * - `cache-sharding.strategy`: Hashing strategy
+ *   - `"modulo"` (default): legacy compatibility mapping
+ *   - `"canonical-modulo"`: positive remainder modulo mapping
+ *   - `"jump"`: jump consistent hash for minimal movement on scale events
  * - `cache-sharding.sharding-key`: Key extraction - "account" (default), "region", or "agent"
  * - `cache-sharding.replica-ttl-seconds`: Pod heartbeat TTL (default 60)
  * - `cache-sharding.heartbeat-interval-seconds`: Heartbeat frequency (default 30)
@@ -108,7 +112,9 @@ class SqlCachingPodsObserver(
     @JvmStatic
     fun createStrategy(name: String): ShardingStrategy {
       return when (name.lowercase()) {
+        "canonical-modulo" -> CanonicalModuloShardingStrategy()
         "jump" -> JumpConsistentHashStrategy()
+        // Keep modulo as the compatibility default for existing installations.
         else -> ModuloShardingStrategy()
       }
     }

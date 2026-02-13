@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.cluster.AccountKeyExtractor;
 import com.netflix.spinnaker.cats.cluster.AgentTypeKeyExtractor;
+import com.netflix.spinnaker.cats.cluster.CanonicalModuloShardingStrategy;
 import com.netflix.spinnaker.cats.cluster.JumpConsistentHashStrategy;
 import com.netflix.spinnaker.cats.cluster.ModuloShardingStrategy;
 import com.netflix.spinnaker.cats.cluster.NodeIdentity;
@@ -67,7 +68,12 @@ import org.slf4j.LoggerFactory;
  * <h2>Configuration Options</h2>
  *
  * <ul>
- *   <li>{@code cache-sharding.strategy}: Hashing strategy - "modulo" (default) or "jump"
+ *   <li>{@code cache-sharding.strategy}: Hashing strategy:
+ *       <ul>
+ *         <li>{@code "modulo"} (default): legacy compatibility mapping
+ *         <li>{@code "canonical-modulo"}: positive remainder modulo mapping
+ *         <li>{@code "jump"}: jump consistent hash for minimal movement on scale events
+ *       </ul>
  *   <li>{@code cache-sharding.sharding-key}: Key extraction - "account" (default), "region", or
  *       "agent"
  *   <li>{@code cache-sharding.replica-ttl-seconds}: Pod heartbeat TTL (default 60)
@@ -184,10 +190,13 @@ public class CachingPodsObserver implements ShardingFilter, Runnable {
 
   private ShardingStrategy createStrategy(String name) {
     switch (name.toLowerCase()) {
+      case "canonical-modulo":
+        return new CanonicalModuloShardingStrategy();
       case "jump":
         return new JumpConsistentHashStrategy();
       case "modulo":
       default:
+        // Keep modulo as the compatibility default for existing installations.
         return new ModuloShardingStrategy();
     }
   }
