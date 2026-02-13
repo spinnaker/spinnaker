@@ -140,7 +140,9 @@ describe('Service: gceServerGroupCommandBuilder', function () {
       enableVtpm: true,
       enableIntegrityMonitoring: false,
     });
-    const command = resolve(builder.buildServerGroupCommandFromExisting({ name: 'myapp', attributes: {} }, serverGroup));
+    const command = resolve(
+      builder.buildServerGroupCommandFromExisting({ name: 'myapp', attributes: {} }, serverGroup),
+    );
 
     expect(command.partnerMetadata).toBeUndefined();
     expect(command.enableSecureBoot).toBe(true);
@@ -154,7 +156,9 @@ describe('Service: gceServerGroupCommandBuilder', function () {
       enableVtpm: true,
       enableIntegrityMonitoring: true,
     });
-    const command = resolve(builder.buildServerGroupCommandFromExisting({ name: 'myapp', attributes: {} }, serverGroup));
+    const command = resolve(
+      builder.buildServerGroupCommandFromExisting({ name: 'myapp', attributes: {} }, serverGroup),
+    );
 
     expect(command.enableSecureBoot).toBe(false);
     expect(command.enableVtpm).toBe(true);
@@ -172,7 +176,9 @@ describe('Service: gceServerGroupCommandBuilder', function () {
       enableVtpm: false,
       enableIntegrityMonitoring: false,
     };
-    const command = resolve(builder.buildServerGroupCommandFromExisting({ name: 'myapp', attributes: {} }, serverGroup));
+    const command = resolve(
+      builder.buildServerGroupCommandFromExisting({ name: 'myapp', attributes: {} }, serverGroup),
+    );
 
     expect(command.enableSecureBoot).toBe(true);
     expect(command.enableVtpm).toBe(false);
