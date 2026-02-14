@@ -107,11 +107,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
+
       - name: Create Spinnaker release BoM and changelog
         id: spinnaker-release-bom
         uses: ./.github/actions/spinnaker-release
         with:
-          github-pat: ${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}
+          github-pat: ${{ steps.app-token.outputs.token }}
           credentials-json: ${{ secrets.GAR_JSON_KEY }}
           version: ${{ inputs.spinnaker-version }}
           previous-version: ${{ inputs.spinnaker-previous-version }}

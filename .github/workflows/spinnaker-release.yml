@@ -96,10 +96,17 @@ jobs:
     needs: version
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
+
+
       - name: Trigger Deck Release
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
@@ -115,10 +122,15 @@ jobs:
     needs: version
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
       - name: Trigger Deck Kayenta Release
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,

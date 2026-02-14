@@ -21,7 +21,15 @@ jobs:
           ref: ${{ inputs.remote-ref == 'master' && 'main' || inputs.remote-ref }}
           fetch-depth: 0
 
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
+
+
       - uses: ./.github/actions/update-monorepo
         with:
           remote-ref: ${{ inputs.remote-ref }}
-          github-pat: ${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}
+          github-pat: ${{ steps.app-token.outputs.token }}
+          
