@@ -112,6 +112,7 @@
           <ui-select
             ng-model="$ctrl.listener.port"
             ng-disabled="$ctrl.listener.created"
+            ng-change="$ctrl.onPortChanged($ctrl.listener)"
             required
             class="form-control input-sm"
           >
@@ -124,15 +125,47 @@
           </ui-select>
         </div>
         <div ng-if="$ctrl.isHttps($ctrl.listener.port)">
-          <div class="col-md-2 sm-label-right">
-            Certificate
-            <help-field key="gce.httpLoadBalancer.certificate" class="help-field-absolute"></help-field>
+          <div class="col-md-2 sm-label-right" ng-if="$ctrl.supportsCertificateMap()">Certificate Source</div>
+          <div class="col-md-3" ng-if="$ctrl.supportsCertificateMap()">
+            <label class="radio-inline">
+              <input
+                type="radio"
+                ng-model="$ctrl.listener.certificateSource"
+                value="certificate"
+                ng-change="$ctrl.onCertificateSourceChanged($ctrl.listener)"
+              />
+              Certificate
+            </label>
+            <label class="radio-inline">
+              <input
+                type="radio"
+                ng-model="$ctrl.listener.certificateSource"
+                value="certificateMap"
+                ng-change="$ctrl.onCertificateSourceChanged($ctrl.listener)"
+              />
+              Certificate Map
+            </label>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2 sm-label-right">
+            <span ng-if="$ctrl.listener.certificateSource !== 'certificateMap'">Certificate</span>
+            <span ng-if="$ctrl.listener.certificateSource === 'certificateMap'">Certificate Map</span>
+            <help-field
+              ng-if="$ctrl.listener.certificateSource !== 'certificateMap'"
+              key="gce.httpLoadBalancer.certificate"
+              class="help-field-absolute"
+            ></help-field>
+            <help-field
+              ng-if="$ctrl.listener.certificateSource === 'certificateMap'"
+              key="gce.httpLoadBalancer.certificateMap"
+              class="help-field-absolute"
+            ></help-field>
+          </div>
+          <div class="col-md-3" ng-if="$ctrl.listener.certificateSource !== 'certificateMap'">
             <ui-select
               ng-model="$ctrl.listener.certificate"
               ng-disabled="$ctrl.listener.created && !$ctrl.listener.certificate"
-              required
+              ng-change="$ctrl.onCertificateSelected($ctrl.listener)"
+              ng-required="$ctrl.isHttps($ctrl.listener.port) && $ctrl.listener.certificateSource !== 'certificateMap'"
               class="form-control input-sm"
             >
               <ui-select-match allow-clear placeholder="Select...">{{ $select.selected }}</ui-select-match>
@@ -141,7 +174,20 @@
               </ui-select-choices>
             </ui-select>
           </div>
-          <div class="col-md-1" style="padding-left: 0; margin-top: 4px">
+          <div class="col-md-3" ng-if="$ctrl.listener.certificateSource === 'certificateMap'">
+            <input
+              type="text"
+              class="form-control input-sm"
+              name="certificateMap"
+              ng-model="$ctrl.listener.certificateMap"
+              ng-disabled="$ctrl.listener.created && !$ctrl.listener.certificateMap"
+              ng-change="$ctrl.onCertificateMapChanged($ctrl.listener)"
+              ng-required="$ctrl.isHttps($ctrl.listener.port) && $ctrl.listener.certificateSource === 'certificateMap'"
+              ng-pattern="$ctrl.certificateMapPattern"
+              placeholder="certificate-map-name"
+            />
+          </div>
+          <div class="col-md-1" style="padding-left: 0; margin-top: 4px" ng-if="$ctrl.listener.certificateSource !== 'certificateMap'">
             <gce-cache-refresh
               cache-key="certificates"
               render-compact="true"
@@ -182,6 +228,11 @@
         <div class="col-md-7 col-md-offset-2" ng-if="listener.detailName.$error.pattern">
           <validation-error
             message="Detail can only contain lowercase letters, numbers, and dashes(-)."
+          ></validation-error>
+        </div>
+        <div class="col-md-7 col-md-offset-2" ng-if="listener.certificateMap.$error.pattern">
+          <validation-error
+            message="Certificate map can only contain lowercase letters, numbers, and dashes(-), and must start with a letter."
           ></validation-error>
         </div>
       </div>

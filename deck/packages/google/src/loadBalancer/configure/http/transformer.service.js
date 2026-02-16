@@ -81,9 +81,12 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
       return loadBalancer.listeners.map((listener) => {
         let command = _.cloneDeep(loadBalancer);
         command = _.omit(command, keysToOmit);
+        const useCertificateMap =
+          listener.certificateSource === 'certificateMap' || (!listener.certificate && !!listener.certificateMap);
         command.name = listener.name;
         command.portRange = listener.port;
-        command.certificate = listener.certificate || null;
+        command.certificate = useCertificateMap ? null : listener.certificate || null;
+        command.certificateMap = useCertificateMap ? listener.certificateMap || null : null;
         command.ipAddress = listener.ipAddress;
         command.subnet = listener.subnet;
 
@@ -151,6 +154,9 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
         listener.stack = stack;
         listener.detail = freeFormDetails;
         listener.created = true;
+        listener.certificate = listener.certificate || null;
+        listener.certificateMap = listener.certificateMap ? _.last(listener.certificateMap.split('/')) : null;
+        listener.certificateSource = listener.certificateMap ? 'certificateMap' : 'certificate';
       });
 
       return loadBalancer.listeners;
