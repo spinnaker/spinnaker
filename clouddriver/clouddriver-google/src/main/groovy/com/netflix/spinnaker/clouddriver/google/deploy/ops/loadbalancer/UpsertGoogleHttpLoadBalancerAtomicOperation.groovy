@@ -69,6 +69,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     this.description = description
   }
 
+  protected static String getFirstSslCertificateName(List<String> sslCertificates) {
+    return sslCertificates ? GCEUtil.getLocalName(sslCertificates[0]) : null
+  }
+
   /**
    * minimal command:
    * curl -v -X POST -H "Content-Type: application/json" -d '[{ "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType": "HTTP", "loadBalancerName": "http-create", "portRange": "80", "backendServiceDiff": [], "defaultService": {"name": "default-backend-service", "backends": [], "enableCDN": false, "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [] }}]' localhost:7002/gce/ops
@@ -192,7 +196,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           if (!httpLoadBalancer.certificate) {
             throw new IllegalArgumentException("${httpLoadBalancerName} is an Https load balancer, but the upsert description does not contain a certificate.")
           }
-          targetProxyNeedsUpdated = GCEUtil.getLocalName(existingProxy?.getSslCertificates()[0]) != GCEUtil.getLocalName(GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate))
+          def existingCertificateName = getFirstSslCertificateName(existingProxy?.getSslCertificates())
+          targetProxyNeedsUpdated = existingCertificateName != GCEUtil.getLocalName(GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate))
           break
         default:
           log.warn("Unexpected target proxy type for $targetProxyName.")

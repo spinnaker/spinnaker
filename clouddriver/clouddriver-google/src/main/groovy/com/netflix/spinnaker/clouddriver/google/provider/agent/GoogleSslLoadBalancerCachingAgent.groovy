@@ -134,6 +134,10 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
     return Keys.getInstanceKey(accountName, instanceRegion, health.instanceName)
   }
 
+  protected static String getFirstSslCertificate(List<String> sslCertificates) {
+    return sslCertificates ? sslCertificates[0] : null
+  }
+
   class ForwardingRuleCallbacks {
 
     List<GoogleHttpLoadBalancer> loadBalancers
@@ -227,7 +231,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachin
 
     @Override
     void onSuccess(TargetSslProxy targetSslProxy, HttpHeaders responseHeaders) throws IOException {
-      googleLoadBalancer.certificate = targetSslProxy.sslCertificates[0]
+      googleLoadBalancer.certificate = getFirstSslCertificate(targetSslProxy?.sslCertificates)
 
       String backendServiceName = GCEUtil.getLocalName(targetSslProxy.service)
       BackendService backendService = projectBackendServices?.find { BackendService bs -> bs.getName() == backendServiceName }

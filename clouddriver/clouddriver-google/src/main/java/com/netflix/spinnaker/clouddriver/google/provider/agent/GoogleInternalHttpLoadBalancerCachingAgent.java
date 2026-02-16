@@ -137,6 +137,13 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
     return Keys.getInstanceKey(getAccountName(), instanceRegion, health.getInstanceName());
   }
 
+  static String getFirstSslCertificateName(TargetHttpsProxy targetHttpsProxy) {
+    List<String> sslCertificates = targetHttpsProxy.getSslCertificates();
+    return sslCertificates != null && !sslCertificates.isEmpty()
+        ? Utils.getLocalName(sslCertificates.get(0))
+        : null;
+  }
+
   /**
    * Local cache of BackendServiceGroupHealth keyed by BackendService name.
    *
@@ -343,9 +350,8 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
     @Override
     public void onSuccess(TargetHttpsProxy targetHttpsProxy, HttpHeaders responseHeaders)
         throws IOException {
-      // SslCertificates is a required field for TargetHttpsProxy, and contains exactly one cert.
-      googleLoadBalancer.setCertificate(
-          Utils.getLocalName((targetHttpsProxy.getSslCertificates().get(0))));
+      // sslCertificates may be unset when the proxy is configured with certificateMap.
+      googleLoadBalancer.setCertificate(getFirstSslCertificateName(targetHttpsProxy));
 
       String urlMapURL = targetHttpsProxy.getUrlMap();
       if (urlMapURL != null) {

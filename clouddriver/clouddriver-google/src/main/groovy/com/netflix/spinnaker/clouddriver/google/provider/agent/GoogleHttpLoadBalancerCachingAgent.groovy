@@ -138,6 +138,11 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
     return Keys.getInstanceKey(accountName, instanceRegion, health.instanceName)
   }
 
+  protected static String getFirstSslCertificateName(TargetHttpsProxy targetHttpsProxy) {
+    def sslCertificates = targetHttpsProxy?.getSslCertificates()
+    return sslCertificates ? Utils.getLocalName(sslCertificates[0]) : null
+  }
+
   class ForwardingRuleCallbacks {
 
     List<GoogleHttpLoadBalancer> loadBalancers
@@ -265,8 +270,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
 
     @Override
     void onSuccess(TargetHttpsProxy targetHttpsProxy, HttpHeaders responseHeaders) throws IOException {
-      // SslCertificates is a required field for TargetHttpsProxy, and contains exactly one cert.
-      googleLoadBalancer.certificate = Utils.getLocalName((targetHttpsProxy.getSslCertificates()[0]))
+      // sslCertificates may be unset when the proxy is configured with certificateMap.
+      googleLoadBalancer.certificate = getFirstSslCertificateName(targetHttpsProxy)
 
       def urlMapURL = targetHttpsProxy?.urlMap
       if (urlMapURL) {
