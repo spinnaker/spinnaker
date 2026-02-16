@@ -1043,6 +1043,151 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       ) == "my-cert"
   }
 
+  void "map to cert migration clears certificateMap after setting ssl certificate"() {
+    setup:
+      def computeMock = Mock(Compute)
+
+      def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
+        new NoopCredentialsLifecycleHandler<>())
+      def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).project(PROJECT_NAME).applicationName("my-application").compute(computeMock).credentials(new FakeGoogleCredentials()).build()
+      credentialsRepo.save(credentials)
+      def converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
+        credentialsRepository: credentialsRepo
+      )
+
+      def httpHealthChecks = Mock(Compute.HttpHealthChecks)
+      def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
+
+      def healthChecks = Mock(Compute.HealthChecks)
+      def healthChecksList = Mock(Compute.HealthChecks.List)
+      def healthCheckListReal = new HealthCheckList(items: [])
+      def healthChecksInsert = Mock(Compute.HealthChecks.Insert)
+      def healthChecksInsertOp = new Operation(
+        targetLink: "health-check",
+        name: HEALTH_CHECK_OP_NAME,
+        status: DONE)
+
+      def backendServices = Mock(Compute.BackendServices)
+      def backendServicesList = Mock(Compute.BackendServices.List)
+      def bsListReal = new BackendServiceList(items: [])
+      def backendServicesInsert = Mock(Compute.BackendServices.Insert)
+      def backendServicesInsertOp = new Operation(
+        targetLink: "backend-service",
+        name: BACKEND_SERVICE_OP_NAME,
+        status: DONE)
+
+      def urlMaps = Mock(Compute.UrlMaps)
+      def urlMapsGet = Mock(Compute.UrlMaps.Get)
+      def urlMapsInsert = Mock(Compute.UrlMaps.Insert)
+      def urlMapUrl = "https://www.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/urlMaps/${LOAD_BALANCER_NAME}".toString()
+      def urlMapsInsertOp = new Operation(
+        targetLink: urlMapUrl,
+        name: URL_MAP_OP_NAME,
+        status: DONE)
+
+      def targetProxyName = "${LOAD_BALANCER_NAME}-${UpsertGoogleHttpLoadBalancerAtomicOperation.TARGET_HTTPS_PROXY_NAME_PREFIX}"
+      def targetProxyUrl = "https://www.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/targetHttpsProxies/${targetProxyName}".toString()
+      def existingForwardingRule = new ForwardingRule(
+        name: LOAD_BALANCER_NAME,
+        target: targetProxyUrl,
+      )
+      def existingTargetProxy = new TargetHttpsProxy(
+        name: targetProxyName,
+        selfLink: targetProxyUrl,
+        urlMap: urlMapUrl,
+        sslCertificates: [],
+        certificateMap: "//certificatemanager.googleapis.com/projects/${PROJECT_NAME}/locations/global/certificateMaps/my-map".toString(),
+      )
+
+      def targetHttpsProxies = Mock(Compute.TargetHttpsProxies)
+      def targetHttpsProxiesGet = Mock(Compute.TargetHttpsProxies.Get)
+      def targetHttpsProxiesSetSsl = Mock(Compute.TargetHttpsProxies.SetSslCertificates)
+      def targetHttpsProxiesSetCertificateMap = Mock(Compute.TargetHttpsProxies.SetCertificateMap)
+      def targetHttpsProxiesSetUrlMap = Mock(Compute.TargetHttpsProxies.SetUrlMap)
+      def targetHttpsProxySetSslOp = new Operation(
+        targetLink: targetProxyUrl,
+        name: "set-ssl",
+        status: DONE)
+      def targetHttpsProxyClearCertificateMapOp = new Operation(
+        targetLink: targetProxyUrl,
+        name: "clear-certificate-map",
+        status: DONE)
+      def targetHttpsProxySetUrlMapOp = new Operation(
+        targetLink: targetProxyUrl,
+        name: "set-url-map",
+        status: DONE)
+
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
+
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "urlMapName"      : LOAD_BALANCER_NAME,
+        "certificate"     : "my-cert",
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"           : DEFAULT_SERVICE,
+          "backends"       : [],
+          "healthCheck"    : hc,
+          "sessionAffinity": "NONE",
+        ],
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      @Subject def operation = new UpsertGoogleHttpLoadBalancerAtomicOperation(description)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      operation.googleOperationPoller = googleOperationPoller
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+
+    when:
+      operation.operate([])
+
+    then:
+      2 * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.list(PROJECT_NAME) >> healthChecksList
+      1 * healthChecksList.execute() >> healthCheckListReal
+      1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
+      1 * healthChecksInsert.execute() >> healthChecksInsertOp
+
+      1 * computeMock.httpHealthChecks() >> httpHealthChecks
+      1 * httpHealthChecks.list(PROJECT_NAME) >> httpHealthChecksList
+      1 * httpHealthChecksList.execute() >> healthCheckListReal
+
+      2 * computeMock.backendServices() >> backendServices
+      1 * backendServices.list(PROJECT_NAME) >> backendServicesList
+      1 * backendServicesList.execute() >> bsListReal
+      1 * backendServices.insert(PROJECT_NAME, _) >> backendServicesInsert
+      1 * backendServicesInsert.execute() >> backendServicesInsertOp
+
+      2 * computeMock.urlMaps() >> urlMaps
+      1 * urlMaps.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> urlMapsGet
+      1 * urlMapsGet.execute() >> null
+      1 * urlMaps.insert(PROJECT_NAME, _) >> urlMapsInsert
+      1 * urlMapsInsert.execute() >> urlMapsInsertOp
+
+      1 * computeMock.globalForwardingRules() >> globalForwardingRules
+      1 * globalForwardingRules.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRulesGet
+      1 * globalForwardingRulesGet.execute() >> existingForwardingRule
+
+      4 * computeMock.targetHttpsProxies() >> targetHttpsProxies
+      1 * targetHttpsProxies.get(PROJECT_NAME, targetProxyName) >> targetHttpsProxiesGet
+      1 * targetHttpsProxiesGet.execute() >> existingTargetProxy
+      1 * targetHttpsProxies.setSslCertificates(PROJECT_NAME, targetProxyName, {
+        it.sslCertificates == ["https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/sslCertificates/my-cert".toString()]
+      }) >> targetHttpsProxiesSetSsl
+      1 * targetHttpsProxiesSetSsl.execute() >> targetHttpsProxySetSslOp
+      1 * targetHttpsProxies.setCertificateMap(PROJECT_NAME, targetProxyName, { it.certificateMap == null }) >> targetHttpsProxiesSetCertificateMap
+      1 * targetHttpsProxiesSetCertificateMap.execute() >> targetHttpsProxyClearCertificateMapOp
+      1 * targetHttpsProxies.setUrlMap(PROJECT_NAME, targetProxyName, { it.urlMap == urlMapUrl }) >> targetHttpsProxiesSetUrlMap
+      1 * targetHttpsProxiesSetUrlMap.execute() >> targetHttpsProxySetUrlMapOp
+
+      _ * googleOperationPoller.waitForGlobalOperation(_, _, _, _, _, _, _)
+      0 * computeMock.targetHttpProxies()
+      0 * computeMock.globalOperations()
+  }
+
   void "https target proxy update helper supports cert and certificateMap migrations"() {
     expect:
       UpsertGoogleHttpLoadBalancerAtomicOperation.shouldUpdateHttpsTargetProxy(
@@ -1063,6 +1208,14 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         null,
         "my-map"
       )
+  }
+
+  void "certificateMap clear helper only clears during map to cert migration"() {
+    expect:
+      UpsertGoogleHttpLoadBalancerAtomicOperation.shouldClearCertificateMap("my-map", null)
+      !UpsertGoogleHttpLoadBalancerAtomicOperation.shouldClearCertificateMap(null, null)
+      !UpsertGoogleHttpLoadBalancerAtomicOperation.shouldClearCertificateMap(null, "my-map")
+      !UpsertGoogleHttpLoadBalancerAtomicOperation.shouldClearCertificateMap("my-map", "my-map")
   }
 
   void "certificateMap helper normalizes both name and URL values"() {

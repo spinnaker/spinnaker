@@ -689,6 +689,7 @@ class GCEUtil {
   }
 
   static String buildCertificateMapUrl(String projectName, String mapName) {
+    // Certificate Manager maps are attached to target HTTPS proxies via the global location.
     return CERTIFICATE_MANAGER_API_PREFIX + "$projectName/locations/global/certificateMaps/$mapName"
   }
 
