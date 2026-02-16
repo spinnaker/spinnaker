@@ -107,4 +107,19 @@ describe('Component: gceListener', () => {
 
     expect(ctrl.listener.certificateMap).toBe('cm');
   });
+
+  it('validates certificateMap names with expected regex edge cases', () => {
+    const ctrl = buildController();
+
+    const validNames = ['a', 'my-map', 'm1', 'map-123', 'a-b-c-1'];
+    const invalidNames = ['', '1map', '-map', 'map-', 'map_name', 'map.name', 'Map'];
+
+    validNames.forEach((name) => {
+      expect(ctrl.certificateMapPattern.test(name)).toBe(true);
+    });
+
+    invalidNames.forEach((name) => {
+      expect(ctrl.certificateMapPattern.test(name)).toBe(false);
+    });
+  });
 });
