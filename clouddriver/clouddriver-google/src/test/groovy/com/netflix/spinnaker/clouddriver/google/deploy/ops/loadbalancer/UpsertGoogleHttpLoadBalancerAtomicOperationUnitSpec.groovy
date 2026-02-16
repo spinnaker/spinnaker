@@ -1033,4 +1033,13 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
       1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
+
+  void "first ssl certificate name helper handles null and empty list"() {
+    expect:
+      UpsertGoogleHttpLoadBalancerAtomicOperation.getFirstSslCertificateName(null) == null
+      UpsertGoogleHttpLoadBalancerAtomicOperation.getFirstSslCertificateName([]) == null
+      UpsertGoogleHttpLoadBalancerAtomicOperation.getFirstSslCertificateName(
+        ["https://www.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/sslCertificates/my-cert"]
+      ) == "my-cert"
+  }
 }
