@@ -73,6 +73,18 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     return sslCertificates ? GCEUtil.getLocalName(sslCertificates[0]) : null
   }
 
+  protected static String getCertificateMapName(String certificateMap) {
+    return certificateMap ? GCEUtil.getLocalName(certificateMap) : null
+  }
+
+  protected static boolean shouldUpdateHttpsTargetProxy(
+      String existingCertificateName,
+      String existingCertificateMap,
+      String desiredCertificateName,
+      String desiredCertificateMap) {
+    return existingCertificateName != desiredCertificateName || existingCertificateMap != desiredCertificateMap
+  }
+
   /**
    * minimal command:
    * curl -v -X POST -H "Content-Type: application/json" -d '[{ "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType": "HTTP", "loadBalancerName": "http-create", "portRange": "80", "backendServiceDiff": [], "defaultService": {"name": "default-backend-service", "backends": [], "enableCDN": false, "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [] }}]' localhost:7002/gce/ops
@@ -92,6 +104,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         defaultService: description.defaultService,
         hostRules: description.hostRules,
         certificate: description.certificate,
+        certificateMap: getCertificateMapName(description.certificateMap),
         ipAddress: description.ipAddress,
         ipProtocol: description.ipProtocol,
         portRange: description.portRange
@@ -193,11 +206,20 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
               compute.targetHttpsProxies().get(project, targetProxyName),
               "compute.targetHttpsProxies.get",
               TAG_SCOPE, SCOPE_GLOBAL)
-          if (!httpLoadBalancer.certificate) {
-            throw new IllegalArgumentException("${httpLoadBalancerName} is an Https load balancer, but the upsert description does not contain a certificate.")
+          if (!httpLoadBalancer.certificate && !httpLoadBalancer.certificateMap) {
+            throw new IllegalArgumentException("${httpLoadBalancerName} is an Https load balancer, but the upsert description does not contain a certificate or certificateMap.")
           }
+          def desiredCertificateName = httpLoadBalancer.certificate ?
+            GCEUtil.getLocalName(GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)) : null
+          def desiredCertificateMap = getCertificateMapName(httpLoadBalancer.certificateMap)
           def existingCertificateName = getFirstSslCertificateName(existingProxy?.getSslCertificates())
-          targetProxyNeedsUpdated = existingCertificateName != GCEUtil.getLocalName(GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate))
+          def existingCertificateMap = getCertificateMapName(existingProxy?.getCertificateMap())
+          targetProxyNeedsUpdated = shouldUpdateHttpsTargetProxy(
+            existingCertificateName,
+            existingCertificateMap,
+            desiredCertificateName,
+            desiredCertificateMap
+          )
           break
         default:
           log.warn("Unexpected target proxy type for $targetProxyName.")
@@ -407,14 +429,16 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     def insertTargetProxyOperation
     String targetProxyUrl
     if (!targetProxyExists) {
-      if (httpLoadBalancer.certificate) {
+      if (httpLoadBalancer.certificate || httpLoadBalancer.certificateMap) {
         targetProxyName = "$httpLoadBalancerName-$TARGET_HTTPS_PROXY_NAME_PREFIX"
         task.updateStatus BASE_PHASE, "Creating target proxy $targetProxyName..."
-        targetProxy = new TargetHttpsProxy(
-          name: targetProxyName,
-          sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
-          urlMap: urlMapUrl,
-        )
+        targetProxy = new TargetHttpsProxy(name: targetProxyName, urlMap: urlMapUrl)
+        if (httpLoadBalancer.certificateMap) {
+          def certificateMapName = getCertificateMapName(httpLoadBalancer.certificateMap)
+          targetProxy.certificateMap = GCEUtil.buildCertificateMapUrl(project, certificateMapName)
+        } else {
+          targetProxy.sslCertificates = [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)]
+        }
         insertTargetProxyOperation = timeExecute(
             compute.targetHttpsProxies().insert(project, targetProxy),
             "compute.targetHttpsProxies.insert",
@@ -441,15 +465,28 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         case GoogleTargetProxyType.HTTPS:
           targetProxyName = "$httpLoadBalancerName-$TARGET_HTTPS_PROXY_NAME_PREFIX"
           task.updateStatus BASE_PHASE, "Updating target proxy $targetProxyName..."
-          TargetHttpsProxiesSetSslCertificatesRequest setSslReq = new TargetHttpsProxiesSetSslCertificatesRequest(
-            sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
-          )
-          def sslCertOp = timeExecute(
-              compute.targetHttpsProxies().setSslCertificates(project, targetProxyName, setSslReq),
-              "compute.targetHttpsProxies.setSslCertificates",
-              TAG_SCOPE, SCOPE_GLOBAL)
-          googleOperationPoller.waitForGlobalOperation(compute, project, sslCertOp.getName(), null, task,
-            "set ssl cert ${httpLoadBalancer.certificate}", BASE_PHASE)
+          if (httpLoadBalancer.certificateMap) {
+            def certificateMapName = getCertificateMapName(httpLoadBalancer.certificateMap)
+            TargetHttpsProxiesSetCertificateMapRequest setCertificateMapReq = new TargetHttpsProxiesSetCertificateMapRequest(
+              certificateMap: GCEUtil.buildCertificateMapUrl(project, certificateMapName),
+            )
+            def certificateMapOp = timeExecute(
+                compute.targetHttpsProxies().setCertificateMap(project, targetProxyName, setCertificateMapReq),
+                "compute.targetHttpsProxies.setCertificateMap",
+                TAG_SCOPE, SCOPE_GLOBAL)
+            googleOperationPoller.waitForGlobalOperation(compute, project, certificateMapOp.getName(), null, task,
+              "set certificateMap ${certificateMapName}", BASE_PHASE)
+          } else {
+            TargetHttpsProxiesSetSslCertificatesRequest setSslReq = new TargetHttpsProxiesSetSslCertificatesRequest(
+              sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
+            )
+            def sslCertOp = timeExecute(
+                compute.targetHttpsProxies().setSslCertificates(project, targetProxyName, setSslReq),
+                "compute.targetHttpsProxies.setSslCertificates",
+                TAG_SCOPE, SCOPE_GLOBAL)
+            googleOperationPoller.waitForGlobalOperation(compute, project, sslCertOp.getName(), null, task,
+              "set ssl cert ${httpLoadBalancer.certificate}", BASE_PHASE)
+          }
           UrlMapReference urlMapRef = new UrlMapReference(urlMap: urlMapUrl)
           def setUrlMapOp = timeExecute(
                   compute.targetHttpsProxies().setUrlMap(project, targetProxyName, urlMapRef),
@@ -475,7 +512,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         name: httpLoadBalancerName,
         IPAddress: httpLoadBalancer.ipAddress,
         IPProtocol: httpLoadBalancer.ipProtocol,
-        portRange: httpLoadBalancer.certificate ? "443" : httpLoadBalancer.portRange,
+        portRange: (httpLoadBalancer.certificate || httpLoadBalancer.certificateMap) ? "443" : httpLoadBalancer.portRange,
         target: targetProxyUrl,
       )
       Operation forwardingRuleOp = safeRetry.doRetry(

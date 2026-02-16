@@ -61,6 +61,10 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.HTTP:
+        if (description.certificate && description.certificateMap) {
+          errors.rejectValue("certificate OR certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
+        }
 
         // portRange must be a single port.
         try {
@@ -76,6 +80,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             defaultService: description.defaultService,
             hostRules: description.hostRules,
             certificate: description.certificate,
+            certificateMap: description.certificateMap,
             ipAddress: description.ipAddress,
             ipProtocol: description.ipProtocol,
             portRange: description.portRange
@@ -89,6 +94,16 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
+        if (description.certificate && description.certificateMap) {
+          errors.rejectValue("certificate OR certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
+        }
+        // Per GCP docs, certificateMap write support is only available on global external/classic
+        // target HTTPS proxies, not INTERNAL_MANAGED regional target HTTPS proxies.
+        if (description.certificateMap) {
+          errors.rejectValue("certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
+        }
 
         // portRange must be a single port.
         try {
@@ -104,6 +119,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             defaultService: description.defaultService,
             hostRules: description.hostRules,
             certificate: description.certificate,
+            certificateMap: description.certificateMap,
             ipAddress: description.ipAddress,
             ipProtocol: description.ipProtocol,
             portRange: description.portRange
@@ -143,6 +159,10 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.SSL:
+        if (description.certificateMap) {
+          errors.rejectValue("certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateMap.notSupported")
+        }
         def bs = description.backendService
         if (!bs) {
           errors.rejectValue("backendService",

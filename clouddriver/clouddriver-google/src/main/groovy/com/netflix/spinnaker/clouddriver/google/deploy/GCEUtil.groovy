@@ -62,6 +62,7 @@ class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
   private static final String GCE_API_PREFIX = "https://compute.googleapis.com/compute/v1/projects/"
+  private static final String CERTIFICATE_MANAGER_API_PREFIX = "//certificatemanager.googleapis.com/projects/"
   private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412, 429, 503]
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
@@ -685,6 +686,10 @@ class GCEUtil {
 
   static String buildRegionalCertificateUrl(String projectName, String region, String certName) {
     return GCE_API_PREFIX + "$projectName/regions/$region/sslCertificates/$certName"
+  }
+
+  static String buildCertificateMapUrl(String projectName, String mapName) {
+    return CERTIFICATE_MANAGER_API_PREFIX + "$projectName/locations/global/certificateMaps/$mapName"
   }
 
   static String buildHttpHealthCheckUrl(String projectName, String healthCheckName) {

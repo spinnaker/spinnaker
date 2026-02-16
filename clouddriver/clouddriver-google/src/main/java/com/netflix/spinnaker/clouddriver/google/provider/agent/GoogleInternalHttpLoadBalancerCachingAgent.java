@@ -352,6 +352,8 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
         throws IOException {
       // sslCertificates may be unset when the proxy is configured with certificateMap.
       googleLoadBalancer.setCertificate(getFirstSslCertificateName(targetHttpsProxy));
+      googleLoadBalancer.setCertificateMap(
+          Utils.getLocalName(targetHttpsProxy.getCertificateMap()));
 
       String urlMapURL = targetHttpsProxy.getUrlMap();
       if (urlMapURL != null) {

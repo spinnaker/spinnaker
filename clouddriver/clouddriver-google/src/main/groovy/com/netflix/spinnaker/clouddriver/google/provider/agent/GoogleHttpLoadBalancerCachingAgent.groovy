@@ -272,6 +272,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
     void onSuccess(TargetHttpsProxy targetHttpsProxy, HttpHeaders responseHeaders) throws IOException {
       // sslCertificates may be unset when the proxy is configured with certificateMap.
       googleLoadBalancer.certificate = getFirstSslCertificateName(targetHttpsProxy)
+      googleLoadBalancer.certificateMap = Utils.getLocalName(targetHttpsProxy?.getCertificateMap())
 
       def urlMapURL = targetHttpsProxy?.urlMap
       if (urlMapURL) {
