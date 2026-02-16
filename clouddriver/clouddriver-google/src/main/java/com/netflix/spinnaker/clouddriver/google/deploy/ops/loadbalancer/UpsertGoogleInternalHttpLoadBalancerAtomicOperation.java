@@ -282,8 +282,8 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
             String existingCertificateName = getFirstSslCertificateName(existingSslCertificates);
             String desiredCertificateName =
                 GCEUtil.getLocalName(
-                    GCEUtil.buildCertificateUrl(
-                        project, internalHttpLoadBalancer.getCertificate()));
+                    GCEUtil.buildRegionalCertificateUrl(
+                        project, region, internalHttpLoadBalancer.getCertificate()));
             targetProxyNeedsUpdated =
                 !Objects.equals(existingCertificateName, desiredCertificateName);
             break;
@@ -689,7 +689,8 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
           TargetHttpsProxy proxy = new TargetHttpsProxy();
           proxy.setSslCertificates(
               Arrays.asList(
-                  GCEUtil.buildCertificateUrl(project, internalHttpLoadBalancer.getCertificate())));
+                  GCEUtil.buildRegionalCertificateUrl(
+                      project, region, internalHttpLoadBalancer.getCertificate())));
           proxy.setUrlMap(urlMapUrl);
           proxy.setName(targetProxyName);
           targetProxy = proxy;
