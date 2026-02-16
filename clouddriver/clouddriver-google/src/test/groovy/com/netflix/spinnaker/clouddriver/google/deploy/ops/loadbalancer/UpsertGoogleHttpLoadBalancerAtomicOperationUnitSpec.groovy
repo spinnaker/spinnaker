@@ -1042,4 +1042,34 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         ["https://www.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/sslCertificates/my-cert"]
       ) == "my-cert"
   }
+
+  void "https target proxy update helper supports cert and certificateMap migrations"() {
+    expect:
+      UpsertGoogleHttpLoadBalancerAtomicOperation.shouldUpdateHttpsTargetProxy(
+        "legacy-cert",
+        null,
+        null,
+        "my-map"
+      )
+      UpsertGoogleHttpLoadBalancerAtomicOperation.shouldUpdateHttpsTargetProxy(
+        null,
+        "my-map",
+        "legacy-cert",
+        null
+      )
+      !UpsertGoogleHttpLoadBalancerAtomicOperation.shouldUpdateHttpsTargetProxy(
+        null,
+        "my-map",
+        null,
+        "my-map"
+      )
+  }
+
+  void "certificateMap helper normalizes both name and URL values"() {
+    expect:
+      UpsertGoogleHttpLoadBalancerAtomicOperation.getCertificateMapName("my-map") == "my-map"
+      UpsertGoogleHttpLoadBalancerAtomicOperation.getCertificateMapName(
+        "//certificatemanager.googleapis.com/projects/my-project/locations/global/certificateMaps/my-map"
+      ) == "my-map"
+  }
 }
