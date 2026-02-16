@@ -163,7 +163,6 @@
           <div class="col-md-3" ng-if="$ctrl.listener.certificateSource !== 'certificateMap'">
             <ui-select
               ng-model="$ctrl.listener.certificate"
-              ng-disabled="$ctrl.listener.created && !$ctrl.listener.certificate"
               ng-change="$ctrl.onCertificateSelected($ctrl.listener)"
               ng-required="$ctrl.isHttps($ctrl.listener.port) && $ctrl.listener.certificateSource !== 'certificateMap'"
               class="form-control input-sm"
@@ -180,7 +179,6 @@
               class="form-control input-sm"
               name="certificateMap"
               ng-model="$ctrl.listener.certificateMap"
-              ng-disabled="$ctrl.listener.created && !$ctrl.listener.certificateMap"
               ng-change="$ctrl.onCertificateMapChanged($ctrl.listener)"
               ng-required="$ctrl.isHttps($ctrl.listener.port) && $ctrl.listener.certificateSource === 'certificateMap'"
               ng-pattern="$ctrl.certificateMapPattern"

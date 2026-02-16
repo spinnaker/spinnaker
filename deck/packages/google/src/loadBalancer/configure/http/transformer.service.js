@@ -81,6 +81,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
       return loadBalancer.listeners.map((listener) => {
         let command = _.cloneDeep(loadBalancer);
         command = _.omit(command, keysToOmit);
+        // Keep backward compatibility when deserialized listeners have no explicit certificateSource yet.
         const useCertificateMap =
           listener.certificateSource === 'certificateMap' || (!listener.certificate && !!listener.certificateMap);
         command.name = listener.name;

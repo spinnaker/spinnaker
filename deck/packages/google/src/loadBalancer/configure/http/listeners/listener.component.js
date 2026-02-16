@@ -70,10 +70,12 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
           if (!_.isString(certificateMap)) {
             return certificateMap;
           }
+          // Users can paste a full certificateMap URL; serialize only the resource name.
           const normalized = certificateMap.trim();
           return normalized ? _.last(normalized.split('/')) : normalized;
         };
 
+        // Keep certificate/certificateMap mode, inferred source, and XOR fields in sync.
         this.syncCertificateState = (listener) => {
           if (!this.supportsCertificateMap()) {
             listener.certificateSource = 'certificate';
