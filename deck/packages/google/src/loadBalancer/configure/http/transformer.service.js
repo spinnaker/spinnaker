@@ -81,7 +81,10 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
       return loadBalancer.listeners.map((listener) => {
         let command = _.cloneDeep(loadBalancer);
         command = _.omit(command, keysToOmit);
-        // Keep backward compatibility when deserialized listeners have no explicit certificateSource yet.
+        // Determine the authoritative cert source. The certificateSource field is explicit when
+        // present, but listeners deserialized from LBs created before this field existed may only
+        // have certificate/certificateMap values without a source. The fallback condition handles
+        // that: no certificate + truthy certificateMap implies certificateMap mode.
         const useCertificateMap =
           listener.certificateSource === 'certificateMap' || (!listener.certificate && !!listener.certificateMap);
         command.name = listener.name;

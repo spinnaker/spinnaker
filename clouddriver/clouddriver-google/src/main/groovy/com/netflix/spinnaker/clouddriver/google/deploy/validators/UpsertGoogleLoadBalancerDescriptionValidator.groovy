@@ -98,8 +98,10 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           errors.rejectValue("certificate OR certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
         }
-        // Per GCP docs, certificateMap write support is only available on global external/classic
-        // target HTTPS proxies, not INTERNAL_MANAGED regional target HTTPS proxies.
+        // Per official GCP Compute docs, setCertificateMap is only available on global
+        // external/classic TargetHttpsProxy resources. Regional (INTERNAL_MANAGED) target HTTPS
+        // proxies do not support setting certificateMap even though the field may appear on
+        // read payloads. Allowing writes here would cause API-level rejections.
         if (description.certificateMap) {
           errors.rejectValue("certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
@@ -159,6 +161,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.SSL:
+        // SSL proxy load balancers use TargetSslProxy, which does not support certificateMap.
         if (description.certificateMap) {
           errors.rejectValue("certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateMap.notSupported")

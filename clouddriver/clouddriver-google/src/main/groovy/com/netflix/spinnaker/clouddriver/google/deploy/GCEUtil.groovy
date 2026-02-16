@@ -62,6 +62,8 @@ class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
   private static final String GCE_API_PREFIX = "https://compute.googleapis.com/compute/v1/projects/"
+  // The "//" prefix (not "https://") matches the GCP certificateMap URL format expected by the
+  // Compute API on TargetHttpsProxy resources. This is intentional per GCP documentation.
   private static final String CERTIFICATE_MANAGER_API_PREFIX = "//certificatemanager.googleapis.com/projects/"
   private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412, 429, 503]
 

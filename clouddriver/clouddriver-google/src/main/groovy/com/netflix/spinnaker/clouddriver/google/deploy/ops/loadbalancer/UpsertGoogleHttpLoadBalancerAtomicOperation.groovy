@@ -73,8 +73,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     return sslCertificates ? GCEUtil.getLocalName(sslCertificates[0]) : null
   }
 
+  // Normalizes a certificateMap value to its short resource name. Callers may pass either a bare
+  // name or a full Certificate Manager URL (e.g. //certificatemanager.googleapis.com/projects/…/
+  // certificateMaps/my-map); GCEUtil.getLocalName extracts the last path segment in either case.
   protected static String getCertificateMapName(String certificateMap) {
-    // The API contract accepts a map name; callers may still pass a URL, so normalize to the local name.
     return certificateMap ? GCEUtil.getLocalName(certificateMap) : null
   }
 
@@ -86,6 +88,9 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     return existingCertificateName != desiredCertificateName || existingCertificateMap != desiredCertificateMap
   }
 
+  // When a proxy has a certificateMap set, GCP ignores sslCertificates entirely (certificateMap
+  // takes precedence per API docs). To make sslCertificates authoritative again during a
+  // map-to-cert migration, the stale certificateMap must be explicitly cleared.
   protected static boolean shouldClearCertificateMap(String existingCertificateMap, String desiredCertificateMap) {
     return existingCertificateMap && !desiredCertificateMap
   }
@@ -135,6 +140,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     Boolean targetProxyExists = false
     Boolean targetProxyNeedsUpdated = false
     Boolean forwardingRuleExists
+    // Captured during the HTTPS target proxy check (below) so we can detect map-to-cert
+    // migrations later in the update path and clear the stale certificateMap.
     String existingCertificateMapOnProxy = null
 
     // The following are unique on object equality, not just name. This lets us check if a service/hc exists or
@@ -495,6 +502,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
                 TAG_SCOPE, SCOPE_GLOBAL)
             googleOperationPoller.waitForGlobalOperation(compute, project, sslCertOp.getName(), null, task,
               "set ssl cert ${httpLoadBalancer.certificate}", BASE_PHASE)
+            // desiredCertificateMap is null here because we're in the cert-only branch;
+            // shouldClearCertificateMap checks if the existing proxy had a map that now needs removal.
             if (shouldClearCertificateMap(existingCertificateMapOnProxy, null)) {
               // Clear stale certificateMap so direct sslCertificates become authoritative again.
               TargetHttpsProxiesSetCertificateMapRequest clearCertificateMapReq = new TargetHttpsProxiesSetCertificateMapRequest()
