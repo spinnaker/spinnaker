@@ -286,6 +286,10 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
     return null
   }
 
+  // Writes shielded config using Terraform snake_case key (shielded_vm_config).
+  // The restore path (RestoreSnapshotAtomicOperation) feeds this map directly to
+  // `terraform apply`, which expects snake_case -- there is no Java round-trip
+  // deserialization on restore, so camelCase keys are not needed here.
   private Void addShieldedVmConfigToInstanceTemplateMap(ShieldedInstanceConfig shieldedVmConfig, Map instanceTemplateMap) {
     instanceTemplateMap.shielded_vm_config = [:]
     if (shieldedVmConfig.enableSecureBoot != null) {

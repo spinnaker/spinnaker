@@ -145,6 +145,8 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
       description.distributionPolicy != null ?
         description.distributionPolicy :
         ancestorServerGroup.distributionPolicy
+    // If the ancestor has no flexibility policy (e.g. pre-feature or zonal server group),
+    // null propagates safely -- the deploy handler's null check skips the policy entirely.
     newDescription.instanceFlexibilityPolicy =
       description.instanceFlexibilityPolicy != null ?
         description.instanceFlexibilityPolicy :

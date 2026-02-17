@@ -62,7 +62,8 @@ final class InstanceFlexibilityPolicyValidationSupport {
     }
 
     // Regional MIG defaults to EVEN when targetShape is not explicitly provided.
-    // Instance flexibility policy requires a non-EVEN shape (e.g. BALANCED, ANY, ANY_SINGLE_ZONE).
+    // Users must explicitly set targetShape (e.g. BALANCED, ANY, ANY_SINGLE_ZONE)
+    // when using a flexibility policy; null is treated as EVEN and rejected.
     // See: https://cloud.google.com/compute/docs/instance-groups/about-instance-flexibility
     def targetShape = description.distributionPolicy?.targetShape?.trim()
     if (!targetShape || targetShape.equalsIgnoreCase("EVEN")) {
