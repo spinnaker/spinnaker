@@ -260,6 +260,63 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       0 * errors._
   }
 
+  void "pass validation when certificateMap is a full Certificate Manager URL"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : null,
+        "certificateMap"  : "//certificatemanager.googleapis.com/projects/my-project/locations/global/certificateMaps/my-map",
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  @Unroll
+  void "fail validation when certificateMap name is invalid: #mapName"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : null,
+        "certificateMap"  : mapName,
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("certificateMap",
+        "upsertGoogleLoadBalancerDescription.certificateMap.invalidName")
+
+    where:
+      mapName << ["  ", "1map", "-map", "map-", "MAP", "map_name", "map.name"]
+  }
+
   void "fail validation when both certificate and certificateMap are provided for global HTTP"() {
     setup:
       def input = [

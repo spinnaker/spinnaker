@@ -1793,5 +1793,9 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       UpsertGoogleHttpLoadBalancerAtomicOperation.getCertificateMapName(
         "//certificatemanager.googleapis.com/projects/my-project/locations/global/certificateMaps/my-map"
       ) == "my-map"
+      UpsertGoogleHttpLoadBalancerAtomicOperation.getCertificateMapName(null) == null
+      UpsertGoogleHttpLoadBalancerAtomicOperation.getCertificateMapName("") == null
+      UpsertGoogleHttpLoadBalancerAtomicOperation.getCertificateMapName("  ") == null
+      UpsertGoogleHttpLoadBalancerAtomicOperation.getCertificateMapName("  my-map  ") == "my-map"
   }
 }

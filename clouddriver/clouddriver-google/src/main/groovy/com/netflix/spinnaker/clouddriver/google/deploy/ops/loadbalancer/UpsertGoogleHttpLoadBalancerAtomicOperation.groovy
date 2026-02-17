@@ -76,8 +76,13 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
   // Normalizes a certificateMap value to its short resource name. Callers may pass either a bare
   // name or a full Certificate Manager URL (e.g. //certificatemanager.googleapis.com/projects/…/
   // certificateMaps/my-map); GCEUtil.getLocalName extracts the last path segment in either case.
+  // Whitespace-only input is treated as absent (returns null) so that API/pipeline callers
+  // sending padded or empty strings do not produce malformed Certificate Manager URLs.
   protected static String getCertificateMapName(String certificateMap) {
-    return certificateMap ? GCEUtil.getLocalName(certificateMap) : null
+    if (!certificateMap) return null
+    def trimmed = certificateMap.trim()
+    if (!trimmed) return null
+    return GCEUtil.getLocalName(trimmed)
   }
 
   protected static boolean shouldUpdateHttpsTargetProxy(
