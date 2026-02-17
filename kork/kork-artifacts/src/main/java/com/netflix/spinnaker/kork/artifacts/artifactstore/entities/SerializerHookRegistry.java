@@ -45,6 +45,7 @@ public class SerializerHookRegistry extends BeanSerializerModifier {
   private final ArtifactStore storage;
   private final ArtifactHandlerLists handlers;
   @Getter private static SerializerHookRegistry INSTANCE;
+
   /** Used to not rebuild the same object mapper every time we need to remove the hook. */
   @Autowired
   public SerializerHookRegistry(

@@ -26,6 +26,7 @@ public class EntityTags implements Timestamped {
 
   private String version = "v1";
   private String id;
+
   /**
    * pattern used to construct the `id`, ie. {{entityType}}__{{entityId}}__{{account}}__{{region}}
    */

@@ -20,23 +20,39 @@ import lombok.Getter;
 
 /** Standard error codes and messages for various secret errors. */
 public enum SecretErrorCode implements SecretError {
-  /** @see com.netflix.spinnaker.kork.secrets.user.InvalidUserSecretReferenceException */
+  /**
+   * @see com.netflix.spinnaker.kork.secrets.user.InvalidUserSecretReferenceException
+   */
   INVALID_USER_SECRET_URI("user.format.invalid", "Invalid user secret URI format"),
-  /** @see com.netflix.spinnaker.kork.secrets.user.MissingUserSecretMetadataException */
+  /**
+   * @see com.netflix.spinnaker.kork.secrets.user.MissingUserSecretMetadataException
+   */
   MISSING_USER_SECRET_METADATA("user.metadata.missing", "Missing user secret metadata"),
-  /** @see com.netflix.spinnaker.kork.secrets.user.InvalidUserSecretMetadataException */
+  /**
+   * @see com.netflix.spinnaker.kork.secrets.user.InvalidUserSecretMetadataException
+   */
   INVALID_USER_SECRET_METADATA("user.metadata.invalid", "Invalid user secret metadata"),
-  /** @see com.netflix.spinnaker.kork.secrets.user.UnsupportedUserSecretEngineException */
+  /**
+   * @see com.netflix.spinnaker.kork.secrets.user.UnsupportedUserSecretEngineException
+   */
   UNSUPPORTED_USER_SECRET_ENGINE(
       "user.engine.unsupported", "SecretEngine does not support user secrets"),
-  /** @see com.netflix.spinnaker.kork.secrets.user.UnsupportedUserSecretEncodingException */
+  /**
+   * @see com.netflix.spinnaker.kork.secrets.user.UnsupportedUserSecretEncodingException
+   */
   UNSUPPORTED_USER_SECRET_ENCODING(
       "user.encoding.unsupported", "Unsupported user secret 'encoding'"),
-  /** @see com.netflix.spinnaker.kork.secrets.user.UnsupportedUserSecretTypeException */
+  /**
+   * @see com.netflix.spinnaker.kork.secrets.user.UnsupportedUserSecretTypeException
+   */
   UNSUPPORTED_USER_SECRET_TYPE("user.type.unsupported", "Unsupported user secret 'type'"),
-  /** @see com.netflix.spinnaker.kork.secrets.user.InvalidUserSecretDataException */
+  /**
+   * @see com.netflix.spinnaker.kork.secrets.user.InvalidUserSecretDataException
+   */
   INVALID_USER_SECRET_DATA("user.data.invalid", "Invalid user secret data"),
-  /** @see SecretDecryptionException */
+  /**
+   * @see SecretDecryptionException
+   */
   USER_SECRET_RETRIEVAL_FAILURE("user.retrieve.failure", "Unable to retrieve user secret"),
   DENIED_ACCESS_TO_USER_SECRET("user.access.deny", "Denied access to user secret"),
   MISSING_USER_SECRET_DATA_KEY("user.data.missing", "Missing user secret data for requested key"),
@@ -44,11 +60,15 @@ public enum SecretErrorCode implements SecretError {
   WRONG_TYPE_USER_SECRET_KEY_PARAM(
       "user.key.wrongtype", "Provided 'k' parameter for user secret with non-opaque type"),
   INVALID_EXTERNAL_SECRET_URI("external.format.invalid", "Invalid external secret URI format"),
-  /** @see SecretDecryptionException */
+  /**
+   * @see SecretDecryptionException
+   */
   EXTERNAL_SECRET_DECRYPTION_FAILURE(
       "external.decrypt.failure", "Unable to decrypt external secret"),
   DENIED_ACCESS_TO_EXTERNAL_SECRET("external.access.deny", "Denied access to external secret"),
-  /** @see com.netflix.spinnaker.kork.secrets.UnsupportedSecretEngineException */
+  /**
+   * @see com.netflix.spinnaker.kork.secrets.UnsupportedSecretEngineException
+   */
   UNSUPPORTED_SECRET_ENGINE("engine.unsupported", "Unsupported secret engine identifier"),
   ;
 

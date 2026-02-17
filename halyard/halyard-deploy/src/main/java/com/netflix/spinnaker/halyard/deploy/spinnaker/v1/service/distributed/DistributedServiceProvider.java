@@ -51,7 +51,9 @@ public abstract class DistributedServiceProvider<T extends Account>
     }
   }
 
-  /** @return the highest priority services first. */
+  /**
+   * @return the highest priority services first.
+   */
   public List<DistributedService> getPrioritizedDistributedServices(
       List<SpinnakerService.Type> serviceTypes) {
     List<DistributedService> result =
