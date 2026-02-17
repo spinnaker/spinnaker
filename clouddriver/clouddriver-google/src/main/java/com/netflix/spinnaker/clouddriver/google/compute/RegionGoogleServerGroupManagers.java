@@ -85,7 +85,7 @@ final class RegionGoogleServerGroupManagers implements GoogleServerGroupManagers
 
   // In Compute v1, regionInstanceGroupManagers.update and .patch are both HTTP PATCH with
   // JSON merge patch (RFC 7386) semantics — there is no PUT-based full-replacement endpoint.
-  // See: https://cloud.google.com/compute/docs/reference/rest/v1/regionInstanceGroupManagers/update
+  // See: https://cloud.google.com/compute/docs/reference/rest/v1/regionInstanceGroupManagers/patch
   @Override
   public GoogleComputeOperationRequest<ComputeRequest<Operation>> update(
       InstanceGroupManager content) throws IOException {

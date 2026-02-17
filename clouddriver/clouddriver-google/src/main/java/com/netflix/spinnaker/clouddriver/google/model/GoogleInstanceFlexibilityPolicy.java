@@ -27,8 +27,7 @@ import lombok.NoArgsConstructor;
  * MIG. When a preferred machine type is unavailable, the MIG automatically selects another
  * compatible type.
  *
- * @see <a
- *     href="https://cloud.google.com/compute/docs/instance-groups/creating-mig-with-flexible-instances">
+ * @see <a href="https://cloud.google.com/compute/docs/instance-groups/about-instance-flexibility">
  *     GCP Instance Flexibility Documentation</a>
  */
 @Data

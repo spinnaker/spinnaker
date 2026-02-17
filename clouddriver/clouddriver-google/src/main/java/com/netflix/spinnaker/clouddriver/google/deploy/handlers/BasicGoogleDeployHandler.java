@@ -1118,7 +1118,7 @@ public class BasicGoogleDeployHandler
    * @see <a href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceGroupManagers">
    *     InstanceGroupManager resource — instanceFlexibilityPolicy field (v1)</a>
    * @see <a
-   *     href="https://cloud.google.com/compute/docs/instance-groups/regional-mig-all-proactive#instance_flexibility_policy">
+   *     href="https://cloud.google.com/compute/docs/instance-groups/about-instance-flexibility">
    *     Instance flexibility policy constraints (GCP docs)</a>
    */
   protected void setInstanceFlexibilityPolicyToInstanceGroup(
