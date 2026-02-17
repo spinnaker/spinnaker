@@ -23,7 +23,9 @@ import java.util.Map;
 
 public interface PermissionsResolver {
 
-  /** @return The UserPermission for an anonymous user. */
+  /**
+   * @return The UserPermission for an anonymous user.
+   */
   UserPermission resolveUnrestrictedUser() throws PermissionResolutionException;
 
   /** Resolves a single user's permissions. */
