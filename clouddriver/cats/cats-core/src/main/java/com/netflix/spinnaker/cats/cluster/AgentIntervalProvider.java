@@ -35,12 +35,16 @@ public interface AgentIntervalProvider {
       this.timeout = timeout;
     }
 
-    /** @return how frequently the Agent should run in milliseconds */
+    /**
+     * @return how frequently the Agent should run in milliseconds
+     */
     public long getInterval() {
       return interval;
     }
 
-    /** @return how frequently after an error the Agent should run in milliseconds */
+    /**
+     * @return how frequently after an error the Agent should run in milliseconds
+     */
     public long getErrorInterval() {
       return errorInterval;
     }
