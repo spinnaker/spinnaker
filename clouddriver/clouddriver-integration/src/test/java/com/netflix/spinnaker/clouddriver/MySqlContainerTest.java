@@ -58,6 +58,7 @@ public class MySqlContainerTest extends BaseContainerTest {
     jdbcUrl = String.format("jdbc:mysql://%s:%d/clouddriver", MYSQL_NETWORK_ALIAS, MYSQL_PORT);
     clouddriverContainer
         .dependsOn(mysql)
+        .withNetwork(network)
         .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
         .start();
 
