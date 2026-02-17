@@ -62,6 +62,8 @@ final class InstanceFlexibilityPolicyValidationSupport {
     }
 
     // Regional MIG defaults to EVEN when targetShape is not explicitly provided.
+    // Instance flexibility policy requires a non-EVEN shape (e.g. BALANCED, ANY, ANY_SINGLE_ZONE).
+    // See: https://cloud.google.com/compute/docs/instance-groups/regional-mig-all-proactive#instance_flexibility_policy
     def targetShape = description.distributionPolicy?.targetShape?.trim()
     if (!targetShape || targetShape.equalsIgnoreCase("EVEN")) {
       issues.add(
@@ -90,6 +92,16 @@ final class InstanceFlexibilityPolicyValidationSupport {
     return issues
   }
 
+  /**
+   * Emits a log warning (not a validation error) when the description's instanceType is absent
+   * from every flexibility policy selection's machineTypes list.  This is intentionally a warning
+   * rather than a rejection because GCE allows the instance template machine type to differ from
+   * the flexibility policy selections — the MIG will use the selection machine types for new VMs,
+   * not the template's machine type.
+   *
+   * @see <a href="https://cloud.google.com/compute/docs/instance-groups/regional-mig-all-proactive#instance_flexibility_policy">
+   *     Instance flexibility policy (GCP docs)</a>
+   */
   private static void warnIfInstanceTypeMissingFromSelections(
     BasicGoogleDeployDescription description,
     Map<String, ?> selections) {

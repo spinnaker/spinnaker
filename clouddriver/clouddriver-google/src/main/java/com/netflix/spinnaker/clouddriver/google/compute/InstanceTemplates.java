@@ -61,6 +61,14 @@ public class InstanceTemplates {
     return requestFactory.wrapOperationRequest(request, "insert");
   }
 
+  /**
+   * Lists instance templates. In the beta API a {@code setView("FULL")} parameter was required to
+   * return complete template properties; the stable v1 API always returns full properties by
+   * default, so the view parameter is omitted.
+   *
+   * @see <a href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates/list">
+   *     instanceTemplates.list (v1)</a>
+   */
   public PaginatedComputeRequest<Compute.InstanceTemplates.List, InstanceTemplate> list() {
     return new PaginatedComputeRequestImpl<>(
         pageToken ->

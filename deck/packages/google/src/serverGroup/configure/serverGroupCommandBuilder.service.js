@@ -230,6 +230,9 @@ angular
         }
       }
 
+      // Dual-key fallback: try v1 key (shieldedInstanceConfig) first, then legacy beta key
+      // (shieldedVmConfig) for backward compat with server groups created before the v1 migration.
+      // Ref: https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates
       function populateShieldedVmConfig(source, command) {
         const shieldedVmConfig =
           _.get(source, 'launchConfig.instanceTemplate.properties.shieldedInstanceConfig') ||

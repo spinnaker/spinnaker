@@ -1109,11 +1109,24 @@ public class BasicGoogleDeployHandler
     setInstanceFlexibilityPolicyToInstanceGroup(description, instanceGroupManager);
   }
 
+  /**
+   * Maps the Spinnaker flexibility policy model to the GCE v1 {@code
+   * InstanceGroupManagerInstanceFlexibilityPolicy}. Malformed entries (null key, null selection,
+   * missing rank, or empty machineTypes) are silently filtered out as a defense-in-depth measure —
+   * the upstream validator should have already rejected such payloads.
+   *
+   * @see <a href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceGroupManagers">
+   *     InstanceGroupManager resource — instanceFlexibilityPolicy field (v1)</a>
+   * @see <a
+   *     href="https://cloud.google.com/compute/docs/instance-groups/regional-mig-all-proactive#instance_flexibility_policy">
+   *     Instance flexibility policy constraints (GCP docs)</a>
+   */
   protected void setInstanceFlexibilityPolicyToInstanceGroup(
       BasicGoogleDeployDescription description, InstanceGroupManager instanceGroupManager) {
     if (description.getInstanceFlexibilityPolicy() != null
         && description.getInstanceFlexibilityPolicy().getInstanceSelections() != null
         && !description.getInstanceFlexibilityPolicy().getInstanceSelections().isEmpty()) {
+      int totalEntries = description.getInstanceFlexibilityPolicy().getInstanceSelections().size();
       Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> selections =
           description.getInstanceFlexibilityPolicy().getInstanceSelections().entrySet().stream()
               .filter(entry -> entry.getKey() != null)
@@ -1127,6 +1140,14 @@ public class BasicGoogleDeployHandler
                           new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
                               .setRank(entry.getValue().getRank())
                               .setMachineTypes(entry.getValue().getMachineTypes())));
+      int droppedEntries = totalEntries - selections.size();
+      if (droppedEntries > 0) {
+        log.warn(
+            "Dropped {} of {} instance flexibility selections due to null key, null value, "
+                + "missing rank, or empty machineTypes",
+            droppedEntries,
+            totalEntries);
+      }
       if (selections.isEmpty()) {
         return;
       }

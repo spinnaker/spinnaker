@@ -670,6 +670,10 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
         instanceProperties.serviceAccounts.add(convertMapToServiceAccount(serviceAccountMap))
       }
     }
+    // Dual-key fallback: try v1 key (shieldedInstanceConfig) first, then legacy beta key
+    // (shieldedVmConfig) for backward compatibility with snapshots serialized before the v1
+    // migration.  The result is always stored under the v1 field.
+    // See: https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates
     Map shieldedConfigMap =
       (instancePropertiesMap.shieldedInstanceConfig ?: instancePropertiesMap.shieldedVmConfig) as Map
     if (shieldedConfigMap) {

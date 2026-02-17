@@ -939,6 +939,9 @@ class GCEUtil {
     return scheduling
   }
 
+  // Builds the v1 ShieldedInstanceConfig (replaces beta ShieldedVmConfig).
+  // See: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
+  //      (shieldedInstanceConfig on InstanceProperties)
   static ShieldedInstanceConfig buildShieldedInstanceConfig(BaseGoogleInstanceDescription description) {
     def shieldedInstanceConfig = new ShieldedInstanceConfig()
 

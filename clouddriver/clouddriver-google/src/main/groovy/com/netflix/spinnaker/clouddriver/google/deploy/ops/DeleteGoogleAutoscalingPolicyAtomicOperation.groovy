@@ -83,6 +83,9 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
 
     if (description.deleteAutoHealingPolicy) {
       task.updateStatus BASE_PHASE, "Initializing deletion of autoHealing policy for $description.serverGroupName..."
+      // setAutoHealingPolicies was removed in the stable Compute v1 API. Auto-healing policies
+      // are now managed via the InstanceGroupManager resource itself using patch (JSON merge patch).
+      // See: https://cloud.google.com/compute/docs/reference/rest/v1/regionInstanceGroupManagers/patch
       if (isRegional) {
         def content = new InstanceGroupManager().setAutoHealingPolicies([])
         def deleteOp = timeExecute(

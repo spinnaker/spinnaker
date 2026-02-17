@@ -91,6 +91,10 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
     result
   }
 
+  // Defense-in-depth: re-validate the merged description (request overrides + ancestor fallback)
+  // at operation time because the ancestor server group may have changed between the validator
+  // run and operation execution.  Throws IllegalArgumentException on the first constraint
+  // violation, preventing the deploy handler from being invoked with an invalid flex policy.
   private static void validateInstanceFlexibilityPolicyConstraints(
       BasicGoogleDeployDescription description) {
     InstanceFlexibilityPolicyValidationSupport.throwFirstIssue(

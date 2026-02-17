@@ -148,47 +148,43 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
       }
     }
 
+    // setAutoHealingPolicies was removed in the stable Compute v1 API. Auto-healing policies
+    // are now managed via the InstanceGroupManager resource itself using patch (JSON merge patch).
+    // See: https://cloud.google.com/compute/docs/reference/rest/v1/regionInstanceGroupManagers/patch
     if (description.autoHealingPolicy) {
       def ancestorAutoHealingPolicyDescription =
         GCEUtil.buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(serverGroup.autoHealingPolicy)
 
-      def regionalRequest = { List<InstanceGroupManagerAutoHealingPolicy> policy ->
-        def content = new InstanceGroupManager().setAutoHealingPolicies(policy)
+      List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicy
+      if (ancestorAutoHealingPolicyDescription) {
+        task.updateStatus BASE_PHASE, "Updating autoHealing policy for $serverGroupName..."
+        autoHealingPolicy =
+          buildAutoHealingPolicyFromAutoHealingPolicyDescription(
+            copyAndOverrideAncestorAutoHealingPolicy(ancestorAutoHealingPolicyDescription, description.autoHealingPolicy),
+            project, compute)
+      } else {
+        task.updateStatus BASE_PHASE, "Creating new autoHealing policy for $serverGroupName..."
+        autoHealingPolicy =
+          buildAutoHealingPolicyFromAutoHealingPolicyDescription(
+            normalizeNewAutoHealingPolicy(description.autoHealingPolicy),
+            project, compute)
+      }
+
+      def content = new InstanceGroupManager().setAutoHealingPolicies(autoHealingPolicy)
+      if (isRegional) {
         def autoHealingOp = timeExecute(
           compute.regionInstanceGroupManagers().patch(project, region, serverGroupName, content),
           "compute.regionInstanceGroupManagers.patch",
           GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, region)
         googleOperationPoller.waitForRegionalOperation(compute, project, region,
-          autoHealingOp.getName(), null, task, "autoHealing policy ${policy} for server group $serverGroupName", BASE_PHASE)
-      }
-
-      def zonalRequest = { List<InstanceGroupManagerAutoHealingPolicy> policy ->
-        def content = new InstanceGroupManager().setAutoHealingPolicies(policy)
+          autoHealingOp.getName(), null, task, "autoHealing policy for server group $serverGroupName", BASE_PHASE)
+      } else {
         def autoHealingOp = timeExecute(
           compute.instanceGroupManagers().patch(project, zone, serverGroupName, content),
           "compute.instanceGroupManagers.patch",
           GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, zone)
         googleOperationPoller.waitForZonalOperation(compute, project, zone,
-          autoHealingOp.getName(), null, task, "autoHealing policy ${policy} for server group $serverGroupName", BASE_PHASE)
-      }
-
-      if (ancestorAutoHealingPolicyDescription) {
-        task.updateStatus BASE_PHASE, "Updating autoHealing policy for $serverGroupName..."
-
-        def autoHealingPolicy =
-          buildAutoHealingPolicyFromAutoHealingPolicyDescription(
-            copyAndOverrideAncestorAutoHealingPolicy(ancestorAutoHealingPolicyDescription, description.autoHealingPolicy),
-            project, compute)
-        isRegional ? regionalRequest(autoHealingPolicy) : zonalRequest(autoHealingPolicy)
-
-      } else {
-        task.updateStatus BASE_PHASE, "Creating new autoHealing policy for $serverGroupName..."
-
-        def autoHealingPolicy =
-          buildAutoHealingPolicyFromAutoHealingPolicyDescription(
-            normalizeNewAutoHealingPolicy(description.autoHealingPolicy),
-            project, compute)
-        isRegional ? regionalRequest(autoHealingPolicy) : zonalRequest(autoHealingPolicy)
+          autoHealingOp.getName(), null, task, "autoHealing policy for server group $serverGroupName", BASE_PHASE)
       }
     }
 

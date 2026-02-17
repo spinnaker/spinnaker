@@ -218,6 +218,14 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
         instanceTemplateProperties.setCanIpForward(canIpForward)
       }
 
+      // Override shielded VM config when any individual shielded flag is explicitly provided.
+      // Uses the v1 field shieldedInstanceConfig (replaces beta shieldedVmConfig).
+      // Prior to the v1 migration this block checked for "shieldedVmConfig" in overriddenProperties,
+      // which never matched because that key does not exist on the description model — individual
+      // boolean flags (enableSecureBoot, enableVtpm, enableIntegrityMonitoring) are the actual
+      // description properties.  Checking for the individual keys fixes this.
+      // See: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
+      //      (shieldedInstanceConfig field on InstanceProperties)
       if (overriddenProperties.containsKey("enableSecureBoot")
           || overriddenProperties.containsKey("enableVtpm")
           || overriddenProperties.containsKey("enableIntegrityMonitoring")) {
