@@ -77,6 +77,7 @@ public class PostgresMigrationContainerTest extends BaseContainerTest {
     clouddriverInitialContainer =
         new GenericContainer(previousDockerImageName)
             .withNetwork(network)
+            .withNetworkAliases(POSTGRES_NETWORK_ALIAS)
             .withExposedPorts(CLOUDDRIVER_PORT)
             .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(180)))
             .dependsOn(postgres)

@@ -52,6 +52,8 @@ public class RedisContainerTest extends BaseContainerTest {
     redis.start();
     clouddriverContainer
         .dependsOn(redis)
+        .withNetwork(network)
+        .withNetworkAliases(REDIS_NETWORK_ALIAS)
         .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
         .start();
 

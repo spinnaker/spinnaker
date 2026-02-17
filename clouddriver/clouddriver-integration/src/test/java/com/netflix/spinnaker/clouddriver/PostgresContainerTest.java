@@ -58,6 +58,8 @@ public class PostgresContainerTest extends BaseContainerTest {
         String.format("jdbc:postgresql://%s:%d/clouddriver", POSTGRES_NETWORK_ALIAS, POSTGRES_PORT);
     clouddriverContainer
         .dependsOn(postgres)
+        .withNetwork(network)
+        .withNetworkAliases(POSTGRES_NETWORK_ALIAS)
         .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
         .start();
 
