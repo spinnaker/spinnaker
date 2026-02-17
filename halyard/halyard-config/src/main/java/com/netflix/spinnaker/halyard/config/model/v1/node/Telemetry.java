@@ -19,7 +19,9 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-/** @deprecated Use {@link Stats} instead. */
+/**
+ * @deprecated Use {@link Stats} instead.
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Deprecated

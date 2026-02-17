@@ -148,7 +148,9 @@ public class TaskService {
         taskServiceProperties.getDefaultIntervalBetweenPolls());
   }
 
-  /** @deprecated This pipeline operation does not belong here. */
+  /**
+   * @deprecated This pipeline operation does not belong here.
+   */
   @Deprecated
   public void cancelPipeline(final String id, final String reason) {
     Retrofit2SyncCall.execute(

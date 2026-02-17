@@ -20,7 +20,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+<<<<<<< HEAD
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+=======
+import org.springframework.security.web.SecurityFilterChain;
+>>>>>>> f0dfe854d9 (fix(spotless): Update to 1.17 of spotless (#7479))
 
 // TODO: If we choose to use fiat, this needs to be removed.
 //
