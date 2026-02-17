@@ -506,7 +506,9 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
             // shouldClearCertificateMap checks if the existing proxy had a map that now needs removal.
             if (shouldClearCertificateMap(existingCertificateMapOnProxy, null)) {
               // Clear stale certificateMap so direct sslCertificates become authoritative again.
-              TargetHttpsProxiesSetCertificateMapRequest clearCertificateMapReq = new TargetHttpsProxiesSetCertificateMapRequest()
+              TargetHttpsProxiesSetCertificateMapRequest clearCertificateMapReq = new TargetHttpsProxiesSetCertificateMapRequest(
+                certificateMap: "",
+              )
               def clearCertificateMapOp = timeExecute(
                 compute.targetHttpsProxies().setCertificateMap(project, targetProxyName, clearCertificateMapReq),
                 "compute.targetHttpsProxies.setCertificateMap",

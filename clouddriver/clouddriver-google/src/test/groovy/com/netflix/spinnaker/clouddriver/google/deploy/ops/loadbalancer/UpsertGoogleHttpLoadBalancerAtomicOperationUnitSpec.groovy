@@ -1318,7 +1318,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         it.sslCertificates == ["https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/sslCertificates/my-cert".toString()]
       }) >> targetHttpsProxiesSetSsl
       1 * targetHttpsProxiesSetSsl.execute() >> targetHttpsProxySetSslOp
-      1 * targetHttpsProxies.setCertificateMap(PROJECT_NAME, targetProxyName, { it.certificateMap == null }) >> targetHttpsProxiesSetCertificateMap
+      1 * targetHttpsProxies.setCertificateMap(PROJECT_NAME, targetProxyName, { it.certificateMap == "" }) >> targetHttpsProxiesSetCertificateMap
       1 * targetHttpsProxiesSetCertificateMap.execute() >> targetHttpsProxyClearCertificateMapOp
       1 * targetHttpsProxies.setUrlMap(PROJECT_NAME, targetProxyName, { it.urlMap == urlMapUrl }) >> targetHttpsProxiesSetUrlMap
       1 * targetHttpsProxiesSetUrlMap.execute() >> targetHttpsProxySetUrlMapOp
