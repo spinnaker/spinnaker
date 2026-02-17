@@ -159,7 +159,12 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
         listener.detail = freeFormDetails;
         listener.created = true;
         listener.certificate = listener.certificate || null;
+        // Normalize certificateMap from the full Certificate Manager URL returned by the server
+        // (e.g. //certificatemanager.googleapis.com/projects/p/locations/global/certificateMaps/cm)
+        // to its short resource name. This mirrors getCertificateMapName in listener.component.js.
         listener.certificateMap = listener.certificateMap ? _.last(listener.certificateMap.split('/')) : null;
+        // Infer certificateSource for listeners deserialized from LBs created before this field
+        // existed. The presence of certificateMap implies certificateMap mode.
         listener.certificateSource = listener.certificateMap ? 'certificateMap' : 'certificate';
       });
 

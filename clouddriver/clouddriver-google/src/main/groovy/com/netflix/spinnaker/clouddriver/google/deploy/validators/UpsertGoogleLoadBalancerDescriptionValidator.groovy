@@ -182,7 +182,8 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.SSL:
-        // SSL proxy load balancers use TargetSslProxy, which does not support certificateMap.
+        // TargetSslProxy does not expose a certificateMap field; only TargetHttpsProxy does.
+        // See: https://cloud.google.com/compute/docs/reference/rest/v1/targetSslProxies
         if (description.certificateMap) {
           errors.rejectValue("certificateMap",
             "upsertGoogleLoadBalancerDescription.certificateMap.notSupported")

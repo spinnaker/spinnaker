@@ -487,7 +487,9 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           task.updateStatus BASE_PHASE, "Updating target proxy $targetProxyName..."
           if (httpLoadBalancer.certificateMap) {
             def certificateMapName = getCertificateMapName(httpLoadBalancer.certificateMap)
-            // Global external/classic HTTPS proxies use setCertificateMap for certificate-map writes.
+            // Setting certificateMap makes sslCertificates inert — certificateMap takes precedence
+            // per GCP API docs, so there is no need to clear sslCertificates on cert-to-map migration.
+            // See: https://cloud.google.com/compute/docs/reference/rest/v1/targetHttpsProxies
             TargetHttpsProxiesSetCertificateMapRequest setCertificateMapReq = new TargetHttpsProxiesSetCertificateMapRequest(
               certificateMap: GCEUtil.buildCertificateMapUrl(project, certificateMapName),
             )
@@ -511,6 +513,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
             // shouldClearCertificateMap checks if the existing proxy had a map that now needs removal.
             if (shouldClearCertificateMap(existingCertificateMapOnProxy, null)) {
               // Clear stale certificateMap so direct sslCertificates become authoritative again.
+              // GenericJson serialization skips null @Key fields, so an empty string is required
+              // to produce {"certificateMap":""} in the request body; a null field would serialize
+              // to {} and the GCP endpoint would not clear the association.
+              // See: https://cloud.google.com/compute/docs/reference/rest/v1/targetHttpsProxies/setCertificateMap
               TargetHttpsProxiesSetCertificateMapRequest clearCertificateMapReq = new TargetHttpsProxiesSetCertificateMapRequest(
                 certificateMap: "",
               )

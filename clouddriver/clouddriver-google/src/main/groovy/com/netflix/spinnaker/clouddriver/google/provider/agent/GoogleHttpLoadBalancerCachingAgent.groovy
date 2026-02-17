@@ -270,7 +270,11 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
 
     @Override
     void onSuccess(TargetHttpsProxy targetHttpsProxy, HttpHeaders responseHeaders) throws IOException {
-      // sslCertificates may be unset when the proxy is configured with certificateMap.
+      // When certificateMap is set on a TargetHttpsProxy, the GCP API may return an empty or
+      // absent sslCertificates list because certificateMap takes precedence over sslCertificates.
+      // See: https://cloud.google.com/compute/docs/reference/rest/v1/targetHttpsProxies
+      // The certificateMap URL returned by the API is normalized to its local name so it matches
+      // the short-name form used in the deploy/update paths (GCEUtil.buildCertificateMapUrl).
       googleLoadBalancer.certificate = getFirstSslCertificateName(targetHttpsProxy)
       googleLoadBalancer.certificateMap = Utils.getLocalName(targetHttpsProxy?.getCertificateMap())
 

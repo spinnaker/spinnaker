@@ -970,6 +970,10 @@ class GCEUtil {
     throw new GoogleResourceNotFoundException(errorMsg)
   }
 
+  // Extracts the trailing resource name from a full GCP URL. Works for both Compute API URLs
+  // (https://compute.googleapis.com/compute/v1/projects/…) and Certificate Manager URLs
+  // (//certificatemanager.googleapis.com/projects/…/certificateMaps/my-map) because both
+  // place the resource name as the final path segment.
   public static String getLocalName(String fullUrl) {
     if (!fullUrl) {
       return fullUrl
