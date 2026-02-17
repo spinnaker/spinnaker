@@ -21,54 +21,63 @@ import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @Data
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 @ConfigurationProperties(prefix = "ok-http-client")
 public class OkHttpClientConfigurationProperties {
-  private long connectTimeoutMs = 5000;
-  private long readTimeoutMs = 120000;
-  private int maxRequests = 100;
-  private int maxRequestsPerHost = 100;
+  @Builder.Default private long connectTimeoutMs = 5000;
+  @Builder.Default private long readTimeoutMs = 120000;
+  @Builder.Default private int maxRequests = 100;
+  @Builder.Default private int maxRequestsPerHost = 100;
 
   /**
    * Whether to propagate headers to outgoing HTTP requests. If false, no headers are propagated.
    * Not X-SPINNAKER-*, not additionalHeaders.
    */
-  private boolean propagateSpinnakerHeaders = true;
+  @Builder.Default private boolean propagateSpinnakerHeaders = true;
 
   /**
    * Determines whether to skip the correction of partial encoding done by Retrofit2. Refer
    * https://github.com/spinnaker/spinnaker/issues/7021 for more details
    */
-  private boolean skipRetrofit2EncodeCorrection = false;
+  @Builder.Default private boolean skipRetrofit2EncodeCorrection = false;
 
   /**
    * Headers to propagate from the MDC, in addition to the X-SPINNAKER-* headers. Each element whose
    * the value in the MDC is non-empty is included in outgoing HTTP requests.
    */
-  private List<String> additionalHeaders = new ArrayList<>();
+  @Builder.Default private List<String> additionalHeaders = new ArrayList<>();
 
   /**
    * true to omit the root execution id header from outgoing HTTP requests. false to include it (if
    * it's present in the MDC).
    */
-  private boolean skipRootExecutionIdHeader = false;
+  @Builder.Default private boolean skipRootExecutionIdHeader = false;
 
   private File keyStore;
-  private String keyStoreType = "PKCS12";
-  private String keyStorePassword = "changeit";
+  @Builder.Default private String keyStoreType = "PKCS12";
+  @Builder.Default private String keyStorePassword = "changeit";
 
   private File trustStore;
-  private String trustStoreType = "PKCS12";
-  private String trustStorePassword = "changeit";
+  @Builder.Default private String trustStoreType = "PKCS12";
+  @Builder.Default private String trustStorePassword = "changeit";
 
-  private String secureRandomInstanceType = "NativePRNGNonBlocking";
+  @Builder.Default private String secureRandomInstanceType = "NativePRNGNonBlocking";
+
   // TLS1.1 isn't supported in newer JVMs... do NOT try to add back - it's also insecure
+  @Builder.Default
   private List<String> tlsVersions = new ArrayList<>(List.of("TLSv1.3", "TLSv1.2"));
-  private List<String> cipherSuites = CipherSuites.getRecommendedCiphers();
+
+  @Builder.Default private List<String> cipherSuites = CipherSuites.getRecommendedCiphers();
 
   /** Provide backwards compatibility for 'okHttpClient.connectTimoutMs' */
   public void setConnectTimoutMs(long connectTimeoutMs) {
@@ -76,25 +85,43 @@ public class OkHttpClientConfigurationProperties {
   }
 
   @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder(toBuilder = true)
   public static class ConnectionPoolProperties {
-    private int maxIdleConnections = 15;
-    private int keepAliveDurationMs = 30000;
+    @Builder.Default private int maxIdleConnections = 15;
+    @Builder.Default private int keepAliveDurationMs = 30000;
   }
 
-  @NestedConfigurationProperty
+  @NestedConfigurationProperty @Builder.Default
   private ConnectionPoolProperties connectionPool = new ConnectionPoolProperties();
 
-  private boolean retryOnConnectionFailure = true;
+  @Builder.Default private boolean retryOnConnectionFailure = true;
 
   /**
    * Configuration properties for supporting refreshable keys. When this is enabled, the configured
    * keystore file will be periodically reloaded if the file changes.
    */
   @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Builder(toBuilder = true)
   public static class RefreshableKeys {
-    private boolean enabled = false;
-    private Duration refreshPeriod = Duration.ofMinutes(30);
+    @Builder.Default private boolean enabled = false;
+    @Builder.Default private Duration refreshPeriod = Duration.ofMinutes(30);
   }
 
-  @NestedConfigurationProperty private RefreshableKeys refreshableKeys = new RefreshableKeys();
+  @NestedConfigurationProperty @Builder.Default
+  private RefreshableKeys refreshableKeys = new RefreshableKeys();
+
+  /** Return a deep copy of this OkHttpClientConfigurationProperties object. */
+  public OkHttpClientConfigurationProperties deepCopy() {
+    return this.toBuilder()
+        .additionalHeaders(new ArrayList<>(this.additionalHeaders))
+        .tlsVersions(new ArrayList<>(this.tlsVersions))
+        .cipherSuites(new ArrayList<>(this.cipherSuites))
+        .connectionPool(this.connectionPool.toBuilder().build())
+        .refreshableKeys(this.refreshableKeys.toBuilder().build())
+        .build();
+  }
 }
