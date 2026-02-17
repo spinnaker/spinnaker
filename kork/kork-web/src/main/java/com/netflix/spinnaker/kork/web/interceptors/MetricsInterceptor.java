@@ -53,7 +53,9 @@ public class MetricsInterceptor implements HandlerInterceptor {
   private final Set<String> queryParamsToTag = new HashSet<String>();
   private final Set<String> controllersToExclude = new HashSet<String>();
 
-  /** @deprecated Instead use the other constructor. */
+  /**
+   * @deprecated Instead use the other constructor.
+   */
   @Deprecated
   public MetricsInterceptor(
       Registry registry,

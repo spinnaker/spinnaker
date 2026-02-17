@@ -24,13 +24,19 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public abstract class AbstractECSDescription extends AbstractAmazonCredentialsDescription {
-  /** @deprecated This field is deprecated in favour of [moniker.app] */
+  /**
+   * @deprecated This field is deprecated in favour of [moniker.app]
+   */
   @Deprecated String application;
 
-  /** @deprecated This field is deprecated in favour of [moniker.stack] */
+  /**
+   * @deprecated This field is deprecated in favour of [moniker.stack]
+   */
   @Deprecated String stack;
 
-  /** @deprecated This field is deprecated in favour of [moniker.detail] */
+  /**
+   * @deprecated This field is deprecated in favour of [moniker.detail]
+   */
   @Deprecated String freeFormDetails;
 
   String region;
