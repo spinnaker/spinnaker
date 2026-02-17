@@ -1123,41 +1123,53 @@ public class BasicGoogleDeployHandler
    */
   protected void setInstanceFlexibilityPolicyToInstanceGroup(
       BasicGoogleDeployDescription description, InstanceGroupManager instanceGroupManager) {
-    if (description.getInstanceFlexibilityPolicy() != null
-        && description.getInstanceFlexibilityPolicy().getInstanceSelections() != null
-        && !description.getInstanceFlexibilityPolicy().getInstanceSelections().isEmpty()) {
-      int totalEntries = description.getInstanceFlexibilityPolicy().getInstanceSelections().size();
-      Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> selections =
-          description.getInstanceFlexibilityPolicy().getInstanceSelections().entrySet().stream()
-              .filter(entry -> entry.getKey() != null)
-              .filter(entry -> entry.getValue() != null)
-              .filter(entry -> entry.getValue().getRank() != null)
-              .filter(entry -> !CollectionUtils.isEmpty(entry.getValue().getMachineTypes()))
-              .collect(
-                  Collectors.toMap(
-                      Map.Entry::getKey,
-                      entry ->
-                          new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
-                              .setRank(entry.getValue().getRank())
-                              .setMachineTypes(entry.getValue().getMachineTypes())));
-      int droppedEntries = totalEntries - selections.size();
-      if (droppedEntries > 0) {
-        log.warn(
-            "Dropped {} of {} instance flexibility selections due to null key, null value, "
-                + "missing rank, or empty machineTypes",
-            droppedEntries,
-            totalEntries);
-      }
-      if (selections.isEmpty()) {
-        return;
-      }
-      InstanceGroupManagerInstanceFlexibilityPolicy flexPolicy =
-          new InstanceGroupManagerInstanceFlexibilityPolicy();
-      flexPolicy.setInstanceSelections(selections);
-      instanceGroupManager.setInstanceFlexibilityPolicy(flexPolicy);
-      log.debug(
-          "Configured instance flexibility policy with {} selection groups", selections.size());
+    if (description.getInstanceFlexibilityPolicy() == null) {
+      return;
     }
+    if (!Boolean.TRUE.equals(description.getRegional())) {
+      log.warn(
+          "Instance flexibility policy is only supported for regional MIGs; skipping for {}",
+          description.getApplication());
+      return;
+    }
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        rawSelections = description.getInstanceFlexibilityPolicy().getInstanceSelections();
+    if (rawSelections == null || rawSelections.isEmpty()) {
+      return;
+    }
+    int totalEntries = rawSelections.size();
+    Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> selections =
+        rawSelections.entrySet().stream()
+            .filter(entry -> entry.getKey() != null)
+            .filter(entry -> entry.getValue() != null)
+            .filter(entry -> entry.getValue().getRank() != null)
+            .filter(entry -> !CollectionUtils.isEmpty(entry.getValue().getMachineTypes()))
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    entry ->
+                        new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+                            .setRank(entry.getValue().getRank())
+                            .setMachineTypes(entry.getValue().getMachineTypes())));
+    int droppedEntries = totalEntries - selections.size();
+    if (droppedEntries > 0) {
+      log.warn(
+          "Dropped {} of {} instance flexibility selections due to null key, null value, "
+              + "missing rank, or empty machineTypes",
+          droppedEntries,
+          totalEntries);
+    }
+    if (selections.isEmpty()) {
+      return;
+    }
+    InstanceGroupManagerInstanceFlexibilityPolicy flexPolicy =
+        new InstanceGroupManagerInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(selections);
+    instanceGroupManager.setInstanceFlexibilityPolicy(flexPolicy);
+    log.debug("Configured instance flexibility policy with {} selection groups", selections.size());
   }
 
   private void updateBackendServices(

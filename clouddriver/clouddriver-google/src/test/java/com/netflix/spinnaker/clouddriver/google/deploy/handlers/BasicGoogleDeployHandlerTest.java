@@ -2262,6 +2262,7 @@ public class BasicGoogleDeployHandlerTest {
   void testSetInstanceFlexibilityPolicyToInstanceGroup_mapsValidSelectionsOnly() {
     InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
     BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setRegional(true);
 
     com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection
         selection =
@@ -2332,6 +2333,7 @@ public class BasicGoogleDeployHandlerTest {
       testSetInstanceFlexibilityPolicyToInstanceGroup_allMalformedSelections_doesNotModifyInstanceGroup() {
     InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
     BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setRegional(true);
 
     Map<
             String,
@@ -2351,6 +2353,38 @@ public class BasicGoogleDeployHandlerTest {
         "emptyMachineTypes",
         new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
             .InstanceSelection(2, Collections.emptyList()));
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy flexPolicy =
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(selections);
+    description.setInstanceFlexibilityPolicy(flexPolicy);
+
+    basicGoogleDeployHandler.setInstanceFlexibilityPolicyToInstanceGroup(
+        description, instanceGroupManager);
+
+    assertNull(instanceGroupManager.getInstanceFlexibilityPolicy());
+  }
+
+  @Test
+  void testSetInstanceFlexibilityPolicyToInstanceGroup_nonRegional_doesNotModifyInstanceGroup() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setRegional(false);
+    description.setApplication("myapp");
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection
+        selection =
+            new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection();
+    selection.setRank(1);
+    selection.setMachineTypes(List.of("n2-standard-8"));
+
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        selections = new HashMap<>();
+    selections.put("preferred", selection);
 
     com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy flexPolicy =
         new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy();
