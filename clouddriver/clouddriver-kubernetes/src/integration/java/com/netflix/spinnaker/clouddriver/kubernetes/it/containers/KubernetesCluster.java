@@ -165,7 +165,7 @@ public class KubernetesCluster {
     if (!kubectl.toFile().exists()) {
       String url =
           String.format(
-              "https://cdn.dl.k8s.io/release/v%s/bin/%s/%s/kubectl", KUBECTL_VERSION, os, arch);
+              "https://dl.k8s.io/release/v%s/bin/%s/%s/kubectl", KUBECTL_VERSION, os, arch);
       System.out.println("Downloading kubectl from " + url);
       downloadFile(kubectl, url);
     }
